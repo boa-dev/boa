@@ -1422,7 +1422,10 @@ fn date_json() -> Result<(), Box<dyn std::error::Error>> {
         "JSON.stringify({ date: new Date(Date.UTC(2020, 06, 08, 09, 16, 15, 779)) })",
     )
     .expect("Successful eval");
-    assert_eq!(Value::number(1594199775779f64), actual);
+    assert_eq!(
+        Value::string(r#"{"date":"2020-07-08T09:16:15.779Z"}"#),
+        actual
+    );
 
     Ok(())
 }

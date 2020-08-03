@@ -56,7 +56,6 @@ impl Value {
                 }
             }
             Self::BigInt(_) => Type::BigInt,
-            Self::Date(_) => Type::Date,
         }
     }
 }

@@ -249,22 +249,12 @@ impl Date {
     /// [spec]: https://tc39.es/ecma262/#sec-thistimevalue
     #[inline]
     fn this_time_value(value: &Value, ctx: &mut Interpreter) -> Result<Date, Value> {
-        match value {
-            // 1. If Type(value) is Date, return value.
-            Value::Date(ref date) => Ok(date.clone()),
-
-            // 2. If Type(value) is Object and value has a [[DateData]] internal slot, then
-            //    a. Assert: Type(value.[[DateData]]) is Date.
-            //    b. Return value.[[DateData]].
-            Value::Object(ref object) => {
-                if let ObjectData::Date(ref date) = object.borrow().data {
-                    Ok(date.clone())
-                } else {
-                    Err(ctx.construct_type_error("'this' is not a Date"))
-                }
+        if let Value::Object(ref object) = value {
+            if let ObjectData::Date(ref date) = object.borrow().data {
+                return Ok(date.clone());
             }
-            _ => Err(ctx.construct_type_error("'this' is not a Date")),
         }
+        Err(ctx.construct_type_error("'this' is not a Date"))
     }
 
     /// `Date()`
@@ -316,7 +306,7 @@ impl Date {
     pub(crate) fn make_date_now(this: &Value) -> ResultValue {
         let date = Date::default();
         this.set_data(ObjectData::Date(date));
-        Ok(Value::from(date))
+        Ok(this.clone())
     }
 
     /// `Date(value)`
@@ -353,7 +343,7 @@ impl Date {
 
         let date = Date(tv);
         this.set_data(ObjectData::Date(date));
-        Ok(Value::from(date))
+        Ok(this.clone())
     }
 
     /// `Date(year, month [ , date [ , hours [ , minutes [ , seconds [ , ms ] ] ] ] ])`
@@ -383,7 +373,7 @@ impl Date {
         if !check_normal_opt!(year, month, day, hour, min, sec, milli) {
             let date = Date(None);
             this.set_data(ObjectData::Date(date));
-            return Ok(Value::from(date));
+            return Ok(this.clone());
         }
 
         let year = year as i32;
@@ -407,7 +397,7 @@ impl Date {
 
         let date = Date(final_date);
         this.set_data(ObjectData::Date(date));
-        Ok(Value::from(date))
+        Ok(this.clone())
     }
 
     getter_method! {

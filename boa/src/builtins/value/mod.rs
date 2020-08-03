@@ -13,7 +13,7 @@ use crate::builtins::{
     function::Function,
     object::{GcObject, InternalState, InternalStateCell, Object, ObjectData, PROTOTYPE},
     property::{Attribute, Property, PropertyKey},
-    BigInt, Date, Symbol,
+    BigInt, Symbol,
 };
 use crate::exec::Interpreter;
 use crate::BoaProfiler;
@@ -71,8 +71,6 @@ pub enum Value {
     Object(GcObject),
     /// `Symbol` - A Symbol Primitive type.
     Symbol(RcSymbol),
-    /// `Date` - A Date type.
-    Date(Date),
 }
 
 impl Value {
@@ -155,12 +153,6 @@ impl Value {
     #[inline]
     pub(crate) fn symbol(symbol: Symbol) -> Self {
         Self::Symbol(RcSymbol::from(symbol))
-    }
-
-    /// Creates a new date value.
-    #[inline]
-    pub(crate) fn date(date: Date) -> Self {
-        Self::Date(date)
     }
 
     /// Helper function to convert the `Value` to a number and compute its power.
@@ -249,6 +241,12 @@ impl Value {
 
     /// Converts the `Value` to `JSON`.
     pub fn to_json(&self, interpreter: &mut Interpreter) -> Result<JSONValue, Value> {
+        let to_json = self.get_field("toJSON");
+        if to_json.is_function() {
+            let json_value = interpreter.call(&to_json, self, &[])?;
+            return json_value.to_json(interpreter);
+        }
+
         match *self {
             Self::Null => Ok(JSONValue::Null),
             Self::Boolean(b) => Ok(JSONValue::Bool(b)),
@@ -289,7 +287,6 @@ impl Value {
             Self::Symbol(_) | Self::Undefined => {
                 unreachable!("Symbols and Undefined JSON Values depend on parent type");
             }
-            Self::Date(ref dt) => Ok(JSONValue::String(dt.to_json_string())),
         }
     }
 
@@ -453,7 +450,6 @@ impl Value {
             Self::BigInt(_) => {
                 panic!("TypeError: Cannot mix BigInt and other types, use explicit conversions")
             }
-            Self::Date(ref dt) => dt.timestamp(),
         }
     }
 
@@ -475,7 +471,6 @@ impl Value {
             Self::BigInt(_) => {
                 panic!("TypeError: Cannot mix BigInt and other types, use explicit conversions")
             }
-            Self::Date(ref dt) => dt.timestamp() as i32,
         }
     }
 

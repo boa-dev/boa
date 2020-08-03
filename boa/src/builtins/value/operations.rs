@@ -382,9 +382,13 @@ impl Value {
     }
 
     #[inline]
-    pub fn neg(&self, _: &mut Interpreter) -> ResultValue {
+    pub fn neg(&self, interpreter: &mut Interpreter) -> ResultValue {
         Ok(match *self {
-            Self::Object(_) | Self::Symbol(_) | Self::Undefined => Self::rational(NAN),
+            Self::Symbol(_) | Self::Undefined => Self::rational(NAN),
+            Self::Object(_) => Self::rational(match interpreter.to_numeric_number(self) {
+                Ok(num) => -num,
+                Err(_) => NAN,
+            }),
             Self::String(ref str) => Self::rational(match f64::from_str(str) {
                 Ok(num) => -num,
                 Err(_) => NAN,
@@ -394,7 +398,6 @@ impl Value {
             Self::Boolean(true) => Self::integer(1),
             Self::Boolean(false) | Self::Null => Self::integer(0),
             Self::BigInt(ref num) => Self::bigint(-num.as_inner().clone()),
-            Self::Date(ref dt) => Self::number(-dt.timestamp()),
         })
     }
 
