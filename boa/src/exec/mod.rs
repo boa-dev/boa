@@ -23,11 +23,12 @@ mod throw;
 mod try_node;
 
 use crate::{
+    builtins,
     builtins::{
         function::{Function as FunctionObject, FunctionBody, ThisMode},
         number::{f64_to_int32, f64_to_uint32},
-        object::{Object, ObjectData, INSTANCE_PROTOTYPE, PROTOTYPE},
-        property::Property,
+        object::{Object, ObjectData, PROTOTYPE},
+        property::PropertyKey,
         value::{RcBigInt, RcString, ResultValue, Type, Value},
         BigInt, Console, Number,
     },
@@ -38,6 +39,7 @@ use crate::{
     },
     BoaProfiler,
 };
+use std::borrow::Borrow;
 use std::convert::TryFrom;
 use std::ops::Deref;
 
@@ -78,12 +80,25 @@ pub struct Interpreter {
 impl Interpreter {
     /// Creates a new interpreter.
     pub fn new(realm: Realm) -> Self {
-        Self {
+        let mut interpreter = Self {
             state: InterpreterState::Executing,
             realm,
             symbol_count: 0,
             console: Console::default(),
-        }
+        };
+
+        // Add new builtIns to Interpreter Realm
+        // At a later date this can be removed from here and called explicitly, but for now we almost always want these default builtins
+        interpreter.create_intrinsics();
+
+        interpreter
+    }
+
+    /// Sets up the default global objects within Global
+    fn create_intrinsics(&mut self) {
+        let _timer = BoaProfiler::global().start_event("create_intrinsics", "interpreter");
+        // Create intrinsics, add global objects here
+        builtins::init(self);
     }
 
     /// Retrieves the `Realm` of this executor.
@@ -96,6 +111,12 @@ impl Interpreter {
     #[inline]
     pub(crate) fn realm_mut(&mut self) -> &mut Realm {
         &mut self.realm
+    }
+
+    /// Retrieves the global object of the `Realm` of this executor.
+    #[inline]
+    pub(crate) fn global(&self) -> &Value {
+        &self.realm.global_obj
     }
 
     /// Generates a new `Symbol` internal hash.
@@ -121,7 +142,7 @@ impl Interpreter {
         P: Into<Box<[FormalParameter]>>,
         B: Into<StatementList>,
     {
-        let function_prototype = &self
+        let function_prototype = self
             .realm
             .environment
             .get_global_object()
@@ -148,10 +169,9 @@ impl Interpreter {
             callable,
         );
 
-        let new_func = Object::function(func);
+        let new_func = Object::function(func, function_prototype);
 
         let val = Value::from(new_func);
-        val.set_internal_slot(INSTANCE_PROTOTYPE, function_prototype.clone());
         val.set_field(PROTOTYPE, proto);
         val.set_field("length", Value::from(params_len));
 
@@ -377,6 +397,37 @@ impl Interpreter {
                     .collect();
                 return Ok(values);
             }
+            // Check if object is a Map
+            else if let ObjectData::Map(ref map) = x.deref().borrow().data {
+                let values = map
+                    .borrow()
+                    .iter()
+                    .map(|(key, value)| {
+                        // Construct a new array containing the key-value pair
+                        let array = Value::new_object(Some(
+                            &self
+                                .realm()
+                                .environment
+                                .get_global_object()
+                                .expect("Could not get global object"),
+                        ));
+                        array.set_data(ObjectData::Array);
+                        array.as_object_mut().expect("object").set_prototype(
+                            self.realm()
+                                .environment
+                                .get_binding_value("Array")
+                                .expect("Array was not initialized")
+                                .borrow()
+                                .get_field(PROTOTYPE),
+                        );
+                        array.set_field("0", key);
+                        array.set_field("1", value);
+                        array.set_field("length", Value::from(2));
+                        array
+                    })
+                    .collect();
+                return Ok(values);
+            }
 
             return Err(());
         }
@@ -458,23 +509,20 @@ impl Interpreter {
     ///
     /// https://tc39.es/ecma262/#sec-topropertykey
     #[allow(clippy::wrong_self_convention)]
-    pub(crate) fn to_property_key(&mut self, value: &Value) -> ResultValue {
+    pub(crate) fn to_property_key(&mut self, value: &Value) -> Result<PropertyKey, Value> {
         let key = self.to_primitive(value, PreferredType::String)?;
-        if key.is_symbol() {
-            Ok(key)
+        if let Value::Symbol(ref symbol) = key {
+            Ok(PropertyKey::from(symbol.clone()))
         } else {
-            self.to_string(&key).map(Value::from)
+            let string = self.to_string(&key)?;
+            Ok(PropertyKey::from(string))
         }
     }
 
     /// https://tc39.es/ecma262/#sec-hasproperty
-    pub(crate) fn has_property(&self, obj: &Value, key: &Value) -> bool {
+    pub(crate) fn has_property(&self, obj: &Value, key: &PropertyKey) -> bool {
         if let Some(obj) = obj.as_object() {
-            if !Property::is_property_key(key) {
-                false
-            } else {
-                obj.has_property(key)
-            }
+            obj.has_property(key)
         } else {
             false
         }
@@ -579,10 +627,11 @@ impl Interpreter {
                 .obj()
                 .run(self)?
                 .set_field(get_const_field_node.field(), value)),
-            Node::GetField(ref get_field) => Ok(get_field
-                .obj()
-                .run(self)?
-                .set_field(get_field.field().run(self)?, value)),
+            Node::GetField(ref get_field) => {
+                let field = get_field.field().run(self)?;
+                let key = self.to_property_key(&field)?;
+                Ok(get_field.obj().run(self)?.set_field(key, value))
+            }
             _ => panic!("TypeError: invalid assignment to {}", node),
         }
     }

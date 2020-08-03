@@ -16,9 +16,10 @@
 use crate::{
     builtins::{
         function::Function,
+        map::ordered_map::OrderedMap,
         property::Property,
         value::{RcBigInt, RcString, RcSymbol, ResultValue, Value},
-        BigInt,
+        BigInt, RegExp,
     },
     exec::Interpreter,
     BoaProfiler,
@@ -43,20 +44,20 @@ mod tests;
 /// Static `prototype`, usually set on constructors as a key to point to their respective prototype object.
 pub static PROTOTYPE: &str = "prototype";
 
-/// Static `__proto__`, usually set on Object instances as a key to point to their respective prototype object.
-pub static INSTANCE_PROTOTYPE: &str = "__proto__";
+// /// Static `__proto__`, usually set on Object instances as a key to point to their respective prototype object.
+// pub static INSTANCE_PROTOTYPE: &str = "__proto__";
 
 /// The internal representation of an JavaScript object.
 #[derive(Debug, Trace, Finalize, Clone)]
 pub struct Object {
     /// The type of the object.
     pub data: ObjectData,
-    /// Internal Slots
-    internal_slots: FxHashMap<String, Value>,
     /// Properties
     properties: FxHashMap<RcString, Property>,
     /// Symbol Properties
     symbol_properties: FxHashMap<u32, Property>,
+    /// Instance prototype `__proto__`.
+    prototype: Value,
     /// Some rust object that stores internal state
     state: Option<InternalStateCell>,
     /// Whether it can have new properties added to it.
@@ -67,6 +68,8 @@ pub struct Object {
 #[derive(Debug, Trace, Finalize, Clone)]
 pub enum ObjectData {
     Array,
+    Map(OrderedMap<Value, Value>),
+    RegExp(RegExp),
     BigInt(RcBigInt),
     Boolean(bool),
     Function(Function),
@@ -83,8 +86,10 @@ impl Display for ObjectData {
             f,
             "{}",
             match self {
-                Self::Function(_) => "Function",
                 Self::Array => "Array",
+                Self::Function(_) => "Function",
+                Self::RegExp(_) => "RegExp",
+                Self::Map(_) => "Map",
                 Self::String(_) => "String",
                 Self::Symbol(_) => "Symbol",
                 Self::Error => "Error",
@@ -103,9 +108,9 @@ impl Default for Object {
     fn default() -> Self {
         Self {
             data: ObjectData::Ordinary,
-            internal_slots: FxHashMap::default(),
             properties: FxHashMap::default(),
             symbol_properties: FxHashMap::default(),
+            prototype: Value::null(),
             state: None,
             extensible: true,
         }
@@ -119,14 +124,14 @@ impl Object {
     }
 
     /// Return a new ObjectData struct, with `kind` set to Ordinary
-    pub fn function(function: Function) -> Self {
+    pub fn function(function: Function, prototype: Value) -> Self {
         let _timer = BoaProfiler::global().start_event("Object::Function", "object");
 
         Self {
             data: ObjectData::Function(function),
-            internal_slots: FxHashMap::default(),
             properties: FxHashMap::default(),
             symbol_properties: FxHashMap::default(),
+            prototype,
             state: None,
             extensible: true,
         }
@@ -141,8 +146,7 @@ impl Object {
     // TODO: proto should be a &Value here
     pub fn create(proto: Value) -> Self {
         let mut obj = Self::default();
-        obj.internal_slots
-            .insert(INSTANCE_PROTOTYPE.to_string(), proto);
+        obj.prototype = proto;
         obj
     }
 
@@ -150,9 +154,9 @@ impl Object {
     pub fn boolean(value: bool) -> Self {
         Self {
             data: ObjectData::Boolean(value),
-            internal_slots: FxHashMap::default(),
             properties: FxHashMap::default(),
             symbol_properties: FxHashMap::default(),
+            prototype: Value::null(),
             state: None,
             extensible: true,
         }
@@ -162,9 +166,9 @@ impl Object {
     pub fn number(value: f64) -> Self {
         Self {
             data: ObjectData::Number(value),
-            internal_slots: FxHashMap::default(),
             properties: FxHashMap::default(),
             symbol_properties: FxHashMap::default(),
+            prototype: Value::null(),
             state: None,
             extensible: true,
         }
@@ -177,9 +181,9 @@ impl Object {
     {
         Self {
             data: ObjectData::String(value.into()),
-            internal_slots: FxHashMap::default(),
             properties: FxHashMap::default(),
             symbol_properties: FxHashMap::default(),
+            prototype: Value::null(),
             state: None,
             extensible: true,
         }
@@ -189,9 +193,9 @@ impl Object {
     pub fn bigint(value: RcBigInt) -> Self {
         Self {
             data: ObjectData::BigInt(value),
-            internal_slots: FxHashMap::default(),
             properties: FxHashMap::default(),
             symbol_properties: FxHashMap::default(),
+            prototype: Value::null(),
             state: None,
             extensible: true,
         }
@@ -247,6 +251,28 @@ impl Object {
     pub fn as_array(&self) -> Option<()> {
         match self.data {
             ObjectData::Array => Some(()),
+            _ => None,
+        }
+    }
+
+    /// Checks if it is a `Map` object.pub
+    #[inline]
+    pub fn is_map(&self) -> bool {
+        matches!(self.data, ObjectData::Map(_))
+    }
+
+    #[inline]
+    pub fn as_map_ref(&self) -> Option<&OrderedMap<Value, Value>> {
+        match self.data {
+            ObjectData::Map(ref map) => Some(map),
+            _ => None,
+        }
+    }
+
+    #[inline]
+    pub fn as_map_mut(&mut self) -> Option<&mut OrderedMap<Value, Value>> {
+        match &mut self.data {
+            ObjectData::Map(map) => Some(map),
             _ => None,
         }
     }
@@ -349,20 +375,24 @@ impl Object {
         }
     }
 
+    /// Checks if it a `RegExp` object.
+    #[inline]
+    pub fn is_regexp(&self) -> bool {
+        matches!(self.data, ObjectData::RegExp(_))
+    }
+
+    #[inline]
+    pub fn as_regexp(&self) -> Option<&RegExp> {
+        match self.data {
+            ObjectData::RegExp(ref regexp) => Some(regexp),
+            _ => None,
+        }
+    }
+
     /// Checks if it an ordinary object.
     #[inline]
     pub fn is_ordinary(&self) -> bool {
         matches!(self.data, ObjectData::Ordinary)
-    }
-
-    #[inline]
-    pub fn internal_slots(&self) -> &FxHashMap<String, Value> {
-        &self.internal_slots
-    }
-
-    #[inline]
-    pub fn internal_slots_mut(&mut self) -> &mut FxHashMap<String, Value> {
-        &mut self.internal_slots
     }
 
     #[inline]
@@ -393,6 +423,15 @@ impl Object {
     #[inline]
     pub fn state_mut(&mut self) -> &mut Option<InternalStateCell> {
         &mut self.state
+    }
+
+    pub fn prototype(&self) -> &Value {
+        &self.prototype
+    }
+
+    pub fn set_prototype(&mut self, prototype: Value) {
+        assert!(prototype.is_null() || prototype.is_object());
+        self.prototype = prototype
     }
 }
 
@@ -451,14 +490,16 @@ pub fn is(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
 /// Get the `prototype` of an object.
 pub fn get_prototype_of(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     let obj = args.get(0).expect("Cannot get object");
-    Ok(obj.get_field(INSTANCE_PROTOTYPE))
+    Ok(obj
+        .as_object()
+        .map_or_else(Value::undefined, |object| object.prototype.clone()))
 }
 
 /// Set the `prototype` of an object.
 pub fn set_prototype_of(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
     let obj = args.get(0).expect("Cannot get object").clone();
     let proto = args.get(1).expect("Cannot get object").clone();
-    obj.set_internal_slot(INSTANCE_PROTOTYPE, proto);
+    obj.as_object_mut().unwrap().prototype = proto;
     Ok(obj)
 }
 
@@ -506,7 +547,7 @@ pub fn has_own_property(this: &Value, args: &[Value], ctx: &mut Interpreter) -> 
         .as_object()
         .as_deref()
         .expect("Cannot get THIS object")
-        .get_own_property(&Value::string(prop.expect("cannot get prop")));
+        .get_own_property(&prop.expect("cannot get prop").into());
     if own_property.is_none() {
         Ok(Value::from(false))
     } else {
@@ -528,13 +569,14 @@ pub fn property_is_enumerable(this: &Value, args: &[Value], ctx: &mut Interprete
     });
 
     Ok(own_property.map_or(Value::from(false), |own_prop| {
-        Value::from(own_prop.enumerable.unwrap_or(false))
+        Value::from(own_prop.enumerable_or(false))
     }))
 }
 
 /// Initialise the `Object` object on the global object.
 #[inline]
-pub fn init(global: &Value) -> (&str, Value) {
+pub fn init(interpreter: &mut Interpreter) -> (&'static str, Value) {
+    let global = interpreter.global();
     let _timer = BoaProfiler::global().start_event("object", "init");
 
     let prototype = Value::new_object(None);
@@ -548,7 +590,7 @@ pub fn init(global: &Value) -> (&str, Value) {
     );
     make_builtin_fn(to_string, "toString", &prototype, 0);
 
-    let object = make_constructor_fn("Object", 1, make_object, global, prototype, true);
+    let object = make_constructor_fn("Object", 1, make_object, global, prototype, true, true);
 
     // static methods of the builtin Object
     make_builtin_fn(create, "create", &object, 2);

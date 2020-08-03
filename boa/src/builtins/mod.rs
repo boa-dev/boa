@@ -9,6 +9,7 @@ pub mod function;
 pub mod global_this;
 pub mod infinity;
 pub mod json;
+pub mod map;
 pub mod math;
 pub mod nan;
 pub mod number;
@@ -29,6 +30,7 @@ pub(crate) use self::{
     global_this::GlobalThis,
     infinity::Infinity,
     json::Json,
+    map::Map,
     math::Math,
     nan::NaN,
     number::Number,
@@ -38,10 +40,11 @@ pub(crate) use self::{
     undefined::Undefined,
     value::{ResultValue, Value},
 };
+use crate::Interpreter;
 
 /// Initializes builtin objects and functions
 #[inline]
-pub fn init(global: &Value) {
+pub fn init(interpreter: &mut Interpreter) {
     let globals = [
         // The `Function` global must be initialized before other types.
         function::init,
@@ -50,6 +53,7 @@ pub fn init(global: &Value) {
         BigInt::init,
         Boolean::init,
         Json::init,
+        Map::init,
         Math::init,
         Number::init,
         RegExp::init,
@@ -69,13 +73,14 @@ pub fn init(global: &Value) {
         Undefined::init,
     ];
 
-    match global {
-        Value::Object(ref global_object) => {
-            for init in &globals {
-                let (name, value) = init(global);
+    for init in &globals {
+        let (name, value) = init(interpreter);
+        let global = interpreter.global();
+        match global {
+            Value::Object(ref global_object) => {
                 global_object.borrow_mut().insert_field(name, value);
             }
+            _ => unreachable!("expect global object"),
         }
-        _ => unreachable!("expect global object"),
     }
 }

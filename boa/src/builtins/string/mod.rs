@@ -41,6 +41,13 @@ impl String {
     /// The amount of arguments this function object takes.
     pub(crate) const LENGTH: usize = 1;
 
+    ///  JavaScript strings must be between `0` and less than positive `Infinity` and cannot be a negative number.
+    /// The range of allowed values can be described like this: `[0, +∞)`.
+    ///
+    /// The resulting string can also not be larger than the maximum string size,
+    /// which can differ in JavaScript engines. In Boa it is `2^32 - 1`
+    pub(crate) const MAX_STRING_LENGTH: f64 = u32::MAX as f64;
+
     fn this_string_value(this: &Value, ctx: &mut Interpreter) -> Result<RcString, Value> {
         match this {
             Value::String(ref string) => return Ok(string.clone()),
@@ -206,16 +213,27 @@ impl String {
     /// [spec]: https://tc39.es/ecma262/#sec-string.prototype.repeat
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/repeat
     pub(crate) fn repeat(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
-        // First we get it the actual string a private field stored on the object only the engine has access to.
-        // Then we convert it into a Rust String by wrapping it in from_value
-        let primitive_val = ctx.to_string(this)?;
+        let object = ctx.require_object_coercible(this)?;
+        let string = ctx.to_string(object)?;
 
-        let repeat_times = usize::from(
-            args.get(0)
-                .expect("failed to get argument for String method"),
-        );
+        if let Some(arg) = args.get(0) {
+            let n = ctx.to_integer(arg)?;
+            if n < 0.0 {
+                return ctx.throw_range_error("repeat count cannot be a negative number");
+            }
 
-        Ok(Value::from(primitive_val.repeat(repeat_times)))
+            if n.is_infinite() {
+                return ctx.throw_range_error("repeat count cannot be infinity");
+            }
+
+            if n * (string.len() as f64) > Self::MAX_STRING_LENGTH {
+                return ctx
+                    .throw_range_error("repeat count must not overflow maximum string length");
+            }
+            Ok(string.repeat(n as usize).into())
+        } else {
+            Ok("".into())
+        }
     }
 
     /// `String.prototype.slice( beginIndex [, endIndex] )`
@@ -397,11 +415,9 @@ impl String {
             Value::Object(ref obj) => {
                 let obj = obj.borrow();
 
-                if obj.internal_slots().get("RegExpMatcher").is_some() {
+                if let Some(regexp) = obj.as_regexp() {
                     // first argument is another `RegExp` object, so copy its pattern and flags
-                    if let Some(body) = obj.internal_slots().get("OriginalSource") {
-                        return body.to_string();
-                    }
+                    return regexp.original_source.clone();
                 }
                 "undefined".to_string()
             }
@@ -516,9 +532,10 @@ impl String {
 
     /// `String.prototype.indexOf( searchValue[, fromIndex] )`
     ///
-    /// The `indexOf()` method returns the index within the calling `String` object of the first occurrence of the specified value, starting the search at `fromIndex`.
+    /// The `indexOf()` method returns the index within the calling `String` object of the first occurrence
+    /// of the specified value, starting the search at `fromIndex`.
     ///
-    /// Returns -1 if the value is not found.
+    /// Returns `-1` if the value is not found.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -527,47 +544,38 @@ impl String {
     /// [spec]: https://tc39.es/ecma262/#sec-string.prototype.indexof
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/indexOf
     pub(crate) fn index_of(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
-        // First we get it the actual string a private field stored on the object only the engine has access to.
-        // Then we convert it into a Rust String by wrapping it in from_value
-        let primitive_val = ctx.to_string(this)?;
+        let this = ctx.require_object_coercible(this)?;
+        let string = ctx.to_string(this)?;
 
-        // TODO: Should throw TypeError if search_string is regular expression
-        let search_string = ctx.to_string(
-            args.get(0)
-                .expect("failed to get argument for String method"),
-        )?;
+        let search_string =
+            ctx.to_string(&args.get(0).cloned().unwrap_or_else(Value::undefined))?;
 
-        let length = primitive_val.chars().count() as i32;
+        let length = string.chars().count();
+        let start = args
+            .get(1)
+            .map(|position| ctx.to_integer(position))
+            .transpose()?
+            .map_or(0, |position| position.max(0.0).min(length as f64) as usize);
 
-        // If less than 2 args specified, position is 'undefined', defaults to 0
-        let position = if args.len() < 2 {
-            0
-        } else {
-            i32::from(args.get(1).expect("Could not get argument"))
-        };
+        if search_string.is_empty() {
+            return Ok(start.min(length).into());
+        }
 
-        let start = min(max(position, 0), length);
-
-        // Here cannot use the &str method "find", because this returns the byte
-        // index: we need to return the char index in the JS String
-        // Instead, iterate over the part we're checking until the slice we're
-        // checking "starts with" the search string
-        for index in start..length {
-            let this_string: StdString = primitive_val.chars().skip(index as usize).collect();
-            if this_string.starts_with(search_string.as_str()) {
-                // Explicitly return early with the index value
-                return Ok(Value::from(index));
+        if start < length {
+            if let Some(position) = string.find(search_string.as_str()) {
+                return Ok(string[..position].chars().count().into());
             }
         }
-        // Didn't find a match, so return -1
+
         Ok(Value::from(-1))
     }
 
     /// `String.prototype.lastIndexOf( searchValue[, fromIndex] )`
     ///
-    /// The `lastIndexOf()` method returns the index within the calling `String` object of the last occurrence of the specified value, searching backwards from `fromIndex`.
+    /// The `lastIndexOf()` method returns the index within the calling `String` object of the last occurrence
+    /// of the specified value, searching backwards from `fromIndex`.
     ///
-    /// Returns -1 if the value is not found.
+    /// Returns `-1` if the value is not found.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -580,41 +588,30 @@ impl String {
         args: &[Value],
         ctx: &mut Interpreter,
     ) -> ResultValue {
-        // First we get it the actual string a private field stored on the object only the engine has access to.
-        // Then we convert it into a Rust String by wrapping it in from_value
-        let primitive_val = ctx.to_string(this)?;
+        let this = ctx.require_object_coercible(this)?;
+        let string = ctx.to_string(this)?;
 
-        // TODO: Should throw TypeError if search_string is regular expression
-        let search_string = ctx.to_string(
-            args.get(0)
-                .expect("failed to get argument for String method"),
-        )?;
+        let search_string =
+            ctx.to_string(&args.get(0).cloned().unwrap_or_else(Value::undefined))?;
 
-        let length = primitive_val.chars().count() as i32;
+        let length = string.chars().count();
+        let start = args
+            .get(1)
+            .map(|position| ctx.to_integer(position))
+            .transpose()?
+            .map_or(0, |position| position.max(0.0).min(length as f64) as usize);
 
-        // If less than 2 args specified, position is 'undefined', defaults to 0
-        let position = if args.len() < 2 {
-            0
-        } else {
-            i32::from(args.get(1).expect("Could not get argument"))
-        };
+        if search_string.is_empty() {
+            return Ok(start.min(length).into());
+        }
 
-        let start = min(max(position, 0), length);
-
-        // Here cannot use the &str method "rfind", because this returns the last
-        // byte index: we need to return the last char index in the JS String
-        // Instead, iterate over the part we're checking keeping track of the higher
-        // index we found that "starts with" the search string
-        let mut highest_index = -1;
-        for index in start..length {
-            let this_string: StdString = primitive_val.chars().skip(index as usize).collect();
-            if this_string.starts_with(search_string.as_str()) {
-                highest_index = index;
+        if start < length {
+            if let Some(position) = string.rfind(search_string.as_str()) {
+                return Ok(string[..position].chars().count().into());
             }
         }
 
-        // This will still be -1 if no matches were found, else with be >= 0
-        Ok(Value::from(highest_index))
+        Ok(Value::from(-1))
     }
 
     /// `String.prototype.match( regexp )`
@@ -722,6 +719,7 @@ impl String {
     }
 
     /// Helper function to check if a `char` is trimmable.
+    #[inline]
     fn is_trimmable_whitespace(c: char) -> bool {
         // The rust implementation of `trim` does not regard the same characters whitespace as ecma standard does
         //
@@ -753,9 +751,10 @@ impl String {
     /// [spec]: https://tc39.es/ecma262/#sec-string.prototype.trim
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/trim
     pub(crate) fn trim(this: &Value, _: &[Value], ctx: &mut Interpreter) -> ResultValue {
-        let this_str = ctx.to_string(this)?;
+        let this = ctx.require_object_coercible(this)?;
+        let string = ctx.to_string(this)?;
         Ok(Value::from(
-            this_str.trim_matches(Self::is_trimmable_whitespace),
+            string.trim_matches(Self::is_trimmable_whitespace),
         ))
     }
 
@@ -772,9 +771,10 @@ impl String {
     /// [spec]: https://tc39.es/ecma262/#sec-string.prototype.trimstart
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/trimStart
     pub(crate) fn trim_start(this: &Value, _: &[Value], ctx: &mut Interpreter) -> ResultValue {
-        let this_str = ctx.to_string(this)?;
+        let this = ctx.require_object_coercible(this)?;
+        let string = ctx.to_string(this)?;
         Ok(Value::from(
-            this_str.trim_start_matches(Self::is_trimmable_whitespace),
+            string.trim_start_matches(Self::is_trimmable_whitespace),
         ))
     }
 
@@ -791,9 +791,10 @@ impl String {
     /// [spec]: https://tc39.es/ecma262/#sec-string.prototype.trimend
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/trimEnd
     pub(crate) fn trim_end(this: &Value, _: &[Value], ctx: &mut Interpreter) -> ResultValue {
-        let this_str = ctx.to_string(this)?;
+        let this = ctx.require_object_coercible(this)?;
+        let string = ctx.to_string(this)?;
         Ok(Value::from(
-            this_str.trim_end_matches(Self::is_trimmable_whitespace),
+            string.trim_end_matches(Self::is_trimmable_whitespace),
         ))
     }
 
@@ -1001,7 +1002,8 @@ impl String {
 
     /// Initialise the `String` object on the global object.
     #[inline]
-    pub(crate) fn init(global: &Value) -> (&str, Value) {
+    pub(crate) fn init(interpreter: &mut Interpreter) -> (&'static str, Value) {
+        let global = interpreter.global();
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
         // Create `String` `prototype`
@@ -1041,6 +1043,7 @@ impl String {
             Self::make_string,
             global,
             prototype,
+            true,
             true,
         );
 

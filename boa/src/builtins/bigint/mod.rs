@@ -200,7 +200,8 @@ impl BigInt {
 
     /// Initialise the `BigInt` object on the global object.
     #[inline]
-    pub(crate) fn init(global: &Value) -> (&str, Value) {
+    pub fn init(interpreter: &mut Interpreter) -> (&'static str, Value) {
+        let global = interpreter.global();
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
         let prototype = Value::new_object(Some(global));
@@ -215,6 +216,7 @@ impl BigInt {
             global,
             prototype,
             false,
+            true,
         );
 
         make_builtin_fn(Self::as_int_n, "asIntN", &bigint_object, 2);

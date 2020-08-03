@@ -11,11 +11,8 @@ pub use crate::builtins::value::val_type::Type;
 
 use crate::builtins::{
     function::Function,
-    object::{
-        GcObject, InternalState, InternalStateCell, Object, ObjectData, INSTANCE_PROTOTYPE,
-        PROTOTYPE,
-    },
-    property::Property,
+    object::{GcObject, InternalState, InternalStateCell, Object, ObjectData, PROTOTYPE},
+    property::{Attribute, Property, PropertyKey},
     BigInt, Symbol,
 };
 use crate::exec::Interpreter;
@@ -176,11 +173,7 @@ impl Value {
     pub fn new_object_from_prototype(proto: Value, data: ObjectData) -> Self {
         let mut object = Object::default();
         object.data = data;
-
-        object
-            .internal_slots_mut()
-            .insert(INSTANCE_PROTOTYPE.to_string(), proto);
-
+        object.set_prototype(proto);
         Self::object(object)
     }
 
@@ -208,11 +201,10 @@ impl Value {
                 for (idx, json) in vs.into_iter().enumerate() {
                     new_obj.set_property(
                         idx.to_string(),
-                        Property::default()
-                            .value(Self::from_json(json, interpreter))
-                            .writable(true)
-                            .configurable(true)
-                            .enumerable(true),
+                        Property::data_descriptor(
+                            Self::from_json(json, interpreter),
+                            Attribute::WRITABLE | Attribute::ENUMERABLE | Attribute::CONFIGURABLE,
+                        ),
                     );
                 }
                 new_obj.set_property(
@@ -222,16 +214,15 @@ impl Value {
                 new_obj
             }
             JSONValue::Object(obj) => {
-                let new_obj = Value::new_object(Some(&interpreter.realm.global_obj));
+                let new_obj = Value::new_object(Some(interpreter.global()));
                 for (key, json) in obj.into_iter() {
                     let value = Self::from_json(json, interpreter);
                     new_obj.set_property(
                         key,
-                        Property::default()
-                            .value(value)
-                            .writable(true)
-                            .configurable(true)
-                            .enumerable(true),
+                        Property::data_descriptor(
+                            value,
+                            Attribute::WRITABLE | Attribute::ENUMERABLE | Attribute::CONFIGURABLE,
+                        ),
                     );
                 }
                 new_obj
@@ -383,6 +374,15 @@ impl Value {
         matches!(self, Self::String(_))
     }
 
+    /// Returns the string if the values is a string, otherwise `None`.
+    #[inline]
+    pub fn as_string(&self) -> Option<&RcString> {
+        match self {
+            Self::String(ref string) => Some(string),
+            _ => None,
+        }
+    }
+
     /// Returns true if the value is a boolean.
     #[inline]
     pub fn is_boolean(&self) -> bool {
@@ -493,10 +493,7 @@ impl Value {
                 let object = object.borrow();
                 match object.properties().get(field) {
                     Some(value) => Some(value.clone()),
-                    None => object
-                        .internal_slots()
-                        .get(INSTANCE_PROTOTYPE)
-                        .and_then(|value| value.get_property(field)),
+                    None => object.prototype().get_property(field),
                 }
             }
             _ => None,
@@ -505,38 +502,17 @@ impl Value {
 
     /// update_prop will overwrite individual [Property] fields, unlike
     /// Set_prop, which will overwrite prop with a new Property
+    ///
     /// Mostly used internally for now
-    pub fn update_property(
-        &self,
-        field: &str,
-        value: Option<Value>,
-        enumerable: Option<bool>,
-        writable: Option<bool>,
-        configurable: Option<bool>,
-    ) {
+    pub(crate) fn update_property(&self, field: &str, new_property: Property) {
         let _timer = BoaProfiler::global().start_event("Value::update_property", "value");
 
         if let Some(ref mut object) = self.as_object_mut() {
             // Use value, or walk up the prototype chain
-            if let Some(ref mut property) = object.properties_mut().get_mut(field) {
-                property.value = value;
-                property.enumerable = enumerable;
-                property.writable = writable;
-                property.configurable = configurable;
+            if let Some(property) = object.properties_mut().get_mut(field) {
+                *property = new_property;
             }
         }
-    }
-
-    /// Resolve the property in the object.
-    ///
-    /// Returns a copy of the Property.
-    #[inline]
-    pub fn get_internal_slot(&self, field: &str) -> Value {
-        let _timer = BoaProfiler::global().start_event("Value::get_internal_slot", "value");
-
-        self.as_object()
-            .and_then(|x| x.internal_slots().get(field).cloned())
-            .unwrap_or_else(Value::undefined)
     }
 
     /// Resolve the property in the object and get its value, or undefined if this is not an object or the field doesn't exist
@@ -645,47 +621,29 @@ impl Value {
     }
 
     /// Set the field in the value
-    /// Field could be a Symbol, so we need to accept a Value (not a string)
-    pub fn set_field<F, V>(&self, field: F, val: V) -> Value
+    #[inline]
+    pub fn set_field<F, V>(&self, field: F, value: V) -> Value
     where
-        F: Into<Value>,
+        F: Into<PropertyKey>,
         V: Into<Value>,
     {
-        let _timer = BoaProfiler::global().start_event("Value::set_field", "value");
         let field = field.into();
-        let val = val.into();
-
+        let value = value.into();
+        let _timer = BoaProfiler::global().start_event("Value::set_field", "value");
         if let Self::Object(ref obj) = *self {
-            if obj.borrow().is_array() {
-                if let Ok(num) = field.to_string().parse::<usize>() {
-                    if num > 0 {
-                        let len = i32::from(&self.get_field("length"));
-                        if len < (num + 1) as i32 {
-                            self.set_field("length", Value::from(num + 1));
+            if let PropertyKey::String(ref string) = field {
+                if obj.borrow().is_array() {
+                    if let Ok(num) = string.parse::<usize>() {
+                        if num > 0 {
+                            let len = i32::from(&self.get_field("length"));
+                            if len < (num + 1) as i32 {
+                                self.set_field("length", num + 1);
+                            }
                         }
                     }
                 }
             }
-
-            // Symbols get saved into a different bucket to general properties
-            if field.is_symbol() {
-                obj.borrow_mut().set(field, val.clone());
-            } else {
-                obj.borrow_mut()
-                    .set(Value::from(field.to_string()), val.clone());
-            }
-        }
-
-        val
-    }
-
-    /// Set the private field in the value
-    pub fn set_internal_slot(&self, field: &str, value: Value) -> Value {
-        let _timer = BoaProfiler::global().start_event("Value::set_internal_slot", "exec");
-        if let Some(mut object) = self.as_object_mut() {
-            object
-                .internal_slots_mut()
-                .insert(field.to_string(), value.clone());
+            obj.borrow_mut().set(&field, value.clone());
         }
         value
     }
@@ -723,7 +681,8 @@ impl Value {
         // Get Length
         let length = function.params.len();
         // Object with Kind set to function
-        let new_func = Object::function(function);
+        // TODO: FIXME: Add function prototype
+        let new_func = Object::function(function, Value::null());
         // Wrap Object in GC'd Value
         let new_func_val = Value::from(new_func);
         // Set length to parameters

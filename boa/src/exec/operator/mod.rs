@@ -38,9 +38,10 @@ impl Executable for Assign {
                 val_obj.set_field(get_const_field.field(), val.clone());
             }
             Node::GetField(ref get_field) => {
-                let val_obj = get_field.obj().run(interpreter)?;
-                let val_field = get_field.field().run(interpreter)?;
-                val_obj.set_field(val_field, val.clone());
+                let object = get_field.obj().run(interpreter)?;
+                let field = get_field.field().run(interpreter)?;
+                let key = interpreter.to_property_key(&field)?;
+                object.set_field(key, val.clone());
             }
             _ => (),
         }
@@ -139,6 +140,10 @@ impl Executable for BinOp {
                 }
                 _ => Ok(Value::undefined()),
             },
+            op::BinOp::Comma => {
+                self.lhs().run(interpreter)?;
+                Ok(self.rhs().run(interpreter)?)
+            }
         }
     }
 }
@@ -203,12 +208,12 @@ impl Executable for UnaryOp {
                         .run(interpreter)?
                         .remove_property(get_const_field.field()),
                 ),
-                Node::GetField(ref get_field) => Value::boolean(
-                    get_field
-                        .obj()
-                        .run(interpreter)?
-                        .remove_property(&get_field.field().run(interpreter)?.to_string()),
-                ),
+                Node::GetField(ref get_field) => {
+                    let obj = get_field.obj().run(interpreter)?;
+                    let field = &get_field.field().run(interpreter)?;
+                    let res = obj.remove_property(interpreter.to_string(field)?.as_str());
+                    return Ok(Value::boolean(res));
+                }
                 Node::Identifier(_) => Value::boolean(false),
                 Node::ArrayDecl(_)
                 | Node::Block(_)

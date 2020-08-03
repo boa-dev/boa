@@ -111,7 +111,7 @@ pub fn formatter(data: &[Value], ctx: &mut Interpreter) -> Result<String, Value>
 
             /* unformatted data */
             for rest in data.iter().skip(arg_index) {
-                formatted.push_str(&format!(" {}", rest))
+                formatted.push_str(&format!(" {}", ctx.to_string(rest)?))
             }
 
             Ok(formatted)
@@ -489,7 +489,8 @@ impl Console {
 
     /// Initialise the `console` object on the global object.
     #[inline]
-    pub(crate) fn init(global: &Value) -> (&str, Value) {
+    pub(crate) fn init(interpreter: &mut Interpreter) -> (&'static str, Value) {
+        let global = interpreter.global();
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
         let console = Value::new_object(Some(global));

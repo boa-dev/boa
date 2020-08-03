@@ -21,14 +21,24 @@ macro_rules! print_obj_value {
         }
     };
     (internals of $obj:expr, $display_fn:ident, $indent:expr, $encounters:expr) => {
-        print_obj_value!(impl internal_slots, $obj, |(key, val)| {
-            format!(
-                "{:>width$}: {}",
-                key,
-                $display_fn(&val, $encounters, $indent.wrapping_add(4), true),
-                width = $indent,
-            )
-        })
+        {
+            let object = $obj.borrow();
+            if object.prototype().is_object() {
+                vec![format!(
+                    "{:>width$}: {}",
+                    "__proto__",
+                    $display_fn(object.prototype(), $encounters, $indent.wrapping_add(4), true),
+                    width = $indent,
+                )]
+            } else {
+                vec![format!(
+                    "{:>width$}: {}",
+                    "__proto__",
+                    object.prototype(),
+                    width = $indent,
+                )]
+            }
+        }
     };
     (props of $obj:expr, $display_fn:ident, $indent:expr, $encounters:expr, $print_internals:expr) => {
         print_obj_value!(impl properties, $obj, |(key, val)| {
@@ -58,7 +68,7 @@ macro_rules! print_obj_value {
     };
 }
 
-pub(crate) fn log_string_from(x: &Value, print_internals: bool) -> String {
+pub(crate) fn log_string_from(x: &Value, print_internals: bool, print_children: bool) -> String {
     match x {
         // We don't want to print private (compiler) or prototype properties
         Value::Object(ref v) => {
@@ -67,40 +77,82 @@ pub(crate) fn log_string_from(x: &Value, print_internals: bool) -> String {
             match v.borrow().data {
                 ObjectData::String(ref string) => format!("String {{ \"{}\" }}", string),
                 ObjectData::Boolean(boolean) => format!("Boolean {{ {} }}", boolean),
+                ObjectData::Number(rational) => {
+                    if rational.is_sign_negative() && rational == 0.0 {
+                        "Number { -0 }".to_string()
+                    } else {
+                        let mut buffer = ryu_js::Buffer::new();
+                        format!("Number {{ {} }}", buffer.format(rational))
+                    }
+                }
                 ObjectData::Array => {
                     let len = i32::from(
                         &v.borrow()
                             .properties()
                             .get("length")
-                            .unwrap()
+                            .expect("Could not get Array's length property")
                             .value
                             .clone()
                             .expect("Could not borrow value"),
                     );
 
-                    if len == 0 {
-                        return String::from("[]");
+                    if print_children {
+                        if len == 0 {
+                            return String::from("[]");
+                        }
+
+                        let arr = (0..len)
+                            .map(|i| {
+                                // Introduce recursive call to stringify any objects
+                                // which are part of the Array
+                                log_string_from(
+                                    &v.borrow()
+                                        .properties()
+                                        .get(i.to_string().as_str())
+                                        .unwrap()
+                                        .value
+                                        .clone()
+                                        .expect("Could not borrow value"),
+                                    print_internals,
+                                    false,
+                                )
+                            })
+                            .collect::<Vec<String>>()
+                            .join(", ");
+
+                        format!("[ {} ]", arr)
+                    } else {
+                        format!("Array({})", len)
+                    }
+                }
+                ObjectData::Map(ref map) => {
+                    let size = i32::from(
+                        &v.borrow()
+                            .properties()
+                            .get("size")
+                            .unwrap()
+                            .value
+                            .clone()
+                            .expect("Could not borrow value"),
+                    );
+                    if size == 0 {
+                        return String::from("Map(0)");
                     }
 
-                    let arr = (0..len)
-                        .map(|i| {
-                            // Introduce recursive call to stringify any objects
-                            // which are part of the Array
-                            log_string_from(
-                                &v.borrow()
-                                    .properties()
-                                    .get(i.to_string().as_str())
-                                    .unwrap()
-                                    .value
-                                    .clone()
-                                    .expect("Could not borrow value"),
-                                print_internals,
-                            )
-                        })
-                        .collect::<Vec<String>>()
-                        .join(", ");
-
-                    format!("[ {} ]", arr)
+                    if print_children {
+                        let mappings = map
+                            .iter()
+                            .map(|(key, value)| {
+                                let key = log_string_from(key, print_internals, false);
+                                let value = log_string_from(value, print_internals, false);
+                                format!("{} → {}", key, value)
+                            })
+                            .collect::<Vec<String>>()
+                            .join(", ");
+                        format!("Map {{ {} }}", mappings)
+                    } else {
+                        format!("Map({})", size)
+                    }
                 }
                 _ => display_obj(&x, print_internals),
             }
@@ -122,6 +174,14 @@ pub(crate) fn display_obj(v: &Value, print_internals: bool) -> String {
     // We keep track of which objects we have encountered by keeping their
     // in-memory address in this set
     let mut encounters = HashSet::new();
+
+    if let Value::Object(object) = v {
+        if object.borrow().is_error() {
+            let name = v.get_field("name");
+            let message = v.get_field("message");
+            return format!("{}: {}", name, message);
+        }
+    }
 
     fn display_obj_internal(
         data: &Value,
@@ -158,7 +218,7 @@ pub(crate) fn display_obj(v: &Value, print_internals: bool) -> String {
 
             format!("{{\n{}\n{}}}", result, closing_indent)
         } else {
-            // Every other type of data is printed as is
+            // Every other type of data is printed with the display method
             format!("{}", data)
         }
     }
@@ -176,16 +236,25 @@ impl Display for Value {
                 Some(description) => write!(f, "Symbol({})", description),
                 None => write!(f, "Symbol()"),
             },
-            Self::String(ref v) => write!(f, "{}", v),
+            Self::String(ref v) => write!(f, "\"{}\"", v),
             Self::Rational(v) => format_rational(*v, f),
-            Self::Object(_) => write!(f, "{}", log_string_from(self, true)),
+            Self::Object(_) => write!(f, "{}", log_string_from(self, true, true)),
             Self::Integer(v) => write!(f, "{}", v),
             Self::BigInt(ref num) => write!(f, "{}n", num),
         }
     }
 }
 
+/// This is different from the ECMAScript compliant number to string, in the printing of `-0`.
+///
+/// This function prints `-0` as `-0` instead of pasitive `0` as the specification says.
+/// This is done to make it easer for the user of the REPL to identify what is a `-0` vs `0`,
+/// since the REPL is not bound to the ECMAScript specification we can do this.
 fn format_rational(v: f64, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-    let mut buffer = ryu_js::Buffer::new();
-    write!(f, "{}", buffer.format(v))
+    if v.is_sign_negative() && v == 0.0 {
+        f.write_str("-0")
+    } else {
+        let mut buffer = ryu_js::Buffer::new();
+        write!(f, "{}", buffer.format(v))
+    }
 }

@@ -1,8 +1,5 @@
 use crate::{
-    builtins::{
-        object::{INSTANCE_PROTOTYPE, PROTOTYPE},
-        value::same_value,
-    },
+    builtins::{object::PROTOTYPE, value::same_value},
     exec::Interpreter,
     forward, forward_val,
     realm::Realm,
@@ -34,7 +31,7 @@ fn json_stringify_remove_undefined_values_from_objects() {
         &mut engine,
         r#"JSON.stringify({ aaa: undefined, bbb: 'ccc' })"#,
     );
-    let expected = r#"{"bbb":"ccc"}"#;
+    let expected = r#""{"bbb":"ccc"}""#;
 
     assert_eq!(actual, expected);
 }
@@ -48,7 +45,7 @@ fn json_stringify_remove_function_values_from_objects() {
         &mut engine,
         r#"JSON.stringify({ aaa: () => {}, bbb: 'ccc' })"#,
     );
-    let expected = r#"{"bbb":"ccc"}"#;
+    let expected = r#""{"bbb":"ccc"}""#;
 
     assert_eq!(actual, expected);
 }
@@ -62,7 +59,7 @@ fn json_stringify_remove_symbols_from_objects() {
         &mut engine,
         r#"JSON.stringify({ aaa: Symbol(), bbb: 'ccc' })"#,
     );
-    let expected = r#"{"bbb":"ccc"}"#;
+    let expected = r#""{"bbb":"ccc"}""#;
 
     assert_eq!(actual, expected);
 }
@@ -267,7 +264,7 @@ fn json_parse_object_with_reviver() {
 
         JSON.stringify(jsonObj);"#,
     );
-    assert_eq!(result, r#"{"firstname":"boa","lastname":"interpreter"}"#);
+    assert_eq!(result, r#""{"firstname":"boa","lastname":"interpreter"}""#);
 }
 
 #[test]
@@ -284,10 +281,16 @@ fn json_parse_sets_prototypes() {
     eprintln!("{}", forward(&mut engine, init));
     let object_prototype = forward_val(&mut engine, r#"jsonObj.ob"#)
         .unwrap()
-        .get_internal_slot(INSTANCE_PROTOTYPE);
+        .as_object()
+        .unwrap()
+        .prototype()
+        .clone();
     let array_prototype = forward_val(&mut engine, r#"jsonObj.arr"#)
         .unwrap()
-        .get_internal_slot(INSTANCE_PROTOTYPE);
+        .as_object()
+        .unwrap()
+        .prototype()
+        .clone();
     let global_object_prototype = engine
         .realm
         .global_obj

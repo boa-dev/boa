@@ -53,7 +53,7 @@ impl Json {
                 match args.get(1) {
                     Some(reviver) if reviver.is_function() => {
                         let mut holder = Value::new_object(None);
-                        holder.set_field(Value::from(""), j);
+                        holder.set_field("", j);
                         Self::walk(reviver, ctx, &mut holder, Value::from(""))
                     }
                     _ => Ok(j),
@@ -78,7 +78,7 @@ impl Json {
                 let v = Self::walk(reviver, ctx, &mut value, Value::from(key.as_str()));
                 match v {
                     Ok(v) if !v.is_undefined() => {
-                        value.set_field(Value::from(key.as_str()), v);
+                        value.set_field(key.as_str(), v);
                     }
                     Ok(_) => {
                         value.remove_property(key.as_str());
@@ -161,7 +161,7 @@ impl Json {
                     .and_then(|prop| prop.value.as_ref().map(|v| v.to_json(ctx)))
                     .transpose()?
                 {
-                    obj_to_return.insert(field.to_string(), value);
+                    obj_to_return.insert(ctx.to_string(&field)?.to_string(), value);
                 }
             }
             Ok(Value::from(JSONValue::Object(obj_to_return).to_string()))
@@ -172,7 +172,8 @@ impl Json {
 
     /// Initialise the `JSON` object on the global object.
     #[inline]
-    pub(crate) fn init(global: &Value) -> (&str, Value) {
+    pub(crate) fn init(interpreter: &mut Interpreter) -> (&'static str, Value) {
+        let global = interpreter.global();
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
         let json = Value::new_object(Some(global));
 

@@ -54,15 +54,16 @@ impl RangeError {
     /// [spec]: https://tc39.es/ecma262/#sec-error.prototype.tostring
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error/toString
     #[allow(clippy::wrong_self_convention)]
-    pub(crate) fn to_string(this: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
-        let name = this.get_field("name");
-        let message = this.get_field("message");
+    pub(crate) fn to_string(this: &Value, _: &[Value], ctx: &mut Interpreter) -> ResultValue {
+        let name = ctx.to_string(&this.get_field("name"))?;
+        let message = ctx.to_string(&this.get_field("message"))?;
         Ok(Value::from(format!("{}: {}", name, message)))
     }
 
     /// Initialise the global object with the `RangeError` object.
     #[inline]
-    pub(crate) fn init(global: &Value) -> (&str, Value) {
+    pub(crate) fn init(interpreter: &mut Interpreter) -> (&'static str, Value) {
+        let global = interpreter.global();
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
         let prototype = Value::new_object(Some(global));
@@ -77,6 +78,7 @@ impl RangeError {
             Self::make_error,
             global,
             prototype,
+            true,
             true,
         );
 

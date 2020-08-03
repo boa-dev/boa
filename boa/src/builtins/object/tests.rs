@@ -32,7 +32,7 @@ fn object_create_with_undefined() {
     let result = forward(&mut engine, init);
     assert_eq!(
         result,
-        "TypeError: Object prototype may only be an Object or null: undefined"
+        "\"TypeError: Object prototype may only be an Object or null: undefined\""
     );
 }
 
@@ -52,7 +52,7 @@ fn object_create_with_number() {
     let result = forward(&mut engine, init);
     assert_eq!(
         result,
-        "TypeError: Object prototype may only be an Object or null: 5"
+        "\"TypeError: Object prototype may only be an Object or null: 5\""
     );
 }
 

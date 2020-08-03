@@ -116,7 +116,7 @@ impl TokenParser for AssignmentExpression {
                 TokenKind::Punctuator(Punctuator::Assign) => {
                     lhs = Assign::new(lhs, self.parse(cursor)?).into();
                 }
-                TokenKind::Punctuator(p) if p.as_binop().is_some() => {
+                TokenKind::Punctuator(p) if p.as_binop().is_some() && p != Punctuator::Comma => {
                     let expr = self.parse(cursor)?;
                     let binop = p.as_binop().expect("binop disappeared");
                     lhs = BinOp::new(binop, lhs, expr).into();
