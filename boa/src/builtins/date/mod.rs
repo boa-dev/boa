@@ -251,7 +251,7 @@ impl Date {
     fn this_time_value(value: &Value, ctx: &mut Interpreter) -> Result<Date, Value> {
         if let Value::Object(ref object) = value {
             if let ObjectData::Date(ref date) = object.borrow().data {
-                return Ok(date.clone());
+                return Ok(date);
             }
         }
         Err(ctx.construct_type_error("'this' is not a Date"))
