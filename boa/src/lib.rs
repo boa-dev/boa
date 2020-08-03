@@ -46,13 +46,16 @@ pub use crate::{
     exec::{Executable, Interpreter},
     profiler::BoaProfiler,
     realm::Realm,
-    syntax::{lexer::Lexer, parser::Parser},
+    syntax::{
+        lexer::Lexer,
+        parser::{ParseError, Parser},
+    },
 };
 
 fn parser_expr(src: &str) -> Result<StatementList, String> {
     Parser::new(src.as_bytes())
         .parse_all()
-        .map_err(|e| format!("Parsing Error: {}", e))
+        .map_err(|e| e.to_string())
 }
 
 /// Execute the code using an existing Interpreter

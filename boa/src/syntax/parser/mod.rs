@@ -8,7 +8,7 @@ mod statement;
 #[cfg(test)]
 mod tests;
 
-use self::error::{ParseError, ParseResult};
+pub use self::error::{ParseError, ParseResult};
 use crate::syntax::ast::node::StatementList;
 
 use cursor::Cursor;

@@ -100,7 +100,7 @@ impl fmt::Display for ParseError {
                 context,
             } => write!(
                 f,
-                "expected {}, got '{}' in {} at line {}, col {}",
+                "Parsing Error: expected {}, got '{}' in {} at line {}, col {}",
                 if expected.len() == 1 {
                     format!(
                         "token '{}'",
@@ -135,7 +135,7 @@ impl fmt::Display for ParseError {
             ),
             Self::Unexpected { found, message } => write!(
                 f,
-                "unexpected token '{}'{} at line {}, col {}",
+                "Parsing Error: unexpected token '{}'{} at line {}, col {}",
                 found,
                 if let Some(m) = message {
                     format!(", {}", m)
@@ -145,15 +145,15 @@ impl fmt::Display for ParseError {
                 found.span().start().line_number(),
                 found.span().start().column_number()
             ),
-            Self::AbruptEnd => write!(f, "Abrupt End"),
+            Self::AbruptEnd => f.write_str("Parsing Error: Abrupt End"),
             Self::General { message, position } => write!(
                 f,
-                "{} at line {}, col {}",
+                "Parsing Error: {} at line {}, col {}",
                 message,
                 position.line_number(),
                 position.column_number()
             ),
-            Self::Lex { err } => write!(f, "Syntax Error: {}", err),
+            Self::Lex { err } => fmt::Display::fmt(err, f),
         }
     }
 }

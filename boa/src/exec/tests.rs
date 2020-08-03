@@ -1274,15 +1274,15 @@ fn assignment_to_non_assignable() {
     //
     // [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Expressions_and_Operators#Assignment
     // [spec]: https://tc39.es/ecma262/#prod-AssignmentOperator
-    assert!(forward(&mut engine, "3 = 5").contains("Syntax Error: "));
-    assert!(forward(&mut engine, "3 += 5").contains("Syntax Error: "));
-    assert!(forward(&mut engine, "3 -= 5").contains("Syntax Error: "));
-    assert!(forward(&mut engine, "3 *= 5").contains("Syntax Error: "));
-    assert!(forward(&mut engine, "3 /= 5").contains("Syntax Error: "));
-    assert!(forward(&mut engine, "3 %= 5").contains("Syntax Error: "));
-    assert!(forward(&mut engine, "3 &= 5").contains("Syntax Error: "));
-    assert!(forward(&mut engine, "3 ^= 5").contains("Syntax Error: "));
-    assert!(forward(&mut engine, "3 |= 5").contains("Syntax Error: "));
+    assert!(forward(&mut engine, "3 = 5").starts_with("Syntax Error: "));
+    assert!(forward(&mut engine, "3 += 5").starts_with("Syntax Error: "));
+    assert!(forward(&mut engine, "3 -= 5").starts_with("Syntax Error: "));
+    assert!(forward(&mut engine, "3 *= 5").starts_with("Syntax Error: "));
+    assert!(forward(&mut engine, "3 /= 5").starts_with("Syntax Error: "));
+    assert!(forward(&mut engine, "3 %= 5").starts_with("Syntax Error: "));
+    assert!(forward(&mut engine, "3 &= 5").starts_with("Syntax Error: "));
+    assert!(forward(&mut engine, "3 ^= 5").starts_with("Syntax Error: "));
+    assert!(forward(&mut engine, "3 |= 5").starts_with("Syntax Error: "));
 }
 
 #[test]
@@ -1292,9 +1292,9 @@ fn multicharacter_assignment_to_non_assignable() {
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);
 
-    assert!(forward(&mut engine, "3 **= 5").contains("Syntax Error: "));
-    assert!(forward(&mut engine, "3 <<= 5").contains("Syntax Error: "));
-    assert!(forward(&mut engine, "3 >>= 5").contains("Syntax Error: "));
+    assert!(forward(&mut engine, "3 **= 5").starts_with("Syntax Error: "));
+    assert!(forward(&mut engine, "3 <<= 5").starts_with("Syntax Error: "));
+    assert!(forward(&mut engine, "3 >>= 5").starts_with("Syntax Error: "));
 }
 
 #[test]
@@ -1304,10 +1304,10 @@ fn multicharacter_bitwise_assignment_to_non_assignable() {
     let mut engine = Interpreter::new(realm);
 
     // Disabled - awaiting implementation.
-    assert!(forward(&mut engine, "3 >>>= 5").contains("Syntax Error: "));
-    assert!(forward(&mut engine, "3 &&= 5").contains("Syntax Error: "));
-    assert!(forward(&mut engine, "3 ||= 5").contains("Syntax Error: "));
-    assert!(forward(&mut engine, "3 ??= 5").contains("Syntax Error: "));
+    assert!(forward(&mut engine, "3 >>>= 5").starts_with("Syntax Error: "));
+    assert!(forward(&mut engine, "3 &&= 5").starts_with("Syntax Error: "));
+    assert!(forward(&mut engine, "3 ||= 5").starts_with("Syntax Error: "));
+    assert!(forward(&mut engine, "3 ??= 5").starts_with("Syntax Error: "));
 }
 
 #[test]
@@ -1315,10 +1315,10 @@ fn assign_to_array_decl() {
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);
 
-    assert!(forward(&mut engine, "[1] = [2]").contains("Syntax Error: "));
-    assert!(forward(&mut engine, "[3, 5] = [7, 8]").contains("Syntax Error: "));
-    assert!(forward(&mut engine, "[6, 8] = [2]").contains("Syntax Error: "));
-    assert!(forward(&mut engine, "[6] = [2, 9]").contains("Syntax Error: "));
+    assert!(forward(&mut engine, "[1] = [2]").starts_with("Syntax Error: "));
+    assert!(forward(&mut engine, "[3, 5] = [7, 8]").starts_with("Syntax Error: "));
+    assert!(forward(&mut engine, "[6, 8] = [2]").starts_with("Syntax Error: "));
+    assert!(forward(&mut engine, "[6] = [2, 9]").starts_with("Syntax Error: "));
 }
 
 #[test]
