@@ -18,8 +18,8 @@ use crate::{
         function::Function,
         map::ordered_map::OrderedMap,
         property::Property,
-        value::{RcBigInt, RcDate, RcString, RcSymbol, ResultValue, Value},
-        BigInt, RegExp,
+        value::{RcBigInt, RcString, RcSymbol, ResultValue, Value},
+        BigInt, Date, RegExp,
     },
     exec::Interpreter,
     BoaProfiler,
@@ -78,7 +78,7 @@ pub enum ObjectData {
     Symbol(RcSymbol),
     Error,
     Ordinary,
-    Date(RcDate),
+    Date(Date),
     Global,
 }
 

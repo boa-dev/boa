@@ -34,7 +34,6 @@ pub mod equality;
 pub mod hash;
 pub mod operations;
 pub mod rcbigint;
-pub mod rcdate;
 pub mod rcstring;
 pub mod rcsymbol;
 
@@ -44,7 +43,6 @@ pub use equality::*;
 pub use hash::*;
 pub use operations::*;
 pub use rcbigint::RcBigInt;
-pub use rcdate::RcDate;
 pub use rcstring::RcString;
 pub use rcsymbol::RcSymbol;
 
@@ -74,7 +72,7 @@ pub enum Value {
     /// `Symbol` - A Symbol Primitive type.
     Symbol(RcSymbol),
     /// `Date` - A Date type.
-    Date(RcDate),
+    Date(Date),
 }
 
 impl Value {
@@ -162,7 +160,7 @@ impl Value {
     /// Creates a new date value.
     #[inline]
     pub(crate) fn date(date: Date) -> Self {
-        Self::Date(RcDate::from(date))
+        Self::Date(date)
     }
 
     /// Helper function to convert the `Value` to a number and compute its power.

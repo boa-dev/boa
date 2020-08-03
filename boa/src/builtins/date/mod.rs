@@ -5,13 +5,13 @@ use crate::{
     builtins::{
         function::{make_builtin_fn, make_constructor_fn},
         object::ObjectData,
-        value::RcDate,
         ResultValue, Value,
     },
     exec::PreferredType,
     BoaProfiler, Interpreter,
 };
 use chrono::{prelude::*, Duration, LocalResult};
+use gc::{unsafe_empty_trace, Finalize, Trace};
 use std::fmt::Display;
 
 const NANOS_IN_MS: f64 = 1_000_000f64;
@@ -137,7 +137,7 @@ macro_rules! setter_method {
             let inner = Date::this_time_value(this, ctx)?.$tz();
             let new_value = inner.and_then(|$date_time| $mutate);
             let new_value = new_value.map(|date_time| date_time.naive_utc());
-            this.set_data(ObjectData::Date(RcDate::from(Date(new_value))));
+            this.set_data(ObjectData::Date(Date(new_value)));
 
             Ok(Value::number(
                 Self::this_time_value(this, ctx)?.timestamp(),
@@ -172,7 +172,7 @@ macro_rules! setter_method {
 
             let new_value = $mutate;
             let new_value = new_value.map(|date_time| date_time.naive_utc());
-            this.set_data(ObjectData::Date(RcDate::from(Date(new_value))));
+            this.set_data(ObjectData::Date(Date(new_value)));
 
             Ok(Value::number(
                 Self::this_time_value(this, ctx)?.timestamp(),
@@ -181,7 +181,7 @@ macro_rules! setter_method {
     };
 }
 
-#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Debug, Finalize, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Date(Option<NaiveDateTime>);
 
 impl Display for Date {
@@ -191,6 +191,10 @@ impl Display for Date {
             _ => write!(f, "Invalid Date"),
         }
     }
+}
+
+unsafe impl Trace for Date {
+    unsafe_empty_trace!();
 }
 
 impl Default for Date {
@@ -244,7 +248,7 @@ impl Date {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-thistimevalue
     #[inline]
-    fn this_time_value(value: &Value, ctx: &mut Interpreter) -> Result<RcDate, Value> {
+    fn this_time_value(value: &Value, ctx: &mut Interpreter) -> Result<Date, Value> {
         match value {
             // 1. If Type(value) is Date, return value.
             Value::Date(ref date) => Ok(date.clone()),
@@ -311,7 +315,7 @@ impl Date {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/Date
     pub(crate) fn make_date_now(this: &Value) -> ResultValue {
         let date = Date::default();
-        this.set_data(ObjectData::Date(RcDate::from(date)));
+        this.set_data(ObjectData::Date(date));
         Ok(Value::from(date))
     }
 
@@ -348,7 +352,7 @@ impl Date {
         };
 
         let date = Date(tv);
-        this.set_data(ObjectData::Date(RcDate::from(date)));
+        this.set_data(ObjectData::Date(date));
         Ok(Value::from(date))
     }
 
@@ -378,8 +382,8 @@ impl Date {
         // If any of the args are infinity or NaN, return an invalid date.
         if !check_normal_opt!(year, month, day, hour, min, sec, milli) {
             let date = Date(None);
-            this.set_data(ObjectData::Date(RcDate::from(date)));
-            return Ok(this.clone());
+            this.set_data(ObjectData::Date(date));
+            return Ok(Value::from(date));
         }
 
         let year = year as i32;
@@ -402,7 +406,7 @@ impl Date {
             .map(|local| local.naive_utc());
 
         let date = Date(final_date);
-        this.set_data(ObjectData::Date(RcDate::from(date)));
+        this.set_data(ObjectData::Date(date));
         Ok(Value::from(date))
     }
 
