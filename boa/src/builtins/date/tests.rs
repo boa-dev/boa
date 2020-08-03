@@ -1285,7 +1285,7 @@ fn date_proto_to_gmt_string() -> Result<(), Box<dyn std::error::Error>> {
 
     let actual = forward_val(
         &mut engine,
-        "let dt = new Date(2020, 06, 08, 09, 16, 15, 779); dt.toGMTString()",
+        "let dt = new Date(Date.UTC(2020, 06, 08, 09, 16, 15, 779)); dt.toGMTString()",
     )
     .expect("Successful eval");
     assert_eq!(Value::string("Wed, 08 Jul 2020 09:16:15 GMT"), actual);
@@ -1378,6 +1378,51 @@ fn date_proto_to_utc_string() -> Result<(), Box<dyn std::error::Error>> {
     )
     .expect("Successful eval");
     assert_eq!(Value::string("Wed, 08 Jul 2020 09:16:15 GMT"), actual);
+
+    Ok(())
+}
+
+#[test]
+fn date_proto_value_of() -> Result<(), Box<dyn std::error::Error>> {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+
+    let actual = forward_val(
+        &mut engine,
+        "new Date(Date.UTC(2020, 06, 08, 09, 16, 15, 779)).valueOf()",
+    )
+    .expect("Successful eval");
+    assert_eq!(Value::number(1594199775779f64), actual);
+
+    Ok(())
+}
+
+#[test]
+fn date_neg() -> Result<(), Box<dyn std::error::Error>> {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+
+    let actual = forward_val(
+        &mut engine,
+        "-new Date(Date.UTC(2020, 06, 08, 09, 16, 15, 779))",
+    )
+    .expect("Successful eval");
+    assert_eq!(Value::number(-1594199775779f64), actual);
+
+    Ok(())
+}
+
+#[test]
+fn date_json() -> Result<(), Box<dyn std::error::Error>> {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+
+    let actual = forward_val(
+        &mut engine,
+        "JSON.stringify({ date: new Date(Date.UTC(2020, 06, 08, 09, 16, 15, 779)) })",
+    )
+    .expect("Successful eval");
+    assert_eq!(Value::number(1594199775779f64), actual);
 
     Ok(())
 }

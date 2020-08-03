@@ -244,7 +244,7 @@ impl Interpreter {
                 self.to_bigint(&primitive)
             }
             Value::Symbol(_) => Err(self.construct_type_error("cannot convert Symbol to a BigInt")),
-            Value::Date(_) => todo!("Date"),
+            Value::Date(dt) => Ok(RcBigInt::from(BigInt::from(dt.timestamp() as i64))),
         }
     }
 
@@ -357,7 +357,7 @@ impl Interpreter {
                 let primitive = self.to_primitive(value, PreferredType::Number)?;
                 self.to_number(&primitive)
             }
-            Value::Date(_) => todo!("Date"),
+            Value::Date(ref dt) => Ok(dt.timestamp()),
         }
     }
 

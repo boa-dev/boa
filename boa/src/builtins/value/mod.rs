@@ -291,7 +291,7 @@ impl Value {
             Self::Symbol(_) | Self::Undefined => {
                 unreachable!("Symbols and Undefined JSON Values depend on parent type");
             }
-            Self::Date(ref dt) => Ok(JSONValue::String(dt.to_string())),
+            Self::Date(ref dt) => Ok(JSONValue::String(dt.to_json_string())),
         }
     }
 
@@ -455,9 +455,7 @@ impl Value {
             Self::BigInt(_) => {
                 panic!("TypeError: Cannot mix BigInt and other types, use explicit conversions")
             }
-            Self::Date(_) => {
-                todo!("DateTime");
-            }
+            Self::Date(ref dt) => dt.timestamp(),
         }
     }
 
@@ -479,9 +477,7 @@ impl Value {
             Self::BigInt(_) => {
                 panic!("TypeError: Cannot mix BigInt and other types, use explicit conversions")
             }
-            Self::Date(_) => {
-                todo!("DateTime");
-            }
+            Self::Date(ref dt) => dt.timestamp() as i32,
         }
     }
 

@@ -115,7 +115,7 @@ macro_rules! setter_method {
             fn get_arg(i: usize, args: &[Value], ctx: &mut Interpreter) -> Option<f64> {
                 args
                 .get(i)
-                .map(|value| {
+                .and_then(|value| {
                     ctx.to_numeric_number(value).map_or_else(
                         |_| None,
                         |value| {
@@ -127,7 +127,6 @@ macro_rules! setter_method {
                         },
                     )
                 })
-                .flatten()
             }
 
             let mut $var = [None; $count];
@@ -136,14 +135,12 @@ macro_rules! setter_method {
             }
 
             let inner = Date::this_time_value(this, ctx)?.$tz();
-            let new_value = inner.map(|$date_time| $mutate).flatten();
+            let new_value = inner.and_then(|$date_time| $mutate);
             let new_value = new_value.map(|date_time| date_time.naive_utc());
             this.set_data(ObjectData::Date(RcDate::from(Date(new_value))));
 
             Ok(Value::number(
-                Self::this_time_value(this, ctx)?
-                    .to_utc()
-                    .map_or(f64::NAN, |f| f.timestamp_millis() as f64),
+                Self::this_time_value(this, ctx)?.timestamp(),
             ))
         }
     };
@@ -154,7 +151,7 @@ macro_rules! setter_method {
             fn get_arg(i: usize, args: &[Value], ctx: &mut Interpreter) -> Option<f64> {
                 args
                 .get(i)
-                .map(|value| {
+                .and_then(|value| {
                     ctx.to_numeric_number(value).map_or_else(
                         |_| None,
                         |value| {
@@ -166,7 +163,6 @@ macro_rules! setter_method {
                         },
                     )
                 })
-                .flatten()
             }
 
             let mut $var = [None; $count];
@@ -179,9 +175,7 @@ macro_rules! setter_method {
             this.set_data(ObjectData::Date(RcDate::from(Date(new_value))));
 
             Ok(Value::number(
-                Self::this_time_value(this, ctx)?
-                    .to_utc()
-                    .map_or(f64::NAN, |f| f.timestamp_millis() as f64),
+                Self::this_time_value(this, ctx)?.timestamp(),
             ))
         }
     };
@@ -222,6 +216,19 @@ impl Date {
     pub fn to_utc(&self) -> Option<DateTime<Utc>> {
         self.0
             .map(|utc| Utc::now().timezone().from_utc_datetime(&utc))
+    }
+
+    // The UTC timestamp.
+    pub fn timestamp(&self) -> f64 {
+        self.to_utc()
+            .map_or(f64::NAN, |dt| dt.timestamp_millis() as f64)
+    }
+
+    pub fn to_json_string(&self) -> String {
+        self.to_utc()
+            // RFC 3389 uses +0.00 for UTC, where JS expects Z, so we can't use the built-in chrono function.
+            .map(|f| f.format("%Y-%m-%dT%H:%M:%S.%3fZ").to_string())
+            .unwrap_or_else(|| "Invalid Date".to_string())
     }
 
     /// The abstract operation `thisTimeValue` takes argument value.
@@ -305,7 +312,7 @@ impl Date {
     pub(crate) fn make_date_now(this: &Value) -> ResultValue {
         let date = Date::default();
         this.set_data(ObjectData::Date(RcDate::from(date)));
-        Ok(this.clone())
+        Ok(Value::from(date))
     }
 
     /// `Date(value)`
@@ -342,7 +349,7 @@ impl Date {
 
         let date = Date(tv);
         this.set_data(ObjectData::Date(RcDate::from(date)));
-        Ok(this.clone())
+        Ok(Value::from(date))
     }
 
     /// `Date(year, month [ , date [ , hours [ , minutes [ , seconds [ , ms ] ] ] ] ])`
@@ -390,15 +397,13 @@ impl Date {
         };
 
         let final_date = NaiveDate::from_ymd_opt(year, month + 1, day)
-            .map(|naive_date| naive_date.and_hms_milli_opt(hour, min, sec, milli))
-            .flatten()
-            .map(|local| ignore_ambiguity(Local.from_local_datetime(&local)))
-            .flatten()
+            .and_then(|naive_date| naive_date.and_hms_milli_opt(hour, min, sec, milli))
+            .and_then(|local| ignore_ambiguity(Local.from_local_datetime(&local)))
             .map(|local| local.naive_utc());
 
         let date = Date(final_date);
         this.set_data(ObjectData::Date(RcDate::from(date)));
-        Ok(this.clone())
+        Ok(Value::from(date))
     }
 
     getter_method! {
@@ -893,7 +898,7 @@ impl Date {
                     0
                 };
 
-                local.with_year(year).map(|local| ignore_ambiguity(Local.from_local_datetime(&local))).flatten()
+                local.with_year(year).and_then(|local| ignore_ambiguity(Local.from_local_datetime(&local)))
             })
         }
     }
@@ -1157,11 +1162,7 @@ impl Date {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/toISOString
     #[allow(clippy::wrong_self_convention)]
     pub(crate) fn to_iso_string(this: &Value, _: &[Value], ctx: &mut Interpreter) -> ResultValue {
-        let dt_str = Self::this_time_value(this, ctx)?
-            .to_utc()
-            // RFC 3389 uses +0.00 for UTC, where JS expects Z, so we can't use the built-in chrono function.
-            .map(|f| f.format("%Y-%m-%dT%H:%M:%S.%3fZ").to_string())
-            .unwrap_or_else(|| "Invalid Date".to_string());
+        let dt_str = Self::this_time_value(this, ctx)?.to_json_string();
         Ok(Value::from(dt_str))
     }
 
@@ -1236,6 +1237,22 @@ impl Date {
             .map(|date_time| date_time.format("%a, %d %b %Y %H:%M:%S GMT").to_string())
             .unwrap_or_else(|| "Invalid Date".to_string());
         Ok(Value::from(dt_str))
+    }
+
+    /// `Date.prototype.valueOf()`
+    ///
+    /// The `valueOf()` method returns the primitive value of a `Date` object.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.valueof
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/valueOf
+    #[allow(clippy::wrong_self_convention)]
+    pub(crate) fn value_of(this: &Value, _: &[Value], ctx: &mut Interpreter) -> ResultValue {
+        let dt = Self::this_time_value(this, ctx)?.timestamp();
+        Ok(Value::from(dt))
     }
 
     /// `Date.now()`
@@ -1318,8 +1335,7 @@ impl Date {
         };
 
         NaiveDate::from_ymd_opt(year, month + 1, day)
-            .map(|f| f.and_hms_milli_opt(hour, min, sec, milli))
-            .flatten()
+            .and_then(|f| f.and_hms_milli_opt(hour, min, sec, milli))
             .map_or(Ok(Value::number(f64::NAN)), |f| {
                 Ok(Value::number(f.timestamp_millis() as f64))
             })
@@ -1391,6 +1407,7 @@ impl Date {
         make_builtin_fn(Self::to_string, "toString", &prototype, 0);
         make_builtin_fn(Self::to_time_string, "toTimeString", &prototype, 0);
         make_builtin_fn(Self::to_utc_string, "toUTCString", &prototype, 0);
+        make_builtin_fn(Self::value_of, "valueOf", &prototype, 0);
 
         let date_time_object = make_constructor_fn(
             Self::NAME,
