@@ -14,8 +14,8 @@
 use crate::{
     builtins::{
         object::{Object, ObjectData, PROTOTYPE},
-        property::{Attribute, Property, PropertyKey},
-        value::{RcString, Value},
+        property::{Attribute, Property},
+        value::Value,
         Array,
     },
     environment::lexical_environment::Environment,
@@ -180,7 +180,7 @@ pub fn create_unmapped_arguments_object(arguments_list: &[Value]) -> Value {
         Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::PERMANENT,
     );
     // Define length as a property
-    obj.define_own_property(&PropertyKey::from(RcString::from("length")), length);
+    obj.define_own_property("length", length);
     let mut index: usize = 0;
     while index < len {
         let val = arguments_list.get(index).expect("Could not get argument");
@@ -189,8 +189,7 @@ pub fn create_unmapped_arguments_object(arguments_list: &[Value]) -> Value {
             Attribute::WRITABLE | Attribute::ENUMERABLE | Attribute::CONFIGURABLE,
         );
 
-        obj.properties_mut()
-            .insert(RcString::from(index.to_string()), prop);
+        obj.insert_property(index, prop);
         index += 1;
     }
 

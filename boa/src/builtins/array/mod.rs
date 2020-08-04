@@ -71,7 +71,7 @@ impl Array {
         // Wipe existing contents of the array object
         let orig_length = array_obj.get_field("length").as_number().unwrap() as i32;
         for n in 0..orig_length {
-            array_obj_ptr.remove_property(&n.to_string());
+            array_obj_ptr.remove_property(n);
         }
 
         // Create length
@@ -82,7 +82,7 @@ impl Array {
         array_obj_ptr.set_property("length".to_string(), length);
 
         for (n, value) in array_contents.iter().enumerate() {
-            array_obj_ptr.set_field(n.to_string(), value);
+            array_obj_ptr.set_field(n, value);
         }
         Ok(array_obj_ptr)
     }
@@ -94,7 +94,7 @@ impl Array {
 
         for (n, value) in add_values.iter().enumerate() {
             let new_index = orig_length.wrapping_add(n as i32);
-            array_ptr.set_field(new_index.to_string(), value);
+            array_ptr.set_field(new_index, value);
         }
 
         array_ptr.set_field(
@@ -127,7 +127,7 @@ impl Array {
                 length = args[0].as_number().unwrap() as i32;
                 // TODO: It should not create an array of undefineds, but an empty array ("holy" array in V8) with length `n`.
                 for n in 0..length {
-                    this.set_field(n.to_string(), Value::undefined());
+                    this.set_field(n, Value::undefined());
                 }
             }
             1 if args[0].is_double() => {
@@ -135,7 +135,7 @@ impl Array {
             }
             _ => {
                 for (n, value) in args.iter().enumerate() {
-                    this.set_field(n.to_string(), value.clone());
+                    this.set_field(n, value.clone());
                 }
             }
         }
@@ -197,13 +197,13 @@ impl Array {
 
         let this_length = this.get_field("length").as_number().unwrap() as i32;
         for n in 0..this_length {
-            new_values.push(this.get_field(n.to_string()));
+            new_values.push(this.get_field(n));
         }
 
         for concat_array in args {
             let concat_length = concat_array.get_field("length").as_number().unwrap() as i32;
             for n in 0..concat_length {
-                new_values.push(concat_array.get_field(n.to_string()));
+                new_values.push(concat_array.get_field(n));
             }
         }
 
@@ -245,7 +245,7 @@ impl Array {
         }
         let pop_index = curr_length.wrapping_sub(1);
         let pop_value: Value = this.get_field(pop_index.to_string());
-        this.remove_property(&pop_index.to_string());
+        this.remove_property(pop_index);
         this.set_field("length", Value::from(pop_index));
         Ok(pop_value)
     }
@@ -275,7 +275,7 @@ impl Array {
         let length = this.get_field("length").as_number().unwrap() as i32;
 
         for i in 0..length {
-            let element = this.get_field(i.to_string());
+            let element = this.get_field(i);
             let arguments = [element, Value::from(i), this.clone()];
 
             interpreter.call(callback_arg, &this_arg, &arguments)?;
@@ -309,7 +309,7 @@ impl Array {
         let mut elem_strs = Vec::new();
         let length = this.get_field("length").as_number().unwrap() as i32;
         for n in 0..length {
-            let elem_str = this.get_field(n.to_string()).to_string(ctx)?.to_string();
+            let elem_str = this.get_field(n).to_string(ctx)?.to_string();
             elem_strs.push(elem_str);
         }
 
@@ -377,21 +377,21 @@ impl Array {
         for lower in 0..middle {
             let upper = len.wrapping_sub(lower).wrapping_sub(1);
 
-            let upper_exists = this.has_field(&upper.to_string());
-            let lower_exists = this.has_field(&lower.to_string());
+            let upper_exists = this.has_field(upper);
+            let lower_exists = this.has_field(lower);
 
-            let upper_value = this.get_field(upper.to_string());
-            let lower_value = this.get_field(lower.to_string());
+            let upper_value = this.get_field(upper);
+            let lower_value = this.get_field(lower);
 
             if upper_exists && lower_exists {
-                this.set_field(upper.to_string(), lower_value);
-                this.set_field(lower.to_string(), upper_value);
+                this.set_field(upper, lower_value);
+                this.set_field(lower, upper_value);
             } else if upper_exists {
-                this.set_field(lower.to_string(), upper_value);
-                this.remove_property(&upper.to_string());
+                this.set_field(lower, upper_value);
+                this.remove_property(upper);
             } else if lower_exists {
-                this.set_field(upper.to_string(), lower_value);
-                this.remove_property(&lower.to_string());
+                this.set_field(upper, lower_value);
+                this.remove_property(lower);
             }
         }
 
@@ -414,25 +414,25 @@ impl Array {
         if len == 0 {
             this.set_field("length", 0);
             // Since length is 0, this will be an Undefined value
-            return Ok(this.get_field(0.to_string()));
+            return Ok(this.get_field(0));
         }
 
-        let first: Value = this.get_field(0.to_string());
+        let first: Value = this.get_field(0);
 
         for k in 1..len {
-            let from = k.to_string();
-            let to = (k.wrapping_sub(1)).to_string();
+            let from = k;
+            let to = k.wrapping_sub(1);
 
             let from_value = this.get_field(from);
             if from_value.is_undefined() {
-                this.remove_property(&to);
+                this.remove_property(to);
             } else {
                 this.set_field(to, from_value);
             }
         }
 
         let final_index = len.wrapping_sub(1);
-        this.remove_property(&(final_index).to_string());
+        this.remove_property(final_index);
         this.set_field("length", Value::from(final_index));
 
         Ok(first)
@@ -457,19 +457,19 @@ impl Array {
 
         if arg_c > 0 {
             for k in (1..=len).rev() {
-                let from = (k.wrapping_sub(1)).to_string();
-                let to = (k.wrapping_add(arg_c).wrapping_sub(1)).to_string();
+                let from = k.wrapping_sub(1);
+                let to = k.wrapping_add(arg_c).wrapping_sub(1);
 
                 let from_value = this.get_field(from);
                 if from_value.is_undefined() {
-                    this.remove_property(&to);
+                    this.remove_property(to);
                 } else {
                     this.set_field(to, from_value);
                 }
             }
             for j in 0..arg_c {
                 this.set_field(
-                    j.to_string(),
+                    j,
                     args.get(j as usize)
                         .expect("Could not get argument")
                         .clone(),
@@ -515,7 +515,7 @@ impl Array {
         let max_len = this.get_field("length").as_number().unwrap() as i32;
         let mut len = max_len;
         while i < len {
-            let element = this.get_field(i.to_string());
+            let element = this.get_field(i);
             let arguments = [element, Value::from(i), this.clone()];
             let result = interpreter.call(callback, &this_arg, &arguments)?;
             if !result.to_boolean() {
@@ -561,7 +561,7 @@ impl Array {
 
         let values: Vec<Value> = (0..length)
             .map(|idx| {
-                let element = this.get_field(idx.to_string());
+                let element = this.get_field(idx);
                 let args = [element, Value::from(idx), new.clone()];
 
                 interpreter
@@ -615,7 +615,7 @@ impl Array {
         };
 
         while idx < len {
-            let check_element = this.get_field(idx.to_string()).clone();
+            let check_element = this.get_field(idx).clone();
 
             if check_element.strict_equals(&search_element) {
                 return Ok(Value::from(idx));
@@ -672,7 +672,7 @@ impl Array {
         };
 
         while idx >= 0 {
-            let check_element = this.get_field(idx.to_string()).clone();
+            let check_element = this.get_field(idx).clone();
 
             if check_element.strict_equals(&search_element) {
                 return Ok(Value::from(idx));
@@ -710,7 +710,7 @@ impl Array {
         let this_arg = args.get(1).cloned().unwrap_or_else(Value::undefined);
         let len = this.get_field("length").as_number().unwrap() as i32;
         for i in 0..len {
-            let element = this.get_field(i.to_string());
+            let element = this.get_field(i);
             let arguments = [element.clone(), Value::from(i), this.clone()];
             let result = interpreter.call(callback, &this_arg, &arguments)?;
             if result.to_boolean() {
@@ -750,7 +750,7 @@ impl Array {
         let length = this.get_field("length").as_number().unwrap() as i32;
 
         for i in 0..length {
-            let element = this.get_field(i.to_string());
+            let element = this.get_field(i);
             let arguments = [element, Value::from(i), this.clone()];
 
             let result = interpreter.call(predicate_arg, &this_arg, &arguments)?;
@@ -798,7 +798,7 @@ impl Array {
         };
 
         for i in start..fin {
-            this.set_field(i.to_string(), value.clone());
+            this.set_field(i, value.clone());
         }
 
         Ok(this.clone())
@@ -824,7 +824,7 @@ impl Array {
         let length = this.get_field("length").as_number().unwrap() as i32;
 
         for idx in 0..length {
-            let check_element = this.get_field(idx.to_string()).clone();
+            let check_element = this.get_field(idx).clone();
 
             if same_value_zero(&check_element, &search_element) {
                 return Ok(Value::from(true));
@@ -879,7 +879,7 @@ impl Array {
         let span = max(to.wrapping_sub(from), 0);
         let mut new_array_len: i32 = 0;
         for i in from..from.wrapping_add(span) {
-            new_array.set_field(new_array_len.to_string(), this.get_field(i.to_string()));
+            new_array.set_field(new_array_len, this.get_field(i));
             new_array_len = new_array_len.wrapping_add(1);
         }
         new_array.set_field("length", Value::from(new_array_len));
@@ -917,7 +917,7 @@ impl Array {
 
         let values = (0..length)
             .filter_map(|idx| {
-                let element = this.get_field(idx.to_string());
+                let element = this.get_field(idx);
 
                 let args = [element.clone(), Value::from(idx), new.clone()];
 
@@ -971,7 +971,7 @@ impl Array {
         let max_len = this.get_field("length").as_number().unwrap() as i32;
         let mut len = max_len;
         while i < len {
-            let element = this.get_field(i.to_string());
+            let element = this.get_field(i);
             let arguments = [element, Value::from(i), this.clone()];
             let result = interpreter.call(callback, &this_arg, &arguments)?;
             if result.to_boolean() {
@@ -1018,7 +1018,7 @@ impl Array {
         let mut accumulator = if initial_value.is_undefined() {
             let mut k_present = false;
             while k < length {
-                if this.has_field(&k.to_string()) {
+                if this.has_field(k) {
                     k_present = true;
                     break;
                 }
@@ -1029,20 +1029,15 @@ impl Array {
                     "Reduce was called on an empty array and with no initial value",
                 );
             }
-            let result = this.get_field(k.to_string());
+            let result = this.get_field(k);
             k += 1;
             result
         } else {
             initial_value
         };
         while k < length {
-            if this.has_field(&k.to_string()) {
-                let arguments = [
-                    accumulator,
-                    this.get_field(k.to_string()),
-                    Value::from(k),
-                    this.clone(),
-                ];
+            if this.has_field(k) {
+                let arguments = [accumulator, this.get_field(k), Value::from(k), this.clone()];
                 accumulator = interpreter.call(&callback, &Value::undefined(), &arguments)?;
                 /* We keep track of possibly shortened length in order to prevent unnecessary iteration.
                 It may also be necessary to do this since shortening the array length does not
@@ -1091,7 +1086,7 @@ impl Array {
         let mut accumulator = if initial_value.is_undefined() {
             let mut k_present = false;
             loop {
-                if this.has_field(&k.to_string()) {
+                if this.has_field(k) {
                     k_present = true;
                     break;
                 }
@@ -1106,20 +1101,15 @@ impl Array {
                     "reduceRight was called on an empty array and with no initial value",
                 );
             }
-            let result = this.get_field(k.to_string());
+            let result = this.get_field(k);
             k -= 1;
             result
         } else {
             initial_value
         };
         loop {
-            if this.has_field(&k.to_string()) {
-                let arguments = [
-                    accumulator,
-                    this.get_field(k.to_string()),
-                    Value::from(k),
-                    this.clone(),
-                ];
+            if this.has_field(k) {
+                let arguments = [accumulator, this.get_field(k), Value::from(k), this.clone()];
                 accumulator = interpreter.call(&callback, &Value::undefined(), &arguments)?;
                 /* We keep track of possibly shortened length in order to prevent unnecessary iteration.
                 It may also be necessary to do this since shortening the array length does not

@@ -28,8 +28,8 @@ use crate::{
         function::{Function, FunctionFlags, NativeFunction},
         object::{GcObject, Object, ObjectData, PROTOTYPE},
         property::PropertyKey,
-        value::{PreferredType, Type, Value},
-        Console,
+        value::{PreferredType, RcString, RcSymbol, Type, Value},
+        Console, Symbol,
     },
     realm::Realm,
     syntax::ast::{
@@ -169,9 +169,9 @@ impl Interpreter {
             Function::BuiltIn(body.into(), FunctionFlags::CALLABLE),
             function_prototype,
         );
-        function.set(&PROTOTYPE.into(), proto);
-        function.set(&"length".into(), length.into());
-        function.set(&"name".into(), name.into());
+        function.set(PROTOTYPE.into(), proto);
+        function.set("length".into(), length.into());
+        function.set("name".into(), name.into());
 
         Ok(GcObject::new(function))
     }
@@ -357,6 +357,19 @@ impl Interpreter {
     /// A helper function for getting a mutable reference to the `console` object.
     pub(crate) fn console_mut(&mut self) -> &mut Console {
         &mut self.console
+    }
+
+    /// Construct a new `Symbol` with an optional description.
+    #[inline]
+    pub fn construct_symbol(&mut self, description: Option<RcString>) -> RcSymbol {
+        RcSymbol::from(Symbol::new(self.generate_hash(), description))
+    }
+
+    /// Construct an empty object.
+    #[inline]
+    pub fn construct_object(&self) -> GcObject {
+        let object_prototype = self.global().get_field("Object").get_field(PROTOTYPE);
+        GcObject::new(Object::create(object_prototype))
     }
 }
 

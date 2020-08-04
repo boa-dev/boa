@@ -23,3 +23,20 @@ fn print_symbol_expect_description() {
     let sym = forward_val(&mut engine, "sym.toString()").unwrap();
     assert_eq!(sym.display().to_string(), "\"Symbol(Hello)\"");
 }
+
+#[test]
+fn symbol_access() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+    let init = r#"
+        var x = {};
+        var sym1 = Symbol("Hello");
+        var sym2 = Symbol("Hello");
+        x[sym1] = 10;
+        x[sym2] = 20;
+        "#;
+    forward_val(&mut engine, init).unwrap();
+    assert_eq!(forward(&mut engine, "x[sym1]"), "10");
+    assert_eq!(forward(&mut engine, "x[sym2]"), "20");
+    assert_eq!(forward(&mut engine, "x['Symbol(Hello)']"), "undefined");
+}

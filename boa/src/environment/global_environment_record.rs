@@ -56,7 +56,7 @@ impl GlobalEnvironmentRecord {
     pub fn create_global_var_binding(&mut self, name: String, deletion: bool) {
         let obj_rec = &mut self.object_record;
         let global_object = &obj_rec.bindings;
-        let has_property = global_object.has_field(&name);
+        let has_property = global_object.has_field(name.as_str());
         let extensible = global_object.is_extensible();
         if !has_property && extensible {
             obj_rec.create_mutable_binding(name.clone(), deletion);
@@ -71,7 +71,7 @@ impl GlobalEnvironmentRecord {
 
     pub fn create_global_function_binding(&mut self, name: &str, value: Value, deletion: bool) {
         let global_object = &mut self.object_record.bindings;
-        let existing_prop = global_object.get_property(&name);
+        let existing_prop = global_object.get_property(name);
         if let Some(prop) = existing_prop {
             if prop.value.is_none() || prop.configurable_or(false) {
                 let mut property =

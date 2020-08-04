@@ -622,7 +622,7 @@ fn unary_delete() {
         const c = delete a.c + '';
         a.b + c
     "#;
-    assert_eq!(&exec(delete_not_existing_prop), "\"5false\"");
+    assert_eq!(&exec(delete_not_existing_prop), "\"5true\"");
 
     let delete_field = r#"
         const a = { b: 5 };

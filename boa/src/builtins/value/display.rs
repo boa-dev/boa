@@ -67,7 +67,7 @@ macro_rules! print_obj_value {
     (impl $field:ident, $v:expr, $f:expr) => {
         $v
             .borrow()
-            .$field()
+            .$field
             .iter()
             .map($f)
             .collect::<Vec<String>>()
@@ -94,7 +94,7 @@ pub(crate) fn log_string_from(x: &Value, print_internals: bool, print_children: 
                 ObjectData::Array => {
                     let len = v
                         .borrow()
-                        .properties()
+                        .properties
                         .get("length")
                         .expect("Could not get Array's length property")
                         .value
@@ -114,9 +114,7 @@ pub(crate) fn log_string_from(x: &Value, print_internals: bool, print_children: 
                                 // which are part of the Array
                                 log_string_from(
                                     &v.borrow()
-                                        .properties()
-                                        .get(i.to_string().as_str())
-                                        .unwrap()
+                                        .get_own_property(&i.into())
                                         .value
                                         .clone()
                                         .expect("Could not borrow value"),
@@ -135,7 +133,7 @@ pub(crate) fn log_string_from(x: &Value, print_internals: bool, print_children: 
                 ObjectData::Map(ref map) => {
                     let size = v
                         .borrow()
-                        .properties()
+                        .properties
                         .get("size")
                         .unwrap()
                         .value
