@@ -495,25 +495,25 @@ impl Console {
 
         let console = Value::new_object(Some(global));
 
-        make_builtin_fn(Self::assert, "assert", &console, 0);
-        make_builtin_fn(Self::clear, "clear", &console, 0);
-        make_builtin_fn(Self::debug, "debug", &console, 0);
-        make_builtin_fn(Self::error, "error", &console, 0);
-        make_builtin_fn(Self::info, "info", &console, 0);
-        make_builtin_fn(Self::log, "log", &console, 0);
-        make_builtin_fn(Self::trace, "trace", &console, 0);
-        make_builtin_fn(Self::warn, "warn", &console, 0);
-        make_builtin_fn(Self::error, "exception", &console, 0);
-        make_builtin_fn(Self::count, "count", &console, 0);
-        make_builtin_fn(Self::count_reset, "countReset", &console, 0);
-        make_builtin_fn(Self::group, "group", &console, 0);
-        make_builtin_fn(Self::group, "groupCollapsed", &console, 0);
-        make_builtin_fn(Self::group_end, "groupEnd", &console, 0);
-        make_builtin_fn(Self::time, "time", &console, 0);
-        make_builtin_fn(Self::time_log, "timeLog", &console, 0);
-        make_builtin_fn(Self::time_end, "timeEnd", &console, 0);
-        make_builtin_fn(Self::dir, "dir", &console, 0);
-        make_builtin_fn(Self::dir, "dirxml", &console, 0);
+        make_builtin_fn(Self::assert, "assert", &console, 0, interpreter);
+        make_builtin_fn(Self::clear, "clear", &console, 0, interpreter);
+        make_builtin_fn(Self::debug, "debug", &console, 0, interpreter);
+        make_builtin_fn(Self::error, "error", &console, 0, interpreter);
+        make_builtin_fn(Self::info, "info", &console, 0, interpreter);
+        make_builtin_fn(Self::log, "log", &console, 0, interpreter);
+        make_builtin_fn(Self::trace, "trace", &console, 0, interpreter);
+        make_builtin_fn(Self::warn, "warn", &console, 0, interpreter);
+        make_builtin_fn(Self::error, "exception", &console, 0, interpreter);
+        make_builtin_fn(Self::count, "count", &console, 0, interpreter);
+        make_builtin_fn(Self::count_reset, "countReset", &console, 0, interpreter);
+        make_builtin_fn(Self::group, "group", &console, 0, interpreter);
+        make_builtin_fn(Self::group, "groupCollapsed", &console, 0, interpreter);
+        make_builtin_fn(Self::group_end, "groupEnd", &console, 0, interpreter);
+        make_builtin_fn(Self::time, "time", &console, 0, interpreter);
+        make_builtin_fn(Self::time_log, "timeLog", &console, 0, interpreter);
+        make_builtin_fn(Self::time_end, "timeEnd", &console, 0, interpreter);
+        make_builtin_fn(Self::dir, "dir", &console, 0, interpreter);
+        make_builtin_fn(Self::dir, "dirxml", &console, 0, interpreter);
 
         (Self::NAME, console)
     }

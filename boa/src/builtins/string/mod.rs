@@ -1003,39 +1003,58 @@ impl String {
     /// Initialise the `String` object on the global object.
     #[inline]
     pub(crate) fn init(interpreter: &mut Interpreter) -> (&'static str, Value) {
-        let global = interpreter.global();
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
         // Create `String` `prototype`
+
+        let global = interpreter.global();
         let prototype = Value::new_object(Some(global));
         let length = Property::default().value(Value::from(0));
 
         prototype.set_property("length", length);
 
-        make_builtin_fn(Self::char_at, "charAt", &prototype, 1);
-        make_builtin_fn(Self::char_code_at, "charCodeAt", &prototype, 1);
-        make_builtin_fn(Self::to_string, "toString", &prototype, 0);
-        make_builtin_fn(Self::concat, "concat", &prototype, 1);
-        make_builtin_fn(Self::repeat, "repeat", &prototype, 1);
-        make_builtin_fn(Self::slice, "slice", &prototype, 2);
-        make_builtin_fn(Self::starts_with, "startsWith", &prototype, 1);
-        make_builtin_fn(Self::ends_with, "endsWith", &prototype, 1);
-        make_builtin_fn(Self::includes, "includes", &prototype, 1);
-        make_builtin_fn(Self::index_of, "indexOf", &prototype, 1);
-        make_builtin_fn(Self::last_index_of, "lastIndexOf", &prototype, 1);
-        make_builtin_fn(Self::r#match, "match", &prototype, 1);
-        make_builtin_fn(Self::pad_end, "padEnd", &prototype, 1);
-        make_builtin_fn(Self::pad_start, "padStart", &prototype, 1);
-        make_builtin_fn(Self::trim, "trim", &prototype, 0);
-        make_builtin_fn(Self::trim_start, "trimStart", &prototype, 0);
-        make_builtin_fn(Self::trim_end, "trimEnd", &prototype, 0);
-        make_builtin_fn(Self::to_lowercase, "toLowerCase", &prototype, 0);
-        make_builtin_fn(Self::to_uppercase, "toUpperCase", &prototype, 0);
-        make_builtin_fn(Self::substring, "substring", &prototype, 2);
-        make_builtin_fn(Self::substr, "substr", &prototype, 2);
-        make_builtin_fn(Self::value_of, "valueOf", &prototype, 0);
-        make_builtin_fn(Self::match_all, "matchAll", &prototype, 1);
-        make_builtin_fn(Self::replace, "replace", &prototype, 2);
+        make_builtin_fn(Self::char_at, "charAt", &prototype, 1, interpreter);
+        make_builtin_fn(Self::char_code_at, "charCodeAt", &prototype, 1, interpreter);
+        make_builtin_fn(Self::to_string, "toString", &prototype, 0, interpreter);
+        make_builtin_fn(Self::concat, "concat", &prototype, 1, interpreter);
+        make_builtin_fn(Self::repeat, "repeat", &prototype, 1, interpreter);
+        make_builtin_fn(Self::slice, "slice", &prototype, 2, interpreter);
+        make_builtin_fn(Self::starts_with, "startsWith", &prototype, 1, interpreter);
+        make_builtin_fn(Self::ends_with, "endsWith", &prototype, 1, interpreter);
+        make_builtin_fn(Self::includes, "includes", &prototype, 1, interpreter);
+        make_builtin_fn(Self::index_of, "indexOf", &prototype, 1, interpreter);
+        make_builtin_fn(
+            Self::last_index_of,
+            "lastIndexOf",
+            &prototype,
+            1,
+            interpreter,
+        );
+        make_builtin_fn(Self::r#match, "match", &prototype, 1, interpreter);
+        make_builtin_fn(Self::pad_end, "padEnd", &prototype, 1, interpreter);
+        make_builtin_fn(Self::pad_start, "padStart", &prototype, 1, interpreter);
+        make_builtin_fn(Self::trim, "trim", &prototype, 0, interpreter);
+        make_builtin_fn(Self::trim_start, "trimStart", &prototype, 0, interpreter);
+        make_builtin_fn(Self::trim_end, "trimEnd", &prototype, 0, interpreter);
+        make_builtin_fn(
+            Self::to_lowercase,
+            "toLowerCase",
+            &prototype,
+            0,
+            interpreter,
+        );
+        make_builtin_fn(
+            Self::to_uppercase,
+            "toUpperCase",
+            &prototype,
+            0,
+            interpreter,
+        );
+        make_builtin_fn(Self::substring, "substring", &prototype, 2, interpreter);
+        make_builtin_fn(Self::substr, "substr", &prototype, 2, interpreter);
+        make_builtin_fn(Self::value_of, "valueOf", &prototype, 0, interpreter);
+        make_builtin_fn(Self::match_all, "matchAll", &prototype, 1, interpreter);
+        make_builtin_fn(Self::replace, "replace", &prototype, 2, interpreter);
 
         let string_object = make_constructor_fn(
             Self::NAME,

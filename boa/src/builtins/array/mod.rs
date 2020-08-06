@@ -1124,28 +1124,40 @@ impl Array {
 
         prototype.set_property("length", length);
 
-        make_builtin_fn(Self::concat, "concat", &prototype, 1);
-        make_builtin_fn(Self::push, "push", &prototype, 1);
-        make_builtin_fn(Self::index_of, "indexOf", &prototype, 1);
-        make_builtin_fn(Self::last_index_of, "lastIndexOf", &prototype, 1);
-        make_builtin_fn(Self::includes_value, "includes", &prototype, 1);
-        make_builtin_fn(Self::map, "map", &prototype, 1);
-        make_builtin_fn(Self::fill, "fill", &prototype, 1);
-        make_builtin_fn(Self::for_each, "forEach", &prototype, 1);
-        make_builtin_fn(Self::filter, "filter", &prototype, 1);
-        make_builtin_fn(Self::pop, "pop", &prototype, 0);
-        make_builtin_fn(Self::join, "join", &prototype, 1);
-        make_builtin_fn(Self::to_string, "toString", &prototype, 0);
-        make_builtin_fn(Self::reverse, "reverse", &prototype, 0);
-        make_builtin_fn(Self::shift, "shift", &prototype, 0);
-        make_builtin_fn(Self::unshift, "unshift", &prototype, 1);
-        make_builtin_fn(Self::every, "every", &prototype, 1);
-        make_builtin_fn(Self::find, "find", &prototype, 1);
-        make_builtin_fn(Self::find_index, "findIndex", &prototype, 1);
-        make_builtin_fn(Self::slice, "slice", &prototype, 2);
-        make_builtin_fn(Self::some, "some", &prototype, 2);
-        make_builtin_fn(Self::reduce, "reduce", &prototype, 2);
-        make_builtin_fn(Self::reduce_right, "reduceRight", &prototype, 2);
+        make_builtin_fn(Self::concat, "concat", &prototype, 1, interpreter);
+        make_builtin_fn(Self::push, "push", &prototype, 1, interpreter);
+        make_builtin_fn(Self::index_of, "indexOf", &prototype, 1, interpreter);
+        make_builtin_fn(
+            Self::last_index_of,
+            "lastIndexOf",
+            &prototype,
+            1,
+            interpreter,
+        );
+        make_builtin_fn(Self::includes_value, "includes", &prototype, 1, interpreter);
+        make_builtin_fn(Self::map, "map", &prototype, 1, interpreter);
+        make_builtin_fn(Self::fill, "fill", &prototype, 1, interpreter);
+        make_builtin_fn(Self::for_each, "forEach", &prototype, 1, interpreter);
+        make_builtin_fn(Self::filter, "filter", &prototype, 1, interpreter);
+        make_builtin_fn(Self::pop, "pop", &prototype, 0, interpreter);
+        make_builtin_fn(Self::join, "join", &prototype, 1, interpreter);
+        make_builtin_fn(Self::to_string, "toString", &prototype, 0, interpreter);
+        make_builtin_fn(Self::reverse, "reverse", &prototype, 0, interpreter);
+        make_builtin_fn(Self::shift, "shift", &prototype, 0, interpreter);
+        make_builtin_fn(Self::unshift, "unshift", &prototype, 1, interpreter);
+        make_builtin_fn(Self::every, "every", &prototype, 1, interpreter);
+        make_builtin_fn(Self::find, "find", &prototype, 1, interpreter);
+        make_builtin_fn(Self::find_index, "findIndex", &prototype, 1, interpreter);
+        make_builtin_fn(Self::slice, "slice", &prototype, 2, interpreter);
+        make_builtin_fn(Self::some, "some", &prototype, 2, interpreter);
+        make_builtin_fn(Self::reduce, "reduce", &prototype, 2, interpreter);
+        make_builtin_fn(
+            Self::reduce_right,
+            "reduceRight",
+            &prototype,
+            2,
+            interpreter,
+        );
 
         let array = make_constructor_fn(
             Self::NAME,
@@ -1158,7 +1170,7 @@ impl Array {
         );
 
         // Static Methods
-        make_builtin_fn(Self::is_array, "isArray", &array, 1);
+        make_builtin_fn(Self::is_array, "isArray", &array, 1, interpreter);
 
         (Self::NAME, array)
     }

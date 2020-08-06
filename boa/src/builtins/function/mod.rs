@@ -513,8 +513,13 @@ pub fn make_constructor_fn(
 ///     some other number of arguments.
 ///
 /// If no length is provided, the length will be set to 0.
-pub fn make_builtin_fn<N>(function: NativeFunctionData, name: N, parent: &Value, length: usize)
-where
+pub fn make_builtin_fn<N>(
+    function: NativeFunctionData,
+    name: N,
+    parent: &Value,
+    length: usize,
+    interpreter: &Interpreter,
+) where
     N: Into<String>,
 {
     let name = name.into();
@@ -522,6 +527,13 @@ where
 
     // FIXME: function needs the Function prototype set.
     let mut function = Object::function(Function::builtin(Vec::new(), function), Value::null());
+    function.set_prototype(
+        interpreter
+            .global()
+            .get_field("Function")
+            .get_field("prototype"),
+    );
+
     function.insert_field("length", Value::from(length));
 
     parent

@@ -641,7 +641,8 @@ impl Math {
     }
 
     /// Create a new `Math` object
-    pub(crate) fn create(global: &Value) -> Value {
+    pub(crate) fn create(interpreter: &mut Interpreter) -> Value {
+        let global = interpreter.global();
         let _timer = BoaProfiler::global().start_event("math:create", "init");
         let math = Value::new_object(Some(global));
 
@@ -656,41 +657,42 @@ impl Math {
             properties.insert_field("SQRT2", Value::from(f64::consts::SQRT_2));
             properties.insert_field("PI", Value::from(f64::consts::PI));
         }
-        make_builtin_fn(Self::abs, "abs", &math, 1);
-        make_builtin_fn(Self::acos, "acos", &math, 1);
-        make_builtin_fn(Self::acosh, "acosh", &math, 1);
-        make_builtin_fn(Self::asin, "asin", &math, 1);
-        make_builtin_fn(Self::asinh, "asinh", &math, 1);
-        make_builtin_fn(Self::atan, "atan", &math, 1);
-        make_builtin_fn(Self::atanh, "atanh", &math, 1);
-        make_builtin_fn(Self::atan2, "atan2", &math, 2);
-        make_builtin_fn(Self::cbrt, "cbrt", &math, 1);
-        make_builtin_fn(Self::ceil, "ceil", &math, 1);
-        make_builtin_fn(Self::clz32, "clz32", &math, 1);
-        make_builtin_fn(Self::cos, "cos", &math, 1);
-        make_builtin_fn(Self::cosh, "cosh", &math, 1);
-        make_builtin_fn(Self::exp, "exp", &math, 1);
-        make_builtin_fn(Self::expm1, "expm1", &math, 1);
-        make_builtin_fn(Self::floor, "floor", &math, 1);
-        make_builtin_fn(Self::fround, "fround", &math, 1);
-        make_builtin_fn(Self::hypot, "hypot", &math, 1);
-        make_builtin_fn(Self::imul, "imul", &math, 1);
-        make_builtin_fn(Self::log, "log", &math, 1);
-        make_builtin_fn(Self::log1p, "log1p", &math, 1);
-        make_builtin_fn(Self::log10, "log10", &math, 1);
-        make_builtin_fn(Self::log2, "log2", &math, 1);
-        make_builtin_fn(Self::max, "max", &math, 2);
-        make_builtin_fn(Self::min, "min", &math, 2);
-        make_builtin_fn(Self::pow, "pow", &math, 2);
-        make_builtin_fn(Self::random, "random", &math, 0);
-        make_builtin_fn(Self::round, "round", &math, 1);
-        make_builtin_fn(Self::sign, "sign", &math, 1);
-        make_builtin_fn(Self::sin, "sin", &math, 1);
-        make_builtin_fn(Self::sinh, "sinh", &math, 1);
-        make_builtin_fn(Self::sqrt, "sqrt", &math, 1);
-        make_builtin_fn(Self::tan, "tan", &math, 1);
-        make_builtin_fn(Self::tanh, "tanh", &math, 1);
-        make_builtin_fn(Self::trunc, "trunc", &math, 1);
+
+        make_builtin_fn(Self::abs, "abs", &math, 1, interpreter);
+        make_builtin_fn(Self::acos, "acos", &math, 1, interpreter);
+        make_builtin_fn(Self::acosh, "acosh", &math, 1, interpreter);
+        make_builtin_fn(Self::asin, "asin", &math, 1, interpreter);
+        make_builtin_fn(Self::asinh, "asinh", &math, 1, interpreter);
+        make_builtin_fn(Self::atan, "atan", &math, 1, interpreter);
+        make_builtin_fn(Self::atanh, "atanh", &math, 1, interpreter);
+        make_builtin_fn(Self::atan2, "atan2", &math, 2, interpreter);
+        make_builtin_fn(Self::cbrt, "cbrt", &math, 1, interpreter);
+        make_builtin_fn(Self::ceil, "ceil", &math, 1, interpreter);
+        make_builtin_fn(Self::clz32, "clz32", &math, 1, interpreter);
+        make_builtin_fn(Self::cos, "cos", &math, 1, interpreter);
+        make_builtin_fn(Self::cosh, "cosh", &math, 1, interpreter);
+        make_builtin_fn(Self::exp, "exp", &math, 1, interpreter);
+        make_builtin_fn(Self::expm1, "expm1", &math, 1, interpreter);
+        make_builtin_fn(Self::floor, "floor", &math, 1, interpreter);
+        make_builtin_fn(Self::fround, "fround", &math, 1, interpreter);
+        make_builtin_fn(Self::hypot, "hypot", &math, 1, interpreter);
+        make_builtin_fn(Self::imul, "imul", &math, 1, interpreter);
+        make_builtin_fn(Self::log, "log", &math, 1, interpreter);
+        make_builtin_fn(Self::log1p, "log1p", &math, 1, interpreter);
+        make_builtin_fn(Self::log10, "log10", &math, 1, interpreter);
+        make_builtin_fn(Self::log2, "log2", &math, 1, interpreter);
+        make_builtin_fn(Self::max, "max", &math, 2, interpreter);
+        make_builtin_fn(Self::min, "min", &math, 2, interpreter);
+        make_builtin_fn(Self::pow, "pow", &math, 2, interpreter);
+        make_builtin_fn(Self::random, "random", &math, 0, interpreter);
+        make_builtin_fn(Self::round, "round", &math, 1, interpreter);
+        make_builtin_fn(Self::sign, "sign", &math, 1, interpreter);
+        make_builtin_fn(Self::sin, "sin", &math, 1, interpreter);
+        make_builtin_fn(Self::sinh, "sinh", &math, 1, interpreter);
+        make_builtin_fn(Self::sqrt, "sqrt", &math, 1, interpreter);
+        make_builtin_fn(Self::tan, "tan", &math, 1, interpreter);
+        make_builtin_fn(Self::tanh, "tanh", &math, 1, interpreter);
+        make_builtin_fn(Self::trunc, "trunc", &math, 1, interpreter);
 
         math
     }
@@ -698,9 +700,8 @@ impl Math {
     /// Initialise the `Math` object on the global object.
     #[inline]
     pub(crate) fn init(interpreter: &mut Interpreter) -> (&'static str, Value) {
-        let global = interpreter.global();
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
-        (Self::NAME, Self::create(global))
+        (Self::NAME, Self::create(interpreter))
     }
 }

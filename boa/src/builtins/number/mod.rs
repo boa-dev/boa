@@ -733,23 +733,48 @@ impl Number {
 
         let prototype = Value::new_object(Some(global));
 
-        make_builtin_fn(Self::to_exponential, "toExponential", &prototype, 1);
-        make_builtin_fn(Self::to_fixed, "toFixed", &prototype, 1);
-        make_builtin_fn(Self::to_locale_string, "toLocaleString", &prototype, 0);
-        make_builtin_fn(Self::to_precision, "toPrecision", &prototype, 1);
-        make_builtin_fn(Self::to_string, "toString", &prototype, 1);
-        make_builtin_fn(Self::value_of, "valueOf", &prototype, 0);
+        make_builtin_fn(
+            Self::to_exponential,
+            "toExponential",
+            &prototype,
+            1,
+            interpreter,
+        );
+        make_builtin_fn(Self::to_fixed, "toFixed", &prototype, 1, interpreter);
+        make_builtin_fn(
+            Self::to_locale_string,
+            "toLocaleString",
+            &prototype,
+            0,
+            interpreter,
+        );
+        make_builtin_fn(
+            Self::to_precision,
+            "toPrecision",
+            &prototype,
+            1,
+            interpreter,
+        );
+        make_builtin_fn(Self::to_string, "toString", &prototype, 1, interpreter);
+        make_builtin_fn(Self::value_of, "valueOf", &prototype, 0, interpreter);
 
-        make_builtin_fn(Self::parse_int, "parseInt", global, PARSE_INT_MAX_ARG_COUNT);
+        make_builtin_fn(
+            Self::parse_int,
+            "parseInt",
+            global,
+            PARSE_INT_MAX_ARG_COUNT,
+            interpreter,
+        );
         make_builtin_fn(
             Self::parse_float,
             "parseFloat",
             global,
             PARSE_FLOAT_MAX_ARG_COUNT,
+            interpreter,
         );
 
-        make_builtin_fn(Self::global_is_finite, "isFinite", global, 1);
-        make_builtin_fn(Self::global_is_nan, "isNaN", global, 1);
+        make_builtin_fn(Self::global_is_finite, "isFinite", global, 1, interpreter);
+        make_builtin_fn(Self::global_is_nan, "isNaN", global, 1, interpreter);
 
         let number_object = make_constructor_fn(
             Self::NAME,
@@ -761,10 +786,28 @@ impl Number {
             true,
         );
 
-        make_builtin_fn(Self::number_is_finite, "isFinite", &number_object, 1);
-        make_builtin_fn(Self::number_is_nan, "isNaN", &number_object, 1);
-        make_builtin_fn(Self::is_safe_integer, "isSafeInteger", &number_object, 1);
-        make_builtin_fn(Self::number_is_integer, "isInteger", &number_object, 1);
+        make_builtin_fn(
+            Self::number_is_finite,
+            "isFinite",
+            &number_object,
+            1,
+            interpreter,
+        );
+        make_builtin_fn(Self::number_is_nan, "isNaN", &number_object, 1, interpreter);
+        make_builtin_fn(
+            Self::is_safe_integer,
+            "isSafeInteger",
+            &number_object,
+            1,
+            interpreter,
+        );
+        make_builtin_fn(
+            Self::number_is_integer,
+            "isInteger",
+            &number_object,
+            1,
+            interpreter,
+        );
 
         // Constants from:
         // https://tc39.es/ecma262/#sec-properties-of-the-number-constructor

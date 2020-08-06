@@ -487,9 +487,9 @@ impl RegExp {
             .unwrap()
             .insert_field("lastIndex", Value::from(0));
 
-        make_builtin_fn(Self::test, "test", &prototype, 1);
-        make_builtin_fn(Self::exec, "exec", &prototype, 1);
-        make_builtin_fn(Self::to_string, "toString", &prototype, 0);
+        make_builtin_fn(Self::test, "test", &prototype, 1, interpreter);
+        make_builtin_fn(Self::exec, "exec", &prototype, 1, interpreter);
+        make_builtin_fn(Self::to_string, "toString", &prototype, 0, interpreter);
 
         // TODO: make them accessor properties, not methods.
         // make_builtin_fn(Self::get_dot_all, "dotAll", &prototype, 0);
