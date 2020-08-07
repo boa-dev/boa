@@ -155,6 +155,14 @@ impl Value {
         Self::Symbol(RcSymbol::from(symbol))
     }
 
+    /// Helper function to convert the `Value` to a number and compute its power.
+    pub fn as_num_to_power(&self, other: Self) -> Self {
+        match (self, other) {
+            (Self::BigInt(ref a), Self::BigInt(ref b)) => Self::bigint(a.as_inner().clone().pow(b)),
+            (a, b) => Self::rational(a.to_number().powf(b.to_number())),
+        }
+    }
+
     /// Returns a new empty object
     pub fn new_object(global: Option<&Value>) -> Self {
         let _timer = BoaProfiler::global().start_event("new_object", "value");
@@ -231,8 +239,14 @@ impl Value {
         }
     }
 
-    /// Conversts the `Value` to `JSON`.
+    /// Converts the `Value` to `JSON`.
     pub fn to_json(&self, interpreter: &mut Interpreter) -> Result<JSONValue, Value> {
+        let to_json = self.get_field("toJSON");
+        if to_json.is_function() {
+            let json_value = interpreter.call(&to_json, self, &[])?;
+            return json_value.to_json(interpreter);
+        }
+
         match *self {
             Self::Null => Ok(JSONValue::Null),
             Self::Boolean(b) => Ok(JSONValue::Bool(b)),
@@ -287,6 +301,17 @@ impl Value {
     /// <https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/freeze would also turn extensible to false/>
     pub fn is_extensible(&self) -> bool {
         true
+    }
+
+    /// Returns true if the value the global for a Realm
+    pub fn is_global(&self) -> bool {
+        match self {
+            Value::Object(object) => match object.borrow().data {
+                ObjectData::Global => true,
+                _ => false,
+            },
+            _ => false,
+        }
     }
 
     /// Returns true if the value is an object

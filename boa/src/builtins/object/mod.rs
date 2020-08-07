@@ -19,7 +19,7 @@ use crate::{
         map::ordered_map::OrderedMap,
         property::Property,
         value::{RcBigInt, RcString, RcSymbol, ResultValue, Value},
-        BigInt, RegExp,
+        BigInt, Date, RegExp,
     },
     exec::Interpreter,
     BoaProfiler,
@@ -78,6 +78,8 @@ pub enum ObjectData {
     Symbol(RcSymbol),
     Error,
     Ordinary,
+    Date(Date),
+    Global,
 }
 
 impl Display for ObjectData {
@@ -97,6 +99,8 @@ impl Display for ObjectData {
                 Self::Boolean(_) => "Boolean",
                 Self::Number(_) => "Number",
                 Self::BigInt(_) => "BigInt",
+                Self::Date(_) => "Date",
+                Self::Global => "Global",
             }
         )
     }

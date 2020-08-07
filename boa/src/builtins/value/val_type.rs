@@ -14,6 +14,7 @@ pub enum Type {
     BigInt,
     Object,
     Function,
+    Date,
 }
 
 impl Type {
@@ -28,6 +29,7 @@ impl Type {
             Self::Function => "function",
             Self::Object => "object",
             Self::BigInt => "bigint",
+            Self::Date => "date",
         }
     }
 }

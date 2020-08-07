@@ -96,6 +96,8 @@ fn object_is() {
     assert_eq!(forward(&mut engine, "Object.is(NaN, 0/0)"), "true");
     assert_eq!(forward(&mut engine, "Object.is()"), "true");
     assert_eq!(forward(&mut engine, "Object.is(undefined)"), "true");
+    assert!(engine.realm.global_obj.is_global());
+    assert!(!engine.realm.global_obj.get_field("Object").is_global());
 }
 #[test]
 fn object_has_own_property() {
