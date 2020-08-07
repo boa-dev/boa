@@ -411,6 +411,18 @@ fn display_negative_zero_object() {
 }
 
 #[test]
+fn debug_object() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+    let value = forward_val(&mut engine, "new Array([new Date()])").unwrap();
+
+    // We don't care about the contents of the debug display (it is *debug* after all).
+    // In the commit that this test was added, this would cause a stack overflow, so
+    // executing Debug::fmt is the assertion.
+    let _ = format!("{:?}", value);
+}
+
+#[test]
 #[ignore] // TODO: Once objects are printed in a simpler way this test can be simplified and used
 fn display_object() {
     let realm = Realm::create();
