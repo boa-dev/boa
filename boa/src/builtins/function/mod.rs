@@ -525,9 +525,8 @@ pub fn make_builtin_fn<N>(
     let name = name.into();
     let _timer = BoaProfiler::global().start_event(&format!("make_builtin_fn: {}", &name), "init");
 
-    // FIXME: function needs the Function prototype set.
-    let mut function = Object::function(Function::builtin(Vec::new(), function), Value::null());
-    function.set_prototype(
+    let mut function = Object::function(
+        Function::builtin(Vec::new(), function),
         interpreter
             .global()
             .get_field("Function")
