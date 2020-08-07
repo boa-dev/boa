@@ -80,6 +80,10 @@
 <span id="80">80</span>
 <span id="81">81</span>
 <span id="82">82</span>
+<span id="83">83</span>
+<span id="84">84</span>
+<span id="85">85</span>
+<span id="86">86</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Conceptually, a realm consists of a set of intrinsic objects, an ECMAScript global environment,</span>
 <span class="doccomment">//! all of the ECMAScript code that is loaded within the scope of that global environment,</span>
@@ -119,6 +123,10 @@
         <span class="comment">// Create brand new global object</span>
         <span class="comment">// Global has no prototype to pass None to new_obj</span>
         <span class="kw">let</span> <span class="ident">global</span> <span class="op">=</span> <span class="ident">Value</span>::<span class="ident">new_object</span>(<span class="prelude-val">None</span>);
+
+        <span class="comment">// Allow identification of the global object easily</span>
+        <span class="ident">global</span>.<span class="ident">set_data</span>(<span class="kw">crate</span>::<span class="ident">builtins</span>::<span class="ident">object</span>::<span class="ident">ObjectData</span>::<span class="ident">Global</span>);
+
         <span class="comment">// We need to clone the global here because its referenced from separate places (only pointer is cloned)</span>
         <span class="kw">let</span> <span class="ident">global_env</span> <span class="op">=</span> <span class="ident">new_global_environment</span>(<span class="ident">global</span>.<span class="ident">clone</span>(), <span class="ident">global</span>.<span class="ident">clone</span>());
 

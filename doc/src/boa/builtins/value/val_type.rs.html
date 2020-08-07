@@ -57,6 +57,8 @@
 <span id="57">57</span>
 <span id="58">58</span>
 <span id="59">59</span>
+<span id="60">60</span>
+<span id="61">61</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">builtins</span>::<span class="ident">value</span>::<span class="ident">Value</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">ops</span>::<span class="ident">Deref</span>;
@@ -74,6 +76,7 @@
     <span class="ident">BigInt</span>,
     <span class="ident">Object</span>,
     <span class="ident">Function</span>,
+    <span class="ident">Date</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">Type</span> {
@@ -88,6 +91,7 @@
             <span class="self">Self</span>::<span class="ident">Function</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;function&quot;</span>,
             <span class="self">Self</span>::<span class="ident">Object</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;object&quot;</span>,
             <span class="self">Self</span>::<span class="ident">BigInt</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;bigint&quot;</span>,
+            <span class="self">Self</span>::<span class="ident">Date</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;date&quot;</span>,
         }
     }
 }

@@ -601,6 +601,10 @@
 <span id="601">601</span>
 <span id="602">602</span>
 <span id="603">603</span>
+<span id="604">604</span>
+<span id="605">605</span>
+<span id="606">606</span>
+<span id="607">607</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements the global `Object` object.</span>
 <span class="doccomment">//!</span>
@@ -623,7 +627,7 @@
         <span class="ident">map</span>::<span class="ident">ordered_map</span>::<span class="ident">OrderedMap</span>,
         <span class="ident">property</span>::<span class="ident">Property</span>,
         <span class="ident">value</span>::{<span class="ident">RcBigInt</span>, <span class="ident">RcString</span>, <span class="ident">RcSymbol</span>, <span class="ident">ResultValue</span>, <span class="ident">Value</span>},
-        <span class="ident">BigInt</span>, <span class="ident">RegExp</span>,
+        <span class="ident">BigInt</span>, <span class="ident">Date</span>, <span class="ident">RegExp</span>,
     },
     <span class="ident">exec</span>::<span class="ident">Interpreter</span>,
     <span class="ident">BoaProfiler</span>,
@@ -682,6 +686,8 @@
     <span class="ident">Symbol</span>(<span class="ident">RcSymbol</span>),
     <span class="ident">Error</span>,
     <span class="ident">Ordinary</span>,
+    <span class="ident">Date</span>(<span class="ident">Date</span>),
+    <span class="ident">Global</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">Display</span> <span class="kw">for</span> <span class="ident">ObjectData</span> {
@@ -701,6 +707,8 @@
                 <span class="self">Self</span>::<span class="ident">Boolean</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;Boolean&quot;</span>,
                 <span class="self">Self</span>::<span class="ident">Number</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;Number&quot;</span>,
                 <span class="self">Self</span>::<span class="ident">BigInt</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;BigInt&quot;</span>,
+                <span class="self">Self</span>::<span class="ident">Date</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;Date&quot;</span>,
+                <span class="self">Self</span>::<span class="ident">Global</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;Global&quot;</span>,
             }
         )
     }

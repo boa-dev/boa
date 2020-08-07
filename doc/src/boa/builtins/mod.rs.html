@@ -84,6 +84,9 @@
 <span id="84">84</span>
 <span id="85">85</span>
 <span id="86">86</span>
+<span id="87">87</span>
+<span id="88">88</span>
+<span id="89">89</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Builtins live here, such as Object, String, Math, etc.</span>
 
@@ -91,6 +94,7 @@
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">bigint</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">boolean</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">console</span>;
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">date</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">error</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">function</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">global_this</span>;
@@ -113,6 +117,7 @@
     <span class="ident">bigint</span>::<span class="ident">BigInt</span>,
     <span class="ident">boolean</span>::<span class="ident">Boolean</span>,
     <span class="ident">console</span>::<span class="ident">Console</span>,
+    <span class="ident">date</span>::<span class="ident">Date</span>,
     <span class="ident">error</span>::{<span class="ident">Error</span>, <span class="ident">RangeError</span>, <span class="ident">ReferenceError</span>, <span class="ident">SyntaxError</span>, <span class="ident">TypeError</span>},
     <span class="ident">global_this</span>::<span class="ident">GlobalThis</span>,
     <span class="ident">infinity</span>::<span class="ident">Infinity</span>,
@@ -139,6 +144,7 @@
         <span class="ident">Array</span>::<span class="ident">init</span>,
         <span class="ident">BigInt</span>::<span class="ident">init</span>,
         <span class="ident">Boolean</span>::<span class="ident">init</span>,
+        <span class="ident">Date</span>::<span class="ident">init</span>,
         <span class="ident">Json</span>::<span class="ident">init</span>,
         <span class="ident">Map</span>::<span class="ident">init</span>,
         <span class="ident">Math</span>::<span class="ident">init</span>,
