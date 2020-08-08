@@ -7,8 +7,7 @@ mod tests;
 
 use super::number::{f64_to_int32, f64_to_uint32};
 use crate::builtins::{
-    function::Function,
-    object::{GcObject, InternalState, InternalStateCell, Object, ObjectData, PROTOTYPE},
+    object::{GcObject, Object, ObjectData, PROTOTYPE},
     property::{Attribute, Property, PropertyKey},
     BigInt, Number, Symbol,
 };
@@ -17,7 +16,6 @@ use crate::{BoaProfiler, Result};
 use gc::{Finalize, GcCellRef, GcCellRefMut, Trace};
 use serde_json::{map::Map, Number as JSONNumber, Value as JSONValue};
 use std::{
-    any::Any,
     collections::HashSet,
     convert::TryFrom,
     f64::NAN,
@@ -530,66 +528,6 @@ impl Value {
         }
     }
 
-    /// Check whether an object has an internal state set.
-    #[inline]
-    pub fn has_internal_state(&self) -> bool {
-        matches!(self.as_object(), Some(object) if object.state().is_some())
-    }
-
-    /// Get the internal state of an object.
-    pub fn get_internal_state(&self) -> Option<InternalStateCell> {
-        self.as_object()
-            .and_then(|object| object.state().as_ref().cloned())
-    }
-
-    /// Run a function with a reference to the internal state.
-    ///
-    /// # Panics
-    ///
-    /// This will panic if this value doesn't have an internal state or if the internal state doesn't
-    /// have the concrete type `S`.
-    pub fn with_internal_state_ref<S, R, F>(&self, f: F) -> R
-    where
-        S: Any + InternalState,
-        F: FnOnce(&S) -> R,
-    {
-        if let Some(object) = self.as_object() {
-            let state = object
-                .state()
-                .as_ref()
-                .expect("no state")
-                .downcast_ref()
-                .expect("wrong state type");
-            f(state)
-        } else {
-            panic!("not an object");
-        }
-    }
-
-    /// Run a function with a mutable reference to the internal state.
-    ///
-    /// # Panics
-    ///
-    /// This will panic if this value doesn't have an internal state or if the internal state doesn't
-    /// have the concrete type `S`.
-    pub fn with_internal_state_mut<S, R, F>(&self, f: F) -> R
-    where
-        S: Any + InternalState,
-        F: FnOnce(&mut S) -> R,
-    {
-        if let Some(mut object) = self.as_object_mut() {
-            let state = object
-                .state_mut()
-                .as_mut()
-                .expect("no state")
-                .downcast_mut()
-                .expect("wrong state type");
-            f(state)
-        } else {
-            panic!("not an object");
-        }
-    }
-
     /// Check to see if the Value has the field, mainly used by environment records.
     #[inline]
     pub fn has_field(&self, field: &str) -> bool {
@@ -644,27 +582,6 @@ impl Value {
                 .insert(field.into(), property.clone());
         }
         property
-    }
-
-    /// Set internal state of an Object. Discards the previous state if it was set.
-    pub fn set_internal_state<T: Any + InternalState>(&self, state: T) {
-        if let Some(mut object) = self.as_object_mut() {
-            object.state_mut().replace(InternalStateCell::new(state));
-        }
-    }
-
-    /// Consume the function and return a Value
-    pub fn from_func(function: Function) -> Value {
-        // Get Length
-        let length = function.params.len();
-        // Object with Kind set to function
-        // TODO: FIXME: Add function prototype
-        let new_func = Object::function(function, Value::null());
-        // Wrap Object in GC'd Value
-        let new_func_val = Value::from(new_func);
-        // Set length to parameters
-        new_func_val.set_field("length", Value::from(length));
-        new_func_val
     }
 
     /// The abstract operation ToPrimitive takes an input argument and an optional argument PreferredType.
