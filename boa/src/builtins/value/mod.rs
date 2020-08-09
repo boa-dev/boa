@@ -155,14 +155,6 @@ impl Value {
         Self::Symbol(RcSymbol::from(symbol))
     }
 
-    /// Helper function to convert the `Value` to a number and compute its power.
-    pub fn as_num_to_power(&self, other: Self) -> Self {
-        match (self, other) {
-            (Self::BigInt(ref a), Self::BigInt(ref b)) => Self::bigint(a.as_inner().clone().pow(b)),
-            (a, b) => Self::rational(a.to_number().powf(b.to_number())),
-        }
-    }
-
     /// Returns a new empty object
     pub fn new_object(global: Option<&Value>) -> Self {
         let _timer = BoaProfiler::global().start_event("new_object", "value");
