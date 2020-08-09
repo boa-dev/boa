@@ -827,6 +827,49 @@
 <span id="827">827</span>
 <span id="828">828</span>
 <span id="829">829</span>
+<span id="830">830</span>
+<span id="831">831</span>
+<span id="832">832</span>
+<span id="833">833</span>
+<span id="834">834</span>
+<span id="835">835</span>
+<span id="836">836</span>
+<span id="837">837</span>
+<span id="838">838</span>
+<span id="839">839</span>
+<span id="840">840</span>
+<span id="841">841</span>
+<span id="842">842</span>
+<span id="843">843</span>
+<span id="844">844</span>
+<span id="845">845</span>
+<span id="846">846</span>
+<span id="847">847</span>
+<span id="848">848</span>
+<span id="849">849</span>
+<span id="850">850</span>
+<span id="851">851</span>
+<span id="852">852</span>
+<span id="853">853</span>
+<span id="854">854</span>
+<span id="855">855</span>
+<span id="856">856</span>
+<span id="857">857</span>
+<span id="858">858</span>
+<span id="859">859</span>
+<span id="860">860</span>
+<span id="861">861</span>
+<span id="862">862</span>
+<span id="863">863</span>
+<span id="864">864</span>
+<span id="865">865</span>
+<span id="866">866</span>
+<span id="867">867</span>
+<span id="868">868</span>
+<span id="869">869</span>
+<span id="870">870</span>
+<span id="871">871</span>
+<span id="872">872</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements the global `Number` object.</span>
 <span class="doccomment">//!</span>
@@ -1563,23 +1606,48 @@
 
         <span class="kw">let</span> <span class="ident">prototype</span> <span class="op">=</span> <span class="ident">Value</span>::<span class="ident">new_object</span>(<span class="prelude-val">Some</span>(<span class="ident">global</span>));
 
-        <span class="ident">make_builtin_fn</span>(<span class="self">Self</span>::<span class="ident">to_exponential</span>, <span class="string">&quot;toExponential&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">prototype</span>, <span class="number">1</span>);
-        <span class="ident">make_builtin_fn</span>(<span class="self">Self</span>::<span class="ident">to_fixed</span>, <span class="string">&quot;toFixed&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">prototype</span>, <span class="number">1</span>);
-        <span class="ident">make_builtin_fn</span>(<span class="self">Self</span>::<span class="ident">to_locale_string</span>, <span class="string">&quot;toLocaleString&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">prototype</span>, <span class="number">0</span>);
-        <span class="ident">make_builtin_fn</span>(<span class="self">Self</span>::<span class="ident">to_precision</span>, <span class="string">&quot;toPrecision&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">prototype</span>, <span class="number">1</span>);
-        <span class="ident">make_builtin_fn</span>(<span class="self">Self</span>::<span class="ident">to_string</span>, <span class="string">&quot;toString&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">prototype</span>, <span class="number">1</span>);
-        <span class="ident">make_builtin_fn</span>(<span class="self">Self</span>::<span class="ident">value_of</span>, <span class="string">&quot;valueOf&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">prototype</span>, <span class="number">0</span>);
+        <span class="ident">make_builtin_fn</span>(
+            <span class="self">Self</span>::<span class="ident">to_exponential</span>,
+            <span class="string">&quot;toExponential&quot;</span>,
+            <span class="kw-2">&amp;</span><span class="ident">prototype</span>,
+            <span class="number">1</span>,
+            <span class="ident">interpreter</span>,
+        );
+        <span class="ident">make_builtin_fn</span>(<span class="self">Self</span>::<span class="ident">to_fixed</span>, <span class="string">&quot;toFixed&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">prototype</span>, <span class="number">1</span>, <span class="ident">interpreter</span>);
+        <span class="ident">make_builtin_fn</span>(
+            <span class="self">Self</span>::<span class="ident">to_locale_string</span>,
+            <span class="string">&quot;toLocaleString&quot;</span>,
+            <span class="kw-2">&amp;</span><span class="ident">prototype</span>,
+            <span class="number">0</span>,
+            <span class="ident">interpreter</span>,
+        );
+        <span class="ident">make_builtin_fn</span>(
+            <span class="self">Self</span>::<span class="ident">to_precision</span>,
+            <span class="string">&quot;toPrecision&quot;</span>,
+            <span class="kw-2">&amp;</span><span class="ident">prototype</span>,
+            <span class="number">1</span>,
+            <span class="ident">interpreter</span>,
+        );
+        <span class="ident">make_builtin_fn</span>(<span class="self">Self</span>::<span class="ident">to_string</span>, <span class="string">&quot;toString&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">prototype</span>, <span class="number">1</span>, <span class="ident">interpreter</span>);
+        <span class="ident">make_builtin_fn</span>(<span class="self">Self</span>::<span class="ident">value_of</span>, <span class="string">&quot;valueOf&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">prototype</span>, <span class="number">0</span>, <span class="ident">interpreter</span>);
 
-        <span class="ident">make_builtin_fn</span>(<span class="self">Self</span>::<span class="ident">parse_int</span>, <span class="string">&quot;parseInt&quot;</span>, <span class="ident">global</span>, <span class="ident">PARSE_INT_MAX_ARG_COUNT</span>);
+        <span class="ident">make_builtin_fn</span>(
+            <span class="self">Self</span>::<span class="ident">parse_int</span>,
+            <span class="string">&quot;parseInt&quot;</span>,
+            <span class="ident">global</span>,
+            <span class="ident">PARSE_INT_MAX_ARG_COUNT</span>,
+            <span class="ident">interpreter</span>,
+        );
         <span class="ident">make_builtin_fn</span>(
             <span class="self">Self</span>::<span class="ident">parse_float</span>,
             <span class="string">&quot;parseFloat&quot;</span>,
             <span class="ident">global</span>,
             <span class="ident">PARSE_FLOAT_MAX_ARG_COUNT</span>,
+            <span class="ident">interpreter</span>,
         );
 
-        <span class="ident">make_builtin_fn</span>(<span class="self">Self</span>::<span class="ident">global_is_finite</span>, <span class="string">&quot;isFinite&quot;</span>, <span class="ident">global</span>, <span class="number">1</span>);
-        <span class="ident">make_builtin_fn</span>(<span class="self">Self</span>::<span class="ident">global_is_nan</span>, <span class="string">&quot;isNaN&quot;</span>, <span class="ident">global</span>, <span class="number">1</span>);
+        <span class="ident">make_builtin_fn</span>(<span class="self">Self</span>::<span class="ident">global_is_finite</span>, <span class="string">&quot;isFinite&quot;</span>, <span class="ident">global</span>, <span class="number">1</span>, <span class="ident">interpreter</span>);
+        <span class="ident">make_builtin_fn</span>(<span class="self">Self</span>::<span class="ident">global_is_nan</span>, <span class="string">&quot;isNaN&quot;</span>, <span class="ident">global</span>, <span class="number">1</span>, <span class="ident">interpreter</span>);
 
         <span class="kw">let</span> <span class="ident">number_object</span> <span class="op">=</span> <span class="ident">make_constructor_fn</span>(
             <span class="self">Self</span>::<span class="ident">NAME</span>,
@@ -1591,10 +1659,28 @@
             <span class="bool-val">true</span>,
         );
 
-        <span class="ident">make_builtin_fn</span>(<span class="self">Self</span>::<span class="ident">number_is_finite</span>, <span class="string">&quot;isFinite&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">number_object</span>, <span class="number">1</span>);
-        <span class="ident">make_builtin_fn</span>(<span class="self">Self</span>::<span class="ident">number_is_nan</span>, <span class="string">&quot;isNaN&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">number_object</span>, <span class="number">1</span>);
-        <span class="ident">make_builtin_fn</span>(<span class="self">Self</span>::<span class="ident">is_safe_integer</span>, <span class="string">&quot;isSafeInteger&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">number_object</span>, <span class="number">1</span>);
-        <span class="ident">make_builtin_fn</span>(<span class="self">Self</span>::<span class="ident">number_is_integer</span>, <span class="string">&quot;isInteger&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">number_object</span>, <span class="number">1</span>);
+        <span class="ident">make_builtin_fn</span>(
+            <span class="self">Self</span>::<span class="ident">number_is_finite</span>,
+            <span class="string">&quot;isFinite&quot;</span>,
+            <span class="kw-2">&amp;</span><span class="ident">number_object</span>,
+            <span class="number">1</span>,
+            <span class="ident">interpreter</span>,
+        );
+        <span class="ident">make_builtin_fn</span>(<span class="self">Self</span>::<span class="ident">number_is_nan</span>, <span class="string">&quot;isNaN&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">number_object</span>, <span class="number">1</span>, <span class="ident">interpreter</span>);
+        <span class="ident">make_builtin_fn</span>(
+            <span class="self">Self</span>::<span class="ident">is_safe_integer</span>,
+            <span class="string">&quot;isSafeInteger&quot;</span>,
+            <span class="kw-2">&amp;</span><span class="ident">number_object</span>,
+            <span class="number">1</span>,
+            <span class="ident">interpreter</span>,
+        );
+        <span class="ident">make_builtin_fn</span>(
+            <span class="self">Self</span>::<span class="ident">number_is_integer</span>,
+            <span class="string">&quot;isInteger&quot;</span>,
+            <span class="kw-2">&amp;</span><span class="ident">number_object</span>,
+            <span class="number">1</span>,
+            <span class="ident">interpreter</span>,
+        );
 
         <span class="comment">// Constants from:</span>
         <span class="comment">// https://tc39.es/ecma262/#sec-properties-of-the-number-constructor</span>

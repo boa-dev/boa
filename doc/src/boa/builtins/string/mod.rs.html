@@ -1050,6 +1050,25 @@
 <span id="1050">1050</span>
 <span id="1051">1051</span>
 <span id="1052">1052</span>
+<span id="1053">1053</span>
+<span id="1054">1054</span>
+<span id="1055">1055</span>
+<span id="1056">1056</span>
+<span id="1057">1057</span>
+<span id="1058">1058</span>
+<span id="1059">1059</span>
+<span id="1060">1060</span>
+<span id="1061">1061</span>
+<span id="1062">1062</span>
+<span id="1063">1063</span>
+<span id="1064">1064</span>
+<span id="1065">1065</span>
+<span id="1066">1066</span>
+<span id="1067">1067</span>
+<span id="1068">1068</span>
+<span id="1069">1069</span>
+<span id="1070">1070</span>
+<span id="1071">1071</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements the global `String` object.</span>
 <span class="doccomment">//!</span>
@@ -2056,39 +2075,58 @@
     <span class="doccomment">/// Initialise the `String` object on the global object.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">init</span>(<span class="ident">interpreter</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>, <span class="ident">Value</span>) {
-        <span class="kw">let</span> <span class="ident">global</span> <span class="op">=</span> <span class="ident">interpreter</span>.<span class="ident">global</span>();
         <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">BoaProfiler</span>::<span class="ident">global</span>().<span class="ident">start_event</span>(<span class="self">Self</span>::<span class="ident">NAME</span>, <span class="string">&quot;init&quot;</span>);
 
         <span class="comment">// Create `String` `prototype`</span>
+
+        <span class="kw">let</span> <span class="ident">global</span> <span class="op">=</span> <span class="ident">interpreter</span>.<span class="ident">global</span>();
         <span class="kw">let</span> <span class="ident">prototype</span> <span class="op">=</span> <span class="ident">Value</span>::<span class="ident">new_object</span>(<span class="prelude-val">Some</span>(<span class="ident">global</span>));
         <span class="kw">let</span> <span class="ident">length</span> <span class="op">=</span> <span class="ident">Property</span>::<span class="ident">default</span>().<span class="ident">value</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="number">0</span>));
 
         <span class="ident">prototype</span>.<span class="ident">set_property</span>(<span class="string">&quot;length&quot;</span>, <span class="ident">length</span>);
 
-        <span class="ident">make_builtin_fn</span>(<span class="self">Self</span>::<span class="ident">char_at</span>, <span class="string">&quot;charAt&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">prototype</span>, <span class="number">1</span>);
-        <span class="ident">make_builtin_fn</span>(<span class="self">Self</span>::<span class="ident">char_code_at</span>, <span class="string">&quot;charCodeAt&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">prototype</span>, <span class="number">1</span>);
-        <span class="ident">make_builtin_fn</span>(<span class="self">Self</span>::<span class="ident">to_string</span>, <span class="string">&quot;toString&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">prototype</span>, <span class="number">0</span>);
-        <span class="ident">make_builtin_fn</span>(<span class="self">Self</span>::<span class="ident">concat</span>, <span class="string">&quot;concat&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">prototype</span>, <span class="number">1</span>);
-        <span class="ident">make_builtin_fn</span>(<span class="self">Self</span>::<span class="ident">repeat</span>, <span class="string">&quot;repeat&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">prototype</span>, <span class="number">1</span>);
-        <span class="ident">make_builtin_fn</span>(<span class="self">Self</span>::<span class="ident">slice</span>, <span class="string">&quot;slice&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">prototype</span>, <span class="number">2</span>);
-        <span class="ident">make_builtin_fn</span>(<span class="self">Self</span>::<span class="ident">starts_with</span>, <span class="string">&quot;startsWith&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">prototype</span>, <span class="number">1</span>);
-        <span class="ident">make_builtin_fn</span>(<span class="self">Self</span>::<span class="ident">ends_with</span>, <span class="string">&quot;endsWith&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">prototype</span>, <span class="number">1</span>);
-        <span class="ident">make_builtin_fn</span>(<span class="self">Self</span>::<span class="ident">includes</span>, <span class="string">&quot;includes&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">prototype</span>, <span class="number">1</span>);
-        <span class="ident">make_builtin_fn</span>(<span class="self">Self</span>::<span class="ident">index_of</span>, <span class="string">&quot;indexOf&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">prototype</span>, <span class="number">1</span>);
-        <span class="ident">make_builtin_fn</span>(<span class="self">Self</span>::<span class="ident">last_index_of</span>, <span class="string">&quot;lastIndexOf&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">prototype</span>, <span class="number">1</span>);
-        <span class="ident">make_builtin_fn</span>(<span class="self">Self</span>::<span class="ident">r#match</span>, <span class="string">&quot;match&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">prototype</span>, <span class="number">1</span>);
-        <span class="ident">make_builtin_fn</span>(<span class="self">Self</span>::<span class="ident">pad_end</span>, <span class="string">&quot;padEnd&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">prototype</span>, <span class="number">1</span>);
-        <span class="ident">make_builtin_fn</span>(<span class="self">Self</span>::<span class="ident">pad_start</span>, <span class="string">&quot;padStart&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">prototype</span>, <span class="number">1</span>);
-        <span class="ident">make_builtin_fn</span>(<span class="self">Self</span>::<span class="ident">trim</span>, <span class="string">&quot;trim&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">prototype</span>, <span class="number">0</span>);
-        <span class="ident">make_builtin_fn</span>(<span class="self">Self</span>::<span class="ident">trim_start</span>, <span class="string">&quot;trimStart&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">prototype</span>, <span class="number">0</span>);
-        <span class="ident">make_builtin_fn</span>(<span class="self">Self</span>::<span class="ident">trim_end</span>, <span class="string">&quot;trimEnd&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">prototype</span>, <span class="number">0</span>);
-        <span class="ident">make_builtin_fn</span>(<span class="self">Self</span>::<span class="ident">to_lowercase</span>, <span class="string">&quot;toLowerCase&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">prototype</span>, <span class="number">0</span>);
-        <span class="ident">make_builtin_fn</span>(<span class="self">Self</span>::<span class="ident">to_uppercase</span>, <span class="string">&quot;toUpperCase&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">prototype</span>, <span class="number">0</span>);
-        <span class="ident">make_builtin_fn</span>(<span class="self">Self</span>::<span class="ident">substring</span>, <span class="string">&quot;substring&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">prototype</span>, <span class="number">2</span>);
-        <span class="ident">make_builtin_fn</span>(<span class="self">Self</span>::<span class="ident">substr</span>, <span class="string">&quot;substr&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">prototype</span>, <span class="number">2</span>);
-        <span class="ident">make_builtin_fn</span>(<span class="self">Self</span>::<span class="ident">value_of</span>, <span class="string">&quot;valueOf&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">prototype</span>, <span class="number">0</span>);
-        <span class="ident">make_builtin_fn</span>(<span class="self">Self</span>::<span class="ident">match_all</span>, <span class="string">&quot;matchAll&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">prototype</span>, <span class="number">1</span>);
-        <span class="ident">make_builtin_fn</span>(<span class="self">Self</span>::<span class="ident">replace</span>, <span class="string">&quot;replace&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">prototype</span>, <span class="number">2</span>);
+        <span class="ident">make_builtin_fn</span>(<span class="self">Self</span>::<span class="ident">char_at</span>, <span class="string">&quot;charAt&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">prototype</span>, <span class="number">1</span>, <span class="ident">interpreter</span>);
+        <span class="ident">make_builtin_fn</span>(<span class="self">Self</span>::<span class="ident">char_code_at</span>, <span class="string">&quot;charCodeAt&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">prototype</span>, <span class="number">1</span>, <span class="ident">interpreter</span>);
+        <span class="ident">make_builtin_fn</span>(<span class="self">Self</span>::<span class="ident">to_string</span>, <span class="string">&quot;toString&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">prototype</span>, <span class="number">0</span>, <span class="ident">interpreter</span>);
+        <span class="ident">make_builtin_fn</span>(<span class="self">Self</span>::<span class="ident">concat</span>, <span class="string">&quot;concat&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">prototype</span>, <span class="number">1</span>, <span class="ident">interpreter</span>);
+        <span class="ident">make_builtin_fn</span>(<span class="self">Self</span>::<span class="ident">repeat</span>, <span class="string">&quot;repeat&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">prototype</span>, <span class="number">1</span>, <span class="ident">interpreter</span>);
+        <span class="ident">make_builtin_fn</span>(<span class="self">Self</span>::<span class="ident">slice</span>, <span class="string">&quot;slice&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">prototype</span>, <span class="number">2</span>, <span class="ident">interpreter</span>);
+        <span class="ident">make_builtin_fn</span>(<span class="self">Self</span>::<span class="ident">starts_with</span>, <span class="string">&quot;startsWith&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">prototype</span>, <span class="number">1</span>, <span class="ident">interpreter</span>);
+        <span class="ident">make_builtin_fn</span>(<span class="self">Self</span>::<span class="ident">ends_with</span>, <span class="string">&quot;endsWith&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">prototype</span>, <span class="number">1</span>, <span class="ident">interpreter</span>);
+        <span class="ident">make_builtin_fn</span>(<span class="self">Self</span>::<span class="ident">includes</span>, <span class="string">&quot;includes&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">prototype</span>, <span class="number">1</span>, <span class="ident">interpreter</span>);
+        <span class="ident">make_builtin_fn</span>(<span class="self">Self</span>::<span class="ident">index_of</span>, <span class="string">&quot;indexOf&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">prototype</span>, <span class="number">1</span>, <span class="ident">interpreter</span>);
+        <span class="ident">make_builtin_fn</span>(
+            <span class="self">Self</span>::<span class="ident">last_index_of</span>,
+            <span class="string">&quot;lastIndexOf&quot;</span>,
+            <span class="kw-2">&amp;</span><span class="ident">prototype</span>,
+            <span class="number">1</span>,
+            <span class="ident">interpreter</span>,
+        );
+        <span class="ident">make_builtin_fn</span>(<span class="self">Self</span>::<span class="ident">r#match</span>, <span class="string">&quot;match&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">prototype</span>, <span class="number">1</span>, <span class="ident">interpreter</span>);
+        <span class="ident">make_builtin_fn</span>(<span class="self">Self</span>::<span class="ident">pad_end</span>, <span class="string">&quot;padEnd&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">prototype</span>, <span class="number">1</span>, <span class="ident">interpreter</span>);
+        <span class="ident">make_builtin_fn</span>(<span class="self">Self</span>::<span class="ident">pad_start</span>, <span class="string">&quot;padStart&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">prototype</span>, <span class="number">1</span>, <span class="ident">interpreter</span>);
+        <span class="ident">make_builtin_fn</span>(<span class="self">Self</span>::<span class="ident">trim</span>, <span class="string">&quot;trim&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">prototype</span>, <span class="number">0</span>, <span class="ident">interpreter</span>);
+        <span class="ident">make_builtin_fn</span>(<span class="self">Self</span>::<span class="ident">trim_start</span>, <span class="string">&quot;trimStart&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">prototype</span>, <span class="number">0</span>, <span class="ident">interpreter</span>);
+        <span class="ident">make_builtin_fn</span>(<span class="self">Self</span>::<span class="ident">trim_end</span>, <span class="string">&quot;trimEnd&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">prototype</span>, <span class="number">0</span>, <span class="ident">interpreter</span>);
+        <span class="ident">make_builtin_fn</span>(
+            <span class="self">Self</span>::<span class="ident">to_lowercase</span>,
+            <span class="string">&quot;toLowerCase&quot;</span>,
+            <span class="kw-2">&amp;</span><span class="ident">prototype</span>,
+            <span class="number">0</span>,
+            <span class="ident">interpreter</span>,
+        );
+        <span class="ident">make_builtin_fn</span>(
+            <span class="self">Self</span>::<span class="ident">to_uppercase</span>,
+            <span class="string">&quot;toUpperCase&quot;</span>,
+            <span class="kw-2">&amp;</span><span class="ident">prototype</span>,
+            <span class="number">0</span>,
+            <span class="ident">interpreter</span>,
+        );
+        <span class="ident">make_builtin_fn</span>(<span class="self">Self</span>::<span class="ident">substring</span>, <span class="string">&quot;substring&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">prototype</span>, <span class="number">2</span>, <span class="ident">interpreter</span>);
+        <span class="ident">make_builtin_fn</span>(<span class="self">Self</span>::<span class="ident">substr</span>, <span class="string">&quot;substr&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">prototype</span>, <span class="number">2</span>, <span class="ident">interpreter</span>);
+        <span class="ident">make_builtin_fn</span>(<span class="self">Self</span>::<span class="ident">value_of</span>, <span class="string">&quot;valueOf&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">prototype</span>, <span class="number">0</span>, <span class="ident">interpreter</span>);
+        <span class="ident">make_builtin_fn</span>(<span class="self">Self</span>::<span class="ident">match_all</span>, <span class="string">&quot;matchAll&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">prototype</span>, <span class="number">1</span>, <span class="ident">interpreter</span>);
+        <span class="ident">make_builtin_fn</span>(<span class="self">Self</span>::<span class="ident">replace</span>, <span class="string">&quot;replace&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">prototype</span>, <span class="number">2</span>, <span class="ident">interpreter</span>);
 
         <span class="kw">let</span> <span class="ident">string_object</span> <span class="op">=</span> <span class="ident">make_constructor_fn</span>(
             <span class="self">Self</span>::<span class="ident">NAME</span>,
