@@ -141,7 +141,7 @@ impl Symbol {
         // Create prototype object
         let prototype = Value::new_object(Some(global));
 
-        make_builtin_fn(Self::to_string, "toString", &prototype, 0);
+        make_builtin_fn(Self::to_string, "toString", &prototype, 0, interpreter);
 
         let symbol_object = make_constructor_fn(
             Self::NAME,

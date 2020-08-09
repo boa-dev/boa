@@ -206,8 +206,8 @@ impl BigInt {
 
         let prototype = Value::new_object(Some(global));
 
-        make_builtin_fn(Self::to_string, "toString", &prototype, 1);
-        make_builtin_fn(Self::value_of, "valueOf", &prototype, 0);
+        make_builtin_fn(Self::to_string, "toString", &prototype, 1, interpreter);
+        make_builtin_fn(Self::value_of, "valueOf", &prototype, 0, interpreter);
 
         let bigint_object = make_constructor_fn(
             Self::NAME,
@@ -219,8 +219,8 @@ impl BigInt {
             true,
         );
 
-        make_builtin_fn(Self::as_int_n, "asIntN", &bigint_object, 2);
-        make_builtin_fn(Self::as_uint_n, "asUintN", &bigint_object, 2);
+        make_builtin_fn(Self::as_int_n, "asIntN", &bigint_object, 2, interpreter);
+        make_builtin_fn(Self::as_uint_n, "asUintN", &bigint_object, 2, interpreter);
 
         (Self::NAME, bigint_object)
     }

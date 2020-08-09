@@ -177,8 +177,8 @@ impl Json {
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
         let json = Value::new_object(Some(global));
 
-        make_builtin_fn(Self::parse, "parse", &json, 2);
-        make_builtin_fn(Self::stringify, "stringify", &json, 3);
+        make_builtin_fn(Self::parse, "parse", &json, 2, interpreter);
+        make_builtin_fn(Self::stringify, "stringify", &json, 3, interpreter);
 
         (Self::NAME, json)
     }

@@ -585,23 +585,30 @@ pub fn init(interpreter: &mut Interpreter) -> (&'static str, Value) {
 
     let prototype = Value::new_object(None);
 
-    make_builtin_fn(has_own_property, "hasOwnProperty", &prototype, 0);
+    make_builtin_fn(
+        has_own_property,
+        "hasOwnProperty",
+        &prototype,
+        0,
+        interpreter,
+    );
     make_builtin_fn(
         property_is_enumerable,
         "propertyIsEnumerable",
         &prototype,
         0,
+        interpreter,
     );
-    make_builtin_fn(to_string, "toString", &prototype, 0);
+    make_builtin_fn(to_string, "toString", &prototype, 0, interpreter);
 
     let object = make_constructor_fn("Object", 1, make_object, global, prototype, true, true);
 
     // static methods of the builtin Object
-    make_builtin_fn(create, "create", &object, 2);
-    make_builtin_fn(set_prototype_of, "setPrototypeOf", &object, 2);
-    make_builtin_fn(get_prototype_of, "getPrototypeOf", &object, 1);
-    make_builtin_fn(define_property, "defineProperty", &object, 3);
-    make_builtin_fn(is, "is", &object, 2);
+    make_builtin_fn(create, "create", &object, 2, interpreter);
+    make_builtin_fn(set_prototype_of, "setPrototypeOf", &object, 2, interpreter);
+    make_builtin_fn(get_prototype_of, "getPrototypeOf", &object, 1, interpreter);
+    make_builtin_fn(define_property, "defineProperty", &object, 3, interpreter);
+    make_builtin_fn(is, "is", &object, 2, interpreter);
 
     ("Object", object)
 }

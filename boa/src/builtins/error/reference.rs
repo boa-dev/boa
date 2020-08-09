@@ -68,7 +68,7 @@ impl ReferenceError {
         prototype.set_field("name", Self::NAME);
         prototype.set_field("message", "");
 
-        make_builtin_fn(Self::to_string, "toString", &prototype, 0);
+        make_builtin_fn(Self::to_string, "toString", &prototype, 0, interpreter);
 
         let reference_error_object = make_constructor_fn(
             Self::NAME,

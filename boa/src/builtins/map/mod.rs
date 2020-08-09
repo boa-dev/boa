@@ -291,12 +291,12 @@ impl Map {
         // Create prototype
         let prototype = Value::new_object(Some(global));
 
-        make_builtin_fn(Self::set, "set", &prototype, 2);
-        make_builtin_fn(Self::delete, "delete", &prototype, 1);
-        make_builtin_fn(Self::get, "get", &prototype, 1);
-        make_builtin_fn(Self::clear, "clear", &prototype, 0);
-        make_builtin_fn(Self::has, "has", &prototype, 1);
-        make_builtin_fn(Self::for_each, "forEach", &prototype, 1);
+        make_builtin_fn(Self::set, "set", &prototype, 2, interpreter);
+        make_builtin_fn(Self::delete, "delete", &prototype, 1, interpreter);
+        make_builtin_fn(Self::get, "get", &prototype, 1, interpreter);
+        make_builtin_fn(Self::clear, "clear", &prototype, 0, interpreter);
+        make_builtin_fn(Self::has, "has", &prototype, 1, interpreter);
+        make_builtin_fn(Self::for_each, "forEach", &prototype, 1, interpreter);
 
         let map_object = make_constructor_fn(
             Self::NAME,
