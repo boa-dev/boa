@@ -1,4 +1,4 @@
-use crate::builtins::value::Value;
+use super::Value;
 use std::ops::Deref;
 
 /// Possible types of val as defined at https://tc39.es/ecma262/#sec-typeof-operator.

@@ -16,7 +16,7 @@
 use super::{
     function::{make_builtin_fn, make_constructor_fn},
     object::ObjectData,
-    value::TriState,
+    value::AbstractRelation,
 };
 use crate::{
     builtins::value::{ResultValue, Value},
@@ -875,24 +875,24 @@ impl Number {
 
     #[inline]
     #[allow(clippy::float_cmp)]
-    pub(crate) fn less_than(x: f64, y: f64) -> TriState {
+    pub(crate) fn less_than(x: f64, y: f64) -> AbstractRelation {
         if x.is_nan() || y.is_nan() {
-            return TriState::Undefined;
+            return AbstractRelation::Undefined;
         }
         if x == y || x == 0.0 && y == -0.0 || x == -0.0 && y == 0.0 {
-            return TriState::False;
+            return AbstractRelation::False;
         }
         if x.is_infinite() && x.is_sign_positive() {
-            return TriState::False;
+            return AbstractRelation::False;
         }
         if y.is_infinite() && y.is_sign_positive() {
-            return TriState::True;
+            return AbstractRelation::True;
         }
         if x.is_infinite() && x.is_sign_negative() {
-            return TriState::False;
+            return AbstractRelation::False;
         }
         if y.is_infinite() && y.is_sign_negative() {
-            return TriState::True;
+            return AbstractRelation::True;
         }
         (x < y).into()
     }

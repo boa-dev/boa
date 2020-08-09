@@ -5,10 +5,6 @@
 #[cfg(test)]
 mod tests;
 
-pub mod val_type;
-
-pub use crate::builtins::value::val_type::Type;
-
 use crate::builtins::{
     function::Function,
     object::{GcObject, InternalState, InternalStateCell, Object, ObjectData, PROTOTYPE},
@@ -28,20 +24,22 @@ use std::{
     str::FromStr,
 };
 
-pub mod conversions;
-pub mod display;
-pub mod equality;
-pub mod hash;
-pub mod operations;
-pub mod rcbigint;
-pub mod rcstring;
-pub mod rcsymbol;
+mod conversions;
+mod display;
+mod equality;
+mod hash;
+mod operations;
+mod rcbigint;
+mod rcstring;
+mod rcsymbol;
+mod r#type;
 
 pub use conversions::*;
 pub(crate) use display::display_obj;
 pub use equality::*;
 pub use hash::*;
 pub use operations::*;
+pub use r#type::Type;
 pub use rcbigint::RcBigInt;
 pub use rcstring::RcString;
 pub use rcsymbol::RcSymbol;
