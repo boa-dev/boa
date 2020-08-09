@@ -1248,145 +1248,308 @@ impl Date {
 
         let prototype = Value::new_object(Some(global));
 
-        make_builtin_fn(getter_method!(get_date), "getDate", &prototype, 0);
-        make_builtin_fn(getter_method!(get_day), "getDay", &prototype, 0);
-        make_builtin_fn(getter_method!(get_full_year), "getFullYear", &prototype, 0);
-        make_builtin_fn(getter_method!(get_hours), "getHours", &prototype, 0);
+        make_builtin_fn(
+            getter_method!(get_date),
+            "getDate",
+            &prototype,
+            0,
+            interpreter,
+        );
+        make_builtin_fn(
+            getter_method!(get_day),
+            "getDay",
+            &prototype,
+            0,
+            interpreter,
+        );
+        make_builtin_fn(
+            getter_method!(get_full_year),
+            "getFullYear",
+            &prototype,
+            0,
+            interpreter,
+        );
+        make_builtin_fn(
+            getter_method!(get_hours),
+            "getHours",
+            &prototype,
+            0,
+            interpreter,
+        );
         make_builtin_fn(
             getter_method!(get_milliseconds),
             "getMilliseconds",
             &prototype,
             0,
+            interpreter,
         );
-        make_builtin_fn(getter_method!(get_minutes), "getMinutes", &prototype, 0);
-        make_builtin_fn(getter_method!(get_month), "getMonth", &prototype, 0);
-        make_builtin_fn(getter_method!(get_seconds), "getSeconds", &prototype, 0);
-        make_builtin_fn(getter_method!(get_time), "getTime", &prototype, 0);
-        make_builtin_fn(getter_method!(get_year), "getYear", &prototype, 0);
+        make_builtin_fn(
+            getter_method!(get_minutes),
+            "getMinutes",
+            &prototype,
+            0,
+            interpreter,
+        );
+        make_builtin_fn(
+            getter_method!(get_month),
+            "getMonth",
+            &prototype,
+            0,
+            interpreter,
+        );
+        make_builtin_fn(
+            getter_method!(get_seconds),
+            "getSeconds",
+            &prototype,
+            0,
+            interpreter,
+        );
+        make_builtin_fn(
+            getter_method!(get_time),
+            "getTime",
+            &prototype,
+            0,
+            interpreter,
+        );
+        make_builtin_fn(
+            getter_method!(get_year),
+            "getYear",
+            &prototype,
+            0,
+            interpreter,
+        );
         make_builtin_fn(
             getter_method!(Self::get_timezone_offset),
             "getTimezoneOffset",
             &prototype,
             0,
+            interpreter,
         );
-        make_builtin_fn(getter_method!(get_utc_date), "getUTCDate", &prototype, 0);
-        make_builtin_fn(getter_method!(get_utc_day), "getUTCDay", &prototype, 0);
+        make_builtin_fn(
+            getter_method!(get_utc_date),
+            "getUTCDate",
+            &prototype,
+            0,
+            interpreter,
+        );
+        make_builtin_fn(
+            getter_method!(get_utc_day),
+            "getUTCDay",
+            &prototype,
+            0,
+            interpreter,
+        );
         make_builtin_fn(
             getter_method!(get_utc_full_year),
             "getUTCFullYear",
             &prototype,
             0,
+            interpreter,
         );
-        make_builtin_fn(getter_method!(get_utc_hours), "getUTCHours", &prototype, 0);
+        make_builtin_fn(
+            getter_method!(get_utc_hours),
+            "getUTCHours",
+            &prototype,
+            0,
+            interpreter,
+        );
         make_builtin_fn(
             getter_method!(get_utc_milliseconds),
             "getUTCMilliseconds",
             &prototype,
             0,
+            interpreter,
         );
         make_builtin_fn(
             getter_method!(get_utc_minutes),
             "getUTCMinutes",
             &prototype,
             0,
+            interpreter,
         );
-        make_builtin_fn(getter_method!(get_utc_month), "getUTCMonth", &prototype, 0);
+        make_builtin_fn(
+            getter_method!(get_utc_month),
+            "getUTCMonth",
+            &prototype,
+            0,
+            interpreter,
+        );
         make_builtin_fn(
             getter_method!(get_utc_seconds),
             "getUTCSeconds",
             &prototype,
             0,
+            interpreter,
         );
-        make_builtin_fn(setter_method!(set_date(0)), "setDate", &prototype, 1);
+        make_builtin_fn(
+            setter_method!(set_date(0)),
+            "setDate",
+            &prototype,
+            1,
+            interpreter,
+        );
         make_builtin_fn(
             setter_method!(set_full_year(0, 1, 2)),
             "setFullYear",
             &prototype,
             1,
+            interpreter,
         );
         make_builtin_fn(
             setter_method!(set_hours(0, 1, 2, 3)),
             "setHours",
             &prototype,
             1,
+            interpreter,
         );
         make_builtin_fn(
             setter_method!(set_milliseconds(0)),
             "setMilliseconds",
             &prototype,
             1,
+            interpreter,
         );
         make_builtin_fn(
             setter_method!(set_minutes(0, 1, 2)),
             "setMinutes",
             &prototype,
             1,
+            interpreter,
         );
-        make_builtin_fn(setter_method!(set_month(0, 1)), "setMonth", &prototype, 1);
+        make_builtin_fn(
+            setter_method!(set_month(0, 1)),
+            "setMonth",
+            &prototype,
+            1,
+            interpreter,
+        );
         make_builtin_fn(
             setter_method!(set_seconds(0, 1)),
             "setSeconds",
             &prototype,
             1,
+            interpreter,
         );
-        make_builtin_fn(setter_method!(set_year(0, 1, 2)), "setYear", &prototype, 1);
-        make_builtin_fn(setter_method!(set_time(0)), "setTime", &prototype, 1);
-        make_builtin_fn(setter_method!(set_utc_date(0)), "setUTCDate", &prototype, 1);
+        make_builtin_fn(
+            setter_method!(set_year(0, 1, 2)),
+            "setYear",
+            &prototype,
+            1,
+            interpreter,
+        );
+        make_builtin_fn(
+            setter_method!(set_time(0)),
+            "setTime",
+            &prototype,
+            1,
+            interpreter,
+        );
+        make_builtin_fn(
+            setter_method!(set_utc_date(0)),
+            "setUTCDate",
+            &prototype,
+            1,
+            interpreter,
+        );
         make_builtin_fn(
             setter_method!(set_utc_full_year(0, 1, 2)),
             "setUTCFullYear",
             &prototype,
             1,
+            interpreter,
         );
         make_builtin_fn(
             setter_method!(set_utc_hours(0, 1, 2, 3)),
             "setUTCHours",
             &prototype,
             1,
+            interpreter,
         );
         make_builtin_fn(
             setter_method!(set_utc_milliseconds(0)),
             "setUTCMilliseconds",
             &prototype,
             1,
+            interpreter,
         );
         make_builtin_fn(
             setter_method!(set_utc_minutes(0, 1, 2)),
             "setUTCMinutes",
             &prototype,
             1,
+            interpreter,
         );
         make_builtin_fn(
             setter_method!(set_utc_month(0, 1)),
             "setUTCMonth",
             &prototype,
             1,
+            interpreter,
         );
         make_builtin_fn(
             setter_method!(set_utc_seconds(0, 1)),
             "setUTCSeconds",
             &prototype,
             1,
+            interpreter,
         );
         make_builtin_fn(
             getter_method!(to_date_string),
             "toDateString",
             &prototype,
             0,
+            interpreter,
         );
-        make_builtin_fn(getter_method!(to_gmt_string), "toGMTString", &prototype, 0);
-        make_builtin_fn(getter_method!(to_iso_string), "toISOString", &prototype, 0);
-        make_builtin_fn(getter_method!(to_json), "toJSON", &prototype, 0);
+        make_builtin_fn(
+            getter_method!(to_gmt_string),
+            "toGMTString",
+            &prototype,
+            0,
+            interpreter,
+        );
+        make_builtin_fn(
+            getter_method!(to_iso_string),
+            "toISOString",
+            &prototype,
+            0,
+            interpreter,
+        );
+        make_builtin_fn(
+            getter_method!(to_json),
+            "toJSON",
+            &prototype,
+            0,
+            interpreter,
+        );
         // Locale strings
-        make_builtin_fn(getter_method!(to_string), "toString", &prototype, 0);
+        make_builtin_fn(
+            getter_method!(to_string),
+            "toString",
+            &prototype,
+            0,
+            interpreter,
+        );
         make_builtin_fn(
             getter_method!(to_time_string),
             "toTimeString",
             &prototype,
             0,
+            interpreter,
         );
-        make_builtin_fn(getter_method!(to_utc_string), "toUTCString", &prototype, 0);
-        make_builtin_fn(getter_method!(value_of), "valueOf", &prototype, 0);
+        make_builtin_fn(
+            getter_method!(to_utc_string),
+            "toUTCString",
+            &prototype,
+            0,
+            interpreter,
+        );
+        make_builtin_fn(
+            getter_method!(value_of),
+            "valueOf",
+            &prototype,
+            0,
+            interpreter,
+        );
 
         let date_time_object = make_constructor_fn(
             Self::NAME,
@@ -1398,9 +1561,9 @@ impl Date {
             true,
         );
 
-        make_builtin_fn(Self::now, "now", &date_time_object, 0);
-        make_builtin_fn(Self::parse, "parse", &date_time_object, 1);
-        make_builtin_fn(Self::utc, "UTC", &date_time_object, 7);
+        make_builtin_fn(Self::now, "now", &date_time_object, 0, interpreter);
+        make_builtin_fn(Self::parse, "parse", &date_time_object, 1, interpreter);
+        make_builtin_fn(Self::utc, "UTC", &date_time_object, 7, interpreter);
         (Self::NAME, date_time_object)
     }
 }
