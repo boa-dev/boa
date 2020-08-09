@@ -1,5 +1,5 @@
 use super::*;
-use crate::builtins::number::{f64_to_int32, f64_to_uint32};
+use crate::builtins::number::{f64_to_int32, f64_to_uint32, Number};
 use crate::exec::PreferredType;
 
 impl Value {
@@ -404,5 +404,133 @@ impl Value {
     #[inline]
     pub fn not(&self, _: &mut Interpreter) -> ResultValue {
         Ok(Self::boolean(!self.to_boolean()))
+    }
+
+    pub fn abstract_relation(
+        &self,
+        other: &Self,
+        left_first: bool,
+        ctx: &mut Interpreter,
+    ) -> Result<TriState, Value> {
+        let (px, py) = if left_first {
+            let px = ctx.to_primitive(self, PreferredType::Number)?;
+            let py = ctx.to_primitive(other, PreferredType::Number)?;
+            (px, py)
+        } else {
+            // NOTE: The order of evaluation needs to be reversed to preserve left to right evaluation.
+            let py = ctx.to_primitive(other, PreferredType::Number)?;
+            let px = ctx.to_primitive(self, PreferredType::Number)?;
+            (px, py)
+        };
+
+        match (px, py) {
+            (Value::String(ref x), Value::String(ref y)) => {
+                if x.starts_with(y.as_str()) {
+                    return Ok(TriState::False);
+                }
+                if y.starts_with(x.as_str()) {
+                    return Ok(TriState::True);
+                }
+                for (x, y) in x.chars().zip(y.chars()) {
+                    if x != y {
+                        return Ok((x < y).into());
+                    }
+                }
+                unreachable!()
+            }
+            (Value::BigInt(ref x), Value::String(ref y)) => {
+                Ok(if let Some(y) = string_to_bigint(&y) {
+                    (*x.as_inner() < y).into()
+                } else {
+                    TriState::Undefined
+                })
+            }
+            (Value::String(ref x), Value::BigInt(ref y)) => {
+                Ok(if let Some(x) = string_to_bigint(&x) {
+                    (x < *y.as_inner()).into()
+                } else {
+                    TriState::Undefined
+                })
+            }
+            (px, py) => {
+                let nx = ctx.to_numeric(&px)?;
+                let ny = ctx.to_numeric(&py)?;
+                Ok(match (nx, ny) {
+                    (Value::Integer(x), Value::Integer(y)) => (x < y).into(),
+                    (Value::Integer(x), Value::Rational(y)) => Number::less_than(x.into(), y),
+                    (Value::Rational(x), Value::Integer(y)) => Number::less_than(x, y.into()),
+                    (Value::Rational(x), Value::Rational(y)) => Number::less_than(x, y),
+                    (Value::BigInt(ref x), Value::BigInt(ref y)) => (x < y).into(),
+                    (Value::BigInt(ref x), Value::Rational(y)) => {
+                        if y.is_nan() {
+                            return Ok(TriState::Undefined);
+                        }
+                        if y.is_infinite() {
+                            return Ok(y.is_sign_positive().into());
+                        }
+                        (*x.as_inner() < BigInt::try_from(y.trunc()).unwrap()).into()
+                    }
+                    (Value::Rational(x), Value::BigInt(ref y)) => {
+                        if x.is_nan() {
+                            return Ok(TriState::Undefined);
+                        }
+                        if x.is_infinite() {
+                            return Ok(x.is_sign_positive().into());
+                        }
+                        (BigInt::try_from(x.trunc()).unwrap() < *y.as_inner()).into()
+                    }
+                    (_, _) => unreachable!(),
+                })
+            }
+        }
+    }
+
+    #[inline]
+    pub fn lt(&self, other: &Self, ctx: &mut Interpreter) -> Result<bool, Value> {
+        match self.abstract_relation(other, true, ctx)? {
+            TriState::True => Ok(true),
+            TriState::False | TriState::Undefined => Ok(false),
+        }
+    }
+
+    #[inline]
+    pub fn le(&self, other: &Self, ctx: &mut Interpreter) -> Result<bool, Value> {
+        match other.abstract_relation(self, false, ctx)? {
+            TriState::False => Ok(true),
+            TriState::True | TriState::Undefined => Ok(false),
+        }
+    }
+
+    #[inline]
+    pub fn gt(&self, other: &Self, ctx: &mut Interpreter) -> Result<bool, Value> {
+        match other.abstract_relation(self, false, ctx)? {
+            TriState::True => Ok(true),
+            TriState::False | TriState::Undefined => Ok(false),
+        }
+    }
+
+    #[inline]
+    pub fn ge(&self, other: &Self, ctx: &mut Interpreter) -> Result<bool, Value> {
+        match self.abstract_relation(other, true, ctx)? {
+            TriState::False => Ok(true),
+            TriState::True | TriState::Undefined => Ok(false),
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+pub enum TriState {
+    False,
+    True,
+    Undefined,
+}
+
+impl From<bool> for TriState {
+    fn from(value: bool) -> Self {
+        if value {
+            TriState::True
+        } else {
+            TriState::False
+        }
     }
 }

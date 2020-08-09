@@ -77,26 +77,26 @@ impl Executable for BinOp {
                 }
             }
             op::BinOp::Comp(op) => {
-                let v_a = self.lhs().run(interpreter)?;
-                let v_b = self.rhs().run(interpreter)?;
+                let x = self.lhs().run(interpreter)?;
+                let y = self.rhs().run(interpreter)?;
                 Ok(Value::from(match op {
-                    CompOp::Equal => v_a.equals(&v_b, interpreter)?,
-                    CompOp::NotEqual => !v_a.equals(&v_b, interpreter)?,
-                    CompOp::StrictEqual => v_a.strict_equals(&v_b),
-                    CompOp::StrictNotEqual => !v_a.strict_equals(&v_b),
-                    CompOp::GreaterThan => v_a.to_number() > v_b.to_number(),
-                    CompOp::GreaterThanOrEqual => v_a.to_number() >= v_b.to_number(),
-                    CompOp::LessThan => v_a.to_number() < v_b.to_number(),
-                    CompOp::LessThanOrEqual => v_a.to_number() <= v_b.to_number(),
+                    CompOp::Equal => x.equals(&y, interpreter)?,
+                    CompOp::NotEqual => !x.equals(&y, interpreter)?,
+                    CompOp::StrictEqual => x.strict_equals(&y),
+                    CompOp::StrictNotEqual => !x.strict_equals(&y),
+                    CompOp::GreaterThan => x.gt(&y, interpreter)?,
+                    CompOp::GreaterThanOrEqual => x.ge(&y, interpreter)?,
+                    CompOp::LessThan => x.lt(&y, interpreter)?,
+                    CompOp::LessThanOrEqual => x.le(&y, interpreter)?,
                     CompOp::In => {
-                        if !v_b.is_object() {
+                        if !y.is_object() {
                             return interpreter.throw_type_error(format!(
                                 "right-hand side of 'in' should be an object, got {}",
-                                v_b.get_type().as_str()
+                                y.get_type().as_str()
                             ));
                         }
-                        let key = interpreter.to_property_key(&v_a)?;
-                        interpreter.has_property(&v_b, &key)
+                        let key = interpreter.to_property_key(&x)?;
+                        interpreter.has_property(&y, &key)
                     }
                 }))
             }
