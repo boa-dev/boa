@@ -359,6 +359,44 @@ fn bitand_rational_and_rational() {
 }
 
 #[test]
+fn pow_number_and_number() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+
+    let value = forward_val(&mut engine, "3 ** 3").unwrap();
+    let value = engine.to_number(&value).unwrap();
+    assert_eq!(value, 27.0);
+}
+
+#[test]
+fn pow_number_and_string() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+
+    let value = forward_val(&mut engine, "3 ** 'Hello'").unwrap();
+    let value = engine.to_number(&value).unwrap();
+    assert!(value.is_nan());
+}
+
+#[test]
+fn assign_pow_number_and_string() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+
+    let value = forward_val(
+        &mut engine,
+        r"
+        let a = 3;
+        a **= 'Hello'
+        a
+    ",
+    )
+    .unwrap();
+    let value = engine.to_number(&value).unwrap();
+    assert!(value.is_nan());
+}
+
+#[test]
 fn display_string() {
     let s = String::from("Hello");
     let v = Value::from(s);
