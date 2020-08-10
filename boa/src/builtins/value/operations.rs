@@ -492,7 +492,7 @@ impl Value {
                             return Ok(AbstractRelation::Undefined);
                         }
                         if x.is_infinite() {
-                            return Ok(x.is_sign_positive().into());
+                            return Ok(x.is_sign_negative().into());
                         }
                         (BigInt::try_from(x.trunc()).unwrap() < *y.as_inner()).into()
                     }
