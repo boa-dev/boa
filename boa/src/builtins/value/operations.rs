@@ -429,87 +429,92 @@ impl Value {
         left_first: bool,
         ctx: &mut Interpreter,
     ) -> Result<AbstractRelation, Value> {
-        let (px, py) = if left_first {
-            let px = ctx.to_primitive(self, PreferredType::Number)?;
-            let py = ctx.to_primitive(other, PreferredType::Number)?;
-            (px, py)
-        } else {
-            // NOTE: The order of evaluation needs to be reversed to preserve left to right evaluation.
-            let py = ctx.to_primitive(other, PreferredType::Number)?;
-            let px = ctx.to_primitive(self, PreferredType::Number)?;
-            (px, py)
-        };
+        Ok(match (self, other) {
+            // Fast path (for some common operations):
+            (Value::Integer(x), Value::Integer(y)) => (x < y).into(),
+            (Value::Integer(x), Value::Rational(y)) => Number::less_than(f64::from(*x), *y),
+            (Value::Rational(x), Value::Integer(y)) => Number::less_than(*x, f64::from(*y)),
+            (Value::Rational(x), Value::Rational(y)) => Number::less_than(*x, *y),
+            (Value::BigInt(ref x), Value::BigInt(ref y)) => (x < y).into(),
 
-        match (px, py) {
-            (Value::String(ref x), Value::String(ref y)) => {
-                if x.starts_with(y.as_str()) {
-                    return Ok(AbstractRelation::False);
-                }
-                if y.starts_with(x.as_str()) {
-                    return Ok(AbstractRelation::True);
-                }
-                for (x, y) in x.chars().zip(y.chars()) {
-                    if x != y {
-                        return Ok((x < y).into());
-                    }
-                }
-                unreachable!()
-            }
-            (Value::BigInt(ref x), Value::String(ref y)) => {
-                Ok(if let Some(y) = string_to_bigint(&y) {
-                    (*x.as_inner() < y).into()
+            // Slow path:
+            (_, _) => {
+                let (px, py) = if left_first {
+                    let px = ctx.to_primitive(self, PreferredType::Number)?;
+                    let py = ctx.to_primitive(other, PreferredType::Number)?;
+                    (px, py)
                 } else {
-                    AbstractRelation::Undefined
-                })
-            }
-            (Value::String(ref x), Value::BigInt(ref y)) => {
-                Ok(if let Some(x) = string_to_bigint(&x) {
-                    (x < *y.as_inner()).into()
-                } else {
-                    AbstractRelation::Undefined
-                })
-            }
-            (px, py) => {
-                let nx = ctx.to_numeric(&px)?;
-                let ny = ctx.to_numeric(&py)?;
-                Ok(match (nx, ny) {
-                    (Value::Integer(x), Value::Integer(y)) => (x < y).into(),
-                    (Value::Integer(x), Value::Rational(y)) => Number::less_than(x.into(), y),
-                    (Value::Rational(x), Value::Integer(y)) => Number::less_than(x, y.into()),
-                    (Value::Rational(x), Value::Rational(y)) => Number::less_than(x, y),
-                    (Value::BigInt(ref x), Value::BigInt(ref y)) => (x < y).into(),
-                    (Value::BigInt(ref x), Value::Rational(y)) => {
-                        if y.is_nan() {
-                            return Ok(AbstractRelation::Undefined);
+                    // NOTE: The order of evaluation needs to be reversed to preserve left to right evaluation.
+                    let py = ctx.to_primitive(other, PreferredType::Number)?;
+                    let px = ctx.to_primitive(self, PreferredType::Number)?;
+                    (px, py)
+                };
+
+                match (px, py) {
+                    (Value::String(ref x), Value::String(ref y)) => {
+                        if x.starts_with(y.as_str()) {
+                            return Ok(AbstractRelation::False);
                         }
-                        if y.is_infinite() {
-                            return Ok(y.is_sign_positive().into());
+                        if y.starts_with(x.as_str()) {
+                            return Ok(AbstractRelation::True);
                         }
-                        let n = if y.is_sign_negative() {
-                            y.floor()
-                        } else {
-                            y.ceil()
-                        };
-                        (*x.as_inner() < BigInt::try_from(n).unwrap()).into()
+                        for (x, y) in x.chars().zip(y.chars()) {
+                            if x != y {
+                                return Ok((x < y).into());
+                            }
+                        }
+                        unreachable!()
                     }
-                    (Value::Rational(x), Value::BigInt(ref y)) => {
-                        if x.is_nan() {
-                            return Ok(AbstractRelation::Undefined);
-                        }
-                        if x.is_infinite() {
-                            return Ok(x.is_sign_negative().into());
-                        }
-                        let n = if x.is_sign_negative() {
-                            x.floor()
+                    (Value::BigInt(ref x), Value::String(ref y)) => {
+                        if let Some(y) = string_to_bigint(&y) {
+                            (*x.as_inner() < y).into()
                         } else {
-                            x.ceil()
-                        };
-                        (BigInt::try_from(n).unwrap() < *y.as_inner()).into()
+                            AbstractRelation::Undefined
+                        }
                     }
-                    (_, _) => unreachable!(),
-                })
+                    (Value::String(ref x), Value::BigInt(ref y)) => {
+                        if let Some(x) = string_to_bigint(&x) {
+                            (x < *y.as_inner()).into()
+                        } else {
+                            AbstractRelation::Undefined
+                        }
+                    }
+                    (px, py) => match (ctx.to_numeric(&px)?, ctx.to_numeric(&py)?) {
+                        (Value::Rational(x), Value::Rational(y)) => Number::less_than(x, y),
+                        (Value::BigInt(ref x), Value::BigInt(ref y)) => (x < y).into(),
+                        (Value::BigInt(ref x), Value::Rational(y)) => {
+                            if y.is_nan() {
+                                return Ok(AbstractRelation::Undefined);
+                            }
+                            if y.is_infinite() {
+                                return Ok(y.is_sign_positive().into());
+                            }
+                            let n = if y.is_sign_negative() {
+                                y.floor()
+                            } else {
+                                y.ceil()
+                            };
+                            (*x.as_inner() < BigInt::try_from(n).unwrap()).into()
+                        }
+                        (Value::Rational(x), Value::BigInt(ref y)) => {
+                            if x.is_nan() {
+                                return Ok(AbstractRelation::Undefined);
+                            }
+                            if x.is_infinite() {
+                                return Ok(x.is_sign_negative().into());
+                            }
+                            let n = if x.is_sign_negative() {
+                                x.floor()
+                            } else {
+                                x.ceil()
+                            };
+                            (BigInt::try_from(n).unwrap() < *y.as_inner()).into()
+                        }
+                        (_, _) => unreachable!("to_numeric should only retrun number and bigint"),
+                    },
+                }
             }
-        }
+        })
     }
 
     /// The less than operator (`<`) returns `true` if the left operand is less than the right operand,
