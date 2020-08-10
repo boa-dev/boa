@@ -485,7 +485,12 @@ impl Value {
                         if y.is_infinite() {
                             return Ok(y.is_sign_positive().into());
                         }
-                        (*x.as_inner() < BigInt::try_from(y.trunc()).unwrap()).into()
+                        let n = if y.is_sign_negative() {
+                            y.floor()
+                        } else {
+                            y.ceil()
+                        };
+                        (*x.as_inner() < BigInt::try_from(n).unwrap()).into()
                     }
                     (Value::Rational(x), Value::BigInt(ref y)) => {
                         if x.is_nan() {
@@ -494,7 +499,12 @@ impl Value {
                         if x.is_infinite() {
                             return Ok(x.is_sign_negative().into());
                         }
-                        (BigInt::try_from(x.trunc()).unwrap() < *y.as_inner()).into()
+                        let n = if x.is_sign_negative() {
+                            x.floor()
+                        } else {
+                            x.ceil()
+                        };
+                        (BigInt::try_from(n).unwrap() < *y.as_inner()).into()
                     }
                     (_, _) => unreachable!(),
                 })
