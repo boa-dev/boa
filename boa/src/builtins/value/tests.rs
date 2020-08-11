@@ -22,7 +22,7 @@ fn string_to_value() {
 fn undefined() {
     let u = Value::Undefined;
     assert_eq!(u.get_type(), Type::Undefined);
-    assert_eq!(u.to_string(), "undefined");
+    assert_eq!(u.display().to_string(), "undefined");
 }
 
 #[test]
@@ -31,7 +31,7 @@ fn get_set_field() {
     // Create string and convert it to a Value
     let s = Value::from("bar");
     obj.set_field("foo", s);
-    assert_eq!(obj.get_field("foo").to_string(), "\"bar\"");
+    assert_eq!(obj.get_field("foo").display().to_string(), "\"bar\"");
 }
 
 #[test]
@@ -216,7 +216,7 @@ fn get_types() {
 
 #[test]
 fn to_string() {
-    let f64_to_str = |f| Value::Rational(f).to_string();
+    let f64_to_str = |f| Value::Rational(f).display().to_string();
 
     assert_eq!(f64_to_str(f64::NAN), "NaN");
     assert_eq!(f64_to_str(0.0), "0");
@@ -401,7 +401,7 @@ fn assign_pow_number_and_string() {
 fn display_string() {
     let s = String::from("Hello");
     let v = Value::from(s);
-    assert_eq!(v.to_string(), "\"Hello\"");
+    assert_eq!(v.display().to_string(), "\"Hello\"");
 }
 
 #[test]
@@ -410,7 +410,7 @@ fn display_array_string() {
     let mut engine = Interpreter::new(realm);
 
     let value = forward_val(&mut engine, "[\"Hello\"]").unwrap();
-    assert_eq!(value.to_string(), "[ \"Hello\" ]");
+    assert_eq!(value.display().to_string(), "[ \"Hello\" ]");
 }
 
 #[test]
@@ -422,7 +422,7 @@ fn display_boolean_object() {
         bool
     "#;
     let value = forward_val(&mut engine, d_obj).unwrap();
-    assert_eq!(value.to_string(), "Boolean { false }")
+    assert_eq!(value.display().to_string(), "Boolean { false }")
 }
 
 #[test]
@@ -434,7 +434,7 @@ fn display_number_object() {
         num
     "#;
     let value = forward_val(&mut engine, d_obj).unwrap();
-    assert_eq!(value.to_string(), "Number { 3.14 }")
+    assert_eq!(value.display().to_string(), "Number { 3.14 }")
 }
 
 #[test]
@@ -446,7 +446,7 @@ fn display_negative_zero_object() {
         num
     "#;
     let value = forward_val(&mut engine, d_obj).unwrap();
-    assert_eq!(value.to_string(), "Number { -0 }")
+    assert_eq!(value.display().to_string(), "Number { -0 }")
 }
 
 #[test]
@@ -460,7 +460,7 @@ fn display_object() {
     "#;
     let value = forward_val(&mut engine, d_obj).unwrap();
     assert_eq!(
-        value.to_string(),
+        value.display().to_string(),
         r#"{
    a: "a",
 __proto__: {

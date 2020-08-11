@@ -59,7 +59,7 @@ impl SyntaxError {
     pub(crate) fn to_string(this: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
         let name = this.get_field("name");
         let message = this.get_field("message");
-        Ok(format!("{}: {}", name, message).into())
+        Ok(format!("{}: {}", name.display(), message.display()).into())
     }
 
     /// Initialise the global object with the `SyntaxError` object.

@@ -71,7 +71,11 @@ impl Error {
     pub(crate) fn to_string(this: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
         let name = this.get_field("name");
         let message = this.get_field("message");
-        Ok(Value::from(format!("{}: {}", name, message)))
+        Ok(Value::from(format!(
+            "{}: {}",
+            name.display(),
+            message.display()
+        )))
     }
 
     /// Initialise the global object with the `Error` object.

@@ -1,5 +1,10 @@
 use super::*;
 
+#[derive(Debug, Clone, Copy)]
+pub struct ValueDisplay<'value> {
+    pub(super) value: &'value Value,
+}
+
 /// A helper macro for printing objects
 /// Can be used to print both properties and internal slots
 /// All of the overloads take:
@@ -34,7 +39,7 @@ macro_rules! print_obj_value {
                 vec![format!(
                     "{:>width$}: {}",
                     "__proto__",
-                    object.prototype(),
+                    object.prototype().display(),
                     width = $indent,
                 )]
             }
@@ -158,7 +163,7 @@ pub(crate) fn log_string_from(x: &Value, print_internals: bool, print_children: 
             }
         }
         Value::Symbol(ref symbol) => symbol.to_string(),
-        _ => format!("{}", x),
+        _ => format!("{}", x.display()),
     }
 }
 
@@ -179,7 +184,7 @@ pub(crate) fn display_obj(v: &Value, print_internals: bool) -> String {
         if object.borrow().is_error() {
             let name = v.get_field("name");
             let message = v.get_field("message");
-            return format!("{}: {}", name, message);
+            return format!("{}: {}", name.display(), message.display());
         }
     }
 
@@ -219,28 +224,28 @@ pub(crate) fn display_obj(v: &Value, print_internals: bool) -> String {
             format!("{{\n{}\n{}}}", result, closing_indent)
         } else {
             // Every other type of data is printed with the display method
-            format!("{}", data)
+            format!("{}", data.display())
         }
     }
 
     display_obj_internal(v, &mut encounters, 4, print_internals)
 }
 
-impl Display for Value {
+impl Display for ValueDisplay<'_> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Self::Null => write!(f, "null"),
-            Self::Undefined => write!(f, "undefined"),
-            Self::Boolean(v) => write!(f, "{}", v),
-            Self::Symbol(ref symbol) => match symbol.description() {
+        match self.value {
+            Value::Null => write!(f, "null"),
+            Value::Undefined => write!(f, "undefined"),
+            Value::Boolean(v) => write!(f, "{}", v),
+            Value::Symbol(ref symbol) => match symbol.description() {
                 Some(description) => write!(f, "Symbol({})", description),
                 None => write!(f, "Symbol()"),
             },
-            Self::String(ref v) => write!(f, "\"{}\"", v),
-            Self::Rational(v) => format_rational(*v, f),
-            Self::Object(_) => write!(f, "{}", log_string_from(self, true, true)),
-            Self::Integer(v) => write!(f, "{}", v),
-            Self::BigInt(ref num) => write!(f, "{}n", num),
+            Value::String(ref v) => write!(f, "\"{}\"", v),
+            Value::Rational(v) => format_rational(*v, f),
+            Value::Object(_) => write!(f, "{}", log_string_from(self.value, true, true)),
+            Value::Integer(v) => write!(f, "{}", v),
+            Value::BigInt(ref num) => write!(f, "{}n", num),
         }
     }
 }

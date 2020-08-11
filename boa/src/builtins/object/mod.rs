@@ -478,7 +478,7 @@ pub fn create(_: &Value, args: &[Value], interpreter: &mut Interpreter) -> Resul
         )),
         _ => interpreter.throw_type_error(format!(
             "Object prototype may only be an Object or null: {}",
-            prototype
+            prototype.display()
         )),
     }
 }
@@ -527,7 +527,8 @@ pub fn define_property(_: &Value, args: &[Value], ctx: &mut Interpreter) -> Resu
 /// [spec]: https://tc39.es/ecma262/#sec-object.prototype.tostring
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/toString
 pub fn to_string(this: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
-    Ok(Value::from(this.to_string()))
+    // FIXME: it should not display the object.
+    Ok(Value::from(this.display().to_string()))
 }
 
 /// `Object.prototype.hasOwnPrototype( property )`

@@ -36,6 +36,7 @@ mod r#type;
 
 pub use conversions::*;
 pub(crate) use display::display_obj;
+pub use display::ValueDisplay;
 pub use equality::*;
 pub use hash::*;
 pub use operations::*;
@@ -760,6 +761,10 @@ impl Value {
             }
             Value::Symbol(_) => Err(ctx.construct_type_error("cannot convert Symbol to a BigInt")),
         }
+    }
+
+    pub fn display(&self) -> ValueDisplay<'_> {
+        ValueDisplay { value: self }
     }
 }
 

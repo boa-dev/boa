@@ -21,7 +21,8 @@ impl Executable for Call {
             Node::GetField(ref get_field) => {
                 let obj = get_field.obj().run(interpreter)?;
                 let field = get_field.field().run(interpreter)?;
-                (obj.clone(), obj.get_field(field.to_string()))
+                // FIXME: This should not call `.display()`
+                (obj.clone(), obj.get_field(field.display().to_string()))
             }
             _ => (
                 interpreter.realm().global_obj.clone(),

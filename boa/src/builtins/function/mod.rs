@@ -337,7 +337,7 @@ impl Function {
                 }
             }
         } else {
-            let name = this.get_field("name").to_string();
+            let name = this.get_field("name").display().to_string();
             panic!("TypeError: {} is not a constructor", name);
         }
     }

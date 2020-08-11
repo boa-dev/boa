@@ -87,7 +87,7 @@ pub fn formatter(data: &[Value], ctx: &mut Interpreter) -> Result<String, Value>
                         /* object, FIXME: how to render this properly? */
                         'o' | 'O' => {
                             let arg = data.get(arg_index).cloned().unwrap_or_default();
-                            formatted.push_str(&format!("{}", arg));
+                            formatted.push_str(&format!("{}", arg.display()));
                             arg_index += 1
                         }
                         /* string */
@@ -153,7 +153,7 @@ impl Console {
             } else if !args[0].is_string() {
                 args.insert(0, Value::from(message));
             } else {
-                let concat = format!("{}: {}", message, args[0]);
+                let concat = format!("{}: {}", message, args[0].display());
                 args[0] = Value::from(concat);
             }
 
@@ -384,7 +384,7 @@ impl Console {
             let time = Self::system_time_in_ms();
             let mut concat = format!("{}: {} ms", label, time - t);
             for msg in args.iter().skip(1) {
-                concat = concat + " " + &msg.to_string();
+                concat = concat + " " + &msg.display().to_string();
             }
             logger(LogMessage::Log(concat), ctx.console());
         } else {

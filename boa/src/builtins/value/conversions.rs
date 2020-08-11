@@ -71,7 +71,7 @@ impl TryFrom<&Value> for char {
     type Error = TryFromCharError;
 
     fn try_from(value: &Value) -> Result<Self, Self::Error> {
-        if let Some(c) = value.to_string().chars().next() {
+        if let Some(c) = value.display().to_string().chars().next() {
             Ok(c)
         } else {
             Err(TryFromCharError)
