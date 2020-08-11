@@ -1111,11 +1111,14 @@ fn to_object() {
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);
 
-    assert!(engine
-        .to_object(&Value::undefined())
+    assert!(Value::undefined()
+        .to_object(&mut engine)
         .unwrap_err()
         .is_object());
-    assert!(engine.to_object(&Value::null()).unwrap_err().is_object());
+    assert!(Value::null()
+        .to_object(&mut engine)
+        .unwrap_err()
+        .is_object());
 }
 
 #[test]

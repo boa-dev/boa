@@ -973,7 +973,7 @@ impl Array {
         args: &[Value],
         interpreter: &mut Interpreter,
     ) -> ResultValue {
-        let this = interpreter.to_object(this)?;
+        let this = this.to_object(interpreter)?;
         let callback = match args.get(0) {
             Some(value) if value.is_function() => value,
             _ => return interpreter.throw_type_error("Reduce was called without a callback"),
@@ -1040,7 +1040,7 @@ impl Array {
         args: &[Value],
         interpreter: &mut Interpreter,
     ) -> ResultValue {
-        let this = interpreter.to_object(this)?;
+        let this = this.to_object(interpreter)?;
         let callback = match args.get(0) {
             Some(value) if value.is_function() => value,
             _ => return interpreter.throw_type_error("reduceRight was called without a callback"),

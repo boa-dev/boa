@@ -784,6 +784,92 @@ impl Value {
             }
         }
     }
+
+    /// The abstract operation ToObject converts argument to a value of type Object
+    /// https://tc39.es/ecma262/#sec-toobject
+    pub fn to_object(&self, ctx: &mut Interpreter) -> ResultValue {
+        match self {
+            Value::Undefined | Value::Null => {
+                ctx.throw_type_error("cannot convert 'null' or 'undefined' to object")
+            }
+            Value::Boolean(boolean) => {
+                let proto = ctx
+                    .realm
+                    .environment
+                    .get_binding_value("Boolean")
+                    .expect("Boolean was not initialized")
+                    .get_field(PROTOTYPE);
+
+                Ok(Value::new_object_from_prototype(
+                    proto,
+                    ObjectData::Boolean(*boolean),
+                ))
+            }
+            Value::Integer(integer) => {
+                let proto = ctx
+                    .realm
+                    .environment
+                    .get_binding_value("Number")
+                    .expect("Number was not initialized")
+                    .get_field(PROTOTYPE);
+                Ok(Value::new_object_from_prototype(
+                    proto,
+                    ObjectData::Number(f64::from(*integer)),
+                ))
+            }
+            Value::Rational(rational) => {
+                let proto = ctx
+                    .realm
+                    .environment
+                    .get_binding_value("Number")
+                    .expect("Number was not initialized")
+                    .get_field(PROTOTYPE);
+
+                Ok(Value::new_object_from_prototype(
+                    proto,
+                    ObjectData::Number(*rational),
+                ))
+            }
+            Value::String(ref string) => {
+                let proto = ctx
+                    .realm
+                    .environment
+                    .get_binding_value("String")
+                    .expect("String was not initialized")
+                    .get_field(PROTOTYPE);
+
+                Ok(Value::new_object_from_prototype(
+                    proto,
+                    ObjectData::String(string.clone()),
+                ))
+            }
+            Value::Symbol(ref symbol) => {
+                let proto = ctx
+                    .realm
+                    .environment
+                    .get_binding_value("Symbol")
+                    .expect("Symbol was not initialized")
+                    .get_field(PROTOTYPE);
+
+                Ok(Value::new_object_from_prototype(
+                    proto,
+                    ObjectData::Symbol(symbol.clone()),
+                ))
+            }
+            Value::BigInt(ref bigint) => {
+                let proto = ctx
+                    .realm
+                    .environment
+                    .get_binding_value("BigInt")
+                    .expect("BigInt was not initialized")
+                    .get_field(PROTOTYPE);
+                let bigint_obj =
+                    Value::new_object_from_prototype(proto, ObjectData::BigInt(bigint.clone()));
+                Ok(bigint_obj)
+            }
+            Value::Object(_) => Ok(self.clone()),
+        }
+    }
 }
 
 impl Default for Value {

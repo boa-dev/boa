@@ -567,7 +567,7 @@ pub fn property_is_enumerable(this: &Value, args: &[Value], ctx: &mut Interprete
     };
 
     let property_key = ctx.to_property_key(key)?;
-    let own_property = ctx.to_object(this).map(|obj| {
+    let own_property = this.to_object(ctx).map(|obj| {
         obj.as_object()
             .expect("Unable to deref object")
             .get_own_property(&property_key)
