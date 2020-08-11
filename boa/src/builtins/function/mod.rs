@@ -472,25 +472,25 @@ pub fn make_constructor_fn(
         length.into(),
         Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT,
     );
-    constructor.insert_property("length", length);
+    constructor.insert("length", length);
 
     let name = Property::data_descriptor(
         name.into(),
         Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT,
     );
-    constructor.insert_property("name", name);
+    constructor.insert("name", name);
 
     let constructor = Value::from(constructor);
 
     prototype
         .as_object_mut()
         .unwrap()
-        .insert_field("constructor", constructor.clone());
+        .insert_property("constructor", constructor.clone(), Attribute::default());
 
     constructor
         .as_object_mut()
         .expect("constructor object")
-        .insert_field(PROTOTYPE, prototype);
+        .insert_property(PROTOTYPE, prototype, Attribute::default());
 
     constructor
 }
@@ -533,12 +533,12 @@ pub fn make_builtin_fn<N>(
             .get_field("prototype"),
     );
 
-    function.insert_field("length", Value::from(length));
+    function.insert_property("length", Value::from(length), Attribute::default());
 
     parent
         .as_object_mut()
         .unwrap()
-        .insert_field(name, Value::from(function));
+        .insert_property(name, Value::from(function), Attribute::default());
 }
 
 /// Initialise the `Function` object on the global object.

@@ -15,7 +15,7 @@ use super::function::{make_builtin_fn, make_constructor_fn};
 use crate::{
     builtins::{
         object::{InternalState, ObjectData},
-        property::Property,
+        property::{Property, attribute::Attribute},
         value::{RcString, ResultValue, Value},
     },
     exec::Interpreter,
@@ -485,7 +485,7 @@ impl RegExp {
         prototype
             .as_object_mut()
             .unwrap()
-            .insert_field("lastIndex", Value::from(0));
+            .insert_property("lastIndex", Value::from(0), Attribute::default());
 
         make_builtin_fn(Self::test, "test", &prototype, 1, interpreter);
         make_builtin_fn(Self::exec, "exec", &prototype, 1, interpreter);

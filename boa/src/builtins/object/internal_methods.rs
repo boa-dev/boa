@@ -171,7 +171,7 @@ impl Object {
                 return false;
             }
 
-            self.insert_property(property_key, desc);
+            self.insert(property_key, desc);
             return true;
         }
         // If every field is absent we don't need to set anything
@@ -210,7 +210,7 @@ impl Object {
                 current.set = None;
             }
 
-            self.insert_property(property_key, current);
+            self.insert(property_key, current);
         // 7
         } else if current.is_data_descriptor() && desc.is_data_descriptor() {
             // a
@@ -249,7 +249,7 @@ impl Object {
             return true;
         }
         // 9
-        self.insert_property(property_key, desc);
+        self.insert(property_key, desc);
         true
     }
 
@@ -352,7 +352,7 @@ impl Object {
 
     /// Helper function for property insertion.
     #[inline]
-    pub(crate) fn insert_property<N>(&mut self, name: N, p: Property)
+    pub(crate) fn insert<N>(&mut self, name: N, p: Property)
     where
         N: Into<RcString>,
     {
@@ -365,21 +365,24 @@ impl Object {
         self.properties.remove(name);
     }
 
-    /// Inserts a field in the object `properties` without checking if it's writable.
+    /// Inserts a field in the object `properties`, given an attribute without checking if it's writable.
     ///
     /// If a field was already in the object with the same name that a `Some` is returned
     /// with that field, otherwise None is retuned.
     #[inline]
-    pub(crate) fn insert_field<N>(&mut self, name: N, value: Value) -> Option<Property>
+    pub(crate) fn insert_property<N, V>(
+        &mut self,
+        name: N,
+        value: V,
+        attribute: Attribute,
+    ) -> Option<Property>
     where
-        N: Into<RcString>,
+        N: Into<PropertyKey>,
+        V: Into<Value>,
     {
         self.properties.insert(
-            name.into(),
-            Property::data_descriptor(
-                value,
-                Attribute::WRITABLE | Attribute::ENUMERABLE | Attribute::CONFIGURABLE,
-            ),
+            (&name.into()).into(),
+            Property::data_descriptor(value.into(), attribute),
         )
     }
 

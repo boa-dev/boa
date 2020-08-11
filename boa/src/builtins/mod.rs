@@ -36,6 +36,7 @@ pub(crate) use self::{
     math::Math,
     nan::NaN,
     number::Number,
+    property::attribute::Attribute,
     regexp::RegExp,
     string::String,
     symbol::Symbol,
@@ -81,7 +82,7 @@ pub fn init(interpreter: &mut Interpreter) {
         let global = interpreter.global();
         match global {
             Value::Object(ref global_object) => {
-                global_object.borrow_mut().insert_field(name, value);
+                global_object.borrow_mut().insert_property(name, value, Attribute::default());
             }
             _ => unreachable!("expect global object"),
         }

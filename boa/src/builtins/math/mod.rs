@@ -15,6 +15,7 @@ use crate::{
     builtins::{
         function::make_builtin_fn,
         value::{ResultValue, Value},
+        property::attribute::Attribute,
     },
     exec::Interpreter,
     BoaProfiler,
@@ -648,14 +649,15 @@ impl Math {
 
         {
             let mut properties = math.as_object_mut().unwrap();
-            properties.insert_field("E", Value::from(f64::consts::E));
-            properties.insert_field("LN2", Value::from(f64::consts::LN_2));
-            properties.insert_field("LN10", Value::from(f64::consts::LN_10));
-            properties.insert_field("LOG2E", Value::from(f64::consts::LOG2_E));
-            properties.insert_field("LOG10E", Value::from(f64::consts::LOG10_E));
-            properties.insert_field("SQRT1_2", Value::from(0.5_f64.sqrt()));
-            properties.insert_field("SQRT2", Value::from(f64::consts::SQRT_2));
-            properties.insert_field("PI", Value::from(f64::consts::PI));
+            let attribute = Attribute::default();
+            properties.insert_property("E", Value::from(f64::consts::E), attribute);
+            properties.insert_property("LN2", Value::from(f64::consts::LN_2), attribute);
+            properties.insert_property("LN10", Value::from(f64::consts::LN_10), attribute);
+            properties.insert_property("LOG2E", Value::from(f64::consts::LOG2_E), attribute);
+            properties.insert_property("LOG10E", Value::from(f64::consts::LOG10_E), attribute);
+            properties.insert_property("SQRT1_2", Value::from(0.5_f64.sqrt()), attribute);
+            properties.insert_property("SQRT2", Value::from(f64::consts::SQRT_2), attribute);
+            properties.insert_property("PI", Value::from(f64::consts::PI), attribute);
         }
 
         make_builtin_fn(Self::abs, "abs", &math, 1, interpreter);

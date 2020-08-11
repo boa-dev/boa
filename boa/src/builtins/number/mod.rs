@@ -16,6 +16,7 @@
 use super::{
     function::{make_builtin_fn, make_constructor_fn},
     object::ObjectData,
+    property::attribute::Attribute,
 };
 use crate::{
     builtins::value::{ResultValue, Value},
@@ -813,14 +814,15 @@ impl Number {
         // https://tc39.es/ecma262/#sec-properties-of-the-number-constructor
         {
             let mut properties = number_object.as_object_mut().expect("'Number' object");
-            properties.insert_field("EPSILON", Value::from(f64::EPSILON));
-            properties.insert_field("MAX_SAFE_INTEGER", Value::from(Self::MAX_SAFE_INTEGER));
-            properties.insert_field("MIN_SAFE_INTEGER", Value::from(Self::MIN_SAFE_INTEGER));
-            properties.insert_field("MAX_VALUE", Value::from(Self::MAX_VALUE));
-            properties.insert_field("MIN_VALUE", Value::from(Self::MIN_VALUE));
-            properties.insert_field("NEGATIVE_INFINITY", Value::from(f64::NEG_INFINITY));
-            properties.insert_field("POSITIVE_INFINITY", Value::from(f64::INFINITY));
-            properties.insert_field("NaN", Value::from(f64::NAN));
+            let attribute = Attribute::default();
+            properties.insert_property("EPSILON", Value::from(f64::EPSILON), attribute);
+            properties.insert_property("MAX_SAFE_INTEGER", Value::from(Self::MAX_SAFE_INTEGER), attribute);
+            properties.insert_property("MIN_SAFE_INTEGER", Value::from(Self::MIN_SAFE_INTEGER), attribute);
+            properties.insert_property("MAX_VALUE", Value::from(Self::MAX_VALUE), attribute);
+            properties.insert_property("MIN_VALUE", Value::from(Self::MIN_VALUE), attribute);
+            properties.insert_property("NEGATIVE_INFINITY", Value::from(f64::NEG_INFINITY), attribute);
+            properties.insert_property("POSITIVE_INFINITY", Value::from(f64::INFINITY), attribute);
+            properties.insert_property("NaN", Value::from(f64::NAN), attribute);
         }
 
         (Self::NAME, number_object)
