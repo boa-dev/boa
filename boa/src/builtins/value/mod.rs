@@ -870,6 +870,19 @@ impl Value {
             Value::Object(_) => Ok(self.clone()),
         }
     }
+
+    /// The abstract operation ToPropertyKey takes argument argument. It converts argument to a value that can be used as a property key.
+    ///
+    /// https://tc39.es/ecma262/#sec-topropertykey
+    pub fn to_property_key(&self, ctx: &mut Interpreter) -> Result<PropertyKey, Value> {
+        let key = self.to_primitive(ctx, PreferredType::String)?;
+        if let Value::Symbol(ref symbol) = key {
+            Ok(PropertyKey::from(symbol.clone()))
+        } else {
+            let string = key.to_string(ctx)?;
+            Ok(PropertyKey::from(string))
+        }
+    }
 }
 
 impl Default for Value {

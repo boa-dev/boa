@@ -40,7 +40,7 @@ impl Executable for Assign {
             Node::GetField(ref get_field) => {
                 let object = get_field.obj().run(interpreter)?;
                 let field = get_field.field().run(interpreter)?;
-                let key = interpreter.to_property_key(&field)?;
+                let key = field.to_property_key(interpreter)?;
                 object.set_field(key, val.clone());
             }
             _ => (),
@@ -95,7 +95,7 @@ impl Executable for BinOp {
                                 y.get_type().as_str()
                             ));
                         }
-                        let key = interpreter.to_property_key(&x)?;
+                        let key = x.to_property_key(interpreter)?;
                         interpreter.has_property(&y, &key)
                     }
                 }))

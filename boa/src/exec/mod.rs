@@ -420,20 +420,6 @@ impl Interpreter {
         self.throw_type_error("cannot convert object to primitive value")
     }
 
-    /// The abstract operation ToPropertyKey takes argument argument. It converts argument to a value that can be used as a property key.
-    ///
-    /// https://tc39.es/ecma262/#sec-topropertykey
-    #[allow(clippy::wrong_self_convention)]
-    pub(crate) fn to_property_key(&mut self, value: &Value) -> Result<PropertyKey, Value> {
-        let key = value.to_primitive(self, PreferredType::String)?;
-        if let Value::Symbol(ref symbol) = key {
-            Ok(PropertyKey::from(symbol.clone()))
-        } else {
-            let string = key.to_string(self)?;
-            Ok(PropertyKey::from(string))
-        }
-    }
-
     /// https://tc39.es/ecma262/#sec-hasproperty
     pub(crate) fn has_property(&self, obj: &Value, key: &PropertyKey) -> bool {
         if let Some(obj) = obj.as_object() {
@@ -457,7 +443,7 @@ impl Interpreter {
                 .set_field(get_const_field_node.field(), value)),
             Node::GetField(ref get_field) => {
                 let field = get_field.field().run(self)?;
-                let key = self.to_property_key(&field)?;
+                let key = field.to_property_key(self)?;
                 Ok(get_field.obj().run(self)?.set_field(key, value))
             }
             _ => panic!("TypeError: invalid assignment to {}", node),
