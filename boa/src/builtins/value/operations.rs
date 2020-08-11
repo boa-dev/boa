@@ -1,6 +1,8 @@
 use super::*;
-use crate::builtins::number::{f64_to_int32, f64_to_uint32, Number};
-use crate::exec::PreferredType;
+use crate::builtins::{
+    number::{f64_to_int32, f64_to_uint32, Number},
+    value::PreferredType,
+};
 
 impl Value {
     #[inline]
@@ -20,8 +22,8 @@ impl Value {
 
             // Slow path:
             (_, _) => match (
-                ctx.to_primitive(self, PreferredType::Default)?,
-                ctx.to_primitive(other, PreferredType::Default)?,
+                self.to_primitive(ctx, PreferredType::Default)?,
+                other.to_primitive(ctx, PreferredType::Default)?,
             ) {
                 (Self::String(ref x), ref y) => Self::string(format!("{}{}", x, ctx.to_string(y)?)),
                 (ref x, Self::String(ref y)) => Self::string(format!("{}{}", ctx.to_string(x)?, y)),
@@ -440,13 +442,13 @@ impl Value {
             // Slow path:
             (_, _) => {
                 let (px, py) = if left_first {
-                    let px = ctx.to_primitive(self, PreferredType::Number)?;
-                    let py = ctx.to_primitive(other, PreferredType::Number)?;
+                    let px = self.to_primitive(ctx, PreferredType::Number)?;
+                    let py = other.to_primitive(ctx, PreferredType::Number)?;
                     (px, py)
                 } else {
                     // NOTE: The order of evaluation needs to be reversed to preserve left to right evaluation.
-                    let py = ctx.to_primitive(other, PreferredType::Number)?;
-                    let px = ctx.to_primitive(self, PreferredType::Number)?;
+                    let py = other.to_primitive(ctx, PreferredType::Number)?;
+                    let px = self.to_primitive(ctx, PreferredType::Number)?;
                     (px, py)
                 };
 

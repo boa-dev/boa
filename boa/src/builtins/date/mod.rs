@@ -5,9 +5,9 @@ use crate::{
     builtins::{
         function::{make_builtin_fn, make_constructor_fn},
         object::ObjectData,
+        value::PreferredType,
         ResultValue, Value,
     },
-    exec::PreferredType,
     BoaProfiler, Interpreter,
 };
 use chrono::{prelude::*, Duration, LocalResult};
@@ -306,8 +306,8 @@ impl Date {
         let value = &args[0];
         let tv = match this_time_value(value, ctx) {
             Ok(dt) => dt.0,
-            _ => match &ctx.to_primitive(value, PreferredType::Default)? {
-                Value::String(str) => match chrono::DateTime::parse_from_rfc3339(&str) {
+            _ => match value.to_primitive(ctx, PreferredType::Default)? {
+                Value::String(ref str) => match chrono::DateTime::parse_from_rfc3339(&str) {
                     Ok(dt) => Some(dt.naive_utc()),
                     _ => None,
                 },

@@ -359,6 +359,7 @@ fn bitand_rational_and_rational() {
 }
 
 #[test]
+#[allow(clippy::float_cmp)]
 fn pow_number_and_number() {
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);

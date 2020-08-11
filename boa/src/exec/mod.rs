@@ -29,7 +29,7 @@ use crate::{
         number::{f64_to_int32, f64_to_uint32},
         object::{Object, ObjectData, PROTOTYPE},
         property::PropertyKey,
-        value::{RcBigInt, RcString, ResultValue, Type, Value},
+        value::{PreferredType, RcBigInt, RcString, ResultValue, Type, Value},
         BigInt, Console, Number,
     },
     realm::Realm,
@@ -53,12 +53,6 @@ pub(crate) enum InterpreterState {
     Executing,
     Return,
     Break(Option<String>),
-}
-#[derive(Clone, Copy, Debug, PartialEq)]
-pub enum PreferredType {
-    String,
-    Number,
-    Default,
 }
 
 /// A Javascript intepreter
@@ -210,7 +204,7 @@ impl Interpreter {
             Value::Symbol(_) => Err(self.construct_type_error("can't convert symbol to string")),
             Value::BigInt(ref bigint) => Ok(RcString::from(bigint.to_string())),
             Value::Object(_) => {
-                let primitive = self.to_primitive(value, PreferredType::String)?;
+                let primitive = value.to_primitive(self, PreferredType::String)?;
                 self.to_string(&primitive)
             }
         }
@@ -239,7 +233,7 @@ impl Interpreter {
             }
             Value::BigInt(b) => Ok(b.clone()),
             Value::Object(_) => {
-                let primitive = self.to_primitive(value, PreferredType::Number)?;
+                let primitive = value.to_primitive(self, PreferredType::Number)?;
                 self.to_bigint(&primitive)
             }
             Value::Symbol(_) => Err(self.construct_type_error("cannot convert Symbol to a BigInt")),
@@ -352,7 +346,7 @@ impl Interpreter {
             Value::Symbol(_) => Err(self.construct_type_error("argument must not be a symbol")),
             Value::BigInt(_) => Err(self.construct_type_error("argument must not be a bigint")),
             Value::Object(_) => {
-                let primitive = self.to_primitive(value, PreferredType::Number)?;
+                let primitive = value.to_primitive(self, PreferredType::Number)?;
                 self.to_number(&primitive)
             }
         }
@@ -363,7 +357,7 @@ impl Interpreter {
     /// See: https://tc39.es/ecma262/#sec-tonumeric
     #[allow(clippy::wrong_self_convention)]
     pub fn to_numeric(&mut self, value: &Value) -> ResultValue {
-        let primitive = self.to_primitive(value, PreferredType::Number)?;
+        let primitive = value.to_primitive(self, PreferredType::Number)?;
         if primitive.is_bigint() {
             return Ok(primitive);
         }
@@ -377,7 +371,7 @@ impl Interpreter {
     /// See: https://tc39.es/ecma262/#sec-tonumeric
     #[allow(clippy::wrong_self_convention)]
     pub(crate) fn to_numeric_number(&mut self, value: &Value) -> Result<f64, Value> {
-        let primitive = self.to_primitive(value, PreferredType::Number)?;
+        let primitive = value.to_primitive(self, PreferredType::Number)?;
         if let Some(ref bigint) = primitive.as_bigint() {
             return Ok(bigint.to_f64());
         }
@@ -476,41 +470,12 @@ impl Interpreter {
         self.throw_type_error("cannot convert object to primitive value")
     }
 
-    /// The abstract operation ToPrimitive takes an input argument and an optional argument PreferredType.
-    ///
-    /// <https://tc39.es/ecma262/#sec-toprimitive>
-    #[allow(clippy::wrong_self_convention)]
-    pub(crate) fn to_primitive(
-        &mut self,
-        input: &Value,
-        preferred_type: PreferredType,
-    ) -> ResultValue {
-        // 1. Assert: input is an ECMAScript language value. (always a value not need to check)
-        // 2. If Type(input) is Object, then
-        if let Value::Object(_) = input {
-            let mut hint = preferred_type;
-
-            // Skip d, e we don't support Symbols yet
-            // TODO: add when symbols are supported
-            // TODO: Add other steps.
-            if hint == PreferredType::Default {
-                hint = PreferredType::Number;
-            };
-
-            // g. Return ? OrdinaryToPrimitive(input, hint).
-            self.ordinary_to_primitive(input, hint)
-        } else {
-            // 3. Return input.
-            Ok(input.clone())
-        }
-    }
-
     /// The abstract operation ToPropertyKey takes argument argument. It converts argument to a value that can be used as a property key.
     ///
     /// https://tc39.es/ecma262/#sec-topropertykey
     #[allow(clippy::wrong_self_convention)]
     pub(crate) fn to_property_key(&mut self, value: &Value) -> Result<PropertyKey, Value> {
-        let key = self.to_primitive(value, PreferredType::String)?;
+        let key = value.to_primitive(self, PreferredType::String)?;
         if let Value::Symbol(ref symbol) = key {
             Ok(PropertyKey::from(symbol.clone()))
         } else {

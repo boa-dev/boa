@@ -704,10 +704,45 @@ impl Value {
         new_func_val.set_field("length", Value::from(length));
         new_func_val
     }
+
+    /// The abstract operation ToPrimitive takes an input argument and an optional argument PreferredType.
+    ///
+    /// <https://tc39.es/ecma262/#sec-toprimitive>
+    pub fn to_primitive(
+        &self,
+        ctx: &mut Interpreter,
+        preferred_type: PreferredType,
+    ) -> ResultValue {
+        // 1. Assert: input is an ECMAScript language value. (always a value not need to check)
+        // 2. If Type(input) is Object, then
+        if let Value::Object(_) = self {
+            let mut hint = preferred_type;
+
+            // Skip d, e we don't support Symbols yet
+            // TODO: add when symbols are supported
+            // TODO: Add other steps.
+            if hint == PreferredType::Default {
+                hint = PreferredType::Number;
+            };
+
+            // g. Return ? OrdinaryToPrimitive(input, hint).
+            ctx.ordinary_to_primitive(self, hint)
+        } else {
+            // 3. Return input.
+            Ok(self.clone())
+        }
+    }
 }
 
 impl Default for Value {
     fn default() -> Self {
         Self::Undefined
     }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub enum PreferredType {
+    String,
+    Number,
+    Default,
 }
