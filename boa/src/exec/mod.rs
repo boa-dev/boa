@@ -187,28 +187,6 @@ impl Interpreter {
         }
     }
 
-    /// Converts a value to a non-negative integer if it is a valid integer index value.
-    ///
-    /// See: https://tc39.es/ecma262/#sec-toindex
-    #[allow(clippy::wrong_self_convention)]
-    pub fn to_index(&mut self, value: &Value) -> Result<usize, Value> {
-        if value.is_undefined() {
-            return Ok(0);
-        }
-
-        let integer_index = self.to_integer(value)?;
-
-        if integer_index < 0.0 {
-            return Err(self.construct_range_error("Integer index must be >= 0"));
-        }
-
-        if integer_index > Number::MAX_SAFE_INTEGER {
-            return Err(self.construct_range_error("Integer index must be less than 2**(53) - 1"));
-        }
-
-        Ok(integer_index as usize)
-    }
-
     /// Converts a value to an integral Number value.
     ///
     /// See: https://tc39.es/ecma262/#sec-tointeger

@@ -184,7 +184,7 @@ impl BigInt {
         let bits_arg = args.get(0).unwrap_or(&undefined_value);
         let bigint_arg = args.get(1).unwrap_or(&undefined_value);
 
-        let bits = ctx.to_index(bits_arg)?;
+        let bits = bits_arg.to_index(ctx)?;
         let bits = u32::try_from(bits).unwrap_or(u32::MAX);
 
         let bigint = bigint_arg.to_bigint(ctx)?;

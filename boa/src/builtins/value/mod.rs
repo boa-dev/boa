@@ -921,6 +921,27 @@ impl Value {
 
         Ok(f64_to_int32(number))
     }
+
+    /// Converts a value to a non-negative integer if it is a valid integer index value.
+    ///
+    /// See: https://tc39.es/ecma262/#sec-toindex
+    pub fn to_index(&self, ctx: &mut Interpreter) -> Result<usize, Value> {
+        if self.is_undefined() {
+            return Ok(0);
+        }
+
+        let integer_index = ctx.to_integer(self)?;
+
+        if integer_index < 0.0 {
+            return Err(ctx.construct_range_error("Integer index must be >= 0"));
+        }
+
+        if integer_index > Number::MAX_SAFE_INTEGER {
+            return Err(ctx.construct_range_error("Integer index must be less than 2**(53) - 1"));
+        }
+
+        Ok(integer_index as usize)
+    }
 }
 
 impl Default for Value {

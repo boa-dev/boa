@@ -891,8 +891,8 @@ fn to_index() {
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);
 
-    assert_eq!(engine.to_index(&Value::undefined()).unwrap(), 0);
-    assert!(engine.to_index(&Value::integer(-1)).is_err());
+    assert_eq!(Value::undefined().to_index(&mut engine).unwrap(), 0);
+    assert!(Value::integer(-1).to_index(&mut engine).is_err());
 }
 
 #[test]
