@@ -29,7 +29,7 @@ use crate::{
         object::{Object, ObjectData, PROTOTYPE},
         property::PropertyKey,
         value::{PreferredType, ResultValue, Type, Value},
-        Console, Number,
+        Console,
     },
     realm::Realm,
     syntax::ast::{
@@ -208,23 +208,6 @@ impl Interpreter {
         // 5. If integer is -0, return +0.
         // 6. Return integer.
         Ok(number.trunc() + 0.0) // We add 0.0 to convert -0.0 to +0.0
-    }
-
-    /// Converts argument to an integer suitable for use as the length of an array-like object.
-    ///
-    /// See: https://tc39.es/ecma262/#sec-tolength
-    #[allow(clippy::wrong_self_convention)]
-    pub fn to_length(&mut self, value: &Value) -> Result<usize, Value> {
-        // 1. Let len be ? ToInteger(argument).
-        let len = self.to_integer(value)?;
-
-        // 2. If len ≤ +0, return +0.
-        if len < 0.0 {
-            return Ok(0);
-        }
-
-        // 3. Return min(len, 2^53 - 1).
-        Ok(len.min(Number::MAX_SAFE_INTEGER) as usize)
     }
 
     /// Converts a value to a double precision floating point.

@@ -936,25 +936,29 @@ fn to_length() {
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);
 
-    assert_eq!(engine.to_length(&Value::number(f64::NAN)).unwrap(), 0);
+    assert_eq!(Value::number(f64::NAN).to_length(&mut engine).unwrap(), 0);
     assert_eq!(
-        engine.to_length(&Value::number(f64::NEG_INFINITY)).unwrap(),
+        Value::number(f64::NEG_INFINITY)
+            .to_length(&mut engine)
+            .unwrap(),
         0
     );
     assert_eq!(
-        engine.to_length(&Value::number(f64::INFINITY)).unwrap(),
+        Value::number(f64::INFINITY).to_length(&mut engine).unwrap(),
         Number::MAX_SAFE_INTEGER as usize
     );
-    assert_eq!(engine.to_length(&Value::number(0.0)).unwrap(), 0);
-    assert_eq!(engine.to_length(&Value::number(-0.0)).unwrap(), 0);
-    assert_eq!(engine.to_length(&Value::number(20.9)).unwrap(), 20);
-    assert_eq!(engine.to_length(&Value::number(-20.9)).unwrap(), 0);
+    assert_eq!(Value::number(0.0).to_length(&mut engine).unwrap(), 0);
+    assert_eq!(Value::number(-0.0).to_length(&mut engine).unwrap(), 0);
+    assert_eq!(Value::number(20.9).to_length(&mut engine).unwrap(), 20);
+    assert_eq!(Value::number(-20.9).to_length(&mut engine).unwrap(), 0);
     assert_eq!(
-        engine.to_length(&Value::number(100000000000.0)).unwrap(),
+        Value::number(100000000000.0)
+            .to_length(&mut engine)
+            .unwrap(),
         100000000000
     );
     assert_eq!(
-        engine.to_length(&Value::number(4010101101.0)).unwrap(),
+        Value::number(4010101101.0).to_length(&mut engine).unwrap(),
         4010101101
     );
 }

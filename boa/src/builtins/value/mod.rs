@@ -942,6 +942,22 @@ impl Value {
 
         Ok(integer_index as usize)
     }
+
+    /// Converts argument to an integer suitable for use as the length of an array-like object.
+    ///
+    /// See: https://tc39.es/ecma262/#sec-tolength
+    pub fn to_length(&self, ctx: &mut Interpreter) -> Result<usize, Value> {
+        // 1. Let len be ? ToInteger(argument).
+        let len = ctx.to_integer(self)?;
+
+        // 2. If len ≤ +0, return +0.
+        if len < 0.0 {
+            return Ok(0);
+        }
+
+        // 3. Return min(len, 2^53 - 1).
+        Ok(len.min(Number::MAX_SAFE_INTEGER) as usize)
+    }
 }
 
 impl Default for Value {

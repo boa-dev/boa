@@ -979,7 +979,7 @@ impl Array {
             _ => return interpreter.throw_type_error("Reduce was called without a callback"),
         };
         let initial_value = args.get(1).cloned().unwrap_or_else(Value::undefined);
-        let mut length = interpreter.to_length(&this.get_field("length"))?;
+        let mut length = this.get_field("length").to_length(interpreter)?;
         if length == 0 && initial_value.is_undefined() {
             return interpreter
                 .throw_type_error("Reduce was called on an empty array and with no initial value");
@@ -1017,7 +1017,7 @@ impl Array {
                 /* We keep track of possibly shortened length in order to prevent unnecessary iteration.
                 It may also be necessary to do this since shortening the array length does not
                 delete array elements. See: https://github.com/boa-dev/boa/issues/557 */
-                length = min(length, interpreter.to_length(&this.get_field("length"))?);
+                length = min(length, this.get_field("length").to_length(interpreter)?);
             }
             k += 1;
         }
@@ -1046,7 +1046,7 @@ impl Array {
             _ => return interpreter.throw_type_error("reduceRight was called without a callback"),
         };
         let initial_value = args.get(1).cloned().unwrap_or_else(Value::undefined);
-        let mut length = interpreter.to_length(&this.get_field("length"))?;
+        let mut length = this.get_field("length").to_length(interpreter)?;
         if length == 0 {
             if initial_value.is_undefined() {
                 return interpreter.throw_type_error(
@@ -1094,7 +1094,7 @@ impl Array {
                 /* We keep track of possibly shortened length in order to prevent unnecessary iteration.
                 It may also be necessary to do this since shortening the array length does not
                 delete array elements. See: https://github.com/boa-dev/boa/issues/557 */
-                length = min(length, interpreter.to_length(&this.get_field("length"))?);
+                length = min(length, this.get_field("length").to_length(interpreter)?);
 
                 // move k to the last defined element if necessary or return if the length was set to 0
                 if k >= length {
