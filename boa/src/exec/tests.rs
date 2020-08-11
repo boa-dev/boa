@@ -966,7 +966,7 @@ fn to_int32() {
 
     macro_rules! check_to_int32 {
         ($from:expr => $to:expr) => {
-            assert_eq!(engine.to_int32(&Value::number($from)).unwrap(), $to);
+            assert_eq!(Value::from($from).to_int32(&mut engine).unwrap(), $to);
         };
     };
 

@@ -254,7 +254,7 @@ fn add_number_and_number() {
     let mut engine = Interpreter::new(realm);
 
     let value = forward_val(&mut engine, "1 + 2").unwrap();
-    let value = engine.to_int32(&value).unwrap();
+    let value = value.to_int32(&mut engine).unwrap();
     assert_eq!(value, 3);
 }
 
@@ -284,7 +284,7 @@ fn add_number_object_and_number() {
     let mut engine = Interpreter::new(realm);
 
     let value = forward_val(&mut engine, "new Number(10) + 6").unwrap();
-    let value = engine.to_int32(&value).unwrap();
+    let value = value.to_int32(&mut engine).unwrap();
     assert_eq!(value, 16);
 }
 
@@ -304,7 +304,7 @@ fn sub_number_and_number() {
     let mut engine = Interpreter::new(realm);
 
     let value = forward_val(&mut engine, "1 - 999").unwrap();
-    let value = engine.to_int32(&value).unwrap();
+    let value = value.to_int32(&mut engine).unwrap();
     assert_eq!(value, -998);
 }
 
@@ -314,7 +314,7 @@ fn sub_number_object_and_number_object() {
     let mut engine = Interpreter::new(realm);
 
     let value = forward_val(&mut engine, "new Number(1) - new Number(999)").unwrap();
-    let value = engine.to_int32(&value).unwrap();
+    let value = value.to_int32(&mut engine).unwrap();
     assert_eq!(value, -998);
 }
 
@@ -334,7 +334,7 @@ fn bitand_integer_and_integer() {
     let mut engine = Interpreter::new(realm);
 
     let value = forward_val(&mut engine, "0xFFFF & 0xFF").unwrap();
-    let value = engine.to_int32(&value).unwrap();
+    let value = value.to_int32(&mut engine).unwrap();
     assert_eq!(value, 255);
 }
 
@@ -344,7 +344,7 @@ fn bitand_integer_and_rational() {
     let mut engine = Interpreter::new(realm);
 
     let value = forward_val(&mut engine, "0xFFFF & 255.5").unwrap();
-    let value = engine.to_int32(&value).unwrap();
+    let value = value.to_int32(&mut engine).unwrap();
     assert_eq!(value, 255);
 }
 
@@ -354,7 +354,7 @@ fn bitand_rational_and_rational() {
     let mut engine = Interpreter::new(realm);
 
     let value = forward_val(&mut engine, "255.772 & 255.5").unwrap();
-    let value = engine.to_int32(&value).unwrap();
+    let value = value.to_int32(&mut engine).unwrap();
     assert_eq!(value, 255);
 }
 

@@ -26,7 +26,6 @@ use crate::{
     builtins,
     builtins::{
         function::{Function as FunctionObject, FunctionBody, ThisMode},
-        number::f64_to_int32,
         object::{Object, ObjectData, PROTOTYPE},
         property::PropertyKey,
         value::{PreferredType, ResultValue, Type, Value},
@@ -231,20 +230,6 @@ impl Interpreter {
         // 5. If integer is -0, return +0.
         // 6. Return integer.
         Ok(number.trunc() + 0.0) // We add 0.0 to convert -0.0 to +0.0
-    }
-
-    /// Converts a value to an integral 32 bit signed integer.
-    ///
-    /// See: https://tc39.es/ecma262/#sec-toint32
-    #[allow(clippy::wrong_self_convention)]
-    pub fn to_int32(&mut self, value: &Value) -> Result<i32, Value> {
-        // This is the fast path, if the value is Integer we can just return it.
-        if let Value::Integer(number) = *value {
-            return Ok(number);
-        }
-        let number = self.to_number(value)?;
-
-        Ok(f64_to_int32(number))
     }
 
     /// Converts argument to an integer suitable for use as the length of an array-like object.
