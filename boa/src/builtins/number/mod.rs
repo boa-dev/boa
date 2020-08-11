@@ -16,6 +16,7 @@
 use super::{
     function::{make_builtin_fn, make_constructor_fn},
     object::ObjectData,
+    value::AbstractRelation,
 };
 use crate::{
     builtins::value::{ResultValue, Value},
@@ -830,6 +831,7 @@ impl Number {
     /// x (a Number) and y (a Number). It performs the following steps when called:
     ///
     /// https://tc39.es/ecma262/#sec-numeric-types-number-equal
+    #[inline]
     #[allow(clippy::float_cmp)]
     pub(crate) fn equal(x: f64, y: f64) -> bool {
         x == y
@@ -861,6 +863,7 @@ impl Number {
     /// x (a Number) and y (a Number). It performs the following steps when called:
     ///
     /// https://tc39.es/ecma262/#sec-numeric-types-number-sameValueZero
+    #[inline]
     #[allow(clippy::float_cmp)]
     pub(crate) fn same_value_zero(x: f64, y: f64) -> bool {
         if x.is_nan() && y.is_nan() {
@@ -868,5 +871,29 @@ impl Number {
         }
 
         x == y
+    }
+
+    #[inline]
+    #[allow(clippy::float_cmp)]
+    pub(crate) fn less_than(x: f64, y: f64) -> AbstractRelation {
+        if x.is_nan() || y.is_nan() {
+            return AbstractRelation::Undefined;
+        }
+        if x == y || x == 0.0 && y == -0.0 || x == -0.0 && y == 0.0 {
+            return AbstractRelation::False;
+        }
+        if x.is_infinite() && x.is_sign_positive() {
+            return AbstractRelation::False;
+        }
+        if y.is_infinite() && y.is_sign_positive() {
+            return AbstractRelation::True;
+        }
+        if x.is_infinite() && x.is_sign_negative() {
+            return AbstractRelation::False;
+        }
+        if y.is_infinite() && y.is_sign_negative() {
+            return AbstractRelation::True;
+        }
+        (x < y).into()
     }
 }

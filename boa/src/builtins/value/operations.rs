@@ -1,5 +1,5 @@
 use super::*;
-use crate::builtins::number::{f64_to_int32, f64_to_uint32};
+use crate::builtins::number::{f64_to_int32, f64_to_uint32, Number};
 use crate::exec::PreferredType;
 
 impl Value {
@@ -404,5 +404,212 @@ impl Value {
     #[inline]
     pub fn not(&self, _: &mut Interpreter) -> ResultValue {
         Ok(Self::boolean(!self.to_boolean()))
+    }
+
+    /// Abstract relational comparison
+    ///
+    /// The comparison `x < y`, where `x` and `y` are values, produces `true`, `false`,
+    /// or `undefined` (which indicates that at least one operand is `NaN`).
+    ///
+    /// In addition to `x` and `y` the algorithm takes a Boolean flag named `LeftFirst` as a parameter.
+    /// The flag is used to control the order in which operations with potentially visible side-effects
+    /// are performed upon `x` and `y`. It is necessary because ECMAScript specifies left to right evaluation
+    /// of expressions. The default value of LeftFirst is `true` and indicates that the `x` parameter
+    /// corresponds to an expression that occurs to the left of the `y` parameter's corresponding expression.
+    ///
+    /// If `LeftFirst` is `false`, the reverse is the case and operations must be performed upon `y` before `x`.
+    ///
+    /// More Information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-abstract-relational-comparison
+    pub fn abstract_relation(
+        &self,
+        other: &Self,
+        left_first: bool,
+        ctx: &mut Interpreter,
+    ) -> Result<AbstractRelation, Value> {
+        Ok(match (self, other) {
+            // Fast path (for some common operations):
+            (Value::Integer(x), Value::Integer(y)) => (x < y).into(),
+            (Value::Integer(x), Value::Rational(y)) => Number::less_than(f64::from(*x), *y),
+            (Value::Rational(x), Value::Integer(y)) => Number::less_than(*x, f64::from(*y)),
+            (Value::Rational(x), Value::Rational(y)) => Number::less_than(*x, *y),
+            (Value::BigInt(ref x), Value::BigInt(ref y)) => (x < y).into(),
+
+            // Slow path:
+            (_, _) => {
+                let (px, py) = if left_first {
+                    let px = ctx.to_primitive(self, PreferredType::Number)?;
+                    let py = ctx.to_primitive(other, PreferredType::Number)?;
+                    (px, py)
+                } else {
+                    // NOTE: The order of evaluation needs to be reversed to preserve left to right evaluation.
+                    let py = ctx.to_primitive(other, PreferredType::Number)?;
+                    let px = ctx.to_primitive(self, PreferredType::Number)?;
+                    (px, py)
+                };
+
+                match (px, py) {
+                    (Value::String(ref x), Value::String(ref y)) => {
+                        if x.starts_with(y.as_str()) {
+                            return Ok(AbstractRelation::False);
+                        }
+                        if y.starts_with(x.as_str()) {
+                            return Ok(AbstractRelation::True);
+                        }
+                        for (x, y) in x.chars().zip(y.chars()) {
+                            if x != y {
+                                return Ok((x < y).into());
+                            }
+                        }
+                        unreachable!()
+                    }
+                    (Value::BigInt(ref x), Value::String(ref y)) => {
+                        if let Some(y) = string_to_bigint(&y) {
+                            (*x.as_inner() < y).into()
+                        } else {
+                            AbstractRelation::Undefined
+                        }
+                    }
+                    (Value::String(ref x), Value::BigInt(ref y)) => {
+                        if let Some(x) = string_to_bigint(&x) {
+                            (x < *y.as_inner()).into()
+                        } else {
+                            AbstractRelation::Undefined
+                        }
+                    }
+                    (px, py) => match (ctx.to_numeric(&px)?, ctx.to_numeric(&py)?) {
+                        (Value::Rational(x), Value::Rational(y)) => Number::less_than(x, y),
+                        (Value::BigInt(ref x), Value::BigInt(ref y)) => (x < y).into(),
+                        (Value::BigInt(ref x), Value::Rational(y)) => {
+                            if y.is_nan() {
+                                return Ok(AbstractRelation::Undefined);
+                            }
+                            if y.is_infinite() {
+                                return Ok(y.is_sign_positive().into());
+                            }
+                            let n = if y.is_sign_negative() {
+                                y.floor()
+                            } else {
+                                y.ceil()
+                            };
+                            (*x.as_inner() < BigInt::try_from(n).unwrap()).into()
+                        }
+                        (Value::Rational(x), Value::BigInt(ref y)) => {
+                            if x.is_nan() {
+                                return Ok(AbstractRelation::Undefined);
+                            }
+                            if x.is_infinite() {
+                                return Ok(x.is_sign_negative().into());
+                            }
+                            let n = if x.is_sign_negative() {
+                                x.floor()
+                            } else {
+                                x.ceil()
+                            };
+                            (BigInt::try_from(n).unwrap() < *y.as_inner()).into()
+                        }
+                        (_, _) => unreachable!("to_numeric should only retrun number and bigint"),
+                    },
+                }
+            }
+        })
+    }
+
+    /// The less than operator (`<`) returns `true` if the left operand is less than the right operand,
+    /// and `false` otherwise.
+    ///
+    /// More Information:
+    ///  - [MDN documentation][mdn]
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Less_than
+    /// [spec]: https://tc39.es/ecma262/#sec-relational-operators-runtime-semantics-evaluation
+    #[inline]
+    pub fn lt(&self, other: &Self, ctx: &mut Interpreter) -> Result<bool, Value> {
+        match self.abstract_relation(other, true, ctx)? {
+            AbstractRelation::True => Ok(true),
+            AbstractRelation::False | AbstractRelation::Undefined => Ok(false),
+        }
+    }
+
+    /// The less than or equal operator (`<=`) returns `true` if the left operand is less than
+    /// or equal to the right operand, and `false` otherwise.
+    ///
+    /// More Information:
+    ///  - [MDN documentation][mdn]
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Less_than_or_equal
+    /// [spec]: https://tc39.es/ecma262/#sec-relational-operators-runtime-semantics-evaluation
+    #[inline]
+    pub fn le(&self, other: &Self, ctx: &mut Interpreter) -> Result<bool, Value> {
+        match other.abstract_relation(self, false, ctx)? {
+            AbstractRelation::False => Ok(true),
+            AbstractRelation::True | AbstractRelation::Undefined => Ok(false),
+        }
+    }
+
+    /// The greater than operator (`>`) returns `true` if the left operand is greater than
+    /// the right operand, and `false` otherwise.
+    ///
+    /// More Information:
+    ///  - [MDN documentation][mdn]
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Greater_than
+    /// [spec]: https://tc39.es/ecma262/#sec-relational-operators-runtime-semantics-evaluation
+    #[inline]
+    pub fn gt(&self, other: &Self, ctx: &mut Interpreter) -> Result<bool, Value> {
+        match other.abstract_relation(self, false, ctx)? {
+            AbstractRelation::True => Ok(true),
+            AbstractRelation::False | AbstractRelation::Undefined => Ok(false),
+        }
+    }
+
+    /// The greater than or equal operator (`>=`) returns `true` if the left operand is greater than
+    /// or equal to the right operand, and `false` otherwise.
+    ///
+    /// More Information:
+    ///  - [MDN documentation][mdn]
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Greater_than_or_equal
+    /// [spec]: https://tc39.es/ecma262/#sec-relational-operators-runtime-semantics-evaluation
+    #[inline]
+    pub fn ge(&self, other: &Self, ctx: &mut Interpreter) -> Result<bool, Value> {
+        match self.abstract_relation(other, true, ctx)? {
+            AbstractRelation::False => Ok(true),
+            AbstractRelation::True | AbstractRelation::Undefined => Ok(false),
+        }
+    }
+}
+
+/// The result of the [Abstract Relational Comparison][arc].
+///
+/// Comparison `x < y`, where `x` and `y` are values.
+/// It produces `true`, `false`, or `undefined`
+/// (which indicates that at least one operand is `NaN`).
+///
+/// [arc]: https://tc39.es/ecma262/#sec-abstract-relational-comparison
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+pub enum AbstractRelation {
+    /// `x` is less than `y`
+    True,
+    /// `x` is **not** less than `y`
+    False,
+    /// Indicates that at least one operand is `NaN`
+    Undefined,
+}
+
+impl From<bool> for AbstractRelation {
+    #[inline]
+    fn from(value: bool) -> Self {
+        if value {
+            AbstractRelation::True
+        } else {
+            AbstractRelation::False
+        }
     }
 }
