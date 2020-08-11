@@ -1078,11 +1078,17 @@ fn to_string() {
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);
 
-    assert_eq!(engine.to_string(&Value::null()).unwrap(), "null");
-    assert_eq!(engine.to_string(&Value::undefined()).unwrap(), "undefined");
-    assert_eq!(engine.to_string(&Value::integer(55)).unwrap(), "55");
-    assert_eq!(engine.to_string(&Value::rational(55.0)).unwrap(), "55");
-    assert_eq!(engine.to_string(&Value::string("hello")).unwrap(), "hello");
+    assert_eq!(Value::null().to_string(&mut engine).unwrap(), "null");
+    assert_eq!(
+        Value::undefined().to_string(&mut engine).unwrap(),
+        "undefined"
+    );
+    assert_eq!(Value::integer(55).to_string(&mut engine).unwrap(), "55");
+    assert_eq!(Value::rational(55.0).to_string(&mut engine).unwrap(), "55");
+    assert_eq!(
+        Value::string("hello").to_string(&mut engine).unwrap(),
+        "hello"
+    );
 }
 
 #[test]

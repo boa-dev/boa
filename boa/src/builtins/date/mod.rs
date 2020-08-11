@@ -1188,7 +1188,7 @@ impl Date {
             return Ok(Value::number(f64::NAN));
         }
 
-        match DateTime::parse_from_rfc3339(&ctx.to_string(&args[0])?) {
+        match DateTime::parse_from_rfc3339(&args[0].to_string(ctx)?) {
             Ok(v) => Ok(Value::number(v.naive_utc().timestamp_millis() as f64)),
             _ => Ok(Value::number(f64::NAN)),
         }

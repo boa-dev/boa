@@ -60,7 +60,7 @@ pub(crate) fn logger(msg: LogMessage, console_state: &Console) {
 
 /// This represents the `console` formatter.
 pub fn formatter(data: &[Value], ctx: &mut Interpreter) -> Result<String, Value> {
-    let target = ctx.to_string(&data.get(0).cloned().unwrap_or_default())?;
+    let target = data.get(0).cloned().unwrap_or_default().to_string(ctx)?;
     match data.len() {
         0 => Ok(String::new()),
         1 => Ok(target.to_string()),
@@ -92,8 +92,11 @@ pub fn formatter(data: &[Value], ctx: &mut Interpreter) -> Result<String, Value>
                         }
                         /* string */
                         's' => {
-                            let arg =
-                                ctx.to_string(&data.get(arg_index).cloned().unwrap_or_default())?;
+                            let arg = data
+                                .get(arg_index)
+                                .cloned()
+                                .unwrap_or_default()
+                                .to_string(ctx)?;
                             formatted.push_str(&arg);
                             arg_index += 1
                         }
@@ -111,7 +114,7 @@ pub fn formatter(data: &[Value], ctx: &mut Interpreter) -> Result<String, Value>
 
             /* unformatted data */
             for rest in data.iter().skip(arg_index) {
-                formatted.push_str(&format!(" {}", ctx.to_string(rest)?))
+                formatted.push_str(&format!(" {}", rest.to_string(ctx)?))
             }
 
             Ok(formatted)
@@ -289,7 +292,7 @@ impl Console {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/count
     pub(crate) fn count(_: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
         let label = match args.get(0) {
-            Some(value) => ctx.to_string(value)?,
+            Some(value) => value.to_string(ctx)?,
             None => "default".into(),
         };
 
@@ -313,7 +316,7 @@ impl Console {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/countReset
     pub(crate) fn count_reset(_: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
         let label = match args.get(0) {
-            Some(value) => ctx.to_string(value)?,
+            Some(value) => value.to_string(ctx)?,
             None => "default".into(),
         };
 
@@ -347,7 +350,7 @@ impl Console {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/time
     pub(crate) fn time(_: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
         let label = match args.get(0) {
-            Some(value) => ctx.to_string(value)?,
+            Some(value) => value.to_string(ctx)?,
             None => "default".into(),
         };
 
@@ -376,7 +379,7 @@ impl Console {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/timeLog
     pub(crate) fn time_log(_: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
         let label = match args.get(0) {
-            Some(value) => ctx.to_string(value)?,
+            Some(value) => value.to_string(ctx)?,
             None => "default".into(),
         };
 
@@ -409,7 +412,7 @@ impl Console {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/timeEnd
     pub(crate) fn time_end(_: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
         let label = match args.get(0) {
-            Some(value) => ctx.to_string(value)?,
+            Some(value) => value.to_string(ctx)?,
             None => "default".into(),
         };
 

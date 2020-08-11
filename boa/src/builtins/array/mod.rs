@@ -299,14 +299,16 @@ impl Array {
         let separator = if args.is_empty() {
             String::from(",")
         } else {
-            ctx.to_string(args.get(0).expect("Could not get argument"))?
+            args.get(0)
+                .expect("Could not get argument")
+                .to_string(ctx)?
                 .to_string()
         };
 
         let mut elem_strs = Vec::new();
         let length = i32::from(&this.get_field("length"));
         for n in 0..length {
-            let elem_str = ctx.to_string(&this.get_field(n.to_string()))?.to_string();
+            let elem_str = this.get_field(n.to_string()).to_string(ctx)?.to_string();
             elem_strs.push(elem_str);
         }
 

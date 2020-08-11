@@ -29,7 +29,7 @@ use crate::{
         number::{f64_to_int32, f64_to_uint32},
         object::{Object, ObjectData, PROTOTYPE},
         property::PropertyKey,
-        value::{PreferredType, RcString, ResultValue, Type, Value},
+        value::{PreferredType, ResultValue, Type, Value},
         Console, Number,
     },
     realm::Realm,
@@ -187,25 +187,6 @@ impl Interpreter {
                 self.throw_type_error("not a function")
             }
             _ => self.throw_type_error("not a function"),
-        }
-    }
-
-    /// Converts a value into a rust heap allocated string.
-    #[allow(clippy::wrong_self_convention)]
-    pub fn to_string(&mut self, value: &Value) -> Result<RcString, Value> {
-        match value {
-            Value::Null => Ok(RcString::from("null")),
-            Value::Undefined => Ok(RcString::from("undefined".to_owned())),
-            Value::Boolean(boolean) => Ok(RcString::from(boolean.to_string())),
-            Value::Rational(rational) => Ok(RcString::from(Number::to_native_string(*rational))),
-            Value::Integer(integer) => Ok(RcString::from(integer.to_string())),
-            Value::String(string) => Ok(string.clone()),
-            Value::Symbol(_) => Err(self.construct_type_error("can't convert symbol to string")),
-            Value::BigInt(ref bigint) => Ok(RcString::from(bigint.to_string())),
-            Value::Object(_) => {
-                let primitive = value.to_primitive(self, PreferredType::String)?;
-                self.to_string(&primitive)
-            }
         }
     }
 
@@ -448,7 +429,7 @@ impl Interpreter {
         if let Value::Symbol(ref symbol) = key {
             Ok(PropertyKey::from(symbol.clone()))
         } else {
-            let string = self.to_string(&key)?;
+            let string = key.to_string(self)?;
             Ok(PropertyKey::from(string))
         }
     }

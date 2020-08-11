@@ -264,7 +264,7 @@ fn add_number_and_string() {
     let mut engine = Interpreter::new(realm);
 
     let value = forward_val(&mut engine, "1 + \" + 2 = 3\"").unwrap();
-    let value = engine.to_string(&value).unwrap();
+    let value = value.to_string(&mut engine).unwrap();
     assert_eq!(value, "1 + 2 = 3");
 }
 
@@ -274,7 +274,7 @@ fn add_string_and_string() {
     let mut engine = Interpreter::new(realm);
 
     let value = forward_val(&mut engine, "\"Hello\" + \", world\"").unwrap();
-    let value = engine.to_string(&value).unwrap();
+    let value = value.to_string(&mut engine).unwrap();
     assert_eq!(value, "Hello, world");
 }
 
@@ -294,7 +294,7 @@ fn add_number_object_and_string_object() {
     let mut engine = Interpreter::new(realm);
 
     let value = forward_val(&mut engine, "new Number(10) + new String(\"0\")").unwrap();
-    let value = engine.to_string(&value).unwrap();
+    let value = value.to_string(&mut engine).unwrap();
     assert_eq!(value, "100");
 }
 

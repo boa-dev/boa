@@ -23,6 +23,6 @@ impl Executable for GetField {
         }
         let field = self.field().run(interpreter)?;
 
-        Ok(obj.get_field(interpreter.to_string(&field)?))
+        Ok(obj.get_field(field.to_string(interpreter)?))
     }
 }

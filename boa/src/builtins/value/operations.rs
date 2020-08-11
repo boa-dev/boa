@@ -14,8 +14,8 @@ impl Value {
             (Self::Integer(x), Self::Rational(y)) => Self::rational(f64::from(*x) + y),
             (Self::Rational(x), Self::Integer(y)) => Self::rational(x + f64::from(*y)),
 
-            (Self::String(ref x), ref y) => Self::string(format!("{}{}", x, ctx.to_string(y)?)),
-            (ref x, Self::String(ref y)) => Self::string(format!("{}{}", ctx.to_string(x)?, y)),
+            (Self::String(ref x), ref y) => Self::string(format!("{}{}", x, y.to_string(ctx)?)),
+            (ref x, Self::String(ref y)) => Self::string(format!("{}{}", x.to_string(ctx)?, y)),
             (Self::BigInt(ref n1), Self::BigInt(ref n2)) => {
                 Self::bigint(n1.as_inner().clone() + n2.as_inner().clone())
             }
@@ -25,8 +25,8 @@ impl Value {
                 self.to_primitive(ctx, PreferredType::Default)?,
                 other.to_primitive(ctx, PreferredType::Default)?,
             ) {
-                (Self::String(ref x), ref y) => Self::string(format!("{}{}", x, ctx.to_string(y)?)),
-                (ref x, Self::String(ref y)) => Self::string(format!("{}{}", ctx.to_string(x)?, y)),
+                (Self::String(ref x), ref y) => Self::string(format!("{}{}", x, y.to_string(ctx)?)),
+                (ref x, Self::String(ref y)) => Self::string(format!("{}{}", x.to_string(ctx)?, y)),
                 (x, y) => match (ctx.to_numeric(&x)?, ctx.to_numeric(&y)?) {
                     (Self::Rational(x), Self::Rational(y)) => Self::rational(x + y),
                     (Self::BigInt(ref n1), Self::BigInt(ref n2)) => {

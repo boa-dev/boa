@@ -46,7 +46,10 @@ impl Json {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/parse
     pub(crate) fn parse(_: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
         match serde_json::from_str::<JSONValue>(
-            &ctx.to_string(args.get(0).expect("cannot get argument for JSON.parse"))?,
+            &args
+                .get(0)
+                .expect("cannot get argument for JSON.parse")
+                .to_string(ctx)?,
         ) {
             Ok(json) => {
                 let j = Value::from_json(json, ctx);
@@ -157,11 +160,11 @@ impl Json {
             });
             for field in fields {
                 if let Some(value) = object
-                    .get_property(&ctx.to_string(&field)?)
+                    .get_property(&field.to_string(ctx)?)
                     .and_then(|prop| prop.value.as_ref().map(|v| v.to_json(ctx)))
                     .transpose()?
                 {
-                    obj_to_return.insert(ctx.to_string(&field)?.to_string(), value);
+                    obj_to_return.insert(field.to_string(ctx)?.to_string(), value);
                 }
             }
             Ok(Value::from(JSONValue::Object(obj_to_return).to_string()))

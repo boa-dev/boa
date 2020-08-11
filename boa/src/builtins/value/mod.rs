@@ -9,7 +9,7 @@ use crate::builtins::{
     function::Function,
     object::{GcObject, InternalState, InternalStateCell, Object, ObjectData, PROTOTYPE},
     property::{Attribute, Property, PropertyKey},
-    BigInt, Symbol,
+    BigInt, Number, Symbol,
 };
 use crate::exec::Interpreter;
 use crate::BoaProfiler;
@@ -765,6 +765,24 @@ impl Value {
 
     pub fn display(&self) -> ValueDisplay<'_> {
         ValueDisplay { value: self }
+    }
+
+    /// Converts a value into a rust heap allocated string.
+    pub fn to_string(&self, ctx: &mut Interpreter) -> Result<RcString, Value> {
+        match self {
+            Value::Null => Ok("null".into()),
+            Value::Undefined => Ok("undefined".into()),
+            Value::Boolean(boolean) => Ok(boolean.to_string().into()),
+            Value::Rational(rational) => Ok(Number::to_native_string(*rational).into()),
+            Value::Integer(integer) => Ok(integer.to_string().into()),
+            Value::String(string) => Ok(string.clone()),
+            Value::Symbol(_) => Err(ctx.construct_type_error("can't convert symbol to string")),
+            Value::BigInt(ref bigint) => Ok(bigint.to_string().into()),
+            Value::Object(_) => {
+                let primitive = self.to_primitive(ctx, PreferredType::String)?;
+                primitive.to_string(ctx)
+            }
+        }
     }
 }
 

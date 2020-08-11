@@ -48,7 +48,7 @@ impl Error {
     /// Create a new error object.
     pub(crate) fn make_error(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
         if let Some(message) = args.get(0) {
-            this.set_field("message", ctx.to_string(message)?);
+            this.set_field("message", message.to_string(ctx)?);
         }
 
         // This value is used by console.log and other routines to match Object type

@@ -211,7 +211,7 @@ impl Executable for UnaryOp {
                 Node::GetField(ref get_field) => {
                     let obj = get_field.obj().run(interpreter)?;
                     let field = &get_field.field().run(interpreter)?;
-                    let res = obj.remove_property(interpreter.to_string(field)?.as_str());
+                    let res = obj.remove_property(field.to_string(interpreter)?.as_str());
                     return Ok(Value::boolean(res));
                 }
                 Node::Identifier(_) => Value::boolean(false),
