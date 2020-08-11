@@ -732,6 +732,35 @@ impl Value {
             Ok(self.clone())
         }
     }
+
+    /// Helper function.
+    pub fn to_bigint(&self, ctx: &mut Interpreter) -> Result<RcBigInt, Value> {
+        match self {
+            Value::Null => Err(ctx.construct_type_error("cannot convert null to a BigInt")),
+            Value::Undefined => {
+                Err(ctx.construct_type_error("cannot convert undefined to a BigInt"))
+            }
+            Value::String(ref string) => Ok(RcBigInt::from(BigInt::from_string(string, ctx)?)),
+            Value::Boolean(true) => Ok(RcBigInt::from(BigInt::from(1))),
+            Value::Boolean(false) => Ok(RcBigInt::from(BigInt::from(0))),
+            Value::Integer(num) => Ok(RcBigInt::from(BigInt::from(*num))),
+            Value::Rational(num) => {
+                if let Ok(bigint) = BigInt::try_from(*num) {
+                    return Ok(RcBigInt::from(bigint));
+                }
+                Err(ctx.construct_type_error(format!(
+                    "The number {} cannot be converted to a BigInt because it is not an integer",
+                    num
+                )))
+            }
+            Value::BigInt(b) => Ok(b.clone()),
+            Value::Object(_) => {
+                let primitive = self.to_primitive(ctx, PreferredType::Number)?;
+                primitive.to_bigint(ctx)
+            }
+            Value::Symbol(_) => Err(ctx.construct_type_error("cannot convert Symbol to a BigInt")),
+        }
+    }
 }
 
 impl Default for Value {

@@ -16,16 +16,14 @@ fn forward_dt_utc(engine: &mut Interpreter, src: &str) -> Option<NaiveDateTime> 
         panic!("expected success")
     };
 
-    let date_time = if let Value::Object(date_time) = &date_time {
-        date_time
+    if let Value::Object(ref date_time) = date_time {
+        if let ObjectData::Date(ref date_time) = date_time.borrow().data {
+            date_time.0
+        } else {
+            panic!("expected date")
+        }
     } else {
         panic!("expected object")
-    };
-
-    if let ObjectData::Date(date_time) = &date_time.borrow().data {
-        date_time.0
-    } else {
-        panic!("expected date")
     }
 }
 

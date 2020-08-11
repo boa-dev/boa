@@ -93,7 +93,7 @@ impl BigInt {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/BigInt/BigInt
     pub(crate) fn make_bigint(_: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
         let data = match args.get(0) {
-            Some(ref value) => ctx.to_bigint(value)?,
+            Some(ref value) => value.to_bigint(ctx)?,
             None => RcBigInt::from(Self::from(0)),
         };
         Ok(Value::from(data))
@@ -187,7 +187,7 @@ impl BigInt {
         let bits = ctx.to_index(bits_arg)?;
         let bits = u32::try_from(bits).unwrap_or(u32::MAX);
 
-        let bigint = ctx.to_bigint(bigint_arg)?;
+        let bigint = bigint_arg.to_bigint(ctx)?;
 
         Ok((
             bigint

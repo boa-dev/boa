@@ -29,8 +29,8 @@ use crate::{
         number::{f64_to_int32, f64_to_uint32},
         object::{Object, ObjectData, PROTOTYPE},
         property::PropertyKey,
-        value::{PreferredType, RcBigInt, RcString, ResultValue, Type, Value},
-        BigInt, Console, Number,
+        value::{PreferredType, RcString, ResultValue, Type, Value},
+        Console, Number,
     },
     realm::Realm,
     syntax::ast::{
@@ -40,7 +40,6 @@ use crate::{
     BoaProfiler,
 };
 use std::borrow::Borrow;
-use std::convert::TryFrom;
 use std::ops::Deref;
 
 pub trait Executable {
@@ -207,36 +206,6 @@ impl Interpreter {
                 let primitive = value.to_primitive(self, PreferredType::String)?;
                 self.to_string(&primitive)
             }
-        }
-    }
-
-    /// Helper function.
-    #[allow(clippy::wrong_self_convention)]
-    pub fn to_bigint(&mut self, value: &Value) -> Result<RcBigInt, Value> {
-        match value {
-            Value::Null => Err(self.construct_type_error("cannot convert null to a BigInt")),
-            Value::Undefined => {
-                Err(self.construct_type_error("cannot convert undefined to a BigInt"))
-            }
-            Value::String(ref string) => Ok(RcBigInt::from(BigInt::from_string(string, self)?)),
-            Value::Boolean(true) => Ok(RcBigInt::from(BigInt::from(1))),
-            Value::Boolean(false) => Ok(RcBigInt::from(BigInt::from(0))),
-            Value::Integer(num) => Ok(RcBigInt::from(BigInt::from(*num))),
-            Value::Rational(num) => {
-                if let Ok(bigint) = BigInt::try_from(*num) {
-                    return Ok(RcBigInt::from(bigint));
-                }
-                Err(self.construct_type_error(format!(
-                    "The number {} cannot be converted to a BigInt because it is not an integer",
-                    num
-                )))
-            }
-            Value::BigInt(b) => Ok(b.clone()),
-            Value::Object(_) => {
-                let primitive = value.to_primitive(self, PreferredType::Number)?;
-                self.to_bigint(&primitive)
-            }
-            Value::Symbol(_) => Err(self.construct_type_error("cannot convert Symbol to a BigInt")),
         }
     }
 

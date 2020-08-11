@@ -879,11 +879,11 @@ fn to_bigint() {
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);
 
-    assert!(engine.to_bigint(&Value::null()).is_err());
-    assert!(engine.to_bigint(&Value::undefined()).is_err());
-    assert!(engine.to_bigint(&Value::integer(55)).is_ok());
-    assert!(engine.to_bigint(&Value::rational(10.0)).is_ok());
-    assert!(engine.to_bigint(&Value::string("100")).is_ok());
+    assert!(Value::null().to_bigint(&mut engine).is_err());
+    assert!(Value::undefined().to_bigint(&mut engine).is_err());
+    assert!(Value::integer(55).to_bigint(&mut engine).is_ok());
+    assert!(Value::rational(10.0).to_bigint(&mut engine).is_ok());
+    assert!(Value::string("100").to_bigint(&mut engine).is_ok());
 }
 
 #[test]
