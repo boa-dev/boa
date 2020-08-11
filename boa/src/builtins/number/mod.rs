@@ -815,14 +815,14 @@ impl Number {
         {
             let mut properties = number_object.as_object_mut().expect("'Number' object");
             let attribute = Attribute::default();
-            properties.insert_property("EPSILON", Value::from(f64::EPSILON), attribute);
-            properties.insert_property("MAX_SAFE_INTEGER", Value::from(Self::MAX_SAFE_INTEGER), attribute);
-            properties.insert_property("MIN_SAFE_INTEGER", Value::from(Self::MIN_SAFE_INTEGER), attribute);
-            properties.insert_property("MAX_VALUE", Value::from(Self::MAX_VALUE), attribute);
-            properties.insert_property("MIN_VALUE", Value::from(Self::MIN_VALUE), attribute);
-            properties.insert_property("NEGATIVE_INFINITY", Value::from(f64::NEG_INFINITY), attribute);
-            properties.insert_property("POSITIVE_INFINITY", Value::from(f64::INFINITY), attribute);
-            properties.insert_property("NaN", Value::from(f64::NAN), attribute);
+            properties.insert_property("EPSILON", f64::EPSILON, attribute);
+            properties.insert_property("MAX_SAFE_INTEGER", Self::MAX_SAFE_INTEGER, attribute);
+            properties.insert_property("MIN_SAFE_INTEGER", Self::MIN_SAFE_INTEGER, attribute);
+            properties.insert_property("MAX_VALUE", Self::MAX_VALUE, attribute);
+            properties.insert_property("MIN_VALUE", Self::MIN_VALUE, attribute);
+            properties.insert_property("NEGATIVE_INFINITY", f64::NEG_INFINITY, attribute);
+            properties.insert_property("POSITIVE_INFINITY", f64::INFINITY, attribute);
+            properties.insert_property("NaN", f64::NAN, attribute);
         }
 
         (Self::NAME, number_object)

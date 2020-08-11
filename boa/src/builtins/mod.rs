@@ -82,7 +82,9 @@ pub fn init(interpreter: &mut Interpreter) {
         let global = interpreter.global();
         match global {
             Value::Object(ref global_object) => {
-                global_object.borrow_mut().insert_property(name, value, Attribute::default());
+                global_object
+                    .borrow_mut()
+                    .insert_property(name, value, Attribute::default());
             }
             _ => unreachable!("expect global object"),
         }

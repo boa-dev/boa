@@ -419,13 +419,12 @@ pub fn create_unmapped_arguments_object(arguments_list: &[Value]) -> Value {
     let mut index: usize = 0;
     while index < len {
         let val = arguments_list.get(index).expect("Could not get argument");
-        let prop = Property::data_descriptor(
+
+        obj.insert_property(
+            RcString::from(index.to_string()),
             val.clone(),
             Attribute::WRITABLE | Attribute::ENUMERABLE | Attribute::CONFIGURABLE,
         );
-
-        obj.properties_mut()
-            .insert(RcString::from(index.to_string()), prop);
         index += 1;
     }
 
@@ -468,24 +467,17 @@ pub fn make_constructor_fn(
     let mut constructor =
         Object::function(function, global.get_field("Function").get_field(PROTOTYPE));
 
-    let length = Property::data_descriptor(
-        length.into(),
-        Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT,
-    );
-    constructor.insert("length", length);
+    constructor.insert_property("length", length, Attribute::default());
 
-    let name = Property::data_descriptor(
-        name.into(),
-        Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT,
-    );
-    constructor.insert("name", name);
+    constructor.insert_property("name", name, Attribute::default());
 
     let constructor = Value::from(constructor);
 
-    prototype
-        .as_object_mut()
-        .unwrap()
-        .insert_property("constructor", constructor.clone(), Attribute::default());
+    prototype.as_object_mut().unwrap().insert_property(
+        "constructor",
+        constructor.clone(),
+        Attribute::default(),
+    );
 
     constructor
         .as_object_mut()
@@ -535,10 +527,11 @@ pub fn make_builtin_fn<N>(
 
     function.insert_property("length", Value::from(length), Attribute::default());
 
-    parent
-        .as_object_mut()
-        .unwrap()
-        .insert_property(name, Value::from(function), Attribute::default());
+    parent.as_object_mut().unwrap().insert_property(
+        name,
+        Value::from(function),
+        Attribute::default(),
+    );
 }
 
 /// Initialise the `Function` object on the global object.

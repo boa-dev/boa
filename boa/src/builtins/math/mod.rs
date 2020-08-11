@@ -14,8 +14,8 @@
 use crate::{
     builtins::{
         function::make_builtin_fn,
-        value::{ResultValue, Value},
         property::attribute::Attribute,
+        value::{ResultValue, Value},
     },
     exec::Interpreter,
     BoaProfiler,

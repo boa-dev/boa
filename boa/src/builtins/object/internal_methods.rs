@@ -352,7 +352,7 @@ impl Object {
 
     /// Helper function for property insertion.
     #[inline]
-    pub(crate) fn insert<N>(&mut self, name: N, p: Property)
+    fn insert<N>(&mut self, name: N, p: Property)
     where
         N: Into<RcString>,
     {
