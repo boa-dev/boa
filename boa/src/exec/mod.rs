@@ -26,7 +26,7 @@ use crate::{
     builtins,
     builtins::{
         function::{Function as FunctionObject, FunctionBody, ThisMode},
-        number::{f64_to_int32, f64_to_uint32},
+        number::f64_to_int32,
         object::{Object, ObjectData, PROTOTYPE},
         property::PropertyKey,
         value::{PreferredType, ResultValue, Type, Value},
@@ -39,8 +39,6 @@ use crate::{
     },
     BoaProfiler,
 };
-use std::borrow::Borrow;
-use std::ops::Deref;
 
 pub trait Executable {
     /// Runs this executable in the given executor.
@@ -249,20 +247,6 @@ impl Interpreter {
         Ok(f64_to_int32(number))
     }
 
-    /// Converts a value to an integral 32 bit unsigned integer.
-    ///
-    /// See: https://tc39.es/ecma262/#sec-toint32
-    #[allow(clippy::wrong_self_convention)]
-    pub fn to_uint32(&mut self, value: &Value) -> Result<u32, Value> {
-        // This is the fast path, if the value is Integer we can just return it.
-        if let Value::Integer(number) = *value {
-            return Ok(number as u32);
-        }
-        let number = self.to_number(value)?;
-
-        Ok(f64_to_uint32(number))
-    }
-
     /// Converts argument to an integer suitable for use as the length of an array-like object.
     ///
     /// See: https://tc39.es/ecma262/#sec-tolength
@@ -322,7 +306,7 @@ impl Interpreter {
     pub(crate) fn extract_array_properties(&mut self, value: &Value) -> Result<Vec<Value>, ()> {
         if let Value::Object(ref x) = value {
             // Check if object is array
-            if let ObjectData::Array = x.deref().borrow().data {
+            if let ObjectData::Array = x.borrow().data {
                 let length = i32::from(&value.get_field("length"));
                 let values = (0..length)
                     .map(|idx| value.get_field(idx.to_string()))
@@ -330,9 +314,8 @@ impl Interpreter {
                 return Ok(values);
             }
             // Check if object is a Map
-            else if let ObjectData::Map(ref map) = x.deref().borrow().data {
+            else if let ObjectData::Map(ref map) = x.borrow().data {
                 let values = map
-                    .borrow()
                     .iter()
                     .map(|(key, value)| {
                         // Construct a new array containing the key-value pair
@@ -349,7 +332,6 @@ impl Interpreter {
                                 .environment
                                 .get_binding_value("Array")
                                 .expect("Array was not initialized")
-                                .borrow()
                                 .get_field(PROTOTYPE),
                         );
                         array.set_field("0", key);

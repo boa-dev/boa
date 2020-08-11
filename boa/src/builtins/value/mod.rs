@@ -5,6 +5,7 @@
 #[cfg(test)]
 mod tests;
 
+use super::number::f64_to_uint32;
 use crate::builtins::{
     function::Function,
     object::{GcObject, InternalState, InternalStateCell, Object, ObjectData, PROTOTYPE},
@@ -893,6 +894,19 @@ impl Value {
             return Ok(primitive);
         }
         Ok(Value::from(ctx.to_number(self)?))
+    }
+
+    /// Converts a value to an integral 32 bit unsigned integer.
+    ///
+    /// See: https://tc39.es/ecma262/#sec-toint32
+    pub fn to_uint32(&self, ctx: &mut Interpreter) -> Result<u32, Value> {
+        // This is the fast path, if the value is Integer we can just return it.
+        if let Value::Integer(number) = *self {
+            return Ok(number as u32);
+        }
+        let number = ctx.to_number(self)?;
+
+        Ok(f64_to_uint32(number))
     }
 }
 
