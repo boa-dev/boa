@@ -27,7 +27,7 @@ impl Value {
             ) {
                 (Self::String(ref x), ref y) => Self::string(format!("{}{}", x, y.to_string(ctx)?)),
                 (ref x, Self::String(ref y)) => Self::string(format!("{}{}", x.to_string(ctx)?, y)),
-                (x, y) => match (ctx.to_numeric(&x)?, ctx.to_numeric(&y)?) {
+                (x, y) => match (x.to_numeric(ctx)?, y.to_numeric(ctx)?) {
                     (Self::Rational(x), Self::Rational(y)) => Self::rational(x + y),
                     (Self::BigInt(ref n1), Self::BigInt(ref n2)) => {
                         Self::bigint(n1.as_inner().clone() + n2.as_inner().clone())
@@ -56,7 +56,7 @@ impl Value {
             }
 
             // Slow path:
-            (_, _) => match (ctx.to_numeric(self)?, ctx.to_numeric(other)?) {
+            (_, _) => match (self.to_numeric(ctx)?, other.to_numeric(ctx)?) {
                 (Self::Rational(a), Self::Rational(b)) => Self::rational(a - b),
                 (Self::BigInt(ref a), Self::BigInt(ref b)) => {
                     Self::bigint(a.as_inner().clone() - b.as_inner().clone())
@@ -84,7 +84,7 @@ impl Value {
             }
 
             // Slow path:
-            (_, _) => match (ctx.to_numeric(self)?, ctx.to_numeric(other)?) {
+            (_, _) => match (self.to_numeric(ctx)?, other.to_numeric(ctx)?) {
                 (Self::Rational(a), Self::Rational(b)) => Self::rational(a * b),
                 (Self::BigInt(ref a), Self::BigInt(ref b)) => {
                     Self::bigint(a.as_inner().clone() * b.as_inner().clone())
@@ -112,7 +112,7 @@ impl Value {
             }
 
             // Slow path:
-            (_, _) => match (ctx.to_numeric(self)?, ctx.to_numeric(other)?) {
+            (_, _) => match (self.to_numeric(ctx)?, other.to_numeric(ctx)?) {
                 (Self::Rational(a), Self::Rational(b)) => Self::rational(a / b),
                 (Self::BigInt(ref a), Self::BigInt(ref b)) => {
                     Self::bigint(a.as_inner().clone() / b.as_inner().clone())
@@ -140,7 +140,7 @@ impl Value {
             }
 
             // Slow path:
-            (_, _) => match (ctx.to_numeric(self)?, ctx.to_numeric(other)?) {
+            (_, _) => match (self.to_numeric(ctx)?, other.to_numeric(ctx)?) {
                 (Self::Rational(a), Self::Rational(b)) => Self::rational(a % b),
                 (Self::BigInt(ref a), Self::BigInt(ref b)) => {
                     Self::bigint(a.as_inner().clone() % b.as_inner().clone())
@@ -166,7 +166,7 @@ impl Value {
             (Self::BigInt(ref a), Self::BigInt(ref b)) => Self::bigint(a.as_inner().clone().pow(b)),
 
             // Slow path:
-            (_, _) => match (ctx.to_numeric(self)?, ctx.to_numeric(other)?) {
+            (_, _) => match (self.to_numeric(ctx)?, other.to_numeric(ctx)?) {
                 (Self::Rational(a), Self::Rational(b)) => Self::rational(a.powf(b)),
                 (Self::BigInt(ref a), Self::BigInt(ref b)) => {
                     Self::bigint(a.as_inner().clone().pow(b))
@@ -196,7 +196,7 @@ impl Value {
             }
 
             // Slow path:
-            (_, _) => match (ctx.to_numeric(self)?, ctx.to_numeric(other)?) {
+            (_, _) => match (self.to_numeric(ctx)?, other.to_numeric(ctx)?) {
                 (Self::Rational(a), Self::Rational(b)) => {
                     Self::integer(f64_to_int32(a) & f64_to_int32(b))
                 }
@@ -228,7 +228,7 @@ impl Value {
             }
 
             // Slow path:
-            (_, _) => match (ctx.to_numeric(self)?, ctx.to_numeric(other)?) {
+            (_, _) => match (self.to_numeric(ctx)?, other.to_numeric(ctx)?) {
                 (Self::Rational(a), Self::Rational(b)) => {
                     Self::integer(f64_to_int32(a) | f64_to_int32(b))
                 }
@@ -260,7 +260,7 @@ impl Value {
             }
 
             // Slow path:
-            (_, _) => match (ctx.to_numeric(self)?, ctx.to_numeric(other)?) {
+            (_, _) => match (self.to_numeric(ctx)?, other.to_numeric(ctx)?) {
                 (Self::Rational(a), Self::Rational(b)) => {
                     Self::integer(f64_to_int32(a) ^ f64_to_int32(b))
                 }
@@ -296,7 +296,7 @@ impl Value {
             }
 
             // Slow path:
-            (_, _) => match (ctx.to_numeric(self)?, ctx.to_numeric(other)?) {
+            (_, _) => match (self.to_numeric(ctx)?, other.to_numeric(ctx)?) {
                 (Self::Rational(x), Self::Rational(y)) => {
                     Self::integer(f64_to_int32(x).wrapping_shl(f64_to_uint32(y)))
                 }
@@ -332,7 +332,7 @@ impl Value {
             }
 
             // Slow path:
-            (_, _) => match (ctx.to_numeric(self)?, ctx.to_numeric(other)?) {
+            (_, _) => match (self.to_numeric(ctx)?, other.to_numeric(ctx)?) {
                 (Self::Rational(x), Self::Rational(y)) => {
                     Self::integer(f64_to_int32(x).wrapping_shr(f64_to_uint32(y)))
                 }
@@ -366,7 +366,7 @@ impl Value {
             }
 
             // Slow path:
-            (_, _) => match (ctx.to_numeric(self)?, ctx.to_numeric(other)?) {
+            (_, _) => match (self.to_numeric(ctx)?, other.to_numeric(ctx)?) {
                 (Self::Rational(x), Self::Rational(y)) => {
                     Self::rational(f64_to_uint32(x).wrapping_shr(f64_to_uint32(y)))
                 }
@@ -481,7 +481,7 @@ impl Value {
                             AbstractRelation::Undefined
                         }
                     }
-                    (px, py) => match (ctx.to_numeric(&px)?, ctx.to_numeric(&py)?) {
+                    (px, py) => match (px.to_numeric(ctx)?, py.to_numeric(ctx)?) {
                         (Value::Rational(x), Value::Rational(y)) => Number::less_than(x, y),
                         (Value::BigInt(ref x), Value::BigInt(ref y)) => (x < y).into(),
                         (Value::BigInt(ref x), Value::Rational(y)) => {

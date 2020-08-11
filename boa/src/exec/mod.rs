@@ -302,18 +302,6 @@ impl Interpreter {
         }
     }
 
-    /// It returns value converted to a numeric value of type Number or BigInt.
-    ///
-    /// See: https://tc39.es/ecma262/#sec-tonumeric
-    #[allow(clippy::wrong_self_convention)]
-    pub fn to_numeric(&mut self, value: &Value) -> ResultValue {
-        let primitive = value.to_primitive(self, PreferredType::Number)?;
-        if primitive.is_bigint() {
-            return Ok(primitive);
-        }
-        Ok(Value::from(self.to_number(&primitive)?))
-    }
-
     /// This is a more specialized version of `to_numeric`.
     ///
     /// It returns value converted to a numeric value of type `Number`.

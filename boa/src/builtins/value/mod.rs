@@ -883,6 +883,17 @@ impl Value {
             Ok(PropertyKey::from(string))
         }
     }
+
+    /// It returns value converted to a numeric value of type Number or BigInt.
+    ///
+    /// See: https://tc39.es/ecma262/#sec-tonumeric
+    pub fn to_numeric(&self, ctx: &mut Interpreter) -> ResultValue {
+        let primitive = self.to_primitive(ctx, PreferredType::Number)?;
+        if primitive.is_bigint() {
+            return Ok(primitive);
+        }
+        Ok(Value::from(ctx.to_number(self)?))
+    }
 }
 
 impl Default for Value {
