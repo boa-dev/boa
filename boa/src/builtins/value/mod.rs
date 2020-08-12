@@ -840,13 +840,17 @@ impl Value {
     ///
     /// https://tc39.es/ecma262/#sec-topropertykey
     pub fn to_property_key(&self, ctx: &mut Interpreter) -> Result<PropertyKey, Value> {
-        let key = self.to_primitive(ctx, PreferredType::String)?;
-        if let Value::Symbol(ref symbol) = key {
-            Ok(PropertyKey::from(symbol.clone()))
-        } else {
-            let string = key.to_string(ctx)?;
-            Ok(PropertyKey::from(string))
-        }
+        Ok(match self {
+            // Fast path:
+            Value::String(string) => string.clone().into(),
+            Value::Symbol(symbol) => symbol.clone().into(),
+            // Slow path:
+            _ => match self.to_primitive(ctx, PreferredType::String)? {
+                Value::String(ref string) => string.clone().into(),
+                Value::Symbol(ref symbol) => symbol.clone().into(),
+                primitive => primitive.to_string(ctx)?.into(),
+            },
+        })
     }
 
     /// It returns value converted to a numeric value of type Number or BigInt.
