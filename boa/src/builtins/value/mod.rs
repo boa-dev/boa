@@ -430,30 +430,6 @@ impl Value {
         }
     }
 
-    /// Converts the value into a 64-bit floating point number
-    pub fn to_number(&self) -> f64 {
-        match *self {
-            Self::Object(_) | Self::Symbol(_) | Self::Undefined => NAN,
-            Self::String(ref str) => {
-                if str.is_empty() {
-                    return 0.0;
-                }
-
-                match FromStr::from_str(str) {
-                    Ok(num) => num,
-                    Err(_) => NAN,
-                }
-            }
-            Self::Boolean(true) => 1.0,
-            Self::Boolean(false) | Self::Null => 0.0,
-            Self::Rational(num) => num,
-            Self::Integer(num) => f64::from(num),
-            Self::BigInt(_) => {
-                panic!("TypeError: Cannot mix BigInt and other types, use explicit conversions")
-            }
-        }
-    }
-
     /// Converts the value to a `bool` type.
     ///
     /// More information:
@@ -881,7 +857,7 @@ impl Value {
         if primitive.is_bigint() {
             return Ok(primitive);
         }
-        Ok(Value::from(ctx.to_number(self)?))
+        Ok(self.to_number(ctx)?.into())
     }
 
     /// Converts a value to an integral 32 bit unsigned integer.
@@ -892,7 +868,7 @@ impl Value {
         if let Value::Integer(number) = *self {
             return Ok(number as u32);
         }
-        let number = ctx.to_number(self)?;
+        let number = self.to_number(ctx)?;
 
         Ok(f64_to_uint32(number))
     }
@@ -905,7 +881,7 @@ impl Value {
         if let Value::Integer(number) = *self {
             return Ok(number);
         }
-        let number = ctx.to_number(self)?;
+        let number = self.to_number(ctx)?;
 
         Ok(f64_to_int32(number))
     }
@@ -952,7 +928,7 @@ impl Value {
     /// See: https://tc39.es/ecma262/#sec-tointeger
     pub fn to_integer(&self, ctx: &mut Interpreter) -> Result<f64, Value> {
         // 1. Let number be ? ToNumber(argument).
-        let number = ctx.to_number(self)?;
+        let number = self.to_number(ctx)?;
 
         // 2. If number is +∞ or -∞, return number.
         if !number.is_finite() {
@@ -967,6 +943,32 @@ impl Value {
         // 5. If integer is -0, return +0.
         // 6. Return integer.
         Ok(number.trunc() + 0.0) // We add 0.0 to convert -0.0 to +0.0
+    }
+
+    /// Converts a value to a double precision floating point.
+    ///
+    /// See: https://tc39.es/ecma262/#sec-tonumber
+    pub fn to_number(&self, ctx: &mut Interpreter) -> Result<f64, Value> {
+        match *self {
+            Value::Null => Ok(0.0),
+            Value::Undefined => Ok(f64::NAN),
+            Value::Boolean(b) => Ok(if b { 1.0 } else { 0.0 }),
+            // TODO: this is probably not 100% correct, see https://tc39.es/ecma262/#sec-tonumber-applied-to-the-string-type
+            Value::String(ref string) => {
+                if string.trim().is_empty() {
+                    return Ok(0.0);
+                }
+                Ok(string.parse().unwrap_or(f64::NAN))
+            }
+            Value::Rational(number) => Ok(number),
+            Value::Integer(integer) => Ok(f64::from(integer)),
+            Value::Symbol(_) => Err(ctx.construct_type_error("argument must not be a symbol")),
+            Value::BigInt(_) => Err(ctx.construct_type_error("argument must not be a bigint")),
+            Value::Object(_) => {
+                let primitive = self.to_primitive(ctx, PreferredType::Number)?;
+                primitive.to_number(ctx)
+            }
+        }
     }
 }
 

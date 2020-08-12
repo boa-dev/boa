@@ -173,30 +173,35 @@ impl Executable for UnaryOp {
 
         Ok(match self.op() {
             op::UnaryOp::Minus => x.neg(interpreter)?,
-            op::UnaryOp::Plus => Value::from(x.to_number()),
+            op::UnaryOp::Plus => Value::from(x.to_number(interpreter)?),
             op::UnaryOp::IncrementPost => {
                 let ret = x.clone();
-                interpreter.set_value(self.target(), Value::from(x.to_number() + 1.0))?;
+                let result = x.to_number(interpreter)? + 1.0;
+                interpreter.set_value(self.target(), result.into())?;
                 ret
             }
             op::UnaryOp::IncrementPre => {
-                interpreter.set_value(self.target(), Value::from(x.to_number() + 1.0))?
+                let result = x.to_number(interpreter)? + 1.0;
+                interpreter.set_value(self.target(), result.into())?
             }
             op::UnaryOp::DecrementPost => {
                 let ret = x.clone();
-                interpreter.set_value(self.target(), Value::from(x.to_number() - 1.0))?;
+                let result = x.to_number(interpreter)? - 1.0;
+                interpreter.set_value(self.target(), result.into())?;
                 ret
             }
             op::UnaryOp::DecrementPre => {
-                interpreter.set_value(self.target(), Value::from(x.to_number() - 1.0))?
+                let result = x.to_number(interpreter)? - 1.0;
+                interpreter.set_value(self.target(), result.into())?
             }
             op::UnaryOp::Not => x.not(interpreter)?,
             op::UnaryOp::Tilde => {
-                let num_v_a = x.to_number();
+                let num_v_a = x.to_number(interpreter)?;
                 // NOTE: possible UB: https://github.com/rust-lang/rust/issues/10184
                 Value::from(if num_v_a.is_nan() {
                     -1
                 } else {
+                    // TODO: this is not spec compliant.
                     !(num_v_a as i32)
                 })
             }

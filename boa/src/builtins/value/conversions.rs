@@ -85,12 +85,6 @@ impl From<f64> for Value {
     }
 }
 
-impl From<&Value> for f64 {
-    fn from(value: &Value) -> Self {
-        value.to_number()
-    }
-}
-
 impl From<u32> for Value {
     #[inline]
     fn from(value: u32) -> Value {

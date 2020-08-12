@@ -759,16 +759,16 @@ impl Array {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.fill
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/fill
-    pub(crate) fn fill(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
+    pub(crate) fn fill(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
         let len: i32 = this.get_field("length").as_number().unwrap() as i32;
         let default_value = Value::undefined();
         let value = args.get(0).unwrap_or(&default_value);
-        let relative_start = args.get(1).unwrap_or(&default_value).to_number() as i32;
+        let relative_start = args.get(1).unwrap_or(&default_value).to_number(ctx)? as i32;
         let relative_end_val = args.get(2).unwrap_or(&default_value);
         let relative_end = if relative_end_val.is_undefined() {
             len
         } else {
-            relative_end_val.to_number() as i32
+            relative_end_val.to_number(ctx)? as i32
         };
         let start = if relative_start < 0 {
             max(len + relative_start, 0)

@@ -1,8 +1,6 @@
 use super::*;
 use crate::{builtins::Number, Interpreter};
 
-use std::borrow::Borrow;
-
 impl Value {
     /// Strict equality comparison.
     ///
@@ -61,9 +59,9 @@ impl Value {
             | (Self::String(_), Self::Rational(_))
             | (Self::Rational(_), Self::Boolean(_))
             | (Self::Integer(_), Self::Boolean(_)) => {
-                let a: &Value = self.borrow();
-                let b: &Value = other.borrow();
-                Number::equal(f64::from(a), f64::from(b))
+                let x = self.to_number(interpreter)?;
+                let y = other.to_number(interpreter)?;
+                Number::equal(x, y)
             }
 
             // 6. If Type(x) is BigInt and Type(y) is String, then

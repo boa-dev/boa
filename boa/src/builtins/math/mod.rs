@@ -43,7 +43,7 @@ impl Math {
     pub(crate) fn abs(_: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
         Ok(args
             .get(0)
-            .map(|x| ctx.to_number(x))
+            .map(|x| x.to_number(ctx))
             .transpose()?
             .map_or(f64::NAN, f64::abs)
             .into())
@@ -60,7 +60,7 @@ impl Math {
     pub(crate) fn acos(_: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
         Ok(args
             .get(0)
-            .map(|x| ctx.to_number(x))
+            .map(|x| x.to_number(ctx))
             .transpose()?
             .map_or(f64::NAN, f64::acos)
             .into())
@@ -77,7 +77,7 @@ impl Math {
     pub(crate) fn acosh(_: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
         Ok(args
             .get(0)
-            .map(|x| ctx.to_number(x))
+            .map(|x| x.to_number(ctx))
             .transpose()?
             .map_or(f64::NAN, f64::acosh)
             .into())
@@ -94,7 +94,7 @@ impl Math {
     pub(crate) fn asin(_: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
         Ok(args
             .get(0)
-            .map(|x| ctx.to_number(x))
+            .map(|x| x.to_number(ctx))
             .transpose()?
             .map_or(f64::NAN, f64::asin)
             .into())
@@ -111,7 +111,7 @@ impl Math {
     pub(crate) fn asinh(_: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
         Ok(args
             .get(0)
-            .map(|x| ctx.to_number(x))
+            .map(|x| x.to_number(ctx))
             .transpose()?
             .map_or(f64::NAN, f64::asinh)
             .into())
@@ -128,7 +128,7 @@ impl Math {
     pub(crate) fn atan(_: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
         Ok(args
             .get(0)
-            .map(|x| ctx.to_number(x))
+            .map(|x| x.to_number(ctx))
             .transpose()?
             .map_or(f64::NAN, f64::atan)
             .into())
@@ -145,7 +145,7 @@ impl Math {
     pub(crate) fn atanh(_: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
         Ok(args
             .get(0)
-            .map(|x| ctx.to_number(x))
+            .map(|x| x.to_number(ctx))
             .transpose()?
             .map_or(f64::NAN, f64::atanh)
             .into())
@@ -161,8 +161,8 @@ impl Math {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/atan2
     pub(crate) fn atan2(_: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
         Ok(match (
-            args.get(0).map(|x| ctx.to_number(x)).transpose()?,
-            args.get(1).map(|x| ctx.to_number(x)).transpose()?,
+            args.get(0).map(|x| x.to_number(ctx)).transpose()?,
+            args.get(1).map(|x| x.to_number(ctx)).transpose()?,
         ) {
             (Some(x), Some(y)) => x.atan2(y),
             (_, _) => f64::NAN,
@@ -181,7 +181,7 @@ impl Math {
     pub(crate) fn cbrt(_: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
         Ok(args
             .get(0)
-            .map(|x| ctx.to_number(x))
+            .map(|x| x.to_number(ctx))
             .transpose()?
             .map_or(f64::NAN, f64::cbrt)
             .into())
@@ -198,7 +198,7 @@ impl Math {
     pub(crate) fn ceil(_: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
         Ok(args
             .get(0)
-            .map(|x| ctx.to_number(x))
+            .map(|x| x.to_number(ctx))
             .transpose()?
             .map_or(f64::NAN, f64::ceil)
             .into())
@@ -233,7 +233,7 @@ impl Math {
     pub(crate) fn cos(_: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
         Ok(args
             .get(0)
-            .map(|x| ctx.to_number(x))
+            .map(|x| x.to_number(ctx))
             .transpose()?
             .map_or(f64::NAN, f64::cos)
             .into())
@@ -250,7 +250,7 @@ impl Math {
     pub(crate) fn cosh(_: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
         Ok(args
             .get(0)
-            .map(|x| ctx.to_number(x))
+            .map(|x| x.to_number(ctx))
             .transpose()?
             .map_or(f64::NAN, f64::cosh)
             .into())
@@ -267,7 +267,7 @@ impl Math {
     pub(crate) fn exp(_: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
         Ok(args
             .get(0)
-            .map(|x| ctx.to_number(x))
+            .map(|x| x.to_number(ctx))
             .transpose()?
             .map_or(f64::NAN, f64::exp)
             .into())
@@ -286,7 +286,7 @@ impl Math {
     pub(crate) fn expm1(_: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
         Ok(args
             .get(0)
-            .map(|x| ctx.to_number(x))
+            .map(|x| x.to_number(ctx))
             .transpose()?
             .map_or(f64::NAN, f64::exp_m1)
             .into())
@@ -303,7 +303,7 @@ impl Math {
     pub(crate) fn floor(_: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
         Ok(args
             .get(0)
-            .map(|x| ctx.to_number(x))
+            .map(|x| x.to_number(ctx))
             .transpose()?
             .map_or(f64::NAN, f64::floor)
             .into())
@@ -320,7 +320,7 @@ impl Math {
     pub(crate) fn fround(_: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
         Ok(args
             .get(0)
-            .map(|x| ctx.to_number(x))
+            .map(|x| x.to_number(ctx))
             .transpose()?
             .map_or(f64::NAN, |x| (x as f32) as f64)
             .into())
@@ -337,7 +337,7 @@ impl Math {
     pub(crate) fn hypot(_: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
         let mut result = 0f64;
         for arg in args {
-            let x = ctx.to_number(arg)?;
+            let x = arg.to_number(ctx)?;
             result = result.hypot(x);
         }
         Ok(result.into())
@@ -373,7 +373,7 @@ impl Math {
     pub(crate) fn log(_: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
         Ok(args
             .get(0)
-            .map(|x| ctx.to_number(x))
+            .map(|x| x.to_number(ctx))
             .transpose()?
             .map_or(f64::NAN, |x| if x <= 0.0 { f64::NAN } else { x.ln() })
             .into())
@@ -390,7 +390,7 @@ impl Math {
     pub(crate) fn log1p(_: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
         Ok(args
             .get(0)
-            .map(|x| ctx.to_number(x))
+            .map(|x| x.to_number(ctx))
             .transpose()?
             .map_or(f64::NAN, f64::ln_1p)
             .into())
@@ -407,7 +407,7 @@ impl Math {
     pub(crate) fn log10(_: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
         Ok(args
             .get(0)
-            .map(|x| ctx.to_number(x))
+            .map(|x| x.to_number(ctx))
             .transpose()?
             .map_or(f64::NAN, |x| if x <= 0.0 { f64::NAN } else { x.log10() })
             .into())
@@ -424,7 +424,7 @@ impl Math {
     pub(crate) fn log2(_: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
         Ok(args
             .get(0)
-            .map(|x| ctx.to_number(x))
+            .map(|x| x.to_number(ctx))
             .transpose()?
             .map_or(f64::NAN, |x| if x <= 0.0 { f64::NAN } else { x.log2() })
             .into())
@@ -441,7 +441,7 @@ impl Math {
     pub(crate) fn max(_: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
         let mut max = f64::NEG_INFINITY;
         for arg in args {
-            let num = ctx.to_number(arg)?;
+            let num = arg.to_number(ctx)?;
             max = max.max(num);
         }
         Ok(max.into())
@@ -458,7 +458,7 @@ impl Math {
     pub(crate) fn min(_: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
         let mut min = f64::INFINITY;
         for arg in args {
-            let num = ctx.to_number(arg)?;
+            let num = arg.to_number(ctx)?;
             min = min.min(num);
         }
         Ok(min.into())
@@ -474,8 +474,8 @@ impl Math {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/pow
     pub(crate) fn pow(_: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
         Ok(match (
-            args.get(0).map(|x| ctx.to_number(x)).transpose()?,
-            args.get(1).map(|x| ctx.to_number(x)).transpose()?,
+            args.get(0).map(|x| x.to_number(ctx)).transpose()?,
+            args.get(1).map(|x| x.to_number(ctx)).transpose()?,
         ) {
             (Some(x), Some(y)) => x.powf(y),
             (_, _) => f64::NAN,
@@ -506,7 +506,7 @@ impl Math {
     pub(crate) fn round(_: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
         Ok(args
             .get(0)
-            .map(|x| ctx.to_number(x))
+            .map(|x| x.to_number(ctx))
             .transpose()?
             .map_or(f64::NAN, f64::round)
             .into())
@@ -523,7 +523,7 @@ impl Math {
     pub(crate) fn sign(_: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
         Ok(args
             .get(0)
-            .map(|x| ctx.to_number(x))
+            .map(|x| x.to_number(ctx))
             .transpose()?
             .map_or(
                 f64::NAN,
@@ -549,7 +549,7 @@ impl Math {
     pub(crate) fn sin(_: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
         Ok(args
             .get(0)
-            .map(|x| ctx.to_number(x))
+            .map(|x| x.to_number(ctx))
             .transpose()?
             .map_or(f64::NAN, f64::sin)
             .into())
@@ -566,7 +566,7 @@ impl Math {
     pub(crate) fn sinh(_: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
         Ok(args
             .get(0)
-            .map(|x| ctx.to_number(x))
+            .map(|x| x.to_number(ctx))
             .transpose()?
             .map_or(f64::NAN, f64::sinh)
             .into())
@@ -583,7 +583,7 @@ impl Math {
     pub(crate) fn sqrt(_: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
         Ok(args
             .get(0)
-            .map(|x| ctx.to_number(x))
+            .map(|x| x.to_number(ctx))
             .transpose()?
             .map_or(f64::NAN, f64::sqrt)
             .into())
@@ -600,7 +600,7 @@ impl Math {
     pub(crate) fn tan(_: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
         Ok(args
             .get(0)
-            .map(|x| ctx.to_number(x))
+            .map(|x| x.to_number(ctx))
             .transpose()?
             .map_or(f64::NAN, f64::tan)
             .into())
@@ -617,7 +617,7 @@ impl Math {
     pub(crate) fn tanh(_: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
         Ok(args
             .get(0)
-            .map(|x| ctx.to_number(x))
+            .map(|x| x.to_number(ctx))
             .transpose()?
             .map_or(f64::NAN, f64::tanh)
             .into())
@@ -634,7 +634,7 @@ impl Math {
     pub(crate) fn trunc(_: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
         Ok(args
             .get(0)
-            .map(|x| ctx.to_number(x))
+            .map(|x| x.to_number(ctx))
             .transpose()?
             .map_or(f64::NAN, f64::trunc)
             .into())

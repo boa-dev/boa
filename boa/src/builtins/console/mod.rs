@@ -84,7 +84,11 @@ pub fn formatter(data: &[Value], ctx: &mut Interpreter) -> Result<String, Value>
                         }
                         /* float */
                         'f' => {
-                            let arg = get_arg_at_index::<f64>(data, arg_index).unwrap_or_default();
+                            let arg = data
+                                .get(arg_index)
+                                .cloned()
+                                .unwrap_or_default()
+                                .to_number(ctx)?;
                             formatted.push_str(&format!("{number:.prec$}", number = arg, prec = 6));
                             arg_index += 1
                         }

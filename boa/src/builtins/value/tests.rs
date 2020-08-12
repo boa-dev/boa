@@ -324,7 +324,7 @@ fn sub_string_and_number_object() {
     let mut engine = Interpreter::new(realm);
 
     let value = forward_val(&mut engine, "'Hello' - new Number(999)").unwrap();
-    let value = engine.to_number(&value).unwrap();
+    let value = value.to_number(&mut engine).unwrap();
     assert!(value.is_nan());
 }
 
@@ -365,7 +365,7 @@ fn pow_number_and_number() {
     let mut engine = Interpreter::new(realm);
 
     let value = forward_val(&mut engine, "3 ** 3").unwrap();
-    let value = engine.to_number(&value).unwrap();
+    let value = value.to_number(&mut engine).unwrap();
     assert_eq!(value, 27.0);
 }
 
@@ -375,7 +375,7 @@ fn pow_number_and_string() {
     let mut engine = Interpreter::new(realm);
 
     let value = forward_val(&mut engine, "3 ** 'Hello'").unwrap();
-    let value = engine.to_number(&value).unwrap();
+    let value = value.to_number(&mut engine).unwrap();
     assert!(value.is_nan());
 }
 
@@ -393,7 +393,7 @@ fn assign_pow_number_and_string() {
     ",
     )
     .unwrap();
-    let value = engine.to_number(&value).unwrap();
+    let value = value.to_number(&mut engine).unwrap();
     assert!(value.is_nan());
 }
 

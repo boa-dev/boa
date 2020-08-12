@@ -567,8 +567,8 @@ impl Number {
         args: &[Value],
         ctx: &mut Interpreter,
     ) -> ResultValue {
-        if let Some(val) = args.get(0) {
-            let number = ctx.to_number(val)?;
+        if let Some(value) = args.get(0) {
+            let number = value.to_number(ctx)?;
             Ok(number.is_finite().into())
         } else {
             Ok(false.into())
@@ -594,8 +594,8 @@ impl Number {
         args: &[Value],
         ctx: &mut Interpreter,
     ) -> ResultValue {
-        if let Some(val) = args.get(0) {
-            let number = ctx.to_number(val)?;
+        if let Some(value) = args.get(0) {
+            let number = value.to_number(ctx)?;
             Ok(number.is_nan().into())
         } else {
             Ok(true.into())

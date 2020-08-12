@@ -187,28 +187,6 @@ impl Interpreter {
         }
     }
 
-    /// Converts a value to a double precision floating point.
-    ///
-    /// See: https://tc39.es/ecma262/#sec-tonumber
-    #[allow(clippy::wrong_self_convention)]
-    pub fn to_number(&mut self, value: &Value) -> Result<f64, Value> {
-        match *value {
-            Value::Null => Ok(0.0),
-            Value::Undefined => Ok(f64::NAN),
-            Value::Boolean(b) => Ok(if b { 1.0 } else { 0.0 }),
-            // TODO: this is probably not 100% correct, see https://tc39.es/ecma262/#sec-tonumber-applied-to-the-string-type
-            Value::String(ref string) => Ok(string.parse().unwrap_or(f64::NAN)),
-            Value::Rational(number) => Ok(number),
-            Value::Integer(integer) => Ok(f64::from(integer)),
-            Value::Symbol(_) => Err(self.construct_type_error("argument must not be a symbol")),
-            Value::BigInt(_) => Err(self.construct_type_error("argument must not be a bigint")),
-            Value::Object(_) => {
-                let primitive = value.to_primitive(self, PreferredType::Number)?;
-                self.to_number(&primitive)
-            }
-        }
-    }
-
     /// This is a more specialized version of `to_numeric`.
     ///
     /// It returns value converted to a numeric value of type `Number`.
@@ -220,7 +198,7 @@ impl Interpreter {
         if let Some(ref bigint) = primitive.as_bigint() {
             return Ok(bigint.to_f64());
         }
-        Ok(self.to_number(&primitive)?)
+        primitive.to_number(self)
     }
 
     /// Converts an array object into a rust vector of values.
