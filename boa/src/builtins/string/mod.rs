@@ -112,10 +112,10 @@ impl String {
         // First we get it the actual string a private field stored on the object only the engine has access to.
         // Then we convert it into a Rust String by wrapping it in from_value
         let primitive_val = this.to_string(ctx)?;
-        let pos = i32::from(
-            args.get(0)
-                .expect("failed to get argument for String method"),
-        );
+        let pos = args
+            .get(0)
+            .expect("failed to get argument for String method")
+            .to_integer(ctx)? as i32;
 
         // Calling .len() on a string would give the wrong result, as they are bytes not the number of
         // unicode code points
@@ -158,10 +158,10 @@ impl String {
         // Calling .len() on a string would give the wrong result, as they are bytes not the number of unicode code points
         // Note that this is an O(N) operation (because UTF-8 is complex) while getting the number of bytes is an O(1) operation.
         let length = primitive_val.chars().count();
-        let pos = i32::from(
-            args.get(0)
-                .expect("failed to get argument for String method"),
-        );
+        let pos = args
+            .get(0)
+            .expect("failed to get argument for String method")
+            .to_integer(ctx)? as i32;
 
         if pos >= length as i32 || pos < 0 {
             return Ok(Value::from(NAN));
@@ -217,7 +217,7 @@ impl String {
         let string = object.to_string(ctx)?;
 
         if let Some(arg) = args.get(0) {
-            let n = ctx.to_integer(arg)?;
+            let n = arg.to_integer(ctx)?;
             if n < 0.0 {
                 return ctx.throw_range_error("repeat count cannot be a negative number");
             }
@@ -251,12 +251,15 @@ impl String {
         // Then we convert it into a Rust String by wrapping it in from_value
         let primitive_val = this.to_string(ctx)?;
 
-        let start = i32::from(
-            args.get(0)
-                .expect("failed to get argument for String method"),
-        );
+        let start = args
+            .get(0)
+            .expect("failed to get argument for String method")
+            .to_integer(ctx)? as i32;
 
-        let end = i32::from(args.get(1).expect("failed to get argument in slice"));
+        let end = args
+            .get(1)
+            .expect("failed to get argument in slice")
+            .to_integer(ctx)? as i32;
 
         // Calling .len() on a string would give the wrong result, as they are bytes not the number of unicode code points
         // Note that this is an O(N) operation (because UTF-8 is complex) while getting the number of bytes is an O(1) operation.
@@ -311,7 +314,7 @@ impl String {
         let position = if args.len() < 2 {
             0
         } else {
-            i32::from(args.get(1).expect("failed to get arg"))
+            args.get(1).expect("failed to get arg").to_integer(ctx)? as i32
         };
 
         let start = min(max(position, 0), length);
@@ -355,7 +358,9 @@ impl String {
         let end_position = if args.len() < 2 {
             length
         } else {
-            i32::from(args.get(1).expect("Could not get argumetn"))
+            args.get(1)
+                .expect("Could not get argumetn")
+                .to_integer(ctx)? as i32
         };
 
         let end = min(max(end_position, 0), length);
@@ -397,7 +402,9 @@ impl String {
         let position = if args.len() < 2 {
             0
         } else {
-            i32::from(args.get(1).expect("Could not get argument"))
+            args.get(1)
+                .expect("Could not get argument")
+                .to_integer(ctx)? as i32
         };
 
         let start = min(max(position, 0), length);
@@ -556,7 +563,7 @@ impl String {
         let length = string.chars().count();
         let start = args
             .get(1)
-            .map(|position| ctx.to_integer(position))
+            .map(|position| position.to_integer(ctx))
             .transpose()?
             .map_or(0, |position| position.max(0.0).min(length as f64) as usize);
 
@@ -603,7 +610,7 @@ impl String {
         let length = string.chars().count();
         let start = args
             .get(1)
-            .map(|position| ctx.to_integer(position))
+            .map(|position| position.to_integer(ctx))
             .transpose()?
             .map_or(0, |position| position.max(0.0).min(length as f64) as usize);
 
@@ -687,10 +694,10 @@ impl String {
         if args.is_empty() {
             return Err(Value::from("padEnd requires maxLength argument"));
         }
-        let max_length = i32::from(
-            args.get(0)
-                .expect("failed to get argument for String method"),
-        );
+        let max_length = args
+            .get(0)
+            .expect("failed to get argument for String method")
+            .to_integer(ctx)? as i32;
 
         let fill_string = args.get(1).map(|arg| arg.to_string(ctx)).transpose()?;
 
@@ -714,10 +721,10 @@ impl String {
         if args.is_empty() {
             return Err(Value::from("padStart requires maxLength argument"));
         }
-        let max_length = i32::from(
-            args.get(0)
-                .expect("failed to get argument for String method"),
-        );
+        let max_length = args
+            .get(0)
+            .expect("failed to get argument for String method")
+            .to_integer(ctx)? as i32;
 
         let fill_string = args.get(1).map(|arg| arg.to_string(ctx)).transpose()?;
 
@@ -864,17 +871,18 @@ impl String {
         let start = if args.is_empty() {
             0
         } else {
-            i32::from(
-                args.get(0)
-                    .expect("failed to get argument for String method"),
-            )
+            args.get(0)
+                .expect("failed to get argument for String method")
+                .to_integer(ctx)? as i32
         };
         let length = primitive_val.chars().count() as i32;
         // If less than 2 args specified, end is the length of the this object converted to a String
         let end = if args.len() < 2 {
             length
         } else {
-            i32::from(args.get(1).expect("Could not get argument"))
+            args.get(1)
+                .expect("Could not get argument")
+                .to_integer(ctx)? as i32
         };
         // Both start and end args replaced by 0 if they were negative
         // or by the length of the String if they were greater
@@ -912,10 +920,9 @@ impl String {
         let mut start = if args.is_empty() {
             0
         } else {
-            i32::from(
-                args.get(0)
-                    .expect("failed to get argument for String method"),
-            )
+            args.get(0)
+                .expect("failed to get argument for String method")
+                .to_integer(ctx)? as i32
         };
         let length = primitive_val.chars().count() as i32;
         // If less than 2 args specified, end is +infinity, the maximum number value.
@@ -925,7 +932,9 @@ impl String {
         let end = if args.len() < 2 {
             i32::max_value()
         } else {
-            i32::from(args.get(1).expect("Could not get argument"))
+            args.get(1)
+                .expect("Could not get argument")
+                .to_integer(ctx)? as i32
         };
         // If start is negative it become the number of code units from the end of the string
         if start < 0 {

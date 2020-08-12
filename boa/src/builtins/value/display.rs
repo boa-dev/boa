@@ -91,15 +91,16 @@ pub(crate) fn log_string_from(x: &Value, print_internals: bool, print_children: 
                     }
                 }
                 ObjectData::Array => {
-                    let len = i32::from(
-                        &v.borrow()
-                            .properties()
-                            .get("length")
-                            .expect("Could not get Array's length property")
-                            .value
-                            .clone()
-                            .expect("Could not borrow value"),
-                    );
+                    let len = v
+                        .borrow()
+                        .properties()
+                        .get("length")
+                        .expect("Could not get Array's length property")
+                        .value
+                        .clone()
+                        .expect("Could not borrow value")
+                        .as_number()
+                        .unwrap() as i32;
 
                     if print_children {
                         if len == 0 {
@@ -131,15 +132,16 @@ pub(crate) fn log_string_from(x: &Value, print_internals: bool, print_children: 
                     }
                 }
                 ObjectData::Map(ref map) => {
-                    let size = i32::from(
-                        &v.borrow()
-                            .properties()
-                            .get("size")
-                            .unwrap()
-                            .value
-                            .clone()
-                            .expect("Could not borrow value"),
-                    );
+                    let size = v
+                        .borrow()
+                        .properties()
+                        .get("size")
+                        .unwrap()
+                        .value
+                        .clone()
+                        .expect("Could not borrow value")
+                        .as_number()
+                        .unwrap() as i32;
                     if size == 0 {
                         return String::from("Map(0)");
                     }

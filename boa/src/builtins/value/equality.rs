@@ -82,14 +82,10 @@ impl Value {
             },
 
             // 8. If Type(x) is Boolean, return the result of the comparison ! ToNumber(x) == y.
-            (Self::Boolean(_), _) => {
-                return other.equals(&Value::from(self.to_integer()), interpreter)
-            }
+            (Self::Boolean(x), _) => return other.equals(&Value::from(*x as i32), interpreter),
 
             // 9. If Type(y) is Boolean, return the result of the comparison x == ! ToNumber(y).
-            (_, Self::Boolean(_)) => {
-                return self.equals(&Value::from(other.to_integer()), interpreter)
-            }
+            (_, Self::Boolean(y)) => return self.equals(&Value::from(*y as i32), interpreter),
 
             // 10. If Type(x) is either String, Number, BigInt, or Symbol and Type(y) is Object, return the result
             // of the comparison x == ? ToPrimitive(y).

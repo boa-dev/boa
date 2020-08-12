@@ -901,32 +901,34 @@ fn to_integer() {
     let mut engine = Interpreter::new(realm);
 
     assert!(Number::equal(
-        engine.to_integer(&Value::number(f64::NAN)).unwrap(),
+        Value::number(f64::NAN).to_integer(&mut engine).unwrap(),
         0.0
     ));
     assert!(Number::equal(
-        engine
-            .to_integer(&Value::number(f64::NEG_INFINITY))
+        Value::number(f64::NEG_INFINITY)
+            .to_integer(&mut engine)
             .unwrap(),
         f64::NEG_INFINITY
     ));
     assert!(Number::equal(
-        engine.to_integer(&Value::number(f64::INFINITY)).unwrap(),
+        Value::number(f64::INFINITY)
+            .to_integer(&mut engine)
+            .unwrap(),
         f64::INFINITY
     ));
     assert!(Number::equal(
-        engine.to_integer(&Value::number(0.0)).unwrap(),
+        Value::number(0.0).to_integer(&mut engine).unwrap(),
         0.0
     ));
-    let number = engine.to_integer(&Value::number(-0.0)).unwrap();
+    let number = Value::number(-0.0).to_integer(&mut engine).unwrap();
     assert!(!number.is_sign_negative());
     assert!(Number::equal(number, 0.0));
     assert!(Number::equal(
-        engine.to_integer(&Value::number(20.9)).unwrap(),
+        Value::number(20.9).to_integer(&mut engine).unwrap(),
         20.0
     ));
     assert!(Number::equal(
-        engine.to_integer(&Value::number(-20.9)).unwrap(),
+        Value::number(-20.9).to_integer(&mut engine).unwrap(),
         -20.0
     ));
 }

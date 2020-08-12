@@ -74,7 +74,11 @@ pub fn formatter(data: &[Value], ctx: &mut Interpreter) -> Result<String, Value>
                     match fmt {
                         /* integer */
                         'd' | 'i' => {
-                            let arg = get_arg_at_index::<i32>(data, arg_index).unwrap_or_default();
+                            let arg = data
+                                .get(arg_index)
+                                .cloned()
+                                .unwrap_or_default()
+                                .to_integer(ctx)?;
                             formatted.push_str(&format!("{}", arg));
                             arg_index += 1;
                         }

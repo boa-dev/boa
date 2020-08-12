@@ -385,6 +385,15 @@ impl Value {
         matches!(self, Self::Rational(_) | Self::Integer(_))
     }
 
+    #[inline]
+    pub fn as_number(&self) -> Option<f64> {
+        match *self {
+            Self::Integer(integer) => Some(integer.into()),
+            Self::Rational(rational) => Some(rational),
+            _ => None,
+        }
+    }
+
     /// Returns true if the value is a string.
     #[inline]
     pub fn is_string(&self) -> bool {
@@ -439,27 +448,6 @@ impl Value {
             Self::Boolean(false) | Self::Null => 0.0,
             Self::Rational(num) => num,
             Self::Integer(num) => f64::from(num),
-            Self::BigInt(_) => {
-                panic!("TypeError: Cannot mix BigInt and other types, use explicit conversions")
-            }
-        }
-    }
-
-    /// Converts the value into a 32-bit integer
-    pub fn to_integer(&self) -> i32 {
-        match *self {
-            Self::Object(_)
-            | Self::Undefined
-            | Self::Symbol(_)
-            | Self::Null
-            | Self::Boolean(false) => 0,
-            Self::String(ref str) => match FromStr::from_str(str) {
-                Ok(num) => num,
-                Err(_) => 0,
-            },
-            Self::Rational(num) => num as i32,
-            Self::Boolean(true) => 1,
-            Self::Integer(num) => num,
             Self::BigInt(_) => {
                 panic!("TypeError: Cannot mix BigInt and other types, use explicit conversions")
             }
@@ -652,7 +640,7 @@ impl Value {
                 if obj.borrow().is_array() {
                     if let Ok(num) = string.parse::<usize>() {
                         if num > 0 {
-                            let len = i32::from(&self.get_field("length"));
+                            let len = self.get_field("length").as_number().unwrap() as i32;
                             if len < (num + 1) as i32 {
                                 self.set_field("length", num + 1);
                             }
@@ -930,7 +918,7 @@ impl Value {
             return Ok(0);
         }
 
-        let integer_index = ctx.to_integer(self)?;
+        let integer_index = self.to_integer(ctx)?;
 
         if integer_index < 0.0 {
             return Err(ctx.construct_range_error("Integer index must be >= 0"));
@@ -948,7 +936,7 @@ impl Value {
     /// See: https://tc39.es/ecma262/#sec-tolength
     pub fn to_length(&self, ctx: &mut Interpreter) -> Result<usize, Value> {
         // 1. Let len be ? ToInteger(argument).
-        let len = ctx.to_integer(self)?;
+        let len = self.to_integer(ctx)?;
 
         // 2. If len ≤ +0, return +0.
         if len < 0.0 {
@@ -957,6 +945,28 @@ impl Value {
 
         // 3. Return min(len, 2^53 - 1).
         Ok(len.min(Number::MAX_SAFE_INTEGER) as usize)
+    }
+
+    /// Converts a value to an integral Number value.
+    ///
+    /// See: https://tc39.es/ecma262/#sec-tointeger
+    pub fn to_integer(&self, ctx: &mut Interpreter) -> Result<f64, Value> {
+        // 1. Let number be ? ToNumber(argument).
+        let number = ctx.to_number(self)?;
+
+        // 2. If number is +∞ or -∞, return number.
+        if !number.is_finite() {
+            // 3. If number is NaN, +0, or -0, return +0.
+            if number.is_nan() {
+                return Ok(0.0);
+            }
+            return Ok(number);
+        }
+
+        // 4. Let integer be the Number value that is the same sign as number and whose magnitude is floor(abs(number)).
+        // 5. If integer is -0, return +0.
+        // 6. Return integer.
+        Ok(number.trunc() + 0.0) // We add 0.0 to convert -0.0 to +0.0
     }
 }
 

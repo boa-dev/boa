@@ -108,12 +108,6 @@ impl From<i32> for Value {
     }
 }
 
-impl From<&Value> for i32 {
-    fn from(value: &Value) -> i32 {
-        value.to_integer()
-    }
-}
-
 impl From<BigInt> for Value {
     fn from(value: BigInt) -> Self {
         Value::bigint(value)
@@ -129,11 +123,6 @@ impl From<RcBigInt> for Value {
 impl From<usize> for Value {
     fn from(value: usize) -> Value {
         Value::integer(value as i32)
-    }
-}
-impl From<&Value> for usize {
-    fn from(value: &Value) -> usize {
-        value.to_integer() as Self
     }
 }
 

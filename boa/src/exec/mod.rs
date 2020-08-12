@@ -187,29 +187,6 @@ impl Interpreter {
         }
     }
 
-    /// Converts a value to an integral Number value.
-    ///
-    /// See: https://tc39.es/ecma262/#sec-tointeger
-    #[allow(clippy::wrong_self_convention)]
-    pub fn to_integer(&mut self, value: &Value) -> Result<f64, Value> {
-        // 1. Let number be ? ToNumber(argument).
-        let number = self.to_number(value)?;
-
-        // 2. If number is +∞ or -∞, return number.
-        if !number.is_finite() {
-            // 3. If number is NaN, +0, or -0, return +0.
-            if number.is_nan() {
-                return Ok(0.0);
-            }
-            return Ok(number);
-        }
-
-        // 4. Let integer be the Number value that is the same sign as number and whose magnitude is floor(abs(number)).
-        // 5. If integer is -0, return +0.
-        // 6. Return integer.
-        Ok(number.trunc() + 0.0) // We add 0.0 to convert -0.0 to +0.0
-    }
-
     /// Converts a value to a double precision floating point.
     ///
     /// See: https://tc39.es/ecma262/#sec-tonumber
@@ -253,7 +230,7 @@ impl Interpreter {
         if let Value::Object(ref x) = value {
             // Check if object is array
             if let ObjectData::Array = x.borrow().data {
-                let length = i32::from(&value.get_field("length"));
+                let length = value.get_field("length").as_number().unwrap() as i32;
                 let values = (0..length)
                     .map(|idx| value.get_field(idx.to_string()))
                     .collect();

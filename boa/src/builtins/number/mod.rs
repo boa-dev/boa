@@ -178,8 +178,8 @@ impl Number {
     pub(crate) fn to_fixed(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
         let this_num = Self::this_number_value(this, ctx)?;
         let precision = match args.get(0) {
-            Some(n) => match n.to_integer() {
-                x if x > 0 => n.to_integer() as usize,
+            Some(n) => match n.to_integer(ctx)? as i32 {
+                x if x > 0 => n.to_integer(ctx)? as usize,
                 _ => 0,
             },
             None => 0,
@@ -227,8 +227,8 @@ impl Number {
         let this_num = Self::this_number_value(this, ctx)?;
         let _num_str_len = format!("{}", this_num).len();
         let _precision = match args.get(0) {
-            Some(n) => match n.to_integer() {
-                x if x > 0 => n.to_integer() as usize,
+            Some(n) => match n.to_integer(ctx)? as i32 {
+                x if x > 0 => n.to_integer(ctx)? as usize,
                 _ => 0,
             },
             None => 0,
@@ -383,7 +383,11 @@ impl Number {
 
         // 2. If radix is undefined, let radixNumber be 10.
         // 3. Else, let radixNumber be ? ToInteger(radix).
-        let radix = args.get(0).map_or(10, |arg| arg.to_integer()) as u8;
+        let radix = args
+            .get(0)
+            .map(|arg| arg.to_integer(ctx))
+            .transpose()?
+            .unwrap_or(10.0) as u8;
 
         // 4. If radixNumber < 2 or radixNumber > 36, throw a RangeError exception.
         if radix < 2 || radix > 36 {

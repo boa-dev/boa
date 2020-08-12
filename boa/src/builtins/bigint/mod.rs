@@ -112,7 +112,7 @@ impl BigInt {
     #[allow(clippy::wrong_self_convention)]
     pub(crate) fn to_string(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
         let radix = if !args.is_empty() {
-            args[0].to_integer()
+            args[0].to_integer(ctx)? as i32
         } else {
             10
         };

@@ -69,7 +69,7 @@ impl Array {
         let array_obj_ptr = array_obj.clone();
 
         // Wipe existing contents of the array object
-        let orig_length = i32::from(&array_obj.get_field("length"));
+        let orig_length = array_obj.get_field("length").as_number().unwrap() as i32;
         for n in 0..orig_length {
             array_obj_ptr.remove_property(&n.to_string());
         }
@@ -90,7 +90,7 @@ impl Array {
     /// Utility function which takes an existing array object and puts additional
     /// values on the end, correctly rewriting the length
     pub(crate) fn add_to_array_object(array_ptr: &Value, add_values: &[Value]) -> ResultValue {
-        let orig_length = i32::from(&array_ptr.get_field("length"));
+        let orig_length = array_ptr.get_field("length").as_number().unwrap() as i32;
 
         for (n, value) in add_values.iter().enumerate() {
             let new_index = orig_length.wrapping_add(n as i32);
@@ -124,7 +124,7 @@ impl Array {
         let mut length = args.len() as i32;
         match args.len() {
             1 if args[0].is_integer() => {
-                length = i32::from(&args[0]);
+                length = args[0].as_number().unwrap() as i32;
                 // TODO: It should not create an array of undefineds, but an empty array ("holy" array in V8) with length `n`.
                 for n in 0..length {
                     this.set_field(n.to_string(), Value::undefined());
@@ -195,13 +195,13 @@ impl Array {
         // one)
         let mut new_values: Vec<Value> = Vec::new();
 
-        let this_length = i32::from(&this.get_field("length"));
+        let this_length = this.get_field("length").as_number().unwrap() as i32;
         for n in 0..this_length {
             new_values.push(this.get_field(n.to_string()));
         }
 
         for concat_array in args {
-            let concat_length = i32::from(&concat_array.get_field("length"));
+            let concat_length = concat_array.get_field("length").as_number().unwrap() as i32;
             for n in 0..concat_length {
                 new_values.push(concat_array.get_field(n.to_string()));
             }
@@ -238,7 +238,7 @@ impl Array {
     /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.pop
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/pop
     pub(crate) fn pop(this: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
-        let curr_length = i32::from(&this.get_field("length"));
+        let curr_length = this.get_field("length").as_number().unwrap() as i32;
         if curr_length < 1 {
             return Ok(Value::undefined());
         }
@@ -271,7 +271,7 @@ impl Array {
         let callback_arg = args.get(0).expect("Could not get `callbackFn` argument.");
         let this_arg = args.get(1).cloned().unwrap_or_else(Value::undefined);
 
-        let length = i32::from(&this.get_field("length"));
+        let length = this.get_field("length").as_number().unwrap() as i32;
 
         for i in 0..length {
             let element = this.get_field(i.to_string());
@@ -306,7 +306,7 @@ impl Array {
         };
 
         let mut elem_strs = Vec::new();
-        let length = i32::from(&this.get_field("length"));
+        let length = this.get_field("length").as_number().unwrap() as i32;
         for n in 0..length {
             let elem_str = this.get_field(n.to_string()).to_string(ctx)?.to_string();
             elem_strs.push(elem_str);
@@ -369,7 +369,7 @@ impl Array {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/reverse
     #[allow(clippy::else_if_without_else)]
     pub(crate) fn reverse(this: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
-        let len = i32::from(&this.get_field("length"));
+        let len = this.get_field("length").as_number().unwrap() as i32;
         let middle: i32 = len.wrapping_div(2);
 
         for lower in 0..middle {
@@ -407,7 +407,7 @@ impl Array {
     /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.shift
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/shift
     pub(crate) fn shift(this: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
-        let len = i32::from(&this.get_field("length"));
+        let len = this.get_field("length").as_number().unwrap() as i32;
 
         if len == 0 {
             this.set_field("length", 0);
@@ -449,7 +449,7 @@ impl Array {
     /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.unshift
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/unshift
     pub(crate) fn unshift(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
-        let len = i32::from(&this.get_field("length"));
+        let len = this.get_field("length").as_number().unwrap() as i32;
         let arg_c: i32 = args.len() as i32;
 
         if arg_c > 0 {
@@ -509,7 +509,7 @@ impl Array {
             Value::undefined()
         };
         let mut i = 0;
-        let max_len = i32::from(&this.get_field("length"));
+        let max_len = this.get_field("length").as_number().unwrap() as i32;
         let mut len = max_len;
         while i < len {
             let element = this.get_field(i.to_string());
@@ -518,7 +518,10 @@ impl Array {
             if !result.to_boolean() {
                 return Ok(Value::from(false));
             }
-            len = min(max_len, i32::from(&this.get_field("length")));
+            len = min(
+                max_len,
+                this.get_field("length").as_number().unwrap() as i32,
+            );
             i += 1;
         }
         Ok(Value::from(true))
@@ -545,7 +548,7 @@ impl Array {
         let callback = args.get(0).cloned().unwrap_or_else(Value::undefined);
         let this_val = args.get(1).cloned().unwrap_or_else(Value::undefined);
 
-        let length = i32::from(&this.get_field("length"));
+        let length = this.get_field("length").as_number().unwrap() as i32;
 
         let new = Self::new_array(interpreter)?;
 
@@ -589,11 +592,11 @@ impl Array {
         }
 
         let search_element = args[0].clone();
-        let len = i32::from(&this.get_field("length"));
+        let len = this.get_field("length").as_number().unwrap() as i32;
 
         let mut idx = match args.get(1) {
             Some(from_idx_ptr) => {
-                let from_idx = i32::from(from_idx_ptr);
+                let from_idx = from_idx_ptr.as_number().unwrap() as i32;
 
                 if from_idx < 0 {
                     len + from_idx
@@ -642,11 +645,11 @@ impl Array {
         }
 
         let search_element = args[0].clone();
-        let len = i32::from(&this.get_field("length"));
+        let len = this.get_field("length").as_number().unwrap() as i32;
 
         let mut idx = match args.get(1) {
             Some(from_idx_ptr) => {
-                let from_idx = i32::from(from_idx_ptr);
+                let from_idx = from_idx_ptr.as_number().unwrap() as i32;
 
                 if from_idx >= 0 {
                     min(from_idx, len - 1)
@@ -690,7 +693,7 @@ impl Array {
         }
         let callback = &args[0];
         let this_arg = args.get(1).cloned().unwrap_or_else(Value::undefined);
-        let len = i32::from(&this.get_field("length"));
+        let len = this.get_field("length").as_number().unwrap() as i32;
         for i in 0..len {
             let element = this.get_field(i.to_string());
             let arguments = [element.clone(), Value::from(i), this.clone()];
@@ -729,7 +732,7 @@ impl Array {
 
         let this_arg = args.get(1).cloned().unwrap_or_else(Value::undefined);
 
-        let length = i32::from(&this.get_field("length"));
+        let length = this.get_field("length").as_number().unwrap() as i32;
 
         for i in 0..length {
             let element = this.get_field(i.to_string());
@@ -757,7 +760,7 @@ impl Array {
     /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.fill
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/fill
     pub(crate) fn fill(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
-        let len: i32 = i32::from(&this.get_field("length"));
+        let len: i32 = this.get_field("length").as_number().unwrap() as i32;
         let default_value = Value::undefined();
         let value = args.get(0).unwrap_or(&default_value);
         let relative_start = args.get(1).unwrap_or(&default_value).to_number() as i32;
@@ -798,7 +801,7 @@ impl Array {
     pub(crate) fn includes_value(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
         let search_element = args.get(0).cloned().unwrap_or_else(Value::undefined);
 
-        let length = i32::from(&this.get_field("length"));
+        let length = this.get_field("length").as_number().unwrap() as i32;
 
         for idx in 0..length {
             let check_element = this.get_field(idx.to_string()).clone();
@@ -831,14 +834,14 @@ impl Array {
         interpreter: &mut Interpreter,
     ) -> ResultValue {
         let new_array = Self::new_array(interpreter)?;
-        let len = i32::from(&this.get_field("length"));
+        let len = this.get_field("length").as_number().unwrap() as i32;
 
         let start = match args.get(0) {
-            Some(v) => i32::from(v),
+            Some(v) => v.as_number().unwrap() as i32,
             None => 0,
         };
         let end = match args.get(1) {
-            Some(v) => i32::from(v),
+            Some(v) => v.as_number().unwrap() as i32,
             None => len,
         };
 
@@ -888,7 +891,7 @@ impl Array {
         let callback = args.get(0).cloned().unwrap_or_else(Value::undefined);
         let this_val = args.get(1).cloned().unwrap_or_else(Value::undefined);
 
-        let length = i32::from(&this.get_field("length"));
+        let length = this.get_field("length").as_number().unwrap() as i32;
 
         let new = Self::new_array(interpreter)?;
 
@@ -941,7 +944,7 @@ impl Array {
             Value::undefined()
         };
         let mut i = 0;
-        let max_len = i32::from(&this.get_field("length"));
+        let max_len = this.get_field("length").as_number().unwrap() as i32;
         let mut len = max_len;
         while i < len {
             let element = this.get_field(i.to_string());
@@ -951,7 +954,10 @@ impl Array {
                 return Ok(Value::from(true));
             }
             // the length of the array must be updated because the callback can mutate it.
-            len = min(max_len, i32::from(&this.get_field("length")));
+            len = min(
+                max_len,
+                this.get_field("length").as_number().unwrap() as i32,
+            );
             i += 1;
         }
         Ok(Value::from(false))
