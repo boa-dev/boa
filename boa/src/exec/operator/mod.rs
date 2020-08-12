@@ -194,10 +194,9 @@ impl Executable for UnaryOp {
                 let result = x.to_number(interpreter)? - 1.0;
                 interpreter.set_value(self.target(), result.into())?
             }
-            op::UnaryOp::Not => x.not(interpreter)?,
+            op::UnaryOp::Not => x.not(interpreter)?.into(),
             op::UnaryOp::Tilde => {
                 let num_v_a = x.to_number(interpreter)?;
-                // NOTE: possible UB: https://github.com/rust-lang/rust/issues/10184
                 Value::from(if num_v_a.is_nan() {
                     -1
                 } else {

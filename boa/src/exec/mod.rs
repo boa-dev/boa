@@ -187,20 +187,6 @@ impl Interpreter {
         }
     }
 
-    /// This is a more specialized version of `to_numeric`.
-    ///
-    /// It returns value converted to a numeric value of type `Number`.
-    ///
-    /// See: https://tc39.es/ecma262/#sec-tonumeric
-    #[allow(clippy::wrong_self_convention)]
-    pub(crate) fn to_numeric_number(&mut self, value: &Value) -> Result<f64, Value> {
-        let primitive = value.to_primitive(self, PreferredType::Number)?;
-        if let Some(ref bigint) = primitive.as_bigint() {
-            return Ok(bigint.to_f64());
-        }
-        primitive.to_number(self)
-    }
-
     /// Converts an array object into a rust vector of values.
     ///
     /// This is useful for the spread operator, for any other object an `Err` is returned

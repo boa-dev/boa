@@ -970,6 +970,19 @@ impl Value {
             }
         }
     }
+
+    /// This is a more specialized version of `to_numeric`.
+    ///
+    /// It returns value converted to a numeric value of type `Number`.
+    ///
+    /// See: https://tc39.es/ecma262/#sec-tonumeric
+    pub fn to_numeric_number(&self, ctx: &mut Interpreter) -> Result<f64, Value> {
+        let primitive = self.to_primitive(ctx, PreferredType::Number)?;
+        if let Some(ref bigint) = primitive.as_bigint() {
+            return Ok(bigint.to_f64());
+        }
+        primitive.to_number(ctx)
+    }
 }
 
 impl Default for Value {

@@ -62,7 +62,7 @@ macro_rules! setter_method {
                     args
                         .get($e)
                         .and_then(|value| {
-                            ctx.to_numeric_number(value).map_or_else(
+                            value.to_numeric_number(ctx).map_or_else(
                                 |_| None,
                                 |value| {
                                     if value == 0f64 || value.is_normal() {

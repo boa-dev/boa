@@ -135,7 +135,7 @@ impl Number {
     /// `[[Call]]` - Creates a number primitive
     pub(crate) fn make_number(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
         let data = match args.get(0) {
-            Some(ref value) => ctx.to_numeric_number(value)?,
+            Some(ref value) => value.to_numeric_number(ctx)?,
             None => 0.0,
         };
         this.set_data(ObjectData::Number(data));

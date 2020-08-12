@@ -387,7 +387,7 @@ impl Value {
     pub fn neg(&self, interpreter: &mut Interpreter) -> ResultValue {
         Ok(match *self {
             Self::Symbol(_) | Self::Undefined => Self::rational(NAN),
-            Self::Object(_) => Self::rational(match interpreter.to_numeric_number(self) {
+            Self::Object(_) => Self::rational(match self.to_numeric_number(interpreter) {
                 Ok(num) => -num,
                 Err(_) => NAN,
             }),
@@ -404,8 +404,8 @@ impl Value {
     }
 
     #[inline]
-    pub fn not(&self, _: &mut Interpreter) -> ResultValue {
-        Ok(Self::boolean(!self.to_boolean()))
+    pub fn not(&self, _: &mut Interpreter) -> Result<bool, Value> {
+        Ok(!self.to_boolean())
     }
 
     /// Abstract relational comparison
