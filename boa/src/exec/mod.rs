@@ -26,7 +26,7 @@ use crate::{
     builtins,
     builtins::{
         function::{Function, FunctionFlags, NativeFunction},
-        object::{GcObject, Object, ObjectData, PROTOTYPE},
+        object::{Class, ClassBuilder, GcObject, Object, ObjectData, PROTOTYPE},
         property::PropertyKey,
         value::{PreferredType, RcString, RcSymbol, Type, Value},
         Console, Symbol,
@@ -107,7 +107,7 @@ impl Interpreter {
 
     /// Retrieves the global object of the `Realm` of this executor.
     #[inline]
-    pub(crate) fn global(&self) -> &Value {
+    pub fn global(&self) -> &Value {
         &self.realm.global_obj
     }
 
@@ -355,6 +355,18 @@ impl Interpreter {
     pub fn construct_object(&self) -> GcObject {
         let object_prototype = self.global().get_field("Object").get_field(PROTOTYPE);
         GcObject::new(Object::create(object_prototype))
+    }
+
+    pub fn register_global_class<T>(&mut self) -> Result<()>
+    where
+        T: Class,
+    {
+        let mut class_builder = ClassBuilder::new::<T>(self);
+        T::methods(&mut class_builder)?;
+
+        let class = class_builder.build();
+        self.global().set_field(T::NAME, class);
+        Ok(())
     }
 }
 

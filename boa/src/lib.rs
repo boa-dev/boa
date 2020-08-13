@@ -53,6 +53,8 @@ pub use crate::{
 };
 use std::result::Result as StdResult;
 
+pub use gc::{custom_trace, unsafe_empty_trace, Finalize, Trace};
+
 /// The result of a Javascript expression is represented like this so it can succeed (`Ok`) or fail (`Err`)
 #[must_use]
 pub type Result<T> = StdResult<T, Value>;

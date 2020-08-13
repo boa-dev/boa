@@ -282,45 +282,45 @@ impl Object {
         })
     }
 
-    /// `Object.setPropertyOf(obj, prototype)`
-    ///
-    /// This method sets the prototype (i.e., the internal `[[Prototype]]` property)
-    /// of a specified object to another object or `null`.
-    ///
-    /// More information:
-    ///  - [ECMAScript reference][spec]
-    ///  - [MDN documentation][mdn]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-setprototypeof-v
-    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/setPrototypeOf
-    pub fn set_prototype_of(&mut self, val: Value) -> bool {
-        debug_assert!(val.is_object() || val.is_null());
-        let current = self.prototype.clone();
-        if same_value(&current, &val) {
-            return true;
-        }
-        if !self.is_extensible() {
-            return false;
-        }
-        let mut p = val.clone();
-        let mut done = false;
-        while !done {
-            if p.is_null() {
-                done = true
-            } else if same_value(&Value::from(self.clone()), &p) {
-                return false;
-            } else {
-                let prototype = p
-                    .as_object()
-                    .expect("prototype should be null or object")
-                    .prototype
-                    .clone();
-                p = prototype;
-            }
-        }
-        self.prototype = val;
-        true
-    }
+    // /// `Object.setPropertyOf(obj, prototype)`
+    // ///
+    // /// This method sets the prototype (i.e., the internal `[[Prototype]]` property)
+    // /// of a specified object to another object or `null`.
+    // ///
+    // /// More information:
+    // ///  - [ECMAScript reference][spec]
+    // ///  - [MDN documentation][mdn]
+    // ///
+    // /// [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-setprototypeof-v
+    // /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/setPrototypeOf
+    // pub fn set_prototype_of(&mut self, val: Value) -> bool {
+    //     debug_assert!(val.is_object() || val.is_null());
+    //     let current = self.prototype.clone();
+    //     if same_value(&current, &val) {
+    //         return true;
+    //     }
+    //     if !self.is_extensible() {
+    //         return false;
+    //     }
+    //     let mut p = val.clone();
+    //     let mut done = false;
+    //     while !done {
+    //         if p.is_null() {
+    //             done = true
+    //         } else if same_value(&Value::from(self.clone()), &p) {
+    //             return false;
+    //         } else {
+    //             let prototype = p
+    //                 .as_object()
+    //                 .expect("prototype should be null or object")
+    //                 .prototype
+    //                 .clone();
+    //             p = prototype;
+    //         }
+    //     }
+    //     self.prototype = val;
+    //     true
+    // }
 
     /// Returns either the prototype or null
     ///

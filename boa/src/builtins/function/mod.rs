@@ -59,7 +59,7 @@ bitflags! {
 }
 
 impl FunctionFlags {
-    fn from_parameters(callable: bool, constructable: bool) -> Self {
+    pub(crate) fn from_parameters(callable: bool, constructable: bool) -> Self {
         let mut flags = Self::default();
 
         if callable {
