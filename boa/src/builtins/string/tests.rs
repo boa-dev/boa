@@ -219,6 +219,22 @@ fn replace() {
 }
 
 #[test]
+fn replace_with_regex() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+    let init = r#"
+        var re = /(\w+)\s(\w+)/;
+        var a = "John Smith";
+        a = a.replace(re, '$2, $1');
+        a
+        "#;
+
+    forward(&mut engine, init);
+
+    assert_eq!(forward(&mut engine, "a"), "\"Smith, John\"");
+}
+
+#[test]
 fn replace_with_function() {
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);
