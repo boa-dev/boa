@@ -486,7 +486,7 @@ impl String {
                     }
 
                     // Capture $1, $2, $3 etc
-                    if re.is_match(&result) {
+                    while re.is_match(&result) {
                         let mat_caps = re.captures(&result).unwrap();
                         let group_str = mat_caps.get(1).unwrap().as_str();
                         let group_int = group_str.parse::<usize>().unwrap();
