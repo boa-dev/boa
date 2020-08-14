@@ -748,7 +748,7 @@ impl Value {
 
     /// Converts the value to a string.
     ///
-    /// This function is equivelent to `String(value)` in JavaScript.
+    /// This function is equivalent to `String(value)` in JavaScript.
     pub fn to_string(&self, ctx: &mut Interpreter) -> Result<RcString, Value> {
         match self {
             Value::Null => Ok("null".into()),
@@ -767,6 +767,8 @@ impl Value {
     }
 
     /// Converts th value to a value of type Object.
+    ///
+    /// This function is equivalent to `Object(value)` in JavaScript
     ///
     /// See: <https://tc39.es/ecma262/#sec-toobject>
     pub fn to_object(&self, ctx: &mut Interpreter) -> ResultValue {
@@ -883,7 +885,7 @@ impl Value {
 
     /// Converts a value to an integral 32 bit unsigned integer.
     ///
-    /// This function is equivelent to `value | 0` in JavaScript
+    /// This function is equivalent to `value | 0` in JavaScript
     ///
     /// See: <https://tc39.es/ecma262/#sec-toint32>
     pub fn to_uint32(&self, ctx: &mut Interpreter) -> Result<u32, Value> {
@@ -970,7 +972,7 @@ impl Value {
 
     /// Converts a value to a double precision floating point.
     ///
-    /// This function is equivelent to the unary `+` operator (`+value`) in JavaScript
+    /// This function is equivalent to the unary `+` operator (`+value`) in JavaScript
     ///
     /// See: https://tc39.es/ecma262/#sec-tonumber
     pub fn to_number(&self, ctx: &mut Interpreter) -> Result<f64, Value> {
@@ -998,7 +1000,7 @@ impl Value {
 
     /// This is a more specialized version of `to_numeric`, including `BigInt`.
     ///
-    /// This function is equivelent to `Number(value)` in JavaScript
+    /// This function is equivalent to `Number(value)` in JavaScript
     ///
     /// See: <https://tc39.es/ecma262/#sec-tonumeric>
     pub fn to_numeric_number(&self, ctx: &mut Interpreter) -> Result<f64, Value> {
