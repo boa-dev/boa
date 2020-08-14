@@ -65,25 +65,23 @@ impl Display for BorrowError {
     }
 }
 
+#[derive(Debug)]
+/// Prevents infinite recursion during `Debug::fmt`.
 struct RecursionLimiter {
+    /// If this was the first `GcObject` in the tree.
     free: bool,
+    /// If this is the first time a specific `GcObject` has been seen.
     first: bool,
 }
 
-impl RecursionLimiter {
-    thread_local! {
-        pub static VISITED: RefCell<HashSet<usize>> = RefCell::new(HashSet::new());
-    }
-
-    fn new(o: &GcObject) -> Self {
-        // We shouldn't have to worry too much about this being moved during Debug::fmt.
-        let ptr = (&*o.borrow() as *const Object) as usize;
-        let (free, first) = Self::VISITED.with(|hs| {
-            let mut hs = hs.borrow_mut();
-            (hs.len() == 0, hs.insert(ptr))
-        });
-
-        Self { free, first }
+impl Clone for RecursionLimiter {
+    fn clone(&self) -> Self {
+        Self {
+            // Cloning this value would result in a premature free.
+            free: false,
+            // Cloning this vlaue would result in a value being written multiple times.
+            first: false,
+        }
     }
 }
 
@@ -102,6 +100,28 @@ impl Drop for RecursionLimiter {
     }
 }
 
+impl RecursionLimiter {
+    thread_local! {
+        pub static VISITED: RefCell<HashSet<usize>> = RefCell::new(HashSet::new());
+    }
+
+    /// Determines if the specified `GcObject` has been visited, and returns a struct that will free it when dropped.
+    ///
+    /// This is done by maintaining a thread-local hashset containing the pointers of `GcObject` values that have been
+    /// visited. The first `GcObject` visited will clear the hashset, while any others will check if they are contained
+    /// by the hashset.
+    fn new(o: &GcObject) -> Self {
+        // We shouldn't have to worry too much about this being moved during Debug::fmt.
+        let ptr = (o.as_ref() as *const _) as usize;
+        let (free, first) = Self::VISITED.with(|hs| {
+            let mut hs = hs.borrow_mut();
+            (hs.is_empty(), hs.insert(ptr))
+        });
+
+        Self { free, first }
+    }
+}
+
 impl Debug for GcObject {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> std::fmt::Result {
         let limiter = RecursionLimiter::new(&self);
@@ -109,7 +129,7 @@ impl Debug for GcObject {
         if limiter.first {
             f.debug_tuple("GcObject").field(&self.0).finish()
         } else {
-            f.write_str("...")
+            f.write_str("{ ... }")
         }
     }
 }
