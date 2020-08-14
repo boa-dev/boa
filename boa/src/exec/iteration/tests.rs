@@ -99,3 +99,95 @@ fn do_loop_early_break() {
 
     assert_eq!(&exec(scenario), "3");
 }
+
+#[test]
+fn break_out_of_inner_loop() {
+    let scenario = r#"
+        var a = 0, b = 0;
+        for (let i = 0; i < 2; i++) {
+            a++;
+            for (let j = 0; j < 10; j++) {
+                b++;
+                if (j == 3)
+                    break;
+            }
+            a++;
+        }
+        [a, b]
+    "#;
+    assert_eq!(&exec(scenario), "[ 4, 8 ]");
+}
+
+#[test]
+fn continue_inner_loop() {
+    let scenario = r#"
+        var a = 0, b = 0;
+        for (let i = 0; i < 2; i++) {
+            a++;
+            for (let j = 0; j < 10; j++) {
+                if (j < 3)
+                    continue;
+                b++;
+            }
+            a++;
+        }
+        [a, b]
+    "#;
+    assert_eq!(&exec(scenario), "[ 4, 14 ]");
+}
+
+#[test]
+fn for_loop_continue_out_of_switch() {
+    let scenario = r#"
+        var a = 0, b = 0, c = 0;
+        for (let i = 0; i < 3; i++) {
+            a++;
+            switch (i) {
+            case 0:
+               continue;
+               c++;
+            case 1:
+               continue;
+            case 5:
+               c++;
+            }
+            b++;
+        }
+        [a, b, c]
+    "#;
+    assert_eq!(&exec(scenario), "[ 3, 1, 0 ]");
+}
+
+#[test]
+fn while_loop_continue() {
+    let scenario = r#"
+        var i = 0, a = 0, b = 0;
+        while (i < 3) {
+            i++;
+            if (i < 2) {
+               a++;
+               continue;
+            }
+            b++;
+        }
+        [a, b]
+    "#;
+    assert_eq!(&exec(scenario), "[ 1, 2 ]");
+}
+
+#[test]
+fn do_while_loop_continue() {
+    let scenario = r#"
+        var i = 0, a = 0, b = 0;
+        do {
+            i++;
+            if (i < 2) {
+               a++;
+               continue;
+            }
+            b++;
+        } while (i < 3)
+        [a, b]
+    "#;
+    assert_eq!(&exec(scenario), "[ 1, 2 ]");
+}

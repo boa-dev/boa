@@ -43,10 +43,15 @@ impl Executable for ForLoop {
                     interpreter.set_current_state(InterpreterState::Executing);
                     break;
                 }
+                InterpreterState::Continue(_label) => {
+                    // TODO continue to label.
+                    interpreter.set_current_state(InterpreterState::Executing);
+                    // after breaking out of the block, continue execution of the loop
+                }
                 InterpreterState::Return => {
                     return Ok(result);
                 }
-                _ => {
+                InterpreterState::Executing => {
                     // Continue execution.
                 }
             }
@@ -76,10 +81,15 @@ impl Executable for WhileLoop {
                     interpreter.set_current_state(InterpreterState::Executing);
                     break;
                 }
+                InterpreterState::Continue(_label) => {
+                    // TODO continue to label.
+                    interpreter.set_current_state(InterpreterState::Executing);
+                    // after breaking out of the block, continue execution of the loop
+                }
                 InterpreterState::Return => {
                     return Ok(result);
                 }
-                _ => {
+                InterpreterState::Executing => {
                     // Continue execution.
                 }
             }
@@ -99,10 +109,15 @@ impl Executable for DoWhileLoop {
                 interpreter.set_current_state(InterpreterState::Executing);
                 return Ok(result);
             }
+            InterpreterState::Continue(_label) => {
+                // TODO continue to label;
+                interpreter.set_current_state(InterpreterState::Executing);
+                // after breaking out of the block, continue execution of the loop
+            }
             InterpreterState::Return => {
                 return Ok(result);
             }
-            _ => {
+            InterpreterState::Executing => {
                 // Continue execution.
             }
         }
@@ -117,10 +132,15 @@ impl Executable for DoWhileLoop {
                     interpreter.set_current_state(InterpreterState::Executing);
                     break;
                 }
+                InterpreterState::Continue(_label) => {
+                    // TODO continue to label.
+                    interpreter.set_current_state(InterpreterState::Executing);
+                    // after breaking out of the block, continue execution of the loop
+                }
                 InterpreterState::Return => {
                     return Ok(result);
                 }
-                _ => {
+                InterpreterState::Executing => {
                     // Continue execution.
                 }
             }

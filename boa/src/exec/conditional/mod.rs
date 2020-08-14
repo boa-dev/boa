@@ -1,5 +1,9 @@
 use super::{Executable, Interpreter};
-use crate::{builtins::Value, syntax::ast::node::If, Result};
+use crate::{
+    builtins::Value,
+    syntax::ast::node::{ConditionalOp, If},
+    Result,
+};
 use std::borrow::Borrow;
 
 impl Executable for If {
@@ -10,6 +14,16 @@ impl Executable for If {
             else_e.run(interpreter)?
         } else {
             Value::undefined()
+        })
+    }
+}
+
+impl Executable for ConditionalOp {
+    fn run(&self, interpreter: &mut Interpreter) -> Result<Value> {
+        Ok(if self.cond().run(interpreter)?.borrow().to_boolean() {
+            self.if_true().run(interpreter)?
+        } else {
+            self.if_false().run(interpreter)?
         })
     }
 }

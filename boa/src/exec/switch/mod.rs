@@ -28,11 +28,16 @@ impl Executable for Switch {
                         return Ok(result);
                     }
                     InterpreterState::Break(_label) => {
+                        // TODO, break to a label.
                         // Break statement encountered so therefore end switch statement.
                         interpreter.set_current_state(InterpreterState::Executing);
                         break;
                     }
-                    _ => {
+                    InterpreterState::Continue(_label) => {
+                        // TODO, continue to a label.
+                        break;
+                    }
+                    InterpreterState::Executing => {
                         // Continuing execution / falling through to next case statement(s).
                         fall_through = true;
                     }

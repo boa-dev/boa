@@ -50,6 +50,7 @@ pub(crate) enum InterpreterState {
     Executing,
     Return,
     Break(Option<String>),
+    Continue(Option<String>),
 }
 
 /// A Javascript intepreter
@@ -380,6 +381,7 @@ impl Executable for Node {
             Node::DoWhileLoop(ref do_while) => do_while.run(interpreter),
             Node::ForLoop(ref for_loop) => for_loop.run(interpreter),
             Node::If(ref if_smt) => if_smt.run(interpreter),
+            Node::ConditionalOp(ref op) => op.run(interpreter),
             Node::Switch(ref switch) => switch.run(interpreter),
             Node::Object(ref obj) => obj.run(interpreter),
             Node::ArrayDecl(ref arr) => arr.run(interpreter),
@@ -404,8 +406,7 @@ impl Executable for Node {
             }
             Node::Try(ref try_node) => try_node.run(interpreter),
             Node::Break(ref break_node) => break_node.run(interpreter),
-            Node::ConditionalOp(_) => unimplemented!("ConditionalOp"),
-            Node::Continue(_) => unimplemented!("Continue"),
+            Node::Continue(ref continue_node) => continue_node.run(interpreter),
         }
     }
 }

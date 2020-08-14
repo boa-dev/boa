@@ -1233,3 +1233,9 @@ fn test_undefined_type() {
     let scenario = "typeof undefined";
     assert_eq!(&exec(scenario), "\"undefined\"");
 }
+
+#[test]
+fn test_conditional_op() {
+    let scenario = "1 === 2 ? 'a' : 'b'";
+    assert_eq!(&exec(scenario), "\"b\"");
+}
