@@ -28,8 +28,8 @@ impl Value {
                 (Self::String(ref x), ref y) => Self::string(format!("{}{}", x, y.to_string(ctx)?)),
                 (ref x, Self::String(ref y)) => Self::string(format!("{}{}", x.to_string(ctx)?, y)),
                 (x, y) => match (x.to_numeric(ctx)?, y.to_numeric(ctx)?) {
-                    (Self::Rational(x), Self::Rational(y)) => Self::rational(x + y),
-                    (Self::BigInt(ref n1), Self::BigInt(ref n2)) => {
+                    (Numeric::Number(x), Numeric::Number(y)) => Self::rational(x + y),
+                    (Numeric::BigInt(ref n1), Numeric::BigInt(ref n2)) => {
                         Self::bigint(n1.as_inner().clone() + n2.as_inner().clone())
                     }
                     (_, _) => {
@@ -57,8 +57,8 @@ impl Value {
 
             // Slow path:
             (_, _) => match (self.to_numeric(ctx)?, other.to_numeric(ctx)?) {
-                (Self::Rational(a), Self::Rational(b)) => Self::rational(a - b),
-                (Self::BigInt(ref a), Self::BigInt(ref b)) => {
+                (Numeric::Number(a), Numeric::Number(b)) => Self::rational(a - b),
+                (Numeric::BigInt(ref a), Numeric::BigInt(ref b)) => {
                     Self::bigint(a.as_inner().clone() - b.as_inner().clone())
                 }
                 (_, _) => {
@@ -85,8 +85,8 @@ impl Value {
 
             // Slow path:
             (_, _) => match (self.to_numeric(ctx)?, other.to_numeric(ctx)?) {
-                (Self::Rational(a), Self::Rational(b)) => Self::rational(a * b),
-                (Self::BigInt(ref a), Self::BigInt(ref b)) => {
+                (Numeric::Number(a), Numeric::Number(b)) => Self::rational(a * b),
+                (Numeric::BigInt(ref a), Numeric::BigInt(ref b)) => {
                     Self::bigint(a.as_inner().clone() * b.as_inner().clone())
                 }
                 (_, _) => {
@@ -113,8 +113,8 @@ impl Value {
 
             // Slow path:
             (_, _) => match (self.to_numeric(ctx)?, other.to_numeric(ctx)?) {
-                (Self::Rational(a), Self::Rational(b)) => Self::rational(a / b),
-                (Self::BigInt(ref a), Self::BigInt(ref b)) => {
+                (Numeric::Number(a), Numeric::Number(b)) => Self::rational(a / b),
+                (Numeric::BigInt(ref a), Numeric::BigInt(ref b)) => {
                     Self::bigint(a.as_inner().clone() / b.as_inner().clone())
                 }
                 (_, _) => {
@@ -141,8 +141,8 @@ impl Value {
 
             // Slow path:
             (_, _) => match (self.to_numeric(ctx)?, other.to_numeric(ctx)?) {
-                (Self::Rational(a), Self::Rational(b)) => Self::rational(a % b),
-                (Self::BigInt(ref a), Self::BigInt(ref b)) => {
+                (Numeric::Number(a), Numeric::Number(b)) => Self::rational(a % b),
+                (Numeric::BigInt(ref a), Numeric::BigInt(ref b)) => {
                     Self::bigint(a.as_inner().clone() % b.as_inner().clone())
                 }
                 (_, _) => {
@@ -167,8 +167,8 @@ impl Value {
 
             // Slow path:
             (_, _) => match (self.to_numeric(ctx)?, other.to_numeric(ctx)?) {
-                (Self::Rational(a), Self::Rational(b)) => Self::rational(a.powf(b)),
-                (Self::BigInt(ref a), Self::BigInt(ref b)) => {
+                (Numeric::Number(a), Numeric::Number(b)) => Self::rational(a.powf(b)),
+                (Numeric::BigInt(ref a), Numeric::BigInt(ref b)) => {
                     Self::bigint(a.as_inner().clone().pow(b))
                 }
                 (_, _) => {
@@ -197,10 +197,10 @@ impl Value {
 
             // Slow path:
             (_, _) => match (self.to_numeric(ctx)?, other.to_numeric(ctx)?) {
-                (Self::Rational(a), Self::Rational(b)) => {
+                (Numeric::Number(a), Numeric::Number(b)) => {
                     Self::integer(f64_to_int32(a) & f64_to_int32(b))
                 }
-                (Self::BigInt(ref a), Self::BigInt(ref b)) => {
+                (Numeric::BigInt(ref a), Numeric::BigInt(ref b)) => {
                     Self::bigint(a.as_inner().clone() & b.as_inner().clone())
                 }
                 (_, _) => {
@@ -229,10 +229,10 @@ impl Value {
 
             // Slow path:
             (_, _) => match (self.to_numeric(ctx)?, other.to_numeric(ctx)?) {
-                (Self::Rational(a), Self::Rational(b)) => {
+                (Numeric::Number(a), Numeric::Number(b)) => {
                     Self::integer(f64_to_int32(a) | f64_to_int32(b))
                 }
-                (Self::BigInt(ref a), Self::BigInt(ref b)) => {
+                (Numeric::BigInt(ref a), Numeric::BigInt(ref b)) => {
                     Self::bigint(a.as_inner().clone() | b.as_inner().clone())
                 }
                 (_, _) => {
@@ -261,10 +261,10 @@ impl Value {
 
             // Slow path:
             (_, _) => match (self.to_numeric(ctx)?, other.to_numeric(ctx)?) {
-                (Self::Rational(a), Self::Rational(b)) => {
+                (Numeric::Number(a), Numeric::Number(b)) => {
                     Self::integer(f64_to_int32(a) ^ f64_to_int32(b))
                 }
-                (Self::BigInt(ref a), Self::BigInt(ref b)) => {
+                (Numeric::BigInt(ref a), Numeric::BigInt(ref b)) => {
                     Self::bigint(a.as_inner().clone() ^ b.as_inner().clone())
                 }
                 (_, _) => {
@@ -297,10 +297,10 @@ impl Value {
 
             // Slow path:
             (_, _) => match (self.to_numeric(ctx)?, other.to_numeric(ctx)?) {
-                (Self::Rational(x), Self::Rational(y)) => {
+                (Numeric::Number(x), Numeric::Number(y)) => {
                     Self::integer(f64_to_int32(x).wrapping_shl(f64_to_uint32(y)))
                 }
-                (Self::BigInt(ref x), Self::BigInt(ref y)) => {
+                (Numeric::BigInt(ref x), Numeric::BigInt(ref y)) => {
                     Self::bigint(x.as_inner().clone() << y.as_inner().clone())
                 }
                 (_, _) => {
@@ -333,10 +333,10 @@ impl Value {
 
             // Slow path:
             (_, _) => match (self.to_numeric(ctx)?, other.to_numeric(ctx)?) {
-                (Self::Rational(x), Self::Rational(y)) => {
+                (Numeric::Number(x), Numeric::Number(y)) => {
                     Self::integer(f64_to_int32(x).wrapping_shr(f64_to_uint32(y)))
                 }
-                (Self::BigInt(ref x), Self::BigInt(ref y)) => {
+                (Numeric::BigInt(ref x), Numeric::BigInt(ref y)) => {
                     Self::bigint(x.as_inner().clone() >> y.as_inner().clone())
                 }
                 (_, _) => {
@@ -367,10 +367,10 @@ impl Value {
 
             // Slow path:
             (_, _) => match (self.to_numeric(ctx)?, other.to_numeric(ctx)?) {
-                (Self::Rational(x), Self::Rational(y)) => {
+                (Numeric::Number(x), Numeric::Number(y)) => {
                     Self::rational(f64_to_uint32(x).wrapping_shr(f64_to_uint32(y)))
                 }
-                (Self::BigInt(_), Self::BigInt(_)) => {
+                (Numeric::BigInt(_), Numeric::BigInt(_)) => {
                     return ctx
                         .throw_type_error("BigInts have no unsigned right shift, use >> instead");
                 }
@@ -433,11 +433,11 @@ impl Value {
     ) -> Result<AbstractRelation, Value> {
         Ok(match (self, other) {
             // Fast path (for some common operations):
-            (Value::Integer(x), Value::Integer(y)) => (x < y).into(),
-            (Value::Integer(x), Value::Rational(y)) => Number::less_than(f64::from(*x), *y),
-            (Value::Rational(x), Value::Integer(y)) => Number::less_than(*x, f64::from(*y)),
-            (Value::Rational(x), Value::Rational(y)) => Number::less_than(*x, *y),
-            (Value::BigInt(ref x), Value::BigInt(ref y)) => (x < y).into(),
+            (Self::Integer(x), Self::Integer(y)) => (x < y).into(),
+            (Self::Integer(x), Self::Rational(y)) => Number::less_than(f64::from(*x), *y),
+            (Self::Rational(x), Self::Integer(y)) => Number::less_than(*x, f64::from(*y)),
+            (Self::Rational(x), Self::Rational(y)) => Number::less_than(*x, *y),
+            (Self::BigInt(ref x), Self::BigInt(ref y)) => (x < y).into(),
 
             // Slow path:
             (_, _) => {
@@ -453,7 +453,7 @@ impl Value {
                 };
 
                 match (px, py) {
-                    (Value::String(ref x), Value::String(ref y)) => {
+                    (Self::String(ref x), Self::String(ref y)) => {
                         if x.starts_with(y.as_str()) {
                             return Ok(AbstractRelation::False);
                         }
@@ -467,14 +467,14 @@ impl Value {
                         }
                         unreachable!()
                     }
-                    (Value::BigInt(ref x), Value::String(ref y)) => {
+                    (Self::BigInt(ref x), Self::String(ref y)) => {
                         if let Some(y) = string_to_bigint(&y) {
                             (*x.as_inner() < y).into()
                         } else {
                             AbstractRelation::Undefined
                         }
                     }
-                    (Value::String(ref x), Value::BigInt(ref y)) => {
+                    (Self::String(ref x), Self::BigInt(ref y)) => {
                         if let Some(x) = string_to_bigint(&x) {
                             (x < *y.as_inner()).into()
                         } else {
@@ -482,9 +482,9 @@ impl Value {
                         }
                     }
                     (px, py) => match (px.to_numeric(ctx)?, py.to_numeric(ctx)?) {
-                        (Value::Rational(x), Value::Rational(y)) => Number::less_than(x, y),
-                        (Value::BigInt(ref x), Value::BigInt(ref y)) => (x < y).into(),
-                        (Value::BigInt(ref x), Value::Rational(y)) => {
+                        (Numeric::Number(x), Numeric::Number(y)) => Number::less_than(x, y),
+                        (Numeric::BigInt(ref x), Numeric::BigInt(ref y)) => (x < y).into(),
+                        (Numeric::BigInt(ref x), Numeric::Number(y)) => {
                             if y.is_nan() {
                                 return Ok(AbstractRelation::Undefined);
                             }
@@ -498,7 +498,7 @@ impl Value {
                             };
                             (*x.as_inner() < BigInt::try_from(n).unwrap()).into()
                         }
-                        (Value::Rational(x), Value::BigInt(ref y)) => {
+                        (Numeric::Number(x), Numeric::BigInt(ref y)) => {
                             if x.is_nan() {
                                 return Ok(AbstractRelation::Undefined);
                             }
@@ -512,7 +512,6 @@ impl Value {
                             };
                             (BigInt::try_from(n).unwrap() < *y.as_inner()).into()
                         }
-                        (_, _) => unreachable!("to_numeric should only retrun number and bigint"),
                     },
                 }
             }

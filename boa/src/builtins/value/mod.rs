@@ -856,10 +856,10 @@ impl Value {
     /// It returns value converted to a numeric value of type Number or BigInt.
     ///
     /// See: https://tc39.es/ecma262/#sec-tonumeric
-    pub fn to_numeric(&self, ctx: &mut Interpreter) -> ResultValue {
+    pub fn to_numeric(&self, ctx: &mut Interpreter) -> Result<Numeric, Value> {
         let primitive = self.to_primitive(ctx, PreferredType::Number)?;
-        if primitive.is_bigint() {
-            return Ok(primitive);
+        if let Some(bigint) = primitive.as_bigint() {
+            return Ok(bigint.clone().into());
         }
         Ok(self.to_number(ctx)?.into())
     }
@@ -1000,4 +1000,82 @@ pub enum PreferredType {
     String,
     Number,
     Default,
+}
+
+#[derive(Debug, Clone, PartialEq, PartialOrd)]
+pub enum Numeric {
+    Number(f64),
+    BigInt(RcBigInt),
+}
+
+impl From<f64> for Numeric {
+    #[inline]
+    fn from(value: f64) -> Self {
+        Self::Number(value)
+    }
+}
+
+impl From<i32> for Numeric {
+    #[inline]
+    fn from(value: i32) -> Self {
+        Self::Number(value.into())
+    }
+}
+
+impl From<i16> for Numeric {
+    #[inline]
+    fn from(value: i16) -> Self {
+        Self::Number(value.into())
+    }
+}
+
+impl From<i8> for Numeric {
+    #[inline]
+    fn from(value: i8) -> Self {
+        Self::Number(value.into())
+    }
+}
+
+impl From<u32> for Numeric {
+    #[inline]
+    fn from(value: u32) -> Self {
+        Self::Number(value.into())
+    }
+}
+
+impl From<u16> for Numeric {
+    #[inline]
+    fn from(value: u16) -> Self {
+        Self::Number(value.into())
+    }
+}
+
+impl From<u8> for Numeric {
+    #[inline]
+    fn from(value: u8) -> Self {
+        Self::Number(value.into())
+    }
+}
+
+impl From<BigInt> for Numeric {
+    #[inline]
+    fn from(value: BigInt) -> Self {
+        Self::BigInt(value.into())
+    }
+}
+
+impl From<RcBigInt> for Numeric {
+    #[inline]
+    fn from(value: RcBigInt) -> Self {
+        Self::BigInt(value)
+    }
+}
+
+impl From<Numeric> for Value {
+    fn from(value: Numeric) -> Self {
+        match value {
+            Numeric::Number(number) => Self::rational(number),
+            Numeric::BigInt(bigint) => Self::bigint(bigint),
+        }
+    }
 }
