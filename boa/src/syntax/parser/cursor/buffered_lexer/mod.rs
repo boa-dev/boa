@@ -34,11 +34,8 @@ where
         Self {
             lexer,
             peeked: [
-                None::<Token>,
-                None::<Token>,
-                None::<Token>,
-                None::<Token>,
-                None::<Token>,
+                None::<Token>;
+                PEEK_BUF_SIZE
             ],
             buf_size: 0,
             back_index: 0,
