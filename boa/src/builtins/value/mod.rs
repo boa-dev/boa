@@ -699,7 +699,9 @@ impl Value {
         }
     }
 
-    /// Helper function.
+    /// Converts the value to a `BigInt`.
+    ///
+    /// This function is equivelent to `BigInt(value)` in JavaScript.
     pub fn to_bigint(&self, ctx: &mut Interpreter) -> Result<RcBigInt, Value> {
         match self {
             Value::Null => Err(ctx.construct_type_error("cannot convert null to a BigInt")),
@@ -728,11 +730,25 @@ impl Value {
         }
     }
 
+    /// Returns an object that implements `Display`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use boa::builtins::value::Value;
+    ///
+    /// let value = Value::number(3);
+    ///
+    /// println!("{}", value.display());
+    /// ```
+    #[inline]
     pub fn display(&self) -> ValueDisplay<'_> {
         ValueDisplay { value: self }
     }
 
-    /// Converts a value into a rust heap allocated string.
+    /// Converts the value to a string.
+    ///
+    /// This function is equivelent to `String(value)` in JavaScript.
     pub fn to_string(&self, ctx: &mut Interpreter) -> Result<RcString, Value> {
         match self {
             Value::Null => Ok("null".into()),
@@ -750,8 +766,9 @@ impl Value {
         }
     }
 
-    /// The abstract operation ToObject converts argument to a value of type Object
-    /// https://tc39.es/ecma262/#sec-toobject
+    /// Converts th value to a value of type Object.
+    ///
+    /// See: <https://tc39.es/ecma262/#sec-toobject>
     pub fn to_object(&self, ctx: &mut Interpreter) -> ResultValue {
         match self {
             Value::Undefined | Value::Null => {
@@ -836,9 +853,9 @@ impl Value {
         }
     }
 
-    /// The abstract operation ToPropertyKey takes argument argument. It converts argument to a value that can be used as a property key.
+    /// Converts the value to a `PropertyKey`, that can be used as a key for properties.
     ///
-    /// https://tc39.es/ecma262/#sec-topropertykey
+    /// See <https://tc39.es/ecma262/#sec-topropertykey>
     pub fn to_property_key(&self, ctx: &mut Interpreter) -> Result<PropertyKey, Value> {
         Ok(match self {
             // Fast path:
@@ -853,9 +870,9 @@ impl Value {
         })
     }
 
-    /// It returns value converted to a numeric value of type Number or BigInt.
+    /// It returns value converted to a numeric value of type `Number` or `BigInt`.
     ///
-    /// See: https://tc39.es/ecma262/#sec-tonumeric
+    /// See: <https://tc39.es/ecma262/#sec-tonumeric>
     pub fn to_numeric(&self, ctx: &mut Interpreter) -> Result<Numeric, Value> {
         let primitive = self.to_primitive(ctx, PreferredType::Number)?;
         if let Some(bigint) = primitive.as_bigint() {
@@ -866,7 +883,9 @@ impl Value {
 
     /// Converts a value to an integral 32 bit unsigned integer.
     ///
-    /// See: https://tc39.es/ecma262/#sec-toint32
+    /// This function is equivelent to `value | 0` in JavaScript
+    ///
+    /// See: <https://tc39.es/ecma262/#sec-toint32>
     pub fn to_uint32(&self, ctx: &mut Interpreter) -> Result<u32, Value> {
         // This is the fast path, if the value is Integer we can just return it.
         if let Value::Integer(number) = *self {
@@ -879,7 +898,7 @@ impl Value {
 
     /// Converts a value to an integral 32 bit signed integer.
     ///
-    /// See: https://tc39.es/ecma262/#sec-toint32
+    /// See: <https://tc39.es/ecma262/#sec-toint32>
     pub fn to_int32(&self, ctx: &mut Interpreter) -> Result<i32, Value> {
         // This is the fast path, if the value is Integer we can just return it.
         if let Value::Integer(number) = *self {
@@ -892,7 +911,7 @@ impl Value {
 
     /// Converts a value to a non-negative integer if it is a valid integer index value.
     ///
-    /// See: https://tc39.es/ecma262/#sec-toindex
+    /// See: <https://tc39.es/ecma262/#sec-toindex>
     pub fn to_index(&self, ctx: &mut Interpreter) -> Result<usize, Value> {
         if self.is_undefined() {
             return Ok(0);
@@ -913,7 +932,7 @@ impl Value {
 
     /// Converts argument to an integer suitable for use as the length of an array-like object.
     ///
-    /// See: https://tc39.es/ecma262/#sec-tolength
+    /// See: <https://tc39.es/ecma262/#sec-tolength>
     pub fn to_length(&self, ctx: &mut Interpreter) -> Result<usize, Value> {
         // 1. Let len be ? ToInteger(argument).
         let len = self.to_integer(ctx)?;
@@ -929,7 +948,7 @@ impl Value {
 
     /// Converts a value to an integral Number value.
     ///
-    /// See: https://tc39.es/ecma262/#sec-tointeger
+    /// See: <https://tc39.es/ecma262/#sec-tointeger>
     pub fn to_integer(&self, ctx: &mut Interpreter) -> Result<f64, Value> {
         // 1. Let number be ? ToNumber(argument).
         let number = self.to_number(ctx)?;
@@ -950,6 +969,8 @@ impl Value {
     }
 
     /// Converts a value to a double precision floating point.
+    ///
+    /// This function is equivelent to the unary `+` operator (`+value`) in JavaScript
     ///
     /// See: https://tc39.es/ecma262/#sec-tonumber
     pub fn to_number(&self, ctx: &mut Interpreter) -> Result<f64, Value> {
@@ -975,11 +996,11 @@ impl Value {
         }
     }
 
-    /// This is a more specialized version of `to_numeric`.
+    /// This is a more specialized version of `to_numeric`, including `BigInt`.
     ///
-    /// It returns value converted to a numeric value of type `Number`.
+    /// This function is equivelent to `Number(value)` in JavaScript
     ///
-    /// See: https://tc39.es/ecma262/#sec-tonumeric
+    /// See: <https://tc39.es/ecma262/#sec-tonumeric>
     pub fn to_numeric_number(&self, ctx: &mut Interpreter) -> Result<f64, Value> {
         let primitive = self.to_primitive(ctx, PreferredType::Number)?;
         if let Some(ref bigint) = primitive.as_bigint() {
@@ -995,6 +1016,7 @@ impl Default for Value {
     }
 }
 
+/// The preffered type to convert an object to a primitive `Value`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum PreferredType {
     String,
@@ -1002,9 +1024,12 @@ pub enum PreferredType {
     Default,
 }
 
+/// Numeric value which can be of two types `Number`, `BigInt`.
 #[derive(Debug, Clone, PartialEq, PartialOrd)]
 pub enum Numeric {
+    /// Double precision floating point number.
     Number(f64),
+    /// BigInt an integer of arbitrary size.
     BigInt(RcBigInt),
 }
 

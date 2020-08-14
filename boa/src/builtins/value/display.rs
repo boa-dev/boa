@@ -1,5 +1,6 @@
 use super::*;
 
+/// This object is used for displaying a `Value`.
 #[derive(Debug, Clone, Copy)]
 pub struct ValueDisplay<'value> {
     pub(super) value: &'value Value,
