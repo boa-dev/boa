@@ -58,7 +58,7 @@ where
 
     fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("Declaration", "Parsing");
-        let tok = cursor.peek(0, false)?.ok_or(ParseError::AbruptEnd)?;
+        let tok = cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?;
 
         match tok.kind() {
             TokenKind::Keyword(Keyword::Function) => {
@@ -67,7 +67,7 @@ where
             TokenKind::Keyword(Keyword::Const) | TokenKind::Keyword(Keyword::Let) => {
                 LexicalDeclaration::new(true, self.allow_yield, self.allow_await).parse(cursor)
             }
-            _ => unreachable!("unknown token found"),
+            _ => unreachable!("unknown token found: {:?}", tok),
         }
     }
 }

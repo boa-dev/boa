@@ -70,10 +70,10 @@ where
 
     fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("Block", "Parsing");
-        cursor.expect(Punctuator::OpenBlock, "block", false)?;
-        if let Some(tk) = cursor.peek(0, false)? {
+        cursor.expect(Punctuator::OpenBlock, "block")?;
+        if let Some(tk) = cursor.peek(0)? {
             if tk.kind() == &TokenKind::Punctuator(Punctuator::CloseBlock) {
-                cursor.next(false)?.expect("} token vanished");
+                cursor.next()?.expect("} token vanished");
                 return Ok(node::Block::from(vec![]));
             }
         }
@@ -82,7 +82,7 @@ where
             StatementList::new(self.allow_yield, self.allow_await, self.allow_return, true)
                 .parse(cursor)
                 .map(node::Block::from)?;
-        cursor.expect(Punctuator::CloseBlock, "block", false)?;
+        cursor.expect(Punctuator::CloseBlock, "block")?;
 
         Ok(statement_list)
     }

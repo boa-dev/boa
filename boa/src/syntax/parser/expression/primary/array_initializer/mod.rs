@@ -66,17 +66,17 @@ where
 
         loop {
             // TODO: Support all features.
-            while cursor.next_if(Punctuator::Comma, true)?.is_some() {
+            while cursor.next_if(Punctuator::Comma)?.is_some() {
                 elements.push(Node::Const(Const::Undefined));
             }
 
-            if cursor.next_if(Punctuator::CloseBracket, false)?.is_some() {
+            if cursor.next_if(Punctuator::CloseBracket)?.is_some() {
                 break;
             }
 
-            let _ = cursor.peek(0, false)?.ok_or(ParseError::AbruptEnd); // Check that there are more tokens to read.
+            let _ = cursor.peek(0)?.ok_or(ParseError::AbruptEnd); // Check that there are more tokens to read.
 
-            if cursor.next_if(Punctuator::Spread, false)?.is_some() {
+            if cursor.next_if(Punctuator::Spread)?.is_some() {
                 let node = AssignmentExpression::new(true, self.allow_yield, self.allow_await)
                     .parse(cursor)?;
                 elements.push(Spread::new(node).into());
@@ -86,7 +86,7 @@ where
                         .parse(cursor)?,
                 );
             }
-            cursor.next_if(Punctuator::Comma, true)?;
+            cursor.next_if(Punctuator::Comma)?;
         }
 
         Ok(elements.into())

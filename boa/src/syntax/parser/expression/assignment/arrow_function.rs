@@ -72,16 +72,16 @@ where
         let _timer = BoaProfiler::global().start_event("ArrowFunction", "Parsing");
         println!("Arrow function parse");
 
-        let next_token = cursor.peek(0, false)?.ok_or(ParseError::AbruptEnd)?;
+        let next_token = cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?;
         let params = if let TokenKind::Punctuator(Punctuator::OpenParen) = &next_token.kind() {
             // CoverParenthesizedExpressionAndArrowParameterList
 
             // Problem code - This doesn't work if the statement is of the form (expr) because the first '(' is consumed
 
-            cursor.expect(Punctuator::OpenParen, "arrow function", false)?;
+            cursor.expect(Punctuator::OpenParen, "arrow function")?;
 
             let params = FormalParameters::new(self.allow_yield, self.allow_await).parse(cursor)?;
-            cursor.expect(Punctuator::CloseParen, "arrow function", false)?;
+            cursor.expect(Punctuator::CloseParen, "arrow function")?;
             params
         } else {
             let param = BindingIdentifier::new(self.allow_yield, self.allow_await)
@@ -93,7 +93,7 @@ where
         cursor.peek_expect_no_lineterminator(0)?;
 
         if cursor
-            .next_if(TokenKind::Punctuator(Punctuator::Arrow), false)?
+            .next_if(TokenKind::Punctuator(Punctuator::Arrow))?
             .is_some()
         {
             let body = ConciseBody::new(self.allow_in).parse(cursor)?;
@@ -130,11 +130,11 @@ where
     type Output = StatementList;
 
     fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
-        match cursor.peek(0, false)?.ok_or(ParseError::AbruptEnd)?.kind() {
+        match cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?.kind() {
             TokenKind::Punctuator(Punctuator::OpenBlock) => {
-                let _ = cursor.next(false);
+                let _ = cursor.next();
                 let body = FunctionBody::new(false, false).parse(cursor)?;
-                cursor.expect(Punctuator::CloseBlock, "arrow function", false)?;
+                cursor.expect(Punctuator::CloseBlock, "arrow function")?;
                 Ok(body)
             }
             _ => Ok(StatementList::from(vec![Return::new(

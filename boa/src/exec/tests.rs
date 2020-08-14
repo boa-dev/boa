@@ -1331,3 +1331,13 @@ fn assign_to_object_decl() {
 
     assert_eq!(forward(&mut engine, "{a: 3} = {a: 5};"), ERR_MSG);
 }
+
+#[test]
+fn multiline_str_concat() {
+    let scenario = r#"
+        let a = 'hello ' +
+                'world';
+
+        a"#;
+    assert_eq!(&exec(scenario), "\"hello world\"");
+}

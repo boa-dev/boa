@@ -48,15 +48,15 @@ where
 
     fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("ReturnStatement", "Parsing");
-        cursor.expect(Keyword::Return, "return statement", false)?;
+        cursor.expect(Keyword::Return, "return statement")?;
 
-        if let (true, tok) = cursor.peek_semicolon()? {
+        if let (true, tok) = cursor.peek_semicolon(false)? {
             match tok {
                 Some(tok)
                     if tok.kind == TokenKind::Punctuator(Punctuator::Semicolon)
                         || tok.kind == TokenKind::LineTerminator =>
                 {
-                    let _ = cursor.next(false);
+                    let _ = cursor.next();
                 }
                 _ => {}
             }
@@ -66,7 +66,7 @@ where
 
         let expr = Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?;
 
-        cursor.expect_semicolon("return statement")?;
+        cursor.expect_semicolon(false, "return statement")?;
 
         Ok(Return::new(expr, None))
     }

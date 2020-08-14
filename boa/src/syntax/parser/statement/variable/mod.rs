@@ -54,12 +54,12 @@ where
 
     fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("VariableStatement", "Parsing");
-        cursor.expect(Keyword::Var, "variable statement", false)?;
+        cursor.expect(Keyword::Var, "variable statement")?;
 
         let decl_list =
             VariableDeclarationList::new(true, self.allow_yield, self.allow_await).parse(cursor)?;
 
-        cursor.expect_semicolon("variable statement")?;
+        cursor.expect_semicolon(false, "variable statement")?;
 
         Ok(decl_list)
     }
@@ -115,10 +115,10 @@ where
                     .parse(cursor)?,
             );
 
-            match cursor.peek_semicolon()? {
+            match cursor.peek_semicolon(false)? {
                 (true, _) => break,
                 (false, Some(tk)) if tk.kind == TokenKind::Punctuator(Punctuator::Comma) => {
-                    let _ = cursor.next(false);
+                    let _ = cursor.next();
                 }
                 _ => {
                     return Err(ParseError::expected(
@@ -126,7 +126,7 @@ where
                             TokenKind::Punctuator(Punctuator::Semicolon),
                             TokenKind::LineTerminator,
                         ],
-                        cursor.next(false)?.ok_or(ParseError::AbruptEnd)?,
+                        cursor.next()?.ok_or(ParseError::AbruptEnd)?,
                         "Variable Declaration List lexical declaration",
                     ))
                 }
@@ -177,7 +177,7 @@ where
 
         let name = BindingIdentifier::new(self.allow_yield, self.allow_await).parse(cursor)?;
 
-        let init = if let Some(t) = cursor.peek(0, false)? {
+        let init = if let Some(t) = cursor.peek(0)? {
             if *t.kind() == TokenKind::Punctuator(Punctuator::Assign) {
                 Some(Initializer::new(true, self.allow_yield, self.allow_await).parse(cursor)?)
             } else {

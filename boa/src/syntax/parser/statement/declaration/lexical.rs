@@ -61,7 +61,7 @@ where
 
     fn parse(self, cursor: &mut Cursor<R>) -> ParseResult {
         let _timer = BoaProfiler::global().start_event("LexicalDeclaration", "Parsing");
-        let tok = cursor.next(false)?.ok_or(ParseError::AbruptEnd)?;
+        let tok = cursor.next()?.ok_or(ParseError::AbruptEnd)?;
 
         match tok.kind() {
             TokenKind::Keyword(Keyword::Const) => {
@@ -72,7 +72,7 @@ where
                 BindingList::new(self.allow_in, self.allow_yield, self.allow_await, false)
                     .parse(cursor)
             }
-            _ => unreachable!("unknown token found"),
+            _ => unreachable!("unknown token found: {:?}", tok),
         }
     }
 }
@@ -136,7 +136,7 @@ where
                 } else {
                     return Err(ParseError::expected(
                         vec![TokenKind::Punctuator(Punctuator::Assign)],
-                        cursor.next(false)?.ok_or(ParseError::AbruptEnd)?,
+                        cursor.next()?.ok_or(ParseError::AbruptEnd)?,
                         "const declaration",
                     ));
                 }
@@ -144,10 +144,11 @@ where
                 let_decls.push(LetDecl::new(ident, init));
             }
 
-            match cursor.peek_semicolon()? {
+            match cursor.peek_semicolon(false)? {
                 (true, _) => break,
                 (false, Some(tk)) if tk.kind == TokenKind::Punctuator(Punctuator::Comma) => {
-                    let _ = cursor.next(false);
+                    // We discard the comma
+                    let _ = cursor.next()?;
                 }
                 _ => {
                     return Err(ParseError::expected(
@@ -155,7 +156,7 @@ where
                             TokenKind::Punctuator(Punctuator::Semicolon),
                             TokenKind::LineTerminator,
                         ],
-                        cursor.next(false)?.ok_or(ParseError::AbruptEnd)?,
+                        cursor.next()?.ok_or(ParseError::AbruptEnd)?,
                         "Binding list lexical declaration",
                     ))
                 }
@@ -209,7 +210,7 @@ where
 
         let ident = BindingIdentifier::new(self.allow_yield, self.allow_await).parse(cursor)?;
 
-        let init = if let Some(t) = cursor.peek(0, false)? {
+        let init = if let Some(t) = cursor.peek(0)? {
             if *t.kind() == TokenKind::Punctuator(Punctuator::Assign) {
                 Some(Initializer::new(true, self.allow_yield, self.allow_await).parse(cursor)?)
             } else {

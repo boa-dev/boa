@@ -12,7 +12,7 @@ mod conditional;
 mod exponentiation;
 
 use self::{arrow_function::ArrowFunction, conditional::ConditionalExpression};
-use crate::syntax::lexer::{Error as LexError, InputElement, Token, TokenKind};
+use crate::syntax::lexer::{Error as LexError, InputElement, TokenKind};
 use crate::{
     syntax::{
         ast::{
@@ -86,34 +86,32 @@ where
         // part of a different structure e.g. let a = (b++, b)
 
         // Arrow function
-        match cursor.peek(0, true)?.ok_or(ParseError::AbruptEnd)?.kind() {
+        match cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?.kind() {
             // a=>{}
             TokenKind::Identifier(_)
             | TokenKind::Keyword(Keyword::Yield)
             | TokenKind::Keyword(Keyword::Await) => {
-                if cursor.peek_expect_no_lineterminator(1).is_ok() {
-                    if let Some(tok) = cursor.peek(1, false)? {
-                        if tok.kind() == &TokenKind::Punctuator(Punctuator::Arrow) {
-                            return ArrowFunction::new(
-                                self.allow_in,
-                                self.allow_yield,
-                                self.allow_await,
-                            )
-                            .parse(cursor)
-                            .map(Node::ArrowFunctionDecl);
-                        }
+                if let Ok(tok) = cursor.peek_expect_no_lineterminator(1) {
+                    if tok.kind() == &TokenKind::Punctuator(Punctuator::Arrow) {
+                        return ArrowFunction::new(
+                            self.allow_in,
+                            self.allow_yield,
+                            self.allow_await,
+                        )
+                        .parse(cursor)
+                        .map(Node::ArrowFunctionDecl);
                     }
                 }
             }
 
             // (a,b)=>{} or (a,b) or (Expression)
             TokenKind::Punctuator(Punctuator::OpenParen) => {
-                if let Some(next_token) = cursor.peek(1, false)? {
+                if let Some(next_token) = cursor.peek(1)? {
                     match *next_token.kind() {
                         TokenKind::Punctuator(Punctuator::CloseParen) => {
                             // Need to check if the token after the close paren is an arrow, if so then this is an ArrowFunction
                             // otherwise it is an expression of the form (b).
-                            if let Some(t) = cursor.peek(2, false)? {
+                            if let Some(t) = cursor.peek(2)? {
                                 if t.kind() == &TokenKind::Punctuator(Punctuator::Arrow) {
                                     return ArrowFunction::new(
                                         self.allow_in,
@@ -135,7 +133,7 @@ where
                             .map(Node::ArrowFunctionDecl);
                         }
                         TokenKind::Identifier(_) => {
-                            if let Some(t) = cursor.peek(2, false)? {
+                            if let Some(t) = cursor.peek(2)? {
                                 match *t.kind() {
                                     TokenKind::Punctuator(Punctuator::Comma) => {
                                         // This must be an argument list and therefore (a, b) => {}
@@ -150,7 +148,7 @@ where
                                     TokenKind::Punctuator(Punctuator::CloseParen) => {
                                         // Need to check if the token after the close paren is an arrow, if so then this is an ArrowFunction
                                         // otherwise it is an expression of the form (b).
-                                        if let Some(t) = cursor.peek(2, false)? {
+                                        if let Some(t) = cursor.peek(2)? {
                                             if t.kind() == &TokenKind::Punctuator(Punctuator::Arrow)
                                             {
                                                 return ArrowFunction::new(
@@ -180,16 +178,14 @@ where
         let mut lhs = ConditionalExpression::new(self.allow_in, self.allow_yield, self.allow_await)
             .parse(cursor)?;
 
-        let mut line_terminator: Option<Token> = None;
-
-        // Loop to skip line terminators, cannot skip using cursor.peek() as this might remove a line terminator needed by a subsequent parse.
-        while let Some(tok) = cursor.peek(0, false)? {
+        // Review if we are trying to assign to an invalid left hand side expression.
+        // TODO: can we avoid cloning?
+        if let Some(tok) = cursor.peek(0)?.cloned() {
             match tok.kind() {
                 TokenKind::Punctuator(Punctuator::Assign) => {
-                    cursor.next(false)?.expect("= token vanished"); // Consume the token.
+                    cursor.next()?.expect("= token vanished"); // Consume the token.
                     if is_assignable(&lhs) {
                         lhs = Assign::new(lhs, self.parse(cursor)?).into();
-                        break;
                     } else {
                         return Err(ParseError::lex(LexError::Syntax(
                             "Invalid left-hand side in assignment".into(),
@@ -197,28 +193,20 @@ where
                     }
                 }
                 TokenKind::Punctuator(p) if p.as_binop().is_some() && p != &Punctuator::Comma => {
-                    cursor.next(false)?.expect("Token vanished"); // Consume the token.
+                    cursor.next()?.expect("Token vanished"); // Consume the token.
                     if is_assignable(&lhs) {
-                        let expr = self.parse(cursor)?;
                         let binop = p.as_binop().expect("binop disappeared");
+                        let expr = self.parse(cursor)?;
+
                         lhs = BinOp::new(binop, lhs, expr).into();
-                        break;
                     } else {
                         return Err(ParseError::lex(LexError::Syntax(
                             "Invalid left-hand side in assignment".into(),
                         )));
                     }
                 }
-                TokenKind::LineTerminator => {
-                    line_terminator = Some(tok);
-                    cursor.next(false)?.expect("Line terminator vanished");
-                }
-                _ => break,
+                _ => {}
             }
-        }
-
-        if let Some(lt) = line_terminator {
-            cursor.push_back(lt);
         }
 
         Ok(lhs)

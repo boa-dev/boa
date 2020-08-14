@@ -45,7 +45,7 @@ where
         // TODO: lookahead
         let expr = Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?;
 
-        cursor.expect_semicolon("expression statement")?;
+        cursor.expect_semicolon(false, "expression statement")?;
 
         Ok(expr)
     }

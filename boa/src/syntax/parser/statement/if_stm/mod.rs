@@ -58,21 +58,21 @@ where
 
     fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("IfStatement", "Parsing");
-        cursor.expect(Keyword::If, "if statement", false)?;
-        cursor.expect(Punctuator::OpenParen, "if statement", false)?;
+        cursor.expect(Keyword::If, "if statement")?;
+        cursor.expect(Punctuator::OpenParen, "if statement")?;
 
         let cond = Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?;
 
-        cursor.expect(Punctuator::CloseParen, "if statement", false)?;
+        cursor.expect(Punctuator::CloseParen, "if statement")?;
 
         let then_stm =
             Statement::new(self.allow_yield, self.allow_await, self.allow_return).parse(cursor)?;
 
-        let else_tok = cursor.peek(0, false)?;
+        let else_tok = cursor.peek(0)?;
 
         let else_stm = match else_tok {
             Some(_) if else_tok.unwrap().kind() == &TokenKind::Keyword(Keyword::Else) => {
-                cursor.next(false)?.expect("Else token vanished");
+                cursor.next()?.expect("Else token vanished");
                 Some(
                     Statement::new(self.allow_yield, self.allow_await, self.allow_return)
                         .parse(cursor)?,

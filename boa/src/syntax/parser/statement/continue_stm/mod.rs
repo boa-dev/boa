@@ -59,12 +59,12 @@ where
 
     fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("ContinueStatement", "Parsing");
-        cursor.expect(Keyword::Continue, "continue statement", false)?;
+        cursor.expect(Keyword::Continue, "continue statement")?;
 
-        let label = if let (true, tok) = cursor.peek_semicolon()? {
+        let label = if let (true, tok) = cursor.peek_semicolon(false)? {
             match tok {
                 Some(tok) if tok.kind == TokenKind::Punctuator(Punctuator::Semicolon) => {
-                    let _ = cursor.next(false);
+                    let _ = cursor.next();
                 }
                 _ => {}
             }
@@ -72,7 +72,7 @@ where
             None
         } else {
             let label = LabelIdentifier::new(self.allow_yield, self.allow_await).parse(cursor)?;
-            cursor.expect_semicolon("continue statement")?;
+            cursor.expect_semicolon(false, "continue statement")?;
 
             Some(label)
         };

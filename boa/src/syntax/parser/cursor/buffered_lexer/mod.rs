@@ -5,40 +5,51 @@ use crate::{
         parser::error::ParseError,
     },
 };
-use std::{cmp::min, io::Read};
+use std::{io::Read, mem};
 
 #[cfg(test)]
 mod tests;
 
-/// The fixed size of the buffer used for storing values that are peeked ahead.
-/// Sized 5 to allow for peeking ahead upto 4 values and pushing back a single value.
-const PEEK_BUF_SIZE: usize = 5;
-
 /// The maximum number of tokens which can be peeked ahead.
-const MAX_PEEK_SKIP: usize = 3;
+const MAX_PEEK_SKIP: usize = 2;
+
+/// The fixed size of the buffer used for storing values that are peeked ahead.
+///
+/// The size is calculated for a worst case scenario, where we want to get the previous token and
+/// peek `MAX_PEEK_SKIP` tokens skipping line terminators:
+/// ```text
+/// [A, \n, B, \n, C, \n, D, \n, E, \n, F]
+///  -1     0      1      2      3      4
+/// ```
+const PEEK_BUF_SIZE: usize = (MAX_PEEK_SKIP + 1) * 2 + 1;
 
 #[derive(Debug)]
 pub(super) struct BufferedLexer<R> {
     lexer: Lexer<R>,
     peeked: [Option<Token>; PEEK_BUF_SIZE],
-    buf_size: usize,
-    back_index: usize,
+    read_index: usize,
+    write_index: usize,
 }
 
 impl<R> From<Lexer<R>> for BufferedLexer<R>
 where
     R: Read,
 {
-    #[inline(always)]
+    #[inline]
     fn from(lexer: Lexer<R>) -> Self {
         Self {
             lexer,
             peeked: [
-                None::<Token>;
-                PEEK_BUF_SIZE
+                None::<Token>,
+                None::<Token>,
+                None::<Token>,
+                None::<Token>,
+                None::<Token>,
+                None::<Token>,
+                None::<Token>,
             ],
-            buf_size: 0,
-            back_index: 0,
+            read_index: 0,
+            write_index: 0,
         }
     }
 }
@@ -47,7 +58,7 @@ impl<R> From<R> for BufferedLexer<R>
 where
     R: Read,
 {
-    #[inline(always)]
+    #[inline]
     fn from(reader: R) -> Self {
         Lexer::new(reader).into()
     }
@@ -58,152 +69,173 @@ where
     R: Read,
 {
     /// Sets the goal symbol for the lexer.
-    #[inline(always)]
+    #[inline]
     pub(super) fn set_goal(&mut self, elm: InputElement) {
         let _timer = BoaProfiler::global().start_event("cursor::set_goal()", "Parsing");
         self.lexer.set_goal(elm)
     }
 
     /// Lexes the next tokens as a regex assuming that the starting '/' has already been consumed.
-    #[inline(always)]
+    #[inline]
     pub(super) fn lex_regex(&mut self, start: Position) -> Result<Token, ParseError> {
         let _timer = BoaProfiler::global().start_event("cursor::lex_regex()", "Parsing");
         self.set_goal(InputElement::RegExp);
         self.lexer.lex_slash_token(start).map_err(|e| e.into())
     }
 
+    /// Fills the peeking buffer with the next token.
+    ///
+    /// It will not fill two line terminators one after the other.
+    fn fill(&mut self) -> Result<(), ParseError> {
+        assert!(
+            self.write_index < PEEK_BUF_SIZE,
+            "write index went out of bounds"
+        );
+
+        let previous_index = self.write_index.checked_sub(1).unwrap_or(PEEK_BUF_SIZE - 1);
+
+        if let Some(ref token) = self.peeked[previous_index] {
+            if token.kind() == &TokenKind::LineTerminator {
+                // We don't want to have multiple contiguous line terminators in the buffer, since
+                // they have no meaning.
+                let next = loop {
+                    let next = self.lexer.next()?;
+                    if let Some(ref token) = next {
+                        if token.kind() != &TokenKind::LineTerminator {
+                            break next;
+                        }
+                    } else {
+                        break None;
+                    }
+                };
+
+                self.peeked[self.write_index] = next;
+            } else {
+                self.peeked[self.write_index] = self.lexer.next()?;
+            }
+        } else {
+            self.peeked[self.write_index] = self.lexer.next()?;
+        }
+        self.write_index = (self.write_index + 1) % PEEK_BUF_SIZE;
+
+        debug_assert_ne!(
+            self.read_index, self.write_index,
+            "we reached the read index with the write index"
+        );
+
+        Ok(())
+    }
+
     /// Moves the cursor to the next token and returns the token.
     ///
     /// If skip_line_terminators is true then line terminators will be discarded.
     ///
-    /// This follows iterator semantics in that a peek(0, false) followed by a next(false) will return the same value.
-    /// Note that because a peek(n, false) may return a line terminator a subsequent next(true) may not return the same value.
-    #[inline]
+    /// This follows iterator semantics in that a `peek(0, false)` followed by a `next(false)` will
+    /// return the same value. Note that because a `peek(n, false)` may return a line terminator a
+    // subsequent `next(true)` may not return the same value.
     pub(super) fn next(
         &mut self,
         skip_line_terminators: bool,
     ) -> Result<Option<Token>, ParseError> {
-        let _timer = BoaProfiler::global().start_event("cursor::next()", "Parsing");
+        if self.read_index == self.write_index {
+            self.fill()?;
+        }
+        assert!(
+            self.read_index < PEEK_BUF_SIZE,
+            "read index went out of bounds"
+        );
 
-        if self.buf_size == 0 {
-            // No value has been peeked ahead already so need to go get the next value.
-            Ok(self.lexer.next(skip_line_terminators)?)
-        } else {
-            // A value has already been peeked ahead so use that.
-            let val = self.peeked[self.back_index].take();
-            self.back_index = (self.back_index + 1) % PEEK_BUF_SIZE;
-            self.buf_size -= 1;
-
-            if skip_line_terminators {
-                if let Some(t) = val {
-                    if *t.kind() == TokenKind::LineTerminator {
-                        self.next(skip_line_terminators)
-                    } else {
-                        Ok(Some(t))
-                    }
-                } else {
-                    Ok(None)
-                }
+        dbg!(&self.peeked, self.read_index, self.write_index);
+        if let Some(ref token) = self.peeked[self.read_index] {
+            let tok = if !skip_line_terminators || token.kind() != &TokenKind::LineTerminator {
+                mem::replace(&mut self.peeked[self.read_index], None)
             } else {
-                Ok(val)
-            }
+                // We only store 1 contiguous line terminator, so if the one at `self.read_index`
+                // was a line terminator, we know that the next won't be one.
+                self.read_index = (self.read_index + 1) % PEEK_BUF_SIZE;
+                if self.read_index == self.write_index {
+                    self.fill()?;
+                }
+
+                mem::replace(&mut self.peeked[self.read_index], None)
+            };
+            self.read_index = (self.read_index + 1) % PEEK_BUF_SIZE;
+
+            Ok(tok)
+        } else {
+            // We do not update the read index, since we should always return `None` from now on.
+            Ok(None)
         }
     }
 
-    /// Peeks the nth token after the next token.
-    /// n must be in the range [0, 3]
-    /// i.e. if there are tokens A, B, C, D, E and peek(0, false) returns A then:
-    ///     peek(1, false) == peek(1, true) == B.
-    ///     peek(2, false) will return C.
-    ///     peek(3, false) will return D.
-    /// where A, B, C, D, E are tokens but not line terminators.
+    /// Peeks the `n`th token after the next token.
     ///
-    /// If skip_line_terminators is true then line terminators will be discarded.
-    /// i.e. If there are tokens A, B, \n, C and peek(0, false) is 'A' then the following will hold:
-    ///         peek(0, true) == 'A'
-    ///         peek(1, true) == 'B'
-    ///         peek(1, false) == 'B'
-    ///         peek(2, false) == \n
-    ///         peek(2, true) == 'C'
-    ///         peek(3, true) == None (End of stream)
-    ///  Note:
-    ///     peek(3, false) == 'C' iff peek(3, true) hasn't been called previously, this is because
-    ///     with skip_line_terminators == true the '\n' would be discarded. This leads to the following statements
-    ///     evaluating to true (in isolation from each other or any other previous cursor calls):
-    ///         peek(3, false) == peek(3, false) == '\n'
-    ///         peek(3, true) == peek(3, true) == None
-    ///         peek(3, true) == peek(3, false) == None
-    ///         (peek(3, false) == 'C') != (peek(3, true) == None)
+    /// **Note:** `n` must be in the range `[0, 3]`.
+    /// i.e. if there are tokens `A`, `B`, `C`, `D`, `E` and `peek(0, false)` returns `A` then:
+    ///  - `peek(1, false) == peek(1, true) == B`.
+    ///  - `peek(2, false)` will return `C`.
+    ///  - `peek(3, false)` will return `D`.
+    /// where `A`, `B`, `C`, `D` and `E` are tokens but not line terminators.
     ///
-    /// This behaviour is demonstrated directly in the cursor::tests::skip_peeked_terminators test.
-    ///
+    /// If `skip_line_terminators` is `true` then line terminators will be discarded.
+    /// i.e. If there are tokens `A`, `B`, `\n`, `C` and `peek(0, false)` is `A` then the following
+    /// will hold:
+    ///  - `peek(0, true) == A`
+    ///  - `peek(0, false) == A`
+    ///  - `peek(1, true) == B`
+    ///  - `peek(1, false) == B`
+    ///  - `peek(2, true) == C`
+    ///  - `peek(2, false) == \n`
+    ///  - `peek(3, true) == None` (End of stream)
+    ///  - `peek(3, false) == C`
+    ///  - `peek(4, false) == None` (End of stream)
     pub(super) fn peek(
         &mut self,
         skip_n: usize,
         skip_line_terminators: bool,
-    ) -> Result<Option<Token>, ParseError> {
-        let _timer = BoaProfiler::global().start_event("cursor::peek()", "Parsing");
-        if skip_n > MAX_PEEK_SKIP {
-            unimplemented!("peek(n) where n > {}", MAX_PEEK_SKIP);
-        }
+    ) -> Result<Option<&Token>, ParseError> {
+        assert!(
+            skip_n <= MAX_PEEK_SKIP,
+            "you cannot skip more than {} elements",
+            MAX_PEEK_SKIP
+        );
 
-        if skip_line_terminators {
-            // We must go through the peeked buffer to remove any line terminators.
-            // This only needs to be done upto the point at which we are peeking - it is
-            // important that we don't go further than this as we would risk removing line terminators
-            // which are later needed.
-            for i in 0..min(skip_n + 1, self.buf_size) {
-                let index = (self.back_index + i) % PEEK_BUF_SIZE;
-                if let Some(t) = self.peeked[index].clone() {
-                    if t.kind() == &TokenKind::LineTerminator {
-                        self.peeked[index].take(); // Remove the line terminator
+        let mut read_index = self.read_index;
+        let mut count = 0;
+        let res_token = loop {
+            if self.read_index == self.write_index {
+                self.fill()?;
+            }
+            assert!(
+                self.read_index < PEEK_BUF_SIZE,
+                "read index went out of bounds"
+            );
 
-                        let mut dst_index = index; // Dst index for the swap.
+            dbg!(&self.peeked, self.read_index, self.write_index);
+            if let Some(ref token) = self.peeked[read_index] {
+                if !skip_line_terminators || token.kind() != &TokenKind::LineTerminator {
+                    if count == skip_n {
+                        break self.peeked[read_index].as_ref();
+                    }
+                } else {
+                    let next_index = (read_index + 1) % PEEK_BUF_SIZE;
+                    // We only store 1 contiguous line terminator, so if the one at `self.read_index`
+                    // was a line terminator, we know that the next won't be one.
+                    if next_index == self.write_index {
+                        self.fill()?;
+                    }
 
-                        // Move all subsequent values up (asif the line terminator never existed).
-                        for j in (i + 1)..self.buf_size {
-                            let src_index = (self.back_index + j) % PEEK_BUF_SIZE; // Src index for the swap.
-                            self.peeked[dst_index] = self.peeked[src_index].take();
-                            dst_index = src_index;
-                        }
-
-                        self.buf_size -= 1;
+                    if count == skip_n {
+                        break self.peeked[next_index].as_ref();
                     }
                 }
+            } else {
+                break None;
             }
-        }
-
-        while self.buf_size <= skip_n {
-            // Need to keep peeking more values.
-            self.peeked[(self.back_index + self.buf_size) % PEEK_BUF_SIZE] =
-                self.lexer.next(skip_line_terminators)?;
-
-            self.buf_size += 1;
-        }
-
-        // Have now peeked ahead the right number of spaces so can fetch the value directly.
-        Ok(self.peeked[(self.back_index + skip_n) % PEEK_BUF_SIZE].clone())
-    }
-
-    /// Takes the given token and pushes it back onto the parser token queue.
-    ///
-    /// Note: it pushes it at the the front so the token will be returned on next .peek().
-    ///
-    /// A push_back call must never (directly or indirectly) follow another push_back call without a next between them.
-    #[inline]
-    pub(super) fn push_back(&mut self, token: Token) {
-        let _timer = BoaProfiler::global().start_event("cursor::push_back()", "Parsing");
-        if self.buf_size >= (PEEK_BUF_SIZE - 1) {
-            unimplemented!("Push back more than once");
-        }
-
-        if self.back_index == 0 {
-            self.back_index = PEEK_BUF_SIZE - 1;
-        } else {
-            self.back_index -= 1;
+            read_index = (read_index + 1) % PEEK_BUF_SIZE;
+            count += 1;
         };
 
-        self.buf_size += 1;
-        self.peeked[self.back_index] = Some(token);
+        Ok(res_token)
     }
 }

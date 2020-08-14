@@ -52,12 +52,10 @@ where
     fn parse(self, cursor: &mut Cursor<R>) -> ParseResult {
         let _timer = BoaProfiler::global().start_event("UpdateExpression", "Parsing");
 
-        let tok = cursor.peek(0, false)?.ok_or(ParseError::AbruptEnd)?;
+        let tok = cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?;
         match tok.kind() {
             TokenKind::Punctuator(Punctuator::Inc) => {
-                cursor
-                    .next(false)?
-                    .expect("Punctuator::Inc token disappeared");
+                cursor.next()?.expect("Punctuator::Inc token disappeared");
                 return Ok(node::UnaryOp::new(
                     UnaryOp::IncrementPre,
                     LeftHandSideExpression::new(self.allow_yield, self.allow_await)
@@ -66,9 +64,7 @@ where
                 .into());
             }
             TokenKind::Punctuator(Punctuator::Dec) => {
-                cursor
-                    .next(false)?
-                    .expect("Punctuator::Dec token disappeared");
+                cursor.next()?.expect("Punctuator::Dec token disappeared");
                 return Ok(node::UnaryOp::new(
                     UnaryOp::DecrementPre,
                     LeftHandSideExpression::new(self.allow_yield, self.allow_await)
@@ -80,18 +76,14 @@ where
         }
 
         let lhs = LeftHandSideExpression::new(self.allow_yield, self.allow_await).parse(cursor)?;
-        if let Some(tok) = cursor.peek(0, false)? {
+        if let Some(tok) = cursor.peek(0)? {
             match tok.kind() {
                 TokenKind::Punctuator(Punctuator::Inc) => {
-                    cursor
-                        .next(false)?
-                        .expect("Punctuator::Inc token disappeared");
+                    cursor.next()?.expect("Punctuator::Inc token disappeared");
                     return Ok(node::UnaryOp::new(UnaryOp::IncrementPost, lhs).into());
                 }
                 TokenKind::Punctuator(Punctuator::Dec) => {
-                    cursor
-                        .next(false)?
-                        .expect("Punctuator::Dec token disappeared");
+                    cursor.next()?.expect("Punctuator::Dec token disappeared");
                     return Ok(node::UnaryOp::new(UnaryOp::DecrementPost, lhs).into());
                 }
                 _ => {}
