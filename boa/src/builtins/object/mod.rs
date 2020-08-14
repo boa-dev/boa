@@ -48,7 +48,7 @@ pub static PROTOTYPE: &str = "prototype";
 // pub static INSTANCE_PROTOTYPE: &str = "__proto__";
 
 /// The internal representation of an JavaScript object.
-#[derive(Trace, Finalize, Clone)]
+#[derive(Debug, Trace, Finalize, Clone)]
 pub struct Object {
     /// The type of the object.
     pub data: ObjectData,
@@ -62,18 +62,6 @@ pub struct Object {
     state: Option<InternalStateCell>,
     /// Whether it can have new properties added to it.
     extensible: bool,
-}
-
-impl Debug for Object {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("Object")
-            .field("data", &self.data)
-            .field("properties", &self.properties)
-            .field("symbol_properties", &self.symbol_properties)
-            .field("state", &self.state)
-            .field("extensible", &self.extensible)
-            .finish()
-    }
 }
 
 /// Defines the different types of objects.
