@@ -478,7 +478,7 @@ pub fn create(_: &Value, args: &[Value], interpreter: &mut Interpreter) -> Resul
         )),
         _ => interpreter.throw_type_error(format!(
             "Object prototype may only be an Object or null: {}",
-            prototype
+            prototype.display()
         )),
     }
 }
@@ -510,7 +510,7 @@ pub fn set_prototype_of(_: &Value, args: &[Value], _: &mut Interpreter) -> Resul
 /// Define a property in an object
 pub fn define_property(_: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
     let obj = args.get(0).expect("Cannot get object");
-    let prop = ctx.to_string(args.get(1).expect("Cannot get object"))?;
+    let prop = args.get(1).expect("Cannot get object").to_string(ctx)?;
     let desc = Property::from(args.get(2).expect("Cannot get object"));
     obj.set_property(prop, desc);
     Ok(Value::undefined())
@@ -527,7 +527,8 @@ pub fn define_property(_: &Value, args: &[Value], ctx: &mut Interpreter) -> Resu
 /// [spec]: https://tc39.es/ecma262/#sec-object.prototype.tostring
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/toString
 pub fn to_string(this: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
-    Ok(Value::from(this.to_string()))
+    // FIXME: it should not display the object.
+    Ok(Value::from(this.display().to_string()))
 }
 
 /// `Object.prototype.hasOwnPrototype( property )`
@@ -545,7 +546,7 @@ pub fn has_own_property(this: &Value, args: &[Value], ctx: &mut Interpreter) -> 
     let prop = if args.is_empty() {
         None
     } else {
-        Some(ctx.to_string(args.get(0).expect("Cannot get object"))?)
+        Some(args.get(0).expect("Cannot get object").to_string(ctx)?)
     };
     let own_property = this
         .as_object()
@@ -565,11 +566,11 @@ pub fn property_is_enumerable(this: &Value, args: &[Value], ctx: &mut Interprete
         Some(key) => key,
     };
 
-    let property_key = ctx.to_property_key(key)?;
-    let own_property = ctx.to_object(this).map(|obj| {
+    let key = key.to_property_key(ctx)?;
+    let own_property = this.to_object(ctx).map(|obj| {
         obj.as_object()
             .expect("Unable to deref object")
-            .get_own_property(&property_key)
+            .get_own_property(&key)
     });
 
     Ok(own_property.map_or(Value::from(false), |own_prop| {

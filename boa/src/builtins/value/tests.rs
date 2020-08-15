@@ -22,7 +22,7 @@ fn string_to_value() {
 fn undefined() {
     let u = Value::Undefined;
     assert_eq!(u.get_type(), Type::Undefined);
-    assert_eq!(u.to_string(), "undefined");
+    assert_eq!(u.display().to_string(), "undefined");
 }
 
 #[test]
@@ -31,7 +31,7 @@ fn get_set_field() {
     // Create string and convert it to a Value
     let s = Value::from("bar");
     obj.set_field("foo", s);
-    assert_eq!(obj.get_field("foo").to_string(), "\"bar\"");
+    assert_eq!(obj.get_field("foo").display().to_string(), "\"bar\"");
 }
 
 #[test]
@@ -216,7 +216,7 @@ fn get_types() {
 
 #[test]
 fn to_string() {
-    let f64_to_str = |f| Value::Rational(f).to_string();
+    let f64_to_str = |f| Value::Rational(f).display().to_string();
 
     assert_eq!(f64_to_str(f64::NAN), "NaN");
     assert_eq!(f64_to_str(0.0), "0");
@@ -254,7 +254,7 @@ fn add_number_and_number() {
     let mut engine = Interpreter::new(realm);
 
     let value = forward_val(&mut engine, "1 + 2").unwrap();
-    let value = engine.to_int32(&value).unwrap();
+    let value = value.to_int32(&mut engine).unwrap();
     assert_eq!(value, 3);
 }
 
@@ -264,7 +264,7 @@ fn add_number_and_string() {
     let mut engine = Interpreter::new(realm);
 
     let value = forward_val(&mut engine, "1 + \" + 2 = 3\"").unwrap();
-    let value = engine.to_string(&value).unwrap();
+    let value = value.to_string(&mut engine).unwrap();
     assert_eq!(value, "1 + 2 = 3");
 }
 
@@ -274,7 +274,7 @@ fn add_string_and_string() {
     let mut engine = Interpreter::new(realm);
 
     let value = forward_val(&mut engine, "\"Hello\" + \", world\"").unwrap();
-    let value = engine.to_string(&value).unwrap();
+    let value = value.to_string(&mut engine).unwrap();
     assert_eq!(value, "Hello, world");
 }
 
@@ -284,7 +284,7 @@ fn add_number_object_and_number() {
     let mut engine = Interpreter::new(realm);
 
     let value = forward_val(&mut engine, "new Number(10) + 6").unwrap();
-    let value = engine.to_int32(&value).unwrap();
+    let value = value.to_int32(&mut engine).unwrap();
     assert_eq!(value, 16);
 }
 
@@ -294,7 +294,7 @@ fn add_number_object_and_string_object() {
     let mut engine = Interpreter::new(realm);
 
     let value = forward_val(&mut engine, "new Number(10) + new String(\"0\")").unwrap();
-    let value = engine.to_string(&value).unwrap();
+    let value = value.to_string(&mut engine).unwrap();
     assert_eq!(value, "100");
 }
 
@@ -304,7 +304,7 @@ fn sub_number_and_number() {
     let mut engine = Interpreter::new(realm);
 
     let value = forward_val(&mut engine, "1 - 999").unwrap();
-    let value = engine.to_int32(&value).unwrap();
+    let value = value.to_int32(&mut engine).unwrap();
     assert_eq!(value, -998);
 }
 
@@ -314,7 +314,7 @@ fn sub_number_object_and_number_object() {
     let mut engine = Interpreter::new(realm);
 
     let value = forward_val(&mut engine, "new Number(1) - new Number(999)").unwrap();
-    let value = engine.to_int32(&value).unwrap();
+    let value = value.to_int32(&mut engine).unwrap();
     assert_eq!(value, -998);
 }
 
@@ -324,7 +324,7 @@ fn sub_string_and_number_object() {
     let mut engine = Interpreter::new(realm);
 
     let value = forward_val(&mut engine, "'Hello' - new Number(999)").unwrap();
-    let value = engine.to_number(&value).unwrap();
+    let value = value.to_number(&mut engine).unwrap();
     assert!(value.is_nan());
 }
 
@@ -334,7 +334,7 @@ fn bitand_integer_and_integer() {
     let mut engine = Interpreter::new(realm);
 
     let value = forward_val(&mut engine, "0xFFFF & 0xFF").unwrap();
-    let value = engine.to_int32(&value).unwrap();
+    let value = value.to_int32(&mut engine).unwrap();
     assert_eq!(value, 255);
 }
 
@@ -344,7 +344,7 @@ fn bitand_integer_and_rational() {
     let mut engine = Interpreter::new(realm);
 
     let value = forward_val(&mut engine, "0xFFFF & 255.5").unwrap();
-    let value = engine.to_int32(&value).unwrap();
+    let value = value.to_int32(&mut engine).unwrap();
     assert_eq!(value, 255);
 }
 
@@ -354,17 +354,18 @@ fn bitand_rational_and_rational() {
     let mut engine = Interpreter::new(realm);
 
     let value = forward_val(&mut engine, "255.772 & 255.5").unwrap();
-    let value = engine.to_int32(&value).unwrap();
+    let value = value.to_int32(&mut engine).unwrap();
     assert_eq!(value, 255);
 }
 
 #[test]
+#[allow(clippy::float_cmp)]
 fn pow_number_and_number() {
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);
 
     let value = forward_val(&mut engine, "3 ** 3").unwrap();
-    let value = engine.to_number(&value).unwrap();
+    let value = value.to_number(&mut engine).unwrap();
     assert_eq!(value, 27.0);
 }
 
@@ -374,7 +375,7 @@ fn pow_number_and_string() {
     let mut engine = Interpreter::new(realm);
 
     let value = forward_val(&mut engine, "3 ** 'Hello'").unwrap();
-    let value = engine.to_number(&value).unwrap();
+    let value = value.to_number(&mut engine).unwrap();
     assert!(value.is_nan());
 }
 
@@ -392,7 +393,7 @@ fn assign_pow_number_and_string() {
     ",
     )
     .unwrap();
-    let value = engine.to_number(&value).unwrap();
+    let value = value.to_number(&mut engine).unwrap();
     assert!(value.is_nan());
 }
 
@@ -400,7 +401,7 @@ fn assign_pow_number_and_string() {
 fn display_string() {
     let s = String::from("Hello");
     let v = Value::from(s);
-    assert_eq!(v.to_string(), "\"Hello\"");
+    assert_eq!(v.display().to_string(), "\"Hello\"");
 }
 
 #[test]
@@ -409,7 +410,7 @@ fn display_array_string() {
     let mut engine = Interpreter::new(realm);
 
     let value = forward_val(&mut engine, "[\"Hello\"]").unwrap();
-    assert_eq!(value.to_string(), "[ \"Hello\" ]");
+    assert_eq!(value.display().to_string(), "[ \"Hello\" ]");
 }
 
 #[test]
@@ -421,7 +422,7 @@ fn display_boolean_object() {
         bool
     "#;
     let value = forward_val(&mut engine, d_obj).unwrap();
-    assert_eq!(value.to_string(), "Boolean { false }")
+    assert_eq!(value.display().to_string(), "Boolean { false }")
 }
 
 #[test]
@@ -433,7 +434,7 @@ fn display_number_object() {
         num
     "#;
     let value = forward_val(&mut engine, d_obj).unwrap();
-    assert_eq!(value.to_string(), "Number { 3.14 }")
+    assert_eq!(value.display().to_string(), "Number { 3.14 }")
 }
 
 #[test]
@@ -445,7 +446,7 @@ fn display_negative_zero_object() {
         num
     "#;
     let value = forward_val(&mut engine, d_obj).unwrap();
-    assert_eq!(value.to_string(), "Number { -0 }")
+    assert_eq!(value.display().to_string(), "Number { -0 }")
 }
 
 #[test]
@@ -459,7 +460,7 @@ fn display_object() {
     "#;
     let value = forward_val(&mut engine, d_obj).unwrap();
     assert_eq!(
-        value.to_string(),
+        value.display().to_string(),
         r#"{
    a: "a",
 __proto__: {

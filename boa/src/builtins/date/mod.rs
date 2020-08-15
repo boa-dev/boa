@@ -5,9 +5,9 @@ use crate::{
     builtins::{
         function::{make_builtin_fn, make_constructor_fn},
         object::ObjectData,
+        value::PreferredType,
         ResultValue, Value,
     },
-    exec::PreferredType,
     BoaProfiler, Interpreter,
 };
 use chrono::{prelude::*, Duration, LocalResult};
@@ -62,7 +62,7 @@ macro_rules! setter_method {
                     args
                         .get($e)
                         .and_then(|value| {
-                            ctx.to_numeric_number(value).map_or_else(
+                            value.to_numeric_number(ctx).map_or_else(
                                 |_| None,
                                 |value| {
                                     if value == 0f64 || value.is_normal() {
@@ -306,13 +306,13 @@ impl Date {
         let value = &args[0];
         let tv = match this_time_value(value, ctx) {
             Ok(dt) => dt.0,
-            _ => match &ctx.to_primitive(value, PreferredType::Default)? {
-                Value::String(str) => match chrono::DateTime::parse_from_rfc3339(&str) {
+            _ => match value.to_primitive(ctx, PreferredType::Default)? {
+                Value::String(ref str) => match chrono::DateTime::parse_from_rfc3339(&str) {
                     Ok(dt) => Some(dt.naive_utc()),
                     _ => None,
                 },
                 tv => {
-                    let tv = ctx.to_number(&tv)?;
+                    let tv = tv.to_number(ctx)?;
                     let secs = (tv / 1_000f64) as i64;
                     let nsecs = ((tv % 1_000f64) * 1_000_000f64) as u32;
                     NaiveDateTime::from_timestamp_opt(secs, nsecs)
@@ -340,13 +340,13 @@ impl Date {
         args: &[Value],
         ctx: &mut Interpreter,
     ) -> ResultValue {
-        let year = ctx.to_number(&args[0])?;
-        let month = ctx.to_number(&args[1])?;
-        let day = args.get(2).map_or(Ok(1f64), |value| ctx.to_number(value))?;
-        let hour = args.get(3).map_or(Ok(0f64), |value| ctx.to_number(value))?;
-        let min = args.get(4).map_or(Ok(0f64), |value| ctx.to_number(value))?;
-        let sec = args.get(5).map_or(Ok(0f64), |value| ctx.to_number(value))?;
-        let milli = args.get(6).map_or(Ok(0f64), |value| ctx.to_number(value))?;
+        let year = args[0].to_number(ctx)?;
+        let month = args[1].to_number(ctx)?;
+        let day = args.get(2).map_or(Ok(1f64), |value| value.to_number(ctx))?;
+        let hour = args.get(3).map_or(Ok(0f64), |value| value.to_number(ctx))?;
+        let min = args.get(4).map_or(Ok(0f64), |value| value.to_number(ctx))?;
+        let sec = args.get(5).map_or(Ok(0f64), |value| value.to_number(ctx))?;
+        let milli = args.get(6).map_or(Ok(0f64), |value| value.to_number(ctx))?;
 
         // If any of the args are infinity or NaN, return an invalid date.
         if !check_normal_opt!(year, month, day, hour, min, sec, milli) {
@@ -1188,7 +1188,7 @@ impl Date {
             return Ok(Value::number(f64::NAN));
         }
 
-        match DateTime::parse_from_rfc3339(&ctx.to_string(&args[0])?) {
+        match DateTime::parse_from_rfc3339(&args[0].to_string(ctx)?) {
             Ok(v) => Ok(Value::number(v.naive_utc().timestamp_millis() as f64)),
             _ => Ok(Value::number(f64::NAN)),
         }
@@ -1207,13 +1207,13 @@ impl Date {
     pub(crate) fn utc(_: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
         let year = args
             .get(0)
-            .map_or(Ok(f64::NAN), |value| ctx.to_number(value))?;
-        let month = args.get(1).map_or(Ok(1f64), |value| ctx.to_number(value))?;
-        let day = args.get(2).map_or(Ok(1f64), |value| ctx.to_number(value))?;
-        let hour = args.get(3).map_or(Ok(0f64), |value| ctx.to_number(value))?;
-        let min = args.get(4).map_or(Ok(0f64), |value| ctx.to_number(value))?;
-        let sec = args.get(5).map_or(Ok(0f64), |value| ctx.to_number(value))?;
-        let milli = args.get(6).map_or(Ok(0f64), |value| ctx.to_number(value))?;
+            .map_or(Ok(f64::NAN), |value| value.to_number(ctx))?;
+        let month = args.get(1).map_or(Ok(1f64), |value| value.to_number(ctx))?;
+        let day = args.get(2).map_or(Ok(1f64), |value| value.to_number(ctx))?;
+        let hour = args.get(3).map_or(Ok(0f64), |value| value.to_number(ctx))?;
+        let min = args.get(4).map_or(Ok(0f64), |value| value.to_number(ctx))?;
+        let sec = args.get(5).map_or(Ok(0f64), |value| value.to_number(ctx))?;
+        let milli = args.get(6).map_or(Ok(0f64), |value| value.to_number(ctx))?;
 
         if !check_normal_opt!(year, month, day, hour, min, sec, milli) {
             return Ok(Value::number(f64::NAN));

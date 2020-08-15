@@ -93,7 +93,7 @@ impl BigInt {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/BigInt/BigInt
     pub(crate) fn make_bigint(_: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
         let data = match args.get(0) {
-            Some(ref value) => ctx.to_bigint(value)?,
+            Some(ref value) => value.to_bigint(ctx)?,
             None => RcBigInt::from(Self::from(0)),
         };
         Ok(Value::from(data))
@@ -112,7 +112,7 @@ impl BigInt {
     #[allow(clippy::wrong_self_convention)]
     pub(crate) fn to_string(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
         let radix = if !args.is_empty() {
-            args[0].to_integer()
+            args[0].to_integer(ctx)? as i32
         } else {
             10
         };
@@ -184,10 +184,10 @@ impl BigInt {
         let bits_arg = args.get(0).unwrap_or(&undefined_value);
         let bigint_arg = args.get(1).unwrap_or(&undefined_value);
 
-        let bits = ctx.to_index(bits_arg)?;
+        let bits = bits_arg.to_index(ctx)?;
         let bits = u32::try_from(bits).unwrap_or(u32::MAX);
 
-        let bigint = ctx.to_bigint(bigint_arg)?;
+        let bigint = bigint_arg.to_bigint(ctx)?;
 
         Ok((
             bigint

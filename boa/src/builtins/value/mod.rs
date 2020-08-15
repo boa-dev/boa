@@ -5,11 +5,12 @@
 #[cfg(test)]
 mod tests;
 
+use super::number::{f64_to_int32, f64_to_uint32};
 use crate::builtins::{
     function::Function,
     object::{GcObject, InternalState, InternalStateCell, Object, ObjectData, PROTOTYPE},
     property::{Attribute, Property, PropertyKey},
-    BigInt, Symbol,
+    BigInt, Number, Symbol,
 };
 use crate::exec::Interpreter;
 use crate::BoaProfiler;
@@ -36,6 +37,7 @@ mod r#type;
 
 pub use conversions::*;
 pub(crate) use display::display_obj;
+pub use display::ValueDisplay;
 pub use equality::*;
 pub use hash::*;
 pub use operations::*;
@@ -383,6 +385,15 @@ impl Value {
         matches!(self, Self::Rational(_) | Self::Integer(_))
     }
 
+    #[inline]
+    pub fn as_number(&self) -> Option<f64> {
+        match *self {
+            Self::Integer(integer) => Some(integer.into()),
+            Self::Rational(rational) => Some(rational),
+            _ => None,
+        }
+    }
+
     /// Returns true if the value is a string.
     #[inline]
     pub fn is_string(&self) -> bool {
@@ -416,51 +427,6 @@ impl Value {
         match self {
             Self::BigInt(bigint) => Some(bigint),
             _ => None,
-        }
-    }
-
-    /// Converts the value into a 64-bit floating point number
-    pub fn to_number(&self) -> f64 {
-        match *self {
-            Self::Object(_) | Self::Symbol(_) | Self::Undefined => NAN,
-            Self::String(ref str) => {
-                if str.is_empty() {
-                    return 0.0;
-                }
-
-                match FromStr::from_str(str) {
-                    Ok(num) => num,
-                    Err(_) => NAN,
-                }
-            }
-            Self::Boolean(true) => 1.0,
-            Self::Boolean(false) | Self::Null => 0.0,
-            Self::Rational(num) => num,
-            Self::Integer(num) => f64::from(num),
-            Self::BigInt(_) => {
-                panic!("TypeError: Cannot mix BigInt and other types, use explicit conversions")
-            }
-        }
-    }
-
-    /// Converts the value into a 32-bit integer
-    pub fn to_integer(&self) -> i32 {
-        match *self {
-            Self::Object(_)
-            | Self::Undefined
-            | Self::Symbol(_)
-            | Self::Null
-            | Self::Boolean(false) => 0,
-            Self::String(ref str) => match FromStr::from_str(str) {
-                Ok(num) => num,
-                Err(_) => 0,
-            },
-            Self::Rational(num) => num as i32,
-            Self::Boolean(true) => 1,
-            Self::Integer(num) => num,
-            Self::BigInt(_) => {
-                panic!("TypeError: Cannot mix BigInt and other types, use explicit conversions")
-            }
         }
     }
 
@@ -650,7 +616,7 @@ impl Value {
                 if obj.borrow().is_array() {
                     if let Ok(num) = string.parse::<usize>() {
                         if num > 0 {
-                            let len = i32::from(&self.get_field("length"));
+                            let len = self.get_field("length").as_number().unwrap() as i32;
                             if len < (num + 1) as i32 {
                                 self.set_field("length", num + 1);
                             }
@@ -704,10 +670,439 @@ impl Value {
         new_func_val.set_field("length", Value::from(length));
         new_func_val
     }
+
+    /// The abstract operation ToPrimitive takes an input argument and an optional argument PreferredType.
+    ///
+    /// <https://tc39.es/ecma262/#sec-toprimitive>
+    pub fn to_primitive(
+        &self,
+        ctx: &mut Interpreter,
+        preferred_type: PreferredType,
+    ) -> ResultValue {
+        // 1. Assert: input is an ECMAScript language value. (always a value not need to check)
+        // 2. If Type(input) is Object, then
+        if let Value::Object(_) = self {
+            let mut hint = preferred_type;
+
+            // Skip d, e we don't support Symbols yet
+            // TODO: add when symbols are supported
+            // TODO: Add other steps.
+            if hint == PreferredType::Default {
+                hint = PreferredType::Number;
+            };
+
+            // g. Return ? OrdinaryToPrimitive(input, hint).
+            ctx.ordinary_to_primitive(self, hint)
+        } else {
+            // 3. Return input.
+            Ok(self.clone())
+        }
+    }
+
+    /// Converts the value to a `BigInt`.
+    ///
+    /// This function is equivelent to `BigInt(value)` in JavaScript.
+    pub fn to_bigint(&self, ctx: &mut Interpreter) -> Result<RcBigInt, Value> {
+        match self {
+            Value::Null => Err(ctx.construct_type_error("cannot convert null to a BigInt")),
+            Value::Undefined => {
+                Err(ctx.construct_type_error("cannot convert undefined to a BigInt"))
+            }
+            Value::String(ref string) => Ok(RcBigInt::from(BigInt::from_string(string, ctx)?)),
+            Value::Boolean(true) => Ok(RcBigInt::from(BigInt::from(1))),
+            Value::Boolean(false) => Ok(RcBigInt::from(BigInt::from(0))),
+            Value::Integer(num) => Ok(RcBigInt::from(BigInt::from(*num))),
+            Value::Rational(num) => {
+                if let Ok(bigint) = BigInt::try_from(*num) {
+                    return Ok(RcBigInt::from(bigint));
+                }
+                Err(ctx.construct_type_error(format!(
+                    "The number {} cannot be converted to a BigInt because it is not an integer",
+                    num
+                )))
+            }
+            Value::BigInt(b) => Ok(b.clone()),
+            Value::Object(_) => {
+                let primitive = self.to_primitive(ctx, PreferredType::Number)?;
+                primitive.to_bigint(ctx)
+            }
+            Value::Symbol(_) => Err(ctx.construct_type_error("cannot convert Symbol to a BigInt")),
+        }
+    }
+
+    /// Returns an object that implements `Display`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use boa::builtins::value::Value;
+    ///
+    /// let value = Value::number(3);
+    ///
+    /// println!("{}", value.display());
+    /// ```
+    #[inline]
+    pub fn display(&self) -> ValueDisplay<'_> {
+        ValueDisplay { value: self }
+    }
+
+    /// Converts the value to a string.
+    ///
+    /// This function is equivalent to `String(value)` in JavaScript.
+    pub fn to_string(&self, ctx: &mut Interpreter) -> Result<RcString, Value> {
+        match self {
+            Value::Null => Ok("null".into()),
+            Value::Undefined => Ok("undefined".into()),
+            Value::Boolean(boolean) => Ok(boolean.to_string().into()),
+            Value::Rational(rational) => Ok(Number::to_native_string(*rational).into()),
+            Value::Integer(integer) => Ok(integer.to_string().into()),
+            Value::String(string) => Ok(string.clone()),
+            Value::Symbol(_) => Err(ctx.construct_type_error("can't convert symbol to string")),
+            Value::BigInt(ref bigint) => Ok(bigint.to_string().into()),
+            Value::Object(_) => {
+                let primitive = self.to_primitive(ctx, PreferredType::String)?;
+                primitive.to_string(ctx)
+            }
+        }
+    }
+
+    /// Converts th value to a value of type Object.
+    ///
+    /// This function is equivalent to `Object(value)` in JavaScript
+    ///
+    /// See: <https://tc39.es/ecma262/#sec-toobject>
+    pub fn to_object(&self, ctx: &mut Interpreter) -> ResultValue {
+        match self {
+            Value::Undefined | Value::Null => {
+                ctx.throw_type_error("cannot convert 'null' or 'undefined' to object")
+            }
+            Value::Boolean(boolean) => {
+                let proto = ctx
+                    .realm
+                    .environment
+                    .get_binding_value("Boolean")
+                    .expect("Boolean was not initialized")
+                    .get_field(PROTOTYPE);
+
+                Ok(Value::new_object_from_prototype(
+                    proto,
+                    ObjectData::Boolean(*boolean),
+                ))
+            }
+            Value::Integer(integer) => {
+                let proto = ctx
+                    .realm
+                    .environment
+                    .get_binding_value("Number")
+                    .expect("Number was not initialized")
+                    .get_field(PROTOTYPE);
+                Ok(Value::new_object_from_prototype(
+                    proto,
+                    ObjectData::Number(f64::from(*integer)),
+                ))
+            }
+            Value::Rational(rational) => {
+                let proto = ctx
+                    .realm
+                    .environment
+                    .get_binding_value("Number")
+                    .expect("Number was not initialized")
+                    .get_field(PROTOTYPE);
+
+                Ok(Value::new_object_from_prototype(
+                    proto,
+                    ObjectData::Number(*rational),
+                ))
+            }
+            Value::String(ref string) => {
+                let proto = ctx
+                    .realm
+                    .environment
+                    .get_binding_value("String")
+                    .expect("String was not initialized")
+                    .get_field(PROTOTYPE);
+
+                Ok(Value::new_object_from_prototype(
+                    proto,
+                    ObjectData::String(string.clone()),
+                ))
+            }
+            Value::Symbol(ref symbol) => {
+                let proto = ctx
+                    .realm
+                    .environment
+                    .get_binding_value("Symbol")
+                    .expect("Symbol was not initialized")
+                    .get_field(PROTOTYPE);
+
+                Ok(Value::new_object_from_prototype(
+                    proto,
+                    ObjectData::Symbol(symbol.clone()),
+                ))
+            }
+            Value::BigInt(ref bigint) => {
+                let proto = ctx
+                    .realm
+                    .environment
+                    .get_binding_value("BigInt")
+                    .expect("BigInt was not initialized")
+                    .get_field(PROTOTYPE);
+                let bigint_obj =
+                    Value::new_object_from_prototype(proto, ObjectData::BigInt(bigint.clone()));
+                Ok(bigint_obj)
+            }
+            Value::Object(_) => Ok(self.clone()),
+        }
+    }
+
+    /// Converts the value to a `PropertyKey`, that can be used as a key for properties.
+    ///
+    /// See <https://tc39.es/ecma262/#sec-topropertykey>
+    pub fn to_property_key(&self, ctx: &mut Interpreter) -> Result<PropertyKey, Value> {
+        Ok(match self {
+            // Fast path:
+            Value::String(string) => string.clone().into(),
+            Value::Symbol(symbol) => symbol.clone().into(),
+            // Slow path:
+            _ => match self.to_primitive(ctx, PreferredType::String)? {
+                Value::String(ref string) => string.clone().into(),
+                Value::Symbol(ref symbol) => symbol.clone().into(),
+                primitive => primitive.to_string(ctx)?.into(),
+            },
+        })
+    }
+
+    /// It returns value converted to a numeric value of type `Number` or `BigInt`.
+    ///
+    /// See: <https://tc39.es/ecma262/#sec-tonumeric>
+    pub fn to_numeric(&self, ctx: &mut Interpreter) -> Result<Numeric, Value> {
+        let primitive = self.to_primitive(ctx, PreferredType::Number)?;
+        if let Some(bigint) = primitive.as_bigint() {
+            return Ok(bigint.clone().into());
+        }
+        Ok(self.to_number(ctx)?.into())
+    }
+
+    /// Converts a value to an integral 32 bit unsigned integer.
+    ///
+    /// This function is equivalent to `value | 0` in JavaScript
+    ///
+    /// See: <https://tc39.es/ecma262/#sec-toint32>
+    pub fn to_uint32(&self, ctx: &mut Interpreter) -> Result<u32, Value> {
+        // This is the fast path, if the value is Integer we can just return it.
+        if let Value::Integer(number) = *self {
+            return Ok(number as u32);
+        }
+        let number = self.to_number(ctx)?;
+
+        Ok(f64_to_uint32(number))
+    }
+
+    /// Converts a value to an integral 32 bit signed integer.
+    ///
+    /// See: <https://tc39.es/ecma262/#sec-toint32>
+    pub fn to_int32(&self, ctx: &mut Interpreter) -> Result<i32, Value> {
+        // This is the fast path, if the value is Integer we can just return it.
+        if let Value::Integer(number) = *self {
+            return Ok(number);
+        }
+        let number = self.to_number(ctx)?;
+
+        Ok(f64_to_int32(number))
+    }
+
+    /// Converts a value to a non-negative integer if it is a valid integer index value.
+    ///
+    /// See: <https://tc39.es/ecma262/#sec-toindex>
+    pub fn to_index(&self, ctx: &mut Interpreter) -> Result<usize, Value> {
+        if self.is_undefined() {
+            return Ok(0);
+        }
+
+        let integer_index = self.to_integer(ctx)?;
+
+        if integer_index < 0.0 {
+            return Err(ctx.construct_range_error("Integer index must be >= 0"));
+        }
+
+        if integer_index > Number::MAX_SAFE_INTEGER {
+            return Err(ctx.construct_range_error("Integer index must be less than 2**(53) - 1"));
+        }
+
+        Ok(integer_index as usize)
+    }
+
+    /// Converts argument to an integer suitable for use as the length of an array-like object.
+    ///
+    /// See: <https://tc39.es/ecma262/#sec-tolength>
+    pub fn to_length(&self, ctx: &mut Interpreter) -> Result<usize, Value> {
+        // 1. Let len be ? ToInteger(argument).
+        let len = self.to_integer(ctx)?;
+
+        // 2. If len ≤ +0, return +0.
+        if len < 0.0 {
+            return Ok(0);
+        }
+
+        // 3. Return min(len, 2^53 - 1).
+        Ok(len.min(Number::MAX_SAFE_INTEGER) as usize)
+    }
+
+    /// Converts a value to an integral Number value.
+    ///
+    /// See: <https://tc39.es/ecma262/#sec-tointeger>
+    pub fn to_integer(&self, ctx: &mut Interpreter) -> Result<f64, Value> {
+        // 1. Let number be ? ToNumber(argument).
+        let number = self.to_number(ctx)?;
+
+        // 2. If number is +∞ or -∞, return number.
+        if !number.is_finite() {
+            // 3. If number is NaN, +0, or -0, return +0.
+            if number.is_nan() {
+                return Ok(0.0);
+            }
+            return Ok(number);
+        }
+
+        // 4. Let integer be the Number value that is the same sign as number and whose magnitude is floor(abs(number)).
+        // 5. If integer is -0, return +0.
+        // 6. Return integer.
+        Ok(number.trunc() + 0.0) // We add 0.0 to convert -0.0 to +0.0
+    }
+
+    /// Converts a value to a double precision floating point.
+    ///
+    /// This function is equivalent to the unary `+` operator (`+value`) in JavaScript
+    ///
+    /// See: https://tc39.es/ecma262/#sec-tonumber
+    pub fn to_number(&self, ctx: &mut Interpreter) -> Result<f64, Value> {
+        match *self {
+            Value::Null => Ok(0.0),
+            Value::Undefined => Ok(f64::NAN),
+            Value::Boolean(b) => Ok(if b { 1.0 } else { 0.0 }),
+            // TODO: this is probably not 100% correct, see https://tc39.es/ecma262/#sec-tonumber-applied-to-the-string-type
+            Value::String(ref string) => {
+                if string.trim().is_empty() {
+                    return Ok(0.0);
+                }
+                Ok(string.parse().unwrap_or(f64::NAN))
+            }
+            Value::Rational(number) => Ok(number),
+            Value::Integer(integer) => Ok(f64::from(integer)),
+            Value::Symbol(_) => Err(ctx.construct_type_error("argument must not be a symbol")),
+            Value::BigInt(_) => Err(ctx.construct_type_error("argument must not be a bigint")),
+            Value::Object(_) => {
+                let primitive = self.to_primitive(ctx, PreferredType::Number)?;
+                primitive.to_number(ctx)
+            }
+        }
+    }
+
+    /// This is a more specialized version of `to_numeric`, including `BigInt`.
+    ///
+    /// This function is equivalent to `Number(value)` in JavaScript
+    ///
+    /// See: <https://tc39.es/ecma262/#sec-tonumeric>
+    pub fn to_numeric_number(&self, ctx: &mut Interpreter) -> Result<f64, Value> {
+        let primitive = self.to_primitive(ctx, PreferredType::Number)?;
+        if let Some(ref bigint) = primitive.as_bigint() {
+            return Ok(bigint.to_f64());
+        }
+        primitive.to_number(ctx)
+    }
 }
 
 impl Default for Value {
     fn default() -> Self {
         Self::Undefined
+    }
+}
+
+/// The preffered type to convert an object to a primitive `Value`.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub enum PreferredType {
+    String,
+    Number,
+    Default,
+}
+
+/// Numeric value which can be of two types `Number`, `BigInt`.
+#[derive(Debug, Clone, PartialEq, PartialOrd)]
+pub enum Numeric {
+    /// Double precision floating point number.
+    Number(f64),
+    /// BigInt an integer of arbitrary size.
+    BigInt(RcBigInt),
+}
+
+impl From<f64> for Numeric {
+    #[inline]
+    fn from(value: f64) -> Self {
+        Self::Number(value)
+    }
+}
+
+impl From<i32> for Numeric {
+    #[inline]
+    fn from(value: i32) -> Self {
+        Self::Number(value.into())
+    }
+}
+
+impl From<i16> for Numeric {
+    #[inline]
+    fn from(value: i16) -> Self {
+        Self::Number(value.into())
+    }
+}
+
+impl From<i8> for Numeric {
+    #[inline]
+    fn from(value: i8) -> Self {
+        Self::Number(value.into())
+    }
+}
+
+impl From<u32> for Numeric {
+    #[inline]
+    fn from(value: u32) -> Self {
+        Self::Number(value.into())
+    }
+}
+
+impl From<u16> for Numeric {
+    #[inline]
+    fn from(value: u16) -> Self {
+        Self::Number(value.into())
+    }
+}
+
+impl From<u8> for Numeric {
+    #[inline]
+    fn from(value: u8) -> Self {
+        Self::Number(value.into())
+    }
+}
+
+impl From<BigInt> for Numeric {
+    #[inline]
+    fn from(value: BigInt) -> Self {
+        Self::BigInt(value.into())
+    }
+}
+
+impl From<RcBigInt> for Numeric {
+    #[inline]
+    fn from(value: RcBigInt) -> Self {
+        Self::BigInt(value)
+    }
+}
+
+impl From<Numeric> for Value {
+    fn from(value: Numeric) -> Self {
+        match value {
+            Numeric::Number(number) => Self::rational(number),
+            Numeric::BigInt(bigint) => Self::bigint(bigint),
+        }
     }
 }
