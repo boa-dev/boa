@@ -112,26 +112,22 @@ where
         &mut self,
         do_while: bool,
         context: &'static str,
-    ) -> Result<Option<Token>, ParseError> {
-        // TODO: see if we can reduce code duplication with `peek_semicolon()`.
-        match self.buffered_lexer.next(false)? {
-            Some(tk) => match tk.kind() {
-                TokenKind::Punctuator(Punctuator::Semicolon)
-                | TokenKind::LineTerminator
-                | TokenKind::Punctuator(Punctuator::CloseBlock) => Ok(Some(tk)),
-                _ => {
-                    if do_while {
-                        Ok(Some(tk))
-                    } else {
-                        Err(ParseError::expected(
-                            vec![TokenKind::Punctuator(Punctuator::Semicolon)],
-                            tk,
-                            context,
-                        ))
-                    }
+    ) -> Result<(), ParseError> {
+        match self.peek_semicolon(do_while)? {
+            (true, Some(tk)) => match tk.kind {
+                TokenKind::Punctuator(Punctuator::Semicolon) | TokenKind::LineTerminator => {
+                    let _ = self.buffered_lexer.next(false);
+                    Ok(())
                 }
+                _ => Ok(()),
             },
-            None => Ok(None),
+            (true, None) => Ok(()),
+            (false, Some(tk)) => Err(ParseError::expected(
+                vec![TokenKind::Punctuator(Punctuator::Semicolon)],
+                tk.clone(),
+                context,
+            )),
+            (false, None) => unreachable!(),
         }
     }
 

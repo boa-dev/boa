@@ -10,19 +10,18 @@
 #[cfg(test)]
 mod tests;
 
-use crate::syntax::lexer::{InputElement, TokenKind};
 use crate::syntax::{
     ast::{
         node::{self},
         Punctuator,
     },
+    lexer::{InputElement, TokenKind},
     parser::{
         expression::Initializer,
         statement::{BindingIdentifier, StatementList},
         AllowAwait, AllowYield, Cursor, ParseError, TokenParser,
     },
 };
-
 use std::io::Read;
 
 /// Formal parameters parsing.
@@ -73,12 +72,15 @@ where
         loop {
             let mut rest_param = false;
 
-            params.push(if cursor.next_if(Punctuator::Spread)?.is_some() {
-                rest_param = true;
-                FunctionRestParameter::new(self.allow_yield, self.allow_await).parse(cursor)?
-            } else {
-                FormalParameter::new(self.allow_yield, self.allow_await).parse(cursor)?
-            });
+            let next_param = match cursor.peek(0)? {
+                Some(tok) if tok.kind() == &TokenKind::Punctuator(Punctuator::Spread) => {
+                    rest_param = true;
+                    FunctionRestParameter::new(self.allow_yield, self.allow_await).parse(cursor)?
+                }
+                _ => FormalParameter::new(self.allow_yield, self.allow_await).parse(cursor)?,
+            };
+
+            params.push(next_param);
 
             if cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?.kind()
                 == &TokenKind::Punctuator(Punctuator::CloseParen)
@@ -145,8 +147,7 @@ where
     type Output = node::FormalParameter;
 
     fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
-        // FIXME: we are reading the spread operator before the rest element.
-        // parser.expect(Punctuator::Spread, "rest parameter")?;
+        cursor.expect(Punctuator::Spread, "rest parameter")?;
 
         let param = BindingIdentifier::new(self.allow_yield, self.allow_await).parse(cursor)?;
         // TODO: BindingPattern
