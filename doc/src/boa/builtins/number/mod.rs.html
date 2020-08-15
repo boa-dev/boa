@@ -897,6 +897,10 @@
 <span id="897">897</span>
 <span id="898">898</span>
 <span id="899">899</span>
+<span id="900">900</span>
+<span id="901">901</span>
+<span id="902">902</span>
+<span id="903">903</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements the global `Number` object.</span>
 <span class="doccomment">//!</span>
@@ -1035,7 +1039,7 @@
     <span class="doccomment">/// `[[Call]]` - Creates a number primitive</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">make_number</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
         <span class="kw">let</span> <span class="ident">data</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>) {
-            <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">value</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ctx</span>.<span class="ident">to_numeric_number</span>(<span class="ident">value</span>)<span class="question-mark">?</span>,
+            <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">value</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">value</span>.<span class="ident">to_numeric_number</span>(<span class="ident">ctx</span>)<span class="question-mark">?</span>,
             <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">0.0</span>,
         };
         <span class="ident">this</span>.<span class="ident">set_data</span>(<span class="ident">ObjectData</span>::<span class="ident">Number</span>(<span class="ident">data</span>));
@@ -1078,8 +1082,8 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">to_fixed</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
         <span class="kw">let</span> <span class="ident">this_num</span> <span class="op">=</span> <span class="self">Self</span>::<span class="ident">this_number_value</span>(<span class="ident">this</span>, <span class="ident">ctx</span>)<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">precision</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>) {
-            <span class="prelude-val">Some</span>(<span class="ident">n</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">n</span>.<span class="ident">to_integer</span>() {
-                <span class="ident">x</span> <span class="kw">if</span> <span class="ident">x</span> <span class="op">&gt;</span> <span class="number">0</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">n</span>.<span class="ident">to_integer</span>() <span class="kw">as</span> <span class="ident">usize</span>,
+            <span class="prelude-val">Some</span>(<span class="ident">n</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">n</span>.<span class="ident">to_integer</span>(<span class="ident">ctx</span>)<span class="question-mark">?</span> <span class="kw">as</span> <span class="ident">i32</span> {
+                <span class="ident">x</span> <span class="kw">if</span> <span class="ident">x</span> <span class="op">&gt;</span> <span class="number">0</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">n</span>.<span class="ident">to_integer</span>(<span class="ident">ctx</span>)<span class="question-mark">?</span> <span class="kw">as</span> <span class="ident">usize</span>,
                 <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">0</span>,
             },
             <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">0</span>,
@@ -1127,8 +1131,8 @@
         <span class="kw">let</span> <span class="ident">this_num</span> <span class="op">=</span> <span class="self">Self</span>::<span class="ident">this_number_value</span>(<span class="ident">this</span>, <span class="ident">ctx</span>)<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">_num_str_len</span> <span class="op">=</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">this_num</span>).<span class="ident">len</span>();
         <span class="kw">let</span> <span class="ident">_precision</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>) {
-            <span class="prelude-val">Some</span>(<span class="ident">n</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">n</span>.<span class="ident">to_integer</span>() {
-                <span class="ident">x</span> <span class="kw">if</span> <span class="ident">x</span> <span class="op">&gt;</span> <span class="number">0</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">n</span>.<span class="ident">to_integer</span>() <span class="kw">as</span> <span class="ident">usize</span>,
+            <span class="prelude-val">Some</span>(<span class="ident">n</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">n</span>.<span class="ident">to_integer</span>(<span class="ident">ctx</span>)<span class="question-mark">?</span> <span class="kw">as</span> <span class="ident">i32</span> {
+                <span class="ident">x</span> <span class="kw">if</span> <span class="ident">x</span> <span class="op">&gt;</span> <span class="number">0</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">n</span>.<span class="ident">to_integer</span>(<span class="ident">ctx</span>)<span class="question-mark">?</span> <span class="kw">as</span> <span class="ident">usize</span>,
                 <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">0</span>,
             },
             <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">0</span>,
@@ -1283,7 +1287,11 @@
 
         <span class="comment">// 2. If radix is undefined, let radixNumber be 10.</span>
         <span class="comment">// 3. Else, let radixNumber be ? ToInteger(radix).</span>
-        <span class="kw">let</span> <span class="ident">radix</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">map_or</span>(<span class="number">10</span>, <span class="op">|</span><span class="ident">arg</span><span class="op">|</span> <span class="ident">arg</span>.<span class="ident">to_integer</span>()) <span class="kw">as</span> <span class="ident">u8</span>;
+        <span class="kw">let</span> <span class="ident">radix</span> <span class="op">=</span> <span class="ident">args</span>
+            .<span class="ident">get</span>(<span class="number">0</span>)
+            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">arg</span><span class="op">|</span> <span class="ident">arg</span>.<span class="ident">to_integer</span>(<span class="ident">ctx</span>))
+            .<span class="ident">transpose</span>()<span class="question-mark">?</span>
+            .<span class="ident">map_or</span>(<span class="number">10</span>, <span class="op">|</span><span class="ident">radix</span><span class="op">|</span> <span class="ident">radix</span> <span class="kw">as</span> <span class="ident">u8</span>);
 
         <span class="comment">// 4. If radixNumber &lt; 2 or radixNumber &gt; 36, throw a RangeError exception.</span>
         <span class="kw">if</span> <span class="ident">radix</span> <span class="op">&lt;</span> <span class="number">2</span> <span class="op">|</span><span class="op">|</span> <span class="ident">radix</span> <span class="op">&gt;</span> <span class="number">36</span> {
@@ -1463,8 +1471,8 @@
         <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>],
         <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">val</span>) <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>) {
-            <span class="kw">let</span> <span class="ident">number</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">to_number</span>(<span class="ident">val</span>)<span class="question-mark">?</span>;
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">value</span>) <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>) {
+            <span class="kw">let</span> <span class="ident">number</span> <span class="op">=</span> <span class="ident">value</span>.<span class="ident">to_number</span>(<span class="ident">ctx</span>)<span class="question-mark">?</span>;
             <span class="prelude-val">Ok</span>(<span class="ident">number</span>.<span class="ident">is_finite</span>().<span class="ident">into</span>())
         } <span class="kw">else</span> {
             <span class="prelude-val">Ok</span>(<span class="bool-val">false</span>.<span class="ident">into</span>())
@@ -1490,8 +1498,8 @@
         <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>],
         <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">val</span>) <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>) {
-            <span class="kw">let</span> <span class="ident">number</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">to_number</span>(<span class="ident">val</span>)<span class="question-mark">?</span>;
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">value</span>) <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>) {
+            <span class="kw">let</span> <span class="ident">number</span> <span class="op">=</span> <span class="ident">value</span>.<span class="ident">to_number</span>(<span class="ident">ctx</span>)<span class="question-mark">?</span>;
             <span class="prelude-val">Ok</span>(<span class="ident">number</span>.<span class="ident">is_nan</span>().<span class="ident">into</span>())
         } <span class="kw">else</span> {
             <span class="prelude-val">Ok</span>(<span class="bool-val">true</span>.<span class="ident">into</span>())

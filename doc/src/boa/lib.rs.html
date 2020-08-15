@@ -100,6 +100,8 @@
 <span id="100">100</span>
 <span id="101">101</span>
 <span id="102">102</span>
+<span id="103">103</span>
+<span id="104">104</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This is an experimental Javascript lexer, parser and compiler written in Rust. Currently, it has support for some of the language.</span>
 
@@ -169,8 +171,10 @@
         <span class="prelude-val">Ok</span>(<span class="ident">res</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">res</span>,
         <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident">e</span>,
     };
-    <span class="ident">expr</span>.<span class="ident">run</span>(<span class="ident">engine</span>)
-        .<span class="ident">map_or_else</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Error: {}&quot;</span>, <span class="ident">e</span>), <span class="op">|</span><span class="ident">v</span><span class="op">|</span> <span class="ident">v</span>.<span class="ident">to_string</span>())
+    <span class="ident">expr</span>.<span class="ident">run</span>(<span class="ident">engine</span>).<span class="ident">map_or_else</span>(
+        <span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Error: {}&quot;</span>, <span class="ident">e</span>.<span class="ident">display</span>()),
+        <span class="op">|</span><span class="ident">v</span><span class="op">|</span> <span class="ident">v</span>.<span class="ident">display</span>().<span class="ident">to_string</span>(),
+    )
 }
 
 <span class="doccomment">/// Execute the code using an existing Interpreter.</span>

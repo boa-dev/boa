@@ -229,6 +229,10 @@
 <span id="229">229</span>
 <span id="230">230</span>
 <span id="231">231</span>
+<span id="232">232</span>
+<span id="233">233</span>
+<span id="234">234</span>
+<span id="235">235</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Operator execution.</span>
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
@@ -272,7 +276,7 @@
             <span class="ident">Node</span>::<span class="ident">GetField</span>(<span class="kw-2">ref</span> <span class="ident">get_field</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">let</span> <span class="ident">object</span> <span class="op">=</span> <span class="ident">get_field</span>.<span class="ident">obj</span>().<span class="ident">run</span>(<span class="ident">interpreter</span>)<span class="question-mark">?</span>;
                 <span class="kw">let</span> <span class="ident">field</span> <span class="op">=</span> <span class="ident">get_field</span>.<span class="ident">field</span>().<span class="ident">run</span>(<span class="ident">interpreter</span>)<span class="question-mark">?</span>;
-                <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="ident">interpreter</span>.<span class="ident">to_property_key</span>(<span class="kw-2">&amp;</span><span class="ident">field</span>)<span class="question-mark">?</span>;
+                <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="ident">field</span>.<span class="ident">to_property_key</span>(<span class="ident">interpreter</span>)<span class="question-mark">?</span>;
                 <span class="ident">object</span>.<span class="ident">set_field</span>(<span class="ident">key</span>, <span class="ident">val</span>.<span class="ident">clone</span>());
             }
             <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> (),
@@ -327,7 +331,7 @@
                                 <span class="ident">y</span>.<span class="ident">get_type</span>().<span class="ident">as_str</span>()
                             ));
                         }
-                        <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="ident">interpreter</span>.<span class="ident">to_property_key</span>(<span class="kw-2">&amp;</span><span class="ident">x</span>)<span class="question-mark">?</span>;
+                        <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="ident">x</span>.<span class="ident">to_property_key</span>(<span class="ident">interpreter</span>)<span class="question-mark">?</span>;
                         <span class="ident">interpreter</span>.<span class="ident">has_property</span>(<span class="kw-2">&amp;</span><span class="ident">y</span>, <span class="kw-2">&amp;</span><span class="ident">key</span>)
                     }
                 }))
@@ -405,30 +409,34 @@
 
         <span class="prelude-val">Ok</span>(<span class="kw">match</span> <span class="self">self</span>.<span class="ident">op</span>() {
             <span class="ident">op</span>::<span class="ident">UnaryOp</span>::<span class="ident">Minus</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">x</span>.<span class="ident">neg</span>(<span class="ident">interpreter</span>)<span class="question-mark">?</span>,
-            <span class="ident">op</span>::<span class="ident">UnaryOp</span>::<span class="ident">Plus</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">x</span>.<span class="ident">to_number</span>()),
+            <span class="ident">op</span>::<span class="ident">UnaryOp</span>::<span class="ident">Plus</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">x</span>.<span class="ident">to_number</span>(<span class="ident">interpreter</span>)<span class="question-mark">?</span>),
             <span class="ident">op</span>::<span class="ident">UnaryOp</span>::<span class="ident">IncrementPost</span> <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">let</span> <span class="ident">ret</span> <span class="op">=</span> <span class="ident">x</span>.<span class="ident">clone</span>();
-                <span class="ident">interpreter</span>.<span class="ident">set_value</span>(<span class="self">self</span>.<span class="ident">target</span>(), <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">x</span>.<span class="ident">to_number</span>() <span class="op">+</span> <span class="number">1.0</span>))<span class="question-mark">?</span>;
+                <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">x</span>.<span class="ident">to_number</span>(<span class="ident">interpreter</span>)<span class="question-mark">?</span> <span class="op">+</span> <span class="number">1.0</span>;
+                <span class="ident">interpreter</span>.<span class="ident">set_value</span>(<span class="self">self</span>.<span class="ident">target</span>(), <span class="ident">result</span>.<span class="ident">into</span>())<span class="question-mark">?</span>;
                 <span class="ident">ret</span>
             }
             <span class="ident">op</span>::<span class="ident">UnaryOp</span>::<span class="ident">IncrementPre</span> <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="ident">interpreter</span>.<span class="ident">set_value</span>(<span class="self">self</span>.<span class="ident">target</span>(), <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">x</span>.<span class="ident">to_number</span>() <span class="op">+</span> <span class="number">1.0</span>))<span class="question-mark">?</span>
+                <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">x</span>.<span class="ident">to_number</span>(<span class="ident">interpreter</span>)<span class="question-mark">?</span> <span class="op">+</span> <span class="number">1.0</span>;
+                <span class="ident">interpreter</span>.<span class="ident">set_value</span>(<span class="self">self</span>.<span class="ident">target</span>(), <span class="ident">result</span>.<span class="ident">into</span>())<span class="question-mark">?</span>
             }
             <span class="ident">op</span>::<span class="ident">UnaryOp</span>::<span class="ident">DecrementPost</span> <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">let</span> <span class="ident">ret</span> <span class="op">=</span> <span class="ident">x</span>.<span class="ident">clone</span>();
-                <span class="ident">interpreter</span>.<span class="ident">set_value</span>(<span class="self">self</span>.<span class="ident">target</span>(), <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">x</span>.<span class="ident">to_number</span>() <span class="op">-</span> <span class="number">1.0</span>))<span class="question-mark">?</span>;
+                <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">x</span>.<span class="ident">to_number</span>(<span class="ident">interpreter</span>)<span class="question-mark">?</span> <span class="op">-</span> <span class="number">1.0</span>;
+                <span class="ident">interpreter</span>.<span class="ident">set_value</span>(<span class="self">self</span>.<span class="ident">target</span>(), <span class="ident">result</span>.<span class="ident">into</span>())<span class="question-mark">?</span>;
                 <span class="ident">ret</span>
             }
             <span class="ident">op</span>::<span class="ident">UnaryOp</span>::<span class="ident">DecrementPre</span> <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="ident">interpreter</span>.<span class="ident">set_value</span>(<span class="self">self</span>.<span class="ident">target</span>(), <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">x</span>.<span class="ident">to_number</span>() <span class="op">-</span> <span class="number">1.0</span>))<span class="question-mark">?</span>
+                <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">x</span>.<span class="ident">to_number</span>(<span class="ident">interpreter</span>)<span class="question-mark">?</span> <span class="op">-</span> <span class="number">1.0</span>;
+                <span class="ident">interpreter</span>.<span class="ident">set_value</span>(<span class="self">self</span>.<span class="ident">target</span>(), <span class="ident">result</span>.<span class="ident">into</span>())<span class="question-mark">?</span>
             }
-            <span class="ident">op</span>::<span class="ident">UnaryOp</span>::<span class="ident">Not</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">x</span>.<span class="ident">not</span>(<span class="ident">interpreter</span>)<span class="question-mark">?</span>,
+            <span class="ident">op</span>::<span class="ident">UnaryOp</span>::<span class="ident">Not</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">x</span>.<span class="ident">not</span>(<span class="ident">interpreter</span>)<span class="question-mark">?</span>.<span class="ident">into</span>(),
             <span class="ident">op</span>::<span class="ident">UnaryOp</span>::<span class="ident">Tilde</span> <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="kw">let</span> <span class="ident">num_v_a</span> <span class="op">=</span> <span class="ident">x</span>.<span class="ident">to_number</span>();
-                <span class="comment">// NOTE: possible UB: https://github.com/rust-lang/rust/issues/10184</span>
+                <span class="kw">let</span> <span class="ident">num_v_a</span> <span class="op">=</span> <span class="ident">x</span>.<span class="ident">to_number</span>(<span class="ident">interpreter</span>)<span class="question-mark">?</span>;
                 <span class="ident">Value</span>::<span class="ident">from</span>(<span class="kw">if</span> <span class="ident">num_v_a</span>.<span class="ident">is_nan</span>() {
                     <span class="op">-</span><span class="number">1</span>
                 } <span class="kw">else</span> {
+                    <span class="comment">// TODO: this is not spec compliant.</span>
                     <span class="op">!</span>(<span class="ident">num_v_a</span> <span class="kw">as</span> <span class="ident">i32</span>)
                 })
             }
@@ -443,7 +451,7 @@
                 <span class="ident">Node</span>::<span class="ident">GetField</span>(<span class="kw-2">ref</span> <span class="ident">get_field</span>) <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">get_field</span>.<span class="ident">obj</span>().<span class="ident">run</span>(<span class="ident">interpreter</span>)<span class="question-mark">?</span>;
                     <span class="kw">let</span> <span class="ident">field</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">get_field</span>.<span class="ident">field</span>().<span class="ident">run</span>(<span class="ident">interpreter</span>)<span class="question-mark">?</span>;
-                    <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">obj</span>.<span class="ident">remove_property</span>(<span class="ident">interpreter</span>.<span class="ident">to_string</span>(<span class="ident">field</span>)<span class="question-mark">?</span>.<span class="ident">as_str</span>());
+                    <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">obj</span>.<span class="ident">remove_property</span>(<span class="ident">field</span>.<span class="ident">to_string</span>(<span class="ident">interpreter</span>)<span class="question-mark">?</span>.<span class="ident">as_str</span>());
                     <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">boolean</span>(<span class="ident">res</span>));
                 }
                 <span class="ident">Node</span>::<span class="ident">Identifier</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Value</span>::<span class="ident">boolean</span>(<span class="bool-val">false</span>),

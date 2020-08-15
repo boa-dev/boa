@@ -44,8 +44,8 @@
 
     <span class="comment">// Setup executor</span>
     <span class="ident">expr</span>.<span class="ident">run</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">engine</span>)
-        .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">JsValue</span>::<span class="ident">from</span>(<span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Error: {}&quot;</span>, <span class="ident">e</span>)))
-        .<span class="ident">map</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> <span class="ident">v</span>.<span class="ident">to_string</span>())
+        .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">JsValue</span>::<span class="ident">from</span>(<span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Error: {}&quot;</span>, <span class="ident">e</span>.<span class="ident">display</span>())))
+        .<span class="ident">map</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> <span class="ident">v</span>.<span class="ident">display</span>().<span class="ident">to_string</span>())
 }
 </pre></div>
 </section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../../";window.currentCrate = "boa_wasm";</script><script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script><script defer src="../../search-index.js"></script></body></html>
