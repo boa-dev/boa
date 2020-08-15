@@ -387,7 +387,7 @@ impl Number {
             .get(0)
             .map(|arg| arg.to_integer(ctx))
             .transpose()?
-            .unwrap_or(10.0) as u8;
+            .map_or(10, |radix| radix as u8);
 
         // 4. If radixNumber < 2 or radixNumber > 36, throw a RangeError exception.
         if radix < 2 || radix > 36 {
