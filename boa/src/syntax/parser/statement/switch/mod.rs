@@ -4,7 +4,7 @@ mod tests;
 use crate::{
     syntax::{
         ast::{node, node::Switch, Keyword, Node, Punctuator},
-        lexer::{Token, TokenKind},
+        lexer::TokenKind,
         parser::{
             expression::Expression, statement::StatementList, AllowAwait, AllowReturn, AllowYield,
             Cursor, ParseError, TokenParser,
@@ -111,14 +111,14 @@ where
     type Output = (Box<[node::Case]>, Option<Node>);
 
     fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
+        cursor.expect(Punctuator::OpenBlock, "switch case block")?;
+
         let mut cases = Vec::<node::Case>::new();
         let mut default: Option<Node> = None;
 
-        cursor.expect(Punctuator::OpenBlock, "switch case block")?;
-
         loop {
-            match cursor.expect(Keyword::Case, "switch case block") {
-                Ok(_) => {
+            match cursor.next()? {
+                Some(token) if token.kind() == &TokenKind::Keyword(Keyword::Case) => {
                     // Case statement.
                     let cond =
                         Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?;
@@ -135,28 +135,16 @@ where
 
                     cases.push(node::Case::new(cond, statement_list));
                 }
-                Err(ParseError::Expected {
-                    expected: _,
-                    found:
-                        Token {
-                            kind: TokenKind::Keyword(Keyword::Default),
-                            span: s,
-                        },
-                    context: _,
-                }) => {
-                    // Default statement.
-                    // Consume the default token.
-                    cursor.next()?.expect("`default` token vanished");
-
+                Some(token) if token.kind() == &TokenKind::Keyword(Keyword::Default) => {
                     if default.is_some() {
                         // If default has already been defined then it cannot be defined again and to do so is an error.
                         return Err(ParseError::unexpected(
-                            Token::new(TokenKind::Keyword(Keyword::Default), s),
-                            Some("second default clause found in switch statement"),
+                            token,
+                            Some("more than one switch default"),
                         ));
                     }
 
-                    cursor.expect(Punctuator::Colon, "switch default case block")?;
+                    cursor.expect(Punctuator::Colon, "switch default block")?;
 
                     let statement_list = StatementList::new(
                         self.allow_yield,
@@ -168,23 +156,21 @@ where
 
                     default = Some(node::Block::from(statement_list).into());
                 }
-                Err(ParseError::Expected {
-                    expected: _,
-                    found:
-                        Token {
-                            kind: TokenKind::Punctuator(Punctuator::CloseBlock),
-                            span: _,
-                        },
-                    context: _,
-                }) => {
-                    // End of switch block.
-                    cursor.next()?.expect("switch close block symbol vanished"); // Consume the switch close block.
-                    break;
+                Some(token) if token.kind() == &TokenKind::Punctuator(Punctuator::CloseBlock) => {
+                    break
                 }
-                Err(e) => {
-                    // Unexpected statement.
-                    return Err(e);
+                Some(token) => {
+                    return Err(ParseError::expected(
+                        vec![
+                            TokenKind::Keyword(Keyword::Case),
+                            TokenKind::Keyword(Keyword::Default),
+                            TokenKind::Punctuator(Punctuator::CloseBlock),
+                        ],
+                        token,
+                        "switch case block",
+                    ))
                 }
+                None => return Err(ParseError::AbruptEnd),
             }
         }
 

@@ -122,6 +122,10 @@ where
             self.read_index, self.write_index,
             "we reached the read index with the write index"
         );
+        debug_assert!(
+            self.read_index < PEEK_BUF_SIZE,
+            "read index went out of bounds"
+        );
 
         Ok(())
     }
@@ -140,10 +144,6 @@ where
         if self.read_index == self.write_index {
             self.fill()?;
         }
-        assert!(
-            self.read_index < PEEK_BUF_SIZE,
-            "read index went out of bounds"
-        );
 
         dbg!(&self.peeked, self.read_index, self.write_index);
         if let Some(ref token) = self.peeked[self.read_index] {
@@ -174,21 +174,17 @@ where
     /// i.e. if there are tokens `A`, `B`, `C`, `D`, `E` and `peek(0, false)` returns `A` then:
     ///  - `peek(1, false) == peek(1, true) == B`.
     ///  - `peek(2, false)` will return `C`.
-    ///  - `peek(3, false)` will return `D`.
     /// where `A`, `B`, `C`, `D` and `E` are tokens but not line terminators.
     ///
     /// If `skip_line_terminators` is `true` then line terminators will be discarded.
-    /// i.e. If there are tokens `A`, `B`, `\n`, `C` and `peek(0, false)` is `A` then the following
+    /// i.e. If there are tokens `A`, `\n`, `B` and `peek(0, false)` is `A` then the following
     /// will hold:
     ///  - `peek(0, true) == A`
     ///  - `peek(0, false) == A`
     ///  - `peek(1, true) == B`
-    ///  - `peek(1, false) == B`
-    ///  - `peek(2, true) == C`
-    ///  - `peek(2, false) == \n`
-    ///  - `peek(3, true) == None` (End of stream)
-    ///  - `peek(3, false) == C`
-    ///  - `peek(4, false) == None` (End of stream)
+    ///  - `peek(1, false) == \n`
+    ///  - `peek(2, true) == None` (End of stream)
+    ///  - `peek(2, false) == B`
     pub(super) fn peek(
         &mut self,
         skip_n: usize,
@@ -203,13 +199,9 @@ where
         let mut read_index = self.read_index;
         let mut count = 0;
         let res_token = loop {
-            if self.read_index == self.write_index {
+            if read_index == self.write_index {
                 self.fill()?;
             }
-            assert!(
-                self.read_index < PEEK_BUF_SIZE,
-                "read index went out of bounds"
-            );
 
             dbg!(&self.peeked, self.read_index, self.write_index);
             if let Some(ref token) = self.peeked[read_index] {

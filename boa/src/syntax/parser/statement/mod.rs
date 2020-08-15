@@ -171,9 +171,6 @@ where
                     .map(Node::from)
             }
             // TODO: https://tc39.es/ecma262/#prod-LabelledStatement
-            // TokenKind::Punctuator(Punctuator::Semicolon) => {
-            //     return Ok(Node::new(NodeBase::Nope, tok.pos))
-            // }
             _ => ExpressionStatement::new(self.allow_yield, self.allow_await).parse(cursor),
         }
     }
