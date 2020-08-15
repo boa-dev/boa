@@ -719,7 +719,10 @@ impl Executable for Node {
             Node::Spread(ref spread) => spread.run(interpreter),
             Node::This => {
                 // Will either return `this` binding or undefined
-                Ok(interpreter.realm().environment.get_this_binding())
+                match interpreter.realm().environment.get_this_binding() {
+                    Ok(val) => Ok(val),
+                    Err(e) => Err(e.to_error(interpreter)),
+                }
             }
             Node::Try(ref try_node) => try_node.run(interpreter),
             Node::Break(ref break_node) => break_node.run(interpreter),

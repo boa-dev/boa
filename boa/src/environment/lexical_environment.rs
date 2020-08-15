@@ -5,6 +5,7 @@
 //! The following operations are used to operate upon lexical environments
 //! This is the entrypoint to lexical environments.
 
+use super::ErrorKind;
 use crate::{
     builtins::value::Value,
     environment::{
@@ -113,14 +114,19 @@ impl LexicalEnvironment {
             .get_global_object()
     }
 
-    pub fn get_this_binding(&self) -> Value {
+    pub fn get_this_binding(&self) -> Result<Value, ErrorKind> {
         self.environments()
             .find(|env| env.borrow().has_this_binding())
             .map(|env| env.borrow().get_this_binding())
-            .unwrap_or_else(Value::undefined)
+            .unwrap_or_else(|| Ok(Value::Undefined))
     }
 
-    pub fn create_mutable_binding(&mut self, name: String, deletion: bool, scope: VariableScope) {
+    pub fn create_mutable_binding(
+        &mut self,
+        name: String,
+        deletion: bool,
+        scope: VariableScope,
+    ) -> Result<(), ErrorKind> {
         match scope {
             VariableScope::Block => self
                 .get_current_environment()
@@ -136,7 +142,7 @@ impl LexicalEnvironment {
                     })
                     .expect("No function or global environment");
 
-                env.borrow_mut().create_mutable_binding(name, deletion);
+                env.borrow_mut().create_mutable_binding(name, deletion)
             }
         }
     }
@@ -146,7 +152,7 @@ impl LexicalEnvironment {
         name: String,
         deletion: bool,
         scope: VariableScope,
-    ) -> bool {
+    ) -> Result<(), ErrorKind> {
         match scope {
             VariableScope::Block => self
                 .get_current_environment()
@@ -171,24 +177,29 @@ impl LexicalEnvironment {
         }
     }
 
-    pub fn set_mutable_binding(&mut self, name: &str, value: Value, strict: bool) {
+    pub fn set_mutable_binding(
+        &mut self,
+        name: &str,
+        value: Value,
+        strict: bool,
+    ) -> Result<(), ErrorKind> {
         // Find the first environment which has the given binding
         let env = self
             .environments()
             .find(|env| env.borrow().has_binding(name))
             .expect("Binding does not exists"); // TODO graceful error handling
 
-        env.borrow_mut().set_mutable_binding(name, value, strict);
+        env.borrow_mut().set_mutable_binding(name, value, strict)
     }
 
-    pub fn initialize_binding(&mut self, name: &str, value: Value) {
+    pub fn initialize_binding(&mut self, name: &str, value: Value) -> Result<(), ErrorKind> {
         // Find the first environment which has the given binding
         let env = self
             .environments()
             .find(|env| env.borrow().has_binding(name))
             .expect("Binding does not exists"); // TODO graceful error handling
 
-        env.borrow_mut().initialize_binding(name, value);
+        env.borrow_mut().initialize_binding(name, value)
     }
 
     /// get_current_environment_ref is used when you only need to borrow the environment
@@ -213,9 +224,17 @@ impl LexicalEnvironment {
     }
 
     pub fn get_binding_value(&self, name: &str) -> Option<Value> {
-        self.environments()
+        match self
+            .environments()
             .find(|env| env.borrow().has_binding(name))
             .map(|env| env.borrow().get_binding_value(name, false))
+        {
+            Some(r) => match r {
+                Ok(v) => Some(v),
+                Err(_) => None,
+            },
+            None => None,
+        }
     }
 }
 

@@ -333,7 +333,10 @@ impl Function {
 
                     // local_env gets dropped here, its no longer needed
                     let binding = interpreter.realm.environment.get_this_binding();
-                    Ok(binding)
+                    match binding {
+                        Ok(val) => Ok(val),
+                        Err(e) => Err(e.to_error(interpreter)),
+                    }
                 }
             }
         } else {

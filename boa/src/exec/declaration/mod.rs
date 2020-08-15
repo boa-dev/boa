@@ -26,11 +26,14 @@ impl Executable for FunctionDecl {
 
         // Set the name and assign it in the current environment
         val.set_field("name", self.name());
-        interpreter.realm_mut().environment.create_mutable_binding(
+        match interpreter.realm_mut().environment.create_mutable_binding(
             self.name().to_owned(),
             false,
             VariableScope::Function,
-        );
+        ) {
+            Err(e) => return Err(e.to_error(interpreter)),
+            _ => (),
+        }
 
         interpreter
             .realm_mut()
@@ -73,11 +76,14 @@ impl Executable for VarDeclList {
                     environment.set_mutable_binding(var.name(), val, true);
                 }
             } else {
-                environment.create_mutable_binding(
+                match environment.create_mutable_binding(
                     var.name().to_owned(),
                     false,
                     VariableScope::Function,
-                );
+                ) {
+                    Err(e) => return Err(e.to_error(interpreter)),
+                    _ => (),
+                }
                 environment.initialize_binding(var.name(), val);
             }
         }
@@ -90,10 +96,14 @@ impl Executable for ConstDeclList {
         for decl in self.as_ref() {
             let val = decl.init().run(interpreter)?;
 
-            interpreter
+            match interpreter
                 .realm_mut()
                 .environment
-                .create_immutable_binding(decl.name().to_owned(), false, VariableScope::Block);
+                .create_immutable_binding(decl.name().to_owned(), false, VariableScope::Block)
+            {
+                Err(e) => return Err(e.to_error(interpreter)),
+                _ => (),
+            }
 
             interpreter
                 .realm_mut()
@@ -111,11 +121,14 @@ impl Executable for LetDeclList {
                 Some(v) => v.run(interpreter)?,
                 None => Value::undefined(),
             };
-            interpreter.realm_mut().environment.create_mutable_binding(
+            match interpreter.realm_mut().environment.create_mutable_binding(
                 var.name().to_owned(),
                 false,
                 VariableScope::Block,
-            );
+            ) {
+                Err(e) => return Err(e.to_error(interpreter)),
+                _ => (),
+            }
             interpreter
                 .realm_mut()
                 .environment
