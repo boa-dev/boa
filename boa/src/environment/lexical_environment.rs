@@ -223,18 +223,12 @@ impl LexicalEnvironment {
             .any(|env| env.borrow().has_binding(name))
     }
 
-    pub fn get_binding_value(&self, name: &str) -> Option<Value> {
-        match self
-            .environments()
+    pub fn get_binding_value(&self, name: &str) -> Result<Value, ErrorKind> {
+        self.environments()
             .find(|env| env.borrow().has_binding(name))
             .map(|env| env.borrow().get_binding_value(name, false))
-        {
-            Some(r) => match r {
-                Ok(v) => Some(v),
-                Err(_) => None,
-            },
-            None => None,
-        }
+            .unwrap_or(Err(ErrorKind::ReferenceError(format!("No binding exists for {}", name))))
+            // TODO: Add meaningful error message
     }
 }
 
@@ -265,7 +259,7 @@ pub fn new_function_environment(
     };
     // If a `this` value has been passed, bind it to the environment
     if let Some(v) = this {
-        func_env.bind_this_value(v);
+        func_env.bind_this_value(v).unwrap();
     }
     Gc::new(GcCell::new(Box::new(func_env)))
 }

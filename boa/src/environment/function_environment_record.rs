@@ -71,7 +71,7 @@ impl FunctionEnvironmentRecord {
             BindingStatus::Initialized => {
                 // TODO: change this when error handling comes into play
                 Err(ErrorKind::ReferenceError(format!(
-                    "Reference Error: Cannot bind to an initialised function!"
+                    "Cannot bind to an initialised function!"
                 )))
             }
 
@@ -118,7 +118,7 @@ impl EnvironmentRecordTrait for FunctionEnvironmentRecord {
             BindingStatus::Uninitialized => {
                 // TODO: change this when error handling comes into play
                 Err(ErrorKind::ReferenceError(format!(
-                    "Reference Error: Uninitialised binding for this function"
+                    "Uninitialised binding for this function"
                 )))
             }
 
@@ -173,7 +173,7 @@ impl EnvironmentRecordTrait for FunctionEnvironmentRecord {
             if strict {
                 // TODO: change this when error handling comes into play
                 return Err(ErrorKind::ReferenceError(format!(
-                    "Reference Error: Cannot set mutable binding for {}",
+                    "Cannot set mutable binding for {}",
                     name
                 )));
             }
@@ -190,7 +190,7 @@ impl EnvironmentRecordTrait for FunctionEnvironmentRecord {
         if record.value.is_none() {
             // TODO: change this when error handling comes into play
             return Err(ErrorKind::ReferenceError(format!(
-                "Reference Error: Cannot set mutable binding for {}",
+                "Cannot set mutable binding for {}",
                 name
             )));
         }
@@ -200,7 +200,7 @@ impl EnvironmentRecordTrait for FunctionEnvironmentRecord {
         } else if strict {
             // TODO: change this when error handling comes into play
             return Err(ErrorKind::TypeError(format!(
-                "TypeError: Cannot mutate an immutable binding {}",
+                "Cannot mutate an immutable binding {}",
                 name
             )));
         }
@@ -213,7 +213,8 @@ impl EnvironmentRecordTrait for FunctionEnvironmentRecord {
             if let Some(ref val) = binding.value {
                 Ok(val.clone())
             } else {
-                Err(ErrorKind::ReferenceError("".to_string()))
+                // TODO: Add meaningful error message
+                Err(ErrorKind::ReferenceError(format! ("{} is an uninitialized binding", name)))
             }
         } else {
             // TODO: change this when error handling comes into play

@@ -106,13 +106,13 @@ impl EnvironmentRecordTrait for DeclarativeEnvironmentRecord {
             if strict {
                 // TODO: change this when error handling comes into play
                 return Err(ErrorKind::ReferenceError(format!(
-                    "Reference Error: Cannot set mutable binding for {}",
+                    "Cannot set mutable binding for {}",
                     name
                 )));
             }
 
-            self.create_mutable_binding(name.to_owned(), true);
-            self.initialize_binding(name, value);
+            self.create_mutable_binding(name.to_owned(), true)?;
+            self.initialize_binding(name, value)?;
             return Ok(());
         }
 
@@ -123,7 +123,7 @@ impl EnvironmentRecordTrait for DeclarativeEnvironmentRecord {
         if record.value.is_none() {
             // TODO: change this when error handling comes into play
             return Err(ErrorKind::ReferenceError(format!(
-                "Reference Error: Cannot set mutable binding for {}",
+                "Cannot set mutable binding for {}",
                 name
             )));
         }
@@ -133,7 +133,7 @@ impl EnvironmentRecordTrait for DeclarativeEnvironmentRecord {
         } else if strict {
             // TODO: change this when error handling comes into play
             return Err(ErrorKind::TypeError(format!(
-                "TypeError: Cannot mutate an immutable binding {}",
+                "Cannot mutate an immutable binding {}",
                 name
             )));
         }
@@ -146,7 +146,8 @@ impl EnvironmentRecordTrait for DeclarativeEnvironmentRecord {
             if let Some(ref val) = binding.value {
                 Ok(val.clone())
             } else {
-                Err(ErrorKind::ReferenceError("".to_string()))
+                // TODO: Fix Error String
+                Err(ErrorKind::ReferenceError(format!("{} is an uninitialized binding", name)))
             }
         } else {
             // TODO: change this when error handling comes into play

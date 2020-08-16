@@ -24,13 +24,3 @@ impl ErrorKind {
         }
     }
 }
-
-#[macro_export]
-macro_rules! try_error {
-    ($e: expr) => {
-        match $e {
-            Err(e) => return Err(e.to_error(interpreter)),
-            _ => (),
-        }
-    };
-}

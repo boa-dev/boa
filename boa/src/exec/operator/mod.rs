@@ -120,7 +120,7 @@ impl Executable for BinOp {
                         .realm()
                         .environment
                         .get_binding_value(name.as_ref())
-                        .ok_or_else(|| interpreter.construct_reference_error(name.as_ref()))?;
+                        .or_else(|e| Err(e.to_error(interpreter)))?;
                     let v_b = self.rhs().run(interpreter)?;
                     let value = Self::run_assign(op, v_a, v_b, interpreter)?;
                     interpreter.realm.environment.set_mutable_binding(
