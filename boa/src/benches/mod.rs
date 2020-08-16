@@ -1,4 +1,4 @@
-// Benchmark scripts to be defined here, location subject to change!
+//! Benchmark scripts to be defined here -- used in boa/benches/*.rs
 
 pub static EXPRESSION: &str = r#"
 1 + 1 + 1 + 1 + 1 + 1 / 1 + 1 + 1 * 1 + 1 + 1 + 1;
