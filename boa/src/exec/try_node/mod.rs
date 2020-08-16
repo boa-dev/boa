@@ -28,9 +28,12 @@ impl Executable for Try {
                                 param.to_owned(),
                                 false,
                                 VariableScope::Block,
-                            );
+                            )
+                            .or_else(|e| Err(e.to_error(interpreter)))?;
 
-                            env.initialize_binding(param, err);
+                            let env = &mut interpreter.realm_mut().environment;
+                            env.initialize_binding(param, err)
+                                .or_else(|e| Err(e.to_error(interpreter)))?;
                         }
                     }
 

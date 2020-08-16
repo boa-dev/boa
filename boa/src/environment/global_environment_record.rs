@@ -54,20 +54,25 @@ impl GlobalEnvironmentRecord {
         }
     }
 
-    pub fn create_global_var_binding(&mut self, name: String, deletion: bool) {
+    pub fn create_global_var_binding(
+        &mut self,
+        name: String,
+        deletion: bool,
+    ) -> Result<(), ErrorKind> {
         let obj_rec = &mut self.object_record;
         let global_object = &obj_rec.bindings;
         let has_property = global_object.has_field(&name);
         let extensible = global_object.is_extensible();
         if !has_property && extensible {
-            obj_rec.create_mutable_binding(name.clone(), deletion);
-            obj_rec.initialize_binding(&name, Value::undefined());
+            obj_rec.create_mutable_binding(name.clone(), deletion)?;
+            obj_rec.initialize_binding(&name, Value::undefined())?;
         }
 
         let var_declared_names = &mut self.var_names;
         if !var_declared_names.contains(&name) {
             var_declared_names.insert(name);
         }
+        Ok(())
     }
 
     pub fn create_global_function_binding(&mut self, name: &str, value: Value, deletion: bool) {

@@ -38,7 +38,8 @@ impl Executable for FunctionDecl {
         interpreter
             .realm_mut()
             .environment
-            .initialize_binding(self.name(), val);
+            .initialize_binding(self.name(), val)
+            .or_else(|e| Err(e.to_error(interpreter)))?;
 
         Ok(Value::undefined())
     }
@@ -73,7 +74,9 @@ impl Executable for VarDeclList {
 
             if environment.has_binding(var.name()) {
                 if var.init().is_some() {
-                    environment.set_mutable_binding(var.name(), val, true);
+                    environment
+                        .set_mutable_binding(var.name(), val, true)
+                        .or_else(|e| Err(e.to_error(interpreter)))?;
                 }
             } else {
                 match environment.create_mutable_binding(
@@ -84,7 +87,9 @@ impl Executable for VarDeclList {
                     Err(e) => return Err(e.to_error(interpreter)),
                     _ => (),
                 }
-                environment.initialize_binding(var.name(), val);
+                environment
+                    .initialize_binding(var.name(), val)
+                    .or_else(|e| Err(e.to_error(interpreter)))?;
             }
         }
         Ok(Value::undefined())
@@ -108,7 +113,8 @@ impl Executable for ConstDeclList {
             interpreter
                 .realm_mut()
                 .environment
-                .initialize_binding(decl.name(), val);
+                .initialize_binding(decl.name(), val)
+                .or_else(|e| Err(e.to_error(interpreter)))?;
         }
         Ok(Value::undefined())
     }
@@ -132,7 +138,8 @@ impl Executable for LetDeclList {
             interpreter
                 .realm_mut()
                 .environment
-                .initialize_binding(var.name(), val);
+                .initialize_binding(var.name(), val)
+                .or_else(|e| Err(e.to_error(interpreter)))?;
         }
         Ok(Value::undefined())
     }

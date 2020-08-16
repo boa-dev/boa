@@ -23,14 +23,21 @@ impl Executable for Assign {
 
                 if environment.has_binding(name.as_ref()) {
                     // Binding already exists
-                    environment.set_mutable_binding(name.as_ref(), val.clone(), true);
+                    environment
+                        .set_mutable_binding(name.as_ref(), val.clone(), true)
+                        .or_else(|e| Err(e.to_error(interpreter)))?;
                 } else {
-                    environment.create_mutable_binding(
-                        name.as_ref().to_owned(),
-                        true,
-                        VariableScope::Function,
-                    );
-                    environment.initialize_binding(name.as_ref(), val.clone());
+                    environment
+                        .create_mutable_binding(
+                            name.as_ref().to_owned(),
+                            true,
+                            VariableScope::Function,
+                        )
+                        .or_else(|e| Err(e.to_error(interpreter)))?;
+                    let environment = &mut interpreter.realm_mut().environment;
+                    environment
+                        .initialize_binding(name.as_ref(), val.clone())
+                        .or_else(|e| Err(e.to_error(interpreter)))?;
                 }
             }
             Node::GetConstField(ref get_const_field) => {
@@ -123,11 +130,11 @@ impl Executable for BinOp {
                         .or_else(|e| Err(e.to_error(interpreter)))?;
                     let v_b = self.rhs().run(interpreter)?;
                     let value = Self::run_assign(op, v_a, v_b, interpreter)?;
-                    interpreter.realm.environment.set_mutable_binding(
-                        name.as_ref(),
-                        value.clone(),
-                        true,
-                    );
+                    interpreter
+                        .realm
+                        .environment
+                        .set_mutable_binding(name.as_ref(), value.clone(), true)
+                        .or_else(|e| Err(e.to_error(interpreter)))?;
                     Ok(value)
                 }
                 Node::GetConstField(ref get_const_field) => {

@@ -75,7 +75,10 @@ impl EnvironmentRecordTrait for ObjectEnvironmentRecord {
         let still_exists = bindings.has_field(name);
         if !still_exists && strict {
             // TODO: Add meaningful error message
-            return Err(ErrorKind::ReferenceError(format!("{} has no binding", name)));
+            return Err(ErrorKind::ReferenceError(format!(
+                "{} has no binding",
+                name
+            )));
         }
         let mut property = Property::data_descriptor(value, Attribute::ENUMERABLE);
         property.set_configurable(strict);
@@ -89,7 +92,10 @@ impl EnvironmentRecordTrait for ObjectEnvironmentRecord {
         } else {
             if strict {
                 // TODO: Add meaningful error message
-                Err(ErrorKind::ReferenceError(format!("{} has no binding", name)))
+                Err(ErrorKind::ReferenceError(format!(
+                    "{} has no binding",
+                    name
+                )))
             } else {
                 Ok(Value::undefined())
             }

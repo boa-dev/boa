@@ -256,10 +256,12 @@ impl Function {
                     let arguments_obj = create_unmapped_arguments_object(args_list);
                     local_env
                         .borrow_mut()
-                        .create_mutable_binding("arguments".to_string(), false);
+                        .create_mutable_binding("arguments".to_string(), false)
+                        .or_else(|e| Err(e.to_error(interpreter)))?;
                     local_env
                         .borrow_mut()
-                        .initialize_binding("arguments", arguments_obj);
+                        .initialize_binding("arguments", arguments_obj)
+                        .or_else(|e| Err(e.to_error(interpreter)))?;
 
                     interpreter.realm.environment.push(local_env);
 
@@ -321,10 +323,12 @@ impl Function {
                     let arguments_obj = create_unmapped_arguments_object(args_list);
                     local_env
                         .borrow_mut()
-                        .create_mutable_binding("arguments".to_string(), false);
+                        .create_mutable_binding("arguments".to_string(), false)
+                        .or_else(|e| Err(e.to_error(interpreter)))?;
                     local_env
                         .borrow_mut()
-                        .initialize_binding("arguments", arguments_obj);
+                        .initialize_binding("arguments", arguments_obj)
+                        .or_else(|e| Err(e.to_error(interpreter)))?;
 
                     interpreter.realm.environment.push(local_env);
 
@@ -361,12 +365,14 @@ impl Function {
         // Create binding
         local_env
             .borrow_mut()
-            .create_mutable_binding(param.name().to_owned(), false);
+            .create_mutable_binding(param.name().to_owned(), false)
+            .unwrap(); // Declarative environment records guaranteed not to throw.
 
         // Set Binding to value
         local_env
             .borrow_mut()
-            .initialize_binding(param.name(), array);
+            .initialize_binding(param.name(), array)
+            .unwrap();
     }
 
     // Adds an argument to the environment
@@ -379,12 +385,14 @@ impl Function {
         // Create binding
         local_env
             .borrow_mut()
-            .create_mutable_binding(param.name().to_owned(), false);
+            .create_mutable_binding(param.name().to_owned(), false)
+            .unwrap(); // Declarative environment record guaranteed not to return Ok()
 
         // Set Binding to value
         local_env
             .borrow_mut()
-            .initialize_binding(param.name(), value);
+            .initialize_binding(param.name(), value)
+            .unwrap();
     }
 
     /// Returns true if the function object is callable.

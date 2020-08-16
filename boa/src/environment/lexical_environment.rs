@@ -227,8 +227,8 @@ impl LexicalEnvironment {
         self.environments()
             .find(|env| env.borrow().has_binding(name))
             .map(|env| env.borrow().get_binding_value(name, false))
-            .unwrap_or(Err(ErrorKind::ReferenceError(format!("No binding exists for {}", name))))
-            // TODO: Add meaningful error message
+            .unwrap_or(Err(ErrorKind::ReferenceError(format!("{}", name))))
+        // TODO: Add meaningful error message
     }
 }
 

@@ -178,8 +178,8 @@ impl EnvironmentRecordTrait for FunctionEnvironmentRecord {
                 )));
             }
 
-            self.create_mutable_binding(name.to_owned(), true);
-            self.initialize_binding(name, value);
+            self.create_mutable_binding(name.to_owned(), true)?;
+            self.initialize_binding(name, value)?;
             return Ok(());
         }
 
@@ -214,7 +214,10 @@ impl EnvironmentRecordTrait for FunctionEnvironmentRecord {
                 Ok(val.clone())
             } else {
                 // TODO: Add meaningful error message
-                Err(ErrorKind::ReferenceError(format! ("{} is an uninitialized binding", name)))
+                Err(ErrorKind::ReferenceError(format!(
+                    "{} is an uninitialized binding",
+                    name
+                )))
             }
         } else {
             // TODO: change this when error handling comes into play

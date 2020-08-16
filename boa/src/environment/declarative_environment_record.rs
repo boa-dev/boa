@@ -147,7 +147,10 @@ impl EnvironmentRecordTrait for DeclarativeEnvironmentRecord {
                 Ok(val.clone())
             } else {
                 // TODO: Fix Error String
-                Err(ErrorKind::ReferenceError(format!("{} is an uninitialized binding", name)))
+                Err(ErrorKind::ReferenceError(format!(
+                    "{} is an uninitialized binding",
+                    name
+                )))
             }
         } else {
             // TODO: change this when error handling comes into play
