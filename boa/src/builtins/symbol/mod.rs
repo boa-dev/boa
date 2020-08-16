@@ -74,7 +74,7 @@ impl Symbol {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol/Symbol
     pub(crate) fn call(_: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
         let description = match args.get(0) {
-            Some(ref value) if !value.is_undefined() => Some(ctx.to_string(value)?),
+            Some(ref value) if !value.is_undefined() => Some(value.to_string(ctx)?),
             _ => None,
         };
 
@@ -141,7 +141,7 @@ impl Symbol {
         // Create prototype object
         let prototype = Value::new_object(Some(global));
 
-        make_builtin_fn(Self::to_string, "toString", &prototype, 0);
+        make_builtin_fn(Self::to_string, "toString", &prototype, 0, interpreter);
 
         let symbol_object = make_constructor_fn(
             Self::NAME,

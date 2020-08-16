@@ -16,6 +16,7 @@
 use super::{
     function::{make_builtin_fn, make_constructor_fn},
     object::ObjectData,
+    value::AbstractRelation,
 };
 use crate::{
     builtins::value::{ResultValue, Value},
@@ -134,7 +135,7 @@ impl Number {
     /// `[[Call]]` - Creates a number primitive
     pub(crate) fn make_number(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
         let data = match args.get(0) {
-            Some(ref value) => ctx.to_numeric_number(value)?,
+            Some(ref value) => value.to_numeric_number(ctx)?,
             None => 0.0,
         };
         this.set_data(ObjectData::Number(data));
@@ -177,8 +178,8 @@ impl Number {
     pub(crate) fn to_fixed(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
         let this_num = Self::this_number_value(this, ctx)?;
         let precision = match args.get(0) {
-            Some(n) => match n.to_integer() {
-                x if x > 0 => n.to_integer() as usize,
+            Some(n) => match n.to_integer(ctx)? as i32 {
+                x if x > 0 => n.to_integer(ctx)? as usize,
                 _ => 0,
             },
             None => 0,
@@ -226,8 +227,8 @@ impl Number {
         let this_num = Self::this_number_value(this, ctx)?;
         let _num_str_len = format!("{}", this_num).len();
         let _precision = match args.get(0) {
-            Some(n) => match n.to_integer() {
-                x if x > 0 => n.to_integer() as usize,
+            Some(n) => match n.to_integer(ctx)? as i32 {
+                x if x > 0 => n.to_integer(ctx)? as usize,
                 _ => 0,
             },
             None => 0,
@@ -382,7 +383,11 @@ impl Number {
 
         // 2. If radix is undefined, let radixNumber be 10.
         // 3. Else, let radixNumber be ? ToInteger(radix).
-        let radix = args.get(0).map_or(10, |arg| arg.to_integer()) as u8;
+        let radix = args
+            .get(0)
+            .map(|arg| arg.to_integer(ctx))
+            .transpose()?
+            .map_or(10, |radix| radix as u8);
 
         // 4. If radixNumber < 2 or radixNumber > 36, throw a RangeError exception.
         if radix < 2 || radix > 36 {
@@ -562,8 +567,8 @@ impl Number {
         args: &[Value],
         ctx: &mut Interpreter,
     ) -> ResultValue {
-        if let Some(val) = args.get(0) {
-            let number = ctx.to_number(val)?;
+        if let Some(value) = args.get(0) {
+            let number = value.to_number(ctx)?;
             Ok(number.is_finite().into())
         } else {
             Ok(false.into())
@@ -589,8 +594,8 @@ impl Number {
         args: &[Value],
         ctx: &mut Interpreter,
     ) -> ResultValue {
-        if let Some(val) = args.get(0) {
-            let number = ctx.to_number(val)?;
+        if let Some(value) = args.get(0) {
+            let number = value.to_number(ctx)?;
             Ok(number.is_nan().into())
         } else {
             Ok(true.into())
@@ -733,23 +738,48 @@ impl Number {
 
         let prototype = Value::new_object(Some(global));
 
-        make_builtin_fn(Self::to_exponential, "toExponential", &prototype, 1);
-        make_builtin_fn(Self::to_fixed, "toFixed", &prototype, 1);
-        make_builtin_fn(Self::to_locale_string, "toLocaleString", &prototype, 0);
-        make_builtin_fn(Self::to_precision, "toPrecision", &prototype, 1);
-        make_builtin_fn(Self::to_string, "toString", &prototype, 1);
-        make_builtin_fn(Self::value_of, "valueOf", &prototype, 0);
+        make_builtin_fn(
+            Self::to_exponential,
+            "toExponential",
+            &prototype,
+            1,
+            interpreter,
+        );
+        make_builtin_fn(Self::to_fixed, "toFixed", &prototype, 1, interpreter);
+        make_builtin_fn(
+            Self::to_locale_string,
+            "toLocaleString",
+            &prototype,
+            0,
+            interpreter,
+        );
+        make_builtin_fn(
+            Self::to_precision,
+            "toPrecision",
+            &prototype,
+            1,
+            interpreter,
+        );
+        make_builtin_fn(Self::to_string, "toString", &prototype, 1, interpreter);
+        make_builtin_fn(Self::value_of, "valueOf", &prototype, 0, interpreter);
 
-        make_builtin_fn(Self::parse_int, "parseInt", global, PARSE_INT_MAX_ARG_COUNT);
+        make_builtin_fn(
+            Self::parse_int,
+            "parseInt",
+            global,
+            PARSE_INT_MAX_ARG_COUNT,
+            interpreter,
+        );
         make_builtin_fn(
             Self::parse_float,
             "parseFloat",
             global,
             PARSE_FLOAT_MAX_ARG_COUNT,
+            interpreter,
         );
 
-        make_builtin_fn(Self::global_is_finite, "isFinite", global, 1);
-        make_builtin_fn(Self::global_is_nan, "isNaN", global, 1);
+        make_builtin_fn(Self::global_is_finite, "isFinite", global, 1, interpreter);
+        make_builtin_fn(Self::global_is_nan, "isNaN", global, 1, interpreter);
 
         let number_object = make_constructor_fn(
             Self::NAME,
@@ -761,10 +791,28 @@ impl Number {
             true,
         );
 
-        make_builtin_fn(Self::number_is_finite, "isFinite", &number_object, 1);
-        make_builtin_fn(Self::number_is_nan, "isNaN", &number_object, 1);
-        make_builtin_fn(Self::is_safe_integer, "isSafeInteger", &number_object, 1);
-        make_builtin_fn(Self::number_is_integer, "isInteger", &number_object, 1);
+        make_builtin_fn(
+            Self::number_is_finite,
+            "isFinite",
+            &number_object,
+            1,
+            interpreter,
+        );
+        make_builtin_fn(Self::number_is_nan, "isNaN", &number_object, 1, interpreter);
+        make_builtin_fn(
+            Self::is_safe_integer,
+            "isSafeInteger",
+            &number_object,
+            1,
+            interpreter,
+        );
+        make_builtin_fn(
+            Self::number_is_integer,
+            "isInteger",
+            &number_object,
+            1,
+            interpreter,
+        );
 
         // Constants from:
         // https://tc39.es/ecma262/#sec-properties-of-the-number-constructor
@@ -787,6 +835,7 @@ impl Number {
     /// x (a Number) and y (a Number). It performs the following steps when called:
     ///
     /// https://tc39.es/ecma262/#sec-numeric-types-number-equal
+    #[inline]
     #[allow(clippy::float_cmp)]
     pub(crate) fn equal(x: f64, y: f64) -> bool {
         x == y
@@ -818,6 +867,7 @@ impl Number {
     /// x (a Number) and y (a Number). It performs the following steps when called:
     ///
     /// https://tc39.es/ecma262/#sec-numeric-types-number-sameValueZero
+    #[inline]
     #[allow(clippy::float_cmp)]
     pub(crate) fn same_value_zero(x: f64, y: f64) -> bool {
         if x.is_nan() && y.is_nan() {
@@ -825,5 +875,29 @@ impl Number {
         }
 
         x == y
+    }
+
+    #[inline]
+    #[allow(clippy::float_cmp)]
+    pub(crate) fn less_than(x: f64, y: f64) -> AbstractRelation {
+        if x.is_nan() || y.is_nan() {
+            return AbstractRelation::Undefined;
+        }
+        if x == y || x == 0.0 && y == -0.0 || x == -0.0 && y == 0.0 {
+            return AbstractRelation::False;
+        }
+        if x.is_infinite() && x.is_sign_positive() {
+            return AbstractRelation::False;
+        }
+        if y.is_infinite() && y.is_sign_positive() {
+            return AbstractRelation::True;
+        }
+        if x.is_infinite() && x.is_sign_negative() {
+            return AbstractRelation::False;
+        }
+        if y.is_infinite() && y.is_sign_negative() {
+            return AbstractRelation::True;
+        }
+        (x < y).into()
     }
 }

@@ -39,14 +39,14 @@ fn call_number() {
     let invalid_nan = forward_val(&mut engine, "invalid_nan").unwrap();
     let from_exp = forward_val(&mut engine, "from_exp").unwrap();
 
-    assert_eq!(default_zero.to_number(), 0_f64);
-    assert_eq!(int_one.to_number(), 1_f64);
-    assert_eq!(float_two.to_number(), 2.1);
-    assert_eq!(str_three.to_number(), 3.2);
-    assert_eq!(bool_one.to_number(), 1_f64);
-    assert!(invalid_nan.to_number().is_nan());
-    assert_eq!(bool_zero.to_number(), 0_f64);
-    assert_eq!(from_exp.to_number(), 234_f64);
+    assert_eq!(default_zero.to_number(&mut engine).unwrap(), 0_f64);
+    assert_eq!(int_one.to_number(&mut engine).unwrap(), 1_f64);
+    assert_eq!(float_two.to_number(&mut engine).unwrap(), 2.1);
+    assert_eq!(str_three.to_number(&mut engine).unwrap(), 3.2);
+    assert_eq!(bool_one.to_number(&mut engine).unwrap(), 1_f64);
+    assert!(invalid_nan.to_number(&mut engine).unwrap().is_nan());
+    assert_eq!(bool_zero.to_number(&mut engine).unwrap(), 0_f64);
+    assert_eq!(from_exp.to_number(&mut engine).unwrap(), 234_f64);
 }
 
 #[test]
@@ -396,11 +396,11 @@ fn value_of() {
     let exp_val = forward_val(&mut engine, "exp_val").unwrap();
     let neg_val = forward_val(&mut engine, "neg_val").unwrap();
 
-    assert_eq!(default_val.to_number(), 0_f64);
-    assert_eq!(int_val.to_number(), 123_f64);
-    assert_eq!(float_val.to_number(), 1.234);
-    assert_eq!(exp_val.to_number(), 12_000_f64);
-    assert_eq!(neg_val.to_number(), -12_000_f64);
+    assert_eq!(default_val.to_number(&mut engine).unwrap(), 0_f64);
+    assert_eq!(int_val.to_number(&mut engine).unwrap(), 123_f64);
+    assert_eq!(float_val.to_number(&mut engine).unwrap(), 1.234);
+    assert_eq!(exp_val.to_number(&mut engine).unwrap(), 12_000_f64);
+    assert_eq!(neg_val.to_number(&mut engine).unwrap(), -12_000_f64);
 }
 
 #[test]

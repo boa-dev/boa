@@ -337,7 +337,7 @@ impl Function {
                 }
             }
         } else {
-            let name = this.get_field("name").to_string();
+            let name = this.get_field("name").display().to_string();
             panic!("TypeError: {} is not a constructor", name);
         }
     }
@@ -409,7 +409,6 @@ impl Debug for Function {
 pub fn create_unmapped_arguments_object(arguments_list: &[Value]) -> Value {
     let len = arguments_list.len();
     let mut obj = Object::default();
-    obj.set_internal_slot("ParameterMap", Value::undefined());
     // Set length
     let length = Property::data_descriptor(
         len.into(),
@@ -514,15 +513,26 @@ pub fn make_constructor_fn(
 ///     some other number of arguments.
 ///
 /// If no length is provided, the length will be set to 0.
-pub fn make_builtin_fn<N>(function: NativeFunctionData, name: N, parent: &Value, length: usize)
-where
+pub fn make_builtin_fn<N>(
+    function: NativeFunctionData,
+    name: N,
+    parent: &Value,
+    length: usize,
+    interpreter: &Interpreter,
+) where
     N: Into<String>,
 {
     let name = name.into();
     let _timer = BoaProfiler::global().start_event(&format!("make_builtin_fn: {}", &name), "init");
 
-    // FIXME: function needs the Function prototype set.
-    let mut function = Object::function(Function::builtin(Vec::new(), function), Value::null());
+    let mut function = Object::function(
+        Function::builtin(Vec::new(), function),
+        interpreter
+            .global()
+            .get_field("Function")
+            .get_field("prototype"),
+    );
+
     function.insert_field("length", Value::from(length));
 
     parent

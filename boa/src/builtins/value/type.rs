@@ -1,9 +1,8 @@
-use crate::builtins::value::Value;
-use std::ops::Deref;
+use super::Value;
 
-/// Possible types of val as defined at https://tc39.es/ecma262/#sec-typeof-operator.
+/// Possible types of values as defined at https://tc39.es/ecma262/#sec-typeof-operator.
 /// Note that an object which implements call is referred to here as 'Function'.
-#[derive(Eq, PartialEq, Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum Type {
     Undefined,
     Null,
@@ -17,7 +16,7 @@ pub enum Type {
 }
 
 impl Type {
-    pub fn as_str(&self) -> &str {
+    pub fn as_str(self) -> &'static str {
         match self {
             Self::Number => "number",
             Self::String => "string",
@@ -46,14 +45,14 @@ impl Value {
             Self::Symbol(_) => Type::Symbol,
             Self::Null => Type::Null,
             Self::Undefined => Type::Undefined,
-            Self::Object(ref o) => {
-                if o.deref().borrow().is_callable() {
+            Self::BigInt(_) => Type::BigInt,
+            Self::Object(ref object) => {
+                if object.borrow().is_function() {
                     Type::Function
                 } else {
                     Type::Object
                 }
             }
-            Self::BigInt(_) => Type::BigInt,
         }
     }
 }

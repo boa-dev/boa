@@ -36,7 +36,7 @@ impl SyntaxError {
     /// Create a new error object.
     pub(crate) fn make_error(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
         if let Some(message) = args.get(0) {
-            this.set_field("message", ctx.to_string(message)?);
+            this.set_field("message", message.to_string(ctx)?);
         }
 
         // This value is used by console.log and other routines to match Object type
@@ -59,7 +59,8 @@ impl SyntaxError {
     pub(crate) fn to_string(this: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
         let name = this.get_field("name");
         let message = this.get_field("message");
-        Ok(format!("{}: {}", name, message).into())
+        // FIXME: This should not use `.display()`
+        Ok(format!("{}: {}", name.display(), message.display()).into())
     }
 
     /// Initialise the global object with the `SyntaxError` object.
@@ -72,7 +73,7 @@ impl SyntaxError {
         prototype.set_field("name", Self::NAME);
         prototype.set_field("message", "");
 
-        make_builtin_fn(Self::to_string, "toString", &prototype, 0);
+        make_builtin_fn(Self::to_string, "toString", &prototype, 0, interpreter);
 
         let syntax_error_object = make_constructor_fn(
             Self::NAME,

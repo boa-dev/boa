@@ -66,9 +66,10 @@ pub fn forward(engine: &mut Interpreter, src: &str) -> String {
         Ok(res) => res,
         Err(e) => return e,
     };
-
-    expr.run(engine)
-        .map_or_else(|e| format!("Error: {}", e), |v| v.to_string())
+    expr.run(engine).map_or_else(
+        |e| format!("Error: {}", e.display()),
+        |v| v.display().to_string(),
+    )
 }
 
 /// Execute the code using an existing Interpreter.

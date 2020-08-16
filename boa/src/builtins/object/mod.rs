@@ -19,7 +19,7 @@ use crate::{
         map::ordered_map::OrderedMap,
         property::Property,
         value::{RcBigInt, RcString, RcSymbol, ResultValue, Value},
-        BigInt, RegExp,
+        BigInt, Date, RegExp,
     },
     exec::Interpreter,
     BoaProfiler,
@@ -52,8 +52,6 @@ pub static PROTOTYPE: &str = "prototype";
 pub struct Object {
     /// The type of the object.
     pub data: ObjectData,
-    /// Internal Slots
-    internal_slots: FxHashMap<String, Value>,
     /// Properties
     properties: FxHashMap<RcString, Property>,
     /// Symbol Properties
@@ -80,6 +78,8 @@ pub enum ObjectData {
     Symbol(RcSymbol),
     Error,
     Ordinary,
+    Date(Date),
+    Global,
 }
 
 impl Display for ObjectData {
@@ -99,6 +99,8 @@ impl Display for ObjectData {
                 Self::Boolean(_) => "Boolean",
                 Self::Number(_) => "Number",
                 Self::BigInt(_) => "BigInt",
+                Self::Date(_) => "Date",
+                Self::Global => "Global",
             }
         )
     }
@@ -110,7 +112,6 @@ impl Default for Object {
     fn default() -> Self {
         Self {
             data: ObjectData::Ordinary,
-            internal_slots: FxHashMap::default(),
             properties: FxHashMap::default(),
             symbol_properties: FxHashMap::default(),
             prototype: Value::null(),
@@ -132,7 +133,6 @@ impl Object {
 
         Self {
             data: ObjectData::Function(function),
-            internal_slots: FxHashMap::default(),
             properties: FxHashMap::default(),
             symbol_properties: FxHashMap::default(),
             prototype,
@@ -158,7 +158,6 @@ impl Object {
     pub fn boolean(value: bool) -> Self {
         Self {
             data: ObjectData::Boolean(value),
-            internal_slots: FxHashMap::default(),
             properties: FxHashMap::default(),
             symbol_properties: FxHashMap::default(),
             prototype: Value::null(),
@@ -171,7 +170,6 @@ impl Object {
     pub fn number(value: f64) -> Self {
         Self {
             data: ObjectData::Number(value),
-            internal_slots: FxHashMap::default(),
             properties: FxHashMap::default(),
             symbol_properties: FxHashMap::default(),
             prototype: Value::null(),
@@ -187,7 +185,6 @@ impl Object {
     {
         Self {
             data: ObjectData::String(value.into()),
-            internal_slots: FxHashMap::default(),
             properties: FxHashMap::default(),
             symbol_properties: FxHashMap::default(),
             prototype: Value::null(),
@@ -200,7 +197,6 @@ impl Object {
     pub fn bigint(value: RcBigInt) -> Self {
         Self {
             data: ObjectData::BigInt(value),
-            internal_slots: FxHashMap::default(),
             properties: FxHashMap::default(),
             symbol_properties: FxHashMap::default(),
             prototype: Value::null(),
@@ -404,16 +400,6 @@ impl Object {
     }
 
     #[inline]
-    pub fn internal_slots(&self) -> &FxHashMap<String, Value> {
-        &self.internal_slots
-    }
-
-    #[inline]
-    pub fn internal_slots_mut(&mut self) -> &mut FxHashMap<String, Value> {
-        &mut self.internal_slots
-    }
-
-    #[inline]
     pub fn properties(&self) -> &FxHashMap<RcString, Property> {
         &self.properties
     }
@@ -492,7 +478,7 @@ pub fn create(_: &Value, args: &[Value], interpreter: &mut Interpreter) -> Resul
         )),
         _ => interpreter.throw_type_error(format!(
             "Object prototype may only be an Object or null: {}",
-            prototype
+            prototype.display()
         )),
     }
 }
@@ -524,7 +510,7 @@ pub fn set_prototype_of(_: &Value, args: &[Value], _: &mut Interpreter) -> Resul
 /// Define a property in an object
 pub fn define_property(_: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
     let obj = args.get(0).expect("Cannot get object");
-    let prop = ctx.to_string(args.get(1).expect("Cannot get object"))?;
+    let prop = args.get(1).expect("Cannot get object").to_string(ctx)?;
     let desc = Property::from(args.get(2).expect("Cannot get object"));
     obj.set_property(prop, desc);
     Ok(Value::undefined())
@@ -541,7 +527,8 @@ pub fn define_property(_: &Value, args: &[Value], ctx: &mut Interpreter) -> Resu
 /// [spec]: https://tc39.es/ecma262/#sec-object.prototype.tostring
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/toString
 pub fn to_string(this: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
-    Ok(Value::from(this.to_string()))
+    // FIXME: it should not display the object.
+    Ok(Value::from(this.display().to_string()))
 }
 
 /// `Object.prototype.hasOwnPrototype( property )`
@@ -559,7 +546,7 @@ pub fn has_own_property(this: &Value, args: &[Value], ctx: &mut Interpreter) -> 
     let prop = if args.is_empty() {
         None
     } else {
-        Some(ctx.to_string(args.get(0).expect("Cannot get object"))?)
+        Some(args.get(0).expect("Cannot get object").to_string(ctx)?)
     };
     let own_property = this
         .as_object()
@@ -579,11 +566,11 @@ pub fn property_is_enumerable(this: &Value, args: &[Value], ctx: &mut Interprete
         Some(key) => key,
     };
 
-    let property_key = ctx.to_property_key(key)?;
-    let own_property = ctx.to_object(this).map(|obj| {
+    let key = key.to_property_key(ctx)?;
+    let own_property = this.to_object(ctx).map(|obj| {
         obj.as_object()
             .expect("Unable to deref object")
-            .get_own_property(&property_key)
+            .get_own_property(&key)
     });
 
     Ok(own_property.map_or(Value::from(false), |own_prop| {
@@ -599,23 +586,30 @@ pub fn init(interpreter: &mut Interpreter) -> (&'static str, Value) {
 
     let prototype = Value::new_object(None);
 
-    make_builtin_fn(has_own_property, "hasOwnProperty", &prototype, 0);
+    make_builtin_fn(
+        has_own_property,
+        "hasOwnProperty",
+        &prototype,
+        0,
+        interpreter,
+    );
     make_builtin_fn(
         property_is_enumerable,
         "propertyIsEnumerable",
         &prototype,
         0,
+        interpreter,
     );
-    make_builtin_fn(to_string, "toString", &prototype, 0);
+    make_builtin_fn(to_string, "toString", &prototype, 0, interpreter);
 
     let object = make_constructor_fn("Object", 1, make_object, global, prototype, true, true);
 
     // static methods of the builtin Object
-    make_builtin_fn(create, "create", &object, 2);
-    make_builtin_fn(set_prototype_of, "setPrototypeOf", &object, 2);
-    make_builtin_fn(get_prototype_of, "getPrototypeOf", &object, 1);
-    make_builtin_fn(define_property, "defineProperty", &object, 3);
-    make_builtin_fn(is, "is", &object, 2);
+    make_builtin_fn(create, "create", &object, 2, interpreter);
+    make_builtin_fn(set_prototype_of, "setPrototypeOf", &object, 2, interpreter);
+    make_builtin_fn(get_prototype_of, "getPrototypeOf", &object, 1, interpreter);
+    make_builtin_fn(define_property, "defineProperty", &object, 3, interpreter);
+    make_builtin_fn(is, "is", &object, 2, interpreter);
 
     ("Object", object)
 }

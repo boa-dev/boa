@@ -497,3 +497,154 @@ fn generic_index_of() {
     assert_eq!(forward(&mut engine, "(10).indexOf(0)"), "1");
     assert_eq!(forward(&mut engine, "(10).indexOf('0')"), "1");
 }
+
+#[test]
+fn index_of_empty_search_string() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+
+    assert_eq!(forward(&mut engine, "''.indexOf('')"), "0");
+    assert_eq!(forward(&mut engine, "''.indexOf('', 10)"), "0");
+    assert_eq!(forward(&mut engine, "'ABC'.indexOf('', 1)"), "1");
+    assert_eq!(forward(&mut engine, "'ABC'.indexOf('', 2)"), "2");
+    assert_eq!(forward(&mut engine, "'ABC'.indexOf('', 10)"), "3");
+}
+
+#[test]
+fn last_index_of_with_no_arguments() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+    assert_eq!(forward(&mut engine, "''.lastIndexOf()"), "-1");
+    assert_eq!(forward(&mut engine, "'undefined'.lastIndexOf()"), "0");
+    assert_eq!(forward(&mut engine, "'a1undefined'.lastIndexOf()"), "2");
+    assert_eq!(
+        forward(&mut engine, "'a1undefined1aundefined'.lastIndexOf()"),
+        "13"
+    );
+    assert_eq!(
+        forward(&mut engine, "'µµµundefinedundefined'.lastIndexOf()"),
+        "12"
+    );
+    assert_eq!(
+        forward(&mut engine, "'µµµundefinedµµµundefined'.lastIndexOf()"),
+        "15"
+    );
+}
+
+#[test]
+fn last_index_of_with_string_search_string_argument() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+    assert_eq!(forward(&mut engine, "''.lastIndexOf('hello')"), "-1");
+    assert_eq!(
+        forward(&mut engine, "'undefined'.lastIndexOf('undefined')"),
+        "0"
+    );
+    assert_eq!(
+        forward(&mut engine, "'a1undefined'.lastIndexOf('undefined')"),
+        "2"
+    );
+    assert_eq!(
+        forward(
+            &mut engine,
+            "'a1undefined1aundefined'.lastIndexOf('undefined')"
+        ),
+        "13"
+    );
+    assert_eq!(
+        forward(
+            &mut engine,
+            "'µµµundefinedundefined'.lastIndexOf('undefined')"
+        ),
+        "12"
+    );
+    assert_eq!(
+        forward(
+            &mut engine,
+            "'µµµundefinedµµµundefined'.lastIndexOf('undefined')"
+        ),
+        "15"
+    );
+}
+
+#[test]
+fn last_index_of_with_non_string_search_string_argument() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+    assert_eq!(forward(&mut engine, "''.lastIndexOf(1)"), "-1");
+    assert_eq!(forward(&mut engine, "'1'.lastIndexOf(1)"), "0");
+    assert_eq!(forward(&mut engine, "'11'.lastIndexOf(1)"), "1");
+    assert_eq!(
+        forward(&mut engine, "'truefalsetrue'.lastIndexOf(true)"),
+        "9"
+    );
+    assert_eq!(forward(&mut engine, "'ab100ba'.lastIndexOf(100)"), "2");
+    assert_eq!(forward(&mut engine, "'µµµfalse'.lastIndexOf(true)"), "-1");
+    assert_eq!(forward(&mut engine, "'µµµ5µµµ65µ'.lastIndexOf(5)"), "8");
+}
+
+#[test]
+fn last_index_of_with_from_index_argument() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+    assert_eq!(forward(&mut engine, "''.lastIndexOf('x', 2)"), "-1");
+    assert_eq!(forward(&mut engine, "'x'.lastIndexOf('x', 2)"), "-1");
+    assert_eq!(forward(&mut engine, "'abcxx'.lastIndexOf('x', 2)"), "4");
+    assert_eq!(forward(&mut engine, "'x'.lastIndexOf('x', 2)"), "-1");
+    assert_eq!(forward(&mut engine, "'µµµxµµµ'.lastIndexOf('x', 2)"), "3");
+
+    assert_eq!(
+        forward(&mut engine, "'µµµxµµµ'.lastIndexOf('x', 10000000)"),
+        "-1"
+    );
+}
+
+#[test]
+fn last_index_with_empty_search_string() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+    assert_eq!(forward(&mut engine, "''.lastIndexOf('')"), "0");
+    assert_eq!(forward(&mut engine, "'x'.lastIndexOf('', 2)"), "1");
+    assert_eq!(forward(&mut engine, "'abcxx'.lastIndexOf('', 4)"), "4");
+    assert_eq!(forward(&mut engine, "'µµµxµµµ'.lastIndexOf('', 2)"), "2");
+
+    assert_eq!(forward(&mut engine, "'abc'.lastIndexOf('', 10000000)"), "3");
+}
+
+#[test]
+fn generic_last_index_of() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+    forward_val(
+        &mut engine,
+        "Number.prototype.lastIndexOf = String.prototype.lastIndexOf",
+    )
+    .unwrap();
+
+    assert_eq!(forward(&mut engine, "(1001).lastIndexOf(9)"), "-1");
+    assert_eq!(forward(&mut engine, "(1001).lastIndexOf(0)"), "2");
+    assert_eq!(forward(&mut engine, "(1001).lastIndexOf('0')"), "2");
+}
+
+#[test]
+fn last_index_non_integer_position_argument() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+    assert_eq!(
+        forward(&mut engine, "''.lastIndexOf('x', new Number(4))"),
+        "-1"
+    );
+    assert_eq!(
+        forward(&mut engine, "'abc'.lastIndexOf('b', new Number(1))"),
+        "1"
+    );
+    assert_eq!(
+        forward(&mut engine, "'abcx'.lastIndexOf('x', new String('1'))"),
+        "3"
+    );
+    assert_eq!(
+        forward(&mut engine, "'abcx'.lastIndexOf('x', new String('100'))"),
+        "-1"
+    );
+    assert_eq!(forward(&mut engine, "'abcx'.lastIndexOf('x', null)"), "3");
+}
