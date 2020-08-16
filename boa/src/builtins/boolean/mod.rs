@@ -14,12 +14,9 @@ mod tests;
 
 use super::function::{make_builtin_fn, make_constructor_fn};
 use crate::{
-    builtins::{
-        object::ObjectData,
-        value::{ResultValue, Value},
-    },
+    builtins::{object::ObjectData, value::Value},
     exec::Interpreter,
-    BoaProfiler,
+    BoaProfiler, Result,
 };
 
 /// Boolean implementation.
@@ -39,7 +36,7 @@ impl Boolean {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-thisbooleanvalue
-    fn this_boolean_value(value: &Value, ctx: &mut Interpreter) -> Result<bool, Value> {
+    fn this_boolean_value(value: &Value, ctx: &mut Interpreter) -> Result<bool> {
         match value {
             Value::Boolean(boolean) => return Ok(*boolean),
             Value::Object(ref object) => {
@@ -61,7 +58,7 @@ impl Boolean {
         this: &Value,
         args: &[Value],
         _: &mut Interpreter,
-    ) -> ResultValue {
+    ) -> Result<Value> {
         // Get the argument, if any
         let data = args.get(0).map(|x| x.to_boolean()).unwrap_or(false);
         this.set_data(ObjectData::Boolean(data));
@@ -78,7 +75,7 @@ impl Boolean {
     /// [spec]: https://tc39.es/ecma262/#sec-boolean-object
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean/toString
     #[allow(clippy::wrong_self_convention)]
-    pub(crate) fn to_string(this: &Value, _: &[Value], ctx: &mut Interpreter) -> ResultValue {
+    pub(crate) fn to_string(this: &Value, _: &[Value], ctx: &mut Interpreter) -> Result<Value> {
         let boolean = Self::this_boolean_value(this, ctx)?;
         Ok(Value::from(boolean.to_string()))
     }
@@ -92,7 +89,7 @@ impl Boolean {
     /// [spec]: https://tc39.es/ecma262/#sec-boolean.prototype.valueof
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean/valueOf
     #[inline]
-    pub(crate) fn value_of(this: &Value, _: &[Value], ctx: &mut Interpreter) -> ResultValue {
+    pub(crate) fn value_of(this: &Value, _: &[Value], ctx: &mut Interpreter) -> Result<Value> {
         Ok(Value::from(Self::this_boolean_value(this, ctx)?))
     }
 

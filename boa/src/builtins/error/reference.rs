@@ -11,13 +11,11 @@
 
 use crate::{
     builtins::{
-        function::make_builtin_fn,
-        function::make_constructor_fn,
-        object::ObjectData,
-        value::{ResultValue, Value},
+        function::make_builtin_fn, function::make_constructor_fn, object::ObjectData, value::Value,
     },
     exec::Interpreter,
     profiler::BoaProfiler,
+    Result,
 };
 
 #[derive(Debug, Clone, Copy)]
@@ -31,7 +29,7 @@ impl ReferenceError {
     pub(crate) const LENGTH: usize = 1;
 
     /// Create a new error object.
-    pub(crate) fn make_error(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
+    pub(crate) fn make_error(this: &Value, args: &[Value], ctx: &mut Interpreter) -> Result<Value> {
         if let Some(message) = args.get(0) {
             this.set_field("message", message.to_string(ctx)?);
         }
@@ -53,9 +51,10 @@ impl ReferenceError {
     /// [spec]: https://tc39.es/ecma262/#sec-error.prototype.tostring
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error/toString
     #[allow(clippy::wrong_self_convention)]
-    pub(crate) fn to_string(this: &Value, _: &[Value], ctx: &mut Interpreter) -> ResultValue {
+    pub(crate) fn to_string(this: &Value, _: &[Value], ctx: &mut Interpreter) -> Result<Value> {
         let name = this.get_field("name").to_string(ctx)?;
         let message = this.get_field("message").to_string(ctx)?;
+
         Ok(Value::from(format!("{}: {}", name, message)))
     }
 

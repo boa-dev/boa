@@ -1,12 +1,12 @@
 use super::{Executable, Interpreter, InterpreterState};
 use crate::{
-    builtins::value::{ResultValue, Type},
+    builtins::value::{Type, Value},
     syntax::ast::node::{Call, Node},
-    BoaProfiler,
+    BoaProfiler, Result,
 };
 
 impl Executable for Call {
-    fn run(&self, interpreter: &mut Interpreter) -> ResultValue {
+    fn run(&self, interpreter: &mut Interpreter) -> Result<Value> {
         let _timer = BoaProfiler::global().start_event("Call", "exec");
         let (this, func) = match self.expr() {
             Node::GetConstField(ref get_const_field) => {

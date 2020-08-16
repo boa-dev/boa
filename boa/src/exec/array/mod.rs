@@ -2,13 +2,13 @@
 
 use super::{Executable, Interpreter};
 use crate::{
-    builtins::{Array, ResultValue},
+    builtins::{Array, Value},
     syntax::ast::node::{ArrayDecl, Node},
-    BoaProfiler,
+    BoaProfiler, Result,
 };
 
 impl Executable for ArrayDecl {
-    fn run(&self, interpreter: &mut Interpreter) -> ResultValue {
+    fn run(&self, interpreter: &mut Interpreter) -> Result<Value> {
         let _timer = BoaProfiler::global().start_event("ArrayDecl", "exec");
         let array = Array::new_array(interpreter)?;
         let mut elements = Vec::new();

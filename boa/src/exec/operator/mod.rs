@@ -4,17 +4,17 @@ mod tests;
 
 use super::{Executable, Interpreter};
 use crate::{
-    builtins::value::{ResultValue, Value},
+    builtins::value::Value,
     environment::lexical_environment::VariableScope,
     syntax::ast::{
         node::{Assign, BinOp, Node, UnaryOp},
         op::{self, AssignOp, BitOp, CompOp, LogOp, NumOp},
     },
-    BoaProfiler,
+    BoaProfiler, Result,
 };
 
 impl Executable for Assign {
-    fn run(&self, interpreter: &mut Interpreter) -> ResultValue {
+    fn run(&self, interpreter: &mut Interpreter) -> Result<Value> {
         let _timer = BoaProfiler::global().start_event("Assign", "exec");
         let val = self.rhs().run(interpreter)?;
         match self.lhs() {
@@ -50,7 +50,7 @@ impl Executable for Assign {
 }
 
 impl Executable for BinOp {
-    fn run(&self, interpreter: &mut Interpreter) -> ResultValue {
+    fn run(&self, interpreter: &mut Interpreter) -> Result<Value> {
         match self.op() {
             op::BinOp::Num(op) => {
                 let x = self.lhs().run(interpreter)?;
@@ -150,7 +150,12 @@ impl Executable for BinOp {
 
 impl BinOp {
     /// Runs the assignment operators.
-    fn run_assign(op: AssignOp, x: Value, y: Value, interpreter: &mut Interpreter) -> ResultValue {
+    fn run_assign(
+        op: AssignOp,
+        x: Value,
+        y: Value,
+        interpreter: &mut Interpreter,
+    ) -> Result<Value> {
         match op {
             AssignOp::Add => x.add(&y, interpreter),
             AssignOp::Sub => x.sub(&y, interpreter),
@@ -168,7 +173,7 @@ impl BinOp {
 }
 
 impl Executable for UnaryOp {
-    fn run(&self, interpreter: &mut Interpreter) -> ResultValue {
+    fn run(&self, interpreter: &mut Interpreter) -> Result<Value> {
         let x = self.target().run(interpreter)?;
 
         Ok(match self.op() {
