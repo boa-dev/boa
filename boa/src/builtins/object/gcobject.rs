@@ -102,7 +102,8 @@ impl Drop for RecursionLimiter {
 
 impl RecursionLimiter {
     thread_local! {
-        pub static VISITED: RefCell<HashSet<usize>> = RefCell::new(HashSet::new());
+        /// The list of pointers to `GcObject` that have been visited during the current `Debug::fmt` graph.
+        static VISITED: RefCell<HashSet<usize>> = RefCell::new(HashSet::new());
     }
 
     /// Determines if the specified `GcObject` has been visited, and returns a struct that will free it when dropped.
