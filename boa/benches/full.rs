@@ -1,12 +1,12 @@
 //! Benchmarks of whole program execution in Boa.
-mod consts;
-use boa::exec;
-use consts::{
+
+use boa::consts::{
     ARITHMETIC_OPERATIONS, ARRAY_ACCESS, ARRAY_CREATE, ARRAY_POP, BOOLEAN_OBJECT_ACCESS, FIBONACCI,
     FOR_LOOP, NUMBER_OBJECT_ACCESS, OBJECT_CREATION, OBJECT_PROP_ACCESS_CONST,
     OBJECT_PROP_ACCESS_DYN, REGEXP, REGEXP_CREATION, REGEXP_LITERAL, REGEXP_LITERAL_CREATION,
     STRING_COMPARE, STRING_CONCAT, STRING_COPY, STRING_OBJECT_ACCESS, SYMBOL_CREATION,
 };
+use boa::exec;
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
 
 #[cfg(all(target_arch = "x86_64", target_os = "linux", target_env = "gnu"))]

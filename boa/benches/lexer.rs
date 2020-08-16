@@ -1,7 +1,7 @@
 //! Benchmarks of the lexing process in Boa.
-mod consts;
+
+use boa::consts::{EXPRESSION, FOR_LOOP, HELLO_WORLD};
 use boa::syntax::lexer::Lexer;
-use consts::{EXPRESSION, FOR_LOOP, HELLO_WORLD};
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
 
 #[cfg(all(target_arch = "x86_64", target_os = "linux", target_env = "gnu"))]

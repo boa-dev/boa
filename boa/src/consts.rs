@@ -1,3 +1,5 @@
+// Benchmark scripts to be defined here, location subject to change!
+
 pub static EXPRESSION: &str = r#"
 1 + 1 + 1 + 1 + 1 + 1 / 1 + 1 + 1 * 1 + 1 + 1 + 1;
 "#;
