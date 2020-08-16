@@ -9,6 +9,13 @@ use crate::syntax::{
 use buffered_lexer::BufferedLexer;
 use std::io::Read;
 
+/// The result of a peek for a semicolon.
+#[derive(Debug)]
+pub(super) enum SemicolonResult<'s> {
+    Found(Option<&'s Token>),
+    NotFound(&'s Token),
+}
+
 /// Token cursor.
 ///
 /// This internal structure gives basic testable operations to the parser.
@@ -21,44 +28,32 @@ impl<R> Cursor<R>
 where
     R: Read,
 {
-    /// Creates a new cursor.
-    #[inline(always)]
+    /// Creates a new cursor with the given reader.
+    #[inline]
     pub(super) fn new(reader: R) -> Self {
         Self {
             buffered_lexer: Lexer::new(reader).into(),
         }
     }
 
-    #[inline(always)]
+    #[inline]
     pub(super) fn set_goal(&mut self, elm: InputElement) {
         self.buffered_lexer.set_goal(elm)
     }
 
-    #[inline(always)]
+    #[inline]
     pub(super) fn lex_regex(&mut self, start: Position) -> Result<Token, ParseError> {
         self.buffered_lexer.lex_regex(start)
     }
 
-    #[inline(always)]
-    pub(super) fn next(
-        &mut self,
-        skip_line_terminators: bool,
-    ) -> Result<Option<Token>, ParseError> {
-        self.buffered_lexer.next(skip_line_terminators)
+    #[inline]
+    pub(super) fn next(&mut self) -> Result<Option<Token>, ParseError> {
+        self.buffered_lexer.next(true)
     }
 
-    #[inline(always)]
-    pub(super) fn peek(
-        &mut self,
-        skip_n: usize,
-        skip_line_terminators: bool,
-    ) -> Result<Option<Token>, ParseError> {
-        self.buffered_lexer.peek(skip_n, skip_line_terminators)
-    }
-
-    #[inline(always)]
-    pub(super) fn push_back(&mut self, token: Token) {
-        self.buffered_lexer.push_back(token)
+    #[inline]
+    pub(super) fn peek(&mut self, skip_n: usize) -> Result<Option<&Token>, ParseError> {
+        self.buffered_lexer.peek(skip_n, true)
     }
 
     /// Returns an error if the next token is not of kind `kind`.
@@ -66,23 +61,15 @@ where
     /// Note: it will consume the next token only if the next token is the expected type.
     ///
     /// If skip_line_terminators is true then line terminators will be discarded.
-    #[inline(always)]
-    pub(super) fn expect<K>(
-        &mut self,
-        kind: K,
-        context: &'static str,
-        skip_line_terminators: bool,
-    ) -> Result<Token, ParseError>
+    #[inline]
+    pub(super) fn expect<K>(&mut self, kind: K, context: &'static str) -> Result<Token, ParseError>
     where
         K: Into<TokenKind>,
     {
-        let next_token = self
-            .peek(0, skip_line_terminators)?
-            .ok_or(ParseError::AbruptEnd)?;
+        let next_token = self.next()?.ok_or(ParseError::AbruptEnd)?;
         let kind = kind.into();
 
         if next_token.kind() == &kind {
-            self.next(skip_line_terminators)?.expect("Token vanished");
             Ok(next_token)
         } else {
             Err(ParseError::expected(vec![kind], next_token, context))
@@ -94,45 +81,42 @@ where
     /// It will automatically insert a semicolon if needed, as specified in the [spec][spec].
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-automatic-semicolon-insertion
-    #[inline(always)]
-    pub(super) fn peek_semicolon(&mut self) -> Result<(bool, Option<Token>), ParseError> {
-        match self.peek(0, false)? {
+    #[inline]
+    pub(super) fn peek_semicolon(&mut self) -> Result<SemicolonResult<'_>, ParseError> {
+        match self.buffered_lexer.peek(0, false)? {
             Some(tk) => match tk.kind() {
-                TokenKind::Punctuator(Punctuator::Semicolon) => Ok((true, Some(tk))),
-                TokenKind::LineTerminator | TokenKind::Punctuator(Punctuator::CloseBlock) => {
-                    Ok((true, Some(tk)))
+                TokenKind::Punctuator(Punctuator::Semicolon)
+                | TokenKind::LineTerminator
+                | TokenKind::Punctuator(Punctuator::CloseBlock) => {
+                    Ok(SemicolonResult::Found(Some(tk)))
                 }
-                _ => Ok((false, Some(tk))),
+                _ => Ok(SemicolonResult::NotFound(tk)),
             },
-            None => Ok((true, None)),
+            None => Ok(SemicolonResult::Found(None)),
         }
     }
 
-    /// Consumes the next token iff it is a semicolon otherwise returns an expected ParseError.
+    /// Consumes the next token if it is a semicolon, or returns a `ParseError` if it's not.
     ///
     /// It will automatically insert a semicolon if needed, as specified in the [spec][spec].
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-automatic-semicolon-insertion
-    #[inline(always)]
-    pub(super) fn expect_semicolon(
-        &mut self,
-        context: &'static str,
-    ) -> Result<Option<Token>, ParseError> {
+    #[inline]
+    pub(super) fn expect_semicolon(&mut self, context: &'static str) -> Result<(), ParseError> {
         match self.peek_semicolon()? {
-            (true, Some(tk)) => match tk.kind() {
+            SemicolonResult::Found(Some(tk)) => match *tk.kind() {
                 TokenKind::Punctuator(Punctuator::Semicolon) | TokenKind::LineTerminator => {
-                    self.next(false)?.expect("Token vanished"); // Consume the token.
-                    Ok(Some(tk))
+                    let _ = self.buffered_lexer.next(false)?;
+                    Ok(())
                 }
-                _ => Ok(Some(tk)),
+                _ => Ok(()),
             },
-            (true, None) => Ok(None),
-            (false, Some(tk)) => Err(ParseError::expected(
+            SemicolonResult::Found(None) => Ok(()),
+            SemicolonResult::NotFound(tk) => Err(ParseError::expected(
                 vec![TokenKind::Punctuator(Punctuator::Semicolon)],
-                tk,
+                tk.clone(),
                 context,
             )),
-            (false, None) => unreachable!(),
         }
     }
 
@@ -141,16 +125,16 @@ where
     /// It expects that the token stream does not end here.
     ///
     /// This is just syntatic sugar for a .peek(skip_n, false) call followed by a check that the result is not a line terminator or None.
-    #[inline(always)]
+    #[inline]
     pub(super) fn peek_expect_no_lineterminator(
         &mut self,
         skip_n: usize,
-    ) -> Result<(), ParseError> {
-        if let Some(t) = self.peek(skip_n, false)? {
+    ) -> Result<&Token, ParseError> {
+        if let Some(t) = self.buffered_lexer.peek(skip_n, false)? {
             if t.kind() == &TokenKind::LineTerminator {
-                Err(ParseError::unexpected(t, None))
+                Err(ParseError::unexpected(t.clone(), None))
             } else {
-                Ok(())
+                Ok(t)
             }
         } else {
             Err(ParseError::AbruptEnd)
@@ -164,18 +148,14 @@ where
     /// No next token also returns None.
     ///
     /// If skip_line_terminators is true then line terminators will be discarded.
-    #[inline(always)]
-    pub(super) fn next_if<K>(
-        &mut self,
-        kind: K,
-        skip_line_terminators: bool,
-    ) -> Result<Option<Token>, ParseError>
+    #[inline]
+    pub(super) fn next_if<K>(&mut self, kind: K) -> Result<Option<Token>, ParseError>
     where
         K: Into<TokenKind>,
     {
-        Ok(if let Some(token) = self.peek(0, skip_line_terminators)? {
+        Ok(if let Some(token) = self.peek(0)? {
             if token.kind() == &kind.into() {
-                self.next(skip_line_terminators)?
+                self.next()?
             } else {
                 None
             }

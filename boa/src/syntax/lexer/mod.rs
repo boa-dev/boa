@@ -146,7 +146,7 @@ impl<R> Lexer<R> {
     }
 
     #[allow(clippy::should_implement_trait)] // We intentionally don't implement Iterator trait as Result<Option> is cleaner to handle.
-    pub fn next(&mut self, skip_line_terminator: bool) -> Result<Option<Token>, Error>
+    pub fn next(&mut self) -> Result<Option<Token>, Error>
     where
         R: Read,
     {
@@ -236,11 +236,9 @@ impl<R> Lexer<R> {
             }
         }?;
 
-        if (token.kind() == &TokenKind::Comment)
-            | (skip_line_terminator && (token.kind() == &TokenKind::LineTerminator))
-        {
+        if token.kind() == &TokenKind::Comment {
             // Skip comment
-            self.next(skip_line_terminator)
+            self.next()
         } else {
             Ok(Some(token))
         }

@@ -36,14 +36,6 @@ pub struct GetConstField {
 }
 
 impl GetConstField {
-    pub fn obj(&self) -> &Node {
-        &self.obj
-    }
-
-    pub fn field(&self) -> &str {
-        &self.field
-    }
-
     /// Creates a `GetConstField` AST node.
     pub fn new<V, L>(value: V, label: L) -> Self
     where
@@ -54,6 +46,16 @@ impl GetConstField {
             obj: Box::new(value.into()),
             field: label.into(),
         }
+    }
+
+    /// Gets the original object from where to get the field from.
+    pub fn obj(&self) -> &Node {
+        &self.obj
+    }
+
+    /// Gets the name of the field to retrieve.
+    pub fn field(&self) -> &str {
+        &self.field
     }
 }
 

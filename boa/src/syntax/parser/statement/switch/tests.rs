@@ -1,4 +1,10 @@
-use crate::syntax::parser::tests::check_invalid;
+use crate::syntax::{
+    ast::{
+        node::{Break, Call, Case, GetConstField, Identifier, LetDecl, LetDeclList, Node, Switch},
+        Const,
+    },
+    parser::tests::{check_invalid, check_parser},
+};
 
 /// Checks parsing malformed switch with no closeblock.
 #[test]
@@ -101,8 +107,7 @@ fn check_switch_seperated_defaults() {
 /// Example of JS code https://jsfiddle.net/zq6jx47h/4/.
 #[test]
 fn check_seperated_switch() {
-    check_invalid(
-        r#"
+    let s = r#"
         let a = 10;
 
         switch 
@@ -138,6 +143,45 @@ fn check_seperated_switch() {
         console.log("Default")
 
         }
-        "#,
+        "#;
+
+    check_parser(
+        s,
+        vec![
+            LetDeclList::from(vec![LetDecl::new("a", Node::from(Const::from(10)))]).into(),
+            Switch::new(
+                Identifier::from("a"),
+                vec![
+                    Case::new(
+                        Const::from(5),
+                        vec![
+                            Call::new(
+                                GetConstField::new(Identifier::from("console"), "log"),
+                                vec![Node::from(Const::from(5))],
+                            )
+                            .into(),
+                            Break::new::<_, Box<str>>(None).into(),
+                        ],
+                    ),
+                    Case::new(
+                        Const::from(10),
+                        vec![
+                            Call::new(
+                                GetConstField::new(Identifier::from("console"), "log"),
+                                vec![Node::from(Const::from(10))],
+                            )
+                            .into(),
+                            Break::new::<_, Box<str>>(None).into(),
+                        ],
+                    ),
+                ],
+                Some(vec![Call::new(
+                    GetConstField::new(Identifier::from("console"), "log"),
+                    vec![Node::from(Const::from("Default"))],
+                )
+                .into()]),
+            )
+            .into(),
+        ],
     );
 }

@@ -65,7 +65,7 @@ where
     fn parse(self, cursor: &mut Cursor<R>) -> ParseResult {
         let _timer = BoaProfiler::global().start_event("CallExpression", "Parsing");
 
-        let tk = cursor.peek(0, false)?;
+        let tk = cursor.peek(0)?;
 
         let mut lhs = match tk {
             Some(_) if tk.unwrap().kind() == &TokenKind::Punctuator(Punctuator::OpenParen) => {
@@ -74,7 +74,7 @@ where
                 Node::from(Call::new(self.first_member_expr, args))
             }
             _ => {
-                let next_token = cursor.next(false)?.ok_or(ParseError::AbruptEnd)?;
+                let next_token = cursor.next()?.ok_or(ParseError::AbruptEnd)?;
                 return Err(ParseError::expected(
                     vec![TokenKind::Punctuator(Punctuator::OpenParen)],
                     next_token,
@@ -83,7 +83,7 @@ where
             }
         };
 
-        while let Some(tok) = cursor.peek(0, false)? {
+        while let Some(tok) = cursor.peek(0)? {
             let token = tok.clone();
             match token.kind() {
                 TokenKind::Punctuator(Punctuator::OpenParen) => {
@@ -91,9 +91,9 @@ where
                     lhs = Node::from(Call::new(lhs, args));
                 }
                 TokenKind::Punctuator(Punctuator::Dot) => {
-                    cursor.next(false)?.ok_or(ParseError::AbruptEnd)?; // We move the parser forward.
+                    cursor.next()?.ok_or(ParseError::AbruptEnd)?; // We move the parser forward.
 
-                    match &cursor.next(false)?.ok_or(ParseError::AbruptEnd)?.kind() {
+                    match &cursor.next()?.ok_or(ParseError::AbruptEnd)?.kind() {
                         TokenKind::Identifier(name) => {
                             lhs = GetConstField::new(lhs, name.clone()).into();
                         }
@@ -110,10 +110,10 @@ where
                     }
                 }
                 TokenKind::Punctuator(Punctuator::OpenBracket) => {
-                    let _ = cursor.next(false)?.ok_or(ParseError::AbruptEnd)?; // We move the parser.
+                    let _ = cursor.next()?.ok_or(ParseError::AbruptEnd)?; // We move the parser.
                     let idx =
                         Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?;
-                    cursor.expect(Punctuator::CloseBracket, "call expression", false)?;
+                    cursor.expect(Punctuator::CloseBracket, "call expression")?;
                     lhs = GetField::new(lhs, idx).into();
                 }
                 _ => break,

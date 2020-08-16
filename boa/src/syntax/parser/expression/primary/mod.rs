@@ -70,7 +70,7 @@ where
     fn parse(self, cursor: &mut Cursor<R>) -> ParseResult {
         let _timer = BoaProfiler::global().start_event("PrimaryExpression", "Parsing");
 
-        let tok = cursor.next(false)?.ok_or(ParseError::AbruptEnd)?;
+        let tok = cursor.next()?.ok_or(ParseError::AbruptEnd)?;
 
         match tok.kind() {
             TokenKind::Keyword(Keyword::This) => Ok(Node::This),
@@ -82,11 +82,7 @@ where
                 cursor.set_goal(InputElement::RegExp);
                 let expr =
                     Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?;
-                cursor.expect(
-                    Punctuator::CloseParen,
-                    "primary expression - close paren",
-                    false,
-                )?;
+                cursor.expect(Punctuator::CloseParen, "primary expression - close paren")?;
                 Ok(expr)
             }
             TokenKind::Punctuator(Punctuator::OpenBracket) => {

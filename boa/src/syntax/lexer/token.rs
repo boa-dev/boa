@@ -5,10 +5,12 @@
 //!
 //! [spec]: https://tc39.es/ecma262/#sec-tokens
 
-use crate::builtins::BigInt;
-use crate::syntax::{
-    ast::{Keyword, Punctuator, Span},
-    lexer::Error as LexerError,
+use crate::{
+    builtins::BigInt,
+    syntax::{
+        ast::{Keyword, Punctuator, Span},
+        lexer::Error as LexerError,
+    },
 };
 use bitflags::bitflags;
 use std::{
@@ -29,23 +31,26 @@ use serde::{Deserialize, Deserializer, Serialize, Serializer};
 #[derive(Debug, Clone, PartialEq)]
 pub struct Token {
     /// The token kind, which contains the actual data of the token.
-    pub(crate) kind: TokenKind,
+    kind: TokenKind,
     /// The token position in the original source code.
-    pub(crate) span: Span,
+    span: Span,
 }
 
 impl Token {
     /// Create a new detailed token from the token data, line number and column number
+    #[inline]
     pub fn new(kind: TokenKind, span: Span) -> Self {
         Self { kind, span }
     }
 
     /// Gets the kind of the token.
+    #[inline]
     pub fn kind(&self) -> &TokenKind {
         &self.kind
     }
 
     /// Gets the token span in the original source code.
+    #[inline]
     pub fn span(&self) -> Span {
         self.span
     }
@@ -72,24 +77,28 @@ pub enum Numeric {
 }
 
 impl From<f64> for Numeric {
+    #[inline]
     fn from(n: f64) -> Self {
         Self::Rational(n)
     }
 }
 
 impl From<i32> for Numeric {
+    #[inline]
     fn from(n: i32) -> Self {
         Self::Integer(n)
     }
 }
 
 impl From<BigInt> for Numeric {
+    #[inline]
     fn from(n: BigInt) -> Self {
         Self::BigInt(n)
     }
 }
 
 bitflags! {
+    /// Flags of a regular expression.
     #[derive(Default)]
     pub struct RegExpFlags: u8 {
         const GLOBAL = 0b0000_0001;

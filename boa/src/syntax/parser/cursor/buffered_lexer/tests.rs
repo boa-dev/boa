@@ -29,13 +29,6 @@ fn peek_skip_accending() {
         TokenKind::identifier("c")
     );
     assert_eq!(
-        *cur.peek(3, false)
-            .unwrap()
-            .expect("Some value expected")
-            .kind(),
-        TokenKind::identifier("d")
-    );
-    assert_eq!(
         *cur.peek(2, false)
             .unwrap()
             .expect("Some value expected")
@@ -84,13 +77,6 @@ fn peek_skip_next() {
             .expect("Some value expected")
             .kind(),
         TokenKind::identifier("c")
-    );
-    assert_eq!(
-        *cur.peek(3, false)
-            .unwrap()
-            .expect("Some value expected")
-            .kind(),
-        TokenKind::identifier("d")
     );
     assert_eq!(
         *cur.next(false)
@@ -148,13 +134,6 @@ fn peek_skip_next() {
             .kind(),
         TokenKind::identifier("h")
     );
-    assert_eq!(
-        *cur.peek(3, false)
-            .unwrap()
-            .expect("Some value expected")
-            .kind(),
-        TokenKind::identifier("i")
-    );
 }
 
 #[test]
@@ -199,13 +178,6 @@ fn peek_skip_next_alternating() {
         TokenKind::identifier("d")
     );
     assert_eq!(
-        *cur.peek(3, false)
-            .unwrap()
-            .expect("Some value expected")
-            .kind(),
-        TokenKind::identifier("f")
-    );
-    assert_eq!(
         *cur.next(false)
             .unwrap()
             .expect("Some value expected")
@@ -219,13 +191,6 @@ fn peek_skip_next_alternating() {
             .kind(),
         TokenKind::identifier("f")
     );
-    assert_eq!(
-        *cur.peek(3, false)
-            .unwrap()
-            .expect("Some value expected")
-            .kind(),
-        TokenKind::identifier("g")
-    );
 }
 
 #[test]
@@ -235,7 +200,7 @@ fn peek_next_till_end() {
     let mut cur = BufferedLexer::from(buf);
 
     loop {
-        let peek = cur.peek(0, false).unwrap();
+        let peek = cur.peek(0, false).unwrap().cloned();
         let next = cur.next(false).unwrap();
 
         assert_eq!(peek, next);
@@ -251,11 +216,11 @@ fn peek_skip_next_till_end() {
     let mut cur = BufferedLexer::from("a b c d e f g h i".as_bytes());
 
     let mut peeked: [Option<Token>; super::MAX_PEEK_SKIP + 1] =
-        [None::<Token>, None::<Token>, None::<Token>, None::<Token>];
+        [None::<Token>, None::<Token>, None::<Token>];
 
     loop {
         for i in 0..super::MAX_PEEK_SKIP {
-            peeked[i] = cur.peek(i, false).unwrap();
+            peeked[i] = cur.peek(i, false).unwrap().cloned();
         }
 
         for i in 0..super::MAX_PEEK_SKIP {
@@ -270,7 +235,7 @@ fn peek_skip_next_till_end() {
 
 #[test]
 fn skip_peeked_terminators() {
-    let mut cur = BufferedLexer::from("A B \n C".as_bytes());
+    let mut cur = BufferedLexer::from("A \n B".as_bytes());
     assert_eq!(
         *cur.peek(0, false)
             .unwrap()
@@ -285,76 +250,29 @@ fn skip_peeked_terminators() {
             .kind(),
         TokenKind::identifier("A")
     );
+
     assert_eq!(
         *cur.peek(1, false)
             .unwrap()
             .expect("Some value expected")
             .kind(),
-        TokenKind::identifier("B")
+        TokenKind::LineTerminator,
     );
     assert_eq!(
         *cur.peek(1, true)
             .unwrap()
             .expect("Some value expected")
             .kind(),
-        TokenKind::identifier("B")
+        TokenKind::identifier("B") // This value is after the line terminator
     );
+
     assert_eq!(
         *cur.peek(2, false)
             .unwrap()
             .expect("Some value expected")
             .kind(),
-        TokenKind::LineTerminator
+        TokenKind::identifier("B")
     );
-    assert_eq!(
-        *cur.peek(3, false)
-            .unwrap()
-            .expect("Some value expected")
-            .kind(),
-        TokenKind::identifier("C")
-    );
-    println!("mark");
-    assert_eq!(
-        *cur.peek(2, true)
-            .unwrap()
-            .expect("Some value expected")
-            .kind(),
-        TokenKind::identifier("C") // This value is after the line terminator.
-    );
-
-    // Note that now the line terminator is gone and any subsequent call will not return it.
-    // This is because the previous peek(2, true) call skipped (and therefore destroyed) it
-    // because the returned value ("C") is after the line terminator.
-
-    assert!(cur.peek(3, false).unwrap().is_none());
-    assert!(cur.peek(3, true).unwrap().is_none());
-}
-
-#[test]
-fn push_back_peek() {
-    let mut cur = BufferedLexer::from("a b c d e f g h i".as_bytes());
-
-    let next = cur.next(false).unwrap().expect("Expected some");
-    assert_eq!(
-        *cur.peek(0, false)
-            .unwrap()
-            .expect("Some value expected")
-            .kind(),
-        TokenKind::identifier("b")
-    );
-    cur.push_back(next);
-    assert_eq!(
-        *cur.peek(0, false)
-            .unwrap()
-            .expect("Some value expected")
-            .kind(),
-        TokenKind::identifier("a")
-    );
-    assert_eq!(
-        *cur.peek(3, false)
-            .unwrap()
-            .expect("Some value expected")
-            .kind(),
-        TokenKind::identifier("d")
-    );
+    // End of stream
+    assert!(cur.peek(2, true).unwrap().is_none());
 }

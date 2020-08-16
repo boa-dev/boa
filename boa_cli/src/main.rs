@@ -124,7 +124,7 @@ fn lex_source(src: &str) -> Result<Vec<Token>, String> {
     // Goes through and lexes entire given string.
     let mut res = Vec::new();
 
-    while let Some(tk) = lexer.next(false).expect("Failed to lex") {
+    while let Some(tk) = lexer.next().expect("Failed to lex") {
         res.push(tk);
     }
 

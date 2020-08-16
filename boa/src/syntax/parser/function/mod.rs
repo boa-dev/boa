@@ -10,19 +10,18 @@
 #[cfg(test)]
 mod tests;
 
-use crate::syntax::lexer::{InputElement, TokenKind};
 use crate::syntax::{
     ast::{
         node::{self},
         Punctuator,
     },
+    lexer::{InputElement, TokenKind},
     parser::{
         expression::Initializer,
         statement::{BindingIdentifier, StatementList},
         AllowAwait, AllowYield, Cursor, ParseError, TokenParser,
     },
 };
-
 use std::io::Read;
 
 /// Formal parameters parsing.
@@ -64,7 +63,7 @@ where
 
         let mut params = Vec::new();
 
-        if cursor.peek(0, false)?.ok_or(ParseError::AbruptEnd)?.kind()
+        if cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?.kind()
             == &TokenKind::Punctuator(Punctuator::CloseParen)
         {
             return Ok(params.into_boxed_slice());
@@ -73,14 +72,17 @@ where
         loop {
             let mut rest_param = false;
 
-            params.push(if cursor.next_if(Punctuator::Spread, false)?.is_some() {
-                rest_param = true;
-                FunctionRestParameter::new(self.allow_yield, self.allow_await).parse(cursor)?
-            } else {
-                FormalParameter::new(self.allow_yield, self.allow_await).parse(cursor)?
-            });
+            let next_param = match cursor.peek(0)? {
+                Some(tok) if tok.kind() == &TokenKind::Punctuator(Punctuator::Spread) => {
+                    rest_param = true;
+                    FunctionRestParameter::new(self.allow_yield, self.allow_await).parse(cursor)?
+                }
+                _ => FormalParameter::new(self.allow_yield, self.allow_await).parse(cursor)?,
+            };
 
-            if cursor.peek(0, false)?.ok_or(ParseError::AbruptEnd)?.kind()
+            params.push(next_param);
+
+            if cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?.kind()
                 == &TokenKind::Punctuator(Punctuator::CloseParen)
             {
                 break;
@@ -88,12 +90,12 @@ where
 
             if rest_param {
                 return Err(ParseError::unexpected(
-                    cursor.peek(0, false)?.expect("Peek token disappeared"),
+                    cursor.next()?.expect("Peek token disappeared"),
                     "rest parameter must be the last formal parameter",
                 ));
             }
 
-            cursor.expect(Punctuator::Comma, "parameter list", false)?;
+            cursor.expect(Punctuator::Comma, "parameter list")?;
         }
 
         Ok(params.into_boxed_slice())
@@ -145,8 +147,7 @@ where
     type Output = node::FormalParameter;
 
     fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
-        // FIXME: we are reading the spread operator before the rest element.
-        // parser.expect(Punctuator::Spread, "rest parameter")?;
+        cursor.expect(Punctuator::Spread, "rest parameter")?;
 
         let param = BindingIdentifier::new(self.allow_yield, self.allow_await).parse(cursor)?;
         // TODO: BindingPattern
@@ -194,7 +195,7 @@ where
 
         let param = BindingIdentifier::new(self.allow_yield, self.allow_await).parse(cursor)?;
 
-        let init = if let Some(t) = cursor.peek(0, false)? {
+        let init = if let Some(t) = cursor.peek(0)? {
             if *t.kind() == TokenKind::Punctuator(Punctuator::Assign) {
                 Some(Initializer::new(true, self.allow_yield, self.allow_await).parse(cursor)?)
             } else {
@@ -258,7 +259,7 @@ where
     type Output = node::StatementList;
 
     fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
-        if let Some(tk) = cursor.peek(0, false)? {
+        if let Some(tk) = cursor.peek(0)? {
             if tk.kind() == &Punctuator::CloseBlock.into() {
                 return Ok(Vec::new().into());
             }

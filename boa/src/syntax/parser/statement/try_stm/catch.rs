@@ -53,11 +53,11 @@ where
 
     fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("Catch", "Parsing");
-        cursor.expect(Keyword::Catch, "try statement", false)?;
-        let catch_param = if cursor.next_if(Punctuator::OpenParen, false)?.is_some() {
+        cursor.expect(Keyword::Catch, "try statement")?;
+        let catch_param = if cursor.next_if(Punctuator::OpenParen)?.is_some() {
             let catch_param =
                 CatchParameter::new(self.allow_yield, self.allow_await).parse(cursor)?;
-            cursor.expect(Punctuator::CloseParen, "catch in try statement", false)?;
+            cursor.expect(Punctuator::CloseParen, "catch in try statement")?;
             Some(catch_param)
         } else {
             None

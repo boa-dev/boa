@@ -15,7 +15,9 @@ use crate::{
     syntax::{
         ast::{node::Continue, Keyword, Punctuator},
         parser::{
-            statement::LabelIdentifier, AllowAwait, AllowYield, Cursor, ParseError, TokenParser,
+            cursor::{Cursor, SemicolonResult},
+            statement::LabelIdentifier,
+            AllowAwait, AllowYield, ParseError, TokenParser,
         },
     },
     BoaProfiler,
@@ -59,12 +61,12 @@ where
 
     fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("ContinueStatement", "Parsing");
-        cursor.expect(Keyword::Continue, "continue statement", false)?;
+        cursor.expect(Keyword::Continue, "continue statement")?;
 
-        let label = if let (true, tok) = cursor.peek_semicolon()? {
+        let label = if let SemicolonResult::Found(tok) = cursor.peek_semicolon()? {
             match tok {
-                Some(tok) if tok.kind == TokenKind::Punctuator(Punctuator::Semicolon) => {
-                    let _ = cursor.next(false);
+                Some(tok) if tok.kind() == &TokenKind::Punctuator(Punctuator::Semicolon) => {
+                    let _ = cursor.next();
                 }
                 _ => {}
             }

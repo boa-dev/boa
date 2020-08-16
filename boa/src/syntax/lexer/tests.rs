@@ -14,11 +14,11 @@ where
     R: Read,
 {
     for expect in expected.iter() {
-        assert_eq!(&lexer.next(false).unwrap().unwrap().kind(), &expect);
+        assert_eq!(&lexer.next().unwrap().unwrap().kind(), &expect);
     }
 
     assert!(
-        lexer.next(false).unwrap().is_none(),
+        lexer.next().unwrap().is_none(),
         "Unexpected extra token lexed at end of input"
     );
 }
@@ -71,7 +71,7 @@ fn check_template_literal_simple() {
     let mut lexer = Lexer::new(s.as_bytes());
 
     assert_eq!(
-        lexer.next(false).unwrap().unwrap().kind(),
+        lexer.next().unwrap().unwrap().kind(),
         &TokenKind::template_literal("I'm a template literal")
     );
 }
@@ -82,7 +82,7 @@ fn check_template_literal_unterminated() {
     let mut lexer = Lexer::new(s.as_bytes());
 
     lexer
-        .next(false)
+        .next()
         .expect_err("Lexer did not handle unterminated literal with error");
 }
 
@@ -221,44 +221,35 @@ fn check_positions() {
     let mut lexer = Lexer::new(s.as_bytes());
 
     // The first column is 1 (not zero indexed)
-    assert_eq!(
-        lexer.next(false).unwrap().unwrap().span(),
-        span((1, 1), (1, 8))
-    );
+    assert_eq!(lexer.next().unwrap().unwrap().span(), span((1, 1), (1, 8)));
 
     // Dot Token starts on column 8
-    assert_eq!(
-        lexer.next(false).unwrap().unwrap().span(),
-        span((1, 8), (1, 9))
-    );
+    assert_eq!(lexer.next().unwrap().unwrap().span(), span((1, 8), (1, 9)));
 
     // Log Token starts on column 9
-    assert_eq!(
-        lexer.next(false).unwrap().unwrap().span(),
-        span((1, 9), (1, 12))
-    );
+    assert_eq!(lexer.next().unwrap().unwrap().span(), span((1, 9), (1, 12)));
 
     // Open parenthesis token starts on column 12
     assert_eq!(
-        lexer.next(false).unwrap().unwrap().span(),
+        lexer.next().unwrap().unwrap().span(),
         span((1, 12), (1, 13))
     );
 
     // String token starts on column 13
     assert_eq!(
-        lexer.next(false).unwrap().unwrap().span(),
+        lexer.next().unwrap().unwrap().span(),
         span((1, 13), (1, 26))
     );
 
     // Close parenthesis token starts on column 26.
     assert_eq!(
-        lexer.next(false).unwrap().unwrap().span(),
+        lexer.next().unwrap().unwrap().span(),
         span((1, 26), (1, 27))
     );
 
     // Semi Colon token starts on column 35
     assert_eq!(
-        lexer.next(false).unwrap().unwrap().span(),
+        lexer.next().unwrap().unwrap().span(),
         span((1, 27), (1, 28))
     );
 }
@@ -270,44 +261,35 @@ fn check_positions_codepoint() {
     let mut lexer = Lexer::new(s.as_bytes());
 
     // The first column is 1 (not zero indexed)
-    assert_eq!(
-        lexer.next(false).unwrap().unwrap().span(),
-        span((1, 1), (1, 8))
-    );
+    assert_eq!(lexer.next().unwrap().unwrap().span(), span((1, 1), (1, 8)));
 
     // Dot Token starts on column 8
-    assert_eq!(
-        lexer.next(false).unwrap().unwrap().span(),
-        span((1, 8), (1, 9))
-    );
+    assert_eq!(lexer.next().unwrap().unwrap().span(), span((1, 8), (1, 9)));
 
     // Log Token starts on column 9
-    assert_eq!(
-        lexer.next(false).unwrap().unwrap().span(),
-        span((1, 9), (1, 12))
-    );
+    assert_eq!(lexer.next().unwrap().unwrap().span(), span((1, 9), (1, 12)));
 
     // Open parenthesis token starts on column 12
     assert_eq!(
-        lexer.next(false).unwrap().unwrap().span(),
+        lexer.next().unwrap().unwrap().span(),
         span((1, 12), (1, 13))
     );
 
     // String token starts on column 13
     assert_eq!(
-        lexer.next(false).unwrap().unwrap().span(),
+        lexer.next().unwrap().unwrap().span(),
         span((1, 13), (1, 34))
     );
 
     // Close parenthesis token starts on column 34
     assert_eq!(
-        lexer.next(false).unwrap().unwrap().span(),
+        lexer.next().unwrap().unwrap().span(),
         span((1, 34), (1, 35))
     );
 
     // Semi Colon token starts on column 35
     assert_eq!(
-        lexer.next(false).unwrap().unwrap().span(),
+        lexer.next().unwrap().unwrap().span(),
         span((1, 35), (1, 36))
     );
 }
@@ -318,22 +300,10 @@ fn check_line_numbers() {
 
     let mut lexer = Lexer::new(s.as_bytes());
 
-    assert_eq!(
-        lexer.next(false).unwrap().unwrap().span(),
-        span((1, 1), (1, 2))
-    );
-    assert_eq!(
-        lexer.next(false).unwrap().unwrap().span(),
-        span((1, 2), (2, 1))
-    );
-    assert_eq!(
-        lexer.next(false).unwrap().unwrap().span(),
-        span((2, 1), (2, 2))
-    );
-    assert_eq!(
-        lexer.next(false).unwrap().unwrap().span(),
-        span((2, 2), (3, 1))
-    );
+    assert_eq!(lexer.next().unwrap().unwrap().span(), span((1, 1), (1, 2)));
+    assert_eq!(lexer.next().unwrap().unwrap().span(), span((1, 2), (2, 1)));
+    assert_eq!(lexer.next().unwrap().unwrap().span(), span((2, 1), (2, 2)));
+    assert_eq!(lexer.next().unwrap().unwrap().span(), span((2, 2), (3, 1)));
 }
 
 // Increment/Decrement
@@ -343,18 +313,18 @@ fn check_decrement_advances_lexer_2_places() {
     let mut lexer = Lexer::new(&b"let a = b--;"[0..]);
 
     for _ in 0..4 {
-        lexer.next(false).unwrap();
+        lexer.next().unwrap();
     }
 
     assert_eq!(
-        lexer.next(false).unwrap().unwrap().kind(),
+        lexer.next().unwrap().unwrap().kind(),
         &TokenKind::Punctuator(Punctuator::Dec)
     );
     // Decrementing means adding 2 characters '--', the lexer should consume it as a single token
     // and move the curser forward by 2, meaning the next token should be a semicolon
 
     assert_eq!(
-        lexer.next(false).unwrap().unwrap().kind(),
+        lexer.next().unwrap().unwrap().kind(),
         &TokenKind::Punctuator(Punctuator::Semicolon)
     );
 }
@@ -455,7 +425,7 @@ fn hexadecimal_edge_case() {
 #[test]
 fn single_number_without_semicolon() {
     let mut lexer = Lexer::new(&b"1"[0..]);
-    if let Some(x) = lexer.next(false).unwrap() {
+    if let Some(x) = lexer.next().unwrap() {
         assert_eq!(x.kind(), &TokenKind::numeric_literal(Numeric::Integer(1)));
     } else {
         panic!("Failed to lex 1 without semicolon");
@@ -619,20 +589,20 @@ fn illegal_following_numeric_literal() {
     // Decimal Digit
     let mut lexer = Lexer::new(&b"11.6n3"[0..]);
     assert!(
-        lexer.next(false).is_err(),
+        lexer.next().is_err(),
         "DecimalDigit following NumericLiteral not rejected as expected"
     );
 
     // Identifier Start
     let mut lexer = Lexer::new(&b"17.4$"[0..]);
     assert!(
-        lexer.next(false).is_err(),
+        lexer.next().is_err(),
         "IdentifierStart '$' following NumericLiteral not rejected as expected"
     );
 
     let mut lexer = Lexer::new(&b"17.4_"[0..]);
     assert!(
-        lexer.next(false).is_err(),
+        lexer.next().is_err(),
         "IdentifierStart '_' following NumericLiteral not rejected as expected"
     );
 }
@@ -640,7 +610,7 @@ fn illegal_following_numeric_literal() {
 #[test]
 fn codepoint_with_no_braces() {
     let mut lexer = Lexer::new(r#""test\uD83Dtest""#.as_bytes());
-    assert!(lexer.next(false).is_ok());
+    assert!(lexer.next().is_ok());
 }
 
 #[test]
@@ -650,7 +620,7 @@ fn illegal_code_point_following_numeric_literal() {
     // be immediately followed by an IdentifierStart where the IdentifierStart
     let mut lexer = Lexer::new(r#"17.4\u{{2764}}"#.as_bytes());
     assert!(
-        lexer.next(false).is_err(),
+        lexer.next().is_err(),
         "IdentifierStart \\u{{2764}} following NumericLiteral not rejected as expected"
     );
 }

@@ -3,8 +3,8 @@ mod tests;
 
 use crate::{
     syntax::{
-        ast::{node, node::Switch, Keyword, Node, Punctuator},
-        lexer::{Token, TokenKind},
+        ast::{node, node::Switch, Keyword, Punctuator},
+        lexer::TokenKind,
         parser::{
             expression::Expression, statement::StatementList, AllowAwait, AllowReturn, AllowYield,
             Cursor, ParseError, TokenParser,
@@ -61,12 +61,12 @@ where
 
     fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("SwitchStatement", "Parsing");
-        cursor.expect(Keyword::Switch, "switch statement", false)?;
-        cursor.expect(Punctuator::OpenParen, "switch statement", true)?;
+        cursor.expect(Keyword::Switch, "switch statement")?;
+        cursor.expect(Punctuator::OpenParen, "switch statement")?;
 
         let condition = Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?;
 
-        cursor.expect(Punctuator::CloseParen, "switch statement", true)?;
+        cursor.expect(Punctuator::CloseParen, "switch statement")?;
 
         let (cases, default) =
             CaseBlock::new(self.allow_yield, self.allow_await, self.allow_return).parse(cursor)?;
@@ -108,22 +108,22 @@ impl<R> TokenParser<R> for CaseBlock
 where
     R: Read,
 {
-    type Output = (Box<[node::Case]>, Option<Node>);
+    type Output = (Box<[node::Case]>, Option<node::StatementList>);
 
     fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
-        let mut cases = Vec::<node::Case>::new();
-        let mut default: Option<Node> = None;
+        cursor.expect(Punctuator::OpenBlock, "switch case block")?;
 
-        cursor.expect(Punctuator::OpenBlock, "switch start case block", true)?;
+        let mut cases = Vec::new();
+        let mut default = None;
 
         loop {
-            match cursor.expect(Keyword::Case, "switch case: block", true) {
-                Ok(_) => {
+            match cursor.next()? {
+                Some(token) if token.kind() == &TokenKind::Keyword(Keyword::Case) => {
                     // Case statement.
                     let cond =
                         Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?;
 
-                    cursor.expect(Punctuator::Colon, "switch case block start", true)?;
+                    cursor.expect(Punctuator::Colon, "switch case block")?;
 
                     let statement_list = StatementList::new(
                         self.allow_yield,
@@ -135,28 +135,16 @@ where
 
                     cases.push(node::Case::new(cond, statement_list));
                 }
-                Err(ParseError::Expected {
-                    expected: _,
-                    found:
-                        Token {
-                            kind: TokenKind::Keyword(Keyword::Default),
-                            span: s,
-                        },
-                    context: _,
-                }) => {
-                    // Default statement.
-                    // Consume the default token.
-                    cursor.next(false)?.expect("Default token vanished");
-
+                Some(token) if token.kind() == &TokenKind::Keyword(Keyword::Default) => {
                     if default.is_some() {
                         // If default has already been defined then it cannot be defined again and to do so is an error.
                         return Err(ParseError::unexpected(
-                            Token::new(TokenKind::Keyword(Keyword::Default), s),
-                            Some("Second default clause found in switch statement"),
+                            token,
+                            Some("more than one switch default"),
                         ));
                     }
 
-                    cursor.expect(Punctuator::Colon, "switch default case block start", false)?;
+                    cursor.expect(Punctuator::Colon, "switch default block")?;
 
                     let statement_list = StatementList::new(
                         self.allow_yield,
@@ -166,27 +154,23 @@ where
                     )
                     .parse_generalised(cursor, &CASE_BREAK_TOKENS)?;
 
-                    default = Some(node::Block::from(statement_list).into());
+                    default = Some(statement_list);
                 }
-                Err(ParseError::Expected {
-                    expected: _,
-                    found:
-                        Token {
-                            kind: TokenKind::Punctuator(Punctuator::CloseBlock),
-                            span: _,
-                        },
-                    context: _,
-                }) => {
-                    // End of switch block.
-                    cursor
-                        .next(false)?
-                        .expect("Switch close block symbol vanished"); // Consume the switch close block.
-                    break;
+                Some(token) if token.kind() == &TokenKind::Punctuator(Punctuator::CloseBlock) => {
+                    break
                 }
-                Err(e) => {
-                    // Unexpected statement.
-                    return Err(e);
+                Some(token) => {
+                    return Err(ParseError::expected(
+                        vec![
+                            TokenKind::Keyword(Keyword::Case),
+                            TokenKind::Keyword(Keyword::Default),
+                            TokenKind::Punctuator(Punctuator::CloseBlock),
+                        ],
+                        token,
+                        "switch case block",
+                    ))
                 }
+                None => return Err(ParseError::AbruptEnd),
             }
         }
 
