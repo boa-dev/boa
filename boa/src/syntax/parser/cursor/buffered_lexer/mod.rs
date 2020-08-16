@@ -145,7 +145,6 @@ where
             self.fill()?;
         }
 
-        dbg!(&self.peeked, self.read_index, self.write_index);
         if let Some(ref token) = self.peeked[self.read_index] {
             let tok = if !skip_line_terminators || token.kind() != &TokenKind::LineTerminator {
                 mem::replace(&mut self.peeked[self.read_index], None)
@@ -203,22 +202,21 @@ where
                 self.fill()?;
             }
 
-            dbg!(&self.peeked, self.read_index, self.write_index);
             if let Some(ref token) = self.peeked[read_index] {
                 if !skip_line_terminators || token.kind() != &TokenKind::LineTerminator {
                     if count == skip_n {
                         break self.peeked[read_index].as_ref();
                     }
                 } else {
-                    let next_index = (read_index + 1) % PEEK_BUF_SIZE;
+                    read_index = (read_index + 1) % PEEK_BUF_SIZE;
                     // We only store 1 contiguous line terminator, so if the one at `self.read_index`
                     // was a line terminator, we know that the next won't be one.
-                    if next_index == self.write_index {
+                    if read_index == self.write_index {
                         self.fill()?;
                     }
 
                     if count == skip_n {
-                        break self.peeked[next_index].as_ref();
+                        break self.peeked[read_index].as_ref();
                     }
                 }
             } else {

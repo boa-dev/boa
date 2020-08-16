@@ -17,14 +17,6 @@ pub struct Case {
 }
 
 impl Case {
-    pub fn condition(&self) -> &Node {
-        &self.condition
-    }
-
-    pub fn body(&self) -> &StatementList {
-        &self.body
-    }
-
     /// Creates a `Case` AST node.
     pub fn new<C, B>(condition: C, body: B) -> Self
     where
@@ -35,6 +27,16 @@ impl Case {
             condition: condition.into(),
             body: body.into(),
         }
+    }
+
+    /// Gets the condition of the case.
+    pub fn condition(&self) -> &Node {
+        &self.condition
+    }
+
+    /// Gets the statement listin the body of the case.
+    pub fn body(&self) -> &StatementList {
+        &self.body
     }
 }
 
@@ -59,33 +61,37 @@ impl Case {
 pub struct Switch {
     val: Box<Node>,
     cases: Box<[Case]>,
-    default: Option<Box<Node>>,
+    default: Option<StatementList>,
 }
 
 impl Switch {
-    pub fn val(&self) -> &Node {
-        &self.val
-    }
-
-    pub fn cases(&self) -> &[Case] {
-        &self.cases
-    }
-
-    pub fn default(&self) -> Option<&Node> {
-        self.default.as_ref().map(Box::as_ref)
-    }
-
     /// Creates a `Switch` AST node.
-    pub fn new<V, C>(val: V, cases: C, default: Option<V>) -> Self
+    pub fn new<V, C, D>(val: V, cases: C, default: Option<D>) -> Self
     where
         V: Into<Node>,
         C: Into<Box<[Case]>>,
+        D: Into<StatementList>,
     {
         Self {
             val: Box::new(val.into()),
             cases: cases.into(),
-            default: default.map(V::into).map(Box::new),
+            default: default.map(D::into),
         }
+    }
+
+    /// Gets the value to switch.
+    pub fn val(&self) -> &Node {
+        &self.val
+    }
+
+    /// Gets the list of cases for the switch statement.
+    pub fn cases(&self) -> &[Case] {
+        &self.cases
+    }
+
+    /// Gets the default statement list, if any.
+    pub fn default(&self) -> Option<&[Node]> {
+        self.default.as_ref().map(StatementList::statements)
     }
 
     /// Implements the display formatting with indentation.
@@ -96,9 +102,9 @@ impl Switch {
             e.body().display(f, indent)?;
         }
 
-        if self.default().is_some() {
+        if let Some(ref default) = self.default {
             writeln!(f, "{}default:", indent)?;
-            self.default().as_ref().unwrap().display(f, indent + 1)?;
+            default.display(f, indent + 1)?;
         }
         writeln!(f, "{}}}", indent)
     }

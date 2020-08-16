@@ -3,7 +3,7 @@ mod tests;
 
 use crate::{
     syntax::{
-        ast::{node, node::Switch, Keyword, Node, Punctuator},
+        ast::{node, node::Switch, Keyword, Punctuator},
         lexer::TokenKind,
         parser::{
             expression::Expression, statement::StatementList, AllowAwait, AllowReturn, AllowYield,
@@ -108,13 +108,13 @@ impl<R> TokenParser<R> for CaseBlock
 where
     R: Read,
 {
-    type Output = (Box<[node::Case]>, Option<Node>);
+    type Output = (Box<[node::Case]>, Option<node::StatementList>);
 
     fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         cursor.expect(Punctuator::OpenBlock, "switch case block")?;
 
-        let mut cases = Vec::<node::Case>::new();
-        let mut default: Option<Node> = None;
+        let mut cases = Vec::new();
+        let mut default = None;
 
         loop {
             match cursor.next()? {
@@ -154,7 +154,7 @@ where
                     )
                     .parse_generalised(cursor, &CASE_BREAK_TOKENS)?;
 
-                    default = Some(node::Block::from(statement_list).into());
+                    default = Some(statement_list);
                 }
                 Some(token) if token.kind() == &TokenKind::Punctuator(Punctuator::CloseBlock) => {
                     break

@@ -26,10 +26,6 @@ pub struct Break {
 }
 
 impl Break {
-    pub fn label(&self) -> Option<&str> {
-        self.label.as_ref().map(Box::as_ref)
-    }
-
     /// Creates a `Break` AST node.
     pub fn new<OL, L>(label: OL) -> Self
     where
@@ -39,6 +35,11 @@ impl Break {
         Self {
             label: label.into().map(L::into),
         }
+    }
+
+    /// Gets the label of the break statement, if any.
+    pub fn label(&self) -> Option<&str> {
+        self.label.as_ref().map(Box::as_ref)
     }
 }
 

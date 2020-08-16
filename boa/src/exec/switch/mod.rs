@@ -9,7 +9,6 @@ mod tests;
 
 impl Executable for Switch {
     fn run(&self, interpreter: &mut Interpreter) -> ResultValue {
-        let default = self.default();
         let val = self.val().run(interpreter)?;
         let mut result = Value::null();
         let mut matched = false;
@@ -42,11 +41,35 @@ impl Executable for Switch {
                 }
             }
         }
+
         if !matched {
-            if let Some(default) = default {
-                result = default.run(interpreter)?;
+            if let Some(default) = self.default() {
+                interpreter.set_current_state(InterpreterState::Executing);
+                for (i, item) in default.iter().enumerate() {
+                    let val = item.run(interpreter)?;
+                    match interpreter.get_current_state() {
+                        InterpreterState::Return => {
+                            // Early return.
+                            result = val;
+                            break;
+                        }
+                        InterpreterState::Break(_label) => {
+                            // TODO, break to a label.
+
+                            // Early break.
+                            break;
+                        }
+                        _ => {
+                            // Continue execution
+                        }
+                    }
+                    if i == default.len() - 1 {
+                        result = val;
+                    }
+                }
             }
         }
+
         Ok(result)
     }
 }
