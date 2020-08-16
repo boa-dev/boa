@@ -289,8 +289,11 @@ impl RegExp {
     /// [spec]: https://tc39.es/ecma262/#sec-regexp.prototype.test
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/test
     pub(crate) fn test(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
-        let arg_str = ctx.to_string(args.get(0).expect("could not get argument"))?;
-        let mut last_index = usize::from(&this.get_field("lastIndex"));
+        let arg_str = args
+            .get(0)
+            .expect("could not get argument")
+            .to_string(ctx)?;
+        let mut last_index = this.get_field("lastIndex").to_index(ctx)?;
         let result = if let Some(object) = this.as_object() {
             let regex = object.as_regexp().unwrap();
             let result = if let Some(m) = regex.matcher.find_at(arg_str.as_str(), last_index) {
@@ -325,8 +328,11 @@ impl RegExp {
     /// [spec]: https://tc39.es/ecma262/#sec-regexp.prototype.exec
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/exec
     pub(crate) fn exec(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
-        let arg_str = ctx.to_string(args.get(0).expect("could not get argument"))?;
-        let mut last_index = usize::from(&this.get_field("lastIndex"));
+        let arg_str = args
+            .get(0)
+            .expect("could not get argument")
+            .to_string(ctx)?;
+        let mut last_index = this.get_field("lastIndex").to_index(ctx)?;
         let result = if let Some(object) = this.as_object() {
             let regex = object.as_regexp().unwrap();
             let mut locations = regex.matcher.capture_locations();
@@ -487,9 +493,9 @@ impl RegExp {
             .unwrap()
             .insert_field("lastIndex", Value::from(0));
 
-        make_builtin_fn(Self::test, "test", &prototype, 1);
-        make_builtin_fn(Self::exec, "exec", &prototype, 1);
-        make_builtin_fn(Self::to_string, "toString", &prototype, 0);
+        make_builtin_fn(Self::test, "test", &prototype, 1, interpreter);
+        make_builtin_fn(Self::exec, "exec", &prototype, 1, interpreter);
+        make_builtin_fn(Self::to_string, "toString", &prototype, 0, interpreter);
 
         // TODO: make them accessor properties, not methods.
         // make_builtin_fn(Self::get_dot_all, "dotAll", &prototype, 0);

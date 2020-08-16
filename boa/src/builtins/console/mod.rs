@@ -60,7 +60,7 @@ pub(crate) fn logger(msg: LogMessage, console_state: &Console) {
 
 /// This represents the `console` formatter.
 pub fn formatter(data: &[Value], ctx: &mut Interpreter) -> Result<String, Value> {
-    let target = ctx.to_string(&data.get(0).cloned().unwrap_or_default())?;
+    let target = data.get(0).cloned().unwrap_or_default().to_string(ctx)?;
     match data.len() {
         0 => Ok(String::new()),
         1 => Ok(target.to_string()),
@@ -74,26 +74,37 @@ pub fn formatter(data: &[Value], ctx: &mut Interpreter) -> Result<String, Value>
                     match fmt {
                         /* integer */
                         'd' | 'i' => {
-                            let arg = get_arg_at_index::<i32>(data, arg_index).unwrap_or_default();
+                            let arg = data
+                                .get(arg_index)
+                                .cloned()
+                                .unwrap_or_default()
+                                .to_integer(ctx)?;
                             formatted.push_str(&format!("{}", arg));
                             arg_index += 1;
                         }
                         /* float */
                         'f' => {
-                            let arg = get_arg_at_index::<f64>(data, arg_index).unwrap_or_default();
+                            let arg = data
+                                .get(arg_index)
+                                .cloned()
+                                .unwrap_or_default()
+                                .to_number(ctx)?;
                             formatted.push_str(&format!("{number:.prec$}", number = arg, prec = 6));
                             arg_index += 1
                         }
                         /* object, FIXME: how to render this properly? */
                         'o' | 'O' => {
                             let arg = data.get(arg_index).cloned().unwrap_or_default();
-                            formatted.push_str(&format!("{}", arg));
+                            formatted.push_str(&format!("{}", arg.display()));
                             arg_index += 1
                         }
                         /* string */
                         's' => {
-                            let arg =
-                                ctx.to_string(&data.get(arg_index).cloned().unwrap_or_default())?;
+                            let arg = data
+                                .get(arg_index)
+                                .cloned()
+                                .unwrap_or_default()
+                                .to_string(ctx)?;
                             formatted.push_str(&arg);
                             arg_index += 1
                         }
@@ -111,7 +122,7 @@ pub fn formatter(data: &[Value], ctx: &mut Interpreter) -> Result<String, Value>
 
             /* unformatted data */
             for rest in data.iter().skip(arg_index) {
-                formatted.push_str(&format!(" {}", ctx.to_string(rest)?))
+                formatted.push_str(&format!(" {}", rest.to_string(ctx)?))
             }
 
             Ok(formatted)
@@ -153,7 +164,7 @@ impl Console {
             } else if !args[0].is_string() {
                 args.insert(0, Value::from(message));
             } else {
-                let concat = format!("{}: {}", message, args[0]);
+                let concat = format!("{}: {}", message, args[0].display());
                 args[0] = Value::from(concat);
             }
 
@@ -289,7 +300,7 @@ impl Console {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/count
     pub(crate) fn count(_: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
         let label = match args.get(0) {
-            Some(value) => ctx.to_string(value)?,
+            Some(value) => value.to_string(ctx)?,
             None => "default".into(),
         };
 
@@ -313,7 +324,7 @@ impl Console {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/countReset
     pub(crate) fn count_reset(_: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
         let label = match args.get(0) {
-            Some(value) => ctx.to_string(value)?,
+            Some(value) => value.to_string(ctx)?,
             None => "default".into(),
         };
 
@@ -347,7 +358,7 @@ impl Console {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/time
     pub(crate) fn time(_: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
         let label = match args.get(0) {
-            Some(value) => ctx.to_string(value)?,
+            Some(value) => value.to_string(ctx)?,
             None => "default".into(),
         };
 
@@ -376,7 +387,7 @@ impl Console {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/timeLog
     pub(crate) fn time_log(_: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
         let label = match args.get(0) {
-            Some(value) => ctx.to_string(value)?,
+            Some(value) => value.to_string(ctx)?,
             None => "default".into(),
         };
 
@@ -384,7 +395,7 @@ impl Console {
             let time = Self::system_time_in_ms();
             let mut concat = format!("{}: {} ms", label, time - t);
             for msg in args.iter().skip(1) {
-                concat = concat + " " + &msg.to_string();
+                concat = concat + " " + &msg.display().to_string();
             }
             logger(LogMessage::Log(concat), ctx.console());
         } else {
@@ -409,7 +420,7 @@ impl Console {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/timeEnd
     pub(crate) fn time_end(_: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
         let label = match args.get(0) {
-            Some(value) => ctx.to_string(value)?,
+            Some(value) => value.to_string(ctx)?,
             None => "default".into(),
         };
 
@@ -495,25 +506,25 @@ impl Console {
 
         let console = Value::new_object(Some(global));
 
-        make_builtin_fn(Self::assert, "assert", &console, 0);
-        make_builtin_fn(Self::clear, "clear", &console, 0);
-        make_builtin_fn(Self::debug, "debug", &console, 0);
-        make_builtin_fn(Self::error, "error", &console, 0);
-        make_builtin_fn(Self::info, "info", &console, 0);
-        make_builtin_fn(Self::log, "log", &console, 0);
-        make_builtin_fn(Self::trace, "trace", &console, 0);
-        make_builtin_fn(Self::warn, "warn", &console, 0);
-        make_builtin_fn(Self::error, "exception", &console, 0);
-        make_builtin_fn(Self::count, "count", &console, 0);
-        make_builtin_fn(Self::count_reset, "countReset", &console, 0);
-        make_builtin_fn(Self::group, "group", &console, 0);
-        make_builtin_fn(Self::group, "groupCollapsed", &console, 0);
-        make_builtin_fn(Self::group_end, "groupEnd", &console, 0);
-        make_builtin_fn(Self::time, "time", &console, 0);
-        make_builtin_fn(Self::time_log, "timeLog", &console, 0);
-        make_builtin_fn(Self::time_end, "timeEnd", &console, 0);
-        make_builtin_fn(Self::dir, "dir", &console, 0);
-        make_builtin_fn(Self::dir, "dirxml", &console, 0);
+        make_builtin_fn(Self::assert, "assert", &console, 0, interpreter);
+        make_builtin_fn(Self::clear, "clear", &console, 0, interpreter);
+        make_builtin_fn(Self::debug, "debug", &console, 0, interpreter);
+        make_builtin_fn(Self::error, "error", &console, 0, interpreter);
+        make_builtin_fn(Self::info, "info", &console, 0, interpreter);
+        make_builtin_fn(Self::log, "log", &console, 0, interpreter);
+        make_builtin_fn(Self::trace, "trace", &console, 0, interpreter);
+        make_builtin_fn(Self::warn, "warn", &console, 0, interpreter);
+        make_builtin_fn(Self::error, "exception", &console, 0, interpreter);
+        make_builtin_fn(Self::count, "count", &console, 0, interpreter);
+        make_builtin_fn(Self::count_reset, "countReset", &console, 0, interpreter);
+        make_builtin_fn(Self::group, "group", &console, 0, interpreter);
+        make_builtin_fn(Self::group, "groupCollapsed", &console, 0, interpreter);
+        make_builtin_fn(Self::group_end, "groupEnd", &console, 0, interpreter);
+        make_builtin_fn(Self::time, "time", &console, 0, interpreter);
+        make_builtin_fn(Self::time_log, "timeLog", &console, 0, interpreter);
+        make_builtin_fn(Self::time_end, "timeEnd", &console, 0, interpreter);
+        make_builtin_fn(Self::dir, "dir", &console, 0, interpreter);
+        make_builtin_fn(Self::dir, "dirxml", &console, 0, interpreter);
 
         (Self::NAME, console)
     }

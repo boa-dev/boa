@@ -215,7 +215,7 @@ impl Map {
     fn get_key_value(value: &Value) -> Option<(Value, Value)> {
         if let Value::Object(object) = value {
             if object.borrow().is_array() {
-                let (key, value) = match i32::from(&value.get_field("length")) {
+                let (key, value) = match value.get_field("length").as_number().unwrap() as i32 {
                     0 => (Value::Undefined, Value::Undefined),
                     1 => (value.get_field("0"), Value::Undefined),
                     _ => (value.get_field("0"), value.get_field("1")),
@@ -250,7 +250,7 @@ impl Map {
                         map
                     } else if object.is_array() {
                         let mut map = OrderedMap::new();
-                        let len = i32::from(&args[0].get_field("length"));
+                        let len = args[0].get_field("length").to_integer(ctx)? as i32;
                         for i in 0..len {
                             let val = &args[0].get_field(i.to_string());
                             let (key, value) = Self::get_key_value(val).ok_or_else(|| {
@@ -291,12 +291,12 @@ impl Map {
         // Create prototype
         let prototype = Value::new_object(Some(global));
 
-        make_builtin_fn(Self::set, "set", &prototype, 2);
-        make_builtin_fn(Self::delete, "delete", &prototype, 1);
-        make_builtin_fn(Self::get, "get", &prototype, 1);
-        make_builtin_fn(Self::clear, "clear", &prototype, 0);
-        make_builtin_fn(Self::has, "has", &prototype, 1);
-        make_builtin_fn(Self::for_each, "forEach", &prototype, 1);
+        make_builtin_fn(Self::set, "set", &prototype, 2, interpreter);
+        make_builtin_fn(Self::delete, "delete", &prototype, 1, interpreter);
+        make_builtin_fn(Self::get, "get", &prototype, 1, interpreter);
+        make_builtin_fn(Self::clear, "clear", &prototype, 0, interpreter);
+        make_builtin_fn(Self::has, "has", &prototype, 1, interpreter);
+        make_builtin_fn(Self::for_each, "forEach", &prototype, 1, interpreter);
 
         let map_object = make_constructor_fn(
             Self::NAME,

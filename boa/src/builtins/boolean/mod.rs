@@ -106,8 +106,8 @@ impl Boolean {
         // https://tc39.es/ecma262/#sec-properties-of-the-boolean-prototype-object
         let prototype = Value::new_object(Some(global));
 
-        make_builtin_fn(Self::to_string, "toString", &prototype, 0);
-        make_builtin_fn(Self::value_of, "valueOf", &prototype, 0);
+        make_builtin_fn(Self::to_string, "toString", &prototype, 0, interpreter);
+        make_builtin_fn(Self::value_of, "valueOf", &prototype, 0, interpreter);
 
         let boolean_object = make_constructor_fn(
             Self::NAME,

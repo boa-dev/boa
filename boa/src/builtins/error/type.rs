@@ -40,7 +40,7 @@ impl TypeError {
     /// Create a new error object.
     pub(crate) fn make_error(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
         if let Some(message) = args.get(0) {
-            this.set_field("message", ctx.to_string(message)?);
+            this.set_field("message", message.to_string(ctx)?);
         }
 
         // This value is used by console.log and other routines to match Object type
@@ -61,8 +61,8 @@ impl TypeError {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error/toString
     #[allow(clippy::wrong_self_convention)]
     pub(crate) fn to_string(this: &Value, _: &[Value], ctx: &mut Interpreter) -> ResultValue {
-        let name = ctx.to_string(&this.get_field("name"))?;
-        let message = ctx.to_string(&this.get_field("message"))?;
+        let name = this.get_field("name").to_string(ctx)?;
+        let message = this.get_field("message").to_string(ctx)?;
         Ok(Value::from(format!("{}: {}", name, message)))
     }
 
@@ -76,7 +76,7 @@ impl TypeError {
         prototype.set_field("name", Self::NAME);
         prototype.set_field("message", "");
 
-        make_builtin_fn(Self::to_string, "toString", &prototype, 0);
+        make_builtin_fn(Self::to_string, "toString", &prototype, 0, interpreter);
 
         let type_error_object = make_constructor_fn(
             Self::NAME,
