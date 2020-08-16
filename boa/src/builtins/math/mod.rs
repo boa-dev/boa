@@ -215,7 +215,7 @@ impl Math {
     pub(crate) fn clz32(_: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
         Ok(args
             .get(0)
-            .map(|x| x.to_uint32(ctx))
+            .map(|x| x.to_u32(ctx))
             .transpose()?
             .map(u32::leading_zeros)
             .unwrap_or(32)
@@ -353,8 +353,8 @@ impl Math {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/imul
     pub(crate) fn imul(_: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
         Ok(match (
-            args.get(0).map(|x| x.to_uint32(ctx)).transpose()?,
-            args.get(1).map(|x| x.to_uint32(ctx)).transpose()?,
+            args.get(0).map(|x| x.to_u32(ctx)).transpose()?,
+            args.get(1).map(|x| x.to_u32(ctx)).transpose()?,
         ) {
             (Some(x), Some(y)) => x.wrapping_mul(y) as i32,
             (_, _) => 0,
