@@ -16,7 +16,10 @@ use crate::syntax::lexer::TokenKind;
 use crate::{
     syntax::{
         ast::{node::Break, Keyword, Punctuator},
-        parser::{AllowAwait, AllowYield, Cursor, ParseError, TokenParser},
+        parser::{
+            cursor::{Cursor, SemicolonResult},
+            AllowAwait, AllowYield, ParseError, TokenParser,
+        },
     },
     BoaProfiler,
 };
@@ -61,10 +64,10 @@ where
         let _timer = BoaProfiler::global().start_event("BreakStatement", "Parsing");
         cursor.expect(Keyword::Break, "break statement")?;
 
-        let label = if let (true, tok) = cursor.peek_semicolon(false)? {
+        let label = if let SemicolonResult::Found(tok) = cursor.peek_semicolon()? {
             match tok {
-                Some(tok) if tok.kind == TokenKind::Punctuator(Punctuator::Semicolon) => {
-                    let _ = cursor.next();
+                Some(tok) if tok.kind() == &TokenKind::Punctuator(Punctuator::Semicolon) => {
+                    let _ = cursor.next()?;
                 }
                 _ => {}
             }
@@ -72,7 +75,7 @@ where
             None
         } else {
             let label = LabelIdentifier::new(self.allow_yield, self.allow_await).parse(cursor)?;
-            cursor.expect_semicolon(false, "continue statement")?;
+            cursor.expect_semicolon("break statement")?;
 
             Some(label)
         };

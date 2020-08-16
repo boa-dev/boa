@@ -5,7 +5,11 @@ use crate::syntax::lexer::TokenKind;
 use crate::{
     syntax::{
         ast::{node::Return, Keyword, Node, Punctuator},
-        parser::{expression::Expression, AllowAwait, AllowYield, Cursor, ParseError, TokenParser},
+        parser::{
+            cursor::{Cursor, SemicolonResult},
+            expression::Expression,
+            AllowAwait, AllowYield, ParseError, TokenParser,
+        },
     },
     BoaProfiler,
 };
@@ -50,12 +54,9 @@ where
         let _timer = BoaProfiler::global().start_event("ReturnStatement", "Parsing");
         cursor.expect(Keyword::Return, "return statement")?;
 
-        if let (true, tok) = cursor.peek_semicolon(false)? {
+        if let SemicolonResult::Found(tok) = cursor.peek_semicolon()? {
             match tok {
-                Some(tok)
-                    if tok.kind == TokenKind::Punctuator(Punctuator::Semicolon)
-                        || tok.kind == TokenKind::LineTerminator =>
-                {
+                Some(tok) if tok.kind() == &TokenKind::Punctuator(Punctuator::Semicolon) => {
                     let _ = cursor.next();
                 }
                 _ => {}
@@ -66,7 +67,7 @@ where
 
         let expr = Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?;
 
-        cursor.expect_semicolon(false, "return statement")?;
+        cursor.expect_semicolon("return statement")?;
 
         Ok(Return::new(expr, None))
     }

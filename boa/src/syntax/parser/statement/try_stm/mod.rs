@@ -78,7 +78,7 @@ where
             ));
         }
 
-        let catch = if next_token.kind == TokenKind::Keyword(Keyword::Catch) {
+        let catch = if next_token.kind() == &TokenKind::Keyword(Keyword::Catch) {
             Some(Catch::new(self.allow_yield, self.allow_await, self.allow_return).parse(cursor)?)
         } else {
             None

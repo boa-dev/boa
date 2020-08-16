@@ -9,6 +9,13 @@ use crate::syntax::{
 use buffered_lexer::BufferedLexer;
 use std::io::Read;
 
+/// The result of a peek for a semicolon.
+#[derive(Debug)]
+pub(super) enum SemicolonResult<'s> {
+    Found(Option<&'s Token>),
+    NotFound(&'s Token),
+}
+
 /// Token cursor.
 ///
 /// This internal structure gives basic testable operations to the parser.
@@ -73,29 +80,19 @@ where
     ///
     /// It will automatically insert a semicolon if needed, as specified in the [spec][spec].
     ///
-    /// The `do_while` boolean marks thatwe are peeking just after the `)` of the while clause in a
-    /// `do...while` statement. Note that this expects that the `)` token has already been parsed.
-    ///
     /// [spec]: https://tc39.es/ecma262/#sec-automatic-semicolon-insertion
     #[inline]
-    pub(super) fn peek_semicolon(
-        &mut self,
-        do_while: bool,
-    ) -> Result<(bool, Option<&Token>), ParseError> {
+    pub(super) fn peek_semicolon(&mut self) -> Result<SemicolonResult<'_>, ParseError> {
         match self.buffered_lexer.peek(0, false)? {
             Some(tk) => match tk.kind() {
                 TokenKind::Punctuator(Punctuator::Semicolon)
                 | TokenKind::LineTerminator
-                | TokenKind::Punctuator(Punctuator::CloseBlock) => Ok((true, Some(tk))),
-                _ => {
-                    if do_while {
-                        Ok((true, Some(tk)))
-                    } else {
-                        Ok((false, Some(tk)))
-                    }
+                | TokenKind::Punctuator(Punctuator::CloseBlock) => {
+                    Ok(SemicolonResult::Found(Some(tk)))
                 }
+                _ => Ok(SemicolonResult::NotFound(tk)),
             },
-            None => Ok((true, None)),
+            None => Ok(SemicolonResult::Found(None)),
         }
     }
 
@@ -103,31 +100,23 @@ where
     ///
     /// It will automatically insert a semicolon if needed, as specified in the [spec][spec].
     ///
-    /// The `do_while` boolean marks thatwe are peeking just after the `)` of the while clause in a
-    /// `do...while` statement. Note that this expects that the `)` token has already been parsed.
-    ///
     /// [spec]: https://tc39.es/ecma262/#sec-automatic-semicolon-insertion
     #[inline]
-    pub(super) fn expect_semicolon(
-        &mut self,
-        do_while: bool,
-        context: &'static str,
-    ) -> Result<(), ParseError> {
-        match self.peek_semicolon(do_while)? {
-            (true, Some(tk)) => match tk.kind {
+    pub(super) fn expect_semicolon(&mut self, context: &'static str) -> Result<(), ParseError> {
+        match self.peek_semicolon()? {
+            SemicolonResult::Found(Some(tk)) => match *tk.kind() {
                 TokenKind::Punctuator(Punctuator::Semicolon) | TokenKind::LineTerminator => {
-                    let _ = self.buffered_lexer.next(false);
+                    let _ = self.buffered_lexer.next(false)?;
                     Ok(())
                 }
                 _ => Ok(()),
             },
-            (true, None) => Ok(()),
-            (false, Some(tk)) => Err(ParseError::expected(
+            SemicolonResult::Found(None) => Ok(()),
+            SemicolonResult::NotFound(tk) => Err(ParseError::expected(
                 vec![TokenKind::Punctuator(Punctuator::Semicolon)],
                 tk.clone(),
                 context,
             )),
-            (false, None) => unreachable!(),
         }
     }
 

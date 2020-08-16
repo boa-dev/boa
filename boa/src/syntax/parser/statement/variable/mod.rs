@@ -1,15 +1,17 @@
-// use super::lexical_declaration_continuation;
-use crate::syntax::lexer::TokenKind;
-use crate::syntax::parser::Cursor;
+//! Variable statement parsing.
+
 use crate::{
     syntax::{
         ast::{
             node::{VarDecl, VarDeclList},
             Keyword, Punctuator,
         },
+        lexer::TokenKind,
         parser::{
-            expression::Initializer, statement::BindingIdentifier, AllowAwait, AllowIn, AllowYield,
-            ParseError, TokenParser,
+            cursor::{Cursor, SemicolonResult},
+            expression::Initializer,
+            statement::BindingIdentifier,
+            AllowAwait, AllowIn, AllowYield, ParseError, TokenParser,
         },
     },
     BoaProfiler,
@@ -59,7 +61,7 @@ where
         let decl_list =
             VariableDeclarationList::new(true, self.allow_yield, self.allow_await).parse(cursor)?;
 
-        cursor.expect_semicolon(false, "variable statement")?;
+        cursor.expect_semicolon("variable statement")?;
 
         Ok(decl_list)
     }
@@ -115,9 +117,11 @@ where
                     .parse(cursor)?,
             );
 
-            match cursor.peek_semicolon(false)? {
-                (true, _) => break,
-                (false, Some(tk)) if tk.kind == TokenKind::Punctuator(Punctuator::Comma) => {
+            match cursor.peek_semicolon()? {
+                SemicolonResult::Found(_) => break,
+                SemicolonResult::NotFound(tk)
+                    if tk.kind() == &TokenKind::Punctuator(Punctuator::Comma) =>
+                {
                     let _ = cursor.next();
                 }
                 _ => {

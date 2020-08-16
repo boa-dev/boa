@@ -86,7 +86,14 @@ where
 
         cursor.expect(Punctuator::CloseParen, "do while statement")?;
 
-        cursor.expect_semicolon(true, "do while statement")?;
+        // Here, we only care to read the next token if it's a smicolon. If it's not, we
+        // automatically "enter" or assume a semicolon, since we have just read the `)` token:
+        // https://tc39.es/ecma262/#sec-automatic-semicolon-insertion
+        if let Some(tok) = cursor.peek(0)? {
+            if let TokenKind::Punctuator(Punctuator::Semicolon) = *tok.kind() {
+                cursor.next()?;
+            }
+        }
 
         Ok(DoWhileLoop::new(body, cond))
     }
