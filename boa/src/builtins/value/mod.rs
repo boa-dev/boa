@@ -888,7 +888,7 @@ impl Value {
     /// This function is equivalent to `value | 0` in JavaScript
     ///
     /// See: <https://tc39.es/ecma262/#sec-toint32>
-    pub fn to_uint32(&self, ctx: &mut Interpreter) -> Result<u32, Value> {
+    pub fn to_u32(&self, ctx: &mut Interpreter) -> Result<u32, Value> {
         // This is the fast path, if the value is Integer we can just return it.
         if let Value::Integer(number) = *self {
             return Ok(number as u32);
@@ -901,7 +901,7 @@ impl Value {
     /// Converts a value to an integral 32 bit signed integer.
     ///
     /// See: <https://tc39.es/ecma262/#sec-toint32>
-    pub fn to_int32(&self, ctx: &mut Interpreter) -> Result<i32, Value> {
+    pub fn to_i32(&self, ctx: &mut Interpreter) -> Result<i32, Value> {
         // This is the fast path, if the value is Integer we can just return it.
         if let Value::Integer(number) = *self {
             return Ok(number);
