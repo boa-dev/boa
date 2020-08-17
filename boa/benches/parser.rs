@@ -3,16 +3,15 @@
 use boa::syntax::{lexer::Lexer, parser::Parser};
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
 
+include!("constants.rs");
+
 #[cfg(all(target_arch = "x86_64", target_os = "linux", target_env = "gnu"))]
 #[cfg_attr(
     all(target_arch = "x86_64", target_os = "linux", target_env = "gnu"),
     global_allocator
 )]
-static ALLOC: jemallocator::Jemalloc = jemallocator::Jemalloc;
 
-static EXPRESSION: &str = r#"
-1 + 1 + 1 + 1 + 1 + 1 / 1 + 1 + 1 * 1 + 1 + 1 + 1;
-"#;
+static ALLOC: jemallocator::Jemalloc = jemallocator::Jemalloc;
 
 fn expression_parser(c: &mut Criterion) {
     // We include the lexing in the benchmarks, since they will get together soon, anyways.
@@ -27,8 +26,6 @@ fn expression_parser(c: &mut Criterion) {
     });
 }
 
-static HELLO_WORLD: &str = "let foo = 'hello world!'; foo;";
-
 fn hello_world_parser(c: &mut Criterion) {
     // We include the lexing in the benchmarks, since they will get together soon, anyways.
 
@@ -42,18 +39,6 @@ fn hello_world_parser(c: &mut Criterion) {
     });
 }
 
-static FOR_LOOP: &str = r#"
-for (let a = 10; a < 100; a++) {
-    if (a < 10) {
-        console.log("impossible D:");
-    } else if (a < 50) {
-        console.log("starting");
-    } else {
-        console.log("finishing");
-    }
-}
-"#;
-
 fn for_loop_parser(c: &mut Criterion) {
     // We include the lexing in the benchmarks, since they will get together soon, anyways.
 
@@ -66,18 +51,6 @@ fn for_loop_parser(c: &mut Criterion) {
         })
     });
 }
-
-static LONG_REPETITION: &str = r#"
-for (let a = 10; a < 100; a++) {
-    if (a < 10) {
-        console.log("impossible D:");
-    } else if (a < 50) {
-        console.log("starting");
-    } else {
-        console.log("finishing");
-    }
-}
-"#;
 
 fn long_file_parser(c: &mut Criterion) {
     use std::{
@@ -110,16 +83,6 @@ fn long_file_parser(c: &mut Criterion) {
 
     fs::remove_file(FILE_NAME).unwrap_or_else(|_| panic!("could not remove {}", FILE_NAME));
 }
-
-static GOAL_SYMBOL_SWITCH: &str = r#"
-function foo(regex, num) {}
-
-let i = 0;
-while (i < 1000000) {
-    foo(/ab+c/, 5.0/5);
-    i++;
-}
-"#;
 
 fn goal_symbol_switch(c: &mut Criterion) {
     // We include the lexing in the benchmarks, since they will get together soon, anyways.

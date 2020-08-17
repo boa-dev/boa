@@ -3,16 +3,15 @@
 use boa::syntax::lexer::Lexer;
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
 
+include!("constants.rs");
+
 #[cfg(all(target_arch = "x86_64", target_os = "linux", target_env = "gnu"))]
 #[cfg_attr(
     all(target_arch = "x86_64", target_os = "linux", target_env = "gnu"),
     global_allocator
 )]
-static ALLOC: jemallocator::Jemalloc = jemallocator::Jemalloc;
 
-static EXPRESSION: &str = r#"
-1 + 1 + 1 + 1 + 1 + 1 / 1 + 1 + 1 * 1 + 1 + 1 + 1;
-"#;
+static ALLOC: jemallocator::Jemalloc = jemallocator::Jemalloc;
 
 fn expression_lexer(c: &mut Criterion) {
     c.bench_function("Expression (Lexer)", move |b| {
@@ -24,8 +23,6 @@ fn expression_lexer(c: &mut Criterion) {
     });
 }
 
-static HELLO_WORLD: &str = "let foo = 'hello world!'; foo;";
-
 fn hello_world_lexer(c: &mut Criterion) {
     c.bench_function("Hello World (Lexer)", move |b| {
         b.iter(|| {
@@ -36,18 +33,6 @@ fn hello_world_lexer(c: &mut Criterion) {
         })
     });
 }
-
-static FOR_LOOP: &str = r#"
-for (let a = 10; a < 100; a++) {
-    if (a < 10) {
-        console.log("impossible D:");
-    } else if (a < 50) {
-        console.log("starting");
-    } else {
-        console.log("finishing");
-    }
-}
-"#;
 
 fn for_loop_lexer(c: &mut Criterion) {
     c.bench_function("For loop (Lexer)", move |b| {
