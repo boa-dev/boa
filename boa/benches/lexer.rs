@@ -1,6 +1,6 @@
 //! Benchmarks of the lexing process in Boa.
 
-use boa::benches::{EXPRESSION, FOR_LOOP, HELLO_WORLD};
+use constants::{EXPRESSION, FOR_LOOP, HELLO_WORLD};
 use boa::syntax::lexer::Lexer;
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
 

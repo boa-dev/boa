@@ -34,7 +34,6 @@
     missing_doc_code_examples
 )]
 
-pub mod benches;
 pub mod builtins;
 pub mod environment;
 pub mod exec;
