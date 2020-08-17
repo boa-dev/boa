@@ -25,7 +25,6 @@ use crate::{
     exec::Interpreter,
     BoaProfiler, Result,
 };
-use std::borrow::BorrowMut;
 
 /// JavaScript `TypeError` implementation.
 #[derive(Debug, Clone, Copy)]
@@ -70,7 +69,7 @@ impl TypeError {
 
     /// Initialise the global object with the `RangeError` object.
     #[inline]
-    pub(crate) fn init(interpreter: &mut Interpreter) {
+    pub(crate) fn init(interpreter: &mut Interpreter) -> (&'static str, Value, Attribute) {
         let global = interpreter.global();
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
@@ -89,11 +88,11 @@ impl TypeError {
             true,
             true,
         );
-        let mut global = interpreter.global().as_object_mut().expect("Expect object");
-        global.borrow_mut().insert_property(
+
+        (
             Self::NAME,
             type_error_object,
             Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
-        );
+        )
     }
 }

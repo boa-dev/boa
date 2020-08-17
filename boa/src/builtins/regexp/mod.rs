@@ -22,7 +22,6 @@ use crate::{
     BoaProfiler, Result,
 };
 use gc::{unsafe_empty_trace, Finalize, Trace};
-use std::borrow::BorrowMut;
 
 #[cfg(test)]
 mod tests;
@@ -483,7 +482,7 @@ impl RegExp {
 
     /// Initialise the `RegExp` object on the global object.
     #[inline]
-    pub(crate) fn init(interpreter: &mut Interpreter) {
+    pub(crate) fn init(interpreter: &mut Interpreter) -> (&'static str, Value, Attribute) {
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
         let global = interpreter.global();
 
@@ -518,11 +517,11 @@ impl RegExp {
             true,
             true,
         );
-        let mut global = interpreter.global().as_object_mut().expect("Expect object");
-        global.borrow_mut().insert_property(
+
+        (
             Self::NAME,
             regexp,
             Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
-        );
+        )
     }
 }

@@ -24,7 +24,6 @@ use crate::{
     BoaProfiler, Result,
 };
 use regex::Regex;
-use std::borrow::BorrowMut;
 use std::string::String as StdString;
 use std::{
     cmp::{max, min},
@@ -1030,7 +1029,7 @@ impl String {
 
     /// Initialise the `String` object on the global object.
     #[inline]
-    pub(crate) fn init(interpreter: &mut Interpreter) {
+    pub(crate) fn init(interpreter: &mut Interpreter) -> (&'static str, Value, Attribute) {
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
         // Create `String` `prototype`
@@ -1094,11 +1093,10 @@ impl String {
             true,
         );
 
-        let mut global = interpreter.global().as_object_mut().expect("Expect object");
-        global.borrow_mut().insert_property(
+        (
             Self::NAME,
             string_object,
             Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
-        );
+        )
     }
 }

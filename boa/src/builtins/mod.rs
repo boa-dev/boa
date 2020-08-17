@@ -76,5 +76,13 @@ pub fn init(interpreter: &mut Interpreter) {
         Undefined::init,
     ];
 
-    globals.iter().for_each(|init| init(interpreter));
+    let global = match interpreter.global() {
+        Value::Object(ref global) => global.clone(),
+        _ => panic!("Expect object"),
+    };
+    globals.iter().for_each(|init| {
+        let (name, value, attr) = init(interpreter);
+
+        global.borrow_mut().insert_property(name, value, attr);
+    });
 }

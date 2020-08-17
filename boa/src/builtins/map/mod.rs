@@ -11,7 +11,6 @@ use crate::{
     BoaProfiler, Result,
 };
 use ordered_map::OrderedMap;
-use std::borrow::BorrowMut;
 
 pub mod ordered_map;
 #[cfg(test)]
@@ -285,7 +284,7 @@ impl Map {
     }
 
     /// Initialise the `Map` object on the global object.
-    pub(crate) fn init(interpreter: &mut Interpreter) {
+    pub(crate) fn init(interpreter: &mut Interpreter) -> (&'static str, Value, Attribute) {
         let global = interpreter.global();
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
@@ -309,11 +308,10 @@ impl Map {
             false,
         );
 
-        let mut global = interpreter.global().as_object_mut().expect("Expect object");
-        global.borrow_mut().insert_property(
+        (
             Self::NAME,
             map_object,
             Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
-        );
+        )
     }
 }

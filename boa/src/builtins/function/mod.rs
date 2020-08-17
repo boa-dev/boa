@@ -536,18 +536,16 @@ pub fn make_builtin_fn<N>(
 
 /// Initialise the `Function` object on the global object.
 #[inline]
-pub fn init(interpreter: &mut Interpreter) {
+pub fn init(interpreter: &mut Interpreter) -> (&'static str, Value, Attribute) {
     let global = interpreter.global();
     let _timer = BoaProfiler::global().start_event("function", "init");
     let prototype = Value::new_object(Some(global));
 
     let function_object =
         make_constructor_fn("Function", 1, make_function, global, prototype, true, true);
-    let mut global = interpreter.global().as_object_mut().expect("Expect object");
-    use std::borrow::BorrowMut;
-    global.borrow_mut().insert_property(
+    (
         "Function",
         function_object,
         Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
-    );
+    )
 }

@@ -15,7 +15,6 @@ mod tests;
 
 use super::property::Attribute;
 use crate::{builtins::value::Value, BoaProfiler, Interpreter};
-use std::borrow::BorrowMut;
 
 /// JavaScript global `NaN` property.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
@@ -27,14 +26,9 @@ impl NaN {
 
     /// Initialize the `NaN` property on the global object.
     #[inline]
-    pub(crate) fn init(interpreter: &mut Interpreter) {
+    pub(crate) fn init(_interpreter: &mut Interpreter) -> (&'static str, Value, Attribute) {
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
-        let mut global = interpreter.global().as_object_mut().expect("Expect object");
-        global.borrow_mut().insert_property(
-            Self::NAME,
-            Value::from(f64::NAN),
-            Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
-        );
+        (Self::NAME, Value::from(f64::NAN), Attribute::default())
     }
 }

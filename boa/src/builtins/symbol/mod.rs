@@ -28,7 +28,6 @@ use crate::{
     BoaProfiler, Result,
 };
 use gc::{Finalize, Trace};
-use std::borrow::BorrowMut;
 
 #[derive(Debug, Finalize, Trace, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Symbol(Option<RcString>, u32);
@@ -104,7 +103,7 @@ impl Symbol {
 
     /// Initialise the `Symbol` object on the global object.
     #[inline]
-    pub fn init(interpreter: &mut Interpreter) {
+    pub fn init(interpreter: &mut Interpreter) -> (&'static str, Value, Attribute) {
         // Define the Well-Known Symbols
         // https://tc39.es/ecma262/#sec-well-known-symbols
         let symbol_async_iterator = Symbol(
@@ -174,11 +173,10 @@ impl Symbol {
         symbol_object.set_field("toStringTag", Value::symbol(symbol_to_string_tag));
         symbol_object.set_field("unscopables", Value::symbol(symbol_unscopables));
 
-        let mut global = interpreter.global().as_object_mut().expect("Expect object");
-        global.borrow_mut().insert_property(
+        (
             Self::NAME,
             symbol_object,
             Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
-        );
+        )
     }
 }

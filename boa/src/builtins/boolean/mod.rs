@@ -14,15 +14,10 @@ mod tests;
 
 use super::function::{make_builtin_fn, make_constructor_fn};
 use crate::{
-    builtins::{
-        object::ObjectData,
-        property::Attribute,
-        value::Value,
-    },
+    builtins::{object::ObjectData, property::Attribute, value::Value},
     exec::Interpreter,
     BoaProfiler, Result,
 };
-use std::borrow::BorrowMut;
 
 /// Boolean implementation.
 #[derive(Debug, Clone, Copy)]
@@ -100,7 +95,7 @@ impl Boolean {
 
     /// Initialise the `Boolean` object on the global object.
     #[inline]
-    pub(crate) fn init(interpreter: &mut Interpreter) {
+    pub(crate) fn init(interpreter: &mut Interpreter) -> (&'static str, Value, Attribute) {
         let global = interpreter.global();
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
@@ -120,11 +115,10 @@ impl Boolean {
             true,
             true,
         );
-        let mut global = interpreter.global().as_object_mut().expect("Expect object");
-        global.borrow_mut().insert_property(
+        (
             Self::NAME,
             boolean_object,
             Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
-        );
+        )
     }
 }

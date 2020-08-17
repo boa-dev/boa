@@ -26,7 +26,6 @@ use crate::{
 };
 use gc::{Finalize, Trace};
 use rustc_hash::FxHashMap;
-use std::borrow::BorrowMut;
 use std::fmt::{Debug, Display, Error, Formatter};
 use std::result::Result as StdResult;
 
@@ -586,7 +585,7 @@ pub fn property_is_enumerable(
 
 /// Initialise the `Object` object on the global object.
 #[inline]
-pub fn init(interpreter: &mut Interpreter) {
+pub fn init(interpreter: &mut Interpreter) -> (&'static str, Value, Attribute) {
     let global = interpreter.global();
     let _timer = BoaProfiler::global().start_event("object", "init");
 
@@ -617,10 +616,9 @@ pub fn init(interpreter: &mut Interpreter) {
     make_builtin_fn(define_property, "defineProperty", &object, 3, interpreter);
     make_builtin_fn(is, "is", &object, 2, interpreter);
 
-    let mut global = interpreter.global().as_object_mut().expect("Expect object");
-    global.borrow_mut().insert_property(
+    (
         "Object",
         object,
         Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
-    );
+    )
 }

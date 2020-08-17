@@ -13,7 +13,6 @@ use crate::{
 };
 use chrono::{prelude::*, Duration, LocalResult};
 use gc::{unsafe_empty_trace, Finalize, Trace};
-use std::borrow::BorrowMut;
 use std::fmt::Display;
 
 const NANOS_IN_MS: f64 = 1_000_000f64;
@@ -1244,7 +1243,7 @@ impl Date {
 
     /// Initialise the `Date` object on the global object.
     #[inline]
-    pub(crate) fn init(interpreter: &mut Interpreter) {
+    pub(crate) fn init(interpreter: &mut Interpreter) -> (&'static str, Value, Attribute) {
         let global = interpreter.global();
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
@@ -1567,12 +1566,11 @@ impl Date {
         make_builtin_fn(Self::parse, "parse", &date_time_object, 1, interpreter);
         make_builtin_fn(Self::utc, "UTC", &date_time_object, 7, interpreter);
 
-        let mut global = interpreter.global().as_object_mut().expect("Expect object");
-        global.borrow_mut().insert_property(
+        (
             Self::NAME,
             date_time_object,
             Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
-        );
+        )
     }
 }
 

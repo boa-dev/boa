@@ -26,7 +26,6 @@ use crate::{
     BoaProfiler, Result,
 };
 use rustc_hash::FxHashMap;
-use std::borrow::BorrowMut;
 use std::time::SystemTime;
 
 /// This represents the different types of log messages.
@@ -503,7 +502,7 @@ impl Console {
 
     /// Initialise the `console` object on the global object.
     #[inline]
-    pub(crate) fn init(interpreter: &mut Interpreter) {
+    pub(crate) fn init(interpreter: &mut Interpreter) -> (&'static str, Value, Attribute) {
         let global = interpreter.global();
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
@@ -529,11 +528,10 @@ impl Console {
         make_builtin_fn(Self::dir, "dir", &console, 0, interpreter);
         make_builtin_fn(Self::dir, "dirxml", &console, 0, interpreter);
 
-        let mut global = interpreter.global().as_object_mut().expect("Expect object");
-        global.borrow_mut().insert_property(
+        (
             Self::NAME,
             console,
             Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
-        );
+        )
     }
 }

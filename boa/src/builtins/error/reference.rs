@@ -11,18 +11,13 @@
 
 use crate::{
     builtins::{
-        function::make_builtin_fn,
-        function::make_constructor_fn,
-        object::ObjectData,
-        property::Attribute,
-        value::Value,
+        function::make_builtin_fn, function::make_constructor_fn, object::ObjectData,
+        property::Attribute, value::Value,
     },
     exec::Interpreter,
     profiler::BoaProfiler,
     Result,
 };
-
-use std::borrow::BorrowMut;
 
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct ReferenceError;
@@ -65,7 +60,7 @@ impl ReferenceError {
     }
 
     /// Initialise the global object with the `ReferenceError` object.
-    pub(crate) fn init(interpreter: &mut Interpreter) {
+    pub(crate) fn init(interpreter: &mut Interpreter) -> (&'static str, Value, Attribute) {
         let global = interpreter.global();
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
@@ -85,11 +80,10 @@ impl ReferenceError {
             true,
         );
 
-        let mut global = interpreter.global().as_object_mut().expect("Expect object");
-        global.borrow_mut().insert_property(
+        (
             Self::NAME,
             reference_error_object,
             Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
-        );
+        )
     }
 }
