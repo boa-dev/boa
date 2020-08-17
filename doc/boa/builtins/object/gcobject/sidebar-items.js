@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["BorrowError","An error returned by `GcObject::try_borrow`."],["BorrowMutError","An error returned by `GcObject::try_borrow_mut`."],["GcObject","Garbage collected `Object`."]]});
+initSidebarItems({"struct":[["BorrowError","An error returned by `GcObject::try_borrow`."],["BorrowMutError","An error returned by `GcObject::try_borrow_mut`."],["GcObject","Garbage collected `Object`."],["RecursionLimiter","Prevents infinite recursion during `Debug::fmt`."]]});
