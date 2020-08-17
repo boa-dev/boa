@@ -6,9 +6,9 @@ use crate::{
         function::{make_builtin_fn, make_constructor_fn},
         object::ObjectData,
         value::PreferredType,
-        ResultValue, Value,
+        Value,
     },
-    BoaProfiler, Interpreter,
+    BoaProfiler, Interpreter, Result,
 };
 use chrono::{prelude::*, Duration, LocalResult};
 use gc::{unsafe_empty_trace, Finalize, Trace};
@@ -40,13 +40,13 @@ fn ignore_ambiguity<T>(result: LocalResult<T>) -> Option<T> {
 
 macro_rules! getter_method {
     ($name:ident) => {{
-        fn get_value(this: &Value, _: &[Value], ctx: &mut Interpreter) -> ResultValue {
+        fn get_value(this: &Value, _: &[Value], ctx: &mut Interpreter) -> Result<Value> {
             Ok(Value::from(this_time_value(this, ctx)?.$name()))
         }
         get_value
     }};
     (Self::$name:ident) => {{
-        fn get_value(_: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
+        fn get_value(_: &Value, _: &[Value], _: &mut Interpreter) -> Result<Value> {
             Ok(Value::from(Date::$name()))
         }
         get_value
@@ -55,7 +55,7 @@ macro_rules! getter_method {
 
 macro_rules! setter_method {
     ($name:ident($($e:expr),* $(,)?)) => {{
-        fn set_value(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
+        fn set_value(this: &Value, args: &[Value], ctx: &mut Interpreter) -> Result<Value> {
             let mut result = this_time_value(this, ctx)?;
             result.$name(
                 $(
@@ -246,7 +246,7 @@ impl Date {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-date-constructor
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/Date
-    pub(crate) fn make_date(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
+    pub(crate) fn make_date(this: &Value, args: &[Value], ctx: &mut Interpreter) -> Result<Value> {
         if this.is_global() {
             Self::make_date_string()
         } else if args.is_empty() {
@@ -268,7 +268,7 @@ impl Date {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-date-constructor
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/Date
-    pub(crate) fn make_date_string() -> ResultValue {
+    pub(crate) fn make_date_string() -> Result<Value> {
         Ok(Value::from(Local::now().to_rfc3339()))
     }
 
@@ -282,7 +282,7 @@ impl Date {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-date-constructor
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/Date
-    pub(crate) fn make_date_now(this: &Value) -> ResultValue {
+    pub(crate) fn make_date_now(this: &Value) -> Result<Value> {
         let date = Date::default();
         this.set_data(ObjectData::Date(date));
         Ok(this.clone())
@@ -302,7 +302,7 @@ impl Date {
         this: &Value,
         args: &[Value],
         ctx: &mut Interpreter,
-    ) -> ResultValue {
+    ) -> Result<Value> {
         let value = &args[0];
         let tv = match this_time_value(value, ctx) {
             Ok(dt) => dt.0,
@@ -339,7 +339,7 @@ impl Date {
         this: &Value,
         args: &[Value],
         ctx: &mut Interpreter,
-    ) -> ResultValue {
+    ) -> Result<Value> {
         let year = args[0].to_number(ctx)?;
         let month = args[1].to_number(ctx)?;
         let day = args.get(2).map_or(Ok(1f64), |value| value.to_number(ctx))?;
@@ -1164,7 +1164,7 @@ impl Date {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-date.now
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/now
-    pub(crate) fn now(_: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
+    pub(crate) fn now(_: &Value, _: &[Value], _: &mut Interpreter) -> Result<Value> {
         Ok(Value::from(Utc::now().timestamp_millis() as f64))
     }
 
@@ -1180,7 +1180,7 @@ impl Date {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-date.parse
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/parse
-    pub(crate) fn parse(_: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
+    pub(crate) fn parse(_: &Value, args: &[Value], ctx: &mut Interpreter) -> Result<Value> {
         // This method is implementation-defined and discouraged, so we just require the same format as the string
         // constructor.
 
@@ -1204,7 +1204,7 @@ impl Date {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-date.utc
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/UTC
-    pub(crate) fn utc(_: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
+    pub(crate) fn utc(_: &Value, args: &[Value], ctx: &mut Interpreter) -> Result<Value> {
         let year = args
             .get(0)
             .map_or(Ok(f64::NAN), |value| value.to_number(ctx))?;
@@ -1581,7 +1581,7 @@ impl Date {
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-thistimevalue
 #[inline]
-pub fn this_time_value(value: &Value, ctx: &mut Interpreter) -> Result<Date, Value> {
+pub fn this_time_value(value: &Value, ctx: &mut Interpreter) -> Result<Date> {
     if let Value::Object(ref object) = value {
         if let ObjectData::Date(ref date) = object.borrow().data {
             return Ok(*date);

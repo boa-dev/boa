@@ -2,10 +2,10 @@
 
 use super::{Executable, Interpreter, InterpreterState};
 use crate::{
-    builtins::value::{ResultValue, Value},
+    builtins::value::Value,
     environment::lexical_environment::new_declarative_environment,
     syntax::ast::node::{DoWhileLoop, ForLoop, WhileLoop},
-    BoaProfiler,
+    BoaProfiler, Result,
 };
 use std::borrow::Borrow;
 
@@ -13,7 +13,7 @@ use std::borrow::Borrow;
 mod tests;
 
 impl Executable for ForLoop {
-    fn run(&self, interpreter: &mut Interpreter) -> ResultValue {
+    fn run(&self, interpreter: &mut Interpreter) -> Result<Value> {
         // Create the block environment.
         let _timer = BoaProfiler::global().start_event("ForLoop", "exec");
         {
@@ -64,7 +64,7 @@ impl Executable for ForLoop {
 }
 
 impl Executable for WhileLoop {
-    fn run(&self, interpreter: &mut Interpreter) -> ResultValue {
+    fn run(&self, interpreter: &mut Interpreter) -> Result<Value> {
         let mut result = Value::undefined();
         while self.cond().run(interpreter)?.borrow().to_boolean() {
             result = self.expr().run(interpreter)?;
@@ -89,7 +89,7 @@ impl Executable for WhileLoop {
 }
 
 impl Executable for DoWhileLoop {
-    fn run(&self, interpreter: &mut Interpreter) -> ResultValue {
+    fn run(&self, interpreter: &mut Interpreter) -> Result<Value> {
         let mut result = self.body().run(interpreter)?;
         match interpreter.get_current_state() {
             InterpreterState::Break(_label) => {

@@ -28,7 +28,7 @@ use crate::{
         function::{Function as FunctionObject, FunctionBody, ThisMode},
         object::{Object, ObjectData, PROTOTYPE},
         property::PropertyKey,
-        value::{PreferredType, ResultValue, Type, Value},
+        value::{PreferredType, Type, Value},
         Console,
     },
     realm::Realm,
@@ -36,12 +36,13 @@ use crate::{
         constant::Const,
         node::{FormalParameter, Node, StatementList},
     },
-    BoaProfiler,
+    BoaProfiler, Result,
 };
+use std::result::Result as StdResult;
 
 pub trait Executable {
     /// Runs this executable in the given executor.
-    fn run(&self, interpreter: &mut Interpreter) -> ResultValue;
+    fn run(&self, interpreter: &mut Interpreter) -> Result<Value>;
 }
 
 #[derive(Debug, Eq, PartialEq)]
@@ -174,7 +175,7 @@ impl Interpreter {
         f: &Value,
         this: &Value,
         arguments_list: &[Value],
-    ) -> ResultValue {
+    ) -> Result<Value> {
         match *f {
             Value::Object(ref obj) => {
                 let obj = obj.borrow();
@@ -190,7 +191,7 @@ impl Interpreter {
     /// Converts an array object into a rust vector of values.
     ///
     /// This is useful for the spread operator, for any other object an `Err` is returned
-    pub(crate) fn extract_array_properties(&mut self, value: &Value) -> Result<Vec<Value>, ()> {
+    pub(crate) fn extract_array_properties(&mut self, value: &Value) -> StdResult<Vec<Value>, ()> {
         if let Value::Object(ref x) = value {
             // Check if object is array
             if let ObjectData::Array = x.borrow().data {
@@ -242,7 +243,11 @@ impl Interpreter {
     ///  - [ECMAScript][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-ordinarytoprimitive
-    pub(crate) fn ordinary_to_primitive(&mut self, o: &Value, hint: PreferredType) -> ResultValue {
+    pub(crate) fn ordinary_to_primitive(
+        &mut self,
+        o: &Value,
+        hint: PreferredType,
+    ) -> Result<Value> {
         // 1. Assert: Type(O) is Object.
         debug_assert!(o.get_type() == Type::Object);
         // 2. Assert: Type(hint) is String and its value is either "string" or "number".
@@ -286,7 +291,7 @@ impl Interpreter {
         }
     }
 
-    fn set_value(&mut self, node: &Node, value: Value) -> ResultValue {
+    fn set_value(&mut self, node: &Node, value: Value) -> Result<Value> {
         match node {
             Node::Identifier(ref name) => {
                 self.realm
@@ -329,7 +334,7 @@ impl Interpreter {
     /// [table]: https://tc39.es/ecma262/#table-14
     /// [spec]: https://tc39.es/ecma262/#sec-requireobjectcoercible
     #[inline]
-    pub fn require_object_coercible<'a>(&mut self, value: &'a Value) -> Result<&'a Value, Value> {
+    pub fn require_object_coercible<'a>(&mut self, value: &'a Value) -> Result<&'a Value> {
         if value.is_null_or_undefined() {
             Err(self.construct_type_error("cannot convert null or undefined to Object"))
         } else {
@@ -349,7 +354,7 @@ impl Interpreter {
 }
 
 impl Executable for Node {
-    fn run(&self, interpreter: &mut Interpreter) -> ResultValue {
+    fn run(&self, interpreter: &mut Interpreter) -> Result<Value> {
         let _timer = BoaProfiler::global().start_event("Executable", "exec");
         match *self {
             Node::Const(Const::Null) => Ok(Value::null()),

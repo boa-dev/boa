@@ -254,7 +254,7 @@ fn add_number_and_number() {
     let mut engine = Interpreter::new(realm);
 
     let value = forward_val(&mut engine, "1 + 2").unwrap();
-    let value = value.to_int32(&mut engine).unwrap();
+    let value = value.to_i32(&mut engine).unwrap();
     assert_eq!(value, 3);
 }
 
@@ -284,7 +284,7 @@ fn add_number_object_and_number() {
     let mut engine = Interpreter::new(realm);
 
     let value = forward_val(&mut engine, "new Number(10) + 6").unwrap();
-    let value = value.to_int32(&mut engine).unwrap();
+    let value = value.to_i32(&mut engine).unwrap();
     assert_eq!(value, 16);
 }
 
@@ -304,7 +304,7 @@ fn sub_number_and_number() {
     let mut engine = Interpreter::new(realm);
 
     let value = forward_val(&mut engine, "1 - 999").unwrap();
-    let value = value.to_int32(&mut engine).unwrap();
+    let value = value.to_i32(&mut engine).unwrap();
     assert_eq!(value, -998);
 }
 
@@ -314,7 +314,7 @@ fn sub_number_object_and_number_object() {
     let mut engine = Interpreter::new(realm);
 
     let value = forward_val(&mut engine, "new Number(1) - new Number(999)").unwrap();
-    let value = value.to_int32(&mut engine).unwrap();
+    let value = value.to_i32(&mut engine).unwrap();
     assert_eq!(value, -998);
 }
 
@@ -334,7 +334,7 @@ fn bitand_integer_and_integer() {
     let mut engine = Interpreter::new(realm);
 
     let value = forward_val(&mut engine, "0xFFFF & 0xFF").unwrap();
-    let value = value.to_int32(&mut engine).unwrap();
+    let value = value.to_i32(&mut engine).unwrap();
     assert_eq!(value, 255);
 }
 
@@ -344,7 +344,7 @@ fn bitand_integer_and_rational() {
     let mut engine = Interpreter::new(realm);
 
     let value = forward_val(&mut engine, "0xFFFF & 255.5").unwrap();
-    let value = value.to_int32(&mut engine).unwrap();
+    let value = value.to_i32(&mut engine).unwrap();
     assert_eq!(value, 255);
 }
 
@@ -354,7 +354,7 @@ fn bitand_rational_and_rational() {
     let mut engine = Interpreter::new(realm);
 
     let value = forward_val(&mut engine, "255.772 & 255.5").unwrap();
-    let value = value.to_int32(&mut engine).unwrap();
+    let value = value.to_i32(&mut engine).unwrap();
     assert_eq!(value, 255);
 }
 
@@ -447,6 +447,20 @@ fn display_negative_zero_object() {
     "#;
     let value = forward_val(&mut engine, d_obj).unwrap();
     assert_eq!(value.display().to_string(), "Number { -0 }")
+}
+
+#[test]
+fn debug_object() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+    let value = forward_val(&mut engine, "new Array([new Date()])").unwrap();
+
+    // We don't care about the contents of the debug display (it is *debug* after all). In the commit that this test was
+    // added, this would cause a stack overflow, so executing Debug::fmt is the assertion.
+    //
+    // However, we want to make sure that no data is being left in the internal hashset, so executing this twice should
+    // result in the same output.
+    assert_eq!(format!("{:?}", value), format!("{:?}", value));
 }
 
 #[test]

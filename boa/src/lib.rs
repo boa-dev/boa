@@ -41,7 +41,7 @@ pub mod profiler;
 pub mod realm;
 pub mod syntax;
 
-use crate::{builtins::value::ResultValue, syntax::ast::node::StatementList};
+use crate::{builtins::value::Value, syntax::ast::node::StatementList};
 pub use crate::{
     exec::{Executable, Interpreter},
     profiler::BoaProfiler,
@@ -51,11 +51,14 @@ pub use crate::{
         parser::{ParseError, Parser},
     },
 };
+use std::result::Result as StdResult;
 
-fn parser_expr(src: &str) -> Result<StatementList, String> {
+/// The result of a Javascript expression is represented like this so it can succeed (`Ok`) or fail (`Err`)
+#[must_use]
+pub type Result<T> = StdResult<T, Value>;
+
+fn parser_expr(src: &str) -> StdResult<StatementList, String> {
     Parser::new(src.as_bytes())
-        .parse_all()
-        .map_err(|e| e.to_string())
 }
 
 /// Execute the code using an existing Interpreter
@@ -77,7 +80,7 @@ pub fn forward(engine: &mut Interpreter, src: &str) -> String {
 /// Similar to `forward`, except the current value is returned instad of the string
 /// If the interpreter fails parsing an error value is returned instead (error object)
 #[allow(clippy::unit_arg, clippy::drop_copy)]
-pub fn forward_val(engine: &mut Interpreter, src: &str) -> ResultValue {
+pub fn forward_val(engine: &mut Interpreter, src: &str) -> Result<Value> {
     let main_timer = BoaProfiler::global().start_event("Main", "Main");
     // Setup executor
     let result = match parser_expr(src) {
