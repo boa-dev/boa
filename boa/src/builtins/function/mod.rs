@@ -27,7 +27,7 @@ use bitflags::bitflags;
 use gc::{unsafe_empty_trace, Finalize, Trace};
 use std::fmt::{self, Debug};
 
-/// _fn(this, arguments, ctx) -> ResultValue_ - The signature of a built-in function
+/// _fn(this, arguments, ctx) -> Result<Value>_ - The signature of a built-in function
 pub type NativeFunction = fn(&Value, &[Value], &mut Interpreter) -> Result<Value>;
 
 #[derive(Clone, Copy, Finalize)]
