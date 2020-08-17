@@ -120,7 +120,7 @@
     }
 
     <span class="doccomment">/// Throws a `RangeError` with the specified message.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">throw_range_error</span><span class="op">&lt;</span><span class="ident">M</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">message</span>: <span class="ident">M</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">throw_range_error</span><span class="op">&lt;</span><span class="ident">M</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">message</span>: <span class="ident">M</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">M</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
     {
@@ -142,7 +142,7 @@
     }
 
     <span class="doccomment">/// Throws a `TypeError` with the specified message.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">throw_type_error</span><span class="op">&lt;</span><span class="ident">M</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">message</span>: <span class="ident">M</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">throw_type_error</span><span class="op">&lt;</span><span class="ident">M</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">message</span>: <span class="ident">M</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">M</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
     {
@@ -163,7 +163,7 @@
     }
 
     <span class="doccomment">/// Throws a `ReferenceError` with the specified message.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">throw_reference_error</span><span class="op">&lt;</span><span class="ident">M</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">message</span>: <span class="ident">M</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">throw_reference_error</span><span class="op">&lt;</span><span class="ident">M</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">message</span>: <span class="ident">M</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">M</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
     {
@@ -184,7 +184,7 @@
     }
 
     <span class="doccomment">/// Throws a `SyntaxError` with the specified message.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">throw_syntax_error</span><span class="op">&lt;</span><span class="ident">M</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">message</span>: <span class="ident">M</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">throw_syntax_error</span><span class="op">&lt;</span><span class="ident">M</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">message</span>: <span class="ident">M</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">M</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
     {

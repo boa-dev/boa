@@ -1598,9 +1598,9 @@
         <span class="ident">function</span>::{<span class="ident">make_builtin_fn</span>, <span class="ident">make_constructor_fn</span>},
         <span class="ident">object</span>::<span class="ident">ObjectData</span>,
         <span class="ident">value</span>::<span class="ident">PreferredType</span>,
-        <span class="ident">ResultValue</span>, <span class="ident">Value</span>,
+        <span class="ident">Value</span>,
     },
-    <span class="ident">BoaProfiler</span>, <span class="ident">Interpreter</span>,
+    <span class="ident">BoaProfiler</span>, <span class="ident">Interpreter</span>, <span class="prelude-ty">Result</span>,
 };
 <span class="kw">use</span> <span class="ident">chrono</span>::{<span class="ident">prelude</span>::<span class="kw-2">*</span>, <span class="ident">Duration</span>, <span class="ident">LocalResult</span>};
 <span class="kw">use</span> <span class="ident">gc</span>::{<span class="ident">unsafe_empty_trace</span>, <span class="ident">Finalize</span>, <span class="ident">Trace</span>};
@@ -1632,13 +1632,13 @@
 
 <span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">getter_method</span> {
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">ident</span>) <span class="op">=</span><span class="op">&gt;</span> {{
-        <span class="kw">fn</span> <span class="ident">get_value</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
+        <span class="kw">fn</span> <span class="ident">get_value</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
             <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">this_time_value</span>(<span class="ident">this</span>, <span class="ident">ctx</span>)<span class="question-mark">?</span>.<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>()))
         }
         <span class="ident">get_value</span>
     }};
     (<span class="self">Self</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">ident</span>) <span class="op">=</span><span class="op">&gt;</span> {{
-        <span class="kw">fn</span> <span class="ident">get_value</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
+        <span class="kw">fn</span> <span class="ident">get_value</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
             <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">Date</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>()))
         }
         <span class="ident">get_value</span>
@@ -1647,7 +1647,7 @@
 
 <span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">setter_method</span> {
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">ident</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">e</span>:<span class="ident">expr</span>),<span class="op">*</span> $(,)<span class="question-mark">?</span>)) <span class="op">=</span><span class="op">&gt;</span> {{
-        <span class="kw">fn</span> <span class="ident">set_value</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
+        <span class="kw">fn</span> <span class="ident">set_value</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">this_time_value</span>(<span class="ident">this</span>, <span class="ident">ctx</span>)<span class="question-mark">?</span>;
             <span class="ident">result</span>.<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>(
                 $(
@@ -1838,7 +1838,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-date-constructor</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/Date</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">make_date</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">make_date</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="ident">this</span>.<span class="ident">is_global</span>() {
             <span class="self">Self</span>::<span class="ident">make_date_string</span>()
         } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">args</span>.<span class="ident">is_empty</span>() {
@@ -1860,7 +1860,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-date-constructor</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/Date</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">make_date_string</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">make_date_string</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
         <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">Local</span>::<span class="ident">now</span>().<span class="ident">to_rfc3339</span>()))
     }
 
@@ -1874,7 +1874,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-date-constructor</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/Date</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">make_date_now</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">make_date_now</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">date</span> <span class="op">=</span> <span class="ident">Date</span>::<span class="ident">default</span>();
         <span class="ident">this</span>.<span class="ident">set_data</span>(<span class="ident">ObjectData</span>::<span class="ident">Date</span>(<span class="ident">date</span>));
         <span class="prelude-val">Ok</span>(<span class="ident">this</span>.<span class="ident">clone</span>())
@@ -1894,7 +1894,7 @@
         <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>,
         <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>],
         <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">args</span>[<span class="number">0</span>];
         <span class="kw">let</span> <span class="ident">tv</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">this_time_value</span>(<span class="ident">value</span>, <span class="ident">ctx</span>) {
             <span class="prelude-val">Ok</span>(<span class="ident">dt</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">dt</span>.<span class="number">0</span>,
@@ -1931,7 +1931,7 @@
         <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>,
         <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>],
         <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">year</span> <span class="op">=</span> <span class="ident">args</span>[<span class="number">0</span>].<span class="ident">to_number</span>(<span class="ident">ctx</span>)<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">month</span> <span class="op">=</span> <span class="ident">args</span>[<span class="number">1</span>].<span class="ident">to_number</span>(<span class="ident">ctx</span>)<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">day</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">2</span>).<span class="ident">map_or</span>(<span class="prelude-val">Ok</span>(<span class="number">1f64</span>), <span class="op">|</span><span class="ident">value</span><span class="op">|</span> <span class="ident">value</span>.<span class="ident">to_number</span>(<span class="ident">ctx</span>))<span class="question-mark">?</span>;
@@ -2756,7 +2756,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-date.now</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/now</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">now</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">now</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
         <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">Utc</span>::<span class="ident">now</span>().<span class="ident">timestamp_millis</span>() <span class="kw">as</span> <span class="ident">f64</span>))
     }
 
@@ -2772,7 +2772,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-date.parse</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/parse</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">parse</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">parse</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
         <span class="comment">// This method is implementation-defined and discouraged, so we just require the same format as the string</span>
         <span class="comment">// constructor.</span>
 
@@ -2796,7 +2796,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-date.utc</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/UTC</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">utc</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">utc</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">year</span> <span class="op">=</span> <span class="ident">args</span>
             .<span class="ident">get</span>(<span class="number">0</span>)
             .<span class="ident">map_or</span>(<span class="prelude-val">Ok</span>(<span class="ident">f64</span>::<span class="ident">NAN</span>), <span class="op">|</span><span class="ident">value</span><span class="op">|</span> <span class="ident">value</span>.<span class="ident">to_number</span>(<span class="ident">ctx</span>))<span class="question-mark">?</span>;
@@ -3173,7 +3173,7 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-thistimevalue</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">this_time_value</span>(<span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Date</span>, <span class="ident">Value</span><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">this_time_value</span>(<span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Date</span><span class="op">&gt;</span> {
     <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Value</span>::<span class="ident">Object</span>(<span class="kw-2">ref</span> <span class="ident">object</span>) <span class="op">=</span> <span class="ident">value</span> {
         <span class="kw">if</span> <span class="kw">let</span> <span class="ident">ObjectData</span>::<span class="ident">Date</span>(<span class="kw-2">ref</span> <span class="ident">date</span>) <span class="op">=</span> <span class="ident">object</span>.<span class="ident">borrow</span>().<span class="ident">data</span> {
             <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="kw-2">*</span><span class="ident">date</span>);

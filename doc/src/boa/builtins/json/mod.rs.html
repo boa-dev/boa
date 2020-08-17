@@ -186,6 +186,7 @@
 <span id="186">186</span>
 <span id="187">187</span>
 <span id="188">188</span>
+<span id="189">189</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements the global `JSON` object.</span>
 <span class="doccomment">//!</span>
@@ -202,12 +203,8 @@
 <span class="doccomment">//! [json]: https://www.json.org/json-en.html</span>
 <span class="doccomment">//! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON</span>
 
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">builtins</span>::{
-    <span class="ident">function</span>::<span class="ident">make_builtin_fn</span>,
-    <span class="ident">property</span>::<span class="ident">Property</span>,
-    <span class="ident">value</span>::{<span class="ident">ResultValue</span>, <span class="ident">Value</span>},
-};
-<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">exec</span>::<span class="ident">Interpreter</span>, <span class="ident">BoaProfiler</span>};
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">builtins</span>::{<span class="ident">function</span>::<span class="ident">make_builtin_fn</span>, <span class="ident">property</span>::<span class="ident">Property</span>, <span class="ident">value</span>::<span class="ident">Value</span>};
+<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">exec</span>::<span class="ident">Interpreter</span>, <span class="ident">BoaProfiler</span>, <span class="prelude-ty">Result</span>};
 <span class="kw">use</span> <span class="ident">serde_json</span>::{<span class="self">self</span>, <span class="ident">Value</span> <span class="kw">as</span> <span class="ident">JSONValue</span>};
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
@@ -233,7 +230,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-json.parse</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/parse</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">parse</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">parse</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="ident">serde_json</span>::<span class="ident">from_str</span>::<span class="op">&lt;</span><span class="ident">JSONValue</span><span class="op">&gt;</span>(
             <span class="kw-2">&amp;</span><span class="ident">args</span>
                 .<span class="ident">get</span>(<span class="number">0</span>)
@@ -261,7 +258,12 @@
     <span class="doccomment">/// for possible transformation.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [polyfill]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/parse</span>
-    <span class="kw">fn</span> <span class="ident">walk</span>(<span class="ident">reviver</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>, <span class="ident">holder</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>, <span class="ident">key</span>: <span class="ident">Value</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
+    <span class="kw">fn</span> <span class="ident">walk</span>(
+        <span class="ident">reviver</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>,
+        <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>,
+        <span class="ident">holder</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Value</span>,
+        <span class="ident">key</span>: <span class="ident">Value</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">holder</span>.<span class="ident">get_field</span>(<span class="ident">key</span>.<span class="ident">clone</span>());
 
         <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">value</span>.<span class="ident">as_object</span>().<span class="ident">as_deref</span>().<span class="ident">cloned</span>();
@@ -298,7 +300,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-json.stringify</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">stringify</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">stringify</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">object</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>) {
             <span class="prelude-val">Some</span>(<span class="ident">obj</span>) <span class="kw">if</span> <span class="ident">obj</span>.<span class="ident">is_symbol</span>() <span class="op">|</span><span class="op">|</span> <span class="ident">obj</span>.<span class="ident">is_function</span>() <span class="op">|</span><span class="op">|</span> <span class="ident">obj</span>.<span class="ident">is_undefined</span>() <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">undefined</span>())

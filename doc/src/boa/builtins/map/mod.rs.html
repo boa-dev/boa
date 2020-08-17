@@ -319,10 +319,10 @@
     <span class="ident">builtins</span>::{
         <span class="ident">object</span>::{<span class="ident">ObjectData</span>, <span class="ident">PROTOTYPE</span>},
         <span class="ident">property</span>::{<span class="ident">Attribute</span>, <span class="ident">Property</span>},
-        <span class="ident">value</span>::{<span class="ident">ResultValue</span>, <span class="ident">Value</span>},
+        <span class="ident">value</span>::<span class="ident">Value</span>,
     },
     <span class="ident">exec</span>::<span class="ident">Interpreter</span>,
-    <span class="ident">BoaProfiler</span>,
+    <span class="ident">BoaProfiler</span>, <span class="prelude-ty">Result</span>,
 };
 <span class="kw">use</span> <span class="ident">ordered_map</span>::<span class="ident">OrderedMap</span>;
 
@@ -358,7 +358,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-map.prototype.set</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/set</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">set</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">set</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
         <span class="kw">let</span> (<span class="ident">key</span>, <span class="ident">value</span>) <span class="op">=</span> <span class="kw">match</span> <span class="ident">args</span>.<span class="ident">len</span>() {
             <span class="number">0</span> <span class="op">=</span><span class="op">&gt;</span> (<span class="ident">Value</span>::<span class="ident">Undefined</span>, <span class="ident">Value</span>::<span class="ident">Undefined</span>),
             <span class="number">1</span> <span class="op">=</span><span class="op">&gt;</span> (<span class="ident">args</span>[<span class="number">0</span>].<span class="ident">clone</span>(), <span class="ident">Value</span>::<span class="ident">Undefined</span>),
@@ -391,7 +391,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-map.prototype.delete</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/delete</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">delete</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">delete</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">undefined</span> <span class="op">=</span> <span class="ident">Value</span>::<span class="ident">Undefined</span>;
         <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">args</span>.<span class="ident">len</span>() {
             <span class="number">0</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">undefined</span>,
@@ -423,7 +423,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-map.prototype.get</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/get</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">undefined</span> <span class="op">=</span> <span class="ident">Value</span>::<span class="ident">Undefined</span>;
         <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">args</span>.<span class="ident">len</span>() {
             <span class="number">0</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">undefined</span>,
@@ -454,7 +454,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-map.prototype.clear</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/clear</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">clear</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">clear</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
         <span class="ident">this</span>.<span class="ident">set_data</span>(<span class="ident">ObjectData</span>::<span class="ident">Map</span>(<span class="ident">OrderedMap</span>::<span class="ident">new</span>()));
 
         <span class="self">Self</span>::<span class="ident">set_size</span>(<span class="ident">this</span>, <span class="number">0</span>);
@@ -472,7 +472,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-map.prototype.has</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/has</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">has</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">has</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">undefined</span> <span class="op">=</span> <span class="ident">Value</span>::<span class="ident">Undefined</span>;
         <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">args</span>.<span class="ident">len</span>() {
             <span class="number">0</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">undefined</span>,
@@ -503,7 +503,7 @@
         <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>,
         <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>],
         <span class="ident">interpreter</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="ident">args</span>.<span class="ident">is_empty</span>() {
             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="string">&quot;Missing argument for Map.prototype.forEach&quot;</span>));
         }
@@ -541,7 +541,7 @@
     }
 
     <span class="doccomment">/// Create a new map</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">make_map</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">make_map</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
         <span class="comment">// Make a new Object which will internally represent the Array (mapping</span>
         <span class="comment">// between indices and values): this creates an Object with no prototype</span>
 

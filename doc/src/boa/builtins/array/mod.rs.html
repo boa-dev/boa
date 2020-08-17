@@ -1183,6 +1183,30 @@
 <span id="1183">1183</span>
 <span id="1184">1184</span>
 <span id="1185">1185</span>
+<span id="1186">1186</span>
+<span id="1187">1187</span>
+<span id="1188">1188</span>
+<span id="1189">1189</span>
+<span id="1190">1190</span>
+<span id="1191">1191</span>
+<span id="1192">1192</span>
+<span id="1193">1193</span>
+<span id="1194">1194</span>
+<span id="1195">1195</span>
+<span id="1196">1196</span>
+<span id="1197">1197</span>
+<span id="1198">1198</span>
+<span id="1199">1199</span>
+<span id="1200">1200</span>
+<span id="1201">1201</span>
+<span id="1202">1202</span>
+<span id="1203">1203</span>
+<span id="1204">1204</span>
+<span id="1205">1205</span>
+<span id="1206">1206</span>
+<span id="1207">1207</span>
+<span id="1208">1208</span>
+<span id="1209">1209</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements the global `Array` object.</span>
 <span class="doccomment">//!</span>
@@ -1203,10 +1227,10 @@
     <span class="ident">builtins</span>::{
         <span class="ident">object</span>::{<span class="ident">ObjectData</span>, <span class="ident">PROTOTYPE</span>},
         <span class="ident">property</span>::{<span class="ident">Attribute</span>, <span class="ident">Property</span>},
-        <span class="ident">value</span>::{<span class="ident">same_value_zero</span>, <span class="ident">ResultValue</span>, <span class="ident">Value</span>},
+        <span class="ident">value</span>::{<span class="ident">same_value_zero</span>, <span class="ident">Value</span>},
     },
     <span class="ident">exec</span>::<span class="ident">Interpreter</span>,
-    <span class="ident">BoaProfiler</span>,
+    <span class="ident">BoaProfiler</span>, <span class="prelude-ty">Result</span>,
 };
 <span class="kw">use</span> <span class="ident">std</span>::{
     <span class="ident">borrow</span>::<span class="ident">Borrow</span>,
@@ -1225,7 +1249,7 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const</span> <span class="ident">LENGTH</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">1</span>;
 
     <span class="doccomment">/// Creates a new `Array` instance.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new_array</span>(<span class="ident">interpreter</span>: <span class="kw-2">&amp;</span><span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new_array</span>(<span class="ident">interpreter</span>: <span class="kw-2">&amp;</span><span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">array</span> <span class="op">=</span> <span class="ident">Value</span>::<span class="ident">new_object</span>(<span class="prelude-val">Some</span>(
             <span class="kw-2">&amp;</span><span class="ident">interpreter</span>
                 .<span class="ident">realm</span>()
@@ -1251,7 +1275,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// `array_obj` can be any array with prototype already set (it will be wiped and</span>
     <span class="doccomment">/// recreated from `array_contents`)</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">construct_array</span>(<span class="ident">array_obj</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">array_contents</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">construct_array</span>(<span class="ident">array_obj</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">array_contents</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">array_obj_ptr</span> <span class="op">=</span> <span class="ident">array_obj</span>.<span class="ident">clone</span>();
 
         <span class="comment">// Wipe existing contents of the array object</span>
@@ -1275,7 +1299,7 @@
 
     <span class="doccomment">/// Utility function which takes an existing array object and puts additional</span>
     <span class="doccomment">/// values on the end, correctly rewriting the length</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">add_to_array_object</span>(<span class="ident">array_ptr</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">add_values</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">add_to_array_object</span>(<span class="ident">array_ptr</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">add_values</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">orig_length</span> <span class="op">=</span> <span class="ident">array_ptr</span>.<span class="ident">get_field</span>(<span class="string">&quot;length&quot;</span>).<span class="ident">as_number</span>().<span class="ident">unwrap</span>() <span class="kw">as</span> <span class="ident">i32</span>;
 
         <span class="kw">for</span> (<span class="ident">n</span>, <span class="ident">value</span>) <span class="kw">in</span> <span class="ident">add_values</span>.<span class="ident">iter</span>().<span class="ident">enumerate</span>() {
@@ -1292,7 +1316,7 @@
     }
 
     <span class="doccomment">/// Create a new array</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">make_array</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">make_array</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
         <span class="comment">// Make a new Object which will internally represent the Array (mapping</span>
         <span class="comment">// between indices and values): this creates an Object with no prototype</span>
 
@@ -1352,7 +1376,7 @@
         <span class="ident">_this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>,
         <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>],
         <span class="ident">_interpreter</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">x</span>.<span class="ident">as_object</span>()) {
             <span class="prelude-val">Some</span>(<span class="ident">object</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">object</span>.<span class="ident">is_array</span>())),
             <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="bool-val">false</span>)),
@@ -1371,7 +1395,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-array.prototype.concat</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/concat</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">concat</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">concat</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="ident">args</span>.<span class="ident">is_empty</span>() {
             <span class="comment">// If concat is called with no arguments, it returns the original array</span>
             <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">this</span>.<span class="ident">clone</span>());
@@ -1408,7 +1432,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-array.prototype.push</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/push</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">push</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">push</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">new_array</span> <span class="op">=</span> <span class="self">Self</span>::<span class="ident">add_to_array_object</span>(<span class="ident">this</span>, <span class="ident">args</span>)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(<span class="ident">new_array</span>.<span class="ident">get_field</span>(<span class="string">&quot;length&quot;</span>))
     }
@@ -1423,8 +1447,9 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-array.prototype.pop</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/pop</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">pop</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">pop</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">curr_length</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="string">&quot;length&quot;</span>).<span class="ident">as_number</span>().<span class="ident">unwrap</span>() <span class="kw">as</span> <span class="ident">i32</span>;
+
         <span class="kw">if</span> <span class="ident">curr_length</span> <span class="op">&lt;</span> <span class="number">1</span> {
             <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">undefined</span>());
         }
@@ -1449,7 +1474,7 @@
         <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>,
         <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>],
         <span class="ident">interpreter</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="ident">args</span>.<span class="ident">is_empty</span>() {
             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="string">&quot;Missing argument for Array.prototype.forEach&quot;</span>));
         }
@@ -1481,7 +1506,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-array.prototype.join</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/join</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">join</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">join</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">separator</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">args</span>.<span class="ident">is_empty</span>() {
             <span class="ident">String</span>::<span class="ident">from</span>(<span class="string">&quot;,&quot;</span>)
         } <span class="kw">else</span> {
@@ -1514,7 +1539,7 @@
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-array.prototype.tostring</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/toString</span>
     <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy</span>::<span class="ident">wrong_self_convention</span>)]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">to_string</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">_args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">to_string</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">_args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">method_name</span> <span class="op">=</span> <span class="string">&quot;join&quot;</span>;
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">arguments</span> <span class="op">=</span> <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">Value</span>::<span class="ident">from</span>(<span class="string">&quot;,&quot;</span>)];
         <span class="comment">// 2.</span>
@@ -1554,8 +1579,9 @@
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-array.prototype.reverse</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/reverse</span>
     <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy</span>::<span class="ident">else_if_without_else</span>)]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">reverse</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">reverse</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="string">&quot;length&quot;</span>).<span class="ident">as_number</span>().<span class="ident">unwrap</span>() <span class="kw">as</span> <span class="ident">i32</span>;
+
         <span class="kw">let</span> <span class="ident">middle</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="ident">len</span>.<span class="ident">wrapping_div</span>(<span class="number">2</span>);
 
         <span class="kw">for</span> <span class="ident">lower</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">middle</span> {
@@ -1592,7 +1618,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-array.prototype.shift</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/shift</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">shift</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">shift</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="string">&quot;length&quot;</span>).<span class="ident">as_number</span>().<span class="ident">unwrap</span>() <span class="kw">as</span> <span class="ident">i32</span>;
 
         <span class="kw">if</span> <span class="ident">len</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
@@ -1634,8 +1660,9 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-array.prototype.unshift</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/unshift</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">unshift</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">unshift</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="string">&quot;length&quot;</span>).<span class="ident">as_number</span>().<span class="ident">unwrap</span>() <span class="kw">as</span> <span class="ident">i32</span>;
+
         <span class="kw">let</span> <span class="ident">arg_c</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">i32</span>;
 
         <span class="kw">if</span> <span class="ident">arg_c</span> <span class="op">&gt;</span> <span class="number">0</span> {
@@ -1682,7 +1709,7 @@
         <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>,
         <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>],
         <span class="ident">interpreter</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="ident">args</span>.<span class="ident">is_empty</span>() {
             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Value</span>::<span class="ident">from</span>(
                 <span class="string">&quot;missing callback when calling function Array.prototype.every&quot;</span>,
@@ -1724,7 +1751,11 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-array.prototype.map</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/map</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">map</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">interpreter</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">map</span>(
+        <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>,
+        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>],
+        <span class="ident">interpreter</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="ident">args</span>.<span class="ident">is_empty</span>() {
             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Value</span>::<span class="ident">from</span>(
                 <span class="string">&quot;missing argument 0 when calling function Array.prototype.map&quot;</span>,
@@ -1771,7 +1802,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-array.prototype.indexof</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/indexOf</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">index_of</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">index_of</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
         <span class="comment">// If no arguments, return -1. Not described in spec, but is what chrome does.</span>
         <span class="kw">if</span> <span class="ident">args</span>.<span class="ident">is_empty</span>() {
             <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="op">-</span><span class="number">1</span>));
@@ -1824,7 +1855,11 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-array.prototype.lastindexof</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/lastIndexOf</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">last_index_of</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">last_index_of</span>(
+        <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>,
+        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>],
+        <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
         <span class="comment">// If no arguments, return -1. Not described in spec, but is what chrome does.</span>
         <span class="kw">if</span> <span class="ident">args</span>.<span class="ident">is_empty</span>() {
             <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="op">-</span><span class="number">1</span>));
@@ -1871,7 +1906,11 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-array.prototype.find</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/find</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">find</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">interpreter</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">find</span>(
+        <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>,
+        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>],
+        <span class="ident">interpreter</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="ident">args</span>.<span class="ident">is_empty</span>() {
             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Value</span>::<span class="ident">from</span>(
                 <span class="string">&quot;missing callback when calling function Array.prototype.find&quot;</span>,
@@ -1907,7 +1946,7 @@
         <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>,
         <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>],
         <span class="ident">interpreter</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="ident">args</span>.<span class="ident">is_empty</span>() {
             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Value</span>::<span class="ident">from</span>(
                 <span class="string">&quot;Missing argument for Array.prototype.findIndex&quot;</span>,
@@ -1945,8 +1984,9 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-array.prototype.fill</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/fill</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">fill</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">fill</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">len</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="string">&quot;length&quot;</span>).<span class="ident">as_number</span>().<span class="ident">unwrap</span>() <span class="kw">as</span> <span class="ident">i32</span>;
+
         <span class="kw">let</span> <span class="ident">default_value</span> <span class="op">=</span> <span class="ident">Value</span>::<span class="ident">undefined</span>();
         <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">unwrap_or</span>(<span class="kw-2">&amp;</span><span class="ident">default_value</span>);
         <span class="kw">let</span> <span class="ident">relative_start</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">1</span>).<span class="ident">unwrap_or</span>(<span class="kw-2">&amp;</span><span class="ident">default_value</span>).<span class="ident">to_number</span>(<span class="ident">ctx</span>)<span class="question-mark">?</span> <span class="kw">as</span> <span class="ident">i32</span>;
@@ -1984,7 +2024,11 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-array.prototype.includes</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/includes</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">includes_value</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">includes_value</span>(
+        <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>,
+        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>],
+        <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">search_element</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">cloned</span>().<span class="ident">unwrap_or_else</span>(<span class="ident">Value</span>::<span class="ident">undefined</span>);
 
         <span class="kw">let</span> <span class="ident">length</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="string">&quot;length&quot;</span>).<span class="ident">as_number</span>().<span class="ident">unwrap</span>() <span class="kw">as</span> <span class="ident">i32</span>;
@@ -2018,7 +2062,7 @@
         <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>,
         <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>],
         <span class="ident">interpreter</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">new_array</span> <span class="op">=</span> <span class="self">Self</span>::<span class="ident">new_array</span>(<span class="ident">interpreter</span>)<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="string">&quot;length&quot;</span>).<span class="ident">as_number</span>().<span class="ident">unwrap</span>() <span class="kw">as</span> <span class="ident">i32</span>;
 
@@ -2067,7 +2111,7 @@
         <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>,
         <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>],
         <span class="ident">interpreter</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="ident">args</span>.<span class="ident">is_empty</span>() {
             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Value</span>::<span class="ident">from</span>(
                 <span class="string">&quot;missing argument 0 when calling function Array.prototype.filter&quot;</span>,
@@ -2117,7 +2161,11 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-array.prototype.some</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/some</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">some</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">interpreter</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">some</span>(
+        <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>,
+        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>],
+        <span class="ident">interpreter</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="ident">args</span>.<span class="ident">is_empty</span>() {
             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Value</span>::<span class="ident">from</span>(
                 <span class="string">&quot;missing callback when calling function Array.prototype.some&quot;</span>,
@@ -2164,7 +2212,7 @@
         <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>,
         <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>],
         <span class="ident">interpreter</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">to_object</span>(<span class="ident">interpreter</span>)<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">callback</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>) {
             <span class="prelude-val">Some</span>(<span class="ident">value</span>) <span class="kw">if</span> <span class="ident">value</span>.<span class="ident">is_function</span>() <span class="op">=</span><span class="op">&gt;</span> <span class="ident">value</span>,
@@ -2231,7 +2279,7 @@
         <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>,
         <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>],
         <span class="ident">interpreter</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultValue</span> {
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">to_object</span>(<span class="ident">interpreter</span>)<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">callback</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>) {
             <span class="prelude-val">Some</span>(<span class="ident">value</span>) <span class="kw">if</span> <span class="ident">value</span>.<span class="ident">is_function</span>() <span class="op">=</span><span class="op">&gt;</span> <span class="ident">value</span>,
