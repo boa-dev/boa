@@ -1997,7 +1997,7 @@
     <span class="doccomment">/// This function is equivalent to `value | 0` in JavaScript</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// See: &lt;https://tc39.es/ecma262/#sec-toint32&gt;</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_uint32</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">u32</span>, <span class="ident">Value</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_u32</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">u32</span>, <span class="ident">Value</span><span class="op">&gt;</span> {
         <span class="comment">// This is the fast path, if the value is Integer we can just return it.</span>
         <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Value</span>::<span class="ident">Integer</span>(<span class="ident">number</span>) <span class="op">=</span> <span class="kw-2">*</span><span class="self">self</span> {
             <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">number</span> <span class="kw">as</span> <span class="ident">u32</span>);
@@ -2010,7 +2010,7 @@
     <span class="doccomment">/// Converts a value to an integral 32 bit signed integer.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// See: &lt;https://tc39.es/ecma262/#sec-toint32&gt;</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_int32</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">i32</span>, <span class="ident">Value</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_i32</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">i32</span>, <span class="ident">Value</span><span class="op">&gt;</span> {
         <span class="comment">// This is the fast path, if the value is Integer we can just return it.</span>
         <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Value</span>::<span class="ident">Integer</span>(<span class="ident">number</span>) <span class="op">=</span> <span class="kw-2">*</span><span class="self">self</span> {
             <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">number</span>);
