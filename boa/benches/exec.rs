@@ -1,13 +1,9 @@
 //! Benchmarks of the whole execution engine in Boa.
 
 use boa::{exec::Interpreter, realm::Realm, Executable, Lexer, Parser};
-use constants::{
-    ARITHMETIC_OPERATIONS, ARRAY_ACCESS, ARRAY_CREATE, ARRAY_POP, BOOLEAN_OBJECT_ACCESS, FIBONACCI,
-    FOR_LOOP, NUMBER_OBJECT_ACCESS, OBJECT_CREATION, OBJECT_PROP_ACCESS_CONST,
-    OBJECT_PROP_ACCESS_DYN, REGEXP, REGEXP_CREATION, REGEXP_LITERAL, REGEXP_LITERAL_CREATION,
-    STRING_COMPARE, STRING_CONCAT, STRING_COPY, STRING_OBJECT_ACCESS, SYMBOL_CREATION,
-};
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
+
+include!("constants.rs");
 
 #[cfg(all(target_arch = "x86_64", target_os = "linux", target_env = "gnu"))]
 #[cfg_attr(

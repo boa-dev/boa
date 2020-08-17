@@ -1,8 +1,9 @@
 //! Benchmarks of the parsing process in Boa.
 
 use boa::syntax::{lexer::Lexer, parser::Parser};
-use constants::{EXPRESSION, FOR_LOOP, GOAL_SYMBOL_SWITCH, HELLO_WORLD, LONG_REPETITION};
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
+
+include!("constants.rs");
 
 #[cfg(all(target_arch = "x86_64", target_os = "linux", target_env = "gnu"))]
 #[cfg_attr(
