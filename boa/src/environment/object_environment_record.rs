@@ -74,7 +74,6 @@ impl EnvironmentRecordTrait for ObjectEnvironmentRecord {
         let ref bindings = self.bindings;
         let still_exists = bindings.has_field(name);
         if !still_exists && strict {
-            // TODO: Add meaningful error message
             return Err(ErrorKind::ReferenceError(format!(
                 "{} has no binding",
                 name
@@ -91,7 +90,6 @@ impl EnvironmentRecordTrait for ObjectEnvironmentRecord {
             Ok(self.bindings.get_field(name))
         } else {
             if strict {
-                // TODO: Add meaningful error message
                 Err(ErrorKind::ReferenceError(format!(
                     "{} has no binding",
                     name

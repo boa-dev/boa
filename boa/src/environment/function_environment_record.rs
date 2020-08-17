@@ -64,16 +64,12 @@ impl FunctionEnvironmentRecord {
         match self.this_binding_status {
             // You can not bind an arrow function, their `this` value comes from the lexical scope above
             BindingStatus::Lexical => {
-                // TODO: change this when error handling comes into play
                 panic!("Cannot bind to an arrow function!");
             }
             // You can not bind a function twice
-            BindingStatus::Initialized => {
-                // TODO: change this when error handling comes into play
-                Err(ErrorKind::ReferenceError(format!(
-                    "Cannot bind to an initialised function!"
-                )))
-            }
+            BindingStatus::Initialized => Err(ErrorKind::ReferenceError(format!(
+                "Cannot bind to an initialised function!"
+            ))),
 
             BindingStatus::Uninitialized => {
                 self.this_value = value.clone();
@@ -93,7 +89,6 @@ impl EnvironmentRecordTrait for FunctionEnvironmentRecord {
 
     fn create_mutable_binding(&mut self, name: String, deletion: bool) -> Result<(), ErrorKind> {
         if self.env_rec.contains_key(&name) {
-            // TODO: change this when error handling comes into play
             panic!("Identifier {} has already been declared", name);
         }
 
@@ -112,15 +107,11 @@ impl EnvironmentRecordTrait for FunctionEnvironmentRecord {
     fn get_this_binding(&self) -> Result<Value, ErrorKind> {
         match self.this_binding_status {
             BindingStatus::Lexical => {
-                // TODO: change this when error handling comes into play
                 panic!("There is no this for a lexical function record");
             }
-            BindingStatus::Uninitialized => {
-                // TODO: change this when error handling comes into play
-                Err(ErrorKind::ReferenceError(format!(
-                    "Uninitialised binding for this function"
-                )))
-            }
+            BindingStatus::Uninitialized => Err(ErrorKind::ReferenceError(format!(
+                "Uninitialised binding for this function"
+            ))),
 
             BindingStatus::Initialized => Ok(self.this_value.clone()),
         }
@@ -128,7 +119,6 @@ impl EnvironmentRecordTrait for FunctionEnvironmentRecord {
 
     fn create_immutable_binding(&mut self, name: String, strict: bool) -> Result<(), ErrorKind> {
         if self.env_rec.contains_key(&name) {
-            // TODO: change this when error handling comes into play
             panic!("Identifier {} has already been declared", name);
         }
 
@@ -151,14 +141,13 @@ impl EnvironmentRecordTrait for FunctionEnvironmentRecord {
                 record.value = Some(value);
                 Ok(())
             } else {
-                // TODO: change this when error handling comes into play
                 Err(ErrorKind::ReferenceError(format!(
                     "Identifier {} has already been defined",
                     name
                 )))
             }
         } else {
-            panic!(format!("record must have binding for {}", name));
+            panic!("record must have binding for {}", name);
         }
     }
 
@@ -171,7 +160,6 @@ impl EnvironmentRecordTrait for FunctionEnvironmentRecord {
     ) -> Result<(), ErrorKind> {
         if self.env_rec.get(name).is_none() {
             if strict {
-                // TODO: change this when error handling comes into play
                 return Err(ErrorKind::ReferenceError(format!(
                     "Cannot set mutable binding for {}",
                     name
@@ -188,7 +176,6 @@ impl EnvironmentRecordTrait for FunctionEnvironmentRecord {
             strict = true
         }
         if record.value.is_none() {
-            // TODO: change this when error handling comes into play
             return Err(ErrorKind::ReferenceError(format!(
                 "Cannot set mutable binding for {}",
                 name
@@ -198,7 +185,6 @@ impl EnvironmentRecordTrait for FunctionEnvironmentRecord {
         if record.mutable {
             record.value = Some(value);
         } else if strict {
-            // TODO: change this when error handling comes into play
             return Err(ErrorKind::TypeError(format!(
                 "Cannot mutate an immutable binding {}",
                 name
@@ -213,14 +199,12 @@ impl EnvironmentRecordTrait for FunctionEnvironmentRecord {
             if let Some(ref val) = binding.value {
                 Ok(val.clone())
             } else {
-                // TODO: Add meaningful error message
                 Err(ErrorKind::ReferenceError(format!(
                     "{} is an uninitialized binding",
                     name
                 )))
             }
         } else {
-            // TODO: change this when error handling comes into play
             panic!("Cannot get binding value for {}", name);
         }
     }
