@@ -1,14 +1,10 @@
 //! Statement list execution.
 
 use super::{Executable, Interpreter, InterpreterState};
-use crate::{
-    builtins::value::{ResultValue, Value},
-    syntax::ast::node::StatementList,
-    BoaProfiler,
-};
+use crate::{builtins::value::Value, syntax::ast::node::StatementList, BoaProfiler, Result};
 
 impl Executable for StatementList {
-    fn run(&self, interpreter: &mut Interpreter) -> ResultValue {
+    fn run(&self, interpreter: &mut Interpreter) -> Result<Value> {
         let _timer = BoaProfiler::global().start_event("StatementList", "exec");
         let mut obj = Value::null();
         interpreter.set_current_state(InterpreterState::Executing);

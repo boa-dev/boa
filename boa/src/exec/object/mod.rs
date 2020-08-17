@@ -2,15 +2,16 @@
 
 use super::{Executable, Interpreter};
 use crate::{
-    builtins::value::{ResultValue, Value},
+    builtins::value::Value,
     syntax::ast::node::MethodDefinitionKind,
     syntax::ast::node::{Object, PropertyDefinition},
+    Result,
 };
 
 use std::borrow::Borrow;
 
 impl Executable for Object {
-    fn run(&self, interpreter: &mut Interpreter) -> ResultValue {
+    fn run(&self, interpreter: &mut Interpreter) -> Result<Value> {
         let global_val = &interpreter
             .realm()
             .environment
