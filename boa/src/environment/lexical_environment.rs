@@ -186,9 +186,16 @@ impl LexicalEnvironment {
         // Find the first environment which has the given binding
         let env = self
             .environments()
-            .find(|env| env.borrow().has_binding(name))
-            .expect("Binding does not exists"); // TODO graceful error handling
+            .find(|env| env.borrow().has_binding(name));
 
+        let env = if let Some(env) = env {
+            env
+        } else {
+            // global_env doesn't need has_binding to be satisfied in non strict mode
+            self.environment_stack
+                .get(0)
+                .expect("Environment stack underflow")
+        };
         env.borrow_mut().set_mutable_binding(name, value, strict)
     }
 
@@ -196,9 +203,16 @@ impl LexicalEnvironment {
         // Find the first environment which has the given binding
         let env = self
             .environments()
-            .find(|env| env.borrow().has_binding(name))
-            .expect("Binding does not exists"); // TODO graceful error handling
+            .find(|env| env.borrow().has_binding(name));
 
+        let env = if let Some(env) = env {
+            env
+        } else {
+            // global_env doesn't need has_binding to be satisfied in non strict mode
+            self.environment_stack
+                .get(0)
+                .expect("Environment stack underflow")
+        };
         env.borrow_mut().initialize_binding(name, value)
     }
 

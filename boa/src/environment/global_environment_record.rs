@@ -128,11 +128,14 @@ impl EnvironmentRecordTrait for GlobalEnvironmentRecord {
 
     fn initialize_binding(&mut self, name: &str, value: Value) -> Result<(), ErrorKind> {
         if self.declarative_record.has_binding(&name) {
-            // TODO: assert binding is in the object environment record
             return self.declarative_record.initialize_binding(name, value);
         }
 
-        panic!("Should not initialized binding without creating first.");
+        assert!(
+            self.object_record.has_binding(name),
+            "Binding must be in object_record"
+        );
+        self.object_record.initialize_binding(name, value)
     }
 
     fn set_mutable_binding(
