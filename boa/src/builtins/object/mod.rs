@@ -18,16 +18,17 @@ use crate::{
         function::Function,
         map::ordered_map::OrderedMap,
         property::{Attribute, Property},
-        value::{RcBigInt, RcString, RcSymbol, ResultValue, Value},
+        value::{RcBigInt, RcString, RcSymbol, Value},
         BigInt, Date, RegExp,
     },
     exec::Interpreter,
-    BoaProfiler,
+    BoaProfiler, Result,
 };
 use gc::{Finalize, Trace};
 use rustc_hash::FxHashMap;
 use std::borrow::BorrowMut;
 use std::fmt::{Debug, Display, Error, Formatter};
+use std::result::Result as StdResult;
 
 use super::function::{make_builtin_fn, make_constructor_fn};
 use crate::builtins::value::same_value;
@@ -84,7 +85,7 @@ pub enum ObjectData {
 }
 
 impl Display for ObjectData {
-    fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), Error> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> StdResult<(), Error> {
         write!(
             f,
             "{}",
@@ -212,7 +213,7 @@ impl Object {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-toobject
-    pub fn from(value: &Value) -> Result<Self, ()> {
+    pub fn from(value: &Value) -> StdResult<Self, ()> {
         match *value {
             Value::Boolean(a) => Ok(Self::boolean(a)),
             Value::Rational(a) => Ok(Self::number(a)),
@@ -441,7 +442,7 @@ impl Object {
 }
 
 /// Create a new object.
-pub fn make_object(_: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
+pub fn make_object(_: &Value, args: &[Value], ctx: &mut Interpreter) -> Result<Value> {
     if let Some(arg) = args.get(0) {
         if !arg.is_null_or_undefined() {
             return Ok(Value::object(Object::from(arg).unwrap()));
@@ -464,7 +465,7 @@ pub fn make_object(_: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultVa
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-object.create
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/create
-pub fn create(_: &Value, args: &[Value], interpreter: &mut Interpreter) -> ResultValue {
+pub fn create(_: &Value, args: &[Value], interpreter: &mut Interpreter) -> Result<Value> {
     let prototype = args.get(0).cloned().unwrap_or_else(Value::undefined);
     let properties = args.get(1).cloned().unwrap_or_else(Value::undefined);
 
@@ -479,13 +480,13 @@ pub fn create(_: &Value, args: &[Value], interpreter: &mut Interpreter) -> Resul
         )),
         _ => interpreter.throw_type_error(format!(
             "Object prototype may only be an Object or null: {}",
-            prototype
+            prototype.display()
         )),
     }
 }
 
 /// Uses the SameValue algorithm to check equality of objects
-pub fn is(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
+pub fn is(_: &Value, args: &[Value], _: &mut Interpreter) -> Result<Value> {
     let x = args.get(0).cloned().unwrap_or_else(Value::undefined);
     let y = args.get(1).cloned().unwrap_or_else(Value::undefined);
 
@@ -493,7 +494,7 @@ pub fn is(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
 }
 
 /// Get the `prototype` of an object.
-pub fn get_prototype_of(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
+pub fn get_prototype_of(_: &Value, args: &[Value], _: &mut Interpreter) -> Result<Value> {
     let obj = args.get(0).expect("Cannot get object");
     Ok(obj
         .as_object()
@@ -501,7 +502,7 @@ pub fn get_prototype_of(_: &Value, args: &[Value], _: &mut Interpreter) -> Resul
 }
 
 /// Set the `prototype` of an object.
-pub fn set_prototype_of(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
+pub fn set_prototype_of(_: &Value, args: &[Value], _: &mut Interpreter) -> Result<Value> {
     let obj = args.get(0).expect("Cannot get object").clone();
     let proto = args.get(1).expect("Cannot get object").clone();
     obj.as_object_mut().unwrap().prototype = proto;
@@ -509,9 +510,9 @@ pub fn set_prototype_of(_: &Value, args: &[Value], _: &mut Interpreter) -> Resul
 }
 
 /// Define a property in an object
-pub fn define_property(_: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
+pub fn define_property(_: &Value, args: &[Value], ctx: &mut Interpreter) -> Result<Value> {
     let obj = args.get(0).expect("Cannot get object");
-    let prop = ctx.to_string(args.get(1).expect("Cannot get object"))?;
+    let prop = args.get(1).expect("Cannot get object").to_string(ctx)?;
     let desc = Property::from(args.get(2).expect("Cannot get object"));
     obj.set_property(prop, desc);
     Ok(Value::undefined())
@@ -527,8 +528,9 @@ pub fn define_property(_: &Value, args: &[Value], ctx: &mut Interpreter) -> Resu
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-object.prototype.tostring
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/toString
-pub fn to_string(this: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
-    Ok(Value::from(this.to_string()))
+pub fn to_string(this: &Value, _: &[Value], _: &mut Interpreter) -> Result<Value> {
+    // FIXME: it should not display the object.
+    Ok(this.display().to_string().into())
 }
 
 /// `Object.prototype.hasOwnPrototype( property )`
@@ -542,11 +544,11 @@ pub fn to_string(this: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue 
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-object.prototype.hasownproperty
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/hasOwnProperty
-pub fn has_own_property(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
+pub fn has_own_property(this: &Value, args: &[Value], ctx: &mut Interpreter) -> Result<Value> {
     let prop = if args.is_empty() {
         None
     } else {
-        Some(ctx.to_string(args.get(0).expect("Cannot get object"))?)
+        Some(args.get(0).expect("Cannot get object").to_string(ctx)?)
     };
     let own_property = this
         .as_object()
@@ -560,17 +562,21 @@ pub fn has_own_property(this: &Value, args: &[Value], ctx: &mut Interpreter) -> 
     }
 }
 
-pub fn property_is_enumerable(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
+pub fn property_is_enumerable(
+    this: &Value,
+    args: &[Value],
+    ctx: &mut Interpreter,
+) -> Result<Value> {
     let key = match args.get(0) {
         None => return Ok(Value::from(false)),
         Some(key) => key,
     };
 
-    let property_key = ctx.to_property_key(key)?;
-    let own_property = ctx.to_object(this).map(|obj| {
+    let key = key.to_property_key(ctx)?;
+    let own_property = this.to_object(ctx).map(|obj| {
         obj.as_object()
             .expect("Unable to deref object")
-            .get_own_property(&property_key)
+            .get_own_property(&key)
     });
 
     Ok(own_property.map_or(Value::from(false), |own_prop| {

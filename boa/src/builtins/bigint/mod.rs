@@ -17,10 +17,10 @@ use crate::{
         function::{make_builtin_fn, make_constructor_fn},
         object::ObjectData,
         property::Attribute,
-        value::{RcBigInt, ResultValue, Value},
+        value::{RcBigInt, Value},
     },
     exec::Interpreter,
-    BoaProfiler,
+    BoaProfiler, Result,
 };
 
 use gc::{unsafe_empty_trace, Finalize, Trace};
@@ -63,7 +63,7 @@ impl BigInt {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-thisbigintvalue
     #[inline]
-    fn this_bigint_value(value: &Value, ctx: &mut Interpreter) -> Result<RcBigInt, Value> {
+    fn this_bigint_value(value: &Value, ctx: &mut Interpreter) -> Result<RcBigInt> {
         match value {
             // 1. If Type(value) is BigInt, return value.
             Value::BigInt(ref bigint) => return Ok(bigint.clone()),
@@ -93,9 +93,9 @@ impl BigInt {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-bigint-objects
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/BigInt/BigInt
-    pub(crate) fn make_bigint(_: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
+    pub(crate) fn make_bigint(_: &Value, args: &[Value], ctx: &mut Interpreter) -> Result<Value> {
         let data = match args.get(0) {
-            Some(ref value) => ctx.to_bigint(value)?,
+            Some(ref value) => value.to_bigint(ctx)?,
             None => RcBigInt::from(Self::from(0)),
         };
         Ok(Value::from(data))
@@ -112,9 +112,9 @@ impl BigInt {
     /// [spec]: https://tc39.es/ecma262/#sec-bigint.prototype.tostring
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/BigInt/toString
     #[allow(clippy::wrong_self_convention)]
-    pub(crate) fn to_string(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
+    pub(crate) fn to_string(this: &Value, args: &[Value], ctx: &mut Interpreter) -> Result<Value> {
         let radix = if !args.is_empty() {
-            args[0].to_integer()
+            args[0].to_integer(ctx)? as i32
         } else {
             10
         };
@@ -137,7 +137,7 @@ impl BigInt {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-bigint.prototype.valueof
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/BigInt/valueOf
-    pub(crate) fn value_of(this: &Value, _args: &[Value], ctx: &mut Interpreter) -> ResultValue {
+    pub(crate) fn value_of(this: &Value, _args: &[Value], ctx: &mut Interpreter) -> Result<Value> {
         Ok(Value::from(Self::this_bigint_value(this, ctx)?))
     }
 
@@ -148,7 +148,7 @@ impl BigInt {
     /// [spec]: https://tc39.es/ecma262/#sec-bigint.asintn
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/BigInt/asIntN
     #[allow(clippy::wrong_self_convention)]
-    pub(crate) fn as_int_n(_this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
+    pub(crate) fn as_int_n(_this: &Value, args: &[Value], ctx: &mut Interpreter) -> Result<Value> {
         let (modulo, bits) = Self::calculate_as_uint_n(args, ctx)?;
 
         if bits > 0 && modulo >= BigInt::from(2).pow(&BigInt::from(bits as i64 - 1)) {
@@ -167,7 +167,7 @@ impl BigInt {
     /// [spec]: https://tc39.es/ecma262/#sec-bigint.asuintn
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/BigInt/asUintN
     #[allow(clippy::wrong_self_convention)]
-    pub(crate) fn as_uint_n(_this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
+    pub(crate) fn as_uint_n(_this: &Value, args: &[Value], ctx: &mut Interpreter) -> Result<Value> {
         let (modulo, _) = Self::calculate_as_uint_n(args, ctx)?;
 
         Ok(Value::from(modulo))
@@ -178,7 +178,7 @@ impl BigInt {
     /// This function expects the same arguments as `as_uint_n` and wraps the value of a `BigInt`.
     /// Additionally to the wrapped unsigned value it returns the converted `bits` argument, so it
     /// can be reused from the `as_int_n` method.
-    fn calculate_as_uint_n(args: &[Value], ctx: &mut Interpreter) -> Result<(BigInt, u32), Value> {
+    fn calculate_as_uint_n(args: &[Value], ctx: &mut Interpreter) -> Result<(BigInt, u32)> {
         use std::convert::TryFrom;
 
         let undefined_value = Value::undefined();
@@ -186,10 +186,10 @@ impl BigInt {
         let bits_arg = args.get(0).unwrap_or(&undefined_value);
         let bigint_arg = args.get(1).unwrap_or(&undefined_value);
 
-        let bits = ctx.to_index(bits_arg)?;
+        let bits = bits_arg.to_index(ctx)?;
         let bits = u32::try_from(bits).unwrap_or(u32::MAX);
 
-        let bigint = ctx.to_bigint(bigint_arg)?;
+        let bigint = bigint_arg.to_bigint(ctx)?;
 
         Ok((
             bigint

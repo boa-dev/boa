@@ -13,12 +13,8 @@
 //! [json]: https://www.json.org/json-en.html
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON
 
-use crate::builtins::{
-    function::make_builtin_fn,
-    property::{Attribute, Property},
-    value::{ResultValue, Value},
-};
-use crate::{exec::Interpreter, BoaProfiler};
+use crate::builtins::{function::make_builtin_fn, property::{Property, Attribute}, value::Value};
+use crate::{exec::Interpreter, BoaProfiler, Result};
 use serde_json::{self, Value as JSONValue};
 use std::borrow::BorrowMut;
 
@@ -45,9 +41,12 @@ impl Json {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-json.parse
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/parse
-    pub(crate) fn parse(_: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
+    pub(crate) fn parse(_: &Value, args: &[Value], ctx: &mut Interpreter) -> Result<Value> {
         match serde_json::from_str::<JSONValue>(
-            &ctx.to_string(args.get(0).expect("cannot get argument for JSON.parse"))?,
+            &args
+                .get(0)
+                .expect("cannot get argument for JSON.parse")
+                .to_string(ctx)?,
         ) {
             Ok(json) => {
                 let j = Value::from_json(json, ctx);
@@ -70,7 +69,12 @@ impl Json {
     /// for possible transformation.
     ///
     /// [polyfill]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/parse
-    fn walk(reviver: &Value, ctx: &mut Interpreter, holder: &mut Value, key: Value) -> ResultValue {
+    fn walk(
+        reviver: &Value,
+        ctx: &mut Interpreter,
+        holder: &mut Value,
+        key: Value,
+    ) -> Result<Value> {
         let mut value = holder.get_field(key.clone());
 
         let obj = value.as_object().as_deref().cloned();
@@ -107,7 +111,7 @@ impl Json {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-json.stringify
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify
-    pub(crate) fn stringify(_: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
+    pub(crate) fn stringify(_: &Value, args: &[Value], ctx: &mut Interpreter) -> Result<Value> {
         let object = match args.get(0) {
             Some(obj) if obj.is_symbol() || obj.is_function() || obj.is_undefined() => {
                 return Ok(Value::undefined())
@@ -158,11 +162,11 @@ impl Json {
             });
             for field in fields {
                 if let Some(value) = object
-                    .get_property(&ctx.to_string(&field)?)
+                    .get_property(&field.to_string(ctx)?)
                     .and_then(|prop| prop.value.as_ref().map(|v| v.to_json(ctx)))
                     .transpose()?
                 {
-                    obj_to_return.insert(ctx.to_string(&field)?.to_string(), value);
+                    obj_to_return.insert(field.to_string(ctx)?.to_string(), value);
                 }
             }
             Ok(Value::from(JSONValue::Object(obj_to_return).to_string()))

@@ -15,21 +15,21 @@ use crate::{
     builtins::{
         object::{Object, ObjectData, PROTOTYPE},
         property::{Attribute, Property, PropertyKey},
-        value::{RcString, ResultValue, Value},
+        value::{RcString, Value},
         Array,
     },
     environment::function_environment_record::BindingStatus,
     environment::lexical_environment::{new_function_environment, Environment},
     exec::{Executable, Interpreter},
     syntax::ast::node::{FormalParameter, StatementList},
-    BoaProfiler,
+    BoaProfiler, Result,
 };
 use bitflags::bitflags;
 use gc::{unsafe_empty_trace, Finalize, Trace};
 use std::fmt::{self, Debug};
 
-/// _fn(this, arguments, ctx) -> ResultValue_ - The signature of a built-in function
-pub type NativeFunctionData = fn(&Value, &[Value], &mut Interpreter) -> ResultValue;
+/// _fn(this, arguments, ctx) -> Result<Value>_ - The signature of a built-in function
+pub type NativeFunctionData = fn(&Value, &[Value], &mut Interpreter) -> Result<Value>;
 
 /// Sets the ConstructorKind
 #[derive(Debug, Copy, Clone)]
@@ -216,7 +216,7 @@ impl Function {
         this: &Value,
         args_list: &[Value],
         interpreter: &mut Interpreter,
-    ) -> ResultValue {
+    ) -> Result<Value> {
         let _timer = BoaProfiler::global().start_event("function::call", "function");
         if self.flags.is_callable() {
             match self.body {
@@ -282,7 +282,7 @@ impl Function {
         this: &Value,
         args_list: &[Value],
         interpreter: &mut Interpreter,
-    ) -> ResultValue {
+    ) -> Result<Value> {
         if self.flags.is_constructable() {
             match self.body {
                 FunctionBody::BuiltIn(func) => {
@@ -337,7 +337,7 @@ impl Function {
                 }
             }
         } else {
-            let name = this.get_field("name").to_string();
+            let name = this.get_field("name").display().to_string();
             panic!("TypeError: {} is not a constructor", name);
         }
     }
@@ -434,7 +434,7 @@ pub fn create_unmapped_arguments_object(arguments_list: &[Value]) -> Value {
 /// Create new function `[[Construct]]`
 ///
 // This gets called when a new Function() is created.
-pub fn make_function(this: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
+pub fn make_function(this: &Value, _: &[Value], _: &mut Interpreter) -> Result<Value> {
     this.set_data(ObjectData::Function(Function::builtin(
         Vec::new(),
         |_, _, _| Ok(Value::undefined()),

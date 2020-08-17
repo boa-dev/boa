@@ -22,10 +22,10 @@ use super::function::{make_builtin_fn, make_constructor_fn};
 use crate::{
     builtins::{
         property::Attribute,
-        value::{RcString, RcSymbol, ResultValue, Value},
+        value::{RcString, RcSymbol, Value},
     },
     exec::Interpreter,
-    BoaProfiler,
+    BoaProfiler, Result,
 };
 use gc::{Finalize, Trace};
 use std::borrow::BorrowMut;
@@ -50,7 +50,7 @@ impl Symbol {
         self.1
     }
 
-    fn this_symbol_value(value: &Value, ctx: &mut Interpreter) -> Result<RcSymbol, Value> {
+    fn this_symbol_value(value: &Value, ctx: &mut Interpreter) -> Result<RcSymbol> {
         match value {
             Value::Symbol(ref symbol) => return Ok(symbol.clone()),
             Value::Object(ref object) => {
@@ -76,9 +76,9 @@ impl Symbol {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-symbol-description
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol/Symbol
-    pub(crate) fn call(_: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
+    pub(crate) fn call(_: &Value, args: &[Value], ctx: &mut Interpreter) -> Result<Value> {
         let description = match args.get(0) {
-            Some(ref value) if !value.is_undefined() => Some(ctx.to_string(value)?),
+            Some(ref value) if !value.is_undefined() => Some(value.to_string(ctx)?),
             _ => None,
         };
 
@@ -96,7 +96,7 @@ impl Symbol {
     /// [spec]: https://tc39.es/ecma262/#sec-symbol.prototype.tostring
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol/toString
     #[allow(clippy::wrong_self_convention)]
-    pub(crate) fn to_string(this: &Value, _: &[Value], ctx: &mut Interpreter) -> ResultValue {
+    pub(crate) fn to_string(this: &Value, _: &[Value], ctx: &mut Interpreter) -> Result<Value> {
         let symbol = Self::this_symbol_value(this, ctx)?;
         let description = symbol.description().unwrap_or("");
         Ok(Value::from(format!("Symbol({})", description)))

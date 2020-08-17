@@ -234,10 +234,22 @@ fn json_parse_array_with_reviver() {
         }})"#,
     )
     .unwrap();
-    assert_eq!(result.get_field("0").to_number() as u8, 2u8);
-    assert_eq!(result.get_field("1").to_number() as u8, 4u8);
-    assert_eq!(result.get_field("2").to_number() as u8, 6u8);
-    assert_eq!(result.get_field("3").to_number() as u8, 8u8);
+    assert_eq!(
+        result.get_field("0").to_number(&mut engine).unwrap() as u8,
+        2u8
+    );
+    assert_eq!(
+        result.get_field("1").to_number(&mut engine).unwrap() as u8,
+        4u8
+    );
+    assert_eq!(
+        result.get_field("2").to_number(&mut engine).unwrap() as u8,
+        6u8
+    );
+    assert_eq!(
+        result.get_field("3").to_number(&mut engine).unwrap() as u8,
+        8u8
+    );
 }
 
 #[test]

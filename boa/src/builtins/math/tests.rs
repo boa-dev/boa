@@ -17,8 +17,8 @@ fn abs() {
     let a = forward_val(&mut engine, "a").unwrap();
     let b = forward_val(&mut engine, "b").unwrap();
 
-    assert_eq!(a.to_number(), 2.0);
-    assert_eq!(b.to_number(), 6.655_559_999_999_999_5);
+    assert_eq!(a.to_number(&mut engine).unwrap(), 2.0);
+    assert_eq!(b.to_number(&mut engine).unwrap(), 6.655_559_999_999_999_5);
 }
 
 #[test]
@@ -39,10 +39,10 @@ fn acos() {
     let c = forward_val(&mut engine, "c").unwrap();
     let d = forward(&mut engine, "d");
 
-    assert_eq!(a.to_number(), 0.643_501_108_793_284_3);
-    assert_eq!(b, String::from("NaN"));
-    assert_eq!(c.to_number(), 0_f64);
-    assert_eq!(d, String::from("NaN"));
+    assert_eq!(a.to_number(&mut engine).unwrap(), 0.643_501_108_793_284_3);
+    assert_eq!(b, "NaN");
+    assert_eq!(c.to_number(&mut engine).unwrap(), 0_f64);
+    assert_eq!(d, "NaN");
 }
 
 #[test]
@@ -61,9 +61,9 @@ fn acosh() {
     let b = forward(&mut engine, "b");
     let c = forward(&mut engine, "c");
 
-    assert_eq!(a.to_number(), 1.316_957_896_924_816_6);
-    assert_eq!(b, String::from("NaN"));
-    assert_eq!(c, String::from("NaN"));
+    assert_eq!(a.to_number(&mut engine).unwrap(), 1.316_957_896_924_816_6);
+    assert_eq!(b, "NaN");
+    assert_eq!(c, "NaN");
 }
 
 #[test]
@@ -80,7 +80,7 @@ fn asin() {
     let a = forward_val(&mut engine, "a").unwrap();
     let b = forward(&mut engine, "b");
 
-    assert_eq!(a.to_number(), 0.643_501_108_793_284_4);
+    assert_eq!(a.to_number(&mut engine).unwrap(), 0.643_501_108_793_284_4);
     assert_eq!(b, String::from("NaN"));
 }
 
@@ -98,8 +98,8 @@ fn asinh() {
     let a = forward_val(&mut engine, "a").unwrap();
     let b = forward_val(&mut engine, "b").unwrap();
 
-    assert_eq!(a.to_number(), 0.881_373_587_019_542_9);
-    assert_eq!(b.to_number(), 0_f64);
+    assert_eq!(a.to_number(&mut engine).unwrap(), 0.881_373_587_019_542_9);
+    assert_eq!(b.to_number(&mut engine).unwrap(), 0_f64);
 }
 
 #[test]
@@ -118,9 +118,9 @@ fn atan() {
     let b = forward_val(&mut engine, "b").unwrap();
     let c = forward_val(&mut engine, "c").unwrap();
 
-    assert_eq!(a.to_number(), f64::consts::FRAC_PI_4);
-    assert_eq!(b.to_number(), 0_f64);
-    assert_eq!(c.to_number(), f64::from(-0));
+    assert_eq!(a.to_number(&mut engine).unwrap(), f64::consts::FRAC_PI_4);
+    assert_eq!(b.to_number(&mut engine).unwrap(), 0_f64);
+    assert_eq!(c.to_number(&mut engine).unwrap(), f64::from(-0));
 }
 
 #[test]
@@ -137,8 +137,8 @@ fn atan2() {
     let a = forward_val(&mut engine, "a").unwrap();
     let b = forward_val(&mut engine, "b").unwrap();
 
-    assert_eq!(a.to_number(), 1.405_647_649_380_269_9);
-    assert_eq!(b.to_number(), 0.165_148_677_414_626_83);
+    assert_eq!(a.to_number(&mut engine).unwrap(), 1.405_647_649_380_269_9);
+    assert_eq!(b.to_number(&mut engine).unwrap(), 0.165_148_677_414_626_83);
 }
 
 #[test]
@@ -157,9 +157,9 @@ fn cbrt() {
     let b = forward_val(&mut engine, "b").unwrap();
     let c = forward_val(&mut engine, "c").unwrap();
 
-    assert_eq!(a.to_number(), 4_f64);
-    assert_eq!(b.to_number(), -1_f64);
-    assert_eq!(c.to_number(), 1_f64);
+    assert_eq!(a.to_number(&mut engine).unwrap(), 4_f64);
+    assert_eq!(b.to_number(&mut engine).unwrap(), -1_f64);
+    assert_eq!(c.to_number(&mut engine).unwrap(), 1_f64);
 }
 
 #[test]
@@ -178,9 +178,9 @@ fn ceil() {
     let b = forward_val(&mut engine, "b").unwrap();
     let c = forward_val(&mut engine, "c").unwrap();
 
-    assert_eq!(a.to_number(), 2_f64);
-    assert_eq!(b.to_number(), 4_f64);
-    assert_eq!(c.to_number(), -7_f64);
+    assert_eq!(a.to_number(&mut engine).unwrap(), 2_f64);
+    assert_eq!(b.to_number(&mut engine).unwrap(), 4_f64);
+    assert_eq!(c.to_number(&mut engine).unwrap(), -7_f64);
 }
 
 #[test]
@@ -210,14 +210,14 @@ fn clz32() {
     let g = forward_val(&mut engine, "g").unwrap();
     let h = forward_val(&mut engine, "h").unwrap();
 
-    assert_eq!(a.to_number(), 32_f64);
-    assert_eq!(b.to_number(), 32_f64);
-    assert_eq!(c.to_number(), 0_f64);
-    assert_eq!(d.to_number(), 31_f64);
-    assert_eq!(e.to_number(), 1_f64);
-    assert_eq!(f.to_number(), 32_f64);
-    assert_eq!(g.to_number(), 31_f64);
-    assert_eq!(h.to_number(), 32_f64);
+    assert_eq!(a.to_number(&mut engine).unwrap(), 32_f64);
+    assert_eq!(b.to_number(&mut engine).unwrap(), 32_f64);
+    assert_eq!(c.to_number(&mut engine).unwrap(), 0_f64);
+    assert_eq!(d.to_number(&mut engine).unwrap(), 31_f64);
+    assert_eq!(e.to_number(&mut engine).unwrap(), 1_f64);
+    assert_eq!(f.to_number(&mut engine).unwrap(), 32_f64);
+    assert_eq!(g.to_number(&mut engine).unwrap(), 31_f64);
+    assert_eq!(h.to_number(&mut engine).unwrap(), 32_f64);
 }
 
 #[test]
@@ -234,8 +234,8 @@ fn cos() {
     let a = forward_val(&mut engine, "a").unwrap();
     let b = forward_val(&mut engine, "b").unwrap();
 
-    assert_eq!(a.to_number(), 1_f64);
-    assert_eq!(b.to_number(), 0.540_302_305_868_139_8);
+    assert_eq!(a.to_number(&mut engine).unwrap(), 1_f64);
+    assert_eq!(b.to_number(&mut engine).unwrap(), 0.540_302_305_868_139_8);
 }
 
 #[test]
@@ -254,9 +254,9 @@ fn cosh() {
     let b = forward_val(&mut engine, "b").unwrap();
     let c = forward_val(&mut engine, "c").unwrap();
 
-    assert_eq!(a.to_number(), 1_f64);
-    assert_eq!(b.to_number(), 1.543_080_634_815_243_7);
-    assert_eq!(c.to_number(), 1.543_080_634_815_243_7);
+    assert_eq!(a.to_number(&mut engine).unwrap(), 1_f64);
+    assert_eq!(b.to_number(&mut engine).unwrap(), 1.543_080_634_815_243_7);
+    assert_eq!(c.to_number(&mut engine).unwrap(), 1.543_080_634_815_243_7);
 }
 
 #[test]
@@ -275,9 +275,9 @@ fn exp() {
     let b = forward_val(&mut engine, "b").unwrap();
     let c = forward_val(&mut engine, "c").unwrap();
 
-    assert_eq!(a.to_number(), 1_f64);
-    assert_eq!(b.to_number(), 0.367_879_441_171_442_33);
-    assert_eq!(c.to_number(), 7.389_056_098_930_65);
+    assert_eq!(a.to_number(&mut engine).unwrap(), 1_f64);
+    assert_eq!(b.to_number(&mut engine).unwrap(), 0.367_879_441_171_442_33);
+    assert_eq!(c.to_number(&mut engine).unwrap(), 7.389_056_098_930_65);
 }
 
 #[test]
@@ -305,10 +305,10 @@ fn expm1() {
 
     assert_eq!(a, String::from("NaN"));
     assert_eq!(b, String::from("NaN"));
-    assert_eq!(c.to_number(), 1.718_281_828_459_045);
-    assert_eq!(d.to_number(), -0.632_120_558_828_557_7);
-    assert_eq!(e.to_number(), 0_f64);
-    assert_eq!(f.to_number(), 6.389_056_098_930_65);
+    assert_eq!(c.to_number(&mut engine).unwrap(), 1.718_281_828_459_045);
+    assert_eq!(d.to_number(&mut engine).unwrap(), -0.632_120_558_828_557_7);
+    assert_eq!(e.to_number(&mut engine).unwrap(), 0_f64);
+    assert_eq!(f.to_number(&mut engine).unwrap(), 6.389_056_098_930_65);
 }
 
 #[test]
@@ -327,9 +327,9 @@ fn floor() {
     let b = forward_val(&mut engine, "b").unwrap();
     let c = forward_val(&mut engine, "c").unwrap();
 
-    assert_eq!(a.to_number(), 1_f64);
-    assert_eq!(b.to_number(), -4_f64);
-    assert_eq!(c.to_number(), 3_f64);
+    assert_eq!(a.to_number(&mut engine).unwrap(), 1_f64);
+    assert_eq!(b.to_number(&mut engine).unwrap(), -4_f64);
+    assert_eq!(c.to_number(&mut engine).unwrap(), 3_f64);
 }
 
 #[test]
@@ -359,10 +359,10 @@ fn fround() {
 
     assert_eq!(a, String::from("NaN"));
     assert_eq!(b, String::from("Infinity"));
-    assert_eq!(c.to_number(), 5f64);
-    assert_eq!(d.to_number(), 5.5f64);
-    assert_eq!(e.to_number(), 5.050_000_190_734_863);
-    assert_eq!(f.to_number(), -5.050_000_190_734_863);
+    assert_eq!(c.to_number(&mut engine).unwrap(), 5f64);
+    assert_eq!(d.to_number(&mut engine).unwrap(), 5.5f64);
+    assert_eq!(e.to_number(&mut engine).unwrap(), 5.050_000_190_734_863);
+    assert_eq!(f.to_number(&mut engine).unwrap(), -5.050_000_190_734_863);
     assert_eq!(g, String::from("NaN"));
 }
 
@@ -391,13 +391,13 @@ fn hypot() {
     let f = forward_val(&mut engine, "f").unwrap();
     let g = forward_val(&mut engine, "g").unwrap();
 
-    assert_eq!(a.to_number(), 0f64);
-    assert_eq!(b.to_number(), 5f64);
-    assert_eq!(c.to_number(), 13f64);
-    assert_eq!(d.to_number(), 7.071_067_811_865_475_5);
-    assert_eq!(e.to_number(), 8.774964387392123);
-    assert!(f.to_number().is_infinite());
-    assert_eq!(g.to_number(), 12f64);
+    assert_eq!(a.to_number(&mut engine).unwrap(), 0f64);
+    assert_eq!(b.to_number(&mut engine).unwrap(), 5f64);
+    assert_eq!(c.to_number(&mut engine).unwrap(), 13f64);
+    assert_eq!(d.to_number(&mut engine).unwrap(), 7.071_067_811_865_475_5);
+    assert_eq!(e.to_number(&mut engine).unwrap(), 8.774964387392123);
+    assert!(f.to_number(&mut engine).unwrap().is_infinite());
+    assert_eq!(g.to_number(&mut engine).unwrap(), 12f64);
 }
 
 #[test]
@@ -423,12 +423,12 @@ fn imul() {
     let e = forward_val(&mut engine, "e").unwrap();
     let f = forward_val(&mut engine, "f").unwrap();
 
-    assert_eq!(a.to_number(), 12f64);
-    assert_eq!(b.to_number(), -60f64);
-    assert_eq!(c.to_number(), -5f64);
-    assert_eq!(d.to_number(), -10f64);
-    assert_eq!(e.to_number(), 0f64);
-    assert_eq!(f.to_number(), 0f64);
+    assert_eq!(a.to_number(&mut engine).unwrap(), 12f64);
+    assert_eq!(b.to_number(&mut engine).unwrap(), -60f64);
+    assert_eq!(c.to_number(&mut engine).unwrap(), -5f64);
+    assert_eq!(d.to_number(&mut engine).unwrap(), -10f64);
+    assert_eq!(e.to_number(&mut engine).unwrap(), 0f64);
+    assert_eq!(f.to_number(&mut engine).unwrap(), 0f64);
 }
 
 #[test]
@@ -447,8 +447,8 @@ fn log() {
     let b = forward_val(&mut engine, "b").unwrap();
     let c = forward(&mut engine, "c");
 
-    assert_eq!(a.to_number(), 0_f64);
-    assert_eq!(b.to_number(), f64::consts::LN_10);
+    assert_eq!(a.to_number(&mut engine).unwrap(), 0_f64);
+    assert_eq!(b.to_number(&mut engine).unwrap(), f64::consts::LN_10);
     assert_eq!(c, String::from("NaN"));
 }
 
@@ -477,9 +477,9 @@ fn log1p() {
     let f = forward(&mut engine, "f");
     let g = forward(&mut engine, "g");
 
-    assert_eq!(a.to_number(), f64::consts::LN_2);
-    assert_eq!(b.to_number(), 0f64);
-    assert_eq!(c.to_number(), -36.736_800_569_677_1);
+    assert_eq!(a.to_number(&mut engine).unwrap(), f64::consts::LN_2);
+    assert_eq!(b.to_number(&mut engine).unwrap(), 0f64);
+    assert_eq!(c.to_number(&mut engine).unwrap(), -36.736_800_569_677_1);
     assert_eq!(d, "-Infinity");
     assert_eq!(e, String::from("NaN"));
     assert_eq!(f, String::from("NaN"));
@@ -502,8 +502,8 @@ fn log10() {
     let b = forward_val(&mut engine, "b").unwrap();
     let c = forward(&mut engine, "c");
 
-    assert_eq!(a.to_number(), f64::consts::LOG10_2);
-    assert_eq!(b.to_number(), 0_f64);
+    assert_eq!(a.to_number(&mut engine).unwrap(), f64::consts::LOG10_2);
+    assert_eq!(b.to_number(&mut engine).unwrap(), 0_f64);
     assert_eq!(c, String::from("NaN"));
 }
 
@@ -523,8 +523,8 @@ fn log2() {
     let b = forward_val(&mut engine, "b").unwrap();
     let c = forward(&mut engine, "c");
 
-    assert_eq!(a.to_number(), 1.584_962_500_721_156);
-    assert_eq!(b.to_number(), 0_f64);
+    assert_eq!(a.to_number(&mut engine).unwrap(), 1.584_962_500_721_156);
+    assert_eq!(b.to_number(&mut engine).unwrap(), 0_f64);
     assert_eq!(c, String::from("NaN"));
 }
 
@@ -544,9 +544,9 @@ fn max() {
     let b = forward_val(&mut engine, "b").unwrap();
     let c = forward_val(&mut engine, "c").unwrap();
 
-    assert_eq!(a.to_number(), 20_f64);
-    assert_eq!(b.to_number(), -10_f64);
-    assert_eq!(c.to_number(), 20_f64);
+    assert_eq!(a.to_number(&mut engine).unwrap(), 20_f64);
+    assert_eq!(b.to_number(&mut engine).unwrap(), -10_f64);
+    assert_eq!(c.to_number(&mut engine).unwrap(), 20_f64);
 }
 
 #[test]
@@ -565,9 +565,9 @@ fn min() {
     let b = forward_val(&mut engine, "b").unwrap();
     let c = forward_val(&mut engine, "c").unwrap();
 
-    assert_eq!(a.to_number(), 10_f64);
-    assert_eq!(b.to_number(), -20_f64);
-    assert_eq!(c.to_number(), -10_f64);
+    assert_eq!(a.to_number(&mut engine).unwrap(), 10_f64);
+    assert_eq!(b.to_number(&mut engine).unwrap(), -20_f64);
+    assert_eq!(c.to_number(&mut engine).unwrap(), -10_f64);
 }
 
 #[test]
@@ -588,10 +588,10 @@ fn pow() {
     let c = forward_val(&mut engine, "c").unwrap();
     let d = forward_val(&mut engine, "d").unwrap();
 
-    assert_eq!(a.to_number(), 1_024_f64);
-    assert_eq!(b.to_number(), 49_f64);
-    assert_eq!(c.to_number(), 2.0);
-    assert_eq!(d.to_number(), 0.020_408_163_265_306_12);
+    assert_eq!(a.to_number(&mut engine).unwrap(), 1_024_f64);
+    assert_eq!(b.to_number(&mut engine).unwrap(), 49_f64);
+    assert_eq!(c.to_number(&mut engine).unwrap(), 2.0);
+    assert_eq!(d.to_number(&mut engine).unwrap(), 0.020_408_163_265_306_12);
 }
 
 #[test]
@@ -608,8 +608,8 @@ fn round() {
     let a = forward_val(&mut engine, "a").unwrap();
     let b = forward_val(&mut engine, "b").unwrap();
 
-    assert_eq!(a.to_number(), 21.0);
-    assert_eq!(b.to_number(), -20.0);
+    assert_eq!(a.to_number(&mut engine).unwrap(), 21.0);
+    assert_eq!(b.to_number(&mut engine).unwrap(), -20.0);
 }
 
 #[test]
@@ -628,9 +628,9 @@ fn sign() {
     let b = forward_val(&mut engine, "b").unwrap();
     let c = forward_val(&mut engine, "c").unwrap();
 
-    assert_eq!(a.to_number(), 1_f64);
-    assert_eq!(b.to_number(), -1_f64);
-    assert_eq!(c.to_number(), 0_f64);
+    assert_eq!(a.to_number(&mut engine).unwrap(), 1_f64);
+    assert_eq!(b.to_number(&mut engine).unwrap(), -1_f64);
+    assert_eq!(c.to_number(&mut engine).unwrap(), 0_f64);
 }
 
 #[test]
@@ -647,8 +647,8 @@ fn sin() {
     let a = forward_val(&mut engine, "a").unwrap();
     let b = forward_val(&mut engine, "b").unwrap();
 
-    assert_eq!(a.to_number(), 0_f64);
-    assert_eq!(b.to_number(), 0.841_470_984_807_896_5);
+    assert_eq!(a.to_number(&mut engine).unwrap(), 0_f64);
+    assert_eq!(b.to_number(&mut engine).unwrap(), 0.841_470_984_807_896_5);
 }
 
 #[test]
@@ -665,8 +665,8 @@ fn sinh() {
     let a = forward_val(&mut engine, "a").unwrap();
     let b = forward_val(&mut engine, "b").unwrap();
 
-    assert_eq!(a.to_number(), 0_f64);
-    assert_eq!(b.to_number(), 1.175_201_193_643_801_4);
+    assert_eq!(a.to_number(&mut engine).unwrap(), 0_f64);
+    assert_eq!(b.to_number(&mut engine).unwrap(), 1.175_201_193_643_801_4);
 }
 
 #[test]
@@ -685,9 +685,9 @@ fn sqrt() {
     let b = forward_val(&mut engine, "b").unwrap();
     let c = forward_val(&mut engine, "c").unwrap();
 
-    assert_eq!(a.to_number(), 0_f64);
-    assert_eq!(b.to_number(), f64::consts::SQRT_2);
-    assert_eq!(c.to_number(), 3_f64);
+    assert_eq!(a.to_number(&mut engine).unwrap(), 0_f64);
+    assert_eq!(b.to_number(&mut engine).unwrap(), f64::consts::SQRT_2);
+    assert_eq!(c.to_number(&mut engine).unwrap(), 3_f64);
 }
 
 // TODO: Precision is always off between ci and local. We proably need a better way to compare floats anyways
@@ -721,8 +721,8 @@ fn tanh() {
     let a = forward_val(&mut engine, "a").unwrap();
     let b = forward_val(&mut engine, "b").unwrap();
 
-    assert_eq!(a.to_number(), 0.761_594_155_955_764_9);
-    assert_eq!(b.to_number(), 0_f64);
+    assert_eq!(a.to_number(&mut engine).unwrap(), 0.761_594_155_955_764_9);
+    assert_eq!(b.to_number(&mut engine).unwrap(), 0_f64);
 }
 
 #[test]
@@ -739,6 +739,6 @@ fn trunc() {
     let a = forward_val(&mut engine, "a").unwrap();
     let b = forward_val(&mut engine, "b").unwrap();
 
-    assert_eq!(a.to_number(), 13_f64);
-    assert_eq!(b.to_number(), 0_f64);
+    assert_eq!(a.to_number(&mut engine).unwrap(), 13_f64);
+    assert_eq!(b.to_number(&mut engine).unwrap(), 0_f64);
 }

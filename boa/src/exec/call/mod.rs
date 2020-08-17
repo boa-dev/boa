@@ -1,27 +1,26 @@
 use super::{Executable, Interpreter, InterpreterState};
 use crate::{
-    builtins::value::{ResultValue, Type},
+    builtins::value::{Type, Value},
     syntax::ast::node::{Call, Node},
-    BoaProfiler,
+    BoaProfiler, Result,
 };
 
 impl Executable for Call {
-    fn run(&self, interpreter: &mut Interpreter) -> ResultValue {
+    fn run(&self, interpreter: &mut Interpreter) -> Result<Value> {
         let _timer = BoaProfiler::global().start_event("Call", "exec");
         let (this, func) = match self.expr() {
             Node::GetConstField(ref get_const_field) => {
                 let mut obj = get_const_field.obj().run(interpreter)?;
-                if obj.get_type() != Type::Object || obj.get_type() != Type::Symbol {
-                    obj = interpreter
-                        .to_object(&obj)
-                        .expect("failed to convert to object");
+                if obj.get_type() != Type::Object {
+                    obj = obj.to_object(interpreter)?;
                 }
                 (obj.clone(), obj.get_field(get_const_field.field()))
             }
             Node::GetField(ref get_field) => {
                 let obj = get_field.obj().run(interpreter)?;
                 let field = get_field.field().run(interpreter)?;
-                (obj.clone(), obj.get_field(field.to_string()))
+                // FIXME: This should not call `.display()`
+                (obj.clone(), obj.get_field(field.display().to_string()))
             }
             _ => (
                 interpreter.realm().global_obj.clone(),

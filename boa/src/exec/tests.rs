@@ -879,11 +879,11 @@ fn to_bigint() {
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);
 
-    assert!(engine.to_bigint(&Value::null()).is_err());
-    assert!(engine.to_bigint(&Value::undefined()).is_err());
-    assert!(engine.to_bigint(&Value::integer(55)).is_ok());
-    assert!(engine.to_bigint(&Value::rational(10.0)).is_ok());
-    assert!(engine.to_bigint(&Value::string("100")).is_ok());
+    assert!(Value::null().to_bigint(&mut engine).is_err());
+    assert!(Value::undefined().to_bigint(&mut engine).is_err());
+    assert!(Value::integer(55).to_bigint(&mut engine).is_ok());
+    assert!(Value::rational(10.0).to_bigint(&mut engine).is_ok());
+    assert!(Value::string("100").to_bigint(&mut engine).is_ok());
 }
 
 #[test]
@@ -891,8 +891,8 @@ fn to_index() {
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);
 
-    assert_eq!(engine.to_index(&Value::undefined()).unwrap(), 0);
-    assert!(engine.to_index(&Value::integer(-1)).is_err());
+    assert_eq!(Value::undefined().to_index(&mut engine).unwrap(), 0);
+    assert!(Value::integer(-1).to_index(&mut engine).is_err());
 }
 
 #[test]
@@ -901,32 +901,34 @@ fn to_integer() {
     let mut engine = Interpreter::new(realm);
 
     assert!(Number::equal(
-        engine.to_integer(&Value::number(f64::NAN)).unwrap(),
+        Value::number(f64::NAN).to_integer(&mut engine).unwrap(),
         0.0
     ));
     assert!(Number::equal(
-        engine
-            .to_integer(&Value::number(f64::NEG_INFINITY))
+        Value::number(f64::NEG_INFINITY)
+            .to_integer(&mut engine)
             .unwrap(),
         f64::NEG_INFINITY
     ));
     assert!(Number::equal(
-        engine.to_integer(&Value::number(f64::INFINITY)).unwrap(),
+        Value::number(f64::INFINITY)
+            .to_integer(&mut engine)
+            .unwrap(),
         f64::INFINITY
     ));
     assert!(Number::equal(
-        engine.to_integer(&Value::number(0.0)).unwrap(),
+        Value::number(0.0).to_integer(&mut engine).unwrap(),
         0.0
     ));
-    let number = engine.to_integer(&Value::number(-0.0)).unwrap();
+    let number = Value::number(-0.0).to_integer(&mut engine).unwrap();
     assert!(!number.is_sign_negative());
     assert!(Number::equal(number, 0.0));
     assert!(Number::equal(
-        engine.to_integer(&Value::number(20.9)).unwrap(),
+        Value::number(20.9).to_integer(&mut engine).unwrap(),
         20.0
     ));
     assert!(Number::equal(
-        engine.to_integer(&Value::number(-20.9)).unwrap(),
+        Value::number(-20.9).to_integer(&mut engine).unwrap(),
         -20.0
     ));
 }
@@ -936,25 +938,29 @@ fn to_length() {
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);
 
-    assert_eq!(engine.to_length(&Value::number(f64::NAN)).unwrap(), 0);
+    assert_eq!(Value::number(f64::NAN).to_length(&mut engine).unwrap(), 0);
     assert_eq!(
-        engine.to_length(&Value::number(f64::NEG_INFINITY)).unwrap(),
+        Value::number(f64::NEG_INFINITY)
+            .to_length(&mut engine)
+            .unwrap(),
         0
     );
     assert_eq!(
-        engine.to_length(&Value::number(f64::INFINITY)).unwrap(),
+        Value::number(f64::INFINITY).to_length(&mut engine).unwrap(),
         Number::MAX_SAFE_INTEGER as usize
     );
-    assert_eq!(engine.to_length(&Value::number(0.0)).unwrap(), 0);
-    assert_eq!(engine.to_length(&Value::number(-0.0)).unwrap(), 0);
-    assert_eq!(engine.to_length(&Value::number(20.9)).unwrap(), 20);
-    assert_eq!(engine.to_length(&Value::number(-20.9)).unwrap(), 0);
+    assert_eq!(Value::number(0.0).to_length(&mut engine).unwrap(), 0);
+    assert_eq!(Value::number(-0.0).to_length(&mut engine).unwrap(), 0);
+    assert_eq!(Value::number(20.9).to_length(&mut engine).unwrap(), 20);
+    assert_eq!(Value::number(-20.9).to_length(&mut engine).unwrap(), 0);
     assert_eq!(
-        engine.to_length(&Value::number(100000000000.0)).unwrap(),
+        Value::number(100000000000.0)
+            .to_length(&mut engine)
+            .unwrap(),
         100000000000
     );
     assert_eq!(
-        engine.to_length(&Value::number(4010101101.0)).unwrap(),
+        Value::number(4010101101.0).to_length(&mut engine).unwrap(),
         4010101101
     );
 }
@@ -966,7 +972,7 @@ fn to_int32() {
 
     macro_rules! check_to_int32 {
         ($from:expr => $to:expr) => {
-            assert_eq!(engine.to_int32(&Value::number($from)).unwrap(), $to);
+            assert_eq!(Value::from($from).to_i32(&mut engine).unwrap(), $to);
         };
     };
 
@@ -1078,11 +1084,17 @@ fn to_string() {
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);
 
-    assert_eq!(engine.to_string(&Value::null()).unwrap(), "null");
-    assert_eq!(engine.to_string(&Value::undefined()).unwrap(), "undefined");
-    assert_eq!(engine.to_string(&Value::integer(55)).unwrap(), "55");
-    assert_eq!(engine.to_string(&Value::rational(55.0)).unwrap(), "55");
-    assert_eq!(engine.to_string(&Value::string("hello")).unwrap(), "hello");
+    assert_eq!(Value::null().to_string(&mut engine).unwrap(), "null");
+    assert_eq!(
+        Value::undefined().to_string(&mut engine).unwrap(),
+        "undefined"
+    );
+    assert_eq!(Value::integer(55).to_string(&mut engine).unwrap(), "55");
+    assert_eq!(Value::rational(55.0).to_string(&mut engine).unwrap(), "55");
+    assert_eq!(
+        Value::string("hello").to_string(&mut engine).unwrap(),
+        "hello"
+    );
 }
 
 #[test]
@@ -1105,11 +1117,14 @@ fn to_object() {
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);
 
-    assert!(engine
-        .to_object(&Value::undefined())
+    assert!(Value::undefined()
+        .to_object(&mut engine)
         .unwrap_err()
         .is_object());
-    assert!(engine.to_object(&Value::null()).unwrap_err().is_object());
+    assert!(Value::null()
+        .to_object(&mut engine)
+        .unwrap_err()
+        .is_object());
 }
 
 #[test]

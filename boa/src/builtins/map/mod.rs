@@ -5,10 +5,10 @@ use crate::{
     builtins::{
         object::{ObjectData, PROTOTYPE},
         property::{Attribute, Property},
-        value::{ResultValue, Value},
+        value::Value,
     },
     exec::Interpreter,
-    BoaProfiler,
+    BoaProfiler, Result,
 };
 use ordered_map::OrderedMap;
 use std::borrow::BorrowMut;
@@ -45,7 +45,7 @@ impl Map {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-map.prototype.set
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/set
-    pub(crate) fn set(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
+    pub(crate) fn set(this: &Value, args: &[Value], ctx: &mut Interpreter) -> Result<Value> {
         let (key, value) = match args.len() {
             0 => (Value::Undefined, Value::Undefined),
             1 => (args[0].clone(), Value::Undefined),
@@ -78,7 +78,7 @@ impl Map {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-map.prototype.delete
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/delete
-    pub(crate) fn delete(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
+    pub(crate) fn delete(this: &Value, args: &[Value], ctx: &mut Interpreter) -> Result<Value> {
         let undefined = Value::Undefined;
         let key = match args.len() {
             0 => &undefined,
@@ -110,7 +110,7 @@ impl Map {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-map.prototype.get
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/get
-    pub(crate) fn get(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
+    pub(crate) fn get(this: &Value, args: &[Value], ctx: &mut Interpreter) -> Result<Value> {
         let undefined = Value::Undefined;
         let key = match args.len() {
             0 => &undefined,
@@ -141,7 +141,7 @@ impl Map {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-map.prototype.clear
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/clear
-    pub(crate) fn clear(this: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
+    pub(crate) fn clear(this: &Value, _: &[Value], _: &mut Interpreter) -> Result<Value> {
         this.set_data(ObjectData::Map(OrderedMap::new()));
 
         Self::set_size(this, 0);
@@ -159,7 +159,7 @@ impl Map {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-map.prototype.has
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/has
-    pub(crate) fn has(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
+    pub(crate) fn has(this: &Value, args: &[Value], ctx: &mut Interpreter) -> Result<Value> {
         let undefined = Value::Undefined;
         let key = match args.len() {
             0 => &undefined,
@@ -190,7 +190,7 @@ impl Map {
         this: &Value,
         args: &[Value],
         interpreter: &mut Interpreter,
-    ) -> ResultValue {
+    ) -> Result<Value> {
         if args.is_empty() {
             return Err(Value::from("Missing argument for Map.prototype.forEach"));
         }
@@ -216,7 +216,7 @@ impl Map {
     fn get_key_value(value: &Value) -> Option<(Value, Value)> {
         if let Value::Object(object) = value {
             if object.borrow().is_array() {
-                let (key, value) = match i32::from(&value.get_field("length")) {
+                let (key, value) = match value.get_field("length").as_number().unwrap() as i32 {
                     0 => (Value::Undefined, Value::Undefined),
                     1 => (value.get_field("0"), Value::Undefined),
                     _ => (value.get_field("0"), value.get_field("1")),
@@ -228,7 +228,7 @@ impl Map {
     }
 
     /// Create a new map
-    pub(crate) fn make_map(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
+    pub(crate) fn make_map(this: &Value, args: &[Value], ctx: &mut Interpreter) -> Result<Value> {
         // Make a new Object which will internally represent the Array (mapping
         // between indices and values): this creates an Object with no prototype
 
@@ -251,7 +251,7 @@ impl Map {
                         map
                     } else if object.is_array() {
                         let mut map = OrderedMap::new();
-                        let len = i32::from(&args[0].get_field("length"));
+                        let len = args[0].get_field("length").to_integer(ctx)? as i32;
                         for i in 0..len {
                             let val = &args[0].get_field(i.to_string());
                             let (key, value) = Self::get_key_value(val).ok_or_else(|| {

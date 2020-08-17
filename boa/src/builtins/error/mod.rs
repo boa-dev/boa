@@ -15,10 +15,11 @@ use crate::{
         function::{make_builtin_fn, make_constructor_fn},
         object::ObjectData,
         property::Attribute,
-        value::{ResultValue, Value},
+        value::Value,
     },
     exec::Interpreter,
     profiler::BoaProfiler,
+    Result,
 };
 use std::borrow::BorrowMut;
 
@@ -48,9 +49,9 @@ impl Error {
     pub(crate) const LENGTH: usize = 1;
 
     /// Create a new error object.
-    pub(crate) fn make_error(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
+    pub(crate) fn make_error(this: &Value, args: &[Value], ctx: &mut Interpreter) -> Result<Value> {
         if let Some(message) = args.get(0) {
-            this.set_field("message", ctx.to_string(message)?);
+            this.set_field("message", message.to_string(ctx)?);
         }
 
         // This value is used by console.log and other routines to match Object type
@@ -70,10 +71,14 @@ impl Error {
     /// [spec]: https://tc39.es/ecma262/#sec-error.prototype.tostring
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error/toString
     #[allow(clippy::wrong_self_convention)]
-    pub(crate) fn to_string(this: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
+    pub(crate) fn to_string(this: &Value, _: &[Value], _: &mut Interpreter) -> Result<Value> {
         let name = this.get_field("name");
         let message = this.get_field("message");
-        Ok(Value::from(format!("{}: {}", name, message)))
+        Ok(Value::from(format!(
+            "{}: {}",
+            name.display(),
+            message.display()
+        )))
     }
 
     /// Initialise the global object with the `Error` object.

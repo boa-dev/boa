@@ -17,12 +17,9 @@ use super::{
     function::{make_builtin_fn, make_constructor_fn},
     object::ObjectData,
     property::attribute::Attribute,
+    value::AbstractRelation,
 };
-use crate::{
-    builtins::value::{ResultValue, Value},
-    exec::Interpreter,
-    BoaProfiler,
-};
+use crate::{builtins::value::Value, exec::Interpreter, BoaProfiler, Result};
 use num_traits::float::FloatCore;
 use std::borrow::BorrowMut;
 
@@ -107,7 +104,7 @@ impl Number {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-thisnumbervalue
-    fn this_number_value(value: &Value, ctx: &mut Interpreter) -> Result<f64, Value> {
+    fn this_number_value(value: &Value, ctx: &mut Interpreter) -> Result<f64> {
         match *value {
             Value::Integer(integer) => return Ok(f64::from(integer)),
             Value::Rational(rational) => return Ok(rational),
@@ -134,9 +131,13 @@ impl Number {
     /// `[[Construct]]` - Creates a Number instance
     ///
     /// `[[Call]]` - Creates a number primitive
-    pub(crate) fn make_number(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
+    pub(crate) fn make_number(
+        this: &Value,
+        args: &[Value],
+        ctx: &mut Interpreter,
+    ) -> Result<Value> {
         let data = match args.get(0) {
-            Some(ref value) => ctx.to_numeric_number(value)?,
+            Some(ref value) => value.to_numeric_number(ctx)?,
             None => 0.0,
         };
         this.set_data(ObjectData::Number(data));
@@ -159,7 +160,7 @@ impl Number {
         this: &Value,
         _args: &[Value],
         ctx: &mut Interpreter,
-    ) -> ResultValue {
+    ) -> Result<Value> {
         let this_num = Self::this_number_value(this, ctx)?;
         let this_str_num = Self::num_to_exponential(this_num);
         Ok(Value::from(this_str_num))
@@ -176,11 +177,11 @@ impl Number {
     /// [spec]: https://tc39.es/ecma262/#sec-number.prototype.tofixed
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/toFixed
     #[allow(clippy::wrong_self_convention)]
-    pub(crate) fn to_fixed(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
+    pub(crate) fn to_fixed(this: &Value, args: &[Value], ctx: &mut Interpreter) -> Result<Value> {
         let this_num = Self::this_number_value(this, ctx)?;
         let precision = match args.get(0) {
-            Some(n) => match n.to_integer() {
-                x if x > 0 => n.to_integer() as usize,
+            Some(n) => match n.to_integer(ctx)? as i32 {
+                x if x > 0 => n.to_integer(ctx)? as usize,
                 _ => 0,
             },
             None => 0,
@@ -207,7 +208,7 @@ impl Number {
         this: &Value,
         _args: &[Value],
         ctx: &mut Interpreter,
-    ) -> ResultValue {
+    ) -> Result<Value> {
         let this_num = Self::this_number_value(this, ctx)?;
         let this_str_num = format!("{}", this_num);
         Ok(Value::from(this_str_num))
@@ -224,12 +225,16 @@ impl Number {
     /// [spec]: https://tc39.es/ecma262/#sec-number.prototype.toexponential
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/toPrecision
     #[allow(clippy::wrong_self_convention)]
-    pub(crate) fn to_precision(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
+    pub(crate) fn to_precision(
+        this: &Value,
+        args: &[Value],
+        ctx: &mut Interpreter,
+    ) -> Result<Value> {
         let this_num = Self::this_number_value(this, ctx)?;
         let _num_str_len = format!("{}", this_num).len();
         let _precision = match args.get(0) {
-            Some(n) => match n.to_integer() {
-                x if x > 0 => n.to_integer() as usize,
+            Some(n) => match n.to_integer(ctx)? as i32 {
+                x if x > 0 => n.to_integer(ctx)? as usize,
                 _ => 0,
             },
             None => 0,
@@ -378,13 +383,17 @@ impl Number {
     /// [spec]: https://tc39.es/ecma262/#sec-number.prototype.tostring
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/toString
     #[allow(clippy::wrong_self_convention)]
-    pub(crate) fn to_string(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
+    pub(crate) fn to_string(this: &Value, args: &[Value], ctx: &mut Interpreter) -> Result<Value> {
         // 1. Let x be ? thisNumberValue(this value).
         let x = Self::this_number_value(this, ctx)?;
 
         // 2. If radix is undefined, let radixNumber be 10.
         // 3. Else, let radixNumber be ? ToInteger(radix).
-        let radix = args.get(0).map_or(10, |arg| arg.to_integer()) as u8;
+        let radix = args
+            .get(0)
+            .map(|arg| arg.to_integer(ctx))
+            .transpose()?
+            .map_or(10, |radix| radix as u8);
 
         // 4. If radixNumber < 2 or radixNumber > 36, throw a RangeError exception.
         if radix < 2 || radix > 36 {
@@ -429,7 +438,7 @@ impl Number {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-number.prototype.valueof
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/valueOf
-    pub(crate) fn value_of(this: &Value, _args: &[Value], ctx: &mut Interpreter) -> ResultValue {
+    pub(crate) fn value_of(this: &Value, _args: &[Value], ctx: &mut Interpreter) -> Result<Value> {
         Ok(Value::from(Self::this_number_value(this, ctx)?))
     }
 
@@ -447,7 +456,11 @@ impl Number {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-parseint-string-radix
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/parseInt
-    pub(crate) fn parse_int(_this: &Value, args: &[Value], _ctx: &mut Interpreter) -> ResultValue {
+    pub(crate) fn parse_int(
+        _this: &Value,
+        args: &[Value],
+        _ctx: &mut Interpreter,
+    ) -> Result<Value> {
         if let (Some(val), r) = (args.get(0), args.get(1)) {
             let mut radix = if let Some(rx) = r {
                 if let Value::Integer(i) = rx {
@@ -517,7 +530,7 @@ impl Number {
         _this: &Value,
         args: &[Value],
         _ctx: &mut Interpreter,
-    ) -> ResultValue {
+    ) -> Result<Value> {
         if let Some(val) = args.get(0) {
             match val {
                 Value::String(s) => {
@@ -563,9 +576,9 @@ impl Number {
         _this: &Value,
         args: &[Value],
         ctx: &mut Interpreter,
-    ) -> ResultValue {
-        if let Some(val) = args.get(0) {
-            let number = ctx.to_number(val)?;
+    ) -> Result<Value> {
+        if let Some(value) = args.get(0) {
+            let number = value.to_number(ctx)?;
             Ok(number.is_finite().into())
         } else {
             Ok(false.into())
@@ -590,9 +603,9 @@ impl Number {
         _this: &Value,
         args: &[Value],
         ctx: &mut Interpreter,
-    ) -> ResultValue {
-        if let Some(val) = args.get(0) {
-            let number = ctx.to_number(val)?;
+    ) -> Result<Value> {
+        if let Some(value) = args.get(0) {
+            let number = value.to_number(ctx)?;
             Ok(number.is_nan().into())
         } else {
             Ok(true.into())
@@ -617,7 +630,7 @@ impl Number {
         _this: &Value,
         args: &[Value],
         _ctx: &mut Interpreter,
-    ) -> ResultValue {
+    ) -> Result<Value> {
         Ok(Value::from(if let Some(val) = args.get(0) {
             match val {
                 Value::Integer(_) => true,
@@ -643,7 +656,7 @@ impl Number {
         _this: &Value,
         args: &[Value],
         _ctx: &mut Interpreter,
-    ) -> ResultValue {
+    ) -> Result<Value> {
         Ok(args.get(0).map_or(false, Self::is_integer).into())
     }
 
@@ -665,7 +678,7 @@ impl Number {
         _this: &Value,
         args: &[Value],
         _ctx: &mut Interpreter,
-    ) -> ResultValue {
+    ) -> Result<Value> {
         Ok(Value::from(if let Some(val) = args.get(0) {
             match val {
                 Value::Integer(_) => false,
@@ -695,7 +708,7 @@ impl Number {
         _this: &Value,
         args: &[Value],
         _ctx: &mut Interpreter,
-    ) -> ResultValue {
+    ) -> Result<Value> {
         Ok(Value::from(match args.get(0) {
             Some(Value::Integer(_)) => true,
             Some(Value::Rational(number)) if Self::is_float_integer(*number) => {
@@ -838,6 +851,7 @@ impl Number {
     /// x (a Number) and y (a Number). It performs the following steps when called:
     ///
     /// https://tc39.es/ecma262/#sec-numeric-types-number-equal
+    #[inline]
     #[allow(clippy::float_cmp)]
     pub(crate) fn equal(x: f64, y: f64) -> bool {
         x == y
@@ -869,6 +883,7 @@ impl Number {
     /// x (a Number) and y (a Number). It performs the following steps when called:
     ///
     /// https://tc39.es/ecma262/#sec-numeric-types-number-sameValueZero
+    #[inline]
     #[allow(clippy::float_cmp)]
     pub(crate) fn same_value_zero(x: f64, y: f64) -> bool {
         if x.is_nan() && y.is_nan() {
@@ -876,5 +891,29 @@ impl Number {
         }
 
         x == y
+    }
+
+    #[inline]
+    #[allow(clippy::float_cmp)]
+    pub(crate) fn less_than(x: f64, y: f64) -> AbstractRelation {
+        if x.is_nan() || y.is_nan() {
+            return AbstractRelation::Undefined;
+        }
+        if x == y || x == 0.0 && y == -0.0 || x == -0.0 && y == 0.0 {
+            return AbstractRelation::False;
+        }
+        if x.is_infinite() && x.is_sign_positive() {
+            return AbstractRelation::False;
+        }
+        if y.is_infinite() && y.is_sign_positive() {
+            return AbstractRelation::True;
+        }
+        if x.is_infinite() && x.is_sign_negative() {
+            return AbstractRelation::False;
+        }
+        if y.is_infinite() && y.is_sign_negative() {
+            return AbstractRelation::True;
+        }
+        (x < y).into()
     }
 }
