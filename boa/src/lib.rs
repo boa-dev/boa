@@ -59,6 +59,8 @@ pub type Result<T> = StdResult<T, Value>;
 
 fn parser_expr(src: &str) -> StdResult<StatementList, String> {
     Parser::new(src.as_bytes())
+        .parse_all()
+        .map_err(|e| e.to_string())
 }
 
 /// Execute the code using an existing Interpreter
