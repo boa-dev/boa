@@ -6,7 +6,7 @@ use crate::builtins::{
 
 impl Value {
     #[inline]
-    pub fn add(&self, other: &Self, ctx: &mut Interpreter) -> ResultValue {
+    pub fn add(&self, other: &Self, ctx: &mut Interpreter) -> Result<Value> {
         Ok(match (self, other) {
             // Fast path:
             (Self::Integer(x), Self::Integer(y)) => Self::rational(f64::from(*x) + f64::from(*y)),
@@ -43,7 +43,7 @@ impl Value {
     }
 
     #[inline]
-    pub fn sub(&self, other: &Self, ctx: &mut Interpreter) -> ResultValue {
+    pub fn sub(&self, other: &Self, ctx: &mut Interpreter) -> Result<Value> {
         Ok(match (self, other) {
             // Fast path:
             (Self::Integer(x), Self::Integer(y)) => Self::rational(f64::from(*x) - f64::from(*y)),
@@ -71,7 +71,7 @@ impl Value {
     }
 
     #[inline]
-    pub fn mul(&self, other: &Self, ctx: &mut Interpreter) -> ResultValue {
+    pub fn mul(&self, other: &Self, ctx: &mut Interpreter) -> Result<Value> {
         Ok(match (self, other) {
             // Fast path:
             (Self::Integer(x), Self::Integer(y)) => Self::rational(f64::from(*x) * f64::from(*y)),
@@ -99,7 +99,7 @@ impl Value {
     }
 
     #[inline]
-    pub fn div(&self, other: &Self, ctx: &mut Interpreter) -> ResultValue {
+    pub fn div(&self, other: &Self, ctx: &mut Interpreter) -> Result<Value> {
         Ok(match (self, other) {
             // Fast path:
             (Self::Integer(x), Self::Integer(y)) => Self::rational(f64::from(*x) / f64::from(*y)),
@@ -127,7 +127,7 @@ impl Value {
     }
 
     #[inline]
-    pub fn rem(&self, other: &Self, ctx: &mut Interpreter) -> ResultValue {
+    pub fn rem(&self, other: &Self, ctx: &mut Interpreter) -> Result<Value> {
         Ok(match (self, other) {
             // Fast path:
             (Self::Integer(x), Self::Integer(y)) => Self::integer(x % *y),
@@ -155,7 +155,7 @@ impl Value {
     }
 
     #[inline]
-    pub fn pow(&self, other: &Self, ctx: &mut Interpreter) -> ResultValue {
+    pub fn pow(&self, other: &Self, ctx: &mut Interpreter) -> Result<Value> {
         Ok(match (self, other) {
             // Fast path:
             (Self::Integer(x), Self::Integer(y)) => Self::rational(f64::from(*x).powi(*y)),
@@ -181,7 +181,7 @@ impl Value {
     }
 
     #[inline]
-    pub fn bitand(&self, other: &Self, ctx: &mut Interpreter) -> ResultValue {
+    pub fn bitand(&self, other: &Self, ctx: &mut Interpreter) -> Result<Value> {
         Ok(match (self, other) {
             // Fast path:
             (Self::Integer(x), Self::Integer(y)) => Self::integer(x & y),
@@ -213,7 +213,7 @@ impl Value {
     }
 
     #[inline]
-    pub fn bitor(&self, other: &Self, ctx: &mut Interpreter) -> ResultValue {
+    pub fn bitor(&self, other: &Self, ctx: &mut Interpreter) -> Result<Value> {
         Ok(match (self, other) {
             // Fast path:
             (Self::Integer(x), Self::Integer(y)) => Self::integer(x | y),
@@ -245,7 +245,7 @@ impl Value {
     }
 
     #[inline]
-    pub fn bitxor(&self, other: &Self, ctx: &mut Interpreter) -> ResultValue {
+    pub fn bitxor(&self, other: &Self, ctx: &mut Interpreter) -> Result<Value> {
         Ok(match (self, other) {
             // Fast path:
             (Self::Integer(x), Self::Integer(y)) => Self::integer(x ^ y),
@@ -277,7 +277,7 @@ impl Value {
     }
 
     #[inline]
-    pub fn shl(&self, other: &Self, ctx: &mut Interpreter) -> ResultValue {
+    pub fn shl(&self, other: &Self, ctx: &mut Interpreter) -> Result<Value> {
         Ok(match (self, other) {
             // Fast path:
             (Self::Integer(x), Self::Integer(y)) => Self::integer(x.wrapping_shl(*y as u32)),
@@ -313,7 +313,7 @@ impl Value {
     }
 
     #[inline]
-    pub fn shr(&self, other: &Self, ctx: &mut Interpreter) -> ResultValue {
+    pub fn shr(&self, other: &Self, ctx: &mut Interpreter) -> Result<Value> {
         Ok(match (self, other) {
             // Fast path:
             (Self::Integer(x), Self::Integer(y)) => Self::integer(x.wrapping_shr(*y as u32)),
@@ -349,7 +349,7 @@ impl Value {
     }
 
     #[inline]
-    pub fn ushr(&self, other: &Self, ctx: &mut Interpreter) -> ResultValue {
+    pub fn ushr(&self, other: &Self, ctx: &mut Interpreter) -> Result<Value> {
         Ok(match (self, other) {
             // Fast path:
             (Self::Integer(x), Self::Integer(y)) => {
@@ -384,7 +384,7 @@ impl Value {
     }
 
     #[inline]
-    pub fn neg(&self, interpreter: &mut Interpreter) -> ResultValue {
+    pub fn neg(&self, interpreter: &mut Interpreter) -> Result<Value> {
         Ok(match *self {
             Self::Symbol(_) | Self::Undefined => Self::rational(NAN),
             Self::Object(_) => Self::rational(match self.to_numeric_number(interpreter) {
@@ -404,7 +404,7 @@ impl Value {
     }
 
     #[inline]
-    pub fn not(&self, _: &mut Interpreter) -> Result<bool, Value> {
+    pub fn not(&self, _: &mut Interpreter) -> Result<bool> {
         Ok(!self.to_boolean())
     }
 
@@ -430,7 +430,7 @@ impl Value {
         other: &Self,
         left_first: bool,
         ctx: &mut Interpreter,
-    ) -> Result<AbstractRelation, Value> {
+    ) -> Result<AbstractRelation> {
         Ok(match (self, other) {
             // Fast path (for some common operations):
             (Self::Integer(x), Self::Integer(y)) => (x < y).into(),
@@ -528,7 +528,7 @@ impl Value {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Less_than
     /// [spec]: https://tc39.es/ecma262/#sec-relational-operators-runtime-semantics-evaluation
     #[inline]
-    pub fn lt(&self, other: &Self, ctx: &mut Interpreter) -> Result<bool, Value> {
+    pub fn lt(&self, other: &Self, ctx: &mut Interpreter) -> Result<bool> {
         match self.abstract_relation(other, true, ctx)? {
             AbstractRelation::True => Ok(true),
             AbstractRelation::False | AbstractRelation::Undefined => Ok(false),
@@ -545,7 +545,7 @@ impl Value {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Less_than_or_equal
     /// [spec]: https://tc39.es/ecma262/#sec-relational-operators-runtime-semantics-evaluation
     #[inline]
-    pub fn le(&self, other: &Self, ctx: &mut Interpreter) -> Result<bool, Value> {
+    pub fn le(&self, other: &Self, ctx: &mut Interpreter) -> Result<bool> {
         match other.abstract_relation(self, false, ctx)? {
             AbstractRelation::False => Ok(true),
             AbstractRelation::True | AbstractRelation::Undefined => Ok(false),
@@ -562,7 +562,7 @@ impl Value {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Greater_than
     /// [spec]: https://tc39.es/ecma262/#sec-relational-operators-runtime-semantics-evaluation
     #[inline]
-    pub fn gt(&self, other: &Self, ctx: &mut Interpreter) -> Result<bool, Value> {
+    pub fn gt(&self, other: &Self, ctx: &mut Interpreter) -> Result<bool> {
         match other.abstract_relation(self, false, ctx)? {
             AbstractRelation::True => Ok(true),
             AbstractRelation::False | AbstractRelation::Undefined => Ok(false),
@@ -579,7 +579,7 @@ impl Value {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Greater_than_or_equal
     /// [spec]: https://tc39.es/ecma262/#sec-relational-operators-runtime-semantics-evaluation
     #[inline]
-    pub fn ge(&self, other: &Self, ctx: &mut Interpreter) -> Result<bool, Value> {
+    pub fn ge(&self, other: &Self, ctx: &mut Interpreter) -> Result<bool> {
         match self.abstract_relation(other, true, ctx)? {
             AbstractRelation::False => Ok(true),
             AbstractRelation::True | AbstractRelation::Undefined => Ok(false),

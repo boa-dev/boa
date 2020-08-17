@@ -19,10 +19,10 @@ mod tests;
 use crate::{
     builtins::{
         function::make_builtin_fn,
-        value::{display_obj, RcString, ResultValue, Value},
+        value::{display_obj, RcString, Value},
     },
     exec::Interpreter,
-    BoaProfiler,
+    BoaProfiler, Result,
 };
 use rustc_hash::FxHashMap;
 use std::time::SystemTime;
@@ -59,8 +59,9 @@ pub(crate) fn logger(msg: LogMessage, console_state: &Console) {
 }
 
 /// This represents the `console` formatter.
-pub fn formatter(data: &[Value], ctx: &mut Interpreter) -> Result<String, Value> {
+pub fn formatter(data: &[Value], ctx: &mut Interpreter) -> Result<String> {
     let target = data.get(0).cloned().unwrap_or_default().to_string(ctx)?;
+
     match data.len() {
         0 => Ok(String::new()),
         1 => Ok(target.to_string()),
@@ -153,7 +154,7 @@ impl Console {
     ///
     /// [spec]: https://console.spec.whatwg.org/#assert
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/assert
-    pub(crate) fn assert(_: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
+    pub(crate) fn assert(_: &Value, args: &[Value], ctx: &mut Interpreter) -> Result<Value> {
         let assertion = get_arg_at_index::<bool>(args, 0).unwrap_or_default();
 
         if !assertion {
@@ -184,7 +185,7 @@ impl Console {
     ///
     /// [spec]: https://console.spec.whatwg.org/#clear
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/clear
-    pub(crate) fn clear(_: &Value, _: &[Value], ctx: &mut Interpreter) -> ResultValue {
+    pub(crate) fn clear(_: &Value, _: &[Value], ctx: &mut Interpreter) -> Result<Value> {
         ctx.console_mut().groups.clear();
         Ok(Value::undefined())
     }
@@ -199,7 +200,7 @@ impl Console {
     ///
     /// [spec]: https://console.spec.whatwg.org/#debug
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/debug
-    pub(crate) fn debug(_: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
+    pub(crate) fn debug(_: &Value, args: &[Value], ctx: &mut Interpreter) -> Result<Value> {
         logger(LogMessage::Log(formatter(args, ctx)?), ctx.console());
         Ok(Value::undefined())
     }
@@ -214,7 +215,7 @@ impl Console {
     ///
     /// [spec]: https://console.spec.whatwg.org/#error
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/error
-    pub(crate) fn error(_: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
+    pub(crate) fn error(_: &Value, args: &[Value], ctx: &mut Interpreter) -> Result<Value> {
         logger(LogMessage::Error(formatter(args, ctx)?), ctx.console());
         Ok(Value::undefined())
     }
@@ -229,7 +230,7 @@ impl Console {
     ///
     /// [spec]: https://console.spec.whatwg.org/#info
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/info
-    pub(crate) fn info(_: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
+    pub(crate) fn info(_: &Value, args: &[Value], ctx: &mut Interpreter) -> Result<Value> {
         logger(LogMessage::Info(formatter(args, ctx)?), ctx.console());
         Ok(Value::undefined())
     }
@@ -244,7 +245,7 @@ impl Console {
     ///
     /// [spec]: https://console.spec.whatwg.org/#log
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/log
-    pub(crate) fn log(_: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
+    pub(crate) fn log(_: &Value, args: &[Value], ctx: &mut Interpreter) -> Result<Value> {
         logger(LogMessage::Log(formatter(args, ctx)?), ctx.console());
         Ok(Value::undefined())
     }
@@ -259,7 +260,7 @@ impl Console {
     ///
     /// [spec]: https://console.spec.whatwg.org/#trace
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/trace
-    pub(crate) fn trace(_: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
+    pub(crate) fn trace(_: &Value, args: &[Value], ctx: &mut Interpreter) -> Result<Value> {
         if !args.is_empty() {
             logger(LogMessage::Log(formatter(args, ctx)?), ctx.console());
 
@@ -283,7 +284,7 @@ impl Console {
     ///
     /// [spec]: https://console.spec.whatwg.org/#warn
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/warn
-    pub(crate) fn warn(_: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
+    pub(crate) fn warn(_: &Value, args: &[Value], ctx: &mut Interpreter) -> Result<Value> {
         logger(LogMessage::Warn(formatter(args, ctx)?), ctx.console());
         Ok(Value::undefined())
     }
@@ -298,7 +299,7 @@ impl Console {
     ///
     /// [spec]: https://console.spec.whatwg.org/#count
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/count
-    pub(crate) fn count(_: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
+    pub(crate) fn count(_: &Value, args: &[Value], ctx: &mut Interpreter) -> Result<Value> {
         let label = match args.get(0) {
             Some(value) => value.to_string(ctx)?,
             None => "default".into(),
@@ -322,7 +323,7 @@ impl Console {
     ///
     /// [spec]: https://console.spec.whatwg.org/#countreset
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/countReset
-    pub(crate) fn count_reset(_: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
+    pub(crate) fn count_reset(_: &Value, args: &[Value], ctx: &mut Interpreter) -> Result<Value> {
         let label = match args.get(0) {
             Some(value) => value.to_string(ctx)?,
             None => "default".into(),
@@ -356,7 +357,7 @@ impl Console {
     ///
     /// [spec]: https://console.spec.whatwg.org/#time
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/time
-    pub(crate) fn time(_: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
+    pub(crate) fn time(_: &Value, args: &[Value], ctx: &mut Interpreter) -> Result<Value> {
         let label = match args.get(0) {
             Some(value) => value.to_string(ctx)?,
             None => "default".into(),
@@ -385,7 +386,7 @@ impl Console {
     ///
     /// [spec]: https://console.spec.whatwg.org/#timelog
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/timeLog
-    pub(crate) fn time_log(_: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
+    pub(crate) fn time_log(_: &Value, args: &[Value], ctx: &mut Interpreter) -> Result<Value> {
         let label = match args.get(0) {
             Some(value) => value.to_string(ctx)?,
             None => "default".into(),
@@ -418,7 +419,7 @@ impl Console {
     ///
     /// [spec]: https://console.spec.whatwg.org/#timeend
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/timeEnd
-    pub(crate) fn time_end(_: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
+    pub(crate) fn time_end(_: &Value, args: &[Value], ctx: &mut Interpreter) -> Result<Value> {
         let label = match args.get(0) {
             Some(value) => value.to_string(ctx)?,
             None => "default".into(),
@@ -450,7 +451,7 @@ impl Console {
     ///
     /// [spec]: https://console.spec.whatwg.org/#group
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/group
-    pub(crate) fn group(_: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
+    pub(crate) fn group(_: &Value, args: &[Value], ctx: &mut Interpreter) -> Result<Value> {
         let group_label = formatter(args, ctx)?;
 
         logger(
@@ -472,7 +473,7 @@ impl Console {
     ///
     /// [spec]: https://console.spec.whatwg.org/#groupend
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/groupEnd
-    pub(crate) fn group_end(_: &Value, _: &[Value], ctx: &mut Interpreter) -> ResultValue {
+    pub(crate) fn group_end(_: &Value, _: &[Value], ctx: &mut Interpreter) -> Result<Value> {
         ctx.console_mut().groups.pop();
 
         Ok(Value::undefined())
@@ -488,7 +489,7 @@ impl Console {
     ///
     /// [spec]: https://console.spec.whatwg.org/#dir
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/dir
-    pub(crate) fn dir(_: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
+    pub(crate) fn dir(_: &Value, args: &[Value], ctx: &mut Interpreter) -> Result<Value> {
         let undefined = Value::undefined();
         logger(
             LogMessage::Info(display_obj(args.get(0).unwrap_or(&undefined), true)),

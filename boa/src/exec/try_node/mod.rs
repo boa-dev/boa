@@ -2,17 +2,17 @@
 
 use super::{Executable, Interpreter};
 use crate::{
-    builtins::value::ResultValue,
+    builtins::value::Value,
     environment::lexical_environment::{new_declarative_environment, VariableScope},
     syntax::ast::node::Try,
-    BoaProfiler,
+    BoaProfiler, Result,
 };
 
 #[cfg(test)]
 mod tests;
 
 impl Executable for Try {
-    fn run(&self, interpreter: &mut Interpreter) -> ResultValue {
+    fn run(&self, interpreter: &mut Interpreter) -> Result<Value> {
         let _timer = BoaProfiler::global().start_event("Try", "exec");
         let res = self.block().run(interpreter).map_or_else(
             |err| {

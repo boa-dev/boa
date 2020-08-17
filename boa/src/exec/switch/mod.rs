@@ -1,14 +1,11 @@
 use super::{Executable, Interpreter, InterpreterState};
-use crate::{
-    builtins::value::{ResultValue, Value},
-    syntax::ast::node::Switch,
-};
+use crate::{builtins::value::Value, syntax::ast::node::Switch, Result};
 
 #[cfg(test)]
 mod tests;
 
 impl Executable for Switch {
-    fn run(&self, interpreter: &mut Interpreter) -> ResultValue {
+    fn run(&self, interpreter: &mut Interpreter) -> Result<Value> {
         let default = self.default();
         let val = self.val().run(interpreter)?;
         let mut result = Value::null();
