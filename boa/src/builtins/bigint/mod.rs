@@ -16,6 +16,7 @@ use crate::{
     builtins::{
         function::{make_builtin_fn, make_constructor_fn},
         object::ObjectData,
+        property::Attribute,
         value::{RcBigInt, ResultValue, Value},
     },
     exec::Interpreter,
@@ -23,6 +24,7 @@ use crate::{
 };
 
 use gc::{unsafe_empty_trace, Finalize, Trace};
+use std::borrow::BorrowMut;
 
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
@@ -200,7 +202,7 @@ impl BigInt {
 
     /// Initialise the `BigInt` object on the global object.
     #[inline]
-    pub fn init(interpreter: &mut Interpreter) -> (&'static str, Value) {
+    pub fn init(interpreter: &mut Interpreter) {
         let global = interpreter.global();
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
@@ -222,7 +224,12 @@ impl BigInt {
         make_builtin_fn(Self::as_int_n, "asIntN", &bigint_object, 2, interpreter);
         make_builtin_fn(Self::as_uint_n, "asUintN", &bigint_object, 2, interpreter);
 
-        (Self::NAME, bigint_object)
+        let mut global = interpreter.global().as_object_mut().expect("Expect object");
+        global.borrow_mut().insert_property(
+            Self::NAME,
+            bigint_object,
+            Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+        );
     }
 }
 

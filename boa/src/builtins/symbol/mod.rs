@@ -20,11 +20,15 @@ mod tests;
 
 use super::function::{make_builtin_fn, make_constructor_fn};
 use crate::{
-    builtins::value::{RcString, RcSymbol, ResultValue, Value},
+    builtins::{
+        property::Attribute,
+        value::{RcString, RcSymbol, ResultValue, Value},
+    },
     exec::Interpreter,
     BoaProfiler,
 };
 use gc::{Finalize, Trace};
+use std::borrow::BorrowMut;
 
 #[derive(Debug, Finalize, Trace, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Symbol(Option<RcString>, u32);
@@ -100,7 +104,7 @@ impl Symbol {
 
     /// Initialise the `Symbol` object on the global object.
     #[inline]
-    pub fn init(interpreter: &mut Interpreter) -> (&'static str, Value) {
+    pub fn init(interpreter: &mut Interpreter) {
         // Define the Well-Known Symbols
         // https://tc39.es/ecma262/#sec-well-known-symbols
         let symbol_async_iterator = Symbol(
@@ -170,6 +174,11 @@ impl Symbol {
         symbol_object.set_field("toStringTag", Value::symbol(symbol_to_string_tag));
         symbol_object.set_field("unscopables", Value::symbol(symbol_unscopables));
 
-        (Self::NAME, symbol_object)
+        let mut global = interpreter.global().as_object_mut().expect("Expect object");
+        global.borrow_mut().insert_property(
+            Self::NAME,
+            symbol_object,
+            Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+        );
     }
 }

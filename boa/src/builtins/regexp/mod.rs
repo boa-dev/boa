@@ -15,13 +15,14 @@ use super::function::{make_builtin_fn, make_constructor_fn};
 use crate::{
     builtins::{
         object::{InternalState, ObjectData},
-        property::{attribute::Attribute, Property},
+        property::{Attribute, Property},
         value::{RcString, ResultValue, Value},
     },
     exec::Interpreter,
     BoaProfiler,
 };
 use gc::{unsafe_empty_trace, Finalize, Trace};
+use std::borrow::BorrowMut;
 
 #[cfg(test)]
 mod tests;
@@ -476,7 +477,7 @@ impl RegExp {
 
     /// Initialise the `RegExp` object on the global object.
     #[inline]
-    pub(crate) fn init(interpreter: &mut Interpreter) -> (&'static str, Value) {
+    pub(crate) fn init(interpreter: &mut Interpreter) {
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
         let global = interpreter.global();
 
@@ -511,7 +512,11 @@ impl RegExp {
             true,
             true,
         );
-
-        (Self::NAME, regexp)
+        let mut global = interpreter.global().as_object_mut().expect("Expect object");
+        global.borrow_mut().insert_property(
+            Self::NAME,
+            regexp,
+            Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+        );
     }
 }

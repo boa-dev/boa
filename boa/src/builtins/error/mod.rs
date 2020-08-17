@@ -14,11 +14,13 @@ use crate::{
     builtins::{
         function::{make_builtin_fn, make_constructor_fn},
         object::ObjectData,
+        property::Attribute,
         value::{ResultValue, Value},
     },
     exec::Interpreter,
     profiler::BoaProfiler,
 };
+use std::borrow::BorrowMut;
 
 pub(crate) mod range;
 pub(crate) mod reference;
@@ -76,7 +78,7 @@ impl Error {
 
     /// Initialise the global object with the `Error` object.
     #[inline]
-    pub(crate) fn init(interpreter: &mut Interpreter) -> (&'static str, Value) {
+    pub(crate) fn init(interpreter: &mut Interpreter) {
         let global = interpreter.global();
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
@@ -95,7 +97,11 @@ impl Error {
             true,
             true,
         );
-
-        (Self::NAME, error_object)
+        let mut global = interpreter.global().as_object_mut().expect("Expect object");
+        global.borrow_mut().insert_property(
+            Self::NAME,
+            error_object,
+            Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+        );
     }
 }

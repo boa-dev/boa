@@ -23,7 +23,7 @@ use crate::{
     BoaProfiler,
 };
 use std::{
-    borrow::Borrow,
+    borrow::{Borrow, BorrowMut},
     cmp::{max, min},
 };
 
@@ -1114,7 +1114,7 @@ impl Array {
 
     /// Initialise the `Array` object on the global object.
     #[inline]
-    pub(crate) fn init(interpreter: &mut Interpreter) -> (&'static str, Value) {
+    pub(crate) fn init(interpreter: &mut Interpreter) {
         let global = interpreter.global();
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
@@ -1172,6 +1172,11 @@ impl Array {
         // Static Methods
         make_builtin_fn(Self::is_array, "isArray", &array, 1, interpreter);
 
-        (Self::NAME, array)
+        let mut global = interpreter.global().as_object_mut().expect("Expect object");
+        global.borrow_mut().insert_property(
+            Self::NAME,
+            array,
+            Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+        );
     }
 }

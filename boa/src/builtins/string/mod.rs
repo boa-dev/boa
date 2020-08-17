@@ -16,7 +16,7 @@ use super::function::{make_builtin_fn, make_constructor_fn};
 use crate::{
     builtins::{
         object::{Object, ObjectData},
-        property::Property,
+        property::{Attribute, Property},
         value::{RcString, ResultValue, Value},
         RegExp,
     },
@@ -24,6 +24,7 @@ use crate::{
     BoaProfiler,
 };
 use regex::Regex;
+use std::borrow::BorrowMut;
 use std::string::String as StdString;
 use std::{
     cmp::{max, min},
@@ -1002,7 +1003,7 @@ impl String {
 
     /// Initialise the `String` object on the global object.
     #[inline]
-    pub(crate) fn init(interpreter: &mut Interpreter) -> (&'static str, Value) {
+    pub(crate) fn init(interpreter: &mut Interpreter) {
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
         // Create `String` `prototype`
@@ -1066,6 +1067,11 @@ impl String {
             true,
         );
 
-        (Self::NAME, string_object)
+        let mut global = interpreter.global().as_object_mut().expect("Expect object");
+        global.borrow_mut().insert_property(
+            Self::NAME,
+            string_object,
+            Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+        );
     }
 }

@@ -14,12 +14,13 @@
 use crate::{
     builtins::{
         function::make_builtin_fn,
-        property::attribute::Attribute,
+        property::Attribute,
         value::{ResultValue, Value},
     },
     exec::Interpreter,
     BoaProfiler,
 };
+use std::borrow::BorrowMut;
 use std::f64;
 
 #[cfg(test)]
@@ -701,9 +702,14 @@ impl Math {
 
     /// Initialise the `Math` object on the global object.
     #[inline]
-    pub(crate) fn init(interpreter: &mut Interpreter) -> (&'static str, Value) {
+    pub(crate) fn init(interpreter: &mut Interpreter) {
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
-
-        (Self::NAME, Self::create(interpreter))
+        let math = Self::create(interpreter);
+        let mut global = interpreter.global().as_object_mut().expect("Expect object");
+        global.borrow_mut().insert_property(
+            Self::NAME,
+            math,
+            Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+        );
     }
 }

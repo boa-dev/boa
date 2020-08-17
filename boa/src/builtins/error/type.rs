@@ -17,14 +17,15 @@
 
 use crate::{
     builtins::{
-        function::make_builtin_fn,
-        function::make_constructor_fn,
+        function::{make_builtin_fn, make_constructor_fn},
         object::ObjectData,
+        property::Attribute,
         value::{ResultValue, Value},
     },
     exec::Interpreter,
     BoaProfiler,
 };
+use std::borrow::BorrowMut;
 
 /// JavaScript `TypeError` implementation.
 #[derive(Debug, Clone, Copy)]
@@ -68,7 +69,7 @@ impl TypeError {
 
     /// Initialise the global object with the `RangeError` object.
     #[inline]
-    pub(crate) fn init(interpreter: &mut Interpreter) -> (&'static str, Value) {
+    pub(crate) fn init(interpreter: &mut Interpreter) {
         let global = interpreter.global();
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
@@ -87,7 +88,11 @@ impl TypeError {
             true,
             true,
         );
-
-        (Self::NAME, type_error_object)
+        let mut global = interpreter.global().as_object_mut().expect("Expect object");
+        global.borrow_mut().insert_property(
+            Self::NAME,
+            type_error_object,
+            Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+        );
     }
 }

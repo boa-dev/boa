@@ -251,7 +251,6 @@ impl Function {
                         let value = args_list.get(i).cloned().unwrap_or_else(Value::undefined);
                         self.add_arguments_to_environment(param, value, &local_env);
                     }
-
                     // Add arguments object
                     let arguments_obj = create_unmapped_arguments_object(args_list);
                     local_env
@@ -319,6 +318,7 @@ impl Function {
 
                     // Add arguments object
                     let arguments_obj = create_unmapped_arguments_object(args_list);
+
                     local_env
                         .borrow_mut()
                         .create_mutable_binding("arguments".to_string(), false);
@@ -536,13 +536,18 @@ pub fn make_builtin_fn<N>(
 
 /// Initialise the `Function` object on the global object.
 #[inline]
-pub fn init(interpreter: &mut Interpreter) -> (&'static str, Value) {
+pub fn init(interpreter: &mut Interpreter) {
     let global = interpreter.global();
     let _timer = BoaProfiler::global().start_event("function", "init");
     let prototype = Value::new_object(Some(global));
 
     let function_object =
         make_constructor_fn("Function", 1, make_function, global, prototype, true, true);
-
-    ("Function", function_object)
+    let mut global = interpreter.global().as_object_mut().expect("Expect object");
+    use std::borrow::BorrowMut;
+    global.borrow_mut().insert_property(
+        "Function",
+        function_object,
+        Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+    );
 }

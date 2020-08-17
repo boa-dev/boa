@@ -10,7 +10,9 @@
 //! [spec]: https://tc39.es/ecma262/#sec-globalthis
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/globalThis
 
-use crate::{builtins::value::Value, BoaProfiler, Interpreter};
+use super::property::Attribute;
+use crate::{BoaProfiler, Interpreter};
+use std::borrow::BorrowMut;
 
 #[cfg(test)]
 mod tests;
@@ -24,10 +26,14 @@ impl GlobalThis {
 
     /// Initialize the `globalThis` property on the global object.
     #[inline]
-    pub(crate) fn init(interpreter: &mut Interpreter) -> (&'static str, Value) {
-        let global = interpreter.global();
+    pub(crate) fn init(interpreter: &mut Interpreter) {
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
-
-        (Self::NAME, global.clone())
+        let mut global = interpreter.global().as_object_mut().expect("Expect object");
+        let glob = global.clone();
+        global.borrow_mut().insert_property(
+            Self::NAME,
+            glob,
+            Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+        );
     }
 }

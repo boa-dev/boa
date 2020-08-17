@@ -24,6 +24,7 @@ use crate::{
     BoaProfiler,
 };
 use num_traits::float::FloatCore;
+use std::borrow::BorrowMut;
 
 mod conversions;
 
@@ -728,7 +729,7 @@ impl Number {
 
     /// Initialise the `Number` object on the global object.
     #[inline]
-    pub(crate) fn init(interpreter: &mut Interpreter) -> (&'static str, Value) {
+    pub(crate) fn init(interpreter: &mut Interpreter) {
         let global = interpreter.global();
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
@@ -825,7 +826,12 @@ impl Number {
             properties.insert_property("NaN", f64::NAN, attribute);
         }
 
-        (Self::NAME, number_object)
+        let mut global = interpreter.global().as_object_mut().expect("Expect object");
+        global.borrow_mut().insert_property(
+            Self::NAME,
+            number_object,
+            Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+        );
     }
 
     /// The abstract operation Number::equal takes arguments

@@ -15,11 +15,12 @@
 
 use crate::builtins::{
     function::make_builtin_fn,
-    property::Property,
+    property::{Attribute, Property},
     value::{ResultValue, Value},
 };
 use crate::{exec::Interpreter, BoaProfiler};
 use serde_json::{self, Value as JSONValue};
+use std::borrow::BorrowMut;
 
 #[cfg(test)]
 mod tests;
@@ -172,14 +173,18 @@ impl Json {
 
     /// Initialise the `JSON` object on the global object.
     #[inline]
-    pub(crate) fn init(interpreter: &mut Interpreter) -> (&'static str, Value) {
+    pub(crate) fn init(interpreter: &mut Interpreter) {
         let global = interpreter.global();
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
         let json = Value::new_object(Some(global));
 
         make_builtin_fn(Self::parse, "parse", &json, 2, interpreter);
         make_builtin_fn(Self::stringify, "stringify", &json, 3, interpreter);
-
-        (Self::NAME, json)
+        let mut global = interpreter.global().as_object_mut().expect("Expect object");
+        global.borrow_mut().insert_property(
+            Self::NAME,
+            json,
+            Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+        );
     }
 }
