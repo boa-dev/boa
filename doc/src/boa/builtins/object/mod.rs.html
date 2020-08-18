@@ -596,28 +596,6 @@
 <span id="596">596</span>
 <span id="597">597</span>
 <span id="598">598</span>
-<span id="599">599</span>
-<span id="600">600</span>
-<span id="601">601</span>
-<span id="602">602</span>
-<span id="603">603</span>
-<span id="604">604</span>
-<span id="605">605</span>
-<span id="606">606</span>
-<span id="607">607</span>
-<span id="608">608</span>
-<span id="609">609</span>
-<span id="610">610</span>
-<span id="611">611</span>
-<span id="612">612</span>
-<span id="613">613</span>
-<span id="614">614</span>
-<span id="615">615</span>
-<span id="616">616</span>
-<span id="617">617</span>
-<span id="618">618</span>
-<span id="619">619</span>
-<span id="620">620</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements the global `Object` object.</span>
 <span class="doccomment">//!</span>
@@ -652,22 +630,18 @@
 
 <span class="kw">use</span> <span class="kw">super</span>::<span class="ident">function</span>::{<span class="ident">make_builtin_fn</span>, <span class="ident">make_constructor_fn</span>};
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">builtins</span>::<span class="ident">value</span>::<span class="ident">same_value</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">internal_state</span>::{<span class="ident">InternalState</span>, <span class="ident">InternalStateCell</span>};
 
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">gcobject</span>;
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">internal_methods</span>;
-<span class="kw">mod</span> <span class="ident">internal_state</span>;
+<span class="kw">mod</span> <span class="ident">gcobject</span>;
+<span class="kw">mod</span> <span class="ident">internal_methods</span>;
 
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">gcobject</span>::<span class="ident">GcObject</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">internal_methods</span>::<span class="kw-2">*</span>;
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">tests</span>;
 
 <span class="doccomment">/// Static `prototype`, usually set on constructors as a key to point to their respective prototype object.</span>
 <span class="kw">pub</span> <span class="kw">static</span> <span class="ident">PROTOTYPE</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;prototype&quot;</span>;
-
-<span class="comment">// /// Static `__proto__`, usually set on Object instances as a key to point to their respective prototype object.</span>
-<span class="comment">// pub static INSTANCE_PROTOTYPE: &amp;str = &quot;__proto__&quot;;</span>
 
 <span class="doccomment">/// The internal representation of an JavaScript object.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Trace</span>, <span class="ident">Finalize</span>, <span class="ident">Clone</span>)]</span>
@@ -680,8 +654,6 @@
     <span class="ident">symbol_properties</span>: <span class="ident">FxHashMap</span><span class="op">&lt;</span><span class="ident">u32</span>, <span class="ident">Property</span><span class="op">&gt;</span>,
     <span class="doccomment">/// Instance prototype `__proto__`.</span>
     <span class="ident">prototype</span>: <span class="ident">Value</span>,
-    <span class="doccomment">/// Some rust object that stores internal state</span>
-    <span class="ident">state</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">InternalStateCell</span><span class="op">&gt;</span>,
     <span class="doccomment">/// Whether it can have new properties added to it.</span>
     <span class="ident">extensible</span>: <span class="ident">bool</span>,
 }
@@ -691,7 +663,7 @@
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">ObjectData</span> {
     <span class="ident">Array</span>,
     <span class="ident">Map</span>(<span class="ident">OrderedMap</span><span class="op">&lt;</span><span class="ident">Value</span>, <span class="ident">Value</span><span class="op">&gt;</span>),
-    <span class="ident">RegExp</span>(<span class="ident">RegExp</span>),
+    <span class="ident">RegExp</span>(<span class="ident">Box</span><span class="op">&lt;</span><span class="ident">RegExp</span><span class="op">&gt;</span>),
     <span class="ident">BigInt</span>(<span class="ident">RcBigInt</span>),
     <span class="ident">Boolean</span>(<span class="ident">bool</span>),
     <span class="ident">Function</span>(<span class="ident">Function</span>),
@@ -737,7 +709,6 @@
             <span class="ident">properties</span>: <span class="ident">FxHashMap</span>::<span class="ident">default</span>(),
             <span class="ident">symbol_properties</span>: <span class="ident">FxHashMap</span>::<span class="ident">default</span>(),
             <span class="ident">prototype</span>: <span class="ident">Value</span>::<span class="ident">null</span>(),
-            <span class="ident">state</span>: <span class="prelude-val">None</span>,
             <span class="ident">extensible</span>: <span class="bool-val">true</span>,
         }
     }
@@ -758,7 +729,6 @@
             <span class="ident">properties</span>: <span class="ident">FxHashMap</span>::<span class="ident">default</span>(),
             <span class="ident">symbol_properties</span>: <span class="ident">FxHashMap</span>::<span class="ident">default</span>(),
             <span class="ident">prototype</span>,
-            <span class="ident">state</span>: <span class="prelude-val">None</span>,
             <span class="ident">extensible</span>: <span class="bool-val">true</span>,
         }
     }
@@ -783,7 +753,6 @@
             <span class="ident">properties</span>: <span class="ident">FxHashMap</span>::<span class="ident">default</span>(),
             <span class="ident">symbol_properties</span>: <span class="ident">FxHashMap</span>::<span class="ident">default</span>(),
             <span class="ident">prototype</span>: <span class="ident">Value</span>::<span class="ident">null</span>(),
-            <span class="ident">state</span>: <span class="prelude-val">None</span>,
             <span class="ident">extensible</span>: <span class="bool-val">true</span>,
         }
     }
@@ -795,7 +764,6 @@
             <span class="ident">properties</span>: <span class="ident">FxHashMap</span>::<span class="ident">default</span>(),
             <span class="ident">symbol_properties</span>: <span class="ident">FxHashMap</span>::<span class="ident">default</span>(),
             <span class="ident">prototype</span>: <span class="ident">Value</span>::<span class="ident">null</span>(),
-            <span class="ident">state</span>: <span class="prelude-val">None</span>,
             <span class="ident">extensible</span>: <span class="bool-val">true</span>,
         }
     }
@@ -810,7 +778,6 @@
             <span class="ident">properties</span>: <span class="ident">FxHashMap</span>::<span class="ident">default</span>(),
             <span class="ident">symbol_properties</span>: <span class="ident">FxHashMap</span>::<span class="ident">default</span>(),
             <span class="ident">prototype</span>: <span class="ident">Value</span>::<span class="ident">null</span>(),
-            <span class="ident">state</span>: <span class="prelude-val">None</span>,
             <span class="ident">extensible</span>: <span class="bool-val">true</span>,
         }
     }
@@ -822,7 +789,6 @@
             <span class="ident">properties</span>: <span class="ident">FxHashMap</span>::<span class="ident">default</span>(),
             <span class="ident">symbol_properties</span>: <span class="ident">FxHashMap</span>::<span class="ident">default</span>(),
             <span class="ident">prototype</span>: <span class="ident">Value</span>::<span class="ident">null</span>(),
-            <span class="ident">state</span>: <span class="prelude-val">None</span>,
             <span class="ident">extensible</span>: <span class="bool-val">true</span>,
         }
     }
@@ -1039,16 +1005,6 @@
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">symbol_properties_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">FxHashMap</span><span class="op">&lt;</span><span class="ident">u32</span>, <span class="ident">Property</span><span class="op">&gt;</span> {
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">symbol_properties</span>
-    }
-
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">state</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">InternalStateCell</span><span class="op">&gt;</span> {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">state</span>
-    }
-
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">state_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">InternalStateCell</span><span class="op">&gt;</span> {
-        <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">state</span>
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">prototype</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">Value</span> {

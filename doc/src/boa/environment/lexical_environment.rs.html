@@ -361,10 +361,6 @@
 <span id="361">361</span>
 <span id="362">362</span>
 <span id="363">363</span>
-<span id="364">364</span>
-<span id="365">365</span>
-<span id="366">366</span>
-<span id="367">367</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! # Lexical Environment</span>
 <span class="doccomment">//!</span>
@@ -374,7 +370,7 @@
 <span class="doccomment">//! This is the entrypoint to lexical environments.</span>
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">builtins</span>::<span class="ident">value</span>::<span class="ident">Value</span>,
+    <span class="ident">builtins</span>::{<span class="ident">object</span>::<span class="ident">GcObject</span>, <span class="ident">value</span>::<span class="ident">Value</span>},
     <span class="ident">environment</span>::{
         <span class="ident">declarative_environment_record</span>::<span class="ident">DeclarativeEnvironmentRecord</span>,
         <span class="ident">environment_record_trait</span>::<span class="ident">EnvironmentRecordTrait</span>,
@@ -530,11 +526,7 @@
                     })
                     .<span class="ident">expect</span>(<span class="string">&quot;No function or global environment&quot;</span>);
 
-                <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy</span>::<span class="ident">let_and_return</span>)]</span>
-                <span class="comment">// FIXME need to assign result to a variable to avoid borrow checker error</span>
-                <span class="comment">// (borrowed value `env` does not live long enough)</span>
-                <span class="kw">let</span> <span class="ident">b</span> <span class="op">=</span> <span class="ident">env</span>.<span class="ident">borrow_mut</span>().<span class="ident">create_immutable_binding</span>(<span class="ident">name</span>, <span class="ident">deletion</span>);
-                <span class="ident">b</span>
+                <span class="ident">env</span>.<span class="ident">borrow_mut</span>().<span class="ident">create_immutable_binding</span>(<span class="ident">name</span>, <span class="ident">deletion</span>)
             }
         }
     }
@@ -598,7 +590,7 @@
 }
 
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_function_environment</span>(
-    <span class="ident">f</span>: <span class="ident">Value</span>,
+    <span class="ident">f</span>: <span class="ident">GcObject</span>,
     <span class="ident">this</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span>,
     <span class="ident">outer</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Environment</span><span class="op">&gt;</span>,
     <span class="ident">binding_status</span>: <span class="ident">BindingStatus</span>,

@@ -518,8 +518,6 @@
 <span id="518">518</span>
 <span id="519">519</span>
 <span id="520">520</span>
-<span id="521">521</span>
-<span id="522">522</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements the global `RegExp` object.</span>
 <span class="doccomment">//!</span>
@@ -537,7 +535,7 @@
 <span class="kw">use</span> <span class="kw">super</span>::<span class="ident">function</span>::{<span class="ident">make_builtin_fn</span>, <span class="ident">make_constructor_fn</span>};
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">builtins</span>::{
-        <span class="ident">object</span>::{<span class="ident">InternalState</span>, <span class="ident">ObjectData</span>},
+        <span class="ident">object</span>::<span class="ident">ObjectData</span>,
         <span class="ident">property</span>::<span class="ident">Property</span>,
         <span class="ident">value</span>::{<span class="ident">RcString</span>, <span class="ident">Value</span>},
     },
@@ -586,8 +584,6 @@
 <span class="kw">unsafe</span> <span class="kw">impl</span> <span class="ident">Trace</span> <span class="kw">for</span> <span class="ident">RegExp</span> {
     <span class="macro">unsafe_empty_trace</span><span class="macro">!</span>();
 }
-
-<span class="kw">impl</span> <span class="ident">InternalState</span> <span class="kw">for</span> <span class="ident">RegExp</span> {}
 
 <span class="kw">impl</span> <span class="ident">RegExp</span> {
     <span class="doccomment">/// The name of the object.</span>
@@ -679,7 +675,7 @@
             <span class="ident">original_flags</span>: <span class="ident">regex_flags</span>,
         };
 
-        <span class="ident">this</span>.<span class="ident">set_data</span>(<span class="ident">ObjectData</span>::<span class="ident">RegExp</span>(<span class="ident">regexp</span>));
+        <span class="ident">this</span>.<span class="ident">set_data</span>(<span class="ident">ObjectData</span>::<span class="ident">RegExp</span>(<span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">regexp</span>)));
 
         <span class="prelude-val">Ok</span>(<span class="ident">this</span>.<span class="ident">clone</span>())
     }

@@ -129,16 +129,12 @@
 <span id="129">129</span>
 <span id="130">130</span>
 <span id="131">131</span>
-<span id="132">132</span>
-<span id="133">133</span>
-<span id="134">134</span>
-<span id="135">135</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Declaration execution.</span>
 
 <span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">Executable</span>, <span class="ident">Interpreter</span>};
 <span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">builtins</span>::{<span class="ident">function</span>::<span class="ident">ThisMode</span>, <span class="ident">value</span>::<span class="ident">Value</span>},
+    <span class="ident">builtins</span>::{<span class="ident">function</span>::<span class="ident">FunctionFlags</span>, <span class="ident">Value</span>},
     <span class="ident">environment</span>::<span class="ident">lexical_environment</span>::<span class="ident">VariableScope</span>,
     <span class="ident">syntax</span>::<span class="ident">ast</span>::<span class="ident">node</span>::{
         <span class="ident">ArrowFunctionDecl</span>, <span class="ident">ConstDeclList</span>, <span class="ident">FunctionDecl</span>, <span class="ident">FunctionExpr</span>, <span class="ident">LetDeclList</span>, <span class="ident">VarDeclList</span>,
@@ -152,9 +148,7 @@
         <span class="kw">let</span> <span class="ident">val</span> <span class="op">=</span> <span class="ident">interpreter</span>.<span class="ident">create_function</span>(
             <span class="self">self</span>.<span class="ident">parameters</span>().<span class="ident">to_vec</span>(),
             <span class="self">self</span>.<span class="ident">body</span>().<span class="ident">to_vec</span>(),
-            <span class="ident">ThisMode</span>::<span class="ident">NonLexical</span>,
-            <span class="bool-val">true</span>,
-            <span class="bool-val">true</span>,
+            <span class="ident">FunctionFlags</span>::<span class="ident">CALLABLE</span> <span class="op">|</span> <span class="ident">FunctionFlags</span>::<span class="ident">CONSTRUCTABLE</span>,
         );
 
         <span class="comment">// Set the name and assign it in the current environment</span>
@@ -179,9 +173,7 @@
         <span class="kw">let</span> <span class="ident">val</span> <span class="op">=</span> <span class="ident">interpreter</span>.<span class="ident">create_function</span>(
             <span class="self">self</span>.<span class="ident">parameters</span>().<span class="ident">to_vec</span>(),
             <span class="self">self</span>.<span class="ident">body</span>().<span class="ident">to_vec</span>(),
-            <span class="ident">ThisMode</span>::<span class="ident">NonLexical</span>,
-            <span class="bool-val">true</span>,
-            <span class="bool-val">true</span>,
+            <span class="ident">FunctionFlags</span>::<span class="ident">CALLABLE</span> <span class="op">|</span> <span class="ident">FunctionFlags</span>::<span class="ident">CONSTRUCTABLE</span>,
         );
 
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">name</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">name</span>() {
@@ -263,9 +255,9 @@
         <span class="prelude-val">Ok</span>(<span class="ident">interpreter</span>.<span class="ident">create_function</span>(
             <span class="self">self</span>.<span class="ident">params</span>().<span class="ident">to_vec</span>(),
             <span class="self">self</span>.<span class="ident">body</span>().<span class="ident">to_vec</span>(),
-            <span class="ident">ThisMode</span>::<span class="ident">Lexical</span>,
-            <span class="bool-val">false</span>,
-            <span class="bool-val">true</span>,
+            <span class="ident">FunctionFlags</span>::<span class="ident">CALLABLE</span>
+                <span class="op">|</span> <span class="ident">FunctionFlags</span>::<span class="ident">CONSTRUCTABLE</span>
+                <span class="op">|</span> <span class="ident">FunctionFlags</span>::<span class="ident">LEXICAL_THIS_MODE</span>,
         ))
     }
 }
