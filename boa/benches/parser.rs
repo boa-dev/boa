@@ -3,14 +3,17 @@
 use boa::syntax::{lexer::Lexer, parser::Parser};
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
 
-include!("constants.rs");
-
 #[cfg(all(target_arch = "x86_64", target_os = "linux", target_env = "gnu"))]
 #[cfg_attr(
     all(target_arch = "x86_64", target_os = "linux", target_env = "gnu"),
     global_allocator
 )]
 static ALLOC: jemallocator::Jemalloc = jemallocator::Jemalloc;
+static EXPRESSION: &str = include_str!("bench_scripts/expression.js");
+static HELLO_WORLD: &str = include_str!("bench_scripts/hello_world.js");
+static FOR_LOOP: &str = include_str!("bench_scripts/for_loop.js");
+static LONG_REPETITION: &str = include_str!("bench_scripts/long_repetition.js");
+static GOAL_SYMBOL_SWITCH: &str = include_str!("bench_scripts/goal_symbol_switch.js");
 
 fn expression_parser(c: &mut Criterion) {
     // We include the lexing in the benchmarks, since they will get together soon, anyways.

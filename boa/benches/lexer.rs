@@ -3,14 +3,15 @@
 use boa::syntax::lexer::Lexer;
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
 
-include!("constants.rs");
-
 #[cfg(all(target_arch = "x86_64", target_os = "linux", target_env = "gnu"))]
 #[cfg_attr(
     all(target_arch = "x86_64", target_os = "linux", target_env = "gnu"),
     global_allocator
 )]
 static ALLOC: jemallocator::Jemalloc = jemallocator::Jemalloc;
+static EXPRESSION: &str = include_str!("bench_scripts/expression.js");
+static HELLO_WORLD: &str = include_str!("bench_scripts/hello_world.js");
+static FOR_LOOP: &str = include_str!("bench_scripts/for_loop.js");
 
 fn expression_lexer(c: &mut Criterion) {
     c.bench_function("Expression (Lexer)", move |b| {

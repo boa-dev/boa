@@ -3,14 +3,32 @@
 use boa::{exec::Interpreter, realm::Realm, Executable, Lexer, Parser};
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
 
-include!("constants.rs");
-
 #[cfg(all(target_arch = "x86_64", target_os = "linux", target_env = "gnu"))]
 #[cfg_attr(
     all(target_arch = "x86_64", target_os = "linux", target_env = "gnu"),
     global_allocator
 )]
 static ALLOC: jemallocator::Jemalloc = jemallocator::Jemalloc;
+static STRING_OBJECT_ACCESS: &str = include_str!("bench_scripts/string_object_access.js");
+static ARRAY_POP: &str = include_str!("bench_scripts/array_pop.js");
+static STRING_COPY: &str = include_str!("bench_scripts/string_copy.js");
+static SYMBOL_CREATION: &str = include_str!("bench_scripts/symbol_creation.js");
+static ARITHMETIC_OPERATIONS: &str = include_str!("bench_scripts/arithmetic_operations.js");
+static STRING_COMPARE: &str = include_str!("bench_scripts/string_compare.js");
+static OBJECT_CREATION: &str = include_str!("bench_scripts/object_creation.js");
+static FIBONACCI: &str = include_str!("bench_scripts/fibonacci.js");
+static REGEXP_LITERAL: &str = include_str!("bench_scripts/regexp_literal.js");
+static ARRAY_CREATE: &str = include_str!("bench_scripts/array_create.js");
+static OBJECT_PROP_ACCESS_DYN: &str = include_str!("bench_scripts/object_prop_access_dyn.js");
+static OBJECT_PROP_ACCESS_CONST: &str = include_str!("bench_scripts/object_prop_access_const.js");
+static FOR_LOOP: &str = include_str!("bench_scripts/for_loop.js");
+static BOOLEAN_OBJECT_ACCESS: &str = include_str!("bench_scripts/boolean_object_access.js");
+static ARRAY_ACCESS: &str = include_str!("bench_scripts/array_access.js");
+static REGEXP_LITERAL_CREATION: &str = include_str!("bench_scripts/regexp_literal_creation.js");
+static STRING_CONCAT: &str = include_str!("bench_scripts/string_concat.js");
+static REGEXP_CREATION: &str = include_str!("bench_scripts/regexp_creation.js");
+static NUMBER_OBJECT_ACCESS: &str = include_str!("bench_scripts/number_object_access.js");
+static REGEXP: &str = include_str!("bench_scripts/regexp.js");
 
 fn create_realm(c: &mut Criterion) {
     c.bench_function("Create Realm", move |b| b.iter(Realm::create));
