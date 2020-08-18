@@ -48,6 +48,9 @@ mod tests;
 /// Static `prototype`, usually set on constructors as a key to point to their respective prototype object.
 pub static PROTOTYPE: &str = "prototype";
 
+/// This trait allows Rust types to be passed around as objects.
+///
+/// This is automatically implemented, when a type implements `Debug`, `Any` and `Trace`.
 pub trait NativeObject: Debug + Any + Trace {
     fn as_any(&self) -> &dyn Any;
     fn as_mut_any(&mut self) -> &mut dyn Any;
@@ -63,13 +66,32 @@ impl<T: Any + Debug + Trace> NativeObject for T {
     }
 }
 
-pub trait Class: NativeObject {
+/// Native class.
+pub trait Class: NativeObject + Sized {
     /// The binding name of the object.
     const NAME: &'static str;
-    /// The amount of arguments the class `constructor` takes.
+    /// The amount of arguments the class `constructor` takes, default is `0`.
     const LENGTH: usize = 0;
+    /// The attibutes the class will be binded with, default is `writable`, `enumerable`, `configurable`.
+    const ATTRIBUTE: Attribute = Attribute::ALL;
 
-    /// This is a wrapper around `Self::constructor` that sets the internal data of the class.
+    /// The constructor of the class.
+    fn constructor(this: &Value, args: &[Value], ctx: &mut Interpreter) -> Result<Self>;
+
+    /// Initializes the internals and the methods of the class.
+    fn methods(class: &mut ClassBuilder<'_>) -> Result<()>;
+}
+
+/// This is a wrapper around `Class::constructor` that sets the internal data of a class.
+///
+/// This is automatically implemented, when a type implements `Class`.
+pub trait ClassConstructor: Class {
+    fn raw_constructor(this: &Value, args: &[Value], ctx: &mut Interpreter) -> Result<Value>
+    where
+        Self: Sized;
+}
+
+impl<T: Class> ClassConstructor for T {
     fn raw_constructor(this: &Value, args: &[Value], ctx: &mut Interpreter) -> Result<Value>
     where
         Self: Sized,
@@ -78,14 +100,6 @@ pub trait Class: NativeObject {
         this.set_data(ObjectData::NativeObject(Box::new(object_instance)));
         Ok(this.clone())
     }
-
-    /// The constructor of the class.
-    fn constructor(this: &Value, args: &[Value], ctx: &mut Interpreter) -> Result<Self>
-    where
-        Self: Sized;
-
-    /// Initializes the internals and the methods of the class.
-    fn methods(class: &mut ClassBuilder<'_>) -> Result<()>;
 }
 
 /// Class builder which allows adding methods and static methods to the class.
@@ -99,7 +113,7 @@ pub struct ClassBuilder<'context> {
 impl<'context> ClassBuilder<'context> {
     pub(crate) fn new<T>(context: &'context mut Interpreter) -> Self
     where
-        T: Class,
+        T: ClassConstructor,
     {
         let global = context.global();
 

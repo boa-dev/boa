@@ -27,7 +27,7 @@ use crate::{
     builtins::{
         function::{Function, FunctionFlags, NativeFunction},
         object::{Class, ClassBuilder, GcObject, Object, ObjectData, PROTOTYPE},
-        property::PropertyKey,
+        property::{Property, PropertyKey},
         value::{PreferredType, RcString, RcSymbol, Type, Value},
         Console, Symbol,
     },
@@ -365,7 +365,11 @@ impl Interpreter {
         T::methods(&mut class_builder)?;
 
         let class = class_builder.build();
-        self.global().set_field(T::NAME, class);
+        let property = Property::data_descriptor(class.into(), T::ATTRIBUTE);
+        self.global()
+            .as_object_mut()
+            .unwrap()
+            .insert_property(T::NAME, property);
         Ok(())
     }
 }

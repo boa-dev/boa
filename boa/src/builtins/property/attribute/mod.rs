@@ -20,6 +20,9 @@ bitflags! {
         /// None of the flags are present.
         const NONE = 0b0000_0000;
 
+        /// All the flags set (`WRITABLE`, `ENUMERABLE`, `CONFIGURABLE`).
+        const ALL = 0b0011_1111;
+
         /// The `Writable` attribute decides whether the value associated with the property can be changed or not, from its initial value.
         const WRITABLE = 0b0000_0011;
 
@@ -46,6 +49,7 @@ bitflags! {
 
         /// Is the `Configurable` flag defined.
         const HAS_CONFIGURABLE = 0b0010_0000;
+
     }
 }
 
