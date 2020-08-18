@@ -25,8 +25,8 @@ mod try_node;
 use crate::{
     builtins,
     builtins::{
-        function::{Function as FunctionObject, FunctionBody, ThisMode},
-        object::{Object, ObjectData, PROTOTYPE},
+        function::{Function, FunctionFlags, NativeFunction},
+        object::{GcObject, Object, ObjectData, PROTOTYPE},
         property::PropertyKey,
         value::{PreferredType, Type, Value},
         Console,
@@ -125,40 +125,25 @@ impl Interpreter {
         &mut self,
         params: P,
         body: B,
-        this_mode: ThisMode,
-        constructable: bool,
-        callable: bool,
+        flags: FunctionFlags,
     ) -> Value
     where
         P: Into<Box<[FormalParameter]>>,
         B: Into<StatementList>,
     {
-        let function_prototype = self
-            .realm
-            .environment
-            .get_global_object()
-            .expect("Could not get the global object")
-            .get_field("Function")
-            .get_field(PROTOTYPE);
+        let function_prototype = self.global().get_field("Function").get_field(PROTOTYPE);
 
         // Every new function has a prototype property pre-made
-        let global_val = &self
-            .realm
-            .environment
-            .get_global_object()
-            .expect("Could not get the global object");
-        let proto = Value::new_object(Some(global_val));
+        let proto = Value::new_object(Some(self.global()));
 
         let params = params.into();
         let params_len = params.len();
-        let func = FunctionObject::new(
+        let func = Function::Ordinary {
+            flags,
+            body: body.into(),
             params,
-            Some(self.realm.environment.get_current_environment().clone()),
-            FunctionBody::Ordinary(body.into()),
-            this_mode,
-            constructable,
-            callable,
-        );
+            environment: self.realm.environment.get_current_environment().clone(),
+        };
 
         let new_func = Object::function(func, function_prototype);
 
@@ -169,21 +154,43 @@ impl Interpreter {
         val
     }
 
-    /// <https://tc39.es/ecma262/#sec-call>
-    pub(crate) fn call(
+    /// Utility to create a function Value for Function Declarations, Arrow Functions or Function Expressions
+    pub fn create_builtin_function(
         &mut self,
-        f: &Value,
-        this: &Value,
-        arguments_list: &[Value],
-    ) -> Result<Value> {
+        name: &str,
+        length: usize,
+        body: NativeFunction,
+    ) -> Result<GcObject> {
+        let function_prototype = self.global().get_field("Function").get_field(PROTOTYPE);
+
+        // Every new function has a prototype property pre-made
+        let proto = Value::new_object(Some(self.global()));
+        let mut function = Object::function(
+            Function::BuiltIn(body.into(), FunctionFlags::CALLABLE),
+            function_prototype,
+        );
+        function.set(&PROTOTYPE.into(), proto);
+        function.set(&"length".into(), length.into());
+        function.set(&"name".into(), name.into());
+
+        Ok(GcObject::new(function))
+    }
+
+    pub fn register_global_function(
+        &mut self,
+        name: &str,
+        length: usize,
+        body: NativeFunction,
+    ) -> Result<()> {
+        let function = self.create_builtin_function(name, length, body)?;
+        self.global().set_field(name, function);
+        Ok(())
+    }
+
+    /// <https://tc39.es/ecma262/#sec-call>
+    pub(crate) fn call(&mut self, f: &Value, this: &Value, args: &[Value]) -> Result<Value> {
         match *f {
-            Value::Object(ref obj) => {
-                let obj = obj.borrow();
-                if let ObjectData::Function(ref func) = obj.data {
-                    return func.call(f.clone(), this, arguments_list, self);
-                }
-                self.throw_type_error("not a function")
-            }
+            Value::Object(ref object) => object.call(this, args, self),
             _ => self.throw_type_error("not a function"),
         }
     }
