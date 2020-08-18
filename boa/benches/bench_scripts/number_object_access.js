@@ -1,4 +1,3 @@
-pub static NUMBER_OBJECT_ACCESS: &str = r#"
 new Number(
     new Number(
         new Number(
@@ -6,4 +5,3 @@ new Number(
         ).valueOf() + 100
     ).valueOf() * 1.6
 )
-"#;

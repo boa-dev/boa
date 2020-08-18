@@ -1,4 +1,3 @@
-pub static STRING_COMPARE: &str = r#"
 (function(){
     var a = "hello";
     var b = "world";
@@ -8,4 +7,3 @@ pub static STRING_COMPARE: &str = r#"
     var d = b;
     var e = d == b;
 })();
-"#;

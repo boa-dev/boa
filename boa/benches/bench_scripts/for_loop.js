@@ -1,4 +1,3 @@
-pub static FOR_LOOP: &str = r#"
 (function () {
     let b = "hello";
     for (let a = 10; a < 100; a += 5) {
@@ -9,4 +8,3 @@ pub static FOR_LOOP: &str = r#"
 
     return b;
 })();
-"#;

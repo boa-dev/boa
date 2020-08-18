@@ -1,4 +1,3 @@
-pub static ARRAY_POP: &str = r#"
 (function(){
     let testArray = [83, 93, 27, 29, 2828, 234, 23, 56, 32, 56, 67, 77, 32,
                      45, 93, 17, 28, 83, 62, 99, 36, 28, 93, 27, 29, 2828,
@@ -23,4 +22,3 @@ pub static ARRAY_POP: &str = r#"
 
     return testArray;
 })();
-"#;

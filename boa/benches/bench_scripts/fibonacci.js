@@ -1,4 +1,3 @@
-pub static FIBONACCI: &str = r#"
 (function () {
     let num = 12;
 
@@ -9,4 +8,3 @@ pub static FIBONACCI: &str = r#"
 
     return fib(num);
 })();
-"#;

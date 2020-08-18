@@ -1,4 +1,3 @@
-pub static STRING_OBJECT_ACCESS: &str = r#"
 new String(
     new String(
         new String(
@@ -6,4 +5,3 @@ new String(
         ).valueOf() + '!'
     ).valueOf()
 ).valueOf()
-"#;

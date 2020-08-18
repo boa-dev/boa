@@ -10,7 +10,6 @@ include!("constants.rs");
     all(target_arch = "x86_64", target_os = "linux", target_env = "gnu"),
     global_allocator
 )]
-
 static ALLOC: jemallocator::Jemalloc = jemallocator::Jemalloc;
 
 fn symbol_creation(c: &mut Criterion) {

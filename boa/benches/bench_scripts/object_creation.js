@@ -1,4 +1,3 @@
-pub static OBJECT_CREATION: &str = r#"
 (function () {
     let test = {
         my_prop: "hello",
@@ -7,4 +6,3 @@ pub static OBJECT_CREATION: &str = r#"
 
     return test;
 })();
-"#;

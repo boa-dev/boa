@@ -1,4 +1,3 @@
-pub static BOOLEAN_OBJECT_ACCESS: &str = r#"
 new Boolean(
     !new Boolean(
         new Boolean(
@@ -6,4 +5,3 @@ new Boolean(
         ).valueOf()
     ).valueOf()
 ).valueOf()
-"#;

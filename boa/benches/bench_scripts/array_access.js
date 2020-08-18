@@ -1,4 +1,3 @@
-pub static ARRAY_ACCESS: &str = r#"
 (function () {
     let testArr = [1,2,3,4,5];
 
@@ -6,4 +5,3 @@ pub static ARRAY_ACCESS: &str = r#"
 
     return res;
 })();
-"#;
