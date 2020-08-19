@@ -118,22 +118,12 @@ where
             );
 
             match cursor.peek_semicolon()? {
-                SemicolonResult::Found(_) => break,
                 SemicolonResult::NotFound(tk)
                     if tk.kind() == &TokenKind::Punctuator(Punctuator::Comma) =>
                 {
                     let _ = cursor.next();
                 }
-                _ => {
-                    return Err(ParseError::expected(
-                        vec![
-                            TokenKind::Punctuator(Punctuator::Semicolon),
-                            TokenKind::LineTerminator,
-                        ],
-                        cursor.next()?.ok_or(ParseError::AbruptEnd)?,
-                        "Variable Declaration List lexical declaration",
-                    ))
-                }
+                _ => break,
             }
         }
 

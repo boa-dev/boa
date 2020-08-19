@@ -73,17 +73,31 @@ where
         cursor.expect(Punctuator::OpenParen, "for statement")?;
 
         let init = match cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?.kind() {
-            TokenKind::Keyword(Keyword::Var) => Some(
-                VariableDeclarationList::new(false, self.allow_yield, self.allow_await)
-                    .parse(cursor)
-                    .map(Node::from)?,
-            ),
+            TokenKind::Keyword(Keyword::Var) => {
+                let _ = cursor.next()?;
+                Some(
+                    VariableDeclarationList::new(false, self.allow_yield, self.allow_await)
+                        .parse(cursor)
+                        .map(Node::from)?,
+                )
+            }
             TokenKind::Keyword(Keyword::Let) | TokenKind::Keyword(Keyword::Const) => {
                 Some(Declaration::new(self.allow_yield, self.allow_await).parse(cursor)?)
             }
             TokenKind::Punctuator(Punctuator::Semicolon) => None,
             _ => Some(Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?),
         };
+
+        // TODO: for..in, for..of
+        match cursor.peek(0)? {
+            Some(tok) if tok.kind() == &TokenKind::Keyword(Keyword::In) => {
+                unimplemented!("for...in statement")
+            }
+            Some(tok) if tok.kind() == &TokenKind::identifier("of") => {
+                unimplemented!("for...of statement")
+            }
+            _ => {}
+        }
 
         cursor.expect(Punctuator::Semicolon, "for statement")?;
 
