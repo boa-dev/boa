@@ -47,7 +47,7 @@ macro_rules! print_obj_value {
         }
     };
     (props of $obj:expr, $display_fn:ident, $indent:expr, $encounters:expr, $print_internals:expr) => {
-        print_obj_value!(impl properties, $obj, |(key, val)| {
+        print_obj_value!(impl $obj, |(key, val)| {
             let v = &val
                 .value
                 .as_ref()
@@ -64,10 +64,9 @@ macro_rules! print_obj_value {
 
     // A private overload of the macro
     // DO NOT use directly
-    (impl $field:ident, $v:expr, $f:expr) => {
+    (impl $v:expr, $f:expr) => {
         $v
             .borrow()
-            .$field()
             .iter()
             .map($f)
             .collect::<Vec<String>>()
@@ -94,9 +93,7 @@ pub(crate) fn log_string_from(x: &Value, print_internals: bool, print_children: 
                 ObjectData::Array => {
                     let len = v
                         .borrow()
-                        .properties()
-                        .get("length")
-                        .expect("Could not get Array's length property")
+                        .get_own_property(&PropertyKey::from("length"))
                         .value
                         .clone()
                         .expect("Could not borrow value")
@@ -114,9 +111,7 @@ pub(crate) fn log_string_from(x: &Value, print_internals: bool, print_children: 
                                 // which are part of the Array
                                 log_string_from(
                                     &v.borrow()
-                                        .properties()
-                                        .get(i.to_string().as_str())
-                                        .unwrap()
+                                        .get_own_property(&i.into())
                                         .value
                                         .clone()
                                         .expect("Could not borrow value"),
@@ -135,9 +130,7 @@ pub(crate) fn log_string_from(x: &Value, print_internals: bool, print_children: 
                 ObjectData::Map(ref map) => {
                     let size = v
                         .borrow()
-                        .properties()
-                        .get("size")
-                        .unwrap()
+                        .get_own_property(&PropertyKey::from("size"))
                         .value
                         .clone()
                         .expect("Could not borrow value")

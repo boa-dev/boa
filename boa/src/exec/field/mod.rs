@@ -24,6 +24,6 @@ impl Executable for GetField {
         }
         let field = self.field().run(interpreter)?;
 
-        Ok(obj.get_field(field.to_string(interpreter)?))
+        Ok(obj.get_field(field.to_property_key(interpreter)?))
     }
 }
