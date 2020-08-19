@@ -2,14 +2,14 @@ use super::{Executable, Interpreter};
 use crate::{
     builtins::{
         object::{ObjectData, PROTOTYPE},
-        value::{ResultValue, Value},
+        value::Value,
     },
     syntax::ast::node::New,
-    BoaProfiler,
+    BoaProfiler, Result,
 };
 
 impl Executable for New {
-    fn run(&self, interpreter: &mut Interpreter) -> ResultValue {
+    fn run(&self, interpreter: &mut Interpreter) -> Result<Value> {
         let _timer = BoaProfiler::global().start_event("New", "exec");
         // let (callee, args) = match call.as_ref() {
         //     Node::Call(callee, args) => (callee, args),

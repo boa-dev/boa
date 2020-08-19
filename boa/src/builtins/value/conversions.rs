@@ -67,18 +67,6 @@ impl Display for TryFromCharError {
     }
 }
 
-impl TryFrom<&Value> for char {
-    type Error = TryFromCharError;
-
-    fn try_from(value: &Value) -> Result<Self, Self::Error> {
-        if let Some(c) = value.display().to_string().chars().next() {
-            Ok(c)
-        } else {
-            Err(TryFromCharError)
-        }
-    }
-}
-
 impl From<f64> for Value {
     fn from(value: f64) -> Self {
         Self::rational(value)
