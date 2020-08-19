@@ -6,7 +6,6 @@ mod tests;
 
 impl Executable for Switch {
     fn run(&self, interpreter: &mut Interpreter) -> Result<Value> {
-        let default = self.default();
         let val = self.val().run(interpreter)?;
         let mut result = Value::null();
         let mut matched = false;
