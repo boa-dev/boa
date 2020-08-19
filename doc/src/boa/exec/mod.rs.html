@@ -410,6 +410,10 @@
 <span id="410">410</span>
 <span id="411">411</span>
 <span id="412">412</span>
+<span id="413">413</span>
+<span id="414">414</span>
+<span id="415">415</span>
+<span id="416">416</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Execution of the AST, this is where the interpreter actually runs</span>
 
@@ -561,6 +565,10 @@
         <span class="kw">let</span> <span class="ident">new_func</span> <span class="op">=</span> <span class="ident">Object</span>::<span class="ident">function</span>(<span class="ident">func</span>, <span class="ident">function_prototype</span>);
 
         <span class="kw">let</span> <span class="ident">val</span> <span class="op">=</span> <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">new_func</span>);
+
+        <span class="comment">// Set constructor field to the newly created Value (function object)</span>
+        <span class="ident">proto</span>.<span class="ident">set_field</span>(<span class="string">&quot;constructor&quot;</span>, <span class="ident">val</span>.<span class="ident">clone</span>());
+
         <span class="ident">val</span>.<span class="ident">set_field</span>(<span class="ident">PROTOTYPE</span>, <span class="ident">proto</span>);
         <span class="ident">val</span>.<span class="ident">set_field</span>(<span class="string">&quot;length&quot;</span>, <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">params_len</span>));
 
