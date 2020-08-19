@@ -6,7 +6,7 @@ use crate::{builtins::value::Value, syntax::ast::node::StatementList, BoaProfile
 impl Executable for StatementList {
     fn run(&self, interpreter: &mut Interpreter) -> Result<Value> {
         let _timer = BoaProfiler::global().start_event("StatementList", "exec");
-        let mut obj = Value::null();
+        let mut obj = Value::default();
         interpreter.set_current_state(InterpreterState::Executing);
         for (i, item) in self.statements().iter().enumerate() {
             let val = item.run(interpreter)?;
