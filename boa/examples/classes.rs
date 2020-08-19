@@ -1,8 +1,13 @@
-use boa::builtins::object::{Class, ClassBuilder};
-use boa::builtins::value::*;
-use boa::exec::*;
-use boa::realm::Realm;
-use boa::*;
+use boa::{
+    builtins::{
+        object::{Class, ClassBuilder},
+        value::Value,
+    },
+    exec::Interpreter,
+    forward_val,
+    realm::Realm,
+    Result,
+};
 
 use gc::{Finalize, Trace};
 

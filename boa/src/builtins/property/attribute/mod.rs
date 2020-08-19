@@ -17,12 +17,6 @@ bitflags! {
     /// Additionaly there are flags for when the flags are defined.
     #[derive(Finalize)]
     pub struct Attribute: u8 {
-        /// None of the flags are present.
-        const NONE = 0b0000_0000;
-
-        /// All the flags set (`WRITABLE`, `ENUMERABLE`, `CONFIGURABLE`).
-        const ALL = 0b0011_1111;
-
         /// The `Writable` attribute decides whether the value associated with the property can be changed or not, from its initial value.
         const WRITABLE = 0b0000_0011;
 
