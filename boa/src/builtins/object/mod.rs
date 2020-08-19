@@ -52,7 +52,7 @@ pub struct Object {
     pub data: ObjectData,
     indexed_properties: FxHashMap<u32, Property>,
     /// Properties
-    pub(crate) properties: FxHashMap<RcString, Property>,
+    string_properties: FxHashMap<RcString, Property>,
     /// Symbol Properties
     symbol_properties: FxHashMap<RcSymbol, Property>,
     /// Instance prototype `__proto__`.
@@ -110,7 +110,7 @@ impl Default for Object {
         Self {
             data: ObjectData::Ordinary,
             indexed_properties: FxHashMap::default(),
-            properties: FxHashMap::default(),
+            string_properties: FxHashMap::default(),
             symbol_properties: FxHashMap::default(),
             prototype: Value::null(),
             extensible: true,
@@ -131,7 +131,7 @@ impl Object {
         Self {
             data: ObjectData::Function(function),
             indexed_properties: FxHashMap::default(),
-            properties: FxHashMap::default(),
+            string_properties: FxHashMap::default(),
             symbol_properties: FxHashMap::default(),
             prototype,
             extensible: true,
@@ -156,7 +156,7 @@ impl Object {
         Self {
             data: ObjectData::Boolean(value),
             indexed_properties: FxHashMap::default(),
-            properties: FxHashMap::default(),
+            string_properties: FxHashMap::default(),
             symbol_properties: FxHashMap::default(),
             prototype: Value::null(),
             extensible: true,
@@ -168,7 +168,7 @@ impl Object {
         Self {
             data: ObjectData::Number(value),
             indexed_properties: FxHashMap::default(),
-            properties: FxHashMap::default(),
+            string_properties: FxHashMap::default(),
             symbol_properties: FxHashMap::default(),
             prototype: Value::null(),
             extensible: true,
@@ -183,7 +183,7 @@ impl Object {
         Self {
             data: ObjectData::String(value.into()),
             indexed_properties: FxHashMap::default(),
-            properties: FxHashMap::default(),
+            string_properties: FxHashMap::default(),
             symbol_properties: FxHashMap::default(),
             prototype: Value::null(),
             extensible: true,
@@ -195,7 +195,7 @@ impl Object {
         Self {
             data: ObjectData::BigInt(value),
             indexed_properties: FxHashMap::default(),
-            properties: FxHashMap::default(),
+            string_properties: FxHashMap::default(),
             symbol_properties: FxHashMap::default(),
             prototype: Value::null(),
             extensible: true,

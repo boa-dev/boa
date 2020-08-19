@@ -493,9 +493,9 @@ impl Value {
     /// Resolve the property in the object and get its value, or undefined if this is not an object or the field doesn't exist
     /// get_field recieves a Property from get_prop(). It should then return the [[Get]] result value if that's set, otherwise fall back to [[Value]]
     /// TODO: this function should use the get Value if its set
-    pub fn get_field<Key>(&self, key: Key) -> Self
+    pub fn get_field<K>(&self, key: K) -> Self
     where
-        Key: Into<PropertyKey>,
+        K: Into<PropertyKey>,
     {
         let _timer = BoaProfiler::global().start_event("Value::get_field", "value");
         let key = key.into();
@@ -524,9 +524,9 @@ impl Value {
 
     /// Check to see if the Value has the field, mainly used by environment records.
     #[inline]
-    pub fn has_field<Key>(&self, key: Key) -> bool
+    pub fn has_field<K>(&self, key: K) -> bool
     where
-        Key: Into<PropertyKey>,
+        K: Into<PropertyKey>,
     {
         let _timer = BoaProfiler::global().start_event("Value::has_field", "value");
         self.as_object()
@@ -536,16 +536,16 @@ impl Value {
 
     /// Set the field in the value
     #[inline]
-    pub fn set_field<F, V>(&self, field: F, value: V) -> Value
+    pub fn set_field<K, V>(&self, key: K, value: V) -> Value
     where
-        F: Into<PropertyKey>,
+        K: Into<PropertyKey>,
         V: Into<Value>,
     {
-        let field = field.into();
+        let key = key.into();
         let value = value.into();
         let _timer = BoaProfiler::global().start_event("Value::set_field", "value");
         if let Self::Object(ref obj) = *self {
-            if let PropertyKey::Index(index) = field {
+            if let PropertyKey::Index(index) = key {
                 if obj.borrow().is_array() {
                     let len = self.get_field("length").as_number().unwrap() as u32;
                     if len < index + 1 {
@@ -553,7 +553,7 @@ impl Value {
                     }
                 }
             }
-            obj.borrow_mut().set(field, value.clone());
+            obj.borrow_mut().set(key, value.clone());
         }
         value
     }
@@ -567,9 +567,9 @@ impl Value {
     }
 
     /// Set the property in the value.
-    pub fn set_property<Key>(&self, key: Key, property: Property) -> Property
+    pub fn set_property<K>(&self, key: K, property: Property) -> Property
     where
-        Key: Into<PropertyKey>,
+        K: Into<PropertyKey>,
     {
         if let Some(mut object) = self.as_object_mut() {
             object.insert_property(key.into(), property.clone());

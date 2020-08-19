@@ -413,8 +413,7 @@ impl Array {
 
         if len == 0 {
             this.set_field("length", 0);
-            // Since length is 0, this will be an Undefined value
-            return Ok(this.get_field(0));
+            return Ok(Value::undefined());
         }
 
         let first: Value = this.get_field(0);

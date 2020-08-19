@@ -356,17 +356,6 @@ impl fmt::Display for PropertyKey {
     }
 }
 
-// impl From<&PropertyKey> for RcString {
-//     #[inline]
-//     fn from(property_key: &PropertyKey) -> RcString {
-//         match property_key {
-//             PropertyKey::String(ref string) => string.clone(),
-//             PropertyKey::Symbol(ref symbol) => symbol.to_string().into(),
-//             PropertyKey::
-//         }
-//     }
-// }
-
 impl From<&PropertyKey> for Value {
     #[inline]
     fn from(property_key: &PropertyKey) -> Value {

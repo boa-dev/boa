@@ -151,9 +151,9 @@ impl Object {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-defineownproperty-p-desc
-    pub fn define_own_property<Key>(&mut self, key: Key, desc: Property) -> bool
+    pub fn define_own_property<K>(&mut self, key: K, desc: Property) -> bool
     where
-        Key: Into<PropertyKey>,
+        K: Into<PropertyKey>,
     {
         let _timer = BoaProfiler::global().start_event("Object::define_own_property", "object");
 
@@ -265,7 +265,7 @@ impl Object {
         // Prop could either be a String or Symbol
         let property = match key {
             PropertyKey::Index(index) => self.indexed_properties.get(&index),
-            PropertyKey::String(ref st) => self.properties.get(st),
+            PropertyKey::String(ref st) => self.string_properties.get(st),
             PropertyKey::Symbol(ref symbol) => self.symbol_properties.get(symbol),
         };
         property.map_or_else(Property::empty, |v| {
@@ -336,13 +336,15 @@ impl Object {
 
     /// Helper function for property insertion.
     #[inline]
-    pub(crate) fn insert_property<Key>(&mut self, key: Key, property: Property) -> Option<Property>
+    pub(crate) fn insert_property<K>(&mut self, key: K, property: Property) -> Option<Property>
     where
-        Key: Into<PropertyKey>,
+        K: Into<PropertyKey>,
     {
         match key.into() {
             PropertyKey::Index(index) => self.indexed_properties.insert(index, property),
-            PropertyKey::String(ref string) => self.properties.insert(string.clone(), property),
+            PropertyKey::String(ref string) => {
+                self.string_properties.insert(string.clone(), property)
+            }
             PropertyKey::Symbol(ref symbol) => {
                 self.symbol_properties.insert(symbol.clone(), property)
             }
@@ -354,7 +356,7 @@ impl Object {
     pub(crate) fn remove_property(&mut self, key: &PropertyKey) -> Option<Property> {
         match key {
             PropertyKey::Index(index) => self.indexed_properties.remove(&index),
-            PropertyKey::String(ref string) => self.properties.remove(string),
+            PropertyKey::String(ref string) => self.string_properties.remove(string),
             PropertyKey::Symbol(ref symbol) => self.symbol_properties.remove(symbol),
         }
     }
@@ -364,9 +366,9 @@ impl Object {
     /// If a field was already in the object with the same name that a `Some` is returned
     /// with that field, otherwise None is retuned.
     #[inline]
-    pub(crate) fn insert_field<Key>(&mut self, key: Key, value: Value) -> Option<Property>
+    pub(crate) fn insert_field<K>(&mut self, key: K, value: Value) -> Option<Property>
     where
-        Key: Into<PropertyKey>,
+        K: Into<PropertyKey>,
     {
         self.insert_property(
             key.into(),

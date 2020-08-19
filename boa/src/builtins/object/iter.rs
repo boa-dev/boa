@@ -1,6 +1,5 @@
-use super::*;
-use std::collections::hash_map;
-use std::iter::FusedIterator;
+use super::{Object, Property, PropertyKey, RcString, RcSymbol};
+use std::{collections::hash_map, iter::FusedIterator};
 
 impl Object {
     /// An iterator visiting all key-value pairs in arbitrary order. The iterator element type is `(PropertyKey, &'a Property)`.
@@ -10,7 +9,7 @@ impl Object {
     pub fn iter(&self) -> Iter<'_> {
         Iter {
             indexed_properties: self.indexed_properties.iter(),
-            string_properties: self.properties.iter(),
+            string_properties: self.string_properties.iter(),
             symbol_properties: self.symbol_properties.iter(),
         }
     }
@@ -85,7 +84,7 @@ impl Object {
     /// This iterator does not recurse down the prototype chain.
     #[inline]
     pub fn string_properties(&self) -> StringProperties<'_> {
-        StringProperties(self.properties.iter())
+        StringProperties(self.string_properties.iter())
     }
 
     /// An iterator visiting all string keys in arbitrary order. The iterator element type is `&'a RcString`.
@@ -93,7 +92,7 @@ impl Object {
     /// This iterator does not recurse down the prototype chain.
     #[inline]
     pub fn string_property_keys(&self) -> StringPropertyKeys<'_> {
-        StringPropertyKeys(self.properties.keys())
+        StringPropertyKeys(self.string_properties.keys())
     }
 
     /// An iterator visiting all string values in arbitrary order. The iterator element type is `&'a Property`.
@@ -101,7 +100,7 @@ impl Object {
     /// This iterator does not recurse down the prototype chain.
     #[inline]
     pub fn string_property_values(&self) -> StringPropertyValues<'_> {
-        StringPropertyValues(self.properties.values())
+        StringPropertyValues(self.string_properties.values())
     }
 }
 

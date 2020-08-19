@@ -13,9 +13,15 @@
 //! [json]: https://www.json.org/json-en.html
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON
 
-use crate::builtins::property::{Property, PropertyKey};
-use crate::builtins::{function::make_builtin_fn, value::Value};
-use crate::{exec::Interpreter, BoaProfiler, Result};
+use crate::{
+    builtins::{
+        function::make_builtin_fn,
+        property::{Property, PropertyKey},
+        value::Value,
+    },
+    exec::Interpreter,
+    BoaProfiler, Result,
+};
 use serde_json::{self, Value as JSONValue};
 
 #[cfg(test)]
@@ -54,7 +60,7 @@ impl Json {
                     Some(reviver) if reviver.is_function() => {
                         let mut holder = Value::new_object(None);
                         holder.set_field("", j);
-                        Self::walk(reviver, ctx, &mut holder, &"".into())
+                        Self::walk(reviver, ctx, &mut holder, &PropertyKey::from(""))
                     }
                     _ => Ok(j),
                 }
