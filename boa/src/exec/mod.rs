@@ -148,6 +148,10 @@ impl Interpreter {
         let new_func = Object::function(func, function_prototype);
 
         let val = Value::from(new_func);
+
+        // Set constructor field to the newly created Value (function object)
+        proto.set_field("constructor", val.clone());
+
         val.set_field(PROTOTYPE, proto);
         val.set_field("length", Value::from(params_len));
 
