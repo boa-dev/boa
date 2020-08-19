@@ -6,6 +6,9 @@ use crate::{builtins::value::Value, syntax::ast::node::StatementList, BoaProfile
 impl Executable for StatementList {
     fn run(&self, interpreter: &mut Interpreter) -> Result<Value> {
         let _timer = BoaProfiler::global().start_event("StatementList", "exec");
+
+        // https://tc39.es/ecma262/#sec-block-runtime-semantics-evaluation
+        // The return value is uninitialized, which means it defaults to Value::Undefined
         let mut obj = Value::default();
         interpreter.set_current_state(InterpreterState::Executing);
         for (i, item) in self.statements().iter().enumerate() {
