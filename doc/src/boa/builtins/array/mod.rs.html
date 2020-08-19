@@ -1196,17 +1196,6 @@
 <span id="1196">1196</span>
 <span id="1197">1197</span>
 <span id="1198">1198</span>
-<span id="1199">1199</span>
-<span id="1200">1200</span>
-<span id="1201">1201</span>
-<span id="1202">1202</span>
-<span id="1203">1203</span>
-<span id="1204">1204</span>
-<span id="1205">1205</span>
-<span id="1206">1206</span>
-<span id="1207">1207</span>
-<span id="1208">1208</span>
-<span id="1209">1209</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements the global `Array` object.</span>
 <span class="doccomment">//!</span>
@@ -1281,7 +1270,7 @@
         <span class="comment">// Wipe existing contents of the array object</span>
         <span class="kw">let</span> <span class="ident">orig_length</span> <span class="op">=</span> <span class="ident">array_obj</span>.<span class="ident">get_field</span>(<span class="string">&quot;length&quot;</span>).<span class="ident">as_number</span>().<span class="ident">unwrap</span>() <span class="kw">as</span> <span class="ident">i32</span>;
         <span class="kw">for</span> <span class="ident">n</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">orig_length</span> {
-            <span class="ident">array_obj_ptr</span>.<span class="ident">remove_property</span>(<span class="kw-2">&amp;</span><span class="ident">n</span>.<span class="ident">to_string</span>());
+            <span class="ident">array_obj_ptr</span>.<span class="ident">remove_property</span>(<span class="ident">n</span>);
         }
 
         <span class="comment">// Create length</span>
@@ -1292,7 +1281,7 @@
         <span class="ident">array_obj_ptr</span>.<span class="ident">set_property</span>(<span class="string">&quot;length&quot;</span>.<span class="ident">to_string</span>(), <span class="ident">length</span>);
 
         <span class="kw">for</span> (<span class="ident">n</span>, <span class="ident">value</span>) <span class="kw">in</span> <span class="ident">array_contents</span>.<span class="ident">iter</span>().<span class="ident">enumerate</span>() {
-            <span class="ident">array_obj_ptr</span>.<span class="ident">set_field</span>(<span class="ident">n</span>.<span class="ident">to_string</span>(), <span class="ident">value</span>);
+            <span class="ident">array_obj_ptr</span>.<span class="ident">set_field</span>(<span class="ident">n</span>, <span class="ident">value</span>);
         }
         <span class="prelude-val">Ok</span>(<span class="ident">array_obj_ptr</span>)
     }
@@ -1304,7 +1293,7 @@
 
         <span class="kw">for</span> (<span class="ident">n</span>, <span class="ident">value</span>) <span class="kw">in</span> <span class="ident">add_values</span>.<span class="ident">iter</span>().<span class="ident">enumerate</span>() {
             <span class="kw">let</span> <span class="ident">new_index</span> <span class="op">=</span> <span class="ident">orig_length</span>.<span class="ident">wrapping_add</span>(<span class="ident">n</span> <span class="kw">as</span> <span class="ident">i32</span>);
-            <span class="ident">array_ptr</span>.<span class="ident">set_field</span>(<span class="ident">new_index</span>.<span class="ident">to_string</span>(), <span class="ident">value</span>);
+            <span class="ident">array_ptr</span>.<span class="ident">set_field</span>(<span class="ident">new_index</span>, <span class="ident">value</span>);
         }
 
         <span class="ident">array_ptr</span>.<span class="ident">set_field</span>(
@@ -1337,7 +1326,7 @@
                 <span class="ident">length</span> <span class="op">=</span> <span class="ident">args</span>[<span class="number">0</span>].<span class="ident">as_number</span>().<span class="ident">unwrap</span>() <span class="kw">as</span> <span class="ident">i32</span>;
                 <span class="comment">// TODO: It should not create an array of undefineds, but an empty array (&quot;holy&quot; array in V8) with length `n`.</span>
                 <span class="kw">for</span> <span class="ident">n</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">length</span> {
-                    <span class="ident">this</span>.<span class="ident">set_field</span>(<span class="ident">n</span>.<span class="ident">to_string</span>(), <span class="ident">Value</span>::<span class="ident">undefined</span>());
+                    <span class="ident">this</span>.<span class="ident">set_field</span>(<span class="ident">n</span>, <span class="ident">Value</span>::<span class="ident">undefined</span>());
                 }
             }
             <span class="number">1</span> <span class="kw">if</span> <span class="ident">args</span>[<span class="number">0</span>].<span class="ident">is_double</span>() <span class="op">=</span><span class="op">&gt;</span> {
@@ -1345,7 +1334,7 @@
             }
             <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">for</span> (<span class="ident">n</span>, <span class="ident">value</span>) <span class="kw">in</span> <span class="ident">args</span>.<span class="ident">iter</span>().<span class="ident">enumerate</span>() {
-                    <span class="ident">this</span>.<span class="ident">set_field</span>(<span class="ident">n</span>.<span class="ident">to_string</span>(), <span class="ident">value</span>.<span class="ident">clone</span>());
+                    <span class="ident">this</span>.<span class="ident">set_field</span>(<span class="ident">n</span>, <span class="ident">value</span>.<span class="ident">clone</span>());
                 }
             }
         }
@@ -1407,13 +1396,13 @@
 
         <span class="kw">let</span> <span class="ident">this_length</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="string">&quot;length&quot;</span>).<span class="ident">as_number</span>().<span class="ident">unwrap</span>() <span class="kw">as</span> <span class="ident">i32</span>;
         <span class="kw">for</span> <span class="ident">n</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">this_length</span> {
-            <span class="ident">new_values</span>.<span class="ident">push</span>(<span class="ident">this</span>.<span class="ident">get_field</span>(<span class="ident">n</span>.<span class="ident">to_string</span>()));
+            <span class="ident">new_values</span>.<span class="ident">push</span>(<span class="ident">this</span>.<span class="ident">get_field</span>(<span class="ident">n</span>));
         }
 
         <span class="kw">for</span> <span class="ident">concat_array</span> <span class="kw">in</span> <span class="ident">args</span> {
             <span class="kw">let</span> <span class="ident">concat_length</span> <span class="op">=</span> <span class="ident">concat_array</span>.<span class="ident">get_field</span>(<span class="string">&quot;length&quot;</span>).<span class="ident">as_number</span>().<span class="ident">unwrap</span>() <span class="kw">as</span> <span class="ident">i32</span>;
             <span class="kw">for</span> <span class="ident">n</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">concat_length</span> {
-                <span class="ident">new_values</span>.<span class="ident">push</span>(<span class="ident">concat_array</span>.<span class="ident">get_field</span>(<span class="ident">n</span>.<span class="ident">to_string</span>()));
+                <span class="ident">new_values</span>.<span class="ident">push</span>(<span class="ident">concat_array</span>.<span class="ident">get_field</span>(<span class="ident">n</span>));
             }
         }
 
@@ -1455,7 +1444,7 @@
         }
         <span class="kw">let</span> <span class="ident">pop_index</span> <span class="op">=</span> <span class="ident">curr_length</span>.<span class="ident">wrapping_sub</span>(<span class="number">1</span>);
         <span class="kw">let</span> <span class="ident">pop_value</span>: <span class="ident">Value</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="ident">pop_index</span>.<span class="ident">to_string</span>());
-        <span class="ident">this</span>.<span class="ident">remove_property</span>(<span class="kw-2">&amp;</span><span class="ident">pop_index</span>.<span class="ident">to_string</span>());
+        <span class="ident">this</span>.<span class="ident">remove_property</span>(<span class="ident">pop_index</span>);
         <span class="ident">this</span>.<span class="ident">set_field</span>(<span class="string">&quot;length&quot;</span>, <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">pop_index</span>));
         <span class="prelude-val">Ok</span>(<span class="ident">pop_value</span>)
     }
@@ -1485,7 +1474,7 @@
         <span class="kw">let</span> <span class="ident">length</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="string">&quot;length&quot;</span>).<span class="ident">as_number</span>().<span class="ident">unwrap</span>() <span class="kw">as</span> <span class="ident">i32</span>;
 
         <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">length</span> {
-            <span class="kw">let</span> <span class="ident">element</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="ident">i</span>.<span class="ident">to_string</span>());
+            <span class="kw">let</span> <span class="ident">element</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="ident">i</span>);
             <span class="kw">let</span> <span class="ident">arguments</span> <span class="op">=</span> [<span class="ident">element</span>, <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">i</span>), <span class="ident">this</span>.<span class="ident">clone</span>()];
 
             <span class="ident">interpreter</span>.<span class="ident">call</span>(<span class="ident">callback_arg</span>, <span class="kw-2">&amp;</span><span class="ident">this_arg</span>, <span class="kw-2">&amp;</span><span class="ident">arguments</span>)<span class="question-mark">?</span>;
@@ -1519,7 +1508,7 @@
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">elem_strs</span> <span class="op">=</span> <span class="ident">Vec</span>::<span class="ident">new</span>();
         <span class="kw">let</span> <span class="ident">length</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="string">&quot;length&quot;</span>).<span class="ident">as_number</span>().<span class="ident">unwrap</span>() <span class="kw">as</span> <span class="ident">i32</span>;
         <span class="kw">for</span> <span class="ident">n</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">length</span> {
-            <span class="kw">let</span> <span class="ident">elem_str</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="ident">n</span>.<span class="ident">to_string</span>()).<span class="ident">to_string</span>(<span class="ident">ctx</span>)<span class="question-mark">?</span>.<span class="ident">to_string</span>();
+            <span class="kw">let</span> <span class="ident">elem_str</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="ident">n</span>).<span class="ident">to_string</span>(<span class="ident">ctx</span>)<span class="question-mark">?</span>.<span class="ident">to_string</span>();
             <span class="ident">elem_strs</span>.<span class="ident">push</span>(<span class="ident">elem_str</span>);
         }
 
@@ -1587,21 +1576,21 @@
         <span class="kw">for</span> <span class="ident">lower</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">middle</span> {
             <span class="kw">let</span> <span class="ident">upper</span> <span class="op">=</span> <span class="ident">len</span>.<span class="ident">wrapping_sub</span>(<span class="ident">lower</span>).<span class="ident">wrapping_sub</span>(<span class="number">1</span>);
 
-            <span class="kw">let</span> <span class="ident">upper_exists</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">has_field</span>(<span class="kw-2">&amp;</span><span class="ident">upper</span>.<span class="ident">to_string</span>());
-            <span class="kw">let</span> <span class="ident">lower_exists</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">has_field</span>(<span class="kw-2">&amp;</span><span class="ident">lower</span>.<span class="ident">to_string</span>());
+            <span class="kw">let</span> <span class="ident">upper_exists</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">has_field</span>(<span class="ident">upper</span>);
+            <span class="kw">let</span> <span class="ident">lower_exists</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">has_field</span>(<span class="ident">lower</span>);
 
-            <span class="kw">let</span> <span class="ident">upper_value</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="ident">upper</span>.<span class="ident">to_string</span>());
-            <span class="kw">let</span> <span class="ident">lower_value</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="ident">lower</span>.<span class="ident">to_string</span>());
+            <span class="kw">let</span> <span class="ident">upper_value</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="ident">upper</span>);
+            <span class="kw">let</span> <span class="ident">lower_value</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="ident">lower</span>);
 
             <span class="kw">if</span> <span class="ident">upper_exists</span> <span class="kw-2">&amp;</span><span class="op">&amp;</span> <span class="ident">lower_exists</span> {
-                <span class="ident">this</span>.<span class="ident">set_field</span>(<span class="ident">upper</span>.<span class="ident">to_string</span>(), <span class="ident">lower_value</span>);
-                <span class="ident">this</span>.<span class="ident">set_field</span>(<span class="ident">lower</span>.<span class="ident">to_string</span>(), <span class="ident">upper_value</span>);
+                <span class="ident">this</span>.<span class="ident">set_field</span>(<span class="ident">upper</span>, <span class="ident">lower_value</span>);
+                <span class="ident">this</span>.<span class="ident">set_field</span>(<span class="ident">lower</span>, <span class="ident">upper_value</span>);
             } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">upper_exists</span> {
-                <span class="ident">this</span>.<span class="ident">set_field</span>(<span class="ident">lower</span>.<span class="ident">to_string</span>(), <span class="ident">upper_value</span>);
-                <span class="ident">this</span>.<span class="ident">remove_property</span>(<span class="kw-2">&amp;</span><span class="ident">upper</span>.<span class="ident">to_string</span>());
+                <span class="ident">this</span>.<span class="ident">set_field</span>(<span class="ident">lower</span>, <span class="ident">upper_value</span>);
+                <span class="ident">this</span>.<span class="ident">remove_property</span>(<span class="ident">upper</span>);
             } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">lower_exists</span> {
-                <span class="ident">this</span>.<span class="ident">set_field</span>(<span class="ident">upper</span>.<span class="ident">to_string</span>(), <span class="ident">lower_value</span>);
-                <span class="ident">this</span>.<span class="ident">remove_property</span>(<span class="kw-2">&amp;</span><span class="ident">lower</span>.<span class="ident">to_string</span>());
+                <span class="ident">this</span>.<span class="ident">set_field</span>(<span class="ident">upper</span>, <span class="ident">lower_value</span>);
+                <span class="ident">this</span>.<span class="ident">remove_property</span>(<span class="ident">lower</span>);
             }
         }
 
@@ -1623,26 +1612,25 @@
 
         <span class="kw">if</span> <span class="ident">len</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
             <span class="ident">this</span>.<span class="ident">set_field</span>(<span class="string">&quot;length&quot;</span>, <span class="number">0</span>);
-            <span class="comment">// Since length is 0, this will be an Undefined value</span>
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">this</span>.<span class="ident">get_field</span>(<span class="number">0</span>.<span class="ident">to_string</span>()));
+            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">undefined</span>());
         }
 
-        <span class="kw">let</span> <span class="ident">first</span>: <span class="ident">Value</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="number">0</span>.<span class="ident">to_string</span>());
+        <span class="kw">let</span> <span class="ident">first</span>: <span class="ident">Value</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="number">0</span>);
 
         <span class="kw">for</span> <span class="ident">k</span> <span class="kw">in</span> <span class="number">1</span>..<span class="ident">len</span> {
-            <span class="kw">let</span> <span class="ident">from</span> <span class="op">=</span> <span class="ident">k</span>.<span class="ident">to_string</span>();
-            <span class="kw">let</span> <span class="ident">to</span> <span class="op">=</span> (<span class="ident">k</span>.<span class="ident">wrapping_sub</span>(<span class="number">1</span>)).<span class="ident">to_string</span>();
+            <span class="kw">let</span> <span class="ident">from</span> <span class="op">=</span> <span class="ident">k</span>;
+            <span class="kw">let</span> <span class="ident">to</span> <span class="op">=</span> <span class="ident">k</span>.<span class="ident">wrapping_sub</span>(<span class="number">1</span>);
 
             <span class="kw">let</span> <span class="ident">from_value</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="ident">from</span>);
             <span class="kw">if</span> <span class="ident">from_value</span>.<span class="ident">is_undefined</span>() {
-                <span class="ident">this</span>.<span class="ident">remove_property</span>(<span class="kw-2">&amp;</span><span class="ident">to</span>);
+                <span class="ident">this</span>.<span class="ident">remove_property</span>(<span class="ident">to</span>);
             } <span class="kw">else</span> {
                 <span class="ident">this</span>.<span class="ident">set_field</span>(<span class="ident">to</span>, <span class="ident">from_value</span>);
             }
         }
 
         <span class="kw">let</span> <span class="ident">final_index</span> <span class="op">=</span> <span class="ident">len</span>.<span class="ident">wrapping_sub</span>(<span class="number">1</span>);
-        <span class="ident">this</span>.<span class="ident">remove_property</span>(<span class="kw-2">&amp;</span>(<span class="ident">final_index</span>).<span class="ident">to_string</span>());
+        <span class="ident">this</span>.<span class="ident">remove_property</span>(<span class="ident">final_index</span>);
         <span class="ident">this</span>.<span class="ident">set_field</span>(<span class="string">&quot;length&quot;</span>, <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">final_index</span>));
 
         <span class="prelude-val">Ok</span>(<span class="ident">first</span>)
@@ -1667,19 +1655,19 @@
 
         <span class="kw">if</span> <span class="ident">arg_c</span> <span class="op">&gt;</span> <span class="number">0</span> {
             <span class="kw">for</span> <span class="ident">k</span> <span class="kw">in</span> (<span class="number">1</span>..<span class="op">=</span><span class="ident">len</span>).<span class="ident">rev</span>() {
-                <span class="kw">let</span> <span class="ident">from</span> <span class="op">=</span> (<span class="ident">k</span>.<span class="ident">wrapping_sub</span>(<span class="number">1</span>)).<span class="ident">to_string</span>();
-                <span class="kw">let</span> <span class="ident">to</span> <span class="op">=</span> (<span class="ident">k</span>.<span class="ident">wrapping_add</span>(<span class="ident">arg_c</span>).<span class="ident">wrapping_sub</span>(<span class="number">1</span>)).<span class="ident">to_string</span>();
+                <span class="kw">let</span> <span class="ident">from</span> <span class="op">=</span> <span class="ident">k</span>.<span class="ident">wrapping_sub</span>(<span class="number">1</span>);
+                <span class="kw">let</span> <span class="ident">to</span> <span class="op">=</span> <span class="ident">k</span>.<span class="ident">wrapping_add</span>(<span class="ident">arg_c</span>).<span class="ident">wrapping_sub</span>(<span class="number">1</span>);
 
                 <span class="kw">let</span> <span class="ident">from_value</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="ident">from</span>);
                 <span class="kw">if</span> <span class="ident">from_value</span>.<span class="ident">is_undefined</span>() {
-                    <span class="ident">this</span>.<span class="ident">remove_property</span>(<span class="kw-2">&amp;</span><span class="ident">to</span>);
+                    <span class="ident">this</span>.<span class="ident">remove_property</span>(<span class="ident">to</span>);
                 } <span class="kw">else</span> {
                     <span class="ident">this</span>.<span class="ident">set_field</span>(<span class="ident">to</span>, <span class="ident">from_value</span>);
                 }
             }
             <span class="kw">for</span> <span class="ident">j</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">arg_c</span> {
                 <span class="ident">this</span>.<span class="ident">set_field</span>(
-                    <span class="ident">j</span>.<span class="ident">to_string</span>(),
+                    <span class="ident">j</span>,
                     <span class="ident">args</span>.<span class="ident">get</span>(<span class="ident">j</span> <span class="kw">as</span> <span class="ident">usize</span>)
                         .<span class="ident">expect</span>(<span class="string">&quot;Could not get argument&quot;</span>)
                         .<span class="ident">clone</span>(),
@@ -1725,7 +1713,7 @@
         <span class="kw">let</span> <span class="ident">max_len</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="string">&quot;length&quot;</span>).<span class="ident">as_number</span>().<span class="ident">unwrap</span>() <span class="kw">as</span> <span class="ident">i32</span>;
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">max_len</span>;
         <span class="kw">while</span> <span class="ident">i</span> <span class="op">&lt;</span> <span class="ident">len</span> {
-            <span class="kw">let</span> <span class="ident">element</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="ident">i</span>.<span class="ident">to_string</span>());
+            <span class="kw">let</span> <span class="ident">element</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="ident">i</span>);
             <span class="kw">let</span> <span class="ident">arguments</span> <span class="op">=</span> [<span class="ident">element</span>, <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">i</span>), <span class="ident">this</span>.<span class="ident">clone</span>()];
             <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">interpreter</span>.<span class="ident">call</span>(<span class="ident">callback</span>, <span class="kw-2">&amp;</span><span class="ident">this_arg</span>, <span class="kw-2">&amp;</span><span class="ident">arguments</span>)<span class="question-mark">?</span>;
             <span class="kw">if</span> <span class="op">!</span><span class="ident">result</span>.<span class="ident">to_boolean</span>() {
@@ -1771,7 +1759,7 @@
 
         <span class="kw">let</span> <span class="ident">values</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> <span class="op">=</span> (<span class="number">0</span>..<span class="ident">length</span>)
             .<span class="ident">map</span>(<span class="op">|</span><span class="ident">idx</span><span class="op">|</span> {
-                <span class="kw">let</span> <span class="ident">element</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="ident">idx</span>.<span class="ident">to_string</span>());
+                <span class="kw">let</span> <span class="ident">element</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="ident">idx</span>);
                 <span class="kw">let</span> <span class="ident">args</span> <span class="op">=</span> [<span class="ident">element</span>, <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">idx</span>), <span class="ident">new</span>.<span class="ident">clone</span>()];
 
                 <span class="ident">interpreter</span>
@@ -1825,7 +1813,7 @@
         };
 
         <span class="kw">while</span> <span class="ident">idx</span> <span class="op">&lt;</span> <span class="ident">len</span> {
-            <span class="kw">let</span> <span class="ident">check_element</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="ident">idx</span>.<span class="ident">to_string</span>()).<span class="ident">clone</span>();
+            <span class="kw">let</span> <span class="ident">check_element</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="ident">idx</span>).<span class="ident">clone</span>();
 
             <span class="kw">if</span> <span class="ident">check_element</span>.<span class="ident">strict_equals</span>(<span class="kw-2">&amp;</span><span class="ident">search_element</span>) {
                 <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">idx</span>));
@@ -1882,7 +1870,7 @@
         };
 
         <span class="kw">while</span> <span class="ident">idx</span> <span class="op">&gt;</span><span class="op">=</span> <span class="number">0</span> {
-            <span class="kw">let</span> <span class="ident">check_element</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="ident">idx</span>.<span class="ident">to_string</span>()).<span class="ident">clone</span>();
+            <span class="kw">let</span> <span class="ident">check_element</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="ident">idx</span>).<span class="ident">clone</span>();
 
             <span class="kw">if</span> <span class="ident">check_element</span>.<span class="ident">strict_equals</span>(<span class="kw-2">&amp;</span><span class="ident">search_element</span>) {
                 <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">idx</span>));
@@ -1920,7 +1908,7 @@
         <span class="kw">let</span> <span class="ident">this_arg</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">1</span>).<span class="ident">cloned</span>().<span class="ident">unwrap_or_else</span>(<span class="ident">Value</span>::<span class="ident">undefined</span>);
         <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="string">&quot;length&quot;</span>).<span class="ident">as_number</span>().<span class="ident">unwrap</span>() <span class="kw">as</span> <span class="ident">i32</span>;
         <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">len</span> {
-            <span class="kw">let</span> <span class="ident">element</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="ident">i</span>.<span class="ident">to_string</span>());
+            <span class="kw">let</span> <span class="ident">element</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="ident">i</span>);
             <span class="kw">let</span> <span class="ident">arguments</span> <span class="op">=</span> [<span class="ident">element</span>.<span class="ident">clone</span>(), <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">i</span>), <span class="ident">this</span>.<span class="ident">clone</span>()];
             <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">interpreter</span>.<span class="ident">call</span>(<span class="ident">callback</span>, <span class="kw-2">&amp;</span><span class="ident">this_arg</span>, <span class="kw-2">&amp;</span><span class="ident">arguments</span>)<span class="question-mark">?</span>;
             <span class="kw">if</span> <span class="ident">result</span>.<span class="ident">to_boolean</span>() {
@@ -1960,7 +1948,7 @@
         <span class="kw">let</span> <span class="ident">length</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="string">&quot;length&quot;</span>).<span class="ident">as_number</span>().<span class="ident">unwrap</span>() <span class="kw">as</span> <span class="ident">i32</span>;
 
         <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">length</span> {
-            <span class="kw">let</span> <span class="ident">element</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="ident">i</span>.<span class="ident">to_string</span>());
+            <span class="kw">let</span> <span class="ident">element</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="ident">i</span>);
             <span class="kw">let</span> <span class="ident">arguments</span> <span class="op">=</span> [<span class="ident">element</span>, <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">i</span>), <span class="ident">this</span>.<span class="ident">clone</span>()];
 
             <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">interpreter</span>.<span class="ident">call</span>(<span class="ident">predicate_arg</span>, <span class="kw-2">&amp;</span><span class="ident">this_arg</span>, <span class="kw-2">&amp;</span><span class="ident">arguments</span>)<span class="question-mark">?</span>;
@@ -2008,7 +1996,7 @@
         };
 
         <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="ident">start</span>..<span class="ident">fin</span> {
-            <span class="ident">this</span>.<span class="ident">set_field</span>(<span class="ident">i</span>.<span class="ident">to_string</span>(), <span class="ident">value</span>.<span class="ident">clone</span>());
+            <span class="ident">this</span>.<span class="ident">set_field</span>(<span class="ident">i</span>, <span class="ident">value</span>.<span class="ident">clone</span>());
         }
 
         <span class="prelude-val">Ok</span>(<span class="ident">this</span>.<span class="ident">clone</span>())
@@ -2034,7 +2022,7 @@
         <span class="kw">let</span> <span class="ident">length</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="string">&quot;length&quot;</span>).<span class="ident">as_number</span>().<span class="ident">unwrap</span>() <span class="kw">as</span> <span class="ident">i32</span>;
 
         <span class="kw">for</span> <span class="ident">idx</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">length</span> {
-            <span class="kw">let</span> <span class="ident">check_element</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="ident">idx</span>.<span class="ident">to_string</span>()).<span class="ident">clone</span>();
+            <span class="kw">let</span> <span class="ident">check_element</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="ident">idx</span>).<span class="ident">clone</span>();
 
             <span class="kw">if</span> <span class="ident">same_value_zero</span>(<span class="kw-2">&amp;</span><span class="ident">check_element</span>, <span class="kw-2">&amp;</span><span class="ident">search_element</span>) {
                 <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="bool-val">true</span>));
@@ -2089,7 +2077,7 @@
         <span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <span class="ident">max</span>(<span class="ident">to</span>.<span class="ident">wrapping_sub</span>(<span class="ident">from</span>), <span class="number">0</span>);
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">new_array_len</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="number">0</span>;
         <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="ident">from</span>..<span class="ident">from</span>.<span class="ident">wrapping_add</span>(<span class="ident">span</span>) {
-            <span class="ident">new_array</span>.<span class="ident">set_field</span>(<span class="ident">new_array_len</span>.<span class="ident">to_string</span>(), <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="ident">i</span>.<span class="ident">to_string</span>()));
+            <span class="ident">new_array</span>.<span class="ident">set_field</span>(<span class="ident">new_array_len</span>, <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="ident">i</span>));
             <span class="ident">new_array_len</span> <span class="op">=</span> <span class="ident">new_array_len</span>.<span class="ident">wrapping_add</span>(<span class="number">1</span>);
         }
         <span class="ident">new_array</span>.<span class="ident">set_field</span>(<span class="string">&quot;length&quot;</span>, <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">new_array_len</span>));
@@ -2127,7 +2115,7 @@
 
         <span class="kw">let</span> <span class="ident">values</span> <span class="op">=</span> (<span class="number">0</span>..<span class="ident">length</span>)
             .<span class="ident">filter_map</span>(<span class="op">|</span><span class="ident">idx</span><span class="op">|</span> {
-                <span class="kw">let</span> <span class="ident">element</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="ident">idx</span>.<span class="ident">to_string</span>());
+                <span class="kw">let</span> <span class="ident">element</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="ident">idx</span>);
 
                 <span class="kw">let</span> <span class="ident">args</span> <span class="op">=</span> [<span class="ident">element</span>.<span class="ident">clone</span>(), <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">idx</span>), <span class="ident">new</span>.<span class="ident">clone</span>()];
 
@@ -2181,7 +2169,7 @@
         <span class="kw">let</span> <span class="ident">max_len</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="string">&quot;length&quot;</span>).<span class="ident">as_number</span>().<span class="ident">unwrap</span>() <span class="kw">as</span> <span class="ident">i32</span>;
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">max_len</span>;
         <span class="kw">while</span> <span class="ident">i</span> <span class="op">&lt;</span> <span class="ident">len</span> {
-            <span class="kw">let</span> <span class="ident">element</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="ident">i</span>.<span class="ident">to_string</span>());
+            <span class="kw">let</span> <span class="ident">element</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="ident">i</span>);
             <span class="kw">let</span> <span class="ident">arguments</span> <span class="op">=</span> [<span class="ident">element</span>, <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">i</span>), <span class="ident">this</span>.<span class="ident">clone</span>()];
             <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">interpreter</span>.<span class="ident">call</span>(<span class="ident">callback</span>, <span class="kw-2">&amp;</span><span class="ident">this_arg</span>, <span class="kw-2">&amp;</span><span class="ident">arguments</span>)<span class="question-mark">?</span>;
             <span class="kw">if</span> <span class="ident">result</span>.<span class="ident">to_boolean</span>() {
@@ -2228,7 +2216,7 @@
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">accumulator</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">initial_value</span>.<span class="ident">is_undefined</span>() {
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">k_present</span> <span class="op">=</span> <span class="bool-val">false</span>;
             <span class="kw">while</span> <span class="ident">k</span> <span class="op">&lt;</span> <span class="ident">length</span> {
-                <span class="kw">if</span> <span class="ident">this</span>.<span class="ident">has_field</span>(<span class="kw-2">&amp;</span><span class="ident">k</span>.<span class="ident">to_string</span>()) {
+                <span class="kw">if</span> <span class="ident">this</span>.<span class="ident">has_field</span>(<span class="ident">k</span>) {
                     <span class="ident">k_present</span> <span class="op">=</span> <span class="bool-val">true</span>;
                     <span class="kw">break</span>;
                 }
@@ -2239,20 +2227,15 @@
                     <span class="string">&quot;Reduce was called on an empty array and with no initial value&quot;</span>,
                 );
             }
-            <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="ident">k</span>.<span class="ident">to_string</span>());
+            <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="ident">k</span>);
             <span class="ident">k</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
             <span class="ident">result</span>
         } <span class="kw">else</span> {
             <span class="ident">initial_value</span>
         };
         <span class="kw">while</span> <span class="ident">k</span> <span class="op">&lt;</span> <span class="ident">length</span> {
-            <span class="kw">if</span> <span class="ident">this</span>.<span class="ident">has_field</span>(<span class="kw-2">&amp;</span><span class="ident">k</span>.<span class="ident">to_string</span>()) {
-                <span class="kw">let</span> <span class="ident">arguments</span> <span class="op">=</span> [
-                    <span class="ident">accumulator</span>,
-                    <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="ident">k</span>.<span class="ident">to_string</span>()),
-                    <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">k</span>),
-                    <span class="ident">this</span>.<span class="ident">clone</span>(),
-                ];
+            <span class="kw">if</span> <span class="ident">this</span>.<span class="ident">has_field</span>(<span class="ident">k</span>) {
+                <span class="kw">let</span> <span class="ident">arguments</span> <span class="op">=</span> [<span class="ident">accumulator</span>, <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="ident">k</span>), <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">k</span>), <span class="ident">this</span>.<span class="ident">clone</span>()];
                 <span class="ident">accumulator</span> <span class="op">=</span> <span class="ident">interpreter</span>.<span class="ident">call</span>(<span class="kw-2">&amp;</span><span class="ident">callback</span>, <span class="kw-2">&amp;</span><span class="ident">Value</span>::<span class="ident">undefined</span>(), <span class="kw-2">&amp;</span><span class="ident">arguments</span>)<span class="question-mark">?</span>;
                 <span class="comment">/* We keep track of possibly shortened length in order to prevent unnecessary iteration.
                 It may also be necessary to do this since shortening the array length does not
@@ -2301,7 +2284,7 @@
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">accumulator</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">initial_value</span>.<span class="ident">is_undefined</span>() {
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">k_present</span> <span class="op">=</span> <span class="bool-val">false</span>;
             <span class="kw">loop</span> {
-                <span class="kw">if</span> <span class="ident">this</span>.<span class="ident">has_field</span>(<span class="kw-2">&amp;</span><span class="ident">k</span>.<span class="ident">to_string</span>()) {
+                <span class="kw">if</span> <span class="ident">this</span>.<span class="ident">has_field</span>(<span class="ident">k</span>) {
                     <span class="ident">k_present</span> <span class="op">=</span> <span class="bool-val">true</span>;
                     <span class="kw">break</span>;
                 }
@@ -2316,20 +2299,15 @@
                     <span class="string">&quot;reduceRight was called on an empty array and with no initial value&quot;</span>,
                 );
             }
-            <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="ident">k</span>.<span class="ident">to_string</span>());
+            <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="ident">k</span>);
             <span class="ident">k</span> <span class="op">-</span><span class="op">=</span> <span class="number">1</span>;
             <span class="ident">result</span>
         } <span class="kw">else</span> {
             <span class="ident">initial_value</span>
         };
         <span class="kw">loop</span> {
-            <span class="kw">if</span> <span class="ident">this</span>.<span class="ident">has_field</span>(<span class="kw-2">&amp;</span><span class="ident">k</span>.<span class="ident">to_string</span>()) {
-                <span class="kw">let</span> <span class="ident">arguments</span> <span class="op">=</span> [
-                    <span class="ident">accumulator</span>,
-                    <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="ident">k</span>.<span class="ident">to_string</span>()),
-                    <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">k</span>),
-                    <span class="ident">this</span>.<span class="ident">clone</span>(),
-                ];
+            <span class="kw">if</span> <span class="ident">this</span>.<span class="ident">has_field</span>(<span class="ident">k</span>) {
+                <span class="kw">let</span> <span class="ident">arguments</span> <span class="op">=</span> [<span class="ident">accumulator</span>, <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="ident">k</span>), <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">k</span>), <span class="ident">this</span>.<span class="ident">clone</span>()];
                 <span class="ident">accumulator</span> <span class="op">=</span> <span class="ident">interpreter</span>.<span class="ident">call</span>(<span class="kw-2">&amp;</span><span class="ident">callback</span>, <span class="kw-2">&amp;</span><span class="ident">Value</span>::<span class="ident">undefined</span>(), <span class="kw-2">&amp;</span><span class="ident">arguments</span>)<span class="question-mark">?</span>;
                 <span class="comment">/* We keep track of possibly shortened length in order to prevent unnecessary iteration.
                 It may also be necessary to do this since shortening the array length does not
