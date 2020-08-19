@@ -14,13 +14,12 @@
 use crate::{
     builtins::{
         object::{Object, ObjectData, PROTOTYPE},
-        property::{Attribute, Property, PropertyKey},
-        value::{RcString, Value},
+        property::{Attribute, Property},
+        value::Value,
         Array,
     },
-    environment::function_environment_record::BindingStatus,
-    environment::lexical_environment::{new_function_environment, Environment},
-    exec::{Executable, Interpreter},
+    environment::lexical_environment::Environment,
+    exec::Interpreter,
     syntax::ast::node::{FormalParameter, StatementList},
     BoaProfiler, Result,
 };
@@ -29,73 +28,33 @@ use gc::{unsafe_empty_trace, Finalize, Trace};
 use std::fmt::{self, Debug};
 
 /// _fn(this, arguments, ctx) -> Result<Value>_ - The signature of a built-in function
-pub type NativeFunctionData = fn(&Value, &[Value], &mut Interpreter) -> Result<Value>;
+pub type NativeFunction = fn(&Value, &[Value], &mut Interpreter) -> Result<Value>;
 
-/// Sets the ConstructorKind
-#[derive(Debug, Copy, Clone)]
-pub enum ConstructorKind {
-    Base,
-    Derived,
-}
+#[derive(Clone, Copy, Finalize)]
+pub struct BuiltInFunction(pub(crate) NativeFunction);
 
-/// Defines how this references are interpreted within the formal parameters and code body of the function.
-///
-/// Arrow functions don't define a `this` and thus are lexical, `function`s do define a this and thus are NonLexical
-
-#[derive(Debug, Copy, Finalize, Clone, PartialEq, PartialOrd, Hash)]
-pub enum ThisMode {
-    Lexical,
-    NonLexical,
-}
-
-unsafe impl Trace for ThisMode {
+unsafe impl Trace for BuiltInFunction {
     unsafe_empty_trace!();
 }
 
-/// FunctionBody is specific to this interpreter, it will either be Rust code or JavaScript code (AST Node)
-#[derive(Clone, Finalize)]
-pub enum FunctionBody {
-    BuiltIn(NativeFunctionData),
-    Ordinary(StatementList),
+impl From<NativeFunction> for BuiltInFunction {
+    fn from(function: NativeFunction) -> Self {
+        Self(function)
+    }
 }
 
-impl Debug for FunctionBody {
+impl Debug for BuiltInFunction {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Self::BuiltIn(_) => write!(f, "[native]"),
-            Self::Ordinary(statements) => write!(f, "{:?}", statements),
-        }
+        f.write_str("[native]")
     }
-}
-
-impl PartialEq for FunctionBody {
-    fn eq(&self, other: &Self) -> bool {
-        match (self, other) {
-            (Self::BuiltIn(a), Self::BuiltIn(b)) => std::ptr::eq(a, b),
-            (Self::Ordinary(a), Self::Ordinary(b)) => a == b,
-            (_, _) => false,
-        }
-    }
-}
-
-impl Eq for FunctionBody {}
-
-/// `Trace` implementation for `FunctionBody`.
-///
-/// This is indeed safe, but we need to mark this as an empty trace because neither
-// `NativeFunctionData` nor Node hold any GC'd objects, but Gc doesn't know that. So we need to
-/// signal it manually. `rust-gc` does not have a `Trace` implementation for `fn(_, _, _)`.
-///
-/// <https://github.com/Manishearth/rust-gc/blob/master/gc/src/trace.rs>
-unsafe impl Trace for FunctionBody {
-    unsafe_empty_trace!();
 }
 
 bitflags! {
     #[derive(Finalize, Default)]
-    struct FunctionFlags: u8 {
+    pub struct FunctionFlags: u8 {
         const CALLABLE = 0b0000_0001;
         const CONSTRUCTABLE = 0b0000_0010;
+        const LEXICAL_THIS_MODE = 0b0000_0100;
     }
 }
 
@@ -114,13 +73,18 @@ impl FunctionFlags {
     }
 
     #[inline]
-    fn is_callable(&self) -> bool {
+    pub(crate) fn is_callable(&self) -> bool {
         self.contains(Self::CALLABLE)
     }
 
     #[inline]
-    fn is_constructable(&self) -> bool {
+    pub(crate) fn is_constructable(&self) -> bool {
         self.contains(Self::CONSTRUCTABLE)
+    }
+
+    #[inline]
+    pub(crate) fn is_lexical_this_mode(&self) -> bool {
+        self.contains(Self::LEXICAL_THIS_MODE)
     }
 }
 
@@ -130,220 +94,23 @@ unsafe impl Trace for FunctionFlags {
 
 /// Boa representation of a Function Object.
 ///
+/// FunctionBody is specific to this interpreter, it will either be Rust code or JavaScript code (AST Node)
+///
 /// <https://tc39.es/ecma262/#sec-ecmascript-function-objects>
-#[derive(Trace, Finalize, Clone)]
-pub struct Function {
-    /// Call/Construct Function body
-    pub body: FunctionBody,
-    /// Formal Paramaters
-    pub params: Box<[FormalParameter]>,
-    /// This Mode
-    pub this_mode: ThisMode,
-    // Environment, built-in functions don't need Environments
-    pub environment: Option<Environment>,
-    /// Is it constructable or
-    flags: FunctionFlags,
+#[derive(Debug, Clone, Finalize, Trace)]
+pub enum Function {
+    BuiltIn(BuiltInFunction, FunctionFlags),
+    Ordinary {
+        flags: FunctionFlags,
+        body: StatementList,
+        params: Box<[FormalParameter]>,
+        environment: Environment,
+    },
 }
 
 impl Function {
-    pub fn new<P>(
-        parameter_list: P,
-        scope: Option<Environment>,
-        body: FunctionBody,
-        this_mode: ThisMode,
-        constructable: bool,
-        callable: bool,
-    ) -> Self
-    where
-        P: Into<Box<[FormalParameter]>>,
-    {
-        Self {
-            body,
-            environment: scope,
-            params: parameter_list.into(),
-            this_mode,
-            flags: FunctionFlags::from_parameters(callable, constructable),
-        }
-    }
-
-    /// This will create an ordinary function object
-    ///
-    /// <https://tc39.es/ecma262/#sec-ordinaryfunctioncreate>
-    pub fn ordinary<P>(
-        parameter_list: P,
-        scope: Environment,
-        body: StatementList,
-        this_mode: ThisMode,
-    ) -> Self
-    where
-        P: Into<Box<[FormalParameter]>>,
-    {
-        Self::new(
-            parameter_list.into(),
-            Some(scope),
-            FunctionBody::Ordinary(body),
-            this_mode,
-            true,
-            true,
-        )
-    }
-
-    /// This will create a built-in function object
-    ///
-    /// <https://tc39.es/ecma262/#sec-createbuiltinfunction>
-    pub fn builtin<P>(parameter_list: P, body: NativeFunctionData) -> Self
-    where
-        P: Into<Box<[FormalParameter]>>,
-    {
-        let _timer = BoaProfiler::global().start_event("function::builtin", "function");
-        Self::new(
-            parameter_list.into(),
-            None,
-            FunctionBody::BuiltIn(body),
-            ThisMode::NonLexical,
-            false,
-            true,
-        )
-    }
-
-    /// This will handle calls for both ordinary and built-in functions
-    ///
-    /// <https://tc39.es/ecma262/#sec-prepareforordinarycall>
-    /// <https://tc39.es/ecma262/#sec-ecmascript-function-objects-call-thisargument-argumentslist>
-    pub fn call(
-        &self,
-        function: Value, // represents a pointer to this function object wrapped in a GC (not a `this` JS object)
-        this: &Value,
-        args_list: &[Value],
-        interpreter: &mut Interpreter,
-    ) -> Result<Value> {
-        let _timer = BoaProfiler::global().start_event("function::call", "function");
-        if self.flags.is_callable() {
-            match self.body {
-                FunctionBody::BuiltIn(func) => func(this, args_list, interpreter),
-                FunctionBody::Ordinary(ref body) => {
-                    // Create a new Function environment who's parent is set to the scope of the function declaration (self.environment)
-                    // <https://tc39.es/ecma262/#sec-prepareforordinarycall>
-                    let local_env = new_function_environment(
-                        function,
-                        if let ThisMode::Lexical = self.this_mode {
-                            None
-                        } else {
-                            Some(this.clone())
-                        },
-                        self.environment.as_ref().cloned(),
-                        // Arrow functions do not have a this binding https://tc39.es/ecma262/#sec-function-environment-records
-                        if let ThisMode::Lexical = self.this_mode {
-                            BindingStatus::Lexical
-                        } else {
-                            BindingStatus::Uninitialized
-                        },
-                    );
-
-                    // Add argument bindings to the function environment
-                    for (i, param) in self.params.iter().enumerate() {
-                        // Rest Parameters
-                        if param.is_rest_param() {
-                            self.add_rest_param(param, i, args_list, interpreter, &local_env);
-                            break;
-                        }
-
-                        let value = args_list.get(i).cloned().unwrap_or_else(Value::undefined);
-                        self.add_arguments_to_environment(param, value, &local_env);
-                    }
-
-                    // Add arguments object
-                    let arguments_obj = create_unmapped_arguments_object(args_list);
-                    local_env
-                        .borrow_mut()
-                        .create_mutable_binding("arguments".to_string(), false);
-                    local_env
-                        .borrow_mut()
-                        .initialize_binding("arguments", arguments_obj);
-
-                    interpreter.realm.environment.push(local_env);
-
-                    // Call body should be set before reaching here
-                    let result = body.run(interpreter);
-
-                    // local_env gets dropped here, its no longer needed
-                    interpreter.realm.environment.pop();
-                    result
-                }
-            }
-        } else {
-            panic!("TypeError: class constructors must be invoked with 'new'");
-        }
-    }
-
-    /// <https://tc39.es/ecma262/#sec-ecmascript-function-objects-construct-argumentslist-newtarget>
-    pub fn construct(
-        &self,
-        function: Value, // represents a pointer to this function object wrapped in a GC (not a `this` JS object)
-        this: &Value,
-        args_list: &[Value],
-        interpreter: &mut Interpreter,
-    ) -> Result<Value> {
-        if self.flags.is_constructable() {
-            match self.body {
-                FunctionBody::BuiltIn(func) => {
-                    func(this, args_list, interpreter)?;
-                    Ok(this.clone())
-                }
-                FunctionBody::Ordinary(ref body) => {
-                    // Create a new Function environment who's parent is set to the scope of the function declaration (self.environment)
-                    // <https://tc39.es/ecma262/#sec-prepareforordinarycall>
-                    let local_env = new_function_environment(
-                        function,
-                        Some(this.clone()),
-                        self.environment.as_ref().cloned(),
-                        // Arrow functions do not have a this binding https://tc39.es/ecma262/#sec-function-environment-records
-                        if let ThisMode::Lexical = self.this_mode {
-                            BindingStatus::Lexical
-                        } else {
-                            BindingStatus::Uninitialized
-                        },
-                    );
-
-                    // Add argument bindings to the function environment
-                    for (i, param) in self.params.iter().enumerate() {
-                        // Rest Parameters
-                        if param.is_rest_param() {
-                            self.add_rest_param(param, i, args_list, interpreter, &local_env);
-                            break;
-                        }
-
-                        let value = args_list.get(i).cloned().unwrap_or_else(Value::undefined);
-                        self.add_arguments_to_environment(param, value, &local_env);
-                    }
-
-                    // Add arguments object
-                    let arguments_obj = create_unmapped_arguments_object(args_list);
-                    local_env
-                        .borrow_mut()
-                        .create_mutable_binding("arguments".to_string(), false);
-                    local_env
-                        .borrow_mut()
-                        .initialize_binding("arguments", arguments_obj);
-
-                    interpreter.realm.environment.push(local_env);
-
-                    // Call body should be set before reaching here
-                    let _ = body.run(interpreter);
-
-                    // local_env gets dropped here, its no longer needed
-                    let binding = interpreter.realm.environment.get_this_binding();
-                    Ok(binding)
-                }
-            }
-        } else {
-            let name = this.get_field("name").display().to_string();
-            panic!("TypeError: {} is not a constructor", name);
-        }
-    }
-
     // Adds the final rest parameters to the Environment as an array
-    fn add_rest_param(
+    pub(crate) fn add_rest_param(
         &self,
         param: &FormalParameter,
         index: usize,
@@ -367,7 +134,7 @@ impl Function {
     }
 
     // Adds an argument to the environment
-    fn add_arguments_to_environment(
+    pub(crate) fn add_arguments_to_environment(
         &self,
         param: &FormalParameter,
         value: Value,
@@ -386,20 +153,18 @@ impl Function {
 
     /// Returns true if the function object is callable.
     pub fn is_callable(&self) -> bool {
-        self.flags.is_callable()
+        match self {
+            Self::BuiltIn(_, flags) => flags.is_callable(),
+            Self::Ordinary { flags, .. } => flags.is_callable(),
+        }
     }
 
     /// Returns true if the function object is constructable.
     pub fn is_constructable(&self) -> bool {
-        self.flags.is_constructable()
-    }
-}
-
-impl Debug for Function {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{{")?;
-        write!(f, "[Not implemented]")?;
-        write!(f, "}}")
+        match self {
+            Self::BuiltIn(_, flags) => flags.is_constructable(),
+            Self::Ordinary { flags, .. } => flags.is_constructable(),
+        }
     }
 }
 
@@ -415,7 +180,7 @@ pub fn create_unmapped_arguments_object(arguments_list: &[Value]) -> Value {
         Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::PERMANENT,
     );
     // Define length as a property
-    obj.define_own_property(&PropertyKey::from(RcString::from("length")), length);
+    obj.define_own_property("length", length);
     let mut index: usize = 0;
     while index < len {
         let val = arguments_list.get(index).expect("Could not get argument");
@@ -424,8 +189,7 @@ pub fn create_unmapped_arguments_object(arguments_list: &[Value]) -> Value {
             Attribute::WRITABLE | Attribute::ENUMERABLE | Attribute::CONFIGURABLE,
         );
 
-        obj.properties_mut()
-            .insert(RcString::from(index.to_string()), prop);
+        obj.insert_property(index, prop);
         index += 1;
     }
 
@@ -436,9 +200,9 @@ pub fn create_unmapped_arguments_object(arguments_list: &[Value]) -> Value {
 ///
 // This gets called when a new Function() is created.
 pub fn make_function(this: &Value, _: &[Value], _: &mut Interpreter) -> Result<Value> {
-    this.set_data(ObjectData::Function(Function::builtin(
-        Vec::new(),
-        |_, _, _| Ok(Value::undefined()),
+    this.set_data(ObjectData::Function(Function::BuiltIn(
+        BuiltInFunction(|_, _, _| Ok(Value::undefined())),
+        FunctionFlags::CALLABLE | FunctionFlags::CONSTRUCTABLE,
     )));
     Ok(this.clone())
 }
@@ -450,7 +214,7 @@ pub fn make_function(this: &Value, _: &[Value], _: &mut Interpreter) -> Result<V
 pub fn make_constructor_fn(
     name: &str,
     length: usize,
-    body: NativeFunctionData,
+    body: NativeFunction,
     global: &Value,
     prototype: Value,
     constructable: bool,
@@ -460,8 +224,10 @@ pub fn make_constructor_fn(
         BoaProfiler::global().start_event(&format!("make_constructor_fn: {}", name), "init");
 
     // Create the native function
-    let mut function = Function::builtin(Vec::new(), body);
-    function.flags = FunctionFlags::from_parameters(callable, constructable);
+    let function = Function::BuiltIn(
+        body.into(),
+        FunctionFlags::from_parameters(callable, constructable),
+    );
 
     // Get reference to Function.prototype
     // Create the function object and point its instance prototype to Function.prototype
@@ -514,7 +280,7 @@ pub fn make_constructor_fn(
 ///
 /// If no length is provided, the length will be set to 0.
 pub fn make_builtin_fn<N>(
-    function: NativeFunctionData,
+    function: NativeFunction,
     name: N,
     parent: &Value,
     length: usize,
@@ -526,13 +292,12 @@ pub fn make_builtin_fn<N>(
     let _timer = BoaProfiler::global().start_event(&format!("make_builtin_fn: {}", &name), "init");
 
     let mut function = Object::function(
-        Function::builtin(Vec::new(), function),
+        Function::BuiltIn(function.into(), FunctionFlags::CALLABLE),
         interpreter
             .global()
             .get_field("Function")
             .get_field("prototype"),
     );
-
     function.insert_field("length", Value::from(length));
 
     parent
