@@ -1,5 +1,11 @@
 use super::*;
 
+/// This object is used for displaying a `Value`.
+#[derive(Debug, Clone, Copy)]
+pub struct ValueDisplay<'value> {
+    pub(super) value: &'value Value,
+}
+
 /// A helper macro for printing objects
 /// Can be used to print both properties and internal slots
 /// All of the overloads take:
@@ -21,17 +27,27 @@ macro_rules! print_obj_value {
         }
     };
     (internals of $obj:expr, $display_fn:ident, $indent:expr, $encounters:expr) => {
-        print_obj_value!(impl internal_slots, $obj, |(key, val)| {
-            format!(
-                "{:>width$}: {}",
-                key,
-                $display_fn(&val, $encounters, $indent.wrapping_add(4), true),
-                width = $indent,
-            )
-        })
+        {
+            let object = $obj.borrow();
+            if object.prototype().is_object() {
+                vec![format!(
+                    "{:>width$}: {}",
+                    "__proto__",
+                    $display_fn(object.prototype(), $encounters, $indent.wrapping_add(4), true),
+                    width = $indent,
+                )]
+            } else {
+                vec![format!(
+                    "{:>width$}: {}",
+                    "__proto__",
+                    object.prototype().display(),
+                    width = $indent,
+                )]
+            }
+        }
     };
     (props of $obj:expr, $display_fn:ident, $indent:expr, $encounters:expr, $print_internals:expr) => {
-        print_obj_value!(impl properties, $obj, |(key, val)| {
+        print_obj_value!(impl $obj, |(key, val)| {
             let v = &val
                 .value
                 .as_ref()
@@ -48,10 +64,9 @@ macro_rules! print_obj_value {
 
     // A private overload of the macro
     // DO NOT use directly
-    (impl $field:ident, $v:expr, $f:expr) => {
+    (impl $v:expr, $f:expr) => {
         $v
             .borrow()
-            .$field()
             .iter()
             .map($f)
             .collect::<Vec<String>>()
@@ -76,15 +91,14 @@ pub(crate) fn log_string_from(x: &Value, print_internals: bool, print_children: 
                     }
                 }
                 ObjectData::Array => {
-                    let len = i32::from(
-                        &v.borrow()
-                            .properties()
-                            .get("length")
-                            .unwrap()
-                            .value
-                            .clone()
-                            .expect("Could not borrow value"),
-                    );
+                    let len = v
+                        .borrow()
+                        .get_own_property(&PropertyKey::from("length"))
+                        .value
+                        .clone()
+                        .expect("Could not borrow value")
+                        .as_number()
+                        .unwrap() as i32;
 
                     if print_children {
                         if len == 0 {
@@ -97,9 +111,7 @@ pub(crate) fn log_string_from(x: &Value, print_internals: bool, print_children: 
                                 // which are part of the Array
                                 log_string_from(
                                     &v.borrow()
-                                        .properties()
-                                        .get(i.to_string().as_str())
-                                        .unwrap()
+                                        .get_own_property(&i.into())
                                         .value
                                         .clone()
                                         .expect("Could not borrow value"),
@@ -116,15 +128,14 @@ pub(crate) fn log_string_from(x: &Value, print_internals: bool, print_children: 
                     }
                 }
                 ObjectData::Map(ref map) => {
-                    let size = i32::from(
-                        &v.borrow()
-                            .properties()
-                            .get("size")
-                            .unwrap()
-                            .value
-                            .clone()
-                            .expect("Could not borrow value"),
-                    );
+                    let size = v
+                        .borrow()
+                        .get_own_property(&PropertyKey::from("size"))
+                        .value
+                        .clone()
+                        .expect("Could not borrow value")
+                        .as_number()
+                        .unwrap() as i32;
                     if size == 0 {
                         return String::from("Map(0)");
                     }
@@ -148,7 +159,7 @@ pub(crate) fn log_string_from(x: &Value, print_internals: bool, print_children: 
             }
         }
         Value::Symbol(ref symbol) => symbol.to_string(),
-        _ => format!("{}", x),
+        _ => format!("{}", x.display()),
     }
 }
 
@@ -164,6 +175,14 @@ pub(crate) fn display_obj(v: &Value, print_internals: bool) -> String {
     // We keep track of which objects we have encountered by keeping their
     // in-memory address in this set
     let mut encounters = HashSet::new();
+
+    if let Value::Object(object) = v {
+        if object.borrow().is_error() {
+            let name = v.get_field("name");
+            let message = v.get_field("message");
+            return format!("{}: {}", name.display(), message.display());
+        }
+    }
 
     fn display_obj_internal(
         data: &Value,
@@ -200,29 +219,29 @@ pub(crate) fn display_obj(v: &Value, print_internals: bool) -> String {
 
             format!("{{\n{}\n{}}}", result, closing_indent)
         } else {
-            // Every other type of data is printed as is
-            format!("{}", data)
+            // Every other type of data is printed with the display method
+            format!("{}", data.display())
         }
     }
 
     display_obj_internal(v, &mut encounters, 4, print_internals)
 }
 
-impl Display for Value {
+impl Display for ValueDisplay<'_> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Self::Null => write!(f, "null"),
-            Self::Undefined => write!(f, "undefined"),
-            Self::Boolean(v) => write!(f, "{}", v),
-            Self::Symbol(ref symbol) => match symbol.description() {
+        match self.value {
+            Value::Null => write!(f, "null"),
+            Value::Undefined => write!(f, "undefined"),
+            Value::Boolean(v) => write!(f, "{}", v),
+            Value::Symbol(ref symbol) => match symbol.description() {
                 Some(description) => write!(f, "Symbol({})", description),
                 None => write!(f, "Symbol()"),
             },
-            Self::String(ref v) => write!(f, "{}", v),
-            Self::Rational(v) => format_rational(*v, f),
-            Self::Object(_) => write!(f, "{}", log_string_from(self, true, true)),
-            Self::Integer(v) => write!(f, "{}", v),
-            Self::BigInt(ref num) => write!(f, "{}n", num),
+            Value::String(ref v) => write!(f, "\"{}\"", v),
+            Value::Rational(v) => format_rational(*v, f),
+            Value::Object(_) => write!(f, "{}", log_string_from(self.value, true, true)),
+            Value::Integer(v) => write!(f, "{}", v),
+            Value::BigInt(ref num) => write!(f, "{}n", num),
         }
     }
 }

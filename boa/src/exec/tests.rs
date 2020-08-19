@@ -16,12 +16,18 @@ fn function_declaration_returns_undefined() {
 }
 
 #[test]
+fn empty_function_returns_undefined() {
+    let scenario = "(function () {}) ()";
+    assert_eq!(&exec(scenario), "undefined");
+}
+
+#[test]
 fn property_accessor_member_expression_dot_notation_on_string_literal() {
     let scenario = r#"
         typeof 'asd'.matchAll;
         "#;
 
-    assert_eq!(&exec(scenario), "function");
+    assert_eq!(&exec(scenario), "\"function\"");
 }
 
 #[test]
@@ -30,7 +36,7 @@ fn property_accessor_member_expression_bracket_notation_on_string_literal() {
         typeof 'asd'['matchAll'];
         "#;
 
-    assert_eq!(&exec(scenario), "function");
+    assert_eq!(&exec(scenario), "\"function\"");
 }
 
 #[test]
@@ -40,7 +46,7 @@ fn property_accessor_member_expression_dot_notation_on_function() {
         asd.name;
         "#;
 
-    assert_eq!(&exec(scenario), "asd");
+    assert_eq!(&exec(scenario), "\"asd\"");
 }
 
 #[test]
@@ -50,7 +56,7 @@ fn property_accessor_member_expression_bracket_notation_on_function() {
         asd['name'];
         "#;
 
-    assert_eq!(&exec(scenario), "asd");
+    assert_eq!(&exec(scenario), "\"asd\"");
 }
 
 #[test]
@@ -94,7 +100,7 @@ fn identifier_on_global_object_undefined() {
         }
         "#;
 
-    assert_eq!(&exec(scenario), "bar is not defined");
+    assert_eq!(&exec(scenario), "\"bar is not defined\"");
 }
 
 #[test]
@@ -125,7 +131,7 @@ fn spread_with_arguments() {
     assert_eq!(one, String::from("1"));
 
     let two = forward(&mut engine, "result[1]");
-    assert_eq!(two, String::from("test"));
+    assert_eq!(two, String::from("\"test\""));
 
     let three = forward(&mut engine, "result[2]");
     assert_eq!(three, String::from("3"));
@@ -140,9 +146,9 @@ fn array_rest_with_arguments() {
     let mut engine = Interpreter::new(realm);
 
     let scenario = r#"
-            var b = [4, 5, 6]
-            var a = [1, 2, 3, ...b];
-        "#;
+                var b = [4, 5, 6]
+                var a = [1, 2, 3, ...b];
+            "#;
     forward(&mut engine, scenario);
     let one = forward(&mut engine, "a");
     assert_eq!(one, String::from("[ 1, 2, 3, 4, 5, 6 ]"));
@@ -151,54 +157,53 @@ fn array_rest_with_arguments() {
 #[test]
 fn array_field_set() {
     let element_changes = r#"
-        let m = [1, 2, 3];
-        m[1] = 5;
-        m[1]
-        "#;
+            let m = [1, 2, 3];
+            m[1] = 5;
+            m[1]
+            "#;
     assert_eq!(&exec(element_changes), "5");
 
     let length_changes = r#"
-        let m = [1, 2, 3];
-        m[10] = 52;
-        m.length
-        "#;
+            let m = [1, 2, 3];
+            m[10] = 52;
+            m.length
+            "#;
     assert_eq!(&exec(length_changes), "11");
 
     let negative_index_wont_affect_length = r#"
-        let m = [1, 2, 3];
-        m[-11] = 5;
-        m.length
-        "#;
+            let m = [1, 2, 3];
+            m[-11] = 5;
+            m.length
+            "#;
     assert_eq!(&exec(negative_index_wont_affect_length), "3");
 
     let non_num_key_wont_affect_length = r#"
-        let m = [1, 2, 3];
-        m["magic"] = 5;
-        m.length
-        "#;
+            let m = [1, 2, 3];
+            m["magic"] = 5;
+            m.length
+            "#;
     assert_eq!(&exec(non_num_key_wont_affect_length), "3");
 }
 
 #[test]
 fn tilde_operator() {
     let float = r#"
-        let f = -1.2;
-        ~f
-        "#;
+            let f = -1.2;
+            ~f
+            "#;
     assert_eq!(&exec(float), "0");
 
     let numeric = r#"
-        let f = 1789;
-        ~f
-        "#;
+            let f = 1789;
+            ~f
+            "#;
     assert_eq!(&exec(numeric), "-1790");
 
-    // TODO: enable test after we have NaN
-    // let nan = r#"
-    // var m = NaN;
-    // ~m
-    // "#;
-    // assert_eq!(&exec(nan), "-1");
+    let nan = r#"
+    var m = NaN;
+    ~m
+    "#;
+    assert_eq!(&exec(nan), "-1");
 
     let object = r#"
         let m = {};
@@ -240,7 +245,7 @@ fn early_return() {
         }
         outer_fnct()
         "#;
-    assert_eq!(&exec(early_return), "outer");
+    assert_eq!(&exec(early_return), "\"outer\"");
 }
 
 #[test]
@@ -370,7 +375,7 @@ fn for_loop() {
         }
         b
         "#;
-    assert_eq!(&exec(simple), "hello");
+    assert_eq!(&exec(simple), "\"hello\"");
 
     let without_init_and_inc_step = r#"
         let a = 0;
@@ -407,7 +412,7 @@ fn for_loop_iteration_variable_does_not_leak() {
         }
         "#;
 
-    assert_eq!(&exec(inner_scope), "i is not defined");
+    assert_eq!(&exec(inner_scope), "\"i is not defined\"");
 }
 
 #[test]
@@ -459,7 +464,7 @@ fn typeof_string() {
         const a = String();
         typeof a;
     "#;
-    assert_eq!(&exec(typeof_string), "string");
+    assert_eq!(&exec(typeof_string), "\"string\"");
 }
 
 #[test]
@@ -468,7 +473,7 @@ fn typeof_int() {
         let a = 5;
         typeof a;
     "#;
-    assert_eq!(&exec(typeof_int), "number");
+    assert_eq!(&exec(typeof_int), "\"number\"");
 }
 
 #[test]
@@ -477,7 +482,7 @@ fn typeof_rational() {
         let a = 0.5;
         typeof a;
     "#;
-    assert_eq!(&exec(typeof_rational), "number");
+    assert_eq!(&exec(typeof_rational), "\"number\"");
 }
 
 #[test]
@@ -486,7 +491,7 @@ fn typeof_undefined() {
         let a = undefined;
         typeof a;
     "#;
-    assert_eq!(&exec(typeof_undefined), "undefined");
+    assert_eq!(&exec(typeof_undefined), "\"undefined\"");
 }
 
 #[test]
@@ -494,7 +499,7 @@ fn typeof_undefined_directly() {
     let typeof_undefined = r#"
         typeof undefined;
     "#;
-    assert_eq!(&exec(typeof_undefined), "undefined");
+    assert_eq!(&exec(typeof_undefined), "\"undefined\"");
 }
 
 #[test]
@@ -503,7 +508,7 @@ fn typeof_boolean() {
         let a = true;
         typeof a;
     "#;
-    assert_eq!(&exec(typeof_boolean), "boolean");
+    assert_eq!(&exec(typeof_boolean), "\"boolean\"");
 }
 
 #[test]
@@ -512,7 +517,7 @@ fn typeof_null() {
         let a = null;
         typeof a;
     "#;
-    assert_eq!(&exec(typeof_null), "object");
+    assert_eq!(&exec(typeof_null), "\"object\"");
 }
 
 #[test]
@@ -521,7 +526,7 @@ fn typeof_object() {
         let a = {};
         typeof a;
     "#;
-    assert_eq!(&exec(typeof_object), "object");
+    assert_eq!(&exec(typeof_object), "\"object\"");
 }
 
 #[test]
@@ -530,7 +535,7 @@ fn typeof_symbol() {
         let a = Symbol();
         typeof a;
     "#;
-    assert_eq!(&exec(typeof_symbol), "symbol");
+    assert_eq!(&exec(typeof_symbol), "\"symbol\"");
 }
 
 #[test]
@@ -539,7 +544,7 @@ fn typeof_function() {
         let a = function(){};
         typeof a;
     "#;
-    assert_eq!(&exec(typeof_function), "function");
+    assert_eq!(&exec(typeof_function), "\"function\"");
 }
 
 #[test]
@@ -599,7 +604,7 @@ fn unary_void() {
         const b = void test() + '';
         a + b
     "#;
-    assert_eq!(&exec(void_invocation), "42undefined");
+    assert_eq!(&exec(void_invocation), "\"42undefined\"");
 }
 
 #[test]
@@ -609,28 +614,28 @@ fn unary_delete() {
         const b = delete a + '';
         a + b
     "#;
-    assert_eq!(&exec(delete_var), "5false");
+    assert_eq!(&exec(delete_var), "\"5false\"");
 
     let delete_prop = r#"
         const a = { b: 5 };
         const c = delete a.b + '';
         a.b + c
     "#;
-    assert_eq!(&exec(delete_prop), "undefinedtrue");
+    assert_eq!(&exec(delete_prop), "\"undefinedtrue\"");
 
     let delete_not_existing_prop = r#"
         const a = { b: 5 };
         const c = delete a.c + '';
         a.b + c
     "#;
-    assert_eq!(&exec(delete_not_existing_prop), "5false");
+    assert_eq!(&exec(delete_not_existing_prop), "\"5true\"");
 
     let delete_field = r#"
         const a = { b: 5 };
         const c = delete a['b'] + '';
         a.b + c
     "#;
-    assert_eq!(&exec(delete_field), "undefinedtrue");
+    assert_eq!(&exec(delete_field), "\"undefinedtrue\"");
 
     let delete_object = r#"
         const a = { b: 5 };
@@ -657,7 +662,7 @@ fn unary_delete() {
 #[cfg(test)]
 mod in_operator {
     use super::*;
-    use crate::{builtins::object::INSTANCE_PROTOTYPE, forward_val};
+    use crate::forward_val;
     #[test]
     fn propery_in_object() {
         let p_in_o = r#"
@@ -746,8 +751,8 @@ mod in_operator {
           var bar = new Foo();
         "#;
         forward(&mut engine, scenario);
-        assert_eq!(forward(&mut engine, "bar.a"), "a");
-        assert_eq!(forward(&mut engine, "bar.b"), "b");
+        assert_eq!(forward(&mut engine, "bar.a"), "\"a\"");
+        assert_eq!(forward(&mut engine, "bar.b"), "\"b\"");
     }
 
     #[test]
@@ -761,8 +766,13 @@ mod in_operator {
             var bar = new Foo();
         "#;
         forward(&mut engine, scenario);
-        let a = forward_val(&mut engine, "bar").unwrap();
-        assert!(a.get_internal_slot(INSTANCE_PROTOTYPE).is_object(), true);
+        let bar_val = forward_val(&mut engine, "bar").unwrap();
+        let bar_obj = bar_val.as_object().unwrap();
+        let foo_val = forward_val(&mut engine, "Foo").unwrap();
+        let foo_obj = foo_val.as_object().unwrap();
+        assert!(bar_obj
+            .prototype()
+            .strict_equals(&foo_obj.get_field("prototype").unwrap()));
     }
 }
 
@@ -880,11 +890,11 @@ fn to_bigint() {
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);
 
-    assert!(engine.to_bigint(&Value::null()).is_err());
-    assert!(engine.to_bigint(&Value::undefined()).is_err());
-    assert!(engine.to_bigint(&Value::integer(55)).is_ok());
-    assert!(engine.to_bigint(&Value::rational(10.0)).is_ok());
-    assert!(engine.to_bigint(&Value::string("100")).is_ok());
+    assert!(Value::null().to_bigint(&mut engine).is_err());
+    assert!(Value::undefined().to_bigint(&mut engine).is_err());
+    assert!(Value::integer(55).to_bigint(&mut engine).is_ok());
+    assert!(Value::rational(10.0).to_bigint(&mut engine).is_ok());
+    assert!(Value::string("100").to_bigint(&mut engine).is_ok());
 }
 
 #[test]
@@ -892,8 +902,8 @@ fn to_index() {
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);
 
-    assert_eq!(engine.to_index(&Value::undefined()).unwrap(), 0);
-    assert!(engine.to_index(&Value::integer(-1)).is_err());
+    assert_eq!(Value::undefined().to_index(&mut engine).unwrap(), 0);
+    assert!(Value::integer(-1).to_index(&mut engine).is_err());
 }
 
 #[test]
@@ -902,32 +912,34 @@ fn to_integer() {
     let mut engine = Interpreter::new(realm);
 
     assert!(Number::equal(
-        engine.to_integer(&Value::number(f64::NAN)).unwrap(),
+        Value::number(f64::NAN).to_integer(&mut engine).unwrap(),
         0.0
     ));
     assert!(Number::equal(
-        engine
-            .to_integer(&Value::number(f64::NEG_INFINITY))
+        Value::number(f64::NEG_INFINITY)
+            .to_integer(&mut engine)
             .unwrap(),
         f64::NEG_INFINITY
     ));
     assert!(Number::equal(
-        engine.to_integer(&Value::number(f64::INFINITY)).unwrap(),
+        Value::number(f64::INFINITY)
+            .to_integer(&mut engine)
+            .unwrap(),
         f64::INFINITY
     ));
     assert!(Number::equal(
-        engine.to_integer(&Value::number(0.0)).unwrap(),
+        Value::number(0.0).to_integer(&mut engine).unwrap(),
         0.0
     ));
-    let number = engine.to_integer(&Value::number(-0.0)).unwrap();
+    let number = Value::number(-0.0).to_integer(&mut engine).unwrap();
     assert!(!number.is_sign_negative());
     assert!(Number::equal(number, 0.0));
     assert!(Number::equal(
-        engine.to_integer(&Value::number(20.9)).unwrap(),
+        Value::number(20.9).to_integer(&mut engine).unwrap(),
         20.0
     ));
     assert!(Number::equal(
-        engine.to_integer(&Value::number(-20.9)).unwrap(),
+        Value::number(-20.9).to_integer(&mut engine).unwrap(),
         -20.0
     ));
 }
@@ -937,25 +949,29 @@ fn to_length() {
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);
 
-    assert_eq!(engine.to_length(&Value::number(f64::NAN)).unwrap(), 0);
+    assert_eq!(Value::number(f64::NAN).to_length(&mut engine).unwrap(), 0);
     assert_eq!(
-        engine.to_length(&Value::number(f64::NEG_INFINITY)).unwrap(),
+        Value::number(f64::NEG_INFINITY)
+            .to_length(&mut engine)
+            .unwrap(),
         0
     );
     assert_eq!(
-        engine.to_length(&Value::number(f64::INFINITY)).unwrap(),
+        Value::number(f64::INFINITY).to_length(&mut engine).unwrap(),
         Number::MAX_SAFE_INTEGER as usize
     );
-    assert_eq!(engine.to_length(&Value::number(0.0)).unwrap(), 0);
-    assert_eq!(engine.to_length(&Value::number(-0.0)).unwrap(), 0);
-    assert_eq!(engine.to_length(&Value::number(20.9)).unwrap(), 20);
-    assert_eq!(engine.to_length(&Value::number(-20.9)).unwrap(), 0);
+    assert_eq!(Value::number(0.0).to_length(&mut engine).unwrap(), 0);
+    assert_eq!(Value::number(-0.0).to_length(&mut engine).unwrap(), 0);
+    assert_eq!(Value::number(20.9).to_length(&mut engine).unwrap(), 20);
+    assert_eq!(Value::number(-20.9).to_length(&mut engine).unwrap(), 0);
     assert_eq!(
-        engine.to_length(&Value::number(100000000000.0)).unwrap(),
+        Value::number(100000000000.0)
+            .to_length(&mut engine)
+            .unwrap(),
         100000000000
     );
     assert_eq!(
-        engine.to_length(&Value::number(4010101101.0)).unwrap(),
+        Value::number(4010101101.0).to_length(&mut engine).unwrap(),
         4010101101
     );
 }
@@ -967,7 +983,7 @@ fn to_int32() {
 
     macro_rules! check_to_int32 {
         ($from:expr => $to:expr) => {
-            assert_eq!(engine.to_int32(&Value::number($from)).unwrap(), $to);
+            assert_eq!(Value::from($from).to_i32(&mut engine).unwrap(), $to);
         };
     };
 
@@ -1079,11 +1095,17 @@ fn to_string() {
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);
 
-    assert_eq!(engine.to_string(&Value::null()).unwrap(), "null");
-    assert_eq!(engine.to_string(&Value::undefined()).unwrap(), "undefined");
-    assert_eq!(engine.to_string(&Value::integer(55)).unwrap(), "55");
-    assert_eq!(engine.to_string(&Value::rational(55.0)).unwrap(), "55");
-    assert_eq!(engine.to_string(&Value::string("hello")).unwrap(), "hello");
+    assert_eq!(Value::null().to_string(&mut engine).unwrap(), "null");
+    assert_eq!(
+        Value::undefined().to_string(&mut engine).unwrap(),
+        "undefined"
+    );
+    assert_eq!(Value::integer(55).to_string(&mut engine).unwrap(), "55");
+    assert_eq!(Value::rational(55.0).to_string(&mut engine).unwrap(), "55");
+    assert_eq!(
+        Value::string("hello").to_string(&mut engine).unwrap(),
+        "hello"
+    );
 }
 
 #[test]
@@ -1106,11 +1128,14 @@ fn to_object() {
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);
 
-    assert!(engine
-        .to_object(&Value::undefined())
+    assert!(Value::undefined()
+        .to_object(&mut engine)
         .unwrap_err()
         .is_object());
-    assert!(engine.to_object(&Value::null()).unwrap_err().is_object());
+    assert!(Value::null()
+        .to_object(&mut engine)
+        .unwrap_err()
+        .is_object());
 }
 
 #[test]
@@ -1122,7 +1147,7 @@ fn check_this_binding_in_object_literal() {
             a: 3,
             bar: function () { return this.a + 5 }
         };
-    
+
         foo.bar()
         "#;
 
@@ -1145,7 +1170,10 @@ fn not_a_function() {
             e.toString()
         }
     "#;
-    assert_eq!(forward(&mut engine, scenario), "TypeError: not a function");
+    assert_eq!(
+        forward(&mut engine, scenario),
+        "\"TypeError: not a function\""
+    );
     let scenario = r#"
         try {
             a.a();
@@ -1153,7 +1181,10 @@ fn not_a_function() {
             e.toString()
         }
     "#;
-    assert_eq!(forward(&mut engine, scenario), "TypeError: not a function");
+    assert_eq!(
+        forward(&mut engine, scenario),
+        "\"TypeError: not a function\""
+    );
     let scenario = r#"
         try {
             b();
@@ -1161,5 +1192,45 @@ fn not_a_function() {
             e.toString()
         }
     "#;
-    assert_eq!(forward(&mut engine, scenario), "TypeError: not a function");
+    assert_eq!(
+        forward(&mut engine, scenario),
+        "\"TypeError: not a function\""
+    );
+}
+
+#[test]
+fn comma_operator() {
+    let scenario = r#"
+        var a, b;
+        b = 10;
+        a = (b++, b);
+        a
+    "#;
+    assert_eq!(&exec(scenario), "11");
+
+    let scenario = r#"
+        var a, b;
+        b = 10;
+        a = (b += 5, b /= 3, b - 3);
+        a
+    "#;
+    assert_eq!(&exec(scenario), "2");
+}
+
+#[test]
+fn test_result_of_empty_block() {
+    let scenario = "{}";
+    assert_eq!(&exec(scenario), "undefined");
+}
+
+#[test]
+fn test_undefined_constant() {
+    let scenario = "undefined";
+    assert_eq!(&exec(scenario), "undefined");
+}
+
+#[test]
+fn test_undefined_type() {
+    let scenario = "typeof undefined";
+    assert_eq!(&exec(scenario), "\"undefined\"");
 }

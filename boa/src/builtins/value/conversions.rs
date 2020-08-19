@@ -2,12 +2,14 @@ use super::*;
 use std::convert::TryFrom;
 
 impl From<&Value> for Value {
+    #[inline]
     fn from(value: &Value) -> Self {
         value.clone()
     }
 }
 
 impl From<String> for Value {
+    #[inline]
     fn from(value: String) -> Self {
         let _timer = BoaProfiler::global().start_event("From<String>", "value");
         Self::string(value)
@@ -15,32 +17,44 @@ impl From<String> for Value {
 }
 
 impl From<Box<str>> for Value {
+    #[inline]
     fn from(value: Box<str>) -> Self {
         Self::string(String::from(value))
     }
 }
 
 impl From<&str> for Value {
+    #[inline]
     fn from(value: &str) -> Value {
         Value::string(value)
     }
 }
 
 impl From<&Box<str>> for Value {
+    #[inline]
     fn from(value: &Box<str>) -> Self {
         Self::string(value.as_ref())
     }
 }
 
 impl From<char> for Value {
+    #[inline]
     fn from(value: char) -> Self {
         Value::string(value.to_string())
     }
 }
 
 impl From<RcString> for Value {
+    #[inline]
     fn from(value: RcString) -> Self {
         Value::String(value)
+    }
+}
+
+impl From<RcSymbol> for Value {
+    #[inline]
+    fn from(value: RcSymbol) -> Self {
+        Value::Symbol(value)
     }
 }
 
@@ -53,27 +67,9 @@ impl Display for TryFromCharError {
     }
 }
 
-impl TryFrom<&Value> for char {
-    type Error = TryFromCharError;
-
-    fn try_from(value: &Value) -> Result<Self, Self::Error> {
-        if let Some(c) = value.to_string().chars().next() {
-            Ok(c)
-        } else {
-            Err(TryFromCharError)
-        }
-    }
-}
-
 impl From<f64> for Value {
     fn from(value: f64) -> Self {
         Self::rational(value)
-    }
-}
-
-impl From<&Value> for f64 {
-    fn from(value: &Value) -> Self {
-        value.to_number()
     }
 }
 
@@ -94,12 +90,6 @@ impl From<i32> for Value {
     }
 }
 
-impl From<&Value> for i32 {
-    fn from(value: &Value) -> i32 {
-        value.to_integer()
-    }
-}
-
 impl From<BigInt> for Value {
     fn from(value: BigInt) -> Self {
         Value::bigint(value)
@@ -115,11 +105,6 @@ impl From<RcBigInt> for Value {
 impl From<usize> for Value {
     fn from(value: usize) -> Value {
         Value::integer(value as i32)
-    }
-}
-impl From<&Value> for usize {
-    fn from(value: &Value) -> usize {
-        value.to_integer() as Self
     }
 }
 
@@ -142,10 +127,7 @@ where
     fn from(value: &[T]) -> Self {
         let mut array = Object::default();
         for (i, item) in value.iter().enumerate() {
-            array.properties_mut().insert(
-                RcString::from(i.to_string()),
-                Property::default().value(item.clone().into()),
-            );
+            array.insert_property(i, Property::default().value(item.clone().into()));
         }
         Self::from(array)
     }
@@ -158,10 +140,7 @@ where
     fn from(value: Vec<T>) -> Self {
         let mut array = Object::default();
         for (i, item) in value.into_iter().enumerate() {
-            array.properties_mut().insert(
-                RcString::from(i.to_string()),
-                Property::default().value(item.into()),
-            );
+            array.insert_property(i, Property::default().value(item.into()));
         }
         Value::from(array)
     }
@@ -171,6 +150,13 @@ impl From<Object> for Value {
     fn from(object: Object) -> Self {
         let _timer = BoaProfiler::global().start_event("From<Object>", "value");
         Value::object(object)
+    }
+}
+
+impl From<GcObject> for Value {
+    fn from(object: GcObject) -> Self {
+        let _timer = BoaProfiler::global().start_event("From<GcObject>", "value");
+        Value::Object(object)
     }
 }
 

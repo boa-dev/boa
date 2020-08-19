@@ -6,7 +6,7 @@
 //! This is the entrypoint to lexical environments.
 
 use crate::{
-    builtins::value::Value,
+    builtins::{object::GcObject, value::Value},
     environment::{
         declarative_environment_record::DeclarativeEnvironmentRecord,
         environment_record_trait::EnvironmentRecordTrait,
@@ -162,11 +162,7 @@ impl LexicalEnvironment {
                     })
                     .expect("No function or global environment");
 
-                #[allow(clippy::let_and_return)]
-                // FIXME need to assign result to a variable to avoid borrow checker error
-                // (borrowed value `env` does not live long enough)
-                let b = env.borrow_mut().create_immutable_binding(name, deletion);
-                b
+                env.borrow_mut().create_immutable_binding(name, deletion)
             }
         }
     }
@@ -230,7 +226,7 @@ pub fn new_declarative_environment(env: Option<Environment>) -> Environment {
 }
 
 pub fn new_function_environment(
-    f: Value,
+    f: GcObject,
     this: Option<Value>,
     outer: Option<Environment>,
     binding_status: BindingStatus,
@@ -307,7 +303,7 @@ mod tests {
           }
         "#;
 
-        assert_eq!(&exec(scenario), "bar is not defined");
+        assert_eq!(&exec(scenario), "\"bar is not defined\"");
     }
 
     #[test]
@@ -324,7 +320,7 @@ mod tests {
           }
         "#;
 
-        assert_eq!(&exec(scenario), "bar is not defined");
+        assert_eq!(&exec(scenario), "\"bar is not defined\"");
     }
 
     #[test]

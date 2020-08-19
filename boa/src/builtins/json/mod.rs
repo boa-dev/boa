@@ -13,12 +13,15 @@
 //! [json]: https://www.json.org/json-en.html
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON
 
-use crate::builtins::{
-    function::make_builtin_fn,
-    property::Property,
-    value::{ResultValue, Value},
+use crate::{
+    builtins::{
+        function::make_builtin_fn,
+        property::{Property, PropertyKey},
+        value::Value,
+    },
+    exec::Interpreter,
+    BoaProfiler, Result,
 };
-use crate::{exec::Interpreter, BoaProfiler};
 use serde_json::{self, Value as JSONValue};
 
 #[cfg(test)]
@@ -44,17 +47,20 @@ impl Json {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-json.parse
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/parse
-    pub(crate) fn parse(_: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
+    pub(crate) fn parse(_: &Value, args: &[Value], ctx: &mut Interpreter) -> Result<Value> {
         match serde_json::from_str::<JSONValue>(
-            &ctx.to_string(args.get(0).expect("cannot get argument for JSON.parse"))?,
+            &args
+                .get(0)
+                .expect("cannot get argument for JSON.parse")
+                .to_string(ctx)?,
         ) {
             Ok(json) => {
                 let j = Value::from_json(json, ctx);
                 match args.get(1) {
                     Some(reviver) if reviver.is_function() => {
                         let mut holder = Value::new_object(None);
-                        holder.set_field(Value::from(""), j);
-                        Self::walk(reviver, ctx, &mut holder, Value::from(""))
+                        holder.set_field("", j);
+                        Self::walk(reviver, ctx, &mut holder, &PropertyKey::from(""))
                     }
                     _ => Ok(j),
                 }
@@ -69,25 +75,30 @@ impl Json {
     /// for possible transformation.
     ///
     /// [polyfill]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/parse
-    fn walk(reviver: &Value, ctx: &mut Interpreter, holder: &mut Value, key: Value) -> ResultValue {
+    fn walk(
+        reviver: &Value,
+        ctx: &mut Interpreter,
+        holder: &mut Value,
+        key: &PropertyKey,
+    ) -> Result<Value> {
         let mut value = holder.get_field(key.clone());
 
         let obj = value.as_object().as_deref().cloned();
         if let Some(obj) = obj {
-            for key in obj.properties().keys() {
-                let v = Self::walk(reviver, ctx, &mut value, Value::from(key.as_str()));
+            for key in obj.keys() {
+                let v = Self::walk(reviver, ctx, &mut value, &key);
                 match v {
                     Ok(v) if !v.is_undefined() => {
-                        value.set_field(Value::from(key.as_str()), v);
+                        value.set_field(key.clone(), v);
                     }
                     Ok(_) => {
-                        value.remove_property(key.as_str());
+                        value.remove_property(key.clone());
                     }
                     Err(_v) => {}
                 }
             }
         }
-        ctx.call(reviver, holder, &[key, value])
+        ctx.call(reviver, holder, &[key.into(), value])
     }
 
     /// `JSON.stringify( value[, replacer[, space]] )`
@@ -106,7 +117,7 @@ impl Json {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-json.stringify
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify
-    pub(crate) fn stringify(_: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
+    pub(crate) fn stringify(_: &Value, args: &[Value], ctx: &mut Interpreter) -> Result<Value> {
         let object = match args.get(0) {
             Some(obj) if obj.is_symbol() || obj.is_function() || obj.is_undefined() => {
                 return Ok(Value::undefined())
@@ -128,7 +139,6 @@ impl Json {
                 .map(|obj| {
                     let object_to_return = Value::new_object(None);
                     for (key, val) in obj
-                        .properties()
                         .iter()
                         .filter_map(|(k, v)| v.value.as_ref().map(|value| (k, value)))
                     {
@@ -146,22 +156,21 @@ impl Json {
                 })
                 .ok_or_else(Value::undefined)?
         } else if replacer_as_object.is_array() {
-            let mut obj_to_return =
-                serde_json::Map::with_capacity(replacer_as_object.properties().len() - 1);
-            let fields = replacer_as_object.properties().keys().filter_map(|key| {
+            let mut obj_to_return = serde_json::Map::new();
+            let fields = replacer_as_object.keys().filter_map(|key| {
                 if key == "length" {
                     None
                 } else {
-                    Some(replacer.get_field(key.to_owned()))
+                    Some(replacer.get_field(key))
                 }
             });
             for field in fields {
                 if let Some(value) = object
-                    .get_property(&ctx.to_string(&field)?)
+                    .get_property(field.to_string(ctx)?)
                     .and_then(|prop| prop.value.as_ref().map(|v| v.to_json(ctx)))
                     .transpose()?
                 {
-                    obj_to_return.insert(field.to_string(), value);
+                    obj_to_return.insert(field.to_string(ctx)?.to_string(), value);
                 }
             }
             Ok(Value::from(JSONValue::Object(obj_to_return).to_string()))
@@ -172,12 +181,13 @@ impl Json {
 
     /// Initialise the `JSON` object on the global object.
     #[inline]
-    pub(crate) fn init(global: &Value) -> (&str, Value) {
+    pub(crate) fn init(interpreter: &mut Interpreter) -> (&'static str, Value) {
+        let global = interpreter.global();
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
         let json = Value::new_object(Some(global));
 
-        make_builtin_fn(Self::parse, "parse", &json, 2);
-        make_builtin_fn(Self::stringify, "stringify", &json, 3);
+        make_builtin_fn(Self::parse, "parse", &json, 2, interpreter);
+        make_builtin_fn(Self::stringify, "stringify", &json, 3, interpreter);
 
         (Self::NAME, json)
     }

@@ -8,7 +8,10 @@
 //! More info:  <https://tc39.es/ecma262/#sec-global-environment-records>
 
 use crate::{
-    builtins::value::Value,
+    builtins::{
+        property::{Attribute, Property},
+        Value,
+    },
     environment::{
         declarative_environment_record::DeclarativeEnvironmentRecord,
         environment_record_trait::EnvironmentRecordTrait,
@@ -41,7 +44,7 @@ impl GlobalEnvironmentRecord {
         let existing_prop = global_object.get_property(name);
         match existing_prop {
             Some(prop) => {
-                if prop.value.is_none() || prop.configurable.unwrap_or(false) {
+                if prop.value.is_none() || prop.configurable() {
                     return false;
                 }
                 true
@@ -53,7 +56,7 @@ impl GlobalEnvironmentRecord {
     pub fn create_global_var_binding(&mut self, name: String, deletion: bool) {
         let obj_rec = &mut self.object_record;
         let global_object = &obj_rec.bindings;
-        let has_property = global_object.has_field(&name);
+        let has_property = global_object.has_field(name.as_str());
         let extensible = global_object.is_extensible();
         if !has_property && extensible {
             obj_rec.create_mutable_binding(name.clone(), deletion);
@@ -68,25 +71,21 @@ impl GlobalEnvironmentRecord {
 
     pub fn create_global_function_binding(&mut self, name: &str, value: Value, deletion: bool) {
         let global_object = &mut self.object_record.bindings;
-        let existing_prop = global_object.get_property(&name);
+        let existing_prop = global_object.get_property(name);
         if let Some(prop) = existing_prop {
-            if prop.value.is_none() || prop.configurable.unwrap_or(false) {
-                global_object.update_property(
-                    name,
-                    Some(value),
-                    Some(true),
-                    Some(true),
-                    Some(deletion),
-                );
+            if prop.value.is_none() || prop.configurable_or(false) {
+                let mut property =
+                    Property::data_descriptor(value, Attribute::WRITABLE | Attribute::ENUMERABLE);
+                property.set_configurable(deletion);
+
+                global_object.update_property(name, property);
             }
         } else {
-            global_object.update_property(
-                name,
-                Some(value),
-                Some(true),
-                Some(true),
-                Some(deletion),
-            );
+            let mut property =
+                Property::data_descriptor(value, Attribute::WRITABLE | Attribute::ENUMERABLE);
+            property.set_configurable(deletion);
+
+            global_object.update_property(name, property);
         }
     }
 }

@@ -22,7 +22,7 @@ fn string_to_value() {
 fn undefined() {
     let u = Value::Undefined;
     assert_eq!(u.get_type(), Type::Undefined);
-    assert_eq!(u.to_string(), "undefined");
+    assert_eq!(u.display().to_string(), "undefined");
 }
 
 #[test]
@@ -31,7 +31,7 @@ fn get_set_field() {
     // Create string and convert it to a Value
     let s = Value::from("bar");
     obj.set_field("foo", s);
-    assert_eq!(obj.get_field("foo").to_string(), "bar");
+    assert_eq!(obj.get_field("foo").display().to_string(), "\"bar\"");
 }
 
 #[test]
@@ -216,7 +216,7 @@ fn get_types() {
 
 #[test]
 fn to_string() {
-    let f64_to_str = |f| Value::Rational(f).to_string();
+    let f64_to_str = |f| Value::Rational(f).display().to_string();
 
     assert_eq!(f64_to_str(f64::NAN), "NaN");
     assert_eq!(f64_to_str(0.0), "0");
@@ -254,7 +254,7 @@ fn add_number_and_number() {
     let mut engine = Interpreter::new(realm);
 
     let value = forward_val(&mut engine, "1 + 2").unwrap();
-    let value = engine.to_int32(&value).unwrap();
+    let value = value.to_i32(&mut engine).unwrap();
     assert_eq!(value, 3);
 }
 
@@ -264,7 +264,7 @@ fn add_number_and_string() {
     let mut engine = Interpreter::new(realm);
 
     let value = forward_val(&mut engine, "1 + \" + 2 = 3\"").unwrap();
-    let value = engine.to_string(&value).unwrap();
+    let value = value.to_string(&mut engine).unwrap();
     assert_eq!(value, "1 + 2 = 3");
 }
 
@@ -274,7 +274,7 @@ fn add_string_and_string() {
     let mut engine = Interpreter::new(realm);
 
     let value = forward_val(&mut engine, "\"Hello\" + \", world\"").unwrap();
-    let value = engine.to_string(&value).unwrap();
+    let value = value.to_string(&mut engine).unwrap();
     assert_eq!(value, "Hello, world");
 }
 
@@ -284,7 +284,7 @@ fn add_number_object_and_number() {
     let mut engine = Interpreter::new(realm);
 
     let value = forward_val(&mut engine, "new Number(10) + 6").unwrap();
-    let value = engine.to_int32(&value).unwrap();
+    let value = value.to_i32(&mut engine).unwrap();
     assert_eq!(value, 16);
 }
 
@@ -294,7 +294,7 @@ fn add_number_object_and_string_object() {
     let mut engine = Interpreter::new(realm);
 
     let value = forward_val(&mut engine, "new Number(10) + new String(\"0\")").unwrap();
-    let value = engine.to_string(&value).unwrap();
+    let value = value.to_string(&mut engine).unwrap();
     assert_eq!(value, "100");
 }
 
@@ -304,7 +304,7 @@ fn sub_number_and_number() {
     let mut engine = Interpreter::new(realm);
 
     let value = forward_val(&mut engine, "1 - 999").unwrap();
-    let value = engine.to_int32(&value).unwrap();
+    let value = value.to_i32(&mut engine).unwrap();
     assert_eq!(value, -998);
 }
 
@@ -314,7 +314,7 @@ fn sub_number_object_and_number_object() {
     let mut engine = Interpreter::new(realm);
 
     let value = forward_val(&mut engine, "new Number(1) - new Number(999)").unwrap();
-    let value = engine.to_int32(&value).unwrap();
+    let value = value.to_i32(&mut engine).unwrap();
     assert_eq!(value, -998);
 }
 
@@ -324,7 +324,7 @@ fn sub_string_and_number_object() {
     let mut engine = Interpreter::new(realm);
 
     let value = forward_val(&mut engine, "'Hello' - new Number(999)").unwrap();
-    let value = engine.to_number(&value).unwrap();
+    let value = value.to_number(&mut engine).unwrap();
     assert!(value.is_nan());
 }
 
@@ -334,7 +334,7 @@ fn bitand_integer_and_integer() {
     let mut engine = Interpreter::new(realm);
 
     let value = forward_val(&mut engine, "0xFFFF & 0xFF").unwrap();
-    let value = engine.to_int32(&value).unwrap();
+    let value = value.to_i32(&mut engine).unwrap();
     assert_eq!(value, 255);
 }
 
@@ -344,7 +344,7 @@ fn bitand_integer_and_rational() {
     let mut engine = Interpreter::new(realm);
 
     let value = forward_val(&mut engine, "0xFFFF & 255.5").unwrap();
-    let value = engine.to_int32(&value).unwrap();
+    let value = value.to_i32(&mut engine).unwrap();
     assert_eq!(value, 255);
 }
 
@@ -354,6 +354,830 @@ fn bitand_rational_and_rational() {
     let mut engine = Interpreter::new(realm);
 
     let value = forward_val(&mut engine, "255.772 & 255.5").unwrap();
-    let value = engine.to_int32(&value).unwrap();
+    let value = value.to_i32(&mut engine).unwrap();
     assert_eq!(value, 255);
+}
+
+#[test]
+#[allow(clippy::float_cmp)]
+fn pow_number_and_number() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+
+    let value = forward_val(&mut engine, "3 ** 3").unwrap();
+    let value = value.to_number(&mut engine).unwrap();
+    assert_eq!(value, 27.0);
+}
+
+#[test]
+fn pow_number_and_string() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+
+    let value = forward_val(&mut engine, "3 ** 'Hello'").unwrap();
+    let value = value.to_number(&mut engine).unwrap();
+    assert!(value.is_nan());
+}
+
+#[test]
+fn assign_pow_number_and_string() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+
+    let value = forward_val(
+        &mut engine,
+        r"
+        let a = 3;
+        a **= 'Hello'
+        a
+    ",
+    )
+    .unwrap();
+    let value = value.to_number(&mut engine).unwrap();
+    assert!(value.is_nan());
+}
+
+#[test]
+fn display_string() {
+    let s = String::from("Hello");
+    let v = Value::from(s);
+    assert_eq!(v.display().to_string(), "\"Hello\"");
+}
+
+#[test]
+fn display_array_string() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+
+    let value = forward_val(&mut engine, "[\"Hello\"]").unwrap();
+    assert_eq!(value.display().to_string(), "[ \"Hello\" ]");
+}
+
+#[test]
+fn display_boolean_object() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+    let d_obj = r#"
+        let bool = new Boolean(0);
+        bool
+    "#;
+    let value = forward_val(&mut engine, d_obj).unwrap();
+    assert_eq!(value.display().to_string(), "Boolean { false }")
+}
+
+#[test]
+fn display_number_object() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+    let d_obj = r#"
+        let num = new Number(3.14);
+        num
+    "#;
+    let value = forward_val(&mut engine, d_obj).unwrap();
+    assert_eq!(value.display().to_string(), "Number { 3.14 }")
+}
+
+#[test]
+fn display_negative_zero_object() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+    let d_obj = r#"
+        let num = new Number(-0);
+        num
+    "#;
+    let value = forward_val(&mut engine, d_obj).unwrap();
+    assert_eq!(value.display().to_string(), "Number { -0 }")
+}
+
+#[test]
+fn debug_object() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+    let value = forward_val(&mut engine, "new Array([new Date()])").unwrap();
+
+    // We don't care about the contents of the debug display (it is *debug* after all). In the commit that this test was
+    // added, this would cause a stack overflow, so executing Debug::fmt is the assertion.
+    //
+    // However, we want to make sure that no data is being left in the internal hashset, so executing this twice should
+    // result in the same output.
+    assert_eq!(format!("{:?}", value), format!("{:?}", value));
+}
+
+#[test]
+#[ignore] // TODO: Once objects are printed in a simpler way this test can be simplified and used
+fn display_object() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+    let d_obj = r#"
+        let o = {a: 'a'};
+        o
+    "#;
+    let value = forward_val(&mut engine, d_obj).unwrap();
+    assert_eq!(
+        value.display().to_string(),
+        r#"{
+   a: "a",
+__proto__: {
+constructor: {
+setPrototypeOf: {
+          length: 2
+            },
+   prototype: [Cycle],
+        name: "Object",
+      length: 1,
+defineProperty: {
+          length: 3
+            },
+getPrototypeOf: {
+          length: 1
+            },
+          is: {
+          length: 2
+            },
+   __proto__: {
+     constructor: {
+                name: "Function",
+           prototype: [Cycle],
+              length: 1,
+           __proto__: undefined
+                },
+       __proto__: undefined
+            }
+        },
+hasOwnProperty: {
+      length: 0
+        },
+propertyIsEnumerable: {
+      length: 0
+        },
+toString: {
+      length: 0
+        }
+    }
+}"#
+    );
+}
+
+mod abstract_relational_comparison {
+    use super::*;
+    macro_rules! check_comparison {
+        ($engine:ident, $string:expr => $expect:expr) => {
+            assert_eq!(
+                forward_val(&mut $engine, $string).unwrap().to_boolean(),
+                $expect
+            );
+        };
+    }
+
+    #[test]
+    fn number_less_than_number() {
+        let realm = Realm::create();
+        let mut engine = Interpreter::new(realm);
+        check_comparison!(engine, "1 < 2" => true);
+        check_comparison!(engine, "2 < 2" => false);
+        check_comparison!(engine, "3 < 2" => false);
+        check_comparison!(engine, "2 < 2.5" => true);
+        check_comparison!(engine, "2.5 < 2" => false);
+    }
+
+    #[test]
+    fn string_less_than_number() {
+        let realm = Realm::create();
+        let mut engine = Interpreter::new(realm);
+        check_comparison!(engine, "'1' < 2" => true);
+        check_comparison!(engine, "'2' < 2" => false);
+        check_comparison!(engine, "'3' < 2" => false);
+        check_comparison!(engine, "'2' < 2.5" => true);
+        check_comparison!(engine, "'2.5' < 2" => false);
+    }
+
+    #[test]
+    fn number_less_than_string() {
+        let realm = Realm::create();
+        let mut engine = Interpreter::new(realm);
+        check_comparison!(engine, "1 < '2'" => true);
+        check_comparison!(engine, "2 < '2'" => false);
+        check_comparison!(engine, "3 < '2'" => false);
+        check_comparison!(engine, "2 < '2.5'" => true);
+        check_comparison!(engine, "2.5 < '2'" => false);
+    }
+
+    #[test]
+    fn number_object_less_than_number() {
+        let realm = Realm::create();
+        let mut engine = Interpreter::new(realm);
+        check_comparison!(engine, "new Number(1) < '2'" => true);
+        check_comparison!(engine, "new Number(2) < '2'" => false);
+        check_comparison!(engine, "new Number(3) < '2'" => false);
+        check_comparison!(engine, "new Number(2) < '2.5'" => true);
+        check_comparison!(engine, "new Number(2.5) < '2'" => false);
+    }
+
+    #[test]
+    fn number_object_less_than_number_object() {
+        let realm = Realm::create();
+        let mut engine = Interpreter::new(realm);
+        check_comparison!(engine, "new Number(1) < new Number(2)" => true);
+        check_comparison!(engine, "new Number(2) < new Number(2)" => false);
+        check_comparison!(engine, "new Number(3) < new Number(2)" => false);
+        check_comparison!(engine, "new Number(2) < new Number(2.5)" => true);
+        check_comparison!(engine, "new Number(2.5) < new Number(2)" => false);
+    }
+
+    #[test]
+    fn string_less_than_string() {
+        let realm = Realm::create();
+        let mut engine = Interpreter::new(realm);
+        check_comparison!(engine, "'hello' < 'hello'" => false);
+        check_comparison!(engine, "'hell' < 'hello'" => true);
+        check_comparison!(engine, "'hello, world' < 'world'" => true);
+        check_comparison!(engine, "'aa' < 'ab'" => true);
+    }
+
+    #[test]
+    fn string_object_less_than_string() {
+        let realm = Realm::create();
+        let mut engine = Interpreter::new(realm);
+        check_comparison!(engine, "new String('hello') < 'hello'" => false);
+        check_comparison!(engine, "new String('hell') < 'hello'" => true);
+        check_comparison!(engine, "new String('hello, world') < 'world'" => true);
+        check_comparison!(engine, "new String('aa') < 'ab'" => true);
+    }
+
+    #[test]
+    fn string_object_less_than_string_object() {
+        let realm = Realm::create();
+        let mut engine = Interpreter::new(realm);
+        check_comparison!(engine, "new String('hello') < new String('hello')" => false);
+        check_comparison!(engine, "new String('hell') < new String('hello')" => true);
+        check_comparison!(engine, "new String('hello, world') < new String('world')" => true);
+        check_comparison!(engine, "new String('aa') < new String('ab')" => true);
+    }
+
+    #[test]
+    fn bigint_less_than_number() {
+        let realm = Realm::create();
+        let mut engine = Interpreter::new(realm);
+        check_comparison!(engine, "1n < 10" => true);
+        check_comparison!(engine, "10n < 10" => false);
+        check_comparison!(engine, "100n < 10" => false);
+        check_comparison!(engine, "10n < 10.9" => true);
+    }
+
+    #[test]
+    fn number_less_than_bigint() {
+        let realm = Realm::create();
+        let mut engine = Interpreter::new(realm);
+        check_comparison!(engine, "10 < 1n" => false);
+        check_comparison!(engine, "1 < 1n" => false);
+        check_comparison!(engine, "-1 < -1n" => false);
+        check_comparison!(engine, "-1.9 < -1n" => true);
+    }
+
+    #[test]
+    fn negative_infnity_less_than_bigint() {
+        let realm = Realm::create();
+        let mut engine = Interpreter::new(realm);
+        check_comparison!(engine, "-Infinity < -10000000000n" => true);
+        check_comparison!(engine, "-Infinity < (-1n << 100n)" => true);
+    }
+
+    #[test]
+    fn bigint_less_than_infinity() {
+        let realm = Realm::create();
+        let mut engine = Interpreter::new(realm);
+        check_comparison!(engine, "1000n < NaN" => false);
+        check_comparison!(engine, "(1n << 100n) < NaN" => false);
+    }
+
+    #[test]
+    fn nan_less_than_bigint() {
+        let realm = Realm::create();
+        let mut engine = Interpreter::new(realm);
+        check_comparison!(engine, "NaN < -10000000000n" => false);
+        check_comparison!(engine, "NaN < (-1n << 100n)" => false);
+    }
+
+    #[test]
+    fn bigint_less_than_nan() {
+        let realm = Realm::create();
+        let mut engine = Interpreter::new(realm);
+        check_comparison!(engine, "1000n < Infinity" => true);
+        check_comparison!(engine, "(1n << 100n) < Infinity" => true);
+    }
+
+    #[test]
+    fn bigint_less_than_string() {
+        let realm = Realm::create();
+        let mut engine = Interpreter::new(realm);
+        check_comparison!(engine, "1000n < '1000'" => false);
+        check_comparison!(engine, "1000n < '2000'" => true);
+        check_comparison!(engine, "1n < '-1'" => false);
+        check_comparison!(engine, "2n < '-1'" => false);
+        check_comparison!(engine, "-100n < 'InvalidBigInt'" => false);
+    }
+
+    #[test]
+    fn string_less_than_bigint() {
+        let realm = Realm::create();
+        let mut engine = Interpreter::new(realm);
+        check_comparison!(engine, "'1000' < 1000n" => false);
+        check_comparison!(engine, "'2000' < 1000n" => false);
+        check_comparison!(engine, "'500' < 1000n" => true);
+        check_comparison!(engine, "'-1' < 1n" => true);
+        check_comparison!(engine, "'-1' < 2n" => true);
+        check_comparison!(engine, "'InvalidBigInt' < -100n" => false);
+    }
+
+    // -------------------------------------------
+
+    #[test]
+    fn number_less_than_or_equal_number() {
+        let realm = Realm::create();
+        let mut engine = Interpreter::new(realm);
+        check_comparison!(engine, "1 <= 2" => true);
+        check_comparison!(engine, "2 <= 2" => true);
+        check_comparison!(engine, "3 <= 2" => false);
+        check_comparison!(engine, "2 <= 2.5" => true);
+        check_comparison!(engine, "2.5 <= 2" => false);
+    }
+
+    #[test]
+    fn string_less_than_or_equal_number() {
+        let realm = Realm::create();
+        let mut engine = Interpreter::new(realm);
+        check_comparison!(engine, "'1' <= 2" => true);
+        check_comparison!(engine, "'2' <= 2" => true);
+        check_comparison!(engine, "'3' <= 2" => false);
+        check_comparison!(engine, "'2' <= 2.5" => true);
+        check_comparison!(engine, "'2.5' < 2" => false);
+    }
+
+    #[test]
+    fn number_less_than_or_equal_string() {
+        let realm = Realm::create();
+        let mut engine = Interpreter::new(realm);
+        check_comparison!(engine, "1 <= '2'" => true);
+        check_comparison!(engine, "2 <= '2'" => true);
+        check_comparison!(engine, "3 <= '2'" => false);
+        check_comparison!(engine, "2 <= '2.5'" => true);
+        check_comparison!(engine, "2.5 <= '2'" => false);
+    }
+
+    #[test]
+    fn number_object_less_than_or_equal_number() {
+        let realm = Realm::create();
+        let mut engine = Interpreter::new(realm);
+        check_comparison!(engine, "new Number(1) <= '2'" => true);
+        check_comparison!(engine, "new Number(2) <= '2'" => true);
+        check_comparison!(engine, "new Number(3) <= '2'" => false);
+        check_comparison!(engine, "new Number(2) <= '2.5'" => true);
+        check_comparison!(engine, "new Number(2.5) <= '2'" => false);
+    }
+
+    #[test]
+    fn number_object_less_than_number_or_equal_object() {
+        let realm = Realm::create();
+        let mut engine = Interpreter::new(realm);
+        check_comparison!(engine, "new Number(1) <= new Number(2)" => true);
+        check_comparison!(engine, "new Number(2) <= new Number(2)" => true);
+        check_comparison!(engine, "new Number(3) <= new Number(2)" => false);
+        check_comparison!(engine, "new Number(2) <= new Number(2.5)" => true);
+        check_comparison!(engine, "new Number(2.5) <= new Number(2)" => false);
+    }
+
+    #[test]
+    fn string_less_than_or_equal_string() {
+        let realm = Realm::create();
+        let mut engine = Interpreter::new(realm);
+        check_comparison!(engine, "'hello' <= 'hello'" => true);
+        check_comparison!(engine, "'hell' <= 'hello'" => true);
+        check_comparison!(engine, "'hello, world' <= 'world'" => true);
+        check_comparison!(engine, "'aa' <= 'ab'" => true);
+    }
+
+    #[test]
+    fn string_object_less_than_or_equal_string() {
+        let realm = Realm::create();
+        let mut engine = Interpreter::new(realm);
+        check_comparison!(engine, "new String('hello') <= 'hello'" => true);
+        check_comparison!(engine, "new String('hell') <= 'hello'" => true);
+        check_comparison!(engine, "new String('hello, world') <= 'world'" => true);
+        check_comparison!(engine, "new String('aa') <= 'ab'" => true);
+    }
+
+    #[test]
+    fn string_object_less_than_string_or_equal_object() {
+        let realm = Realm::create();
+        let mut engine = Interpreter::new(realm);
+        check_comparison!(engine, "new String('hello') <= new String('hello')" => true);
+        check_comparison!(engine, "new String('hell') <= new String('hello')" => true);
+        check_comparison!(engine, "new String('hello, world') <= new String('world')" => true);
+        check_comparison!(engine, "new String('aa') <= new String('ab')" => true);
+    }
+
+    #[test]
+    fn bigint_less_than_or_equal_number() {
+        let realm = Realm::create();
+        let mut engine = Interpreter::new(realm);
+        check_comparison!(engine, "1n <= 10" => true);
+        check_comparison!(engine, "10n <= 10" => true);
+        check_comparison!(engine, "100n <= 10" => false);
+        check_comparison!(engine, "10n <= 10.9" => true);
+    }
+
+    #[test]
+    fn number_less_than_or_equal_bigint() {
+        let realm = Realm::create();
+        let mut engine = Interpreter::new(realm);
+        check_comparison!(engine, "10 <= 1n" => false);
+        check_comparison!(engine, "1 <= 1n" => true);
+        check_comparison!(engine, "-1 <= -1n" => true);
+        check_comparison!(engine, "-1.9 <= -1n" => true);
+    }
+
+    #[test]
+    fn negative_infnity_less_than_or_equal_bigint() {
+        let realm = Realm::create();
+        let mut engine = Interpreter::new(realm);
+        check_comparison!(engine, "-Infinity <= -10000000000n" => true);
+        check_comparison!(engine, "-Infinity <= (-1n << 100n)" => true);
+    }
+
+    #[test]
+    fn bigint_less_than_or_equal_infinity() {
+        let realm = Realm::create();
+        let mut engine = Interpreter::new(realm);
+        check_comparison!(engine, "1000n <= NaN" => false);
+        check_comparison!(engine, "(1n << 100n) <= NaN" => false);
+    }
+
+    #[test]
+    fn nan_less_than_or_equal_bigint() {
+        let realm = Realm::create();
+        let mut engine = Interpreter::new(realm);
+        check_comparison!(engine, "NaN <= -10000000000n" => false);
+        check_comparison!(engine, "NaN <= (-1n << 100n)" => false);
+    }
+
+    #[test]
+    fn bigint_less_than_or_equal_nan() {
+        let realm = Realm::create();
+        let mut engine = Interpreter::new(realm);
+        check_comparison!(engine, "1000n <= Infinity" => true);
+        check_comparison!(engine, "(1n << 100n) <= Infinity" => true);
+    }
+
+    #[test]
+    fn bigint_less_than_or_equal_string() {
+        let realm = Realm::create();
+        let mut engine = Interpreter::new(realm);
+        check_comparison!(engine, "1000n <= '1000'" => true);
+        check_comparison!(engine, "1000n <= '2000'" => true);
+        check_comparison!(engine, "1n <= '-1'" => false);
+        check_comparison!(engine, "2n <= '-1'" => false);
+        check_comparison!(engine, "-100n <= 'InvalidBigInt'" => false);
+    }
+
+    #[test]
+    fn string_less_than_or_equal_bigint() {
+        let realm = Realm::create();
+        let mut engine = Interpreter::new(realm);
+        check_comparison!(engine, "'1000' <= 1000n" => true);
+        check_comparison!(engine, "'2000' <= 1000n" => false);
+        check_comparison!(engine, "'500' <= 1000n" => true);
+        check_comparison!(engine, "'-1' <= 1n" => true);
+        check_comparison!(engine, "'-1' <= 2n" => true);
+        check_comparison!(engine, "'InvalidBigInt' <= -100n" => false);
+    }
+
+    // -------------------------------------------
+
+    #[test]
+    fn number_greater_than_number() {
+        let realm = Realm::create();
+        let mut engine = Interpreter::new(realm);
+        check_comparison!(engine, "1 > 2" => false);
+        check_comparison!(engine, "2 > 2" => false);
+        check_comparison!(engine, "3 > 2" => true);
+        check_comparison!(engine, "2 > 2.5" => false);
+        check_comparison!(engine, "2.5 > 2" => true);
+    }
+
+    #[test]
+    fn string_greater_than_number() {
+        let realm = Realm::create();
+        let mut engine = Interpreter::new(realm);
+        check_comparison!(engine, "'1' > 2" => false);
+        check_comparison!(engine, "'2' > 2" => false);
+        check_comparison!(engine, "'3' > 2" => true);
+        check_comparison!(engine, "'2' > 2.5" => false);
+        check_comparison!(engine, "'2.5' > 2" => true);
+    }
+
+    #[test]
+    fn number_less_greater_string() {
+        let realm = Realm::create();
+        let mut engine = Interpreter::new(realm);
+        check_comparison!(engine, "1 > '2'" => false);
+        check_comparison!(engine, "2 > '2'" => false);
+        check_comparison!(engine, "3 > '2'" => true);
+        check_comparison!(engine, "2 > '2.5'" => false);
+        check_comparison!(engine, "2.5 > '2'" => true);
+    }
+
+    #[test]
+    fn number_object_greater_than_number() {
+        let realm = Realm::create();
+        let mut engine = Interpreter::new(realm);
+        check_comparison!(engine, "new Number(1) > '2'" => false);
+        check_comparison!(engine, "new Number(2) > '2'" => false);
+        check_comparison!(engine, "new Number(3) > '2'" => true);
+        check_comparison!(engine, "new Number(2) > '2.5'" => false);
+        check_comparison!(engine, "new Number(2.5) > '2'" => true);
+    }
+
+    #[test]
+    fn number_object_greater_than_number_object() {
+        let realm = Realm::create();
+        let mut engine = Interpreter::new(realm);
+        check_comparison!(engine, "new Number(1) > new Number(2)" => false);
+        check_comparison!(engine, "new Number(2) > new Number(2)" => false);
+        check_comparison!(engine, "new Number(3) > new Number(2)" => true);
+        check_comparison!(engine, "new Number(2) > new Number(2.5)" => false);
+        check_comparison!(engine, "new Number(2.5) > new Number(2)" => true);
+    }
+
+    #[test]
+    fn string_greater_than_string() {
+        let realm = Realm::create();
+        let mut engine = Interpreter::new(realm);
+        check_comparison!(engine, "'hello' > 'hello'" => false);
+        check_comparison!(engine, "'hell' > 'hello'" => false);
+        check_comparison!(engine, "'hello, world' > 'world'" => false);
+        check_comparison!(engine, "'aa' > 'ab'" => false);
+        check_comparison!(engine, "'ab' > 'aa'" => true);
+    }
+
+    #[test]
+    fn string_object_greater_than_string() {
+        let realm = Realm::create();
+        let mut engine = Interpreter::new(realm);
+        check_comparison!(engine, "new String('hello') > 'hello'" => false);
+        check_comparison!(engine, "new String('hell') > 'hello'" => false);
+        check_comparison!(engine, "new String('hello, world') > 'world'" => false);
+        check_comparison!(engine, "new String('aa') > 'ab'" => false);
+        check_comparison!(engine, "new String('ab') > 'aa'" => true);
+    }
+
+    #[test]
+    fn string_object_greater_than_string_object() {
+        let realm = Realm::create();
+        let mut engine = Interpreter::new(realm);
+        check_comparison!(engine, "new String('hello') > new String('hello')" => false);
+        check_comparison!(engine, "new String('hell') > new String('hello')" => false);
+        check_comparison!(engine, "new String('hello, world') > new String('world')" => false);
+        check_comparison!(engine, "new String('aa') > new String('ab')" => false);
+        check_comparison!(engine, "new String('ab') > new String('aa')" => true);
+    }
+
+    #[test]
+    fn bigint_greater_than_number() {
+        let realm = Realm::create();
+        let mut engine = Interpreter::new(realm);
+        check_comparison!(engine, "1n > 10" => false);
+        check_comparison!(engine, "10n > 10" => false);
+        check_comparison!(engine, "100n > 10" => true);
+        check_comparison!(engine, "10n > 10.9" => false);
+    }
+
+    #[test]
+    fn number_greater_than_bigint() {
+        let realm = Realm::create();
+        let mut engine = Interpreter::new(realm);
+        check_comparison!(engine, "10 > 1n" => true);
+        check_comparison!(engine, "1 > 1n" => false);
+        check_comparison!(engine, "-1 > -1n" => false);
+        check_comparison!(engine, "-1.9 > -1n" => false);
+    }
+
+    #[test]
+    fn negative_infnity_greater_than_bigint() {
+        let realm = Realm::create();
+        let mut engine = Interpreter::new(realm);
+        check_comparison!(engine, "-Infinity > -10000000000n" => false);
+        check_comparison!(engine, "-Infinity > (-1n << 100n)" => false);
+    }
+
+    #[test]
+    fn bigint_greater_than_infinity() {
+        let realm = Realm::create();
+        let mut engine = Interpreter::new(realm);
+        check_comparison!(engine, "1000n > NaN" => false);
+        check_comparison!(engine, "(1n << 100n) > NaN" => false);
+    }
+
+    #[test]
+    fn nan_greater_than_bigint() {
+        let realm = Realm::create();
+        let mut engine = Interpreter::new(realm);
+        check_comparison!(engine, "NaN > -10000000000n" => false);
+        check_comparison!(engine, "NaN > (-1n << 100n)" => false);
+    }
+
+    #[test]
+    fn bigint_greater_than_nan() {
+        let realm = Realm::create();
+        let mut engine = Interpreter::new(realm);
+        check_comparison!(engine, "1000n > Infinity" => false);
+        check_comparison!(engine, "(1n << 100n) > Infinity" => false);
+    }
+
+    #[test]
+    fn bigint_greater_than_string() {
+        let realm = Realm::create();
+        let mut engine = Interpreter::new(realm);
+        check_comparison!(engine, "1000n > '1000'" => false);
+        check_comparison!(engine, "1000n > '2000'" => false);
+        check_comparison!(engine, "1n > '-1'" => true);
+        check_comparison!(engine, "2n > '-1'" => true);
+        check_comparison!(engine, "-100n > 'InvalidBigInt'" => false);
+    }
+
+    #[test]
+    fn string_greater_than_bigint() {
+        let realm = Realm::create();
+        let mut engine = Interpreter::new(realm);
+        check_comparison!(engine, "'1000' > 1000n" => false);
+        check_comparison!(engine, "'2000' > 1000n" => true);
+        check_comparison!(engine, "'500' > 1000n" => false);
+        check_comparison!(engine, "'-1' > 1n" => false);
+        check_comparison!(engine, "'-1' > 2n" => false);
+        check_comparison!(engine, "'InvalidBigInt' > -100n" => false);
+    }
+
+    // ----------------------------------------------
+
+    #[test]
+    fn number_greater_than_or_equal_number() {
+        let realm = Realm::create();
+        let mut engine = Interpreter::new(realm);
+        check_comparison!(engine, "1 >= 2" => false);
+        check_comparison!(engine, "2 >= 2" => true);
+        check_comparison!(engine, "3 >= 2" => true);
+        check_comparison!(engine, "2 >= 2.5" => false);
+        check_comparison!(engine, "2.5 >= 2" => true);
+    }
+
+    #[test]
+    fn string_greater_than_or_equal_number() {
+        let realm = Realm::create();
+        let mut engine = Interpreter::new(realm);
+        check_comparison!(engine, "'1' >= 2" => false);
+        check_comparison!(engine, "'2' >= 2" => true);
+        check_comparison!(engine, "'3' >= 2" => true);
+        check_comparison!(engine, "'2' >= 2.5" => false);
+        check_comparison!(engine, "'2.5' >= 2" => true);
+    }
+
+    #[test]
+    fn number_less_greater_or_equal_string() {
+        let realm = Realm::create();
+        let mut engine = Interpreter::new(realm);
+        check_comparison!(engine, "1 >= '2'" => false);
+        check_comparison!(engine, "2 >= '2'" => true);
+        check_comparison!(engine, "3 >= '2'" => true);
+        check_comparison!(engine, "2 >= '2.5'" => false);
+        check_comparison!(engine, "2.5 >= '2'" => true);
+    }
+
+    #[test]
+    fn number_object_greater_than_or_equal_number() {
+        let realm = Realm::create();
+        let mut engine = Interpreter::new(realm);
+        check_comparison!(engine, "new Number(1) >= '2'" => false);
+        check_comparison!(engine, "new Number(2) >= '2'" => true);
+        check_comparison!(engine, "new Number(3) >= '2'" => true);
+        check_comparison!(engine, "new Number(2) >= '2.5'" => false);
+        check_comparison!(engine, "new Number(2.5) >= '2'" => true);
+    }
+
+    #[test]
+    fn number_object_greater_than_or_equal_number_object() {
+        let realm = Realm::create();
+        let mut engine = Interpreter::new(realm);
+        check_comparison!(engine, "new Number(1) >= new Number(2)" => false);
+        check_comparison!(engine, "new Number(2) >= new Number(2)" => true);
+        check_comparison!(engine, "new Number(3) >= new Number(2)" => true);
+        check_comparison!(engine, "new Number(2) >= new Number(2.5)" => false);
+        check_comparison!(engine, "new Number(2.5) >= new Number(2)" => true);
+    }
+
+    #[test]
+    fn string_greater_than_or_equal_string() {
+        let realm = Realm::create();
+        let mut engine = Interpreter::new(realm);
+        check_comparison!(engine, "'hello' >= 'hello'" => true);
+        check_comparison!(engine, "'hell' >= 'hello'" => false);
+        check_comparison!(engine, "'hello, world' >= 'world'" => false);
+        check_comparison!(engine, "'aa' >= 'ab'" => false);
+        check_comparison!(engine, "'ab' >= 'aa'" => true);
+    }
+
+    #[test]
+    fn string_object_greater_or_equal_than_string() {
+        let realm = Realm::create();
+        let mut engine = Interpreter::new(realm);
+        check_comparison!(engine, "new String('hello') >= 'hello'" => true);
+        check_comparison!(engine, "new String('hell') >= 'hello'" => false);
+        check_comparison!(engine, "new String('hello, world') >= 'world'" => false);
+        check_comparison!(engine, "new String('aa') >= 'ab'" => false);
+        check_comparison!(engine, "new String('ab') >= 'aa'" => true);
+    }
+
+    #[test]
+    fn string_object_greater_than_or_equal_string_object() {
+        let realm = Realm::create();
+        let mut engine = Interpreter::new(realm);
+        check_comparison!(engine, "new String('hello') >= new String('hello')" => true);
+        check_comparison!(engine, "new String('hell') >= new String('hello')" => false);
+        check_comparison!(engine, "new String('hello, world') >= new String('world')" => false);
+        check_comparison!(engine, "new String('aa') >= new String('ab')" => false);
+        check_comparison!(engine, "new String('ab') >= new String('aa')" => true);
+    }
+
+    #[test]
+    fn bigint_greater_than_or_equal_number() {
+        let realm = Realm::create();
+        let mut engine = Interpreter::new(realm);
+        check_comparison!(engine, "1n >= 10" => false);
+        check_comparison!(engine, "10n >= 10" => true);
+        check_comparison!(engine, "100n >= 10" => true);
+        check_comparison!(engine, "10n >= 10.9" => false);
+    }
+
+    #[test]
+    fn number_greater_than_or_equal_bigint() {
+        let realm = Realm::create();
+        let mut engine = Interpreter::new(realm);
+        check_comparison!(engine, "10 >= 1n" => true);
+        check_comparison!(engine, "1 >= 1n" => true);
+        check_comparison!(engine, "-1 >= -1n" => true);
+        check_comparison!(engine, "-1.9 >= -1n" => false);
+    }
+
+    #[test]
+    fn negative_infnity_greater_or_equal_than_bigint() {
+        let realm = Realm::create();
+        let mut engine = Interpreter::new(realm);
+        check_comparison!(engine, "-Infinity >= -10000000000n" => false);
+        check_comparison!(engine, "-Infinity >= (-1n << 100n)" => false);
+    }
+
+    #[test]
+    fn bigint_greater_than_or_equal_infinity() {
+        let realm = Realm::create();
+        let mut engine = Interpreter::new(realm);
+        check_comparison!(engine, "1000n >= NaN" => false);
+        check_comparison!(engine, "(1n << 100n) >= NaN" => false);
+    }
+
+    #[test]
+    fn nan_greater_than_or_equal_bigint() {
+        let realm = Realm::create();
+        let mut engine = Interpreter::new(realm);
+        check_comparison!(engine, "NaN >= -10000000000n" => false);
+        check_comparison!(engine, "NaN >= (-1n << 100n)" => false);
+    }
+
+    #[test]
+    fn bigint_greater_than_or_equal_nan() {
+        let realm = Realm::create();
+        let mut engine = Interpreter::new(realm);
+        check_comparison!(engine, "1000n >= Infinity" => false);
+        check_comparison!(engine, "(1n << 100n) >= Infinity" => false);
+    }
+
+    #[test]
+    fn bigint_greater_than_or_equal_string() {
+        let realm = Realm::create();
+        let mut engine = Interpreter::new(realm);
+        check_comparison!(engine, "1000n >= '1000'" => true);
+        check_comparison!(engine, "1000n >= '2000'" => false);
+        check_comparison!(engine, "1n >= '-1'" => true);
+        check_comparison!(engine, "2n >= '-1'" => true);
+        check_comparison!(engine, "-100n >= 'InvalidBigInt'" => false);
+    }
+
+    #[test]
+    fn string_greater_than_or_equal_bigint() {
+        let realm = Realm::create();
+        let mut engine = Interpreter::new(realm);
+        check_comparison!(engine, "'1000' >= 1000n" => true);
+        check_comparison!(engine, "'2000' >= 1000n" => true);
+        check_comparison!(engine, "'500' >= 1000n" => false);
+        check_comparison!(engine, "'-1' >= 1n" => false);
+        check_comparison!(engine, "'-1' >= 2n" => false);
+        check_comparison!(engine, "'InvalidBigInt' >= -100n" => false);
+    }
 }

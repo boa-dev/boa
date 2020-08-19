@@ -2,14 +2,12 @@
 
 use super::{Executable, Interpreter, InterpreterState};
 use crate::{
-    builtins::value::{ResultValue, Value},
-    environment::lexical_environment::new_declarative_environment,
-    syntax::ast::node::Block,
-    BoaProfiler,
+    builtins::value::Value, environment::lexical_environment::new_declarative_environment,
+    syntax::ast::node::Block, BoaProfiler, Result,
 };
 
 impl Executable for Block {
-    fn run(&self, interpreter: &mut Interpreter) -> ResultValue {
+    fn run(&self, interpreter: &mut Interpreter) -> Result<Value> {
         let _timer = BoaProfiler::global().start_event("Block", "exec");
         {
             let env = &mut interpreter.realm_mut().environment;
@@ -18,7 +16,9 @@ impl Executable for Block {
             )));
         }
 
-        let mut obj = Value::null();
+        // https://tc39.es/ecma262/#sec-block-runtime-semantics-evaluation
+        // The return value is uninitialized, which means it defaults to Value::Undefined
+        let mut obj = Value::default();
         for statement in self.statements() {
             obj = statement.run(interpreter)?;
 

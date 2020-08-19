@@ -61,7 +61,7 @@ fn merge() {
     let result = forward(&mut engine, "merged1.size");
     assert_eq!(result, "3");
     let result = forward(&mut engine, "merged1.get('2')");
-    assert_eq!(result, "second two");
+    assert_eq!(result, "\"second two\"");
     let result = forward(&mut engine, "merged2.size");
     assert_eq!(result, "4");
 }
@@ -75,9 +75,9 @@ fn get() {
         "#;
     forward(&mut engine, init);
     let result = forward(&mut engine, "map.get('1')");
-    assert_eq!(result, "one");
+    assert_eq!(result, "\"one\"");
     let result = forward(&mut engine, "map.get('2')");
-    assert_eq!(result, "two");
+    assert_eq!(result, "\"two\"");
     let result = forward(&mut engine, "map.get('3')");
     assert_eq!(result, "undefined");
     let result = forward(&mut engine, "map.get()");
@@ -95,11 +95,11 @@ fn set() {
     let result = forward(&mut engine, "map.set()");
     assert_eq!(result, "Map { undefined → undefined }");
     let result = forward(&mut engine, "map.set('1', 'one')");
-    assert_eq!(result, "Map { undefined → undefined, 1 → one }");
+    assert_eq!(result, "Map { undefined → undefined, \"1\" → \"one\" }");
     let result = forward(&mut engine, "map.set('2')");
     assert_eq!(
         result,
-        "Map { undefined → undefined, 1 → one, 2 → undefined }"
+        "Map { undefined → undefined, \"1\" → \"one\", \"2\" → undefined }"
     );
 }
 
@@ -181,7 +181,7 @@ fn modify_key() {
         "#;
     forward(&mut engine, init);
     let result = forward(&mut engine, "map.get(obj)");
-    assert_eq!(result, "one");
+    assert_eq!(result, "\"one\"");
 }
 
 #[test]
@@ -194,15 +194,21 @@ fn order() {
         "#;
     forward(&mut engine, init);
     let result = forward(&mut engine, "map");
-    assert_eq!(result, "Map { 1 → one, 2 → two }");
+    assert_eq!(result, "Map { 1 → \"one\", 2 → \"two\" }");
     let result = forward(&mut engine, "map.set(1, \"five\");map");
-    assert_eq!(result, "Map { 1 → five, 2 → two }");
+    assert_eq!(result, "Map { 1 → \"five\", 2 → \"two\" }");
     let result = forward(&mut engine, "map.set();map");
-    assert_eq!(result, "Map { 1 → five, 2 → two, undefined → undefined }");
+    assert_eq!(
+        result,
+        "Map { 1 → \"five\", 2 → \"two\", undefined → undefined }"
+    );
     let result = forward(&mut engine, "map.delete(2);map");
-    assert_eq!(result, "Map { 1 → five, undefined → undefined }");
+    assert_eq!(result, "Map { 1 → \"five\", undefined → undefined }");
     let result = forward(&mut engine, "map.set(2, \"two\");map");
-    assert_eq!(result, "Map { 1 → five, undefined → undefined, 2 → two }");
+    assert_eq!(
+        result,
+        "Map { 1 → \"five\", undefined → undefined, 2 → \"two\" }"
+    );
 }
 
 #[test]
@@ -216,16 +222,24 @@ fn recursive_display() {
         "#;
     forward(&mut engine, init);
     let result = forward(&mut engine, "map");
-    assert_eq!(result, "Map { y → Map(1) }");
+    assert_eq!(result, "Map { \"y\" → Map(1) }");
     let result = forward(&mut engine, "map.set(\"z\", array)");
-    assert_eq!(result, "Map { y → Map(2), z → Array(1) }");
+    assert_eq!(result, "Map { \"y\" → Map(2), \"z\" → Array(1) }");
 }
 
 #[test]
-#[should_panic]
 fn not_a_function() {
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);
-    let init = "let map = Map()";
-    forward(&mut engine, init);
+    let init = r"
+        try {
+            let map = Map()
+        } catch(e) {
+            e.toString()
+        }
+    ";
+    assert_eq!(
+        forward(&mut engine, init),
+        "\"TypeError: function object is not callable\""
+    );
 }

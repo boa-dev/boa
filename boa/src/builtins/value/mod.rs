@@ -5,25 +5,17 @@
 #[cfg(test)]
 mod tests;
 
-pub mod val_type;
-
-pub use crate::builtins::value::val_type::Type;
-
+use super::number::{f64_to_int32, f64_to_uint32};
 use crate::builtins::{
-    function::Function,
-    object::{
-        GcObject, InternalState, InternalStateCell, Object, ObjectData, INSTANCE_PROTOTYPE,
-        PROTOTYPE,
-    },
-    property::Property,
-    BigInt, Symbol,
+    object::{GcObject, Object, ObjectData, PROTOTYPE},
+    property::{Attribute, Property, PropertyKey},
+    BigInt, Number,
 };
 use crate::exec::Interpreter;
-use crate::BoaProfiler;
+use crate::{BoaProfiler, Result};
 use gc::{Finalize, GcCellRef, GcCellRefMut, Trace};
 use serde_json::{map::Map, Number as JSONNumber, Value as JSONValue};
 use std::{
-    any::Any,
     collections::HashSet,
     convert::TryFrom,
     f64::NAN,
@@ -31,27 +23,26 @@ use std::{
     str::FromStr,
 };
 
-pub mod conversions;
-pub mod display;
-pub mod equality;
-pub mod hash;
-pub mod operations;
-pub mod rcbigint;
-pub mod rcstring;
-pub mod rcsymbol;
+mod conversions;
+mod display;
+mod equality;
+mod hash;
+mod operations;
+mod rcbigint;
+mod rcstring;
+mod rcsymbol;
+mod r#type;
 
 pub use conversions::*;
 pub(crate) use display::display_obj;
+pub use display::ValueDisplay;
 pub use equality::*;
 pub use hash::*;
 pub use operations::*;
+pub use r#type::Type;
 pub use rcbigint::RcBigInt;
 pub use rcstring::RcString;
 pub use rcsymbol::RcSymbol;
-
-/// The result of a Javascript expression is represented like this so it can succeed (`Ok`) or fail (`Err`)
-#[must_use]
-pub type ResultValue = Result<Value, Value>;
 
 /// A Javascript value
 #[derive(Trace, Finalize, Debug, Clone)]
@@ -154,8 +145,8 @@ impl Value {
 
     /// Creates a new symbol value.
     #[inline]
-    pub(crate) fn symbol(symbol: Symbol) -> Self {
-        Self::Symbol(RcSymbol::from(symbol))
+    pub fn symbol(symbol: RcSymbol) -> Self {
+        Self::Symbol(symbol)
     }
 
     /// Returns a new empty object
@@ -176,11 +167,7 @@ impl Value {
     pub fn new_object_from_prototype(proto: Value, data: ObjectData) -> Self {
         let mut object = Object::default();
         object.data = data;
-
-        object
-            .internal_slots_mut()
-            .insert(INSTANCE_PROTOTYPE.to_string(), proto);
-
+        object.set_prototype(proto);
         Self::object(object)
     }
 
@@ -208,11 +195,10 @@ impl Value {
                 for (idx, json) in vs.into_iter().enumerate() {
                     new_obj.set_property(
                         idx.to_string(),
-                        Property::default()
-                            .value(Self::from_json(json, interpreter))
-                            .writable(true)
-                            .configurable(true)
-                            .enumerable(true),
+                        Property::data_descriptor(
+                            Self::from_json(json, interpreter),
+                            Attribute::WRITABLE | Attribute::ENUMERABLE | Attribute::CONFIGURABLE,
+                        ),
                     );
                 }
                 new_obj.set_property(
@@ -222,16 +208,15 @@ impl Value {
                 new_obj
             }
             JSONValue::Object(obj) => {
-                let new_obj = Value::new_object(Some(&interpreter.realm.global_obj));
+                let new_obj = Value::new_object(Some(interpreter.global()));
                 for (key, json) in obj.into_iter() {
                     let value = Self::from_json(json, interpreter);
                     new_obj.set_property(
                         key,
-                        Property::default()
-                            .value(value)
-                            .writable(true)
-                            .configurable(true)
-                            .enumerable(true),
+                        Property::data_descriptor(
+                            value,
+                            Attribute::WRITABLE | Attribute::ENUMERABLE | Attribute::CONFIGURABLE,
+                        ),
                     );
                 }
                 new_obj
@@ -240,15 +225,21 @@ impl Value {
         }
     }
 
-    /// Conversts the `Value` to `JSON`.
-    pub fn to_json(&self, interpreter: &mut Interpreter) -> Result<JSONValue, Value> {
+    /// Converts the `Value` to `JSON`.
+    pub fn to_json(&self, interpreter: &mut Interpreter) -> Result<JSONValue> {
+        let to_json = self.get_field("toJSON");
+        if to_json.is_function() {
+            let json_value = interpreter.call(&to_json, self, &[])?;
+            return json_value.to_json(interpreter);
+        }
+
         match *self {
             Self::Null => Ok(JSONValue::Null),
             Self::Boolean(b) => Ok(JSONValue::Bool(b)),
             Self::Object(ref obj) => {
                 if obj.borrow().is_array() {
                     let mut arr: Vec<JSONValue> = Vec::new();
-                    for k in obj.borrow().properties().keys() {
+                    for k in obj.borrow().keys() {
                         if k != "length" {
                             let value = self.get_field(k.to_string());
                             if value.is_undefined() || value.is_function() || value.is_symbol() {
@@ -261,7 +252,7 @@ impl Value {
                     Ok(JSONValue::Array(arr))
                 } else {
                     let mut new_obj = Map::new();
-                    for k in obj.borrow().properties().keys() {
+                    for k in obj.borrow().keys() {
                         let key = k.clone();
                         let value = self.get_field(k.to_string());
                         if !value.is_undefined() && !value.is_function() && !value.is_symbol() {
@@ -296,6 +287,17 @@ impl Value {
     /// <https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/freeze would also turn extensible to false/>
     pub fn is_extensible(&self) -> bool {
         true
+    }
+
+    /// Returns true if the value the global for a Realm
+    pub fn is_global(&self) -> bool {
+        match self {
+            Value::Object(object) => match object.borrow().data {
+                ObjectData::Global => true,
+                _ => false,
+            },
+            _ => false,
+        }
     }
 
     /// Returns true if the value is an object
@@ -377,10 +379,28 @@ impl Value {
         matches!(self, Self::Rational(_) | Self::Integer(_))
     }
 
+    #[inline]
+    pub fn as_number(&self) -> Option<f64> {
+        match *self {
+            Self::Integer(integer) => Some(integer.into()),
+            Self::Rational(rational) => Some(rational),
+            _ => None,
+        }
+    }
+
     /// Returns true if the value is a string.
     #[inline]
     pub fn is_string(&self) -> bool {
         matches!(self, Self::String(_))
+    }
+
+    /// Returns the string if the values is a string, otherwise `None`.
+    #[inline]
+    pub fn as_string(&self) -> Option<&RcString> {
+        match self {
+            Self::String(ref string) => Some(string),
+            _ => None,
+        }
     }
 
     /// Returns true if the value is a boolean.
@@ -401,51 +421,6 @@ impl Value {
         match self {
             Self::BigInt(bigint) => Some(bigint),
             _ => None,
-        }
-    }
-
-    /// Converts the value into a 64-bit floating point number
-    pub fn to_number(&self) -> f64 {
-        match *self {
-            Self::Object(_) | Self::Symbol(_) | Self::Undefined => NAN,
-            Self::String(ref str) => {
-                if str.is_empty() {
-                    return 0.0;
-                }
-
-                match FromStr::from_str(str) {
-                    Ok(num) => num,
-                    Err(_) => NAN,
-                }
-            }
-            Self::Boolean(true) => 1.0,
-            Self::Boolean(false) | Self::Null => 0.0,
-            Self::Rational(num) => num,
-            Self::Integer(num) => f64::from(num),
-            Self::BigInt(_) => {
-                panic!("TypeError: Cannot mix BigInt and other types, use explicit conversions")
-            }
-        }
-    }
-
-    /// Converts the value into a 32-bit integer
-    pub fn to_integer(&self) -> i32 {
-        match *self {
-            Self::Object(_)
-            | Self::Undefined
-            | Self::Symbol(_)
-            | Self::Null
-            | Self::Boolean(false) => 0,
-            Self::String(ref str) => match FromStr::from_str(str) {
-                Ok(num) => num,
-                Err(_) => 0,
-            },
-            Self::Rational(num) => num as i32,
-            Self::Boolean(true) => 1,
-            Self::Integer(num) => num,
-            Self::BigInt(_) => {
-                panic!("TypeError: Cannot mix BigInt and other types, use explicit conversions")
-            }
         }
     }
 
@@ -471,33 +446,33 @@ impl Value {
     /// Removes a property from a Value object.
     ///
     /// It will return a boolean based on if the value was removed, if there was no value to remove false is returned.
-    pub fn remove_property(&self, field: &str) -> bool {
+    pub fn remove_property<Key>(&self, key: Key) -> bool
+    where
+        Key: Into<PropertyKey>,
+    {
         self.as_object_mut()
-            .and_then(|mut x| x.properties_mut().remove(field))
+            .map(|mut x| x.remove_property(&key.into()))
             .is_some()
     }
 
     /// Resolve the property in the object.
     ///
     /// A copy of the Property is returned.
-    pub fn get_property(&self, field: &str) -> Option<Property> {
+    pub fn get_property<Key>(&self, key: Key) -> Option<Property>
+    where
+        Key: Into<PropertyKey>,
+    {
+        let key = key.into();
         let _timer = BoaProfiler::global().start_event("Value::get_property", "value");
-        // Spidermonkey has its own GetLengthProperty: https://searchfox.org/mozilla-central/source/js/src/vm/Interpreter-inl.h#154
-        // This is only for primitive strings, String() objects have their lengths calculated in string.rs
         match self {
-            Self::Undefined => None,
-            Self::String(ref s) if field == "length" => {
-                Some(Property::default().value(Value::from(s.chars().count())))
-            }
             Self::Object(ref object) => {
                 let object = object.borrow();
-                match object.properties().get(field) {
-                    Some(value) => Some(value.clone()),
-                    None => object
-                        .internal_slots()
-                        .get(INSTANCE_PROTOTYPE)
-                        .and_then(|value| value.get_property(field)),
+                let property = object.get_own_property(&key);
+                if !property.is_none() {
+                    return Some(property);
                 }
+
+                object.prototype().get_property(key)
             }
             _ => None,
         }
@@ -505,187 +480,80 @@ impl Value {
 
     /// update_prop will overwrite individual [Property] fields, unlike
     /// Set_prop, which will overwrite prop with a new Property
+    ///
     /// Mostly used internally for now
-    pub fn update_property(
-        &self,
-        field: &str,
-        value: Option<Value>,
-        enumerable: Option<bool>,
-        writable: Option<bool>,
-        configurable: Option<bool>,
-    ) {
+    pub(crate) fn update_property(&self, field: &str, new_property: Property) {
         let _timer = BoaProfiler::global().start_event("Value::update_property", "value");
 
         if let Some(ref mut object) = self.as_object_mut() {
-            // Use value, or walk up the prototype chain
-            if let Some(ref mut property) = object.properties_mut().get_mut(field) {
-                property.value = value;
-                property.enumerable = enumerable;
-                property.writable = writable;
-                property.configurable = configurable;
-            }
+            object.insert_property(field, new_property);
         }
-    }
-
-    /// Resolve the property in the object.
-    ///
-    /// Returns a copy of the Property.
-    #[inline]
-    pub fn get_internal_slot(&self, field: &str) -> Value {
-        let _timer = BoaProfiler::global().start_event("Value::get_internal_slot", "value");
-
-        self.as_object()
-            .and_then(|x| x.internal_slots().get(field).cloned())
-            .unwrap_or_else(Value::undefined)
     }
 
     /// Resolve the property in the object and get its value, or undefined if this is not an object or the field doesn't exist
     /// get_field recieves a Property from get_prop(). It should then return the [[Get]] result value if that's set, otherwise fall back to [[Value]]
     /// TODO: this function should use the get Value if its set
-    pub fn get_field<F>(&self, field: F) -> Self
+    pub fn get_field<K>(&self, key: K) -> Self
     where
-        F: Into<Value>,
+        K: Into<PropertyKey>,
     {
         let _timer = BoaProfiler::global().start_event("Value::get_field", "value");
-        match field.into() {
-            // Our field will either be a String or a Symbol
-            Self::String(ref s) => {
-                match self.get_property(s) {
-                    Some(prop) => {
-                        // If the Property has [[Get]] set to a function, we should run that and return the Value
-                        let prop_getter = match prop.get {
-                            Some(_) => None,
-                            None => None,
-                        };
+        let key = key.into();
+        match self.get_property(key) {
+            Some(prop) => {
+                // If the Property has [[Get]] set to a function, we should run that and return the Value
+                let prop_getter = match prop.get {
+                    Some(_) => None,
+                    None => None,
+                };
 
-                        // If the getter is populated, use that. If not use [[Value]] instead
-                        if let Some(val) = prop_getter {
-                            val
-                        } else {
-                            let val = prop
-                                .value
-                                .as_ref()
-                                .expect("Could not get property as reference");
-                            val.clone()
-                        }
-                    }
-                    None => Value::undefined(),
+                // If the getter is populated, use that. If not use [[Value]] instead
+                if let Some(val) = prop_getter {
+                    val
+                } else {
+                    let val = prop
+                        .value
+                        .as_ref()
+                        .expect("Could not get property as reference");
+                    val.clone()
                 }
             }
-            Self::Symbol(_) => unimplemented!(),
-            _ => Value::undefined(),
-        }
-    }
-
-    /// Check whether an object has an internal state set.
-    #[inline]
-    pub fn has_internal_state(&self) -> bool {
-        matches!(self.as_object(), Some(object) if object.state().is_some())
-    }
-
-    /// Get the internal state of an object.
-    pub fn get_internal_state(&self) -> Option<InternalStateCell> {
-        self.as_object()
-            .and_then(|object| object.state().as_ref().cloned())
-    }
-
-    /// Run a function with a reference to the internal state.
-    ///
-    /// # Panics
-    ///
-    /// This will panic if this value doesn't have an internal state or if the internal state doesn't
-    /// have the concrete type `S`.
-    pub fn with_internal_state_ref<S, R, F>(&self, f: F) -> R
-    where
-        S: Any + InternalState,
-        F: FnOnce(&S) -> R,
-    {
-        if let Some(object) = self.as_object() {
-            let state = object
-                .state()
-                .as_ref()
-                .expect("no state")
-                .downcast_ref()
-                .expect("wrong state type");
-            f(state)
-        } else {
-            panic!("not an object");
-        }
-    }
-
-    /// Run a function with a mutable reference to the internal state.
-    ///
-    /// # Panics
-    ///
-    /// This will panic if this value doesn't have an internal state or if the internal state doesn't
-    /// have the concrete type `S`.
-    pub fn with_internal_state_mut<S, R, F>(&self, f: F) -> R
-    where
-        S: Any + InternalState,
-        F: FnOnce(&mut S) -> R,
-    {
-        if let Some(mut object) = self.as_object_mut() {
-            let state = object
-                .state_mut()
-                .as_mut()
-                .expect("no state")
-                .downcast_mut()
-                .expect("wrong state type");
-            f(state)
-        } else {
-            panic!("not an object");
+            None => Value::undefined(),
         }
     }
 
     /// Check to see if the Value has the field, mainly used by environment records.
     #[inline]
-    pub fn has_field(&self, field: &str) -> bool {
+    pub fn has_field<K>(&self, key: K) -> bool
+    where
+        K: Into<PropertyKey>,
+    {
         let _timer = BoaProfiler::global().start_event("Value::has_field", "value");
-        self.get_property(field).is_some()
+        self.as_object()
+            .map(|object| object.has_property(&key.into()))
+            .unwrap_or(false)
     }
 
     /// Set the field in the value
-    /// Field could be a Symbol, so we need to accept a Value (not a string)
-    pub fn set_field<F, V>(&self, field: F, val: V) -> Value
+    #[inline]
+    pub fn set_field<K, V>(&self, key: K, value: V) -> Value
     where
-        F: Into<Value>,
+        K: Into<PropertyKey>,
         V: Into<Value>,
     {
+        let key = key.into();
+        let value = value.into();
         let _timer = BoaProfiler::global().start_event("Value::set_field", "value");
-        let field = field.into();
-        let val = val.into();
-
         if let Self::Object(ref obj) = *self {
-            if obj.borrow().is_array() {
-                if let Ok(num) = field.to_string().parse::<usize>() {
-                    if num > 0 {
-                        let len = i32::from(&self.get_field("length"));
-                        if len < (num + 1) as i32 {
-                            self.set_field("length", Value::from(num + 1));
-                        }
+            if let PropertyKey::Index(index) = key {
+                if obj.borrow().is_array() {
+                    let len = self.get_field("length").as_number().unwrap() as u32;
+                    if len < index + 1 {
+                        self.set_field("length", index + 1);
                     }
                 }
             }
-
-            // Symbols get saved into a different bucket to general properties
-            if field.is_symbol() {
-                obj.borrow_mut().set(field, val.clone());
-            } else {
-                obj.borrow_mut()
-                    .set(Value::from(field.to_string()), val.clone());
-            }
-        }
-
-        val
-    }
-
-    /// Set the private field in the value
-    pub fn set_internal_slot(&self, field: &str, value: Value) -> Value {
-        let _timer = BoaProfiler::global().start_event("Value::set_internal_slot", "exec");
-        if let Some(mut object) = self.as_object_mut() {
-            object
-                .internal_slots_mut()
-                .insert(field.to_string(), value.clone());
+            obj.borrow_mut().set(key, value.clone());
         }
         value
     }
@@ -699,41 +567,448 @@ impl Value {
     }
 
     /// Set the property in the value.
-    pub fn set_property<S>(&self, field: S, property: Property) -> Property
+    pub fn set_property<K>(&self, key: K, property: Property) -> Property
     where
-        S: Into<RcString>,
+        K: Into<PropertyKey>,
     {
         if let Some(mut object) = self.as_object_mut() {
-            object
-                .properties_mut()
-                .insert(field.into(), property.clone());
+            object.insert_property(key.into(), property.clone());
         }
         property
     }
 
-    /// Set internal state of an Object. Discards the previous state if it was set.
-    pub fn set_internal_state<T: Any + InternalState>(&self, state: T) {
-        if let Some(mut object) = self.as_object_mut() {
-            object.state_mut().replace(InternalStateCell::new(state));
+    /// The abstract operation ToPrimitive takes an input argument and an optional argument PreferredType.
+    ///
+    /// <https://tc39.es/ecma262/#sec-toprimitive>
+    pub fn to_primitive(
+        &self,
+        ctx: &mut Interpreter,
+        preferred_type: PreferredType,
+    ) -> Result<Value> {
+        // 1. Assert: input is an ECMAScript language value. (always a value not need to check)
+        // 2. If Type(input) is Object, then
+        if let Value::Object(_) = self {
+            let mut hint = preferred_type;
+
+            // Skip d, e we don't support Symbols yet
+            // TODO: add when symbols are supported
+            // TODO: Add other steps.
+            if hint == PreferredType::Default {
+                hint = PreferredType::Number;
+            };
+
+            // g. Return ? OrdinaryToPrimitive(input, hint).
+            ctx.ordinary_to_primitive(self, hint)
+        } else {
+            // 3. Return input.
+            Ok(self.clone())
         }
     }
 
-    /// Consume the function and return a Value
-    pub fn from_func(function: Function) -> Value {
-        // Get Length
-        let length = function.params.len();
-        // Object with Kind set to function
-        let new_func = Object::function(function);
-        // Wrap Object in GC'd Value
-        let new_func_val = Value::from(new_func);
-        // Set length to parameters
-        new_func_val.set_field("length", Value::from(length));
-        new_func_val
+    /// Converts the value to a `BigInt`.
+    ///
+    /// This function is equivelent to `BigInt(value)` in JavaScript.
+    pub fn to_bigint(&self, ctx: &mut Interpreter) -> Result<RcBigInt> {
+        match self {
+            Value::Null => Err(ctx.construct_type_error("cannot convert null to a BigInt")),
+            Value::Undefined => {
+                Err(ctx.construct_type_error("cannot convert undefined to a BigInt"))
+            }
+            Value::String(ref string) => Ok(RcBigInt::from(BigInt::from_string(string, ctx)?)),
+            Value::Boolean(true) => Ok(RcBigInt::from(BigInt::from(1))),
+            Value::Boolean(false) => Ok(RcBigInt::from(BigInt::from(0))),
+            Value::Integer(num) => Ok(RcBigInt::from(BigInt::from(*num))),
+            Value::Rational(num) => {
+                if let Ok(bigint) = BigInt::try_from(*num) {
+                    return Ok(RcBigInt::from(bigint));
+                }
+                Err(ctx.construct_type_error(format!(
+                    "The number {} cannot be converted to a BigInt because it is not an integer",
+                    num
+                )))
+            }
+            Value::BigInt(b) => Ok(b.clone()),
+            Value::Object(_) => {
+                let primitive = self.to_primitive(ctx, PreferredType::Number)?;
+                primitive.to_bigint(ctx)
+            }
+            Value::Symbol(_) => Err(ctx.construct_type_error("cannot convert Symbol to a BigInt")),
+        }
+    }
+
+    /// Returns an object that implements `Display`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use boa::builtins::value::Value;
+    ///
+    /// let value = Value::number(3);
+    ///
+    /// println!("{}", value.display());
+    /// ```
+    #[inline]
+    pub fn display(&self) -> ValueDisplay<'_> {
+        ValueDisplay { value: self }
+    }
+
+    /// Converts the value to a string.
+    ///
+    /// This function is equivalent to `String(value)` in JavaScript.
+    pub fn to_string(&self, ctx: &mut Interpreter) -> Result<RcString> {
+        match self {
+            Value::Null => Ok("null".into()),
+            Value::Undefined => Ok("undefined".into()),
+            Value::Boolean(boolean) => Ok(boolean.to_string().into()),
+            Value::Rational(rational) => Ok(Number::to_native_string(*rational).into()),
+            Value::Integer(integer) => Ok(integer.to_string().into()),
+            Value::String(string) => Ok(string.clone()),
+            Value::Symbol(_) => Err(ctx.construct_type_error("can't convert symbol to string")),
+            Value::BigInt(ref bigint) => Ok(bigint.to_string().into()),
+            Value::Object(_) => {
+                let primitive = self.to_primitive(ctx, PreferredType::String)?;
+                primitive.to_string(ctx)
+            }
+        }
+    }
+
+    /// Converts th value to a value of type Object.
+    ///
+    /// This function is equivalent to `Object(value)` in JavaScript
+    ///
+    /// See: <https://tc39.es/ecma262/#sec-toobject>
+    pub fn to_object(&self, ctx: &mut Interpreter) -> Result<Value> {
+        match self {
+            Value::Undefined | Value::Null => {
+                ctx.throw_type_error("cannot convert 'null' or 'undefined' to object")
+            }
+            Value::Boolean(boolean) => {
+                let proto = ctx
+                    .realm
+                    .environment
+                    .get_binding_value("Boolean")
+                    .expect("Boolean was not initialized")
+                    .get_field(PROTOTYPE);
+
+                Ok(Value::new_object_from_prototype(
+                    proto,
+                    ObjectData::Boolean(*boolean),
+                ))
+            }
+            Value::Integer(integer) => {
+                let proto = ctx
+                    .realm
+                    .environment
+                    .get_binding_value("Number")
+                    .expect("Number was not initialized")
+                    .get_field(PROTOTYPE);
+                Ok(Value::new_object_from_prototype(
+                    proto,
+                    ObjectData::Number(f64::from(*integer)),
+                ))
+            }
+            Value::Rational(rational) => {
+                let proto = ctx
+                    .realm
+                    .environment
+                    .get_binding_value("Number")
+                    .expect("Number was not initialized")
+                    .get_field(PROTOTYPE);
+
+                Ok(Value::new_object_from_prototype(
+                    proto,
+                    ObjectData::Number(*rational),
+                ))
+            }
+            Value::String(ref string) => {
+                let proto = ctx
+                    .realm
+                    .environment
+                    .get_binding_value("String")
+                    .expect("String was not initialized")
+                    .get_field(PROTOTYPE);
+
+                Ok(Value::new_object_from_prototype(
+                    proto,
+                    ObjectData::String(string.clone()),
+                ))
+            }
+            Value::Symbol(ref symbol) => {
+                let proto = ctx
+                    .realm
+                    .environment
+                    .get_binding_value("Symbol")
+                    .expect("Symbol was not initialized")
+                    .get_field(PROTOTYPE);
+
+                Ok(Value::new_object_from_prototype(
+                    proto,
+                    ObjectData::Symbol(symbol.clone()),
+                ))
+            }
+            Value::BigInt(ref bigint) => {
+                let proto = ctx
+                    .realm
+                    .environment
+                    .get_binding_value("BigInt")
+                    .expect("BigInt was not initialized")
+                    .get_field(PROTOTYPE);
+                let bigint_obj =
+                    Value::new_object_from_prototype(proto, ObjectData::BigInt(bigint.clone()));
+                Ok(bigint_obj)
+            }
+            Value::Object(_) => Ok(self.clone()),
+        }
+    }
+
+    /// Converts the value to a `PropertyKey`, that can be used as a key for properties.
+    ///
+    /// See <https://tc39.es/ecma262/#sec-topropertykey>
+    pub fn to_property_key(&self, ctx: &mut Interpreter) -> Result<PropertyKey> {
+        Ok(match self {
+            // Fast path:
+            Value::String(string) => string.clone().into(),
+            Value::Symbol(symbol) => symbol.clone().into(),
+            // Slow path:
+            _ => match self.to_primitive(ctx, PreferredType::String)? {
+                Value::String(ref string) => string.clone().into(),
+                Value::Symbol(ref symbol) => symbol.clone().into(),
+                primitive => primitive.to_string(ctx)?.into(),
+            },
+        })
+    }
+
+    /// It returns value converted to a numeric value of type `Number` or `BigInt`.
+    ///
+    /// See: <https://tc39.es/ecma262/#sec-tonumeric>
+    pub fn to_numeric(&self, ctx: &mut Interpreter) -> Result<Numeric> {
+        let primitive = self.to_primitive(ctx, PreferredType::Number)?;
+        if let Some(bigint) = primitive.as_bigint() {
+            return Ok(bigint.clone().into());
+        }
+        Ok(self.to_number(ctx)?.into())
+    }
+
+    /// Converts a value to an integral 32 bit unsigned integer.
+    ///
+    /// This function is equivalent to `value | 0` in JavaScript
+    ///
+    /// See: <https://tc39.es/ecma262/#sec-toint32>
+    pub fn to_u32(&self, ctx: &mut Interpreter) -> Result<u32> {
+        // This is the fast path, if the value is Integer we can just return it.
+        if let Value::Integer(number) = *self {
+            return Ok(number as u32);
+        }
+        let number = self.to_number(ctx)?;
+
+        Ok(f64_to_uint32(number))
+    }
+
+    /// Converts a value to an integral 32 bit signed integer.
+    ///
+    /// See: <https://tc39.es/ecma262/#sec-toint32>
+    pub fn to_i32(&self, ctx: &mut Interpreter) -> Result<i32> {
+        // This is the fast path, if the value is Integer we can just return it.
+        if let Value::Integer(number) = *self {
+            return Ok(number);
+        }
+        let number = self.to_number(ctx)?;
+
+        Ok(f64_to_int32(number))
+    }
+
+    /// Converts a value to a non-negative integer if it is a valid integer index value.
+    ///
+    /// See: <https://tc39.es/ecma262/#sec-toindex>
+    pub fn to_index(&self, ctx: &mut Interpreter) -> Result<usize> {
+        if self.is_undefined() {
+            return Ok(0);
+        }
+
+        let integer_index = self.to_integer(ctx)?;
+
+        if integer_index < 0.0 {
+            return Err(ctx.construct_range_error("Integer index must be >= 0"));
+        }
+
+        if integer_index > Number::MAX_SAFE_INTEGER {
+            return Err(ctx.construct_range_error("Integer index must be less than 2**(53) - 1"));
+        }
+
+        Ok(integer_index as usize)
+    }
+
+    /// Converts argument to an integer suitable for use as the length of an array-like object.
+    ///
+    /// See: <https://tc39.es/ecma262/#sec-tolength>
+    pub fn to_length(&self, ctx: &mut Interpreter) -> Result<usize> {
+        // 1. Let len be ? ToInteger(argument).
+        let len = self.to_integer(ctx)?;
+
+        // 2. If len ≤ +0, return +0.
+        if len < 0.0 {
+            return Ok(0);
+        }
+
+        // 3. Return min(len, 2^53 - 1).
+        Ok(len.min(Number::MAX_SAFE_INTEGER) as usize)
+    }
+
+    /// Converts a value to an integral Number value.
+    ///
+    /// See: <https://tc39.es/ecma262/#sec-tointeger>
+    pub fn to_integer(&self, ctx: &mut Interpreter) -> Result<f64> {
+        // 1. Let number be ? ToNumber(argument).
+        let number = self.to_number(ctx)?;
+
+        // 2. If number is +∞ or -∞, return number.
+        if !number.is_finite() {
+            // 3. If number is NaN, +0, or -0, return +0.
+            if number.is_nan() {
+                return Ok(0.0);
+            }
+            return Ok(number);
+        }
+
+        // 4. Let integer be the Number value that is the same sign as number and whose magnitude is floor(abs(number)).
+        // 5. If integer is -0, return +0.
+        // 6. Return integer.
+        Ok(number.trunc() + 0.0) // We add 0.0 to convert -0.0 to +0.0
+    }
+
+    /// Converts a value to a double precision floating point.
+    ///
+    /// This function is equivalent to the unary `+` operator (`+value`) in JavaScript
+    ///
+    /// See: https://tc39.es/ecma262/#sec-tonumber
+    pub fn to_number(&self, ctx: &mut Interpreter) -> Result<f64> {
+        match *self {
+            Value::Null => Ok(0.0),
+            Value::Undefined => Ok(f64::NAN),
+            Value::Boolean(b) => Ok(if b { 1.0 } else { 0.0 }),
+            // TODO: this is probably not 100% correct, see https://tc39.es/ecma262/#sec-tonumber-applied-to-the-string-type
+            Value::String(ref string) => {
+                if string.trim().is_empty() {
+                    return Ok(0.0);
+                }
+                Ok(string.parse().unwrap_or(f64::NAN))
+            }
+            Value::Rational(number) => Ok(number),
+            Value::Integer(integer) => Ok(f64::from(integer)),
+            Value::Symbol(_) => Err(ctx.construct_type_error("argument must not be a symbol")),
+            Value::BigInt(_) => Err(ctx.construct_type_error("argument must not be a bigint")),
+            Value::Object(_) => {
+                let primitive = self.to_primitive(ctx, PreferredType::Number)?;
+                primitive.to_number(ctx)
+            }
+        }
+    }
+
+    /// This is a more specialized version of `to_numeric`, including `BigInt`.
+    ///
+    /// This function is equivalent to `Number(value)` in JavaScript
+    ///
+    /// See: <https://tc39.es/ecma262/#sec-tonumeric>
+    pub fn to_numeric_number(&self, ctx: &mut Interpreter) -> Result<f64> {
+        let primitive = self.to_primitive(ctx, PreferredType::Number)?;
+        if let Some(ref bigint) = primitive.as_bigint() {
+            return Ok(bigint.to_f64());
+        }
+        primitive.to_number(ctx)
     }
 }
 
 impl Default for Value {
     fn default() -> Self {
         Self::Undefined
+    }
+}
+
+/// The preffered type to convert an object to a primitive `Value`.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub enum PreferredType {
+    String,
+    Number,
+    Default,
+}
+
+/// Numeric value which can be of two types `Number`, `BigInt`.
+#[derive(Debug, Clone, PartialEq, PartialOrd)]
+pub enum Numeric {
+    /// Double precision floating point number.
+    Number(f64),
+    /// BigInt an integer of arbitrary size.
+    BigInt(RcBigInt),
+}
+
+impl From<f64> for Numeric {
+    #[inline]
+    fn from(value: f64) -> Self {
+        Self::Number(value)
+    }
+}
+
+impl From<i32> for Numeric {
+    #[inline]
+    fn from(value: i32) -> Self {
+        Self::Number(value.into())
+    }
+}
+
+impl From<i16> for Numeric {
+    #[inline]
+    fn from(value: i16) -> Self {
+        Self::Number(value.into())
+    }
+}
+
+impl From<i8> for Numeric {
+    #[inline]
+    fn from(value: i8) -> Self {
+        Self::Number(value.into())
+    }
+}
+
+impl From<u32> for Numeric {
+    #[inline]
+    fn from(value: u32) -> Self {
+        Self::Number(value.into())
+    }
+}
+
+impl From<u16> for Numeric {
+    #[inline]
+    fn from(value: u16) -> Self {
+        Self::Number(value.into())
+    }
+}
+
+impl From<u8> for Numeric {
+    #[inline]
+    fn from(value: u8) -> Self {
+        Self::Number(value.into())
+    }
+}
+
+impl From<BigInt> for Numeric {
+    #[inline]
+    fn from(value: BigInt) -> Self {
+        Self::BigInt(value.into())
+    }
+}
+
+impl From<RcBigInt> for Numeric {
+    #[inline]
+    fn from(value: RcBigInt) -> Self {
+        Self::BigInt(value)
+    }
+}
+
+impl From<Numeric> for Value {
+    fn from(value: Numeric) -> Self {
+        match value {
+            Numeric::Number(number) => Self::rational(number),
+            Numeric::BigInt(bigint) => Self::bigint(bigint),
+        }
     }
 }

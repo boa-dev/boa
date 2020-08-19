@@ -66,10 +66,10 @@ fn concat() {
     eprintln!("{}", forward(&mut engine, init));
 
     let a = forward(&mut engine, "hello.concat(world, nice)");
-    assert_eq!(a, "Hello, world! Have a nice day.");
+    assert_eq!(a, "\"Hello, world! Have a nice day.\"");
 
     let b = forward(&mut engine, "hello + world + nice");
-    assert_eq!(b, "Hello, world! Have a nice day.");
+    assert_eq!(b, "\"Hello, world! Have a nice day.\"");
 }
 
 #[test]
@@ -83,10 +83,10 @@ fn generic_concat() {
     eprintln!("{}", forward(&mut engine, init));
 
     let a = forward(&mut engine, "number.concat(' - 50', ' = 50')");
-    assert_eq!(a, "100 - 50 = 50");
+    assert_eq!(a, "\"100 - 50 = 50\"");
 }
 
-#[allow(clippy::result_unwrap_used)]
+#[allow(clippy::unwrap_used)]
 #[test]
 /// Test the correct type is returned from call and construct
 fn construct_and_call() {
@@ -118,14 +118,89 @@ fn repeat() {
 
     forward(&mut engine, init);
 
-    assert_eq!(forward(&mut engine, "empty.repeat(0)"), "");
-    assert_eq!(forward(&mut engine, "empty.repeat(1)"), "");
+    assert_eq!(forward(&mut engine, "empty.repeat(0)"), "\"\"");
+    assert_eq!(forward(&mut engine, "empty.repeat(1)"), "\"\"");
 
-    assert_eq!(forward(&mut engine, "en.repeat(0)"), "");
-    assert_eq!(forward(&mut engine, "zh.repeat(0)"), "");
+    assert_eq!(forward(&mut engine, "en.repeat(0)"), "\"\"");
+    assert_eq!(forward(&mut engine, "zh.repeat(0)"), "\"\"");
 
-    assert_eq!(forward(&mut engine, "en.repeat(1)"), "english");
-    assert_eq!(forward(&mut engine, "zh.repeat(2)"), "中文中文");
+    assert_eq!(forward(&mut engine, "en.repeat(1)"), "\"english\"");
+    assert_eq!(forward(&mut engine, "zh.repeat(2)"), "\"中文中文\"");
+}
+
+#[test]
+fn repeat_throws_when_count_is_negative() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+
+    assert_eq!(
+        forward(
+            &mut engine,
+            r#"
+        try {
+            'x'.repeat(-1)
+        } catch (e) {
+            e.toString()
+        }
+    "#
+        ),
+        "\"RangeError: repeat count cannot be a negative number\""
+    );
+}
+
+#[test]
+fn repeat_throws_when_count_is_infinity() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+
+    assert_eq!(
+        forward(
+            &mut engine,
+            r#"
+        try {
+            'x'.repeat(Infinity)
+        } catch (e) {
+            e.toString()
+        }
+    "#
+        ),
+        "\"RangeError: repeat count cannot be infinity\""
+    );
+}
+
+#[test]
+fn repeat_throws_when_count_overflows_max_length() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+
+    assert_eq!(
+        forward(
+            &mut engine,
+            r#"
+        try {
+            'x'.repeat(2 ** 64)
+        } catch (e) {
+            e.toString()
+        }
+    "#
+        ),
+        "\"RangeError: repeat count must not overflow maximum string length\""
+    );
+}
+
+#[test]
+fn repeat_generic() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+    let init = "Number.prototype.repeat = String.prototype.repeat;";
+
+    forward(&mut engine, init);
+
+    assert_eq!(forward(&mut engine, "(0).repeat(0)"), "\"\"");
+    assert_eq!(forward(&mut engine, "(1).repeat(1)"), "\"1\"");
+
+    assert_eq!(forward(&mut engine, "(1).repeat(5)"), "\"11111\"");
+    assert_eq!(forward(&mut engine, "(12).repeat(3)"), "\"121212\"");
 }
 
 #[test]
@@ -140,7 +215,7 @@ fn replace() {
 
     forward(&mut engine, init);
 
-    assert_eq!(forward(&mut engine, "a"), "2bc");
+    assert_eq!(forward(&mut engine, "a"), "\"2bc\"");
 }
 
 #[test]
@@ -163,11 +238,11 @@ fn replace_with_function() {
 
     forward(&mut engine, init);
 
-    assert_eq!(forward(&mut engine, "a"), "ecmascript is awesome!");
+    assert_eq!(forward(&mut engine, "a"), "\"ecmascript is awesome!\"");
 
-    assert_eq!(forward(&mut engine, "p1"), "o");
-    assert_eq!(forward(&mut engine, "p2"), "o");
-    assert_eq!(forward(&mut engine, "p3"), "l");
+    assert_eq!(forward(&mut engine, "p1"), "\"o\"");
+    assert_eq!(forward(&mut engine, "p2"), "\"o\"");
+    assert_eq!(forward(&mut engine, "p3"), "\"l\"");
 }
 
 #[test]
@@ -236,10 +311,10 @@ fn match_all() {
     );
 
     assert_eq!(forward(&mut engine, "groupMatches.length"), "2");
-    assert_eq!(forward(&mut engine, "groupMatches[0][1]"), "e");
-    assert_eq!(forward(&mut engine, "groupMatches[0][2]"), "st1");
-    assert_eq!(forward(&mut engine, "groupMatches[0][3]"), "1");
-    assert_eq!(forward(&mut engine, "groupMatches[1][3]"), "2");
+    assert_eq!(forward(&mut engine, "groupMatches[0][1]"), "\"e\"");
+    assert_eq!(forward(&mut engine, "groupMatches[0][2]"), "\"st1\"");
+    assert_eq!(forward(&mut engine, "groupMatches[0][3]"), "\"1\"");
+    assert_eq!(forward(&mut engine, "groupMatches[1][3]"), "\"2\"");
 
     assert_eq!(
         forward(
@@ -257,9 +332,9 @@ fn match_all() {
 
     forward(&mut engine, init);
 
-    assert_eq!(forward(&mut engine, "matches[0][0]"), "football");
+    assert_eq!(forward(&mut engine, "matches[0][0]"), "\"football\"");
     assert_eq!(forward(&mut engine, "matches[0].index"), "6");
-    assert_eq!(forward(&mut engine, "matches[1][0]"), "foosball");
+    assert_eq!(forward(&mut engine, "matches[1][0]"), "\"foosball\"");
     assert_eq!(forward(&mut engine, "matches[1].index"), "16");
 }
 
@@ -277,30 +352,299 @@ fn test_match() {
 
     forward(&mut engine, init);
 
-    assert_eq!(forward(&mut engine, "result1[0]"), "Quick Brown Fox Jumps");
-    assert_eq!(forward(&mut engine, "result1[1]"), "Brown");
-    assert_eq!(forward(&mut engine, "result1[2]"), "Jumps");
+    assert_eq!(
+        forward(&mut engine, "result1[0]"),
+        "\"Quick Brown Fox Jumps\""
+    );
+    assert_eq!(forward(&mut engine, "result1[1]"), "\"Brown\"");
+    assert_eq!(forward(&mut engine, "result1[2]"), "\"Jumps\"");
     assert_eq!(forward(&mut engine, "result1.index"), "4");
     assert_eq!(
         forward(&mut engine, "result1.input"),
-        "The Quick Brown Fox Jumps Over The Lazy Dog"
+        "\"The Quick Brown Fox Jumps Over The Lazy Dog\""
     );
 
-    assert_eq!(forward(&mut engine, "result2[0]"), "T");
-    assert_eq!(forward(&mut engine, "result2[1]"), "Q");
-    assert_eq!(forward(&mut engine, "result2[2]"), "B");
-    assert_eq!(forward(&mut engine, "result2[3]"), "F");
-    assert_eq!(forward(&mut engine, "result2[4]"), "J");
-    assert_eq!(forward(&mut engine, "result2[5]"), "O");
-    assert_eq!(forward(&mut engine, "result2[6]"), "T");
-    assert_eq!(forward(&mut engine, "result2[7]"), "L");
-    assert_eq!(forward(&mut engine, "result2[8]"), "D");
+    assert_eq!(forward(&mut engine, "result2[0]"), "\"T\"");
+    assert_eq!(forward(&mut engine, "result2[1]"), "\"Q\"");
+    assert_eq!(forward(&mut engine, "result2[2]"), "\"B\"");
+    assert_eq!(forward(&mut engine, "result2[3]"), "\"F\"");
+    assert_eq!(forward(&mut engine, "result2[4]"), "\"J\"");
+    assert_eq!(forward(&mut engine, "result2[5]"), "\"O\"");
+    assert_eq!(forward(&mut engine, "result2[6]"), "\"T\"");
+    assert_eq!(forward(&mut engine, "result2[7]"), "\"L\"");
+    assert_eq!(forward(&mut engine, "result2[8]"), "\"D\"");
 
-    assert_eq!(forward(&mut engine, "result3[0]"), "T");
+    assert_eq!(forward(&mut engine, "result3[0]"), "\"T\"");
     assert_eq!(forward(&mut engine, "result3.index"), "0");
     assert_eq!(
         forward(&mut engine, "result3.input"),
-        "The Quick Brown Fox Jumps Over The Lazy Dog"
+        "\"The Quick Brown Fox Jumps Over The Lazy Dog\""
     );
-    assert_eq!(forward(&mut engine, "result4[0]"), "B");
+    assert_eq!(forward(&mut engine, "result4[0]"), "\"B\"");
+}
+
+#[test]
+fn trim() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+    assert_eq!(forward(&mut engine, "'Hello'.trim()"), "\"Hello\"");
+    assert_eq!(forward(&mut engine, "' \nHello'.trim()"), "\"Hello\"");
+    assert_eq!(forward(&mut engine, "'Hello \n\r'.trim()"), "\"Hello\"");
+    assert_eq!(forward(&mut engine, "' Hello '.trim()"), "\"Hello\"");
+}
+
+#[test]
+fn trim_start() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+    assert_eq!(forward(&mut engine, "'Hello'.trimStart()"), "\"Hello\"");
+    assert_eq!(forward(&mut engine, "' \nHello'.trimStart()"), "\"Hello\"");
+    assert_eq!(
+        forward(&mut engine, "'Hello \n'.trimStart()"),
+        "\"Hello \n\""
+    );
+    assert_eq!(forward(&mut engine, "' Hello '.trimStart()"), "\"Hello \"");
+}
+
+#[test]
+fn trim_end() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+    assert_eq!(forward(&mut engine, "'Hello'.trimEnd()"), "\"Hello\"");
+    assert_eq!(forward(&mut engine, "' \nHello'.trimEnd()"), "\" \nHello\"");
+    assert_eq!(forward(&mut engine, "'Hello \n'.trimEnd()"), "\"Hello\"");
+    assert_eq!(forward(&mut engine, "' Hello '.trimEnd()"), "\" Hello\"");
+}
+
+#[test]
+fn index_of_with_no_arguments() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+    assert_eq!(forward(&mut engine, "''.indexOf()"), "-1");
+    assert_eq!(forward(&mut engine, "'undefined'.indexOf()"), "0");
+    assert_eq!(forward(&mut engine, "'a1undefined'.indexOf()"), "2");
+    assert_eq!(forward(&mut engine, "'a1undefined1a'.indexOf()"), "2");
+    assert_eq!(forward(&mut engine, "'µµµundefined'.indexOf()"), "3");
+    assert_eq!(forward(&mut engine, "'µµµundefinedµµµ'.indexOf()"), "3");
+}
+
+#[test]
+fn index_of_with_string_search_string_argument() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+    assert_eq!(forward(&mut engine, "''.indexOf('hello')"), "-1");
+    assert_eq!(
+        forward(&mut engine, "'undefined'.indexOf('undefined')"),
+        "0"
+    );
+    assert_eq!(
+        forward(&mut engine, "'a1undefined'.indexOf('undefined')"),
+        "2"
+    );
+    assert_eq!(
+        forward(&mut engine, "'a1undefined1a'.indexOf('undefined')"),
+        "2"
+    );
+    assert_eq!(
+        forward(&mut engine, "'µµµundefined'.indexOf('undefined')"),
+        "3"
+    );
+    assert_eq!(
+        forward(&mut engine, "'µµµundefinedµµµ'.indexOf('undefined')"),
+        "3"
+    );
+}
+
+#[test]
+fn index_of_with_non_string_search_string_argument() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+    assert_eq!(forward(&mut engine, "''.indexOf(1)"), "-1");
+    assert_eq!(forward(&mut engine, "'1'.indexOf(1)"), "0");
+    assert_eq!(forward(&mut engine, "'true'.indexOf(true)"), "0");
+    assert_eq!(forward(&mut engine, "'ab100ba'.indexOf(100)"), "2");
+    assert_eq!(forward(&mut engine, "'µµµfalse'.indexOf(true)"), "-1");
+    assert_eq!(forward(&mut engine, "'µµµ5µµµ'.indexOf(5)"), "3");
+}
+
+#[test]
+fn index_of_with_from_index_argument() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+    assert_eq!(forward(&mut engine, "''.indexOf('x', 2)"), "-1");
+    assert_eq!(forward(&mut engine, "'x'.indexOf('x', 2)"), "-1");
+    assert_eq!(forward(&mut engine, "'abcx'.indexOf('x', 2)"), "3");
+    assert_eq!(forward(&mut engine, "'x'.indexOf('x', 2)"), "-1");
+    assert_eq!(forward(&mut engine, "'µµµxµµµ'.indexOf('x', 2)"), "3");
+
+    assert_eq!(
+        forward(&mut engine, "'µµµxµµµ'.indexOf('x', 10000000)"),
+        "-1"
+    );
+}
+
+#[test]
+fn generic_index_of() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+    forward_val(
+        &mut engine,
+        "Number.prototype.indexOf = String.prototype.indexOf",
+    )
+    .unwrap();
+
+    assert_eq!(forward(&mut engine, "(10).indexOf(9)"), "-1");
+    assert_eq!(forward(&mut engine, "(10).indexOf(0)"), "1");
+    assert_eq!(forward(&mut engine, "(10).indexOf('0')"), "1");
+}
+
+#[test]
+fn index_of_empty_search_string() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+
+    assert_eq!(forward(&mut engine, "''.indexOf('')"), "0");
+    assert_eq!(forward(&mut engine, "''.indexOf('', 10)"), "0");
+    assert_eq!(forward(&mut engine, "'ABC'.indexOf('', 1)"), "1");
+    assert_eq!(forward(&mut engine, "'ABC'.indexOf('', 2)"), "2");
+    assert_eq!(forward(&mut engine, "'ABC'.indexOf('', 10)"), "3");
+}
+
+#[test]
+fn last_index_of_with_no_arguments() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+    assert_eq!(forward(&mut engine, "''.lastIndexOf()"), "-1");
+    assert_eq!(forward(&mut engine, "'undefined'.lastIndexOf()"), "0");
+    assert_eq!(forward(&mut engine, "'a1undefined'.lastIndexOf()"), "2");
+    assert_eq!(
+        forward(&mut engine, "'a1undefined1aundefined'.lastIndexOf()"),
+        "13"
+    );
+    assert_eq!(
+        forward(&mut engine, "'µµµundefinedundefined'.lastIndexOf()"),
+        "12"
+    );
+    assert_eq!(
+        forward(&mut engine, "'µµµundefinedµµµundefined'.lastIndexOf()"),
+        "15"
+    );
+}
+
+#[test]
+fn last_index_of_with_string_search_string_argument() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+    assert_eq!(forward(&mut engine, "''.lastIndexOf('hello')"), "-1");
+    assert_eq!(
+        forward(&mut engine, "'undefined'.lastIndexOf('undefined')"),
+        "0"
+    );
+    assert_eq!(
+        forward(&mut engine, "'a1undefined'.lastIndexOf('undefined')"),
+        "2"
+    );
+    assert_eq!(
+        forward(
+            &mut engine,
+            "'a1undefined1aundefined'.lastIndexOf('undefined')"
+        ),
+        "13"
+    );
+    assert_eq!(
+        forward(
+            &mut engine,
+            "'µµµundefinedundefined'.lastIndexOf('undefined')"
+        ),
+        "12"
+    );
+    assert_eq!(
+        forward(
+            &mut engine,
+            "'µµµundefinedµµµundefined'.lastIndexOf('undefined')"
+        ),
+        "15"
+    );
+}
+
+#[test]
+fn last_index_of_with_non_string_search_string_argument() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+    assert_eq!(forward(&mut engine, "''.lastIndexOf(1)"), "-1");
+    assert_eq!(forward(&mut engine, "'1'.lastIndexOf(1)"), "0");
+    assert_eq!(forward(&mut engine, "'11'.lastIndexOf(1)"), "1");
+    assert_eq!(
+        forward(&mut engine, "'truefalsetrue'.lastIndexOf(true)"),
+        "9"
+    );
+    assert_eq!(forward(&mut engine, "'ab100ba'.lastIndexOf(100)"), "2");
+    assert_eq!(forward(&mut engine, "'µµµfalse'.lastIndexOf(true)"), "-1");
+    assert_eq!(forward(&mut engine, "'µµµ5µµµ65µ'.lastIndexOf(5)"), "8");
+}
+
+#[test]
+fn last_index_of_with_from_index_argument() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+    assert_eq!(forward(&mut engine, "''.lastIndexOf('x', 2)"), "-1");
+    assert_eq!(forward(&mut engine, "'x'.lastIndexOf('x', 2)"), "-1");
+    assert_eq!(forward(&mut engine, "'abcxx'.lastIndexOf('x', 2)"), "4");
+    assert_eq!(forward(&mut engine, "'x'.lastIndexOf('x', 2)"), "-1");
+    assert_eq!(forward(&mut engine, "'µµµxµµµ'.lastIndexOf('x', 2)"), "3");
+
+    assert_eq!(
+        forward(&mut engine, "'µµµxµµµ'.lastIndexOf('x', 10000000)"),
+        "-1"
+    );
+}
+
+#[test]
+fn last_index_with_empty_search_string() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+    assert_eq!(forward(&mut engine, "''.lastIndexOf('')"), "0");
+    assert_eq!(forward(&mut engine, "'x'.lastIndexOf('', 2)"), "1");
+    assert_eq!(forward(&mut engine, "'abcxx'.lastIndexOf('', 4)"), "4");
+    assert_eq!(forward(&mut engine, "'µµµxµµµ'.lastIndexOf('', 2)"), "2");
+
+    assert_eq!(forward(&mut engine, "'abc'.lastIndexOf('', 10000000)"), "3");
+}
+
+#[test]
+fn generic_last_index_of() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+    forward_val(
+        &mut engine,
+        "Number.prototype.lastIndexOf = String.prototype.lastIndexOf",
+    )
+    .unwrap();
+
+    assert_eq!(forward(&mut engine, "(1001).lastIndexOf(9)"), "-1");
+    assert_eq!(forward(&mut engine, "(1001).lastIndexOf(0)"), "2");
+    assert_eq!(forward(&mut engine, "(1001).lastIndexOf('0')"), "2");
+}
+
+#[test]
+fn last_index_non_integer_position_argument() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+    assert_eq!(
+        forward(&mut engine, "''.lastIndexOf('x', new Number(4))"),
+        "-1"
+    );
+    assert_eq!(
+        forward(&mut engine, "'abc'.lastIndexOf('b', new Number(1))"),
+        "1"
+    );
+    assert_eq!(
+        forward(&mut engine, "'abcx'.lastIndexOf('x', new String('1'))"),
+        "3"
+    );
+    assert_eq!(
+        forward(&mut engine, "'abcx'.lastIndexOf('x', new String('100'))"),
+        "-1"
+    );
+    assert_eq!(forward(&mut engine, "'abcx'.lastIndexOf('x', null)"), "3");
 }

@@ -39,14 +39,14 @@ fn call_number() {
     let invalid_nan = forward_val(&mut engine, "invalid_nan").unwrap();
     let from_exp = forward_val(&mut engine, "from_exp").unwrap();
 
-    assert_eq!(default_zero.to_number(), 0_f64);
-    assert_eq!(int_one.to_number(), 1_f64);
-    assert_eq!(float_two.to_number(), 2.1);
-    assert_eq!(str_three.to_number(), 3.2);
-    assert_eq!(bool_one.to_number(), 1_f64);
-    assert!(invalid_nan.to_number().is_nan());
-    assert_eq!(bool_zero.to_number(), 0_f64);
-    assert_eq!(from_exp.to_number(), 234_f64);
+    assert_eq!(default_zero.to_number(&mut engine).unwrap(), 0_f64);
+    assert_eq!(int_one.to_number(&mut engine).unwrap(), 1_f64);
+    assert_eq!(float_two.to_number(&mut engine).unwrap(), 2.1);
+    assert_eq!(str_three.to_number(&mut engine).unwrap(), 3.2);
+    assert_eq!(bool_one.to_number(&mut engine).unwrap(), 1_f64);
+    assert!(invalid_nan.to_number(&mut engine).unwrap().is_nan());
+    assert_eq!(bool_zero.to_number(&mut engine).unwrap(), 0_f64);
+    assert_eq!(from_exp.to_number(&mut engine).unwrap(), 234_f64);
 }
 
 #[test]
@@ -70,12 +70,12 @@ fn to_exponential() {
     let nan_exp = forward(&mut engine, "nan_exp");
     let noop_exp = forward(&mut engine, "noop_exp");
 
-    assert_eq!(default_exp, "0e+0");
-    assert_eq!(int_exp, "5e+0");
-    assert_eq!(float_exp, "1.234e+0");
-    assert_eq!(big_exp, "1.234e+3");
-    assert_eq!(nan_exp, "NaN");
-    assert_eq!(noop_exp, "1.23e+2");
+    assert_eq!(default_exp, "\"0e+0\"");
+    assert_eq!(int_exp, "\"5e+0\"");
+    assert_eq!(float_exp, "\"1.234e+0\"");
+    assert_eq!(big_exp, "\"1.234e+3\"");
+    assert_eq!(nan_exp, "\"NaN\"");
+    assert_eq!(noop_exp, "\"1.23e+2\"");
 }
 
 #[test]
@@ -97,11 +97,11 @@ fn to_fixed() {
     let noop_fixed = forward(&mut engine, "noop_fixed");
     let nan_fixed = forward(&mut engine, "nan_fixed");
 
-    assert_eq!(default_fixed, String::from("0"));
-    assert_eq!(pos_fixed, String::from("34560"));
-    assert_eq!(neg_fixed, String::from("0"));
-    assert_eq!(noop_fixed, String::from("5"));
-    assert_eq!(nan_fixed, String::from("NaN"));
+    assert_eq!(default_fixed, "\"0\"");
+    assert_eq!(pos_fixed, "\"34560\"");
+    assert_eq!(neg_fixed, "\"0\"");
+    assert_eq!(noop_fixed, "\"5\"");
+    assert_eq!(nan_fixed, "\"NaN\"");
 }
 
 #[test]
@@ -124,10 +124,10 @@ fn to_locale_string() {
     let big_locale = forward(&mut engine, "big_locale");
     let neg_locale = forward(&mut engine, "neg_locale");
 
-    assert_eq!(default_locale, String::from("0"));
-    assert_eq!(small_locale, String::from("5"));
-    assert_eq!(big_locale, String::from("345600"));
-    assert_eq!(neg_locale, String::from("-25"));
+    assert_eq!(default_locale, "\"0\"");
+    assert_eq!(small_locale, "\"5\"");
+    assert_eq!(big_locale, "\"345600\"");
+    assert_eq!(neg_locale, "\"-25\"");
 }
 
 #[test]
@@ -168,161 +168,170 @@ fn to_string() {
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);
 
-    assert_eq!("NaN", &forward(&mut engine, "Number(NaN).toString()"));
-    assert_eq!("Infinity", &forward(&mut engine, "Number(1/0).toString()"));
+    assert_eq!("\"NaN\"", &forward(&mut engine, "Number(NaN).toString()"));
     assert_eq!(
-        "-Infinity",
+        "\"Infinity\"",
+        &forward(&mut engine, "Number(1/0).toString()")
+    );
+    assert_eq!(
+        "\"-Infinity\"",
         &forward(&mut engine, "Number(-1/0).toString()")
     );
-    assert_eq!("0", &forward(&mut engine, "Number(0).toString()"));
-    assert_eq!("9", &forward(&mut engine, "Number(9).toString()"));
-    assert_eq!("90", &forward(&mut engine, "Number(90).toString()"));
-    assert_eq!("90.12", &forward(&mut engine, "Number(90.12).toString()"));
-    assert_eq!("0.1", &forward(&mut engine, "Number(0.1).toString()"));
-    assert_eq!("0.01", &forward(&mut engine, "Number(0.01).toString()"));
-    assert_eq!("0.0123", &forward(&mut engine, "Number(0.0123).toString()"));
+    assert_eq!("\"0\"", &forward(&mut engine, "Number(0).toString()"));
+    assert_eq!("\"9\"", &forward(&mut engine, "Number(9).toString()"));
+    assert_eq!("\"90\"", &forward(&mut engine, "Number(90).toString()"));
     assert_eq!(
-        "0.00001",
+        "\"90.12\"",
+        &forward(&mut engine, "Number(90.12).toString()")
+    );
+    assert_eq!("\"0.1\"", &forward(&mut engine, "Number(0.1).toString()"));
+    assert_eq!("\"0.01\"", &forward(&mut engine, "Number(0.01).toString()"));
+    assert_eq!(
+        "\"0.0123\"",
+        &forward(&mut engine, "Number(0.0123).toString()")
+    );
+    assert_eq!(
+        "\"0.00001\"",
         &forward(&mut engine, "Number(0.00001).toString()")
     );
     assert_eq!(
-        "0.000001",
+        "\"0.000001\"",
         &forward(&mut engine, "Number(0.000001).toString()")
     );
-    assert_eq!("NaN", &forward(&mut engine, "Number(NaN).toString(16)"));
+    assert_eq!("\"NaN\"", &forward(&mut engine, "Number(NaN).toString(16)"));
     assert_eq!(
-        "Infinity",
+        "\"Infinity\"",
         &forward(&mut engine, "Number(1/0).toString(16)")
     );
     assert_eq!(
-        "-Infinity",
+        "\"-Infinity\"",
         &forward(&mut engine, "Number(-1/0).toString(16)")
     );
-    assert_eq!("0", &forward(&mut engine, "Number(0).toString(16)"));
-    assert_eq!("9", &forward(&mut engine, "Number(9).toString(16)"));
-    assert_eq!("5a", &forward(&mut engine, "Number(90).toString(16)"));
+    assert_eq!("\"0\"", &forward(&mut engine, "Number(0).toString(16)"));
+    assert_eq!("\"9\"", &forward(&mut engine, "Number(9).toString(16)"));
+    assert_eq!("\"5a\"", &forward(&mut engine, "Number(90).toString(16)"));
     assert_eq!(
-        "5a.1eb851eb852",
+        "\"5a.1eb851eb852\"",
         &forward(&mut engine, "Number(90.12).toString(16)")
     );
     assert_eq!(
-        "0.1999999999999a",
+        "\"0.1999999999999a\"",
         &forward(&mut engine, "Number(0.1).toString(16)")
     );
     assert_eq!(
-        "0.028f5c28f5c28f6",
+        "\"0.028f5c28f5c28f6\"",
         &forward(&mut engine, "Number(0.01).toString(16)")
     );
     assert_eq!(
-        "0.032617c1bda511a",
+        "\"0.032617c1bda511a\"",
         &forward(&mut engine, "Number(0.0123).toString(16)")
     );
     assert_eq!(
-        "605f9f6dd18bc8000",
+        "\"605f9f6dd18bc8000\"",
         &forward(&mut engine, "Number(111111111111111111111).toString(16)")
     );
     assert_eq!(
-        "3c3bc3a4a2f75c0000",
+        "\"3c3bc3a4a2f75c0000\"",
         &forward(&mut engine, "Number(1111111111111111111111).toString(16)")
     );
     assert_eq!(
-        "25a55a46e5da9a00000",
+        "\"25a55a46e5da9a00000\"",
         &forward(&mut engine, "Number(11111111111111111111111).toString(16)")
     );
     assert_eq!(
-        "0.0000a7c5ac471b4788",
+        "\"0.0000a7c5ac471b4788\"",
         &forward(&mut engine, "Number(0.00001).toString(16)")
     );
     assert_eq!(
-        "0.000010c6f7a0b5ed8d",
+        "\"0.000010c6f7a0b5ed8d\"",
         &forward(&mut engine, "Number(0.000001).toString(16)")
     );
     assert_eq!(
-        "0.000001ad7f29abcaf48",
+        "\"0.000001ad7f29abcaf48\"",
         &forward(&mut engine, "Number(0.0000001).toString(16)")
     );
     assert_eq!(
-        "0.000002036565348d256",
+        "\"0.000002036565348d256\"",
         &forward(&mut engine, "Number(0.00000012).toString(16)")
     );
     assert_eq!(
-        "0.0000021047ee22aa466",
+        "\"0.0000021047ee22aa466\"",
         &forward(&mut engine, "Number(0.000000123).toString(16)")
     );
     assert_eq!(
-        "0.0000002af31dc4611874",
+        "\"0.0000002af31dc4611874\"",
         &forward(&mut engine, "Number(0.00000001).toString(16)")
     );
     assert_eq!(
-        "0.000000338a23b87483be",
+        "\"0.000000338a23b87483be\"",
         &forward(&mut engine, "Number(0.000000012).toString(16)")
     );
     assert_eq!(
-        "0.00000034d3fe36aaa0a2",
+        "\"0.00000034d3fe36aaa0a2\"",
         &forward(&mut engine, "Number(0.0000000123).toString(16)")
     );
 
-    assert_eq!("0", &forward(&mut engine, "Number(-0).toString(16)"));
-    assert_eq!("-9", &forward(&mut engine, "Number(-9).toString(16)"));
-    assert_eq!("-5a", &forward(&mut engine, "Number(-90).toString(16)"));
+    assert_eq!("\"0\"", &forward(&mut engine, "Number(-0).toString(16)"));
+    assert_eq!("\"-9\"", &forward(&mut engine, "Number(-9).toString(16)"));
+    assert_eq!("\"-5a\"", &forward(&mut engine, "Number(-90).toString(16)"));
     assert_eq!(
-        "-5a.1eb851eb852",
+        "\"-5a.1eb851eb852\"",
         &forward(&mut engine, "Number(-90.12).toString(16)")
     );
     assert_eq!(
-        "-0.1999999999999a",
+        "\"-0.1999999999999a\"",
         &forward(&mut engine, "Number(-0.1).toString(16)")
     );
     assert_eq!(
-        "-0.028f5c28f5c28f6",
+        "\"-0.028f5c28f5c28f6\"",
         &forward(&mut engine, "Number(-0.01).toString(16)")
     );
     assert_eq!(
-        "-0.032617c1bda511a",
+        "\"-0.032617c1bda511a\"",
         &forward(&mut engine, "Number(-0.0123).toString(16)")
     );
     assert_eq!(
-        "-605f9f6dd18bc8000",
+        "\"-605f9f6dd18bc8000\"",
         &forward(&mut engine, "Number(-111111111111111111111).toString(16)")
     );
     assert_eq!(
-        "-3c3bc3a4a2f75c0000",
+        "\"-3c3bc3a4a2f75c0000\"",
         &forward(&mut engine, "Number(-1111111111111111111111).toString(16)")
     );
     assert_eq!(
-        "-25a55a46e5da9a00000",
+        "\"-25a55a46e5da9a00000\"",
         &forward(&mut engine, "Number(-11111111111111111111111).toString(16)")
     );
     assert_eq!(
-        "-0.0000a7c5ac471b4788",
+        "\"-0.0000a7c5ac471b4788\"",
         &forward(&mut engine, "Number(-0.00001).toString(16)")
     );
     assert_eq!(
-        "-0.000010c6f7a0b5ed8d",
+        "\"-0.000010c6f7a0b5ed8d\"",
         &forward(&mut engine, "Number(-0.000001).toString(16)")
     );
     assert_eq!(
-        "-0.000001ad7f29abcaf48",
+        "\"-0.000001ad7f29abcaf48\"",
         &forward(&mut engine, "Number(-0.0000001).toString(16)")
     );
     assert_eq!(
-        "-0.000002036565348d256",
+        "\"-0.000002036565348d256\"",
         &forward(&mut engine, "Number(-0.00000012).toString(16)")
     );
     assert_eq!(
-        "-0.0000021047ee22aa466",
+        "\"-0.0000021047ee22aa466\"",
         &forward(&mut engine, "Number(-0.000000123).toString(16)")
     );
     assert_eq!(
-        "-0.0000002af31dc4611874",
+        "\"-0.0000002af31dc4611874\"",
         &forward(&mut engine, "Number(-0.00000001).toString(16)")
     );
     assert_eq!(
-        "-0.000000338a23b87483be",
+        "\"-0.000000338a23b87483be\"",
         &forward(&mut engine, "Number(-0.000000012).toString(16)")
     );
     assert_eq!(
-        "-0.00000034d3fe36aaa0a2",
+        "\"-0.00000034d3fe36aaa0a2\"",
         &forward(&mut engine, "Number(-0.0000000123).toString(16)")
     );
 }
@@ -332,26 +341,38 @@ fn num_to_string_exponential() {
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);
 
-    assert_eq!("0", forward(&mut engine, "(0).toString()"));
-    assert_eq!("0", forward(&mut engine, "(-0).toString()"));
+    assert_eq!("\"0\"", forward(&mut engine, "(0).toString()"));
+    assert_eq!("\"0\"", forward(&mut engine, "(-0).toString()"));
     assert_eq!(
-        "111111111111111110000",
+        "\"111111111111111110000\"",
         forward(&mut engine, "(111111111111111111111).toString()")
     );
     assert_eq!(
-        "1.1111111111111111e+21",
+        "\"1.1111111111111111e+21\"",
         forward(&mut engine, "(1111111111111111111111).toString()")
     );
     assert_eq!(
-        "1.1111111111111111e+22",
+        "\"1.1111111111111111e+22\"",
         forward(&mut engine, "(11111111111111111111111).toString()")
     );
-    assert_eq!("1e-7", forward(&mut engine, "(0.0000001).toString()"));
-    assert_eq!("1.2e-7", forward(&mut engine, "(0.00000012).toString()"));
-    assert_eq!("1.23e-7", forward(&mut engine, "(0.000000123).toString()"));
-    assert_eq!("1e-8", forward(&mut engine, "(0.00000001).toString()"));
-    assert_eq!("1.2e-8", forward(&mut engine, "(0.000000012).toString()"));
-    assert_eq!("1.23e-8", forward(&mut engine, "(0.0000000123).toString()"));
+    assert_eq!("\"1e-7\"", forward(&mut engine, "(0.0000001).toString()"));
+    assert_eq!(
+        "\"1.2e-7\"",
+        forward(&mut engine, "(0.00000012).toString()")
+    );
+    assert_eq!(
+        "\"1.23e-7\"",
+        forward(&mut engine, "(0.000000123).toString()")
+    );
+    assert_eq!("\"1e-8\"", forward(&mut engine, "(0.00000001).toString()"));
+    assert_eq!(
+        "\"1.2e-8\"",
+        forward(&mut engine, "(0.000000012).toString()")
+    );
+    assert_eq!(
+        "\"1.23e-8\"",
+        forward(&mut engine, "(0.0000000123).toString()")
+    );
 }
 
 #[test]
@@ -375,11 +396,11 @@ fn value_of() {
     let exp_val = forward_val(&mut engine, "exp_val").unwrap();
     let neg_val = forward_val(&mut engine, "neg_val").unwrap();
 
-    assert_eq!(default_val.to_number(), 0_f64);
-    assert_eq!(int_val.to_number(), 123_f64);
-    assert_eq!(float_val.to_number(), 1.234);
-    assert_eq!(exp_val.to_number(), 12_000_f64);
-    assert_eq!(neg_val.to_number(), -12_000_f64);
+    assert_eq!(default_val.to_number(&mut engine).unwrap(), 0_f64);
+    assert_eq!(int_val.to_number(&mut engine).unwrap(), 123_f64);
+    assert_eq!(float_val.to_number(&mut engine).unwrap(), 1.234);
+    assert_eq!(exp_val.to_number(&mut engine).unwrap(), 12_000_f64);
+    assert_eq!(neg_val.to_number(&mut engine).unwrap(), -12_000_f64);
 }
 
 #[test]

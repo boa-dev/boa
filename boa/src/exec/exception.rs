@@ -23,7 +23,7 @@ impl Interpreter {
     }
 
     /// Throws a `RangeError` with the specified message.
-    pub fn throw_range_error<M>(&mut self, message: M) -> ResultValue
+    pub fn throw_range_error<M>(&mut self, message: M) -> Result<Value>
     where
         M: Into<String>,
     {
@@ -45,7 +45,7 @@ impl Interpreter {
     }
 
     /// Throws a `TypeError` with the specified message.
-    pub fn throw_type_error<M>(&mut self, message: M) -> ResultValue
+    pub fn throw_type_error<M>(&mut self, message: M) -> Result<Value>
     where
         M: Into<String>,
     {
@@ -66,7 +66,7 @@ impl Interpreter {
     }
 
     /// Throws a `ReferenceError` with the specified message.
-    pub fn throw_reference_error<M>(&mut self, message: M) -> ResultValue
+    pub fn throw_reference_error<M>(&mut self, message: M) -> Result<Value>
     where
         M: Into<String>,
     {
@@ -87,7 +87,7 @@ impl Interpreter {
     }
 
     /// Throws a `SyntaxError` with the specified message.
-    pub fn throw_syntax_error<M>(&mut self, message: M) -> ResultValue
+    pub fn throw_syntax_error<M>(&mut self, message: M) -> Result<Value>
     where
         M: Into<String>,
     {

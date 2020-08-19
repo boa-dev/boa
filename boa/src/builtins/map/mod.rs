@@ -3,12 +3,12 @@
 use super::function::{make_builtin_fn, make_constructor_fn};
 use crate::{
     builtins::{
-        object::{ObjectData, INSTANCE_PROTOTYPE, PROTOTYPE},
-        property::Property,
-        value::{ResultValue, Value},
+        object::{ObjectData, PROTOTYPE},
+        property::{Attribute, Property},
+        value::Value,
     },
     exec::Interpreter,
-    BoaProfiler,
+    BoaProfiler, Result,
 };
 use ordered_map::OrderedMap;
 
@@ -26,11 +26,10 @@ impl Map {
 
     /// Helper function to set the size property.
     fn set_size(this: &Value, size: usize) {
-        let size = Property::new()
-            .value(Value::from(size))
-            .writable(false)
-            .configurable(false)
-            .enumerable(false);
+        let size = Property::data_descriptor(
+            size.into(),
+            Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT,
+        );
 
         this.set_property("size".to_string(), size);
     }
@@ -45,7 +44,7 @@ impl Map {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-map.prototype.set
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/set
-    pub(crate) fn set(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
+    pub(crate) fn set(this: &Value, args: &[Value], ctx: &mut Interpreter) -> Result<Value> {
         let (key, value) = match args.len() {
             0 => (Value::Undefined, Value::Undefined),
             1 => (args[0].clone(), Value::Undefined),
@@ -78,7 +77,7 @@ impl Map {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-map.prototype.delete
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/delete
-    pub(crate) fn delete(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
+    pub(crate) fn delete(this: &Value, args: &[Value], ctx: &mut Interpreter) -> Result<Value> {
         let undefined = Value::Undefined;
         let key = match args.len() {
             0 => &undefined,
@@ -110,7 +109,7 @@ impl Map {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-map.prototype.get
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/get
-    pub(crate) fn get(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
+    pub(crate) fn get(this: &Value, args: &[Value], ctx: &mut Interpreter) -> Result<Value> {
         let undefined = Value::Undefined;
         let key = match args.len() {
             0 => &undefined,
@@ -141,7 +140,7 @@ impl Map {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-map.prototype.clear
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/clear
-    pub(crate) fn clear(this: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
+    pub(crate) fn clear(this: &Value, _: &[Value], _: &mut Interpreter) -> Result<Value> {
         this.set_data(ObjectData::Map(OrderedMap::new()));
 
         Self::set_size(this, 0);
@@ -159,7 +158,7 @@ impl Map {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-map.prototype.has
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/has
-    pub(crate) fn has(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
+    pub(crate) fn has(this: &Value, args: &[Value], ctx: &mut Interpreter) -> Result<Value> {
         let undefined = Value::Undefined;
         let key = match args.len() {
             0 => &undefined,
@@ -190,7 +189,7 @@ impl Map {
         this: &Value,
         args: &[Value],
         interpreter: &mut Interpreter,
-    ) -> ResultValue {
+    ) -> Result<Value> {
         if args.is_empty() {
             return Err(Value::from("Missing argument for Map.prototype.forEach"));
         }
@@ -216,7 +215,7 @@ impl Map {
     fn get_key_value(value: &Value) -> Option<(Value, Value)> {
         if let Value::Object(object) = value {
             if object.borrow().is_array() {
-                let (key, value) = match i32::from(&value.get_field("length")) {
+                let (key, value) = match value.get_field("length").as_number().unwrap() as i32 {
                     0 => (Value::Undefined, Value::Undefined),
                     1 => (value.get_field("0"), Value::Undefined),
                     _ => (value.get_field("0"), value.get_field("1")),
@@ -228,14 +227,16 @@ impl Map {
     }
 
     /// Create a new map
-    pub(crate) fn make_map(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
+    pub(crate) fn make_map(this: &Value, args: &[Value], ctx: &mut Interpreter) -> Result<Value> {
         // Make a new Object which will internally represent the Array (mapping
         // between indices and values): this creates an Object with no prototype
 
         // Set Prototype
         let prototype = ctx.realm.global_obj.get_field("Map").get_field(PROTOTYPE);
 
-        this.set_internal_slot(INSTANCE_PROTOTYPE, prototype);
+        this.as_object_mut()
+            .expect("this is array object")
+            .set_prototype(prototype);
         // This value is used by console.log and other routines to match Object type
         // to its Javascript Identifier (global constructor method name)
 
@@ -249,7 +250,7 @@ impl Map {
                         map
                     } else if object.is_array() {
                         let mut map = OrderedMap::new();
-                        let len = i32::from(&args[0].get_field("length"));
+                        let len = args[0].get_field("length").to_integer(ctx)? as i32;
                         for i in 0..len {
                             let val = &args[0].get_field(i.to_string());
                             let (key, value) = Self::get_key_value(val).ok_or_else(|| {
@@ -283,18 +284,19 @@ impl Map {
     }
 
     /// Initialise the `Map` object on the global object.
-    pub(crate) fn init(global: &Value) -> (&str, Value) {
+    pub(crate) fn init(interpreter: &mut Interpreter) -> (&'static str, Value) {
+        let global = interpreter.global();
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
         // Create prototype
         let prototype = Value::new_object(Some(global));
 
-        make_builtin_fn(Self::set, "set", &prototype, 2);
-        make_builtin_fn(Self::delete, "delete", &prototype, 1);
-        make_builtin_fn(Self::get, "get", &prototype, 1);
-        make_builtin_fn(Self::clear, "clear", &prototype, 0);
-        make_builtin_fn(Self::has, "has", &prototype, 1);
-        make_builtin_fn(Self::for_each, "forEach", &prototype, 1);
+        make_builtin_fn(Self::set, "set", &prototype, 2, interpreter);
+        make_builtin_fn(Self::delete, "delete", &prototype, 1, interpreter);
+        make_builtin_fn(Self::get, "get", &prototype, 1, interpreter);
+        make_builtin_fn(Self::clear, "clear", &prototype, 0, interpreter);
+        make_builtin_fn(Self::has, "has", &prototype, 1, interpreter);
+        make_builtin_fn(Self::for_each, "forEach", &prototype, 1, interpreter);
 
         let map_object = make_constructor_fn(
             Self::NAME,

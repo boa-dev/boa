@@ -1,4 +1,3 @@
-use super::*;
 use crate::{exec::Interpreter, forward, realm::Realm};
 
 #[test]
@@ -15,13 +14,6 @@ fn constructors() {
     assert_eq!(forward(&mut engine, "constructed.test('1.0')"), "true");
     assert_eq!(forward(&mut engine, "literal.test('1.0')"), "true");
     assert_eq!(forward(&mut engine, "ctor_literal.test('1.0')"), "true");
-}
-
-#[test]
-fn check_regexp_constructor_is_function() {
-    let global = Value::new_object(None);
-    let regexp_constructor = RegExp::create(&global);
-    assert_eq!(regexp_constructor.is_function(), true);
 }
 
 // TODO: uncomment this test when property getters are supported
@@ -78,13 +70,16 @@ fn exec() {
         "#;
 
     eprintln!("{}", forward(&mut engine, init));
-    assert_eq!(forward(&mut engine, "result[0]"), "Quick Brown Fox Jumps");
-    assert_eq!(forward(&mut engine, "result[1]"), "Brown");
-    assert_eq!(forward(&mut engine, "result[2]"), "Jumps");
+    assert_eq!(
+        forward(&mut engine, "result[0]"),
+        "\"Quick Brown Fox Jumps\""
+    );
+    assert_eq!(forward(&mut engine, "result[1]"), "\"Brown\"");
+    assert_eq!(forward(&mut engine, "result[2]"), "\"Jumps\"");
     assert_eq!(forward(&mut engine, "result.index"), "4");
     assert_eq!(
         forward(&mut engine, "result.input"),
-        "The Quick Brown Fox Jumps Over The Lazy Dog"
+        "\"The Quick Brown Fox Jumps Over The Lazy Dog\""
     );
 }
 
@@ -95,15 +90,15 @@ fn to_string() {
 
     assert_eq!(
         forward(&mut engine, "(new RegExp('a+b+c')).toString()"),
-        "/a+b+c/"
+        "\"/a+b+c/\""
     );
     assert_eq!(
         forward(&mut engine, "(new RegExp('bar', 'g')).toString()"),
-        "/bar/g"
+        "\"/bar/g\""
     );
     assert_eq!(
         forward(&mut engine, "(new RegExp('\\\\n', 'g')).toString()"),
-        "/\\n/g"
+        "\"/\\n/g\""
     );
-    assert_eq!(forward(&mut engine, "/\\n/g.toString()"), "/\\n/g");
+    assert_eq!(forward(&mut engine, "/\\n/g.toString()"), "\"/\\n/g\"");
 }

@@ -4,6 +4,7 @@ pub mod array;
 pub mod bigint;
 pub mod boolean;
 pub mod console;
+pub mod date;
 pub mod error;
 pub mod function;
 pub mod global_this;
@@ -26,6 +27,7 @@ pub(crate) use self::{
     bigint::BigInt,
     boolean::Boolean,
     console::Console,
+    date::Date,
     error::{Error, RangeError, ReferenceError, SyntaxError, TypeError},
     global_this::GlobalThis,
     infinity::Infinity,
@@ -38,12 +40,13 @@ pub(crate) use self::{
     string::String,
     symbol::Symbol,
     undefined::Undefined,
-    value::{ResultValue, Value},
+    value::Value,
 };
+use crate::Interpreter;
 
 /// Initializes builtin objects and functions
 #[inline]
-pub fn init(global: &Value) {
+pub fn init(interpreter: &mut Interpreter) {
     let globals = [
         // The `Function` global must be initialized before other types.
         function::init,
@@ -51,6 +54,7 @@ pub fn init(global: &Value) {
         Array::init,
         BigInt::init,
         Boolean::init,
+        Date::init,
         Json::init,
         Map::init,
         Math::init,
@@ -72,13 +76,14 @@ pub fn init(global: &Value) {
         Undefined::init,
     ];
 
-    match global {
-        Value::Object(ref global_object) => {
-            for init in &globals {
-                let (name, value) = init(global);
+    for init in &globals {
+        let (name, value) = init(interpreter);
+        let global = interpreter.global();
+        match global {
+            Value::Object(ref global_object) => {
                 global_object.borrow_mut().insert_field(name, value);
             }
+            _ => unreachable!("expect global object"),
         }
-        _ => unreachable!("expect global object"),
     }
 }
