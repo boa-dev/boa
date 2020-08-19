@@ -16,6 +16,12 @@ fn function_declaration_returns_undefined() {
 }
 
 #[test]
+fn empty_function_returns_undefined() {
+    let scenario = "(function () {}) ()";
+    assert_eq!(&exec(scenario), "undefined");
+}
+
+#[test]
 fn property_accessor_member_expression_dot_notation_on_string_literal() {
     let scenario = r#"
         typeof 'asd'.matchAll;
@@ -1204,4 +1210,10 @@ fn comma_operator() {
         a
     "#;
     assert_eq!(&exec(scenario), "2");
+}
+
+#[test]
+fn test_result_of_empty_block() {
+    let scenario = "{}";
+    assert_eq!(&exec(scenario), "undefined");
 }
