@@ -98,6 +98,17 @@ impl Executable for BinOp {
                         let key = x.to_property_key(interpreter)?;
                         interpreter.has_property(&y, &key)
                     }
+                    CompOp::InstanceOf => {
+                        if !y.is_object() {
+                            return interpreter.throw_type_error(format!(
+                                "right-hand side of 'instanceof' should be an object, got {}",
+                                y.get_type().as_str()
+                            ));
+                        }
+
+                        // spec: https://tc39.es/ecma262/#sec-instanceofoperator
+                        todo!("instanceof operator")
+                    }
                 }))
             }
             op::BinOp::Log(op) => {
