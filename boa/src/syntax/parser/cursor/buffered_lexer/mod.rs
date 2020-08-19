@@ -86,7 +86,7 @@ where
     ///
     /// It will not fill two line terminators one after the other.
     fn fill(&mut self) -> Result<(), ParseError> {
-        assert!(
+        debug_assert!(
             self.write_index < PEEK_BUF_SIZE,
             "write index went out of bounds"
         );
