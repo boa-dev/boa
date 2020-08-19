@@ -9,11 +9,8 @@ use criterion::{black_box, criterion_group, criterion_main, Criterion};
     global_allocator
 )]
 static ALLOC: jemallocator::Jemalloc = jemallocator::Jemalloc;
+
 static EXPRESSION: &str = include_str!("bench_scripts/expression.js");
-static HELLO_WORLD: &str = include_str!("bench_scripts/hello_world.js");
-static FOR_LOOP: &str = include_str!("bench_scripts/for_loop.js");
-static LONG_REPETITION: &str = include_str!("bench_scripts/long_repetition.js");
-static GOAL_SYMBOL_SWITCH: &str = include_str!("bench_scripts/goal_symbol_switch.js");
 
 fn expression_parser(c: &mut Criterion) {
     // We include the lexing in the benchmarks, since they will get together soon, anyways.
@@ -28,6 +25,8 @@ fn expression_parser(c: &mut Criterion) {
     });
 }
 
+static HELLO_WORLD: &str = include_str!("bench_scripts/hello_world.js");
+
 fn hello_world_parser(c: &mut Criterion) {
     // We include the lexing in the benchmarks, since they will get together soon, anyways.
 
@@ -41,6 +40,8 @@ fn hello_world_parser(c: &mut Criterion) {
     });
 }
 
+static FOR_LOOP: &str = include_str!("bench_scripts/for_loop.js");
+
 fn for_loop_parser(c: &mut Criterion) {
     // We include the lexing in the benchmarks, since they will get together soon, anyways.
 
@@ -53,6 +54,8 @@ fn for_loop_parser(c: &mut Criterion) {
         })
     });
 }
+
+static LONG_REPETITION: &str = include_str!("bench_scripts/long_repetition.js");
 
 fn long_file_parser(c: &mut Criterion) {
     use std::{
@@ -85,6 +88,8 @@ fn long_file_parser(c: &mut Criterion) {
 
     fs::remove_file(FILE_NAME).unwrap_or_else(|_| panic!("could not remove {}", FILE_NAME));
 }
+
+static GOAL_SYMBOL_SWITCH: &str = include_str!("bench_scripts/goal_symbol_switch.js");
 
 fn goal_symbol_switch(c: &mut Criterion) {
     // We include the lexing in the benchmarks, since they will get together soon, anyways.

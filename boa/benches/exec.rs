@@ -9,30 +9,12 @@ use criterion::{black_box, criterion_group, criterion_main, Criterion};
     global_allocator
 )]
 static ALLOC: jemallocator::Jemalloc = jemallocator::Jemalloc;
-static STRING_OBJECT_ACCESS: &str = include_str!("bench_scripts/string_object_access.js");
-static ARRAY_POP: &str = include_str!("bench_scripts/array_pop.js");
-static STRING_COPY: &str = include_str!("bench_scripts/string_copy.js");
-static SYMBOL_CREATION: &str = include_str!("bench_scripts/symbol_creation.js");
-static ARITHMETIC_OPERATIONS: &str = include_str!("bench_scripts/arithmetic_operations.js");
-static STRING_COMPARE: &str = include_str!("bench_scripts/string_compare.js");
-static OBJECT_CREATION: &str = include_str!("bench_scripts/object_creation.js");
-static FIBONACCI: &str = include_str!("bench_scripts/fibonacci.js");
-static REGEXP_LITERAL: &str = include_str!("bench_scripts/regexp_literal.js");
-static ARRAY_CREATE: &str = include_str!("bench_scripts/array_create.js");
-static OBJECT_PROP_ACCESS_DYN: &str = include_str!("bench_scripts/object_prop_access_dyn.js");
-static OBJECT_PROP_ACCESS_CONST: &str = include_str!("bench_scripts/object_prop_access_const.js");
-static FOR_LOOP: &str = include_str!("bench_scripts/for_loop.js");
-static BOOLEAN_OBJECT_ACCESS: &str = include_str!("bench_scripts/boolean_object_access.js");
-static ARRAY_ACCESS: &str = include_str!("bench_scripts/array_access.js");
-static REGEXP_LITERAL_CREATION: &str = include_str!("bench_scripts/regexp_literal_creation.js");
-static STRING_CONCAT: &str = include_str!("bench_scripts/string_concat.js");
-static REGEXP_CREATION: &str = include_str!("bench_scripts/regexp_creation.js");
-static NUMBER_OBJECT_ACCESS: &str = include_str!("bench_scripts/number_object_access.js");
-static REGEXP: &str = include_str!("bench_scripts/regexp.js");
 
 fn create_realm(c: &mut Criterion) {
     c.bench_function("Create Realm", move |b| b.iter(Realm::create));
 }
+
+static SYMBOL_CREATION: &str = include_str!("bench_scripts/symbol_creation.js");
 
 fn symbol_creation(c: &mut Criterion) {
     // Create new Realm and interpreter.
@@ -52,6 +34,8 @@ fn symbol_creation(c: &mut Criterion) {
     });
 }
 
+static FOR_LOOP: &str = include_str!("bench_scripts/for_loop.js");
+
 fn for_loop_execution(c: &mut Criterion) {
     // Create new Realm and interpreter.
     let realm = Realm::create();
@@ -69,6 +53,8 @@ fn for_loop_execution(c: &mut Criterion) {
         b.iter(|| black_box(&nodes).run(&mut engine).unwrap())
     });
 }
+
+static FIBONACCI: &str = include_str!("bench_scripts/fibonacci.js");
 
 fn fibonacci(c: &mut Criterion) {
     // Create new Realm and interpreter.
@@ -88,6 +74,8 @@ fn fibonacci(c: &mut Criterion) {
     });
 }
 
+static OBJECT_CREATION: &str = include_str!("bench_scripts/object_creation.js");
+
 fn object_creation(c: &mut Criterion) {
     // Create new Realm and interpreter.
     let realm = Realm::create();
@@ -105,6 +93,8 @@ fn object_creation(c: &mut Criterion) {
         b.iter(|| black_box(&nodes).run(&mut engine).unwrap())
     });
 }
+
+static OBJECT_PROP_ACCESS_CONST: &str = include_str!("bench_scripts/object_prop_access_const.js");
 
 fn object_prop_access_const(c: &mut Criterion) {
     // Create new Realm and interpreter.
@@ -124,6 +114,8 @@ fn object_prop_access_const(c: &mut Criterion) {
     });
 }
 
+static OBJECT_PROP_ACCESS_DYN: &str = include_str!("bench_scripts/object_prop_access_dyn.js");
+
 fn object_prop_access_dyn(c: &mut Criterion) {
     // Create new Realm and interpreter.
     let realm = Realm::create();
@@ -141,6 +133,8 @@ fn object_prop_access_dyn(c: &mut Criterion) {
         b.iter(|| black_box(&nodes).run(&mut engine).unwrap())
     });
 }
+
+static REGEXP_LITERAL_CREATION: &str = include_str!("bench_scripts/regexp_literal_creation.js");
 
 fn regexp_literal_creation(c: &mut Criterion) {
     // Create new Realm and interpreter.
@@ -160,6 +154,8 @@ fn regexp_literal_creation(c: &mut Criterion) {
     });
 }
 
+static REGEXP_CREATION: &str = include_str!("bench_scripts/regexp_creation.js");
+
 fn regexp_creation(c: &mut Criterion) {
     // Create new Realm and interpreter.
     let realm = Realm::create();
@@ -177,6 +173,8 @@ fn regexp_creation(c: &mut Criterion) {
         b.iter(|| black_box(&nodes).run(&mut engine).unwrap())
     });
 }
+
+static REGEXP_LITERAL: &str = include_str!("bench_scripts/regexp_literal.js");
 
 fn regexp_literal(c: &mut Criterion) {
     // Create new Realm and interpreter.
@@ -196,6 +194,8 @@ fn regexp_literal(c: &mut Criterion) {
     });
 }
 
+static REGEXP: &str = include_str!("bench_scripts/regexp.js");
+
 fn regexp(c: &mut Criterion) {
     // Create new Realm and interpreter.
     let realm = Realm::create();
@@ -214,6 +214,8 @@ fn regexp(c: &mut Criterion) {
     });
 }
 
+static ARRAY_ACCESS: &str = include_str!("bench_scripts/array_access.js");
+
 fn array_access(c: &mut Criterion) {
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);
@@ -227,6 +229,8 @@ fn array_access(c: &mut Criterion) {
         b.iter(|| black_box(&nodes).run(&mut engine).unwrap())
     });
 }
+
+static ARRAY_CREATE: &str = include_str!("bench_scripts/array_create.js");
 
 fn array_creation(c: &mut Criterion) {
     let realm = Realm::create();
@@ -242,6 +246,8 @@ fn array_creation(c: &mut Criterion) {
     });
 }
 
+static ARRAY_POP: &str = include_str!("bench_scripts/array_pop.js");
+
 fn array_pop(c: &mut Criterion) {
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);
@@ -255,6 +261,8 @@ fn array_pop(c: &mut Criterion) {
         b.iter(|| black_box(&nodes).run(&mut engine).unwrap())
     });
 }
+
+static STRING_CONCAT: &str = include_str!("bench_scripts/string_concat.js");
 
 fn string_concat(c: &mut Criterion) {
     let realm = Realm::create();
@@ -270,6 +278,8 @@ fn string_concat(c: &mut Criterion) {
     });
 }
 
+static STRING_COMPARE: &str = include_str!("bench_scripts/string_compare.js");
+
 fn string_compare(c: &mut Criterion) {
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);
@@ -283,6 +293,8 @@ fn string_compare(c: &mut Criterion) {
         b.iter(|| black_box(&nodes).run(&mut engine).unwrap())
     });
 }
+
+static STRING_COPY: &str = include_str!("bench_scripts/string_copy.js");
 
 fn string_copy(c: &mut Criterion) {
     let realm = Realm::create();
@@ -298,6 +310,8 @@ fn string_copy(c: &mut Criterion) {
     });
 }
 
+static NUMBER_OBJECT_ACCESS: &str = include_str!("bench_scripts/number_object_access.js");
+
 fn number_object_access(c: &mut Criterion) {
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);
@@ -311,6 +325,8 @@ fn number_object_access(c: &mut Criterion) {
         b.iter(|| black_box(&nodes).run(&mut engine).unwrap())
     });
 }
+
+static BOOLEAN_OBJECT_ACCESS: &str = include_str!("bench_scripts/boolean_object_access.js");
 
 fn boolean_object_access(c: &mut Criterion) {
     let realm = Realm::create();
@@ -326,6 +342,8 @@ fn boolean_object_access(c: &mut Criterion) {
     });
 }
 
+static STRING_OBJECT_ACCESS: &str = include_str!("bench_scripts/string_object_access.js");
+
 fn string_object_access(c: &mut Criterion) {
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);
@@ -339,6 +357,8 @@ fn string_object_access(c: &mut Criterion) {
         b.iter(|| black_box(&nodes).run(&mut engine).unwrap())
     });
 }
+
+static ARITHMETIC_OPERATIONS: &str = include_str!("bench_scripts/arithmetic_operations.js");
 
 fn arithmetic_operations(c: &mut Criterion) {
     let realm = Realm::create();

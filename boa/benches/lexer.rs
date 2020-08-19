@@ -9,9 +9,8 @@ use criterion::{black_box, criterion_group, criterion_main, Criterion};
     global_allocator
 )]
 static ALLOC: jemallocator::Jemalloc = jemallocator::Jemalloc;
+
 static EXPRESSION: &str = include_str!("bench_scripts/expression.js");
-static HELLO_WORLD: &str = include_str!("bench_scripts/hello_world.js");
-static FOR_LOOP: &str = include_str!("bench_scripts/for_loop.js");
 
 fn expression_lexer(c: &mut Criterion) {
     c.bench_function("Expression (Lexer)", move |b| {
@@ -23,6 +22,8 @@ fn expression_lexer(c: &mut Criterion) {
     });
 }
 
+static HELLO_WORLD: &str = include_str!("bench_scripts/hello_world.js");
+
 fn hello_world_lexer(c: &mut Criterion) {
     c.bench_function("Hello World (Lexer)", move |b| {
         b.iter(|| {
@@ -33,6 +34,8 @@ fn hello_world_lexer(c: &mut Criterion) {
         })
     });
 }
+
+static FOR_LOOP: &str = include_str!("bench_scripts/for_loop.js");
 
 fn for_loop_lexer(c: &mut Criterion) {
     c.bench_function("For loop (Lexer)", move |b| {

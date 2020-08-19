@@ -9,26 +9,8 @@ use criterion::{black_box, criterion_group, criterion_main, Criterion};
     global_allocator
 )]
 static ALLOC: jemallocator::Jemalloc = jemallocator::Jemalloc;
-static STRING_OBJECT_ACCESS: &str = include_str!("bench_scripts/string_object_access.js");
-static ARRAY_POP: &str = include_str!("bench_scripts/array_pop.js");
-static STRING_COPY: &str = include_str!("bench_scripts/string_copy.js");
+
 static SYMBOL_CREATION: &str = include_str!("bench_scripts/symbol_creation.js");
-static ARITHMETIC_OPERATIONS: &str = include_str!("bench_scripts/arithmetic_operations.js");
-static STRING_COMPARE: &str = include_str!("bench_scripts/string_compare.js");
-static OBJECT_CREATION: &str = include_str!("bench_scripts/object_creation.js");
-static FIBONACCI: &str = include_str!("bench_scripts/fibonacci.js");
-static REGEXP_LITERAL: &str = include_str!("bench_scripts/regexp_literal.js");
-static ARRAY_CREATE: &str = include_str!("bench_scripts/array_create.js");
-static OBJECT_PROP_ACCESS_DYN: &str = include_str!("bench_scripts/object_prop_access_dyn.js");
-static OBJECT_PROP_ACCESS_CONST: &str = include_str!("bench_scripts/object_prop_access_const.js");
-static FOR_LOOP: &str = include_str!("bench_scripts/for_loop.js");
-static BOOLEAN_OBJECT_ACCESS: &str = include_str!("bench_scripts/boolean_object_access.js");
-static ARRAY_ACCESS: &str = include_str!("bench_scripts/array_access.js");
-static REGEXP_LITERAL_CREATION: &str = include_str!("bench_scripts/regexp_literal_creation.js");
-static STRING_CONCAT: &str = include_str!("bench_scripts/string_concat.js");
-static REGEXP_CREATION: &str = include_str!("bench_scripts/regexp_creation.js");
-static NUMBER_OBJECT_ACCESS: &str = include_str!("bench_scripts/number_object_access.js");
-static REGEXP: &str = include_str!("bench_scripts/regexp.js");
 
 fn symbol_creation(c: &mut Criterion) {
     // Execute the code by taking into account realm creation, lexing and parsing
@@ -37,12 +19,16 @@ fn symbol_creation(c: &mut Criterion) {
     });
 }
 
+static FOR_LOOP: &str = include_str!("bench_scripts/for_loop.js");
+
 fn for_loop(c: &mut Criterion) {
     // Execute the code by taking into account realm creation, lexing and parsing
     c.bench_function("For loop (Full)", move |b| {
         b.iter(|| exec(black_box(FOR_LOOP)))
     });
 }
+
+static FIBONACCI: &str = include_str!("bench_scripts/fibonacci.js");
 
 fn fibonacci(c: &mut Criterion) {
     // Execute the code by taking into account realm creation, lexing and parsing
@@ -51,12 +37,16 @@ fn fibonacci(c: &mut Criterion) {
     });
 }
 
+static OBJECT_CREATION: &str = include_str!("bench_scripts/object_creation.js");
+
 fn object_creation(c: &mut Criterion) {
     // Execute the code by taking into account realm creation, lexing and parsing
     c.bench_function("Object Creation (Full)", move |b| {
         b.iter(|| exec(black_box(OBJECT_CREATION)))
     });
 }
+
+static OBJECT_PROP_ACCESS_CONST: &str = include_str!("bench_scripts/object_prop_access_const.js");
 
 fn object_prop_access_const(c: &mut Criterion) {
     // Execute the code by taking into account realm creation, lexing and parsing
@@ -65,12 +55,16 @@ fn object_prop_access_const(c: &mut Criterion) {
     });
 }
 
+static OBJECT_PROP_ACCESS_DYN: &str = include_str!("bench_scripts/object_prop_access_dyn.js");
+
 fn object_prop_access_dyn(c: &mut Criterion) {
     // Execute the code by taking into account realm creation, lexing and parsing
     c.bench_function("Dynamic Object Property Access (Full)", move |b| {
         b.iter(|| exec(black_box(OBJECT_PROP_ACCESS_DYN)))
     });
 }
+
+static REGEXP_LITERAL_CREATION: &str = include_str!("bench_scripts/regexp_literal_creation.js");
 
 fn regexp_literal_creation(c: &mut Criterion) {
     // Execute the code by taking into account realm creation, lexing and parsing
@@ -79,12 +73,16 @@ fn regexp_literal_creation(c: &mut Criterion) {
     });
 }
 
+static REGEXP_CREATION: &str = include_str!("bench_scripts/regexp_creation.js");
+
 fn regexp_creation(c: &mut Criterion) {
     // Execute the code by taking into account realm creation, lexing and parsing
     c.bench_function("RegExp (Full)", move |b| {
         b.iter(|| exec(black_box(REGEXP_CREATION)))
     });
 }
+
+static REGEXP_LITERAL: &str = include_str!("bench_scripts/regexp_literal.js");
 
 fn regexp_literal(c: &mut Criterion) {
     // Execute the code by taking into account realm creation, lexing and parsing
@@ -93,10 +91,14 @@ fn regexp_literal(c: &mut Criterion) {
     });
 }
 
+static REGEXP: &str = include_str!("bench_scripts/regexp.js");
+
 fn regexp(c: &mut Criterion) {
     // Execute the code by taking into account realm creation, lexing and parsing
     c.bench_function("RegExp (Full)", move |b| b.iter(|| exec(black_box(REGEXP))));
 }
+
+static ARRAY_ACCESS: &str = include_str!("bench_scripts/array_access.js");
 
 fn array_access(c: &mut Criterion) {
     c.bench_function("Array access (Full)", move |b| {
@@ -104,11 +106,15 @@ fn array_access(c: &mut Criterion) {
     });
 }
 
+static ARRAY_CREATE: &str = include_str!("bench_scripts/array_create.js");
+
 fn array_creation(c: &mut Criterion) {
     c.bench_function("Array creation (Full)", move |b| {
         b.iter(|| exec(black_box(ARRAY_CREATE)))
     });
 }
+
+static ARRAY_POP: &str = include_str!("bench_scripts/array_pop.js");
 
 fn array_pop(c: &mut Criterion) {
     c.bench_function("Array pop (Full)", move |b| {
@@ -116,11 +122,15 @@ fn array_pop(c: &mut Criterion) {
     });
 }
 
+static STRING_CONCAT: &str = include_str!("bench_scripts/string_concat.js");
+
 fn string_concat(c: &mut Criterion) {
     c.bench_function("String concatenation (Full)", move |b| {
         b.iter(|| exec(black_box(STRING_CONCAT)))
     });
 }
+
+static STRING_COMPARE: &str = include_str!("bench_scripts/string_compare.js");
 
 fn string_compare(c: &mut Criterion) {
     c.bench_function("String comparison (Full)", move |b| {
@@ -128,11 +138,15 @@ fn string_compare(c: &mut Criterion) {
     });
 }
 
+static STRING_COPY: &str = include_str!("bench_scripts/string_copy.js");
+
 fn string_copy(c: &mut Criterion) {
     c.bench_function("String copy (Full)", move |b| {
         b.iter(|| exec(black_box(STRING_COPY)))
     });
 }
+
+static NUMBER_OBJECT_ACCESS: &str = include_str!("bench_scripts/number_object_access.js");
 
 fn number_object_access(c: &mut Criterion) {
     c.bench_function("Number Object Access (Full)", move |b| {
@@ -140,17 +154,23 @@ fn number_object_access(c: &mut Criterion) {
     });
 }
 
+static BOOLEAN_OBJECT_ACCESS: &str = include_str!("bench_scripts/boolean_object_access.js");
+
 fn boolean_object_access(c: &mut Criterion) {
     c.bench_function("Boolean Object Access (Full)", move |b| {
         b.iter(|| exec(black_box(BOOLEAN_OBJECT_ACCESS)))
     });
 }
 
+static STRING_OBJECT_ACCESS: &str = include_str!("bench_scripts/string_object_access.js");
+
 fn string_object_access(c: &mut Criterion) {
     c.bench_function("String Object Access (Full)", move |b| {
         b.iter(|| exec(black_box(STRING_OBJECT_ACCESS)))
     });
 }
+
+static ARITHMETIC_OPERATIONS: &str = include_str!("bench_scripts/arithmetic_operations.js");
 
 fn arithmetic_operations(c: &mut Criterion) {
     c.bench_function("Arithmetic operations (Full)", move |b| {
