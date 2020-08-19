@@ -770,7 +770,9 @@ mod in_operator {
         let bar_obj = bar_val.as_object().unwrap();
         let foo_val = forward_val(&mut engine, "Foo").unwrap();
         let foo_obj = foo_val.as_object().unwrap();
-        assert!(bar_obj.prototype().strict_equals(&foo_obj.get_field("prototype").unwrap()));
+        assert!(bar_obj
+            .prototype()
+            .strict_equals(&foo_obj.get_field("prototype").unwrap()));
     }
 }
 
@@ -1219,4 +1221,16 @@ fn comma_operator() {
 fn test_result_of_empty_block() {
     let scenario = "{}";
     assert_eq!(&exec(scenario), "undefined");
+}
+
+#[test]
+fn test_undefined_constant() {
+    let scenario = "undefined";
+    assert_eq!(&exec(scenario), "undefined");
+}
+
+#[test]
+fn test_undefined_type() {
+    let scenario = "typeof undefined";
+    assert_eq!(&exec(scenario), "\"undefined\"");
 }

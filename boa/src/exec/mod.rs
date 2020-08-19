@@ -372,6 +372,7 @@ impl Executable for Node {
             Node::Const(Const::Num(num)) => Ok(Value::rational(num)),
             Node::Const(Const::Int(num)) => Ok(Value::integer(num)),
             Node::Const(Const::BigInt(ref num)) => Ok(Value::from(num.clone())),
+            Node::Const(Const::Undefined) => Ok(Value::Undefined),
             // we can't move String from Const into value, because const is a garbage collected value
             // Which means Drop() get's called on Const, but str will be gone at that point.
             // Do Const values need to be garbage collected? We no longer need them once we've generated Values
@@ -410,7 +411,8 @@ impl Executable for Node {
             }
             Node::Try(ref try_node) => try_node.run(interpreter),
             Node::Break(ref break_node) => break_node.run(interpreter),
-            ref i => unimplemented!("{:?}", i),
+            Node::ConditionalOp(_) => unimplemented!("ConditionalOp"),
+            Node::Continue(_) => unimplemented!("Continue"),
         }
     }
 }
