@@ -44,10 +44,6 @@ name = "boa"
 bench = false
 
 [[bench]]
-name = "lexer"
-harness = false
-
-[[bench]]
 name = "parser"
 harness = false
 
