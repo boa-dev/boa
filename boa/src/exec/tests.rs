@@ -772,8 +772,9 @@ mod in_operator {
         let bar_val = forward_val(&mut engine, "bar").unwrap();
         let bar_obj = bar_val.as_object().unwrap();
         let foo_val = forward_val(&mut engine, "Foo").unwrap();
-        let foo_obj = foo_val.as_object().unwrap();
-        assert!(bar_obj.prototype().strict_equals(&foo_obj.get_field("prototype").unwrap()));
+        assert!(bar_obj
+            .prototype()
+            .strict_equals(&foo_val.get_field("prototype")));
     }
 }
 
@@ -968,7 +969,7 @@ fn to_length() {
     assert_eq!(
         Value::number(100000000000.0)
             .to_length(&mut engine)
-            .unwrap() as u128,
+            .unwrap() as u64,
         100000000000
     );
     assert_eq!(
@@ -1370,4 +1371,16 @@ fn multiline_str_concat() {
 fn test_result_of_empty_block() {
     let scenario = "{}";
     assert_eq!(&exec(scenario), "undefined");
+}
+
+#[test]
+fn test_undefined_constant() {
+    let scenario = "undefined";
+    assert_eq!(&exec(scenario), "undefined");
+}
+
+#[test]
+fn test_undefined_type() {
+    let scenario = "typeof undefined";
+    assert_eq!(&exec(scenario), "\"undefined\"");
 }
