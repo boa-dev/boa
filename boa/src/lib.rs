@@ -89,8 +89,7 @@ pub fn forward_val(engine: &mut Interpreter, src: &str) -> Result<Value> {
         Ok(expr) => expr.run(engine),
         Err(e) => {
             eprintln!("{}", e);
-            panic!(); // Panic instead of exit means that tests will continue.
-                      // std::process::exit(1);
+            panic!();
         }
     };
 
