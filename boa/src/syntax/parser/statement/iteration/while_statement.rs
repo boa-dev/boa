@@ -56,7 +56,6 @@ where
         let _timer = BoaProfiler::global().start_event("WhileStatement", "Parsing");
         cursor.expect(Keyword::While, "while statement")?;
 
-        // Line terminators can exist between a While and the condition.
         cursor.expect(Punctuator::OpenParen, "while statement")?;
 
         let cond = Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?;
