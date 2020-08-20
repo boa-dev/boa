@@ -7,6 +7,6 @@ impl Executable for Identifier {
             .realm()
             .environment
             .get_binding_value(self.as_ref())
-            .or_else(|e| Err(e.to_error(interpreter)))
+            .map_err(|e| e.to_error(interpreter))
     }
 }

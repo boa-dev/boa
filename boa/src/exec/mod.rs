@@ -308,7 +308,7 @@ impl Interpreter {
                 self.realm
                     .environment
                     .set_mutable_binding(name.as_ref(), value.clone(), true)
-                    .or_else(|e| Err(e.to_error(self)))?;
+                    .map_err(|e| e.to_error(self))?;
                 Ok(value)
             }
             Node::GetConstField(ref get_const_field_node) => Ok(get_const_field_node
