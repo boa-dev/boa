@@ -10,9 +10,7 @@ use criterion::{black_box, criterion_group, criterion_main, Criterion};
 )]
 static ALLOC: jemallocator::Jemalloc = jemallocator::Jemalloc;
 
-static EXPRESSION: &str = r#"
-1 + 1 + 1 + 1 + 1 + 1 / 1 + 1 + 1 * 1 + 1 + 1 + 1;
-"#;
+static EXPRESSION: &str = include_str!("bench_scripts/expression.js");
 
 fn expression_parser(c: &mut Criterion) {
     // We include the lexing in the benchmarks, since they will get together soon, anyways.
@@ -27,7 +25,7 @@ fn expression_parser(c: &mut Criterion) {
     });
 }
 
-static HELLO_WORLD: &str = "let foo = 'hello world!'; foo;";
+static HELLO_WORLD: &str = include_str!("bench_scripts/hello_world.js");
 
 fn hello_world_parser(c: &mut Criterion) {
     // We include the lexing in the benchmarks, since they will get together soon, anyways.
@@ -42,17 +40,7 @@ fn hello_world_parser(c: &mut Criterion) {
     });
 }
 
-static FOR_LOOP: &str = r#"
-for (let a = 10; a < 100; a++) {
-    if (a < 10) {
-        console.log("impossible D:");
-    } else if (a < 50) {
-        console.log("starting");
-    } else {
-        console.log("finishing");
-    }
-}
-"#;
+static FOR_LOOP: &str = include_str!("bench_scripts/for_loop.js");
 
 fn for_loop_parser(c: &mut Criterion) {
     // We include the lexing in the benchmarks, since they will get together soon, anyways.
@@ -67,17 +55,7 @@ fn for_loop_parser(c: &mut Criterion) {
     });
 }
 
-static LONG_REPETITION: &str = r#"
-for (let a = 10; a < 100; a++) {
-    if (a < 10) {
-        console.log("impossible D:");
-    } else if (a < 50) {
-        console.log("starting");
-    } else {
-        console.log("finishing");
-    }
-}
-"#;
+static LONG_REPETITION: &str = include_str!("bench_scripts/long_repetition.js");
 
 fn long_file_parser(c: &mut Criterion) {
     use std::{
@@ -111,15 +89,7 @@ fn long_file_parser(c: &mut Criterion) {
     fs::remove_file(FILE_NAME).unwrap_or_else(|_| panic!("could not remove {}", FILE_NAME));
 }
 
-static GOAL_SYMBOL_SWITCH: &str = r#"
-function foo(regex, num) {}
-
-let i = 0;
-while (i < 1000000) {
-    foo(/ab+c/, 5.0/5);
-    i++;
-}
-"#;
+static GOAL_SYMBOL_SWITCH: &str = include_str!("bench_scripts/goal_symbol_switch.js");
 
 fn goal_symbol_switch(c: &mut Criterion) {
     // We include the lexing in the benchmarks, since they will get together soon, anyways.

@@ -228,10 +228,18 @@ fn recursive_display() {
 }
 
 #[test]
-#[should_panic]
 fn not_a_function() {
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);
-    let init = "let map = Map()";
-    forward(&mut engine, init);
+    let init = r"
+        try {
+            let map = Map()
+        } catch(e) {
+            e.toString()
+        }
+    ";
+    assert_eq!(
+        forward(&mut engine, init),
+        "\"TypeError: function object is not callable\""
+    );
 }

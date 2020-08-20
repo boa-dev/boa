@@ -4,17 +4,17 @@ mod tests;
 
 use super::{Executable, Interpreter};
 use crate::{
-    builtins::value::{ResultValue, Value},
+    builtins::value::Value,
     environment::lexical_environment::VariableScope,
     syntax::ast::{
         node::{Assign, BinOp, Node, UnaryOp},
         op::{self, AssignOp, BitOp, CompOp, LogOp, NumOp},
     },
-    BoaProfiler,
+    BoaProfiler, Result,
 };
 
 impl Executable for Assign {
-    fn run(&self, interpreter: &mut Interpreter) -> ResultValue {
+    fn run(&self, interpreter: &mut Interpreter) -> Result<Value> {
         let _timer = BoaProfiler::global().start_event("Assign", "exec");
         let val = self.rhs().run(interpreter)?;
         match self.lhs() {
@@ -47,7 +47,7 @@ impl Executable for Assign {
             Node::GetField(ref get_field) => {
                 let object = get_field.obj().run(interpreter)?;
                 let field = get_field.field().run(interpreter)?;
-                let key = interpreter.to_property_key(&field)?;
+                let key = field.to_property_key(interpreter)?;
                 object.set_field(key, val.clone());
             }
             _ => (),
@@ -57,7 +57,7 @@ impl Executable for Assign {
 }
 
 impl Executable for BinOp {
-    fn run(&self, interpreter: &mut Interpreter) -> ResultValue {
+    fn run(&self, interpreter: &mut Interpreter) -> Result<Value> {
         match self.op() {
             op::BinOp::Num(op) => {
                 let x = self.lhs().run(interpreter)?;
@@ -84,26 +84,26 @@ impl Executable for BinOp {
                 }
             }
             op::BinOp::Comp(op) => {
-                let v_a = self.lhs().run(interpreter)?;
-                let v_b = self.rhs().run(interpreter)?;
+                let x = self.lhs().run(interpreter)?;
+                let y = self.rhs().run(interpreter)?;
                 Ok(Value::from(match op {
-                    CompOp::Equal => v_a.equals(&v_b, interpreter)?,
-                    CompOp::NotEqual => !v_a.equals(&v_b, interpreter)?,
-                    CompOp::StrictEqual => v_a.strict_equals(&v_b),
-                    CompOp::StrictNotEqual => !v_a.strict_equals(&v_b),
-                    CompOp::GreaterThan => v_a.to_number() > v_b.to_number(),
-                    CompOp::GreaterThanOrEqual => v_a.to_number() >= v_b.to_number(),
-                    CompOp::LessThan => v_a.to_number() < v_b.to_number(),
-                    CompOp::LessThanOrEqual => v_a.to_number() <= v_b.to_number(),
+                    CompOp::Equal => x.equals(&y, interpreter)?,
+                    CompOp::NotEqual => !x.equals(&y, interpreter)?,
+                    CompOp::StrictEqual => x.strict_equals(&y),
+                    CompOp::StrictNotEqual => !x.strict_equals(&y),
+                    CompOp::GreaterThan => x.gt(&y, interpreter)?,
+                    CompOp::GreaterThanOrEqual => x.ge(&y, interpreter)?,
+                    CompOp::LessThan => x.lt(&y, interpreter)?,
+                    CompOp::LessThanOrEqual => x.le(&y, interpreter)?,
                     CompOp::In => {
-                        if !v_b.is_object() {
+                        if !y.is_object() {
                             return interpreter.throw_type_error(format!(
                                 "right-hand side of 'in' should be an object, got {}",
-                                v_b.get_type().as_str()
+                                y.get_type().as_str()
                             ));
                         }
-                        let key = interpreter.to_property_key(&v_a)?;
-                        interpreter.has_property(&v_b, &key)
+                        let key = x.to_property_key(interpreter)?;
+                        interpreter.has_property(&y, &key)
                     }
                 }))
             }
@@ -157,7 +157,12 @@ impl Executable for BinOp {
 
 impl BinOp {
     /// Runs the assignment operators.
-    fn run_assign(op: AssignOp, x: Value, y: Value, interpreter: &mut Interpreter) -> ResultValue {
+    fn run_assign(
+        op: AssignOp,
+        x: Value,
+        y: Value,
+        interpreter: &mut Interpreter,
+    ) -> Result<Value> {
         match op {
             AssignOp::Add => x.add(&y, interpreter),
             AssignOp::Sub => x.sub(&y, interpreter),
@@ -175,35 +180,39 @@ impl BinOp {
 }
 
 impl Executable for UnaryOp {
-    fn run(&self, interpreter: &mut Interpreter) -> ResultValue {
+    fn run(&self, interpreter: &mut Interpreter) -> Result<Value> {
         let x = self.target().run(interpreter)?;
 
         Ok(match self.op() {
             op::UnaryOp::Minus => x.neg(interpreter)?,
-            op::UnaryOp::Plus => Value::from(x.to_number()),
+            op::UnaryOp::Plus => Value::from(x.to_number(interpreter)?),
             op::UnaryOp::IncrementPost => {
                 let ret = x.clone();
-                interpreter.set_value(self.target(), Value::from(x.to_number() + 1.0))?;
+                let result = x.to_number(interpreter)? + 1.0;
+                interpreter.set_value(self.target(), result.into())?;
                 ret
             }
             op::UnaryOp::IncrementPre => {
-                interpreter.set_value(self.target(), Value::from(x.to_number() + 1.0))?
+                let result = x.to_number(interpreter)? + 1.0;
+                interpreter.set_value(self.target(), result.into())?
             }
             op::UnaryOp::DecrementPost => {
                 let ret = x.clone();
-                interpreter.set_value(self.target(), Value::from(x.to_number() - 1.0))?;
+                let result = x.to_number(interpreter)? - 1.0;
+                interpreter.set_value(self.target(), result.into())?;
                 ret
             }
             op::UnaryOp::DecrementPre => {
-                interpreter.set_value(self.target(), Value::from(x.to_number() - 1.0))?
+                let result = x.to_number(interpreter)? - 1.0;
+                interpreter.set_value(self.target(), result.into())?
             }
-            op::UnaryOp::Not => x.not(interpreter)?,
+            op::UnaryOp::Not => x.not(interpreter)?.into(),
             op::UnaryOp::Tilde => {
-                let num_v_a = x.to_number();
-                // NOTE: possible UB: https://github.com/rust-lang/rust/issues/10184
+                let num_v_a = x.to_number(interpreter)?;
                 Value::from(if num_v_a.is_nan() {
                     -1
                 } else {
+                    // TODO: this is not spec compliant.
                     !(num_v_a as i32)
                 })
             }
@@ -218,7 +227,7 @@ impl Executable for UnaryOp {
                 Node::GetField(ref get_field) => {
                     let obj = get_field.obj().run(interpreter)?;
                     let field = &get_field.field().run(interpreter)?;
-                    let res = obj.remove_property(interpreter.to_string(field)?.as_str());
+                    let res = obj.remove_property(field.to_string(interpreter)?.as_str());
                     return Ok(Value::boolean(res));
                 }
                 Node::Identifier(_) => Value::boolean(false),

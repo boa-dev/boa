@@ -17,11 +17,11 @@ use crate::{
     builtins::{
         object::{Object, ObjectData},
         property::Property,
-        value::{RcString, ResultValue, Value},
+        value::{RcString, Value},
         RegExp,
     },
     exec::Interpreter,
-    BoaProfiler,
+    BoaProfiler, Result,
 };
 use regex::Regex;
 use std::string::String as StdString;
@@ -48,7 +48,7 @@ impl String {
     /// which can differ in JavaScript engines. In Boa it is `2^32 - 1`
     pub(crate) const MAX_STRING_LENGTH: f64 = u32::MAX as f64;
 
-    fn this_string_value(this: &Value, ctx: &mut Interpreter) -> Result<RcString, Value> {
+    fn this_string_value(this: &Value, ctx: &mut Interpreter) -> Result<RcString> {
         match this {
             Value::String(ref string) => return Ok(string.clone()),
             Value::Object(ref object) => {
@@ -67,11 +67,15 @@ impl String {
     ///
     /// [[Call]] - Returns a new native `string`
     /// <https://tc39.es/ecma262/#sec-string-constructor-string-value>
-    pub(crate) fn make_string(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
+    pub(crate) fn make_string(
+        this: &Value,
+        args: &[Value],
+        ctx: &mut Interpreter,
+    ) -> Result<Value> {
         // This value is used by console.log and other routines to match Obexpecty"failed to parse argument for String method"pe
         // to its Javascript Identifier (global constructor method name)
         let string = match args.get(0) {
-            Some(ref value) => ctx.to_string(value)?,
+            Some(ref value) => value.to_string(ctx)?,
             None => RcString::default(),
         };
 
@@ -87,7 +91,7 @@ impl String {
     /// Get the string value to a primitive string
     #[allow(clippy::wrong_self_convention)]
     #[inline]
-    pub(crate) fn to_string(this: &Value, _: &[Value], ctx: &mut Interpreter) -> ResultValue {
+    pub(crate) fn to_string(this: &Value, _: &[Value], ctx: &mut Interpreter) -> Result<Value> {
         // Get String from String Object and send it back as a new value
         Ok(Value::from(Self::this_string_value(this, ctx)?))
     }
@@ -108,14 +112,14 @@ impl String {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-string.prototype.charat
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/charAt
-    pub(crate) fn char_at(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
+    pub(crate) fn char_at(this: &Value, args: &[Value], ctx: &mut Interpreter) -> Result<Value> {
         // First we get it the actual string a private field stored on the object only the engine has access to.
         // Then we convert it into a Rust String by wrapping it in from_value
-        let primitive_val = ctx.to_string(this)?;
-        let pos = i32::from(
-            args.get(0)
-                .expect("failed to get argument for String method"),
-        );
+        let primitive_val = this.to_string(ctx)?;
+        let pos = args
+            .get(0)
+            .expect("failed to get argument for String method")
+            .to_integer(ctx)? as i32;
 
         // Calling .len() on a string would give the wrong result, as they are bytes not the number of
         // unicode code points
@@ -150,18 +154,22 @@ impl String {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-string.prototype.charcodeat
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/charCodeAt
-    pub(crate) fn char_code_at(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
+    pub(crate) fn char_code_at(
+        this: &Value,
+        args: &[Value],
+        ctx: &mut Interpreter,
+    ) -> Result<Value> {
         // First we get it the actual string a private field stored on the object only the engine has access to.
         // Then we convert it into a Rust String by wrapping it in from_value
-        let primitive_val = ctx.to_string(this)?;
+        let primitive_val = this.to_string(ctx)?;
 
         // Calling .len() on a string would give the wrong result, as they are bytes not the number of unicode code points
         // Note that this is an O(N) operation (because UTF-8 is complex) while getting the number of bytes is an O(1) operation.
         let length = primitive_val.chars().count();
-        let pos = i32::from(
-            args.get(0)
-                .expect("failed to get argument for String method"),
-        );
+        let pos = args
+            .get(0)
+            .expect("failed to get argument for String method")
+            .to_integer(ctx)? as i32;
 
         if pos >= length as i32 || pos < 0 {
             return Ok(Value::from(NAN));
@@ -190,12 +198,12 @@ impl String {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-string.prototype.concat
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/concat
-    pub(crate) fn concat(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
+    pub(crate) fn concat(this: &Value, args: &[Value], ctx: &mut Interpreter) -> Result<Value> {
         let object = ctx.require_object_coercible(this)?;
-        let mut string = ctx.to_string(object)?.to_string();
+        let mut string = object.to_string(ctx)?.to_string();
 
         for arg in args {
-            string.push_str(&ctx.to_string(arg)?);
+            string.push_str(&arg.to_string(ctx)?);
         }
 
         Ok(Value::from(string))
@@ -212,12 +220,12 @@ impl String {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-string.prototype.repeat
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/repeat
-    pub(crate) fn repeat(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
+    pub(crate) fn repeat(this: &Value, args: &[Value], ctx: &mut Interpreter) -> Result<Value> {
         let object = ctx.require_object_coercible(this)?;
-        let string = ctx.to_string(object)?;
+        let string = object.to_string(ctx)?;
 
         if let Some(arg) = args.get(0) {
-            let n = ctx.to_integer(arg)?;
+            let n = arg.to_integer(ctx)?;
             if n < 0.0 {
                 return ctx.throw_range_error("repeat count cannot be a negative number");
             }
@@ -246,17 +254,20 @@ impl String {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-string.prototype.slice
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/slice
-    pub(crate) fn slice(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
+    pub(crate) fn slice(this: &Value, args: &[Value], ctx: &mut Interpreter) -> Result<Value> {
         // First we get it the actual string a private field stored on the object only the engine has access to.
         // Then we convert it into a Rust String by wrapping it in from_value
-        let primitive_val = ctx.to_string(this)?;
+        let primitive_val = this.to_string(ctx)?;
 
-        let start = i32::from(
-            args.get(0)
-                .expect("failed to get argument for String method"),
-        );
+        let start = args
+            .get(0)
+            .expect("failed to get argument for String method")
+            .to_integer(ctx)? as i32;
 
-        let end = i32::from(args.get(1).expect("failed to get argument in slice"));
+        let end = args
+            .get(1)
+            .expect("failed to get argument in slice")
+            .to_integer(ctx)? as i32;
 
         // Calling .len() on a string would give the wrong result, as they are bytes not the number of unicode code points
         // Note that this is an O(N) operation (because UTF-8 is complex) while getting the number of bytes is an O(1) operation.
@@ -293,16 +304,20 @@ impl String {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-string.prototype.startswith
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/startsWith
-    pub(crate) fn starts_with(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
+    pub(crate) fn starts_with(
+        this: &Value,
+        args: &[Value],
+        ctx: &mut Interpreter,
+    ) -> Result<Value> {
         // First we get it the actual string a private field stored on the object only the engine has access to.
         // Then we convert it into a Rust String by wrapping it in from_value
-        let primitive_val = ctx.to_string(this)?;
+        let primitive_val = this.to_string(ctx)?;
 
         // TODO: Should throw TypeError if pattern is regular expression
-        let search_string = ctx.to_string(
-            args.get(0)
-                .expect("failed to get argument for String method"),
-        )?;
+        let search_string = args
+            .get(0)
+            .expect("failed to get argument for String method")
+            .to_string(ctx)?;
 
         let length = primitive_val.chars().count() as i32;
         let search_length = search_string.chars().count() as i32;
@@ -311,7 +326,7 @@ impl String {
         let position = if args.len() < 2 {
             0
         } else {
-            i32::from(args.get(1).expect("failed to get arg"))
+            args.get(1).expect("failed to get arg").to_integer(ctx)? as i32
         };
 
         let start = min(max(position, 0), length);
@@ -336,16 +351,16 @@ impl String {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-string.prototype.endswith
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/endsWith
-    pub(crate) fn ends_with(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
+    pub(crate) fn ends_with(this: &Value, args: &[Value], ctx: &mut Interpreter) -> Result<Value> {
         // First we get it the actual string a private field stored on the object only the engine has access to.
         // Then we convert it into a Rust String by wrapping it in from_value
-        let primitive_val = ctx.to_string(this)?;
+        let primitive_val = this.to_string(ctx)?;
 
         // TODO: Should throw TypeError if search_string is regular expression
-        let search_string = ctx.to_string(
-            args.get(0)
-                .expect("failed to get argument for String method"),
-        )?;
+        let search_string = args
+            .get(0)
+            .expect("failed to get argument for String method")
+            .to_string(ctx)?;
 
         let length = primitive_val.chars().count() as i32;
         let search_length = search_string.chars().count() as i32;
@@ -355,7 +370,9 @@ impl String {
         let end_position = if args.len() < 2 {
             length
         } else {
-            i32::from(args.get(1).expect("Could not get argumetn"))
+            args.get(1)
+                .expect("Could not get argumetn")
+                .to_integer(ctx)? as i32
         };
 
         let end = min(max(end_position, 0), length);
@@ -380,16 +397,16 @@ impl String {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-string.prototype.includes
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/includes
-    pub(crate) fn includes(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
+    pub(crate) fn includes(this: &Value, args: &[Value], ctx: &mut Interpreter) -> Result<Value> {
         // First we get it the actual string a private field stored on the object only the engine has access to.
         // Then we convert it into a Rust String by wrapping it in from_value
-        let primitive_val = ctx.to_string(this)?;
+        let primitive_val = this.to_string(ctx)?;
 
         // TODO: Should throw TypeError if search_string is regular expression
-        let search_string = ctx.to_string(
-            args.get(0)
-                .expect("failed to get argument for String method"),
-        )?;
+        let search_string = args
+            .get(0)
+            .expect("failed to get argument for String method")
+            .to_string(ctx)?;
 
         let length = primitive_val.chars().count() as i32;
 
@@ -397,7 +414,9 @@ impl String {
         let position = if args.len() < 2 {
             0
         } else {
-            i32::from(args.get(1).expect("Could not get argument"))
+            args.get(1)
+                .expect("Could not get argument")
+                .to_integer(ctx)? as i32
         };
 
         let start = min(max(position, 0), length);
@@ -440,9 +459,9 @@ impl String {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-string.prototype.replace
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/replace
-    pub(crate) fn replace(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
+    pub(crate) fn replace(this: &Value, args: &[Value], ctx: &mut Interpreter) -> Result<Value> {
         // TODO: Support Symbol replacer
-        let primitive_val = ctx.to_string(this)?;
+        let primitive_val = this.to_string(ctx)?;
         if args.is_empty() {
             return Ok(Value::from(primitive_val));
         }
@@ -515,7 +534,7 @@ impl String {
 
                     let result = ctx.call(&replace_object, this, &results).unwrap();
 
-                    ctx.to_string(&result)?.to_string()
+                    result.to_string(ctx)?.to_string()
                 }
                 _ => "undefined".to_string(),
             }
@@ -543,17 +562,20 @@ impl String {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-string.prototype.indexof
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/indexOf
-    pub(crate) fn index_of(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
+    pub(crate) fn index_of(this: &Value, args: &[Value], ctx: &mut Interpreter) -> Result<Value> {
         let this = ctx.require_object_coercible(this)?;
-        let string = ctx.to_string(this)?;
+        let string = this.to_string(ctx)?;
 
-        let search_string =
-            ctx.to_string(&args.get(0).cloned().unwrap_or_else(Value::undefined))?;
+        let search_string = args
+            .get(0)
+            .cloned()
+            .unwrap_or_else(Value::undefined)
+            .to_string(ctx)?;
 
         let length = string.chars().count();
         let start = args
             .get(1)
-            .map(|position| ctx.to_integer(position))
+            .map(|position| position.to_integer(ctx))
             .transpose()?
             .map_or(0, |position| position.max(0.0).min(length as f64) as usize);
 
@@ -587,17 +609,20 @@ impl String {
         this: &Value,
         args: &[Value],
         ctx: &mut Interpreter,
-    ) -> ResultValue {
+    ) -> Result<Value> {
         let this = ctx.require_object_coercible(this)?;
-        let string = ctx.to_string(this)?;
+        let string = this.to_string(ctx)?;
 
-        let search_string =
-            ctx.to_string(&args.get(0).cloned().unwrap_or_else(Value::undefined))?;
+        let search_string = args
+            .get(0)
+            .cloned()
+            .unwrap_or_else(Value::undefined)
+            .to_string(ctx)?;
 
         let length = string.chars().count();
         let start = args
             .get(1)
-            .map(|position| ctx.to_integer(position))
+            .map(|position| position.to_integer(ctx))
             .transpose()?
             .map_or(0, |position| position.max(0.0).min(length as f64) as usize);
 
@@ -625,9 +650,9 @@ impl String {
     /// [spec]: https://tc39.es/ecma262/#sec-string.prototype.match
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/match
     /// [regex]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions
-    pub(crate) fn r#match(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
+    pub(crate) fn r#match(this: &Value, args: &[Value], ctx: &mut Interpreter) -> Result<Value> {
         let re = RegExp::make_regexp(&Value::from(Object::default()), &[args[0].clone()], ctx)?;
-        RegExp::r#match(&re, ctx.to_string(this)?, ctx)
+        RegExp::r#match(&re, this.to_string(ctx)?, ctx)
     }
 
     /// Abstract method `StringPad`.
@@ -639,7 +664,7 @@ impl String {
         max_length: i32,
         fill_string: Option<RcString>,
         at_start: bool,
-    ) -> ResultValue {
+    ) -> Result<Value> {
         let primitive_length = primitive.len() as i32;
 
         if max_length <= primitive_length {
@@ -676,17 +701,17 @@ impl String {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-string.prototype.padend
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/padEnd
-    pub(crate) fn pad_end(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
-        let primitive = ctx.to_string(this)?;
+    pub(crate) fn pad_end(this: &Value, args: &[Value], ctx: &mut Interpreter) -> Result<Value> {
+        let primitive = this.to_string(ctx)?;
         if args.is_empty() {
             return Err(Value::from("padEnd requires maxLength argument"));
         }
-        let max_length = i32::from(
-            args.get(0)
-                .expect("failed to get argument for String method"),
-        );
+        let max_length = args
+            .get(0)
+            .expect("failed to get argument for String method")
+            .to_integer(ctx)? as i32;
 
-        let fill_string = args.get(1).map(|arg| ctx.to_string(arg)).transpose()?;
+        let fill_string = args.get(1).map(|arg| arg.to_string(ctx)).transpose()?;
 
         Self::string_pad(primitive, max_length, fill_string, false)
     }
@@ -703,17 +728,17 @@ impl String {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-string.prototype.padstart
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/padStart
-    pub(crate) fn pad_start(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
-        let primitive = ctx.to_string(this)?;
+    pub(crate) fn pad_start(this: &Value, args: &[Value], ctx: &mut Interpreter) -> Result<Value> {
+        let primitive = this.to_string(ctx)?;
         if args.is_empty() {
             return Err(Value::from("padStart requires maxLength argument"));
         }
-        let max_length = i32::from(
-            args.get(0)
-                .expect("failed to get argument for String method"),
-        );
+        let max_length = args
+            .get(0)
+            .expect("failed to get argument for String method")
+            .to_integer(ctx)? as i32;
 
-        let fill_string = args.get(1).map(|arg| ctx.to_string(arg)).transpose()?;
+        let fill_string = args.get(1).map(|arg| arg.to_string(ctx)).transpose()?;
 
         Self::string_pad(primitive, max_length, fill_string, true)
     }
@@ -750,9 +775,9 @@ impl String {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-string.prototype.trim
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/trim
-    pub(crate) fn trim(this: &Value, _: &[Value], ctx: &mut Interpreter) -> ResultValue {
+    pub(crate) fn trim(this: &Value, _: &[Value], ctx: &mut Interpreter) -> Result<Value> {
         let this = ctx.require_object_coercible(this)?;
-        let string = ctx.to_string(this)?;
+        let string = this.to_string(ctx)?;
         Ok(Value::from(
             string.trim_matches(Self::is_trimmable_whitespace),
         ))
@@ -770,9 +795,9 @@ impl String {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-string.prototype.trimstart
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/trimStart
-    pub(crate) fn trim_start(this: &Value, _: &[Value], ctx: &mut Interpreter) -> ResultValue {
+    pub(crate) fn trim_start(this: &Value, _: &[Value], ctx: &mut Interpreter) -> Result<Value> {
         let this = ctx.require_object_coercible(this)?;
-        let string = ctx.to_string(this)?;
+        let string = this.to_string(ctx)?;
         Ok(Value::from(
             string.trim_start_matches(Self::is_trimmable_whitespace),
         ))
@@ -790,9 +815,9 @@ impl String {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-string.prototype.trimend
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/trimEnd
-    pub(crate) fn trim_end(this: &Value, _: &[Value], ctx: &mut Interpreter) -> ResultValue {
+    pub(crate) fn trim_end(this: &Value, _: &[Value], ctx: &mut Interpreter) -> Result<Value> {
         let this = ctx.require_object_coercible(this)?;
-        let string = ctx.to_string(this)?;
+        let string = this.to_string(ctx)?;
         Ok(Value::from(
             string.trim_end_matches(Self::is_trimmable_whitespace),
         ))
@@ -809,10 +834,10 @@ impl String {
     /// [spec]: https://tc39.es/ecma262/#sec-string.prototype.tolowercase
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/toLowerCase
     #[allow(clippy::wrong_self_convention)]
-    pub(crate) fn to_lowercase(this: &Value, _: &[Value], ctx: &mut Interpreter) -> ResultValue {
+    pub(crate) fn to_lowercase(this: &Value, _: &[Value], ctx: &mut Interpreter) -> Result<Value> {
         // First we get it the actual string a private field stored on the object only the engine has access to.
         // Then we convert it into a Rust String by wrapping it in from_value
-        let this_str = ctx.to_string(this)?;
+        let this_str = this.to_string(ctx)?;
         // The Rust String is mapped to uppercase using the builtin .to_lowercase().
         // There might be corner cases where it does not behave exactly like Javascript expects
         Ok(Value::from(this_str.to_lowercase()))
@@ -831,10 +856,10 @@ impl String {
     /// [spec]: https://tc39.es/ecma262/#sec-string.prototype.toUppercase
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/toUpperCase
     #[allow(clippy::wrong_self_convention)]
-    pub(crate) fn to_uppercase(this: &Value, _: &[Value], ctx: &mut Interpreter) -> ResultValue {
+    pub(crate) fn to_uppercase(this: &Value, _: &[Value], ctx: &mut Interpreter) -> Result<Value> {
         // First we get it the actual string a private field stored on the object only the engine has access to.
         // Then we convert it into a Rust String by wrapping it in from_value
-        let this_str = ctx.to_string(this)?;
+        let this_str = this.to_string(ctx)?;
         // The Rust String is mapped to uppercase using the builtin .to_uppercase().
         // There might be corner cases where it does not behave exactly like Javascript expects
         Ok(Value::from(this_str.to_uppercase()))
@@ -850,25 +875,26 @@ impl String {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-string.prototype.substring
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/substring
-    pub(crate) fn substring(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
+    pub(crate) fn substring(this: &Value, args: &[Value], ctx: &mut Interpreter) -> Result<Value> {
         // First we get it the actual string a private field stored on the object only the engine has access to.
         // Then we convert it into a Rust String by wrapping it in from_value
-        let primitive_val = ctx.to_string(this)?;
+        let primitive_val = this.to_string(ctx)?;
         // If no args are specified, start is 'undefined', defaults to 0
         let start = if args.is_empty() {
             0
         } else {
-            i32::from(
-                args.get(0)
-                    .expect("failed to get argument for String method"),
-            )
+            args.get(0)
+                .expect("failed to get argument for String method")
+                .to_integer(ctx)? as i32
         };
         let length = primitive_val.chars().count() as i32;
         // If less than 2 args specified, end is the length of the this object converted to a String
         let end = if args.len() < 2 {
             length
         } else {
-            i32::from(args.get(1).expect("Could not get argument"))
+            args.get(1)
+                .expect("Could not get argument")
+                .to_integer(ctx)? as i32
         };
         // Both start and end args replaced by 0 if they were negative
         // or by the length of the String if they were greater
@@ -898,18 +924,17 @@ impl String {
     /// [spec]: https://tc39.es/ecma262/#sec-string.prototype.substr
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/substr
     /// <https://tc39.es/ecma262/#sec-string.prototype.substr>
-    pub(crate) fn substr(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
+    pub(crate) fn substr(this: &Value, args: &[Value], ctx: &mut Interpreter) -> Result<Value> {
         // First we get it the actual string a private field stored on the object only the engine has access to.
         // Then we convert it into a Rust String by wrapping it in from_value
-        let primitive_val = ctx.to_string(this)?;
+        let primitive_val = this.to_string(ctx)?;
         // If no args are specified, start is 'undefined', defaults to 0
         let mut start = if args.is_empty() {
             0
         } else {
-            i32::from(
-                args.get(0)
-                    .expect("failed to get argument for String method"),
-            )
+            args.get(0)
+                .expect("failed to get argument for String method")
+                .to_integer(ctx)? as i32
         };
         let length = primitive_val.chars().count() as i32;
         // If less than 2 args specified, end is +infinity, the maximum number value.
@@ -919,7 +944,9 @@ impl String {
         let end = if args.len() < 2 {
             i32::max_value()
         } else {
-            i32::from(args.get(1).expect("Could not get argument"))
+            args.get(1)
+                .expect("Could not get argument")
+                .to_integer(ctx)? as i32
         };
         // If start is negative it become the number of code units from the end of the string
         if start < 0 {
@@ -953,7 +980,7 @@ impl String {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-string.prototype.value_of
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/valueOf
-    pub(crate) fn value_of(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
+    pub(crate) fn value_of(this: &Value, args: &[Value], ctx: &mut Interpreter) -> Result<Value> {
         // Use the to_string method because it is specified to do the same thing in this case
         Self::to_string(this, args, ctx)
     }
@@ -971,13 +998,13 @@ impl String {
     /// [regex]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions
     /// [cg]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions/Groups_and_Ranges
     // TODO: update this method to return iterator
-    pub(crate) fn match_all(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
+    pub(crate) fn match_all(this: &Value, args: &[Value], ctx: &mut Interpreter) -> Result<Value> {
         let re: Value = match args.get(0) {
             Some(arg) => {
                 if arg.is_null() {
                     RegExp::make_regexp(
                         &Value::from(Object::default()),
-                        &[Value::from(ctx.to_string(arg)?), Value::from("g")],
+                        &[Value::from(arg.to_string(ctx)?), Value::from("g")],
                         ctx,
                     )
                 } else if arg.is_undefined() {
@@ -997,7 +1024,7 @@ impl String {
             ),
         }?;
 
-        RegExp::match_all(&re, ctx.to_string(this)?.to_string())
+        RegExp::match_all(&re, this.to_string(ctx)?.to_string())
     }
 
     /// Initialise the `String` object on the global object.

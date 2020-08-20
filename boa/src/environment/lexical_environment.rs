@@ -7,7 +7,7 @@
 
 use super::ErrorKind;
 use crate::{
-    builtins::value::Value,
+    builtins::{object::GcObject, value::Value},
     environment::{
         declarative_environment_record::DeclarativeEnvironmentRecord,
         environment_record_trait::EnvironmentRecordTrait,
@@ -257,7 +257,7 @@ pub fn new_declarative_environment(env: Option<Environment>) -> Environment {
 }
 
 pub fn new_function_environment(
-    f: Value,
+    f: GcObject,
     this: Option<Value>,
     outer: Option<Environment>,
     binding_status: BindingStatus,

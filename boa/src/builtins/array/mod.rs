@@ -17,10 +17,10 @@ use crate::{
     builtins::{
         object::{ObjectData, PROTOTYPE},
         property::{Attribute, Property},
-        value::{same_value_zero, ResultValue, Value},
+        value::{same_value_zero, Value},
     },
     exec::Interpreter,
-    BoaProfiler,
+    BoaProfiler, Result,
 };
 use std::{
     borrow::Borrow,
@@ -39,7 +39,7 @@ impl Array {
     pub(crate) const LENGTH: usize = 1;
 
     /// Creates a new `Array` instance.
-    pub(crate) fn new_array(interpreter: &Interpreter) -> ResultValue {
+    pub(crate) fn new_array(interpreter: &Interpreter) -> Result<Value> {
         let array = Value::new_object(Some(
             &interpreter
                 .realm()
@@ -65,13 +65,13 @@ impl Array {
     ///
     /// `array_obj` can be any array with prototype already set (it will be wiped and
     /// recreated from `array_contents`)
-    pub(crate) fn construct_array(array_obj: &Value, array_contents: &[Value]) -> ResultValue {
+    pub(crate) fn construct_array(array_obj: &Value, array_contents: &[Value]) -> Result<Value> {
         let array_obj_ptr = array_obj.clone();
 
         // Wipe existing contents of the array object
-        let orig_length = i32::from(&array_obj.get_field("length"));
+        let orig_length = array_obj.get_field("length").as_number().unwrap() as i32;
         for n in 0..orig_length {
-            array_obj_ptr.remove_property(&n.to_string());
+            array_obj_ptr.remove_property(n);
         }
 
         // Create length
@@ -82,19 +82,19 @@ impl Array {
         array_obj_ptr.set_property("length".to_string(), length);
 
         for (n, value) in array_contents.iter().enumerate() {
-            array_obj_ptr.set_field(n.to_string(), value);
+            array_obj_ptr.set_field(n, value);
         }
         Ok(array_obj_ptr)
     }
 
     /// Utility function which takes an existing array object and puts additional
     /// values on the end, correctly rewriting the length
-    pub(crate) fn add_to_array_object(array_ptr: &Value, add_values: &[Value]) -> ResultValue {
-        let orig_length = i32::from(&array_ptr.get_field("length"));
+    pub(crate) fn add_to_array_object(array_ptr: &Value, add_values: &[Value]) -> Result<Value> {
+        let orig_length = array_ptr.get_field("length").as_number().unwrap() as i32;
 
         for (n, value) in add_values.iter().enumerate() {
             let new_index = orig_length.wrapping_add(n as i32);
-            array_ptr.set_field(new_index.to_string(), value);
+            array_ptr.set_field(new_index, value);
         }
 
         array_ptr.set_field(
@@ -106,7 +106,7 @@ impl Array {
     }
 
     /// Create a new array
-    pub(crate) fn make_array(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
+    pub(crate) fn make_array(this: &Value, args: &[Value], ctx: &mut Interpreter) -> Result<Value> {
         // Make a new Object which will internally represent the Array (mapping
         // between indices and values): this creates an Object with no prototype
 
@@ -124,10 +124,10 @@ impl Array {
         let mut length = args.len() as i32;
         match args.len() {
             1 if args[0].is_integer() => {
-                length = i32::from(&args[0]);
+                length = args[0].as_number().unwrap() as i32;
                 // TODO: It should not create an array of undefineds, but an empty array ("holy" array in V8) with length `n`.
                 for n in 0..length {
-                    this.set_field(n.to_string(), Value::undefined());
+                    this.set_field(n, Value::undefined());
                 }
             }
             1 if args[0].is_double() => {
@@ -135,7 +135,7 @@ impl Array {
             }
             _ => {
                 for (n, value) in args.iter().enumerate() {
-                    this.set_field(n.to_string(), value.clone());
+                    this.set_field(n, value.clone());
                 }
             }
         }
@@ -166,7 +166,7 @@ impl Array {
         _this: &Value,
         args: &[Value],
         _interpreter: &mut Interpreter,
-    ) -> ResultValue {
+    ) -> Result<Value> {
         match args.get(0).and_then(|x| x.as_object()) {
             Some(object) => Ok(Value::from(object.is_array())),
             None => Ok(Value::from(false)),
@@ -185,7 +185,7 @@ impl Array {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.concat
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/concat
-    pub(crate) fn concat(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
+    pub(crate) fn concat(this: &Value, args: &[Value], _: &mut Interpreter) -> Result<Value> {
         if args.is_empty() {
             // If concat is called with no arguments, it returns the original array
             return Ok(this.clone());
@@ -195,15 +195,15 @@ impl Array {
         // one)
         let mut new_values: Vec<Value> = Vec::new();
 
-        let this_length = i32::from(&this.get_field("length"));
+        let this_length = this.get_field("length").as_number().unwrap() as i32;
         for n in 0..this_length {
-            new_values.push(this.get_field(n.to_string()));
+            new_values.push(this.get_field(n));
         }
 
         for concat_array in args {
-            let concat_length = i32::from(&concat_array.get_field("length"));
+            let concat_length = concat_array.get_field("length").as_number().unwrap() as i32;
             for n in 0..concat_length {
-                new_values.push(concat_array.get_field(n.to_string()));
+                new_values.push(concat_array.get_field(n));
             }
         }
 
@@ -222,7 +222,7 @@ impl Array {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.push
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/push
-    pub(crate) fn push(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
+    pub(crate) fn push(this: &Value, args: &[Value], _: &mut Interpreter) -> Result<Value> {
         let new_array = Self::add_to_array_object(this, args)?;
         Ok(new_array.get_field("length"))
     }
@@ -237,14 +237,15 @@ impl Array {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.pop
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/pop
-    pub(crate) fn pop(this: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
-        let curr_length = i32::from(&this.get_field("length"));
+    pub(crate) fn pop(this: &Value, _: &[Value], _: &mut Interpreter) -> Result<Value> {
+        let curr_length = this.get_field("length").as_number().unwrap() as i32;
+
         if curr_length < 1 {
             return Ok(Value::undefined());
         }
         let pop_index = curr_length.wrapping_sub(1);
         let pop_value: Value = this.get_field(pop_index.to_string());
-        this.remove_property(&pop_index.to_string());
+        this.remove_property(pop_index);
         this.set_field("length", Value::from(pop_index));
         Ok(pop_value)
     }
@@ -263,7 +264,7 @@ impl Array {
         this: &Value,
         args: &[Value],
         interpreter: &mut Interpreter,
-    ) -> ResultValue {
+    ) -> Result<Value> {
         if args.is_empty() {
             return Err(Value::from("Missing argument for Array.prototype.forEach"));
         }
@@ -271,10 +272,10 @@ impl Array {
         let callback_arg = args.get(0).expect("Could not get `callbackFn` argument.");
         let this_arg = args.get(1).cloned().unwrap_or_else(Value::undefined);
 
-        let length = i32::from(&this.get_field("length"));
+        let length = this.get_field("length").as_number().unwrap() as i32;
 
         for i in 0..length {
-            let element = this.get_field(i.to_string());
+            let element = this.get_field(i);
             let arguments = [element, Value::from(i), this.clone()];
 
             interpreter.call(callback_arg, &this_arg, &arguments)?;
@@ -295,18 +296,20 @@ impl Array {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.join
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/join
-    pub(crate) fn join(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
+    pub(crate) fn join(this: &Value, args: &[Value], ctx: &mut Interpreter) -> Result<Value> {
         let separator = if args.is_empty() {
             String::from(",")
         } else {
-            ctx.to_string(args.get(0).expect("Could not get argument"))?
+            args.get(0)
+                .expect("Could not get argument")
+                .to_string(ctx)?
                 .to_string()
         };
 
         let mut elem_strs = Vec::new();
-        let length = i32::from(&this.get_field("length"));
+        let length = this.get_field("length").as_number().unwrap() as i32;
         for n in 0..length {
-            let elem_str = ctx.to_string(&this.get_field(n.to_string()))?.to_string();
+            let elem_str = this.get_field(n).to_string(ctx)?.to_string();
             elem_strs.push(elem_str);
         }
 
@@ -326,7 +329,7 @@ impl Array {
     /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.tostring
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/toString
     #[allow(clippy::wrong_self_convention)]
-    pub(crate) fn to_string(this: &Value, _args: &[Value], ctx: &mut Interpreter) -> ResultValue {
+    pub(crate) fn to_string(this: &Value, _args: &[Value], ctx: &mut Interpreter) -> Result<Value> {
         let method_name = "join";
         let mut arguments = vec![Value::from(",")];
         // 2.
@@ -366,28 +369,29 @@ impl Array {
     /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.reverse
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/reverse
     #[allow(clippy::else_if_without_else)]
-    pub(crate) fn reverse(this: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
-        let len = i32::from(&this.get_field("length"));
+    pub(crate) fn reverse(this: &Value, _: &[Value], _: &mut Interpreter) -> Result<Value> {
+        let len = this.get_field("length").as_number().unwrap() as i32;
+
         let middle: i32 = len.wrapping_div(2);
 
         for lower in 0..middle {
             let upper = len.wrapping_sub(lower).wrapping_sub(1);
 
-            let upper_exists = this.has_field(&upper.to_string());
-            let lower_exists = this.has_field(&lower.to_string());
+            let upper_exists = this.has_field(upper);
+            let lower_exists = this.has_field(lower);
 
-            let upper_value = this.get_field(upper.to_string());
-            let lower_value = this.get_field(lower.to_string());
+            let upper_value = this.get_field(upper);
+            let lower_value = this.get_field(lower);
 
             if upper_exists && lower_exists {
-                this.set_field(upper.to_string(), lower_value);
-                this.set_field(lower.to_string(), upper_value);
+                this.set_field(upper, lower_value);
+                this.set_field(lower, upper_value);
             } else if upper_exists {
-                this.set_field(lower.to_string(), upper_value);
-                this.remove_property(&upper.to_string());
+                this.set_field(lower, upper_value);
+                this.remove_property(upper);
             } else if lower_exists {
-                this.set_field(upper.to_string(), lower_value);
-                this.remove_property(&lower.to_string());
+                this.set_field(upper, lower_value);
+                this.remove_property(lower);
             }
         }
 
@@ -404,31 +408,30 @@ impl Array {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.shift
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/shift
-    pub(crate) fn shift(this: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
-        let len = i32::from(&this.get_field("length"));
+    pub(crate) fn shift(this: &Value, _: &[Value], _: &mut Interpreter) -> Result<Value> {
+        let len = this.get_field("length").as_number().unwrap() as i32;
 
         if len == 0 {
             this.set_field("length", 0);
-            // Since length is 0, this will be an Undefined value
-            return Ok(this.get_field(0.to_string()));
+            return Ok(Value::undefined());
         }
 
-        let first: Value = this.get_field(0.to_string());
+        let first: Value = this.get_field(0);
 
         for k in 1..len {
-            let from = k.to_string();
-            let to = (k.wrapping_sub(1)).to_string();
+            let from = k;
+            let to = k.wrapping_sub(1);
 
             let from_value = this.get_field(from);
             if from_value.is_undefined() {
-                this.remove_property(&to);
+                this.remove_property(to);
             } else {
                 this.set_field(to, from_value);
             }
         }
 
         let final_index = len.wrapping_sub(1);
-        this.remove_property(&(final_index).to_string());
+        this.remove_property(final_index);
         this.set_field("length", Value::from(final_index));
 
         Ok(first)
@@ -446,25 +449,26 @@ impl Array {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.unshift
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/unshift
-    pub(crate) fn unshift(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
-        let len = i32::from(&this.get_field("length"));
+    pub(crate) fn unshift(this: &Value, args: &[Value], _: &mut Interpreter) -> Result<Value> {
+        let len = this.get_field("length").as_number().unwrap() as i32;
+
         let arg_c: i32 = args.len() as i32;
 
         if arg_c > 0 {
             for k in (1..=len).rev() {
-                let from = (k.wrapping_sub(1)).to_string();
-                let to = (k.wrapping_add(arg_c).wrapping_sub(1)).to_string();
+                let from = k.wrapping_sub(1);
+                let to = k.wrapping_add(arg_c).wrapping_sub(1);
 
                 let from_value = this.get_field(from);
                 if from_value.is_undefined() {
-                    this.remove_property(&to);
+                    this.remove_property(to);
                 } else {
                     this.set_field(to, from_value);
                 }
             }
             for j in 0..arg_c {
                 this.set_field(
-                    j.to_string(),
+                    j,
                     args.get(j as usize)
                         .expect("Could not get argument")
                         .clone(),
@@ -494,7 +498,7 @@ impl Array {
         this: &Value,
         args: &[Value],
         interpreter: &mut Interpreter,
-    ) -> ResultValue {
+    ) -> Result<Value> {
         if args.is_empty() {
             return Err(Value::from(
                 "missing callback when calling function Array.prototype.every",
@@ -507,16 +511,19 @@ impl Array {
             Value::undefined()
         };
         let mut i = 0;
-        let max_len = i32::from(&this.get_field("length"));
+        let max_len = this.get_field("length").as_number().unwrap() as i32;
         let mut len = max_len;
         while i < len {
-            let element = this.get_field(i.to_string());
+            let element = this.get_field(i);
             let arguments = [element, Value::from(i), this.clone()];
             let result = interpreter.call(callback, &this_arg, &arguments)?;
             if !result.to_boolean() {
                 return Ok(Value::from(false));
             }
-            len = min(max_len, i32::from(&this.get_field("length")));
+            len = min(
+                max_len,
+                this.get_field("length").as_number().unwrap() as i32,
+            );
             i += 1;
         }
         Ok(Value::from(true))
@@ -533,7 +540,11 @@ impl Array {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.map
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/map
-    pub(crate) fn map(this: &Value, args: &[Value], interpreter: &mut Interpreter) -> ResultValue {
+    pub(crate) fn map(
+        this: &Value,
+        args: &[Value],
+        interpreter: &mut Interpreter,
+    ) -> Result<Value> {
         if args.is_empty() {
             return Err(Value::from(
                 "missing argument 0 when calling function Array.prototype.map",
@@ -543,13 +554,13 @@ impl Array {
         let callback = args.get(0).cloned().unwrap_or_else(Value::undefined);
         let this_val = args.get(1).cloned().unwrap_or_else(Value::undefined);
 
-        let length = i32::from(&this.get_field("length"));
+        let length = this.get_field("length").as_number().unwrap() as i32;
 
         let new = Self::new_array(interpreter)?;
 
         let values: Vec<Value> = (0..length)
             .map(|idx| {
-                let element = this.get_field(idx.to_string());
+                let element = this.get_field(idx);
                 let args = [element, Value::from(idx), new.clone()];
 
                 interpreter
@@ -580,18 +591,18 @@ impl Array {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.indexof
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/indexOf
-    pub(crate) fn index_of(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
+    pub(crate) fn index_of(this: &Value, args: &[Value], _: &mut Interpreter) -> Result<Value> {
         // If no arguments, return -1. Not described in spec, but is what chrome does.
         if args.is_empty() {
             return Ok(Value::from(-1));
         }
 
         let search_element = args[0].clone();
-        let len = i32::from(&this.get_field("length"));
+        let len = this.get_field("length").as_number().unwrap() as i32;
 
         let mut idx = match args.get(1) {
             Some(from_idx_ptr) => {
-                let from_idx = i32::from(from_idx_ptr);
+                let from_idx = from_idx_ptr.as_number().unwrap() as i32;
 
                 if from_idx < 0 {
                     len + from_idx
@@ -603,7 +614,7 @@ impl Array {
         };
 
         while idx < len {
-            let check_element = this.get_field(idx.to_string()).clone();
+            let check_element = this.get_field(idx).clone();
 
             if check_element.strict_equals(&search_element) {
                 return Ok(Value::from(idx));
@@ -633,18 +644,22 @@ impl Array {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.lastindexof
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/lastIndexOf
-    pub(crate) fn last_index_of(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
+    pub(crate) fn last_index_of(
+        this: &Value,
+        args: &[Value],
+        _: &mut Interpreter,
+    ) -> Result<Value> {
         // If no arguments, return -1. Not described in spec, but is what chrome does.
         if args.is_empty() {
             return Ok(Value::from(-1));
         }
 
         let search_element = args[0].clone();
-        let len = i32::from(&this.get_field("length"));
+        let len = this.get_field("length").as_number().unwrap() as i32;
 
         let mut idx = match args.get(1) {
             Some(from_idx_ptr) => {
-                let from_idx = i32::from(from_idx_ptr);
+                let from_idx = from_idx_ptr.as_number().unwrap() as i32;
 
                 if from_idx >= 0 {
                     min(from_idx, len - 1)
@@ -656,7 +671,7 @@ impl Array {
         };
 
         while idx >= 0 {
-            let check_element = this.get_field(idx.to_string()).clone();
+            let check_element = this.get_field(idx).clone();
 
             if check_element.strict_equals(&search_element) {
                 return Ok(Value::from(idx));
@@ -680,7 +695,11 @@ impl Array {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.find
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/find
-    pub(crate) fn find(this: &Value, args: &[Value], interpreter: &mut Interpreter) -> ResultValue {
+    pub(crate) fn find(
+        this: &Value,
+        args: &[Value],
+        interpreter: &mut Interpreter,
+    ) -> Result<Value> {
         if args.is_empty() {
             return Err(Value::from(
                 "missing callback when calling function Array.prototype.find",
@@ -688,9 +707,9 @@ impl Array {
         }
         let callback = &args[0];
         let this_arg = args.get(1).cloned().unwrap_or_else(Value::undefined);
-        let len = i32::from(&this.get_field("length"));
+        let len = this.get_field("length").as_number().unwrap() as i32;
         for i in 0..len {
-            let element = this.get_field(i.to_string());
+            let element = this.get_field(i);
             let arguments = [element.clone(), Value::from(i), this.clone()];
             let result = interpreter.call(callback, &this_arg, &arguments)?;
             if result.to_boolean() {
@@ -716,7 +735,7 @@ impl Array {
         this: &Value,
         args: &[Value],
         interpreter: &mut Interpreter,
-    ) -> ResultValue {
+    ) -> Result<Value> {
         if args.is_empty() {
             return Err(Value::from(
                 "Missing argument for Array.prototype.findIndex",
@@ -727,10 +746,10 @@ impl Array {
 
         let this_arg = args.get(1).cloned().unwrap_or_else(Value::undefined);
 
-        let length = i32::from(&this.get_field("length"));
+        let length = this.get_field("length").as_number().unwrap() as i32;
 
         for i in 0..length {
-            let element = this.get_field(i.to_string());
+            let element = this.get_field(i);
             let arguments = [element, Value::from(i), this.clone()];
 
             let result = interpreter.call(predicate_arg, &this_arg, &arguments)?;
@@ -754,16 +773,17 @@ impl Array {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.fill
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/fill
-    pub(crate) fn fill(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
-        let len: i32 = i32::from(&this.get_field("length"));
+    pub(crate) fn fill(this: &Value, args: &[Value], ctx: &mut Interpreter) -> Result<Value> {
+        let len: i32 = this.get_field("length").as_number().unwrap() as i32;
+
         let default_value = Value::undefined();
         let value = args.get(0).unwrap_or(&default_value);
-        let relative_start = args.get(1).unwrap_or(&default_value).to_number() as i32;
+        let relative_start = args.get(1).unwrap_or(&default_value).to_number(ctx)? as i32;
         let relative_end_val = args.get(2).unwrap_or(&default_value);
         let relative_end = if relative_end_val.is_undefined() {
             len
         } else {
-            relative_end_val.to_number() as i32
+            relative_end_val.to_number(ctx)? as i32
         };
         let start = if relative_start < 0 {
             max(len + relative_start, 0)
@@ -777,7 +797,7 @@ impl Array {
         };
 
         for i in start..fin {
-            this.set_field(i.to_string(), value.clone());
+            this.set_field(i, value.clone());
         }
 
         Ok(this.clone())
@@ -793,13 +813,17 @@ impl Array {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.includes
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/includes
-    pub(crate) fn includes_value(this: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
+    pub(crate) fn includes_value(
+        this: &Value,
+        args: &[Value],
+        _: &mut Interpreter,
+    ) -> Result<Value> {
         let search_element = args.get(0).cloned().unwrap_or_else(Value::undefined);
 
-        let length = i32::from(&this.get_field("length"));
+        let length = this.get_field("length").as_number().unwrap() as i32;
 
         for idx in 0..length {
-            let check_element = this.get_field(idx.to_string()).clone();
+            let check_element = this.get_field(idx).clone();
 
             if same_value_zero(&check_element, &search_element) {
                 return Ok(Value::from(true));
@@ -827,16 +851,16 @@ impl Array {
         this: &Value,
         args: &[Value],
         interpreter: &mut Interpreter,
-    ) -> ResultValue {
+    ) -> Result<Value> {
         let new_array = Self::new_array(interpreter)?;
-        let len = i32::from(&this.get_field("length"));
+        let len = this.get_field("length").as_number().unwrap() as i32;
 
         let start = match args.get(0) {
-            Some(v) => i32::from(v),
+            Some(v) => v.as_number().unwrap() as i32,
             None => 0,
         };
         let end = match args.get(1) {
-            Some(v) => i32::from(v),
+            Some(v) => v.as_number().unwrap() as i32,
             None => len,
         };
 
@@ -854,7 +878,7 @@ impl Array {
         let span = max(to.wrapping_sub(from), 0);
         let mut new_array_len: i32 = 0;
         for i in from..from.wrapping_add(span) {
-            new_array.set_field(new_array_len.to_string(), this.get_field(i.to_string()));
+            new_array.set_field(new_array_len, this.get_field(i));
             new_array_len = new_array_len.wrapping_add(1);
         }
         new_array.set_field("length", Value::from(new_array_len));
@@ -876,7 +900,7 @@ impl Array {
         this: &Value,
         args: &[Value],
         interpreter: &mut Interpreter,
-    ) -> ResultValue {
+    ) -> Result<Value> {
         if args.is_empty() {
             return Err(Value::from(
                 "missing argument 0 when calling function Array.prototype.filter",
@@ -886,13 +910,13 @@ impl Array {
         let callback = args.get(0).cloned().unwrap_or_else(Value::undefined);
         let this_val = args.get(1).cloned().unwrap_or_else(Value::undefined);
 
-        let length = i32::from(&this.get_field("length"));
+        let length = this.get_field("length").as_number().unwrap() as i32;
 
         let new = Self::new_array(interpreter)?;
 
         let values = (0..length)
             .filter_map(|idx| {
-                let element = this.get_field(idx.to_string());
+                let element = this.get_field(idx);
 
                 let args = [element.clone(), Value::from(idx), new.clone()];
 
@@ -926,7 +950,11 @@ impl Array {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.some
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/some
-    pub(crate) fn some(this: &Value, args: &[Value], interpreter: &mut Interpreter) -> ResultValue {
+    pub(crate) fn some(
+        this: &Value,
+        args: &[Value],
+        interpreter: &mut Interpreter,
+    ) -> Result<Value> {
         if args.is_empty() {
             return Err(Value::from(
                 "missing callback when calling function Array.prototype.some",
@@ -939,17 +967,20 @@ impl Array {
             Value::undefined()
         };
         let mut i = 0;
-        let max_len = i32::from(&this.get_field("length"));
+        let max_len = this.get_field("length").as_number().unwrap() as i32;
         let mut len = max_len;
         while i < len {
-            let element = this.get_field(i.to_string());
+            let element = this.get_field(i);
             let arguments = [element, Value::from(i), this.clone()];
             let result = interpreter.call(callback, &this_arg, &arguments)?;
             if result.to_boolean() {
                 return Ok(Value::from(true));
             }
             // the length of the array must be updated because the callback can mutate it.
-            len = min(max_len, i32::from(&this.get_field("length")));
+            len = min(
+                max_len,
+                this.get_field("length").as_number().unwrap() as i32,
+            );
             i += 1;
         }
         Ok(Value::from(false))
@@ -970,14 +1001,14 @@ impl Array {
         this: &Value,
         args: &[Value],
         interpreter: &mut Interpreter,
-    ) -> ResultValue {
-        let this = interpreter.to_object(this)?;
+    ) -> Result<Value> {
+        let this = this.to_object(interpreter)?;
         let callback = match args.get(0) {
             Some(value) if value.is_function() => value,
             _ => return interpreter.throw_type_error("Reduce was called without a callback"),
         };
         let initial_value = args.get(1).cloned().unwrap_or_else(Value::undefined);
-        let mut length = interpreter.to_length(&this.get_field("length"))?;
+        let mut length = this.get_field("length").to_length(interpreter)?;
         if length == 0 && initial_value.is_undefined() {
             return interpreter
                 .throw_type_error("Reduce was called on an empty array and with no initial value");
@@ -986,7 +1017,7 @@ impl Array {
         let mut accumulator = if initial_value.is_undefined() {
             let mut k_present = false;
             while k < length {
-                if this.has_field(&k.to_string()) {
+                if this.has_field(k) {
                     k_present = true;
                     break;
                 }
@@ -997,25 +1028,20 @@ impl Array {
                     "Reduce was called on an empty array and with no initial value",
                 );
             }
-            let result = this.get_field(k.to_string());
+            let result = this.get_field(k);
             k += 1;
             result
         } else {
             initial_value
         };
         while k < length {
-            if this.has_field(&k.to_string()) {
-                let arguments = [
-                    accumulator,
-                    this.get_field(k.to_string()),
-                    Value::from(k),
-                    this.clone(),
-                ];
+            if this.has_field(k) {
+                let arguments = [accumulator, this.get_field(k), Value::from(k), this.clone()];
                 accumulator = interpreter.call(&callback, &Value::undefined(), &arguments)?;
                 /* We keep track of possibly shortened length in order to prevent unnecessary iteration.
                 It may also be necessary to do this since shortening the array length does not
                 delete array elements. See: https://github.com/boa-dev/boa/issues/557 */
-                length = min(length, interpreter.to_length(&this.get_field("length"))?);
+                length = min(length, this.get_field("length").to_length(interpreter)?);
             }
             k += 1;
         }
@@ -1037,14 +1063,14 @@ impl Array {
         this: &Value,
         args: &[Value],
         interpreter: &mut Interpreter,
-    ) -> ResultValue {
-        let this = interpreter.to_object(this)?;
+    ) -> Result<Value> {
+        let this = this.to_object(interpreter)?;
         let callback = match args.get(0) {
             Some(value) if value.is_function() => value,
             _ => return interpreter.throw_type_error("reduceRight was called without a callback"),
         };
         let initial_value = args.get(1).cloned().unwrap_or_else(Value::undefined);
-        let mut length = interpreter.to_length(&this.get_field("length"))?;
+        let mut length = this.get_field("length").to_length(interpreter)?;
         if length == 0 {
             if initial_value.is_undefined() {
                 return interpreter.throw_type_error(
@@ -1059,7 +1085,7 @@ impl Array {
         let mut accumulator = if initial_value.is_undefined() {
             let mut k_present = false;
             loop {
-                if this.has_field(&k.to_string()) {
+                if this.has_field(k) {
                     k_present = true;
                     break;
                 }
@@ -1074,25 +1100,20 @@ impl Array {
                     "reduceRight was called on an empty array and with no initial value",
                 );
             }
-            let result = this.get_field(k.to_string());
+            let result = this.get_field(k);
             k -= 1;
             result
         } else {
             initial_value
         };
         loop {
-            if this.has_field(&k.to_string()) {
-                let arguments = [
-                    accumulator,
-                    this.get_field(k.to_string()),
-                    Value::from(k),
-                    this.clone(),
-                ];
+            if this.has_field(k) {
+                let arguments = [accumulator, this.get_field(k), Value::from(k), this.clone()];
                 accumulator = interpreter.call(&callback, &Value::undefined(), &arguments)?;
                 /* We keep track of possibly shortened length in order to prevent unnecessary iteration.
                 It may also be necessary to do this since shortening the array length does not
                 delete array elements. See: https://github.com/boa-dev/boa/issues/557 */
-                length = min(length, interpreter.to_length(&this.get_field("length"))?);
+                length = min(length, this.get_field("length").to_length(interpreter)?);
 
                 // move k to the last defined element if necessary or return if the length was set to 0
                 if k >= length {
