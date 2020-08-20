@@ -178,6 +178,22 @@ fn arithmetic_operations(c: &mut Criterion) {
     });
 }
 
+static CLEAN_JS: &str = include_str!("bench_scripts/clean_js.js");
+
+fn clean_js(c: &mut Criterion) {
+    c.bench_function("Clean js (Full)", move |b| {
+        b.iter(|| exec(black_box(CLEAN_JS)))
+    });
+}
+
+static MINI_JS: &str = include_str!("bench_scripts/mini_js.js");
+
+fn mini_js(c: &mut Criterion) {
+    c.bench_function("Mini js (Full)", move |b| {
+        b.iter(|| exec(black_box(MINI_JS)))
+    });
+}
+
 criterion_group!(
     full,
     symbol_creation,
@@ -200,5 +216,7 @@ criterion_group!(
     boolean_object_access,
     string_object_access,
     arithmetic_operations,
+    clean_js,
+    mini_js,
 );
 criterion_main!(full);

@@ -104,6 +104,32 @@ fn goal_symbol_switch(c: &mut Criterion) {
     });
 }
 
+static CLEAN_JS: &str = include_str!("bench_scripts/clean_js.js");
+
+fn clean_js(c: &mut Criterion) {
+    c.bench_function("Clean js (Parser)", move |b| {
+        b.iter(|| {
+            let mut lexer = Lexer::new(black_box(CLEAN_JS));
+            lexer.lex().expect("failed to lex");
+
+            Parser::new(&black_box(lexer.tokens)).parse_all()
+        })
+    });
+}
+
+static MINI_JS: &str = include_str!("bench_scripts/mini_js.js");
+
+fn mini_js(c: &mut Criterion) {
+    c.bench_function("Mini js (Parser)", move |b| {
+        b.iter(|| {
+            let mut lexer = Lexer::new(black_box(MINI_JS));
+            lexer.lex().expect("failed to lex");
+
+            Parser::new(&black_box(lexer.tokens)).parse_all()
+        })
+    });
+}
+
 criterion_group!(
     parser,
     expression_parser,
@@ -111,5 +137,7 @@ criterion_group!(
     for_loop_parser,
     long_file_parser,
     goal_symbol_switch,
+    clean_js,
+    mini_js,
 );
 criterion_main!(parser);
