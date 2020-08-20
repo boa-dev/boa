@@ -15,9 +15,9 @@ static EXPRESSION: &str = include_str!("bench_scripts/expression.js");
 fn expression_lexer(c: &mut Criterion) {
     c.bench_function("Expression (Lexer)", move |b| {
         b.iter(|| {
-            let mut lexer = Lexer::new(black_box(EXPRESSION));
+            let mut lexer = Lexer::new(black_box(EXPRESSION.as_bytes()));
 
-            lexer.lex()
+            while lexer.next().expect("Failed to lex").is_some() {}
         })
     });
 }
@@ -49,10 +49,5 @@ fn for_loop_lexer(c: &mut Criterion) {
     });
 }
 
-criterion_group!(
-    lexer,
-    // expression_lexer,
-    hello_world_lexer,
-    for_loop_lexer
-);
+criterion_group!(lexer, expression_lexer, hello_world_lexer, for_loop_lexer);
 criterion_main!(lexer);
