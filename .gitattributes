@@ -1,0 +1,30 @@
+# Handle line endings automatically for files detected as text
+# and leave all files detected as binary untouched.
+* text=auto
+
+#
+# The above will handle all files NOT found below
+#
+# These files are text and should be normalized (Convert crlf => lf)
+*.css           eol=lf
+*.htm           eol=lf
+*.html          eol=lf
+*.js            eol=lf
+*.json          eol=lf
+*.sh            eol=lf
+*.txt           eol=lf
+*.yml           eol=lf
+*.rs            eol=lf
+*.toml          eol=lf
+*.lock          eol=lf
+*.md            eol=lf
+*.svg           eol=lf
+
+# These files are binary and should be left untouched
+# (binary is a macro for -text -diff)
+*.gif           binary
+*.ico           binary
+*.jar           binary
+*.jpg           binary
+*.jpeg          binary
+*.png           binary
