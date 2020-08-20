@@ -374,6 +374,32 @@ fn arithmetic_operations(c: &mut Criterion) {
     });
 }
 
+static CLEAN_JS: &str = include_str!("bench_scripts/clean_js.js");
+
+fn clean_js(c: &mut Criterion) {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+    let mut lexer = Lexer::new(CLEAN_JS);
+    lexer.lex().expect("failed to lex");
+    let nodes = Parser::new(&lexer.tokens).parse_all().unwrap();
+    c.bench_function("Clean js (Execution)", move |b| {
+        b.iter(|| black_box(&nodes).run(&mut engine).unwrap())
+    });
+}
+
+static MINI_JS: &str = include_str!("bench_scripts/mini_js.js");
+
+fn mini_js(c: &mut Criterion) {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+    let mut lexer = Lexer::new(MINI_JS);
+    lexer.lex().expect("failed to lex");
+    let nodes = Parser::new(&lexer.tokens).parse_all().unwrap();
+    c.bench_function("Mini js (Execution)", move |b| {
+        b.iter(|| black_box(&nodes).run(&mut engine).unwrap())
+    });
+}
+
 criterion_group!(
     execution,
     create_realm,
@@ -397,5 +423,7 @@ criterion_group!(
     boolean_object_access,
     string_object_access,
     arithmetic_operations,
+    clean_js,
+    mini_js,
 );
 criterion_main!(execution);
