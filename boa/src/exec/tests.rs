@@ -966,7 +966,7 @@ fn to_length() {
     assert_eq!(
         Value::number(100000000000.0)
             .to_length(&mut engine)
-            .unwrap() as u128,
+            .unwrap() as u64,
         100000000000
     );
     assert_eq!(
