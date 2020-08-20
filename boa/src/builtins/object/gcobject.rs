@@ -108,10 +108,12 @@ impl GcObject {
                         let arguments_obj = create_unmapped_arguments_object(args);
                         local_env
                             .borrow_mut()
-                            .create_mutable_binding("arguments".to_string(), false);
+                            .create_mutable_binding("arguments".to_string(), false)
+                            .or_else(|e| Err(e.to_error(ctx)))?;
                         local_env
                             .borrow_mut()
-                            .initialize_binding("arguments", arguments_obj);
+                            .initialize_binding("arguments", arguments_obj)
+                            .or_else(|e| Err(e.to_error(ctx)))?;
 
                         ctx.realm.environment.push(local_env);
 
@@ -178,10 +180,12 @@ impl GcObject {
                         let arguments_obj = create_unmapped_arguments_object(args);
                         local_env
                             .borrow_mut()
-                            .create_mutable_binding("arguments".to_string(), false);
+                            .create_mutable_binding("arguments".to_string(), false)
+                            .or_else(|e| Err(e.to_error(ctx)))?;
                         local_env
                             .borrow_mut()
-                            .initialize_binding("arguments", arguments_obj);
+                            .initialize_binding("arguments", arguments_obj)
+                            .or_else(|e| Err(e.to_error(ctx)))?;
 
                         ctx.realm.environment.push(local_env);
 
@@ -189,8 +193,10 @@ impl GcObject {
                         let _ = body.run(ctx);
 
                         // local_env gets dropped here, its no longer needed
-                        let binding = ctx.realm.environment.get_this_binding();
-                        Ok(binding)
+                        ctx.realm
+                            .environment
+                            .get_this_binding()
+                            .or_else(|e| Err(e.to_error(ctx)))
                     }
                 }
             } else {
