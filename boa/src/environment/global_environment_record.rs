@@ -54,6 +54,30 @@ impl GlobalEnvironmentRecord {
         }
     }
 
+    pub fn can_declare_global_var(&self, name: &str) -> bool {
+        let global_object = &self.object_record.bindings;
+        if global_object.has_field(name) {
+            true
+        } else {
+            global_object.is_extensible()
+        }
+    }
+
+    pub fn can_declare_global_function(&self, name: &str) -> bool {
+        let global_object = &self.object_record.bindings;
+        let existing_prop = global_object.get_property(name);
+        match existing_prop {
+            Some(prop) => {
+                if prop.configurable() {
+                    true
+                } else {
+                    prop.is_data_descriptor() && prop.writable() && prop.enumerable()
+                }
+            }
+            None => global_object.is_extensible(),
+        }
+    }
+
     pub fn create_global_var_binding(
         &mut self,
         name: String,
@@ -110,7 +134,10 @@ impl EnvironmentRecordTrait for GlobalEnvironmentRecord {
 
     fn create_mutable_binding(&mut self, name: String, deletion: bool) -> Result<(), ErrorKind> {
         if self.declarative_record.has_binding(&name) {
-            return Err(ErrorKind::TypeError("Binding already exists!".to_string()));
+            return Err(ErrorKind::TypeError(format!(
+                "Binding already exists for {}",
+                name
+            )));
         }
 
         self.declarative_record
@@ -119,7 +146,10 @@ impl EnvironmentRecordTrait for GlobalEnvironmentRecord {
 
     fn create_immutable_binding(&mut self, name: String, strict: bool) -> Result<(), ErrorKind> {
         if self.declarative_record.has_binding(&name) {
-            return Err(ErrorKind::TypeError("Binding already exists!".to_string()));
+            return Err(ErrorKind::TypeError(format!(
+                "Binding already exists for {}",
+                name
+            )));
         }
 
         self.declarative_record

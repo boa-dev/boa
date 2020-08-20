@@ -80,16 +80,10 @@ impl EnvironmentRecordTrait for DeclarativeEnvironmentRecord {
         if let Some(ref mut record) = self.env_rec.get_mut(name) {
             if record.value.is_none() {
                 record.value = Some(value);
-                Ok(())
-            } else {
-                Err(ErrorKind::ReferenceError(format!(
-                    "Identifier {} has already been defined",
-                    name
-                )))
+                return Ok(());
             }
-        } else {
-            panic!("record must have binding for {}", name);
         }
+        panic!("record must have binding for {}", name);
     }
 
     #[allow(clippy::else_if_without_else)]
@@ -101,10 +95,7 @@ impl EnvironmentRecordTrait for DeclarativeEnvironmentRecord {
     ) -> Result<(), ErrorKind> {
         if self.env_rec.get(name).is_none() {
             if strict {
-                return Err(ErrorKind::ReferenceError(format!(
-                    "Cannot set mutable binding for {}",
-                    name
-                )));
+                return Err(ErrorKind::ReferenceError(format!("{} not found", name)));
             }
 
             self.create_mutable_binding(name.to_owned(), true)?;
@@ -118,11 +109,12 @@ impl EnvironmentRecordTrait for DeclarativeEnvironmentRecord {
         }
         if record.value.is_none() {
             return Err(ErrorKind::ReferenceError(format!(
-                "Cannot set mutable binding for {}",
+                "{} has not been initialized",
                 name
             )));
         }
 
+        // TODO
         if record.mutable {
             record.value = Some(value);
         } else if strict {
@@ -160,7 +152,7 @@ impl EnvironmentRecordTrait for DeclarativeEnvironmentRecord {
                     false
                 }
             }
-            None => false,
+            None => panic!("env_rec has no binding for {}", name),
         }
     }
 

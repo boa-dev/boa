@@ -71,7 +71,7 @@ impl EnvironmentRecordTrait for ObjectEnvironmentRecord {
         strict: bool,
     ) -> Result<(), ErrorKind> {
         debug_assert!(value.is_object() || value.is_function());
-        let ref bindings = self.bindings;
+        let bindings = &self.bindings;
         let still_exists = bindings.has_field(name);
         if !still_exists && strict {
             return Err(ErrorKind::ReferenceError(format!(
@@ -88,15 +88,13 @@ impl EnvironmentRecordTrait for ObjectEnvironmentRecord {
     fn get_binding_value(&self, name: &str, strict: bool) -> Result<Value, ErrorKind> {
         if self.bindings.has_field(name) {
             Ok(self.bindings.get_field(name))
+        } else if strict {
+            Err(ErrorKind::ReferenceError(format!(
+                "{} has no binding",
+                name
+            )))
         } else {
-            if strict {
-                Err(ErrorKind::ReferenceError(format!(
-                    "{} has no binding",
-                    name
-                )))
-            } else {
-                Ok(Value::undefined())
-            }
+            Ok(Value::undefined())
         }
     }
 

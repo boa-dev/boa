@@ -59,7 +59,7 @@ impl Interpreter {
     {
         New::from(Call::new(
             Identifier::from("ReferenceError"),
-            vec![Const::from(message.into() + " is not defined").into()],
+            vec![Const::from(message.into()).into()],
         ))
         .run(self)
         .expect_err("ReferenceError should always throw")
