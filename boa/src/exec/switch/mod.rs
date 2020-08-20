@@ -32,6 +32,12 @@ impl Executable for Switch {
                         interpreter.set_current_state(InterpreterState::Executing);
                         break;
                     }
+                    InterpreterState::Continue(_label) => {
+                        // TODO continue to label.
+
+                        // Relinquish control to containing loop.
+                        break;
+                    }
                     _ => {
                         // Continuing execution / falling through to next case statement(s).
                         fall_through = true;

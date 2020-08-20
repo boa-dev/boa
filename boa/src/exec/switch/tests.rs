@@ -9,7 +9,7 @@ fn single_case_switch() {
                 a = 20;
                 break;
         }
-        
+
         a;
     "#;
     assert_eq!(&exec(scenario), "20");
@@ -21,7 +21,7 @@ fn no_cases_switch() {
         let a = 10;
         switch (a) {
         }
-        
+
         a;
     "#;
     assert_eq!(&exec(scenario), "10");
@@ -36,7 +36,7 @@ fn no_true_case_switch() {
                 a = 15;
                 break;
         }
-        
+
         a;
     "#;
     assert_eq!(&exec(scenario), "10");
@@ -54,7 +54,7 @@ fn two_case_switch() {
                 a = 20;
                 break;
         }
-        
+
         a;
     "#;
     assert_eq!(&exec(scenario), "20");
@@ -73,7 +73,7 @@ fn two_case_no_break_switch() {
                 b = 150;
                 break;
         }
-        
+
         a + b;
     "#;
     assert_eq!(&exec(scenario), "300");
@@ -95,7 +95,7 @@ fn three_case_partial_fallthrough() {
                 b = 1000;
                 break;
         }
-        
+
         a + b;
     "#;
     assert_eq!(&exec(scenario), "300");
@@ -113,7 +113,7 @@ fn default_taken_switch() {
             default:
                 a = 70;
         }
-        
+
         a;
     "#;
     assert_eq!(&exec(scenario), "70");
@@ -131,7 +131,7 @@ fn default_not_taken_switch() {
             default:
                 a = 70;
         }
-        
+
         a;
     "#;
     assert_eq!(&exec(scenario), "150");
@@ -149,7 +149,7 @@ fn string_switch() {
             default:
                 a = "hi";
         }
-        
+
         a;
     "#;
     assert_eq!(&exec(scenario), "\"world\"");
@@ -194,7 +194,7 @@ fn bigger_switch_example() {
                     break;
                 case 6:
                     b = "Sun";
-                    break; 
+                    break;
             }}
 
             b;
@@ -205,4 +205,22 @@ fn bigger_switch_example() {
 
         assert_eq!(&exec(&scenario), val);
     }
+}
+
+#[test]
+fn switch_continue() {
+    let scenario = r#"
+        let a = 0;
+        while (a < 10) {
+            switch (a) {
+                case 5:
+                    a = 100;
+                    continue;
+            }
+            a++;
+        }
+
+        a;
+    "#;
+    assert_eq!(&exec(scenario), "100");
 }

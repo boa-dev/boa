@@ -35,6 +35,24 @@ fn while_loop_early_break() {
 }
 
 #[test]
+fn while_loop_continue() {
+    let scenario = r#"
+        let a = 1;
+        let b = 1;
+        while (a < 5) {
+            a++;
+            if (a >= 3) {
+                continue;
+            }
+            b++;
+        }
+        [a, b];
+    "#;
+
+    assert_eq!(&exec(scenario), "[ 5, 2 ]");
+}
+
+#[test]
 fn for_loop_break() {
     let scenario = r#"
         let a = 1;
@@ -59,11 +77,28 @@ fn for_loop_return() {
             }
         }
     }
-      
+
     foo();
     "#;
 
     assert_eq!(&exec(scenario), "3");
+}
+
+#[test]
+fn for_loop_continue() {
+    let scenario = r#"
+        let a = 1;
+        let b = 1;
+        for (; a < 5; a++) {
+            if (a >= 3) {
+                continue;
+            }
+            b++;
+        }
+        [a, b];
+    "#;
+
+    assert_eq!(&exec(scenario), "[ 5, 3 ]");
 }
 
 #[test]
@@ -98,4 +133,22 @@ fn do_loop_early_break() {
     "#;
 
     assert_eq!(&exec(scenario), "3");
+}
+
+#[test]
+fn do_loop_continue() {
+    let scenario = r#"
+        let a = 1;
+        let b = 1;
+        do {
+            a++;
+            if (a >= 3) {
+                continue;
+            }
+            b++;
+        } while (a < 5);
+        [a, b];
+    "#;
+
+    assert_eq!(&exec(scenario), "[ 5, 2 ]");
 }

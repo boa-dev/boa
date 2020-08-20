@@ -33,6 +33,13 @@ impl Executable for Block {
                     // Early break.
                     break;
                 }
+                InterpreterState::Continue(_label) => {
+                    // TODO, continue to a label.
+
+                    // Continue actually breaks out of the block, because the containing loop will handle the control
+                    // flow.
+                    break;
+                }
                 _ => {
                     // Continue execution
                 }
