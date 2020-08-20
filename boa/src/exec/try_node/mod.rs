@@ -29,11 +29,11 @@ impl Executable for Try {
                                 false,
                                 VariableScope::Block,
                             )
-                            .or_else(|e| Err(e.to_error(interpreter)))?;
+                            .map_err(|e| e.to_error(interpreter))?;
 
                             let env = &mut interpreter.realm_mut().environment;
                             env.initialize_binding(param, err)
-                                .or_else(|e| Err(e.to_error(interpreter)))?;
+                                .map_err(|e| e.to_error(interpreter))?;
                         }
                     }
 

@@ -113,8 +113,6 @@ impl EnvironmentRecordTrait for DeclarativeEnvironmentRecord {
                 name
             )));
         }
-
-        // TODO
         if record.mutable {
             record.value = Some(value);
         } else if strict {

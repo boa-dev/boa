@@ -109,11 +109,11 @@ impl GcObject {
                         local_env
                             .borrow_mut()
                             .create_mutable_binding("arguments".to_string(), false)
-                            .or_else(|e| Err(e.to_error(ctx)))?;
+                            .map_err(|e| e.to_error(ctx))?;
                         local_env
                             .borrow_mut()
                             .initialize_binding("arguments", arguments_obj)
-                            .or_else(|e| Err(e.to_error(ctx)))?;
+                            .map_err(|e| e.to_error(ctx))?;
 
                         ctx.realm.environment.push(local_env);
 
@@ -181,11 +181,11 @@ impl GcObject {
                         local_env
                             .borrow_mut()
                             .create_mutable_binding("arguments".to_string(), false)
-                            .or_else(|e| Err(e.to_error(ctx)))?;
+                            .map_err(|e| e.to_error(ctx))?;
                         local_env
                             .borrow_mut()
                             .initialize_binding("arguments", arguments_obj)
-                            .or_else(|e| Err(e.to_error(ctx)))?;
+                            .map_err(|e| e.to_error(ctx))?;
 
                         ctx.realm.environment.push(local_env);
 
@@ -196,7 +196,7 @@ impl GcObject {
                         ctx.realm
                             .environment
                             .get_this_binding()
-                            .or_else(|e| Err(e.to_error(ctx)))
+                            .map_err(|e| e.to_error(ctx))
                     }
                 }
             } else {

@@ -179,8 +179,6 @@ impl EnvironmentRecordTrait for FunctionEnvironmentRecord {
                 name
             )));
         }
-
-        // TODO
         if record.mutable {
             record.value = Some(value);
         } else if strict {

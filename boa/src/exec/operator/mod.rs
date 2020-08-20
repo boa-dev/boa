@@ -25,7 +25,7 @@ impl Executable for Assign {
                     // Binding already exists
                     environment
                         .set_mutable_binding(name.as_ref(), val.clone(), true)
-                        .or_else(|e| Err(e.to_error(interpreter)))?;
+                        .map_err(|e| e.to_error(interpreter))?;
                 } else {
                     environment
                         .create_mutable_binding(
@@ -33,11 +33,11 @@ impl Executable for Assign {
                             true,
                             VariableScope::Function,
                         )
-                        .or_else(|e| Err(e.to_error(interpreter)))?;
+                        .map_err(|e| e.to_error(interpreter))?;
                     let environment = &mut interpreter.realm_mut().environment;
                     environment
                         .initialize_binding(name.as_ref(), val.clone())
-                        .or_else(|e| Err(e.to_error(interpreter)))?;
+                        .map_err(|e| e.to_error(interpreter))?;
                 }
             }
             Node::GetConstField(ref get_const_field) => {
@@ -127,14 +127,14 @@ impl Executable for BinOp {
                         .realm()
                         .environment
                         .get_binding_value(name.as_ref())
-                        .or_else(|e| Err(e.to_error(interpreter)))?;
+                        .map_err(|e| e.to_error(interpreter))?;
                     let v_b = self.rhs().run(interpreter)?;
                     let value = Self::run_assign(op, v_a, v_b, interpreter)?;
                     interpreter
                         .realm
                         .environment
                         .set_mutable_binding(name.as_ref(), value.clone(), true)
-                        .or_else(|e| Err(e.to_error(interpreter)))?;
+                        .map_err(|e| e.to_error(interpreter))?;
                     Ok(value)
                 }
                 Node::GetConstField(ref get_const_field) => {
