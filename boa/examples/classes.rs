@@ -1,6 +1,7 @@
 use boa::{
     builtins::{
         object::{Class, ClassBuilder},
+        property::Attribute,
         value::Value,
     },
     exec::Interpreter,
@@ -60,6 +61,12 @@ impl Class for Person {
             }
             Ok(false.into())
         });
+        class.property("inheritedProperty", 10, Attribute::default());
+        class.static_property(
+            "staticProperty",
+            "Im a static property",
+            Attribute::WRITABLE | Attribute::ENUMERABLE | Attribute::PERMANENT,
+        );
 
         Ok(())
     }
@@ -83,7 +90,11 @@ fn main() {
 		if (!Person.is('Hello')) {
 			console.log('\'Hello\' string is not a Person class instance.');
 		}
-	",
+        
+        console.log(Person.staticProperty);
+        console.log(person.inheritedProperty);
+	    console.log(Person.prototype.inheritedProperty === person.inheritedProperty);
+    ",
     )
     .unwrap();
 }

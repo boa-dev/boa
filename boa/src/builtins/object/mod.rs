@@ -215,6 +215,40 @@ impl<'context> ClassBuilder<'context> {
             .insert_field(name, Value::from(function));
     }
 
+    /// Add a property to the class, with the specified attribute.
+    ///
+    /// It is added to `prototype`.
+    #[inline]
+    pub fn property<K, V>(&mut self, key: K, value: V, attribute: Attribute)
+    where
+        K: Into<PropertyKey>,
+        V: Into<Value>,
+    {
+        // We bitwise or (`|`) with `Attribute::default()` (`READONLY | NON_ENUMERABLE | PERMANENT`)
+        // so we dont get an empty attribute.
+        let property = Property::data_descriptor(value.into(), attribute | Attribute::default());
+        self.prototype
+            .borrow_mut()
+            .insert_property(key.into(), property);
+    }
+
+    /// Add a static property to the class, with the specified attribute.
+    ///
+    /// It is added to class object itself.
+    #[inline]
+    pub fn static_property<K, V>(&mut self, key: K, value: V, attribute: Attribute)
+    where
+        K: Into<PropertyKey>,
+        V: Into<Value>,
+    {
+        // We bitwise or (`|`) with `Attribute::default()` (`READONLY | NON_ENUMERABLE | PERMANENT`)
+        // so we dont get an empty attribute.
+        let property = Property::data_descriptor(value.into(), attribute | Attribute::default());
+        self.object
+            .borrow_mut()
+            .insert_property(key.into(), property);
+    }
+
     pub fn context(&mut self) -> &'_ mut Interpreter {
         self.context
     }
