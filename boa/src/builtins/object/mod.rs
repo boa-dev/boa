@@ -413,6 +413,7 @@ impl Object {
         }
     }
 
+    /// Create a new native object of type `T`.
     pub fn native_object<T>(value: T) -> Self
     where
         T: NativeObject,
@@ -612,10 +613,12 @@ impl Object {
         self.prototype = prototype
     }
 
+    /// Returns `true` if it holds an Rust type that implements `NativeObject`.
     pub fn is_native_object(&self) -> bool {
         matches!(self.data, ObjectData::NativeObject(_))
     }
 
+    /// Reeturn `true` if it is a native object and the native type is `T`.
     pub fn is<T>(&self) -> bool
     where
         T: NativeObject,
@@ -627,6 +630,8 @@ impl Object {
         }
     }
 
+    /// Downcast a reference to the object,
+    /// if the object is type native object type `T`.
     pub fn downcast_ref<T>(&self) -> Option<&T>
     where
         T: NativeObject,
@@ -638,6 +643,8 @@ impl Object {
         }
     }
 
+    /// Downcast a mutable reference to the object,
+    /// if the object is type native object type `T`.
     pub fn downcast_mut<T>(&mut self) -> Option<&mut T>
     where
         T: NativeObject,

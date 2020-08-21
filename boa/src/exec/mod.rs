@@ -357,6 +357,19 @@ impl Interpreter {
         GcObject::new(Object::create(object_prototype))
     }
 
+    /// Register a global class of type `T`, where `T` implemets `Class`.
+    ///
+    /// # Example
+    /// ```no_run
+    /// #[derive(Debug, Trace, Finalize)]
+    /// struct MyClass;
+    ///
+    /// impl Class for MyClass {
+    ///    // ...    
+    /// }
+    ///
+    /// context.register_global_class::<MyClass>();
+    /// ```
     pub fn register_global_class<T>(&mut self) -> Result<()>
     where
         T: Class,
