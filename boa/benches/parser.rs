@@ -13,7 +13,6 @@ static ALLOC: jemallocator::Jemalloc = jemallocator::Jemalloc;
 static EXPRESSION: &str = include_str!("bench_scripts/expression.js");
 
 fn expression_parser(c: &mut Criterion) {
-    // We include the lexing in the benchmarks, since they will get together soon, anyways.
 
     c.bench_function("Expression (Parser)", move |b| {
         b.iter(|| Parser::new(black_box(EXPRESSION.as_bytes())).parse_all())
