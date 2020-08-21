@@ -26,7 +26,7 @@ macro_rules! vop {
     ($cursor:ident, $assign_op:expr, $op:expr, {$($case:pat => $block:expr), +}) => ({
         // let punc = $cursor.peek().ok_or_else(|| Error::syntax("could not preview next value"))?;
         match $cursor.peek()? {
-            None => Err(Error::syntax("Abrupt end: could not preview next value as part of operator")),
+            None => Err(Error::syntax("abrupt end - could not preview next value as part of the operator")),
             Some('=') => {
                 $cursor.next_char()?.expect("= token vanished");
                 $cursor.next_column();
