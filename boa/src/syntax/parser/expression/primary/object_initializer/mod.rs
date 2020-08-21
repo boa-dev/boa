@@ -81,11 +81,6 @@ where
                 break;
             }
 
-            if cursor.next_if(TokenKind::LineTerminator)?.is_some() {
-                // Skip line terminators.
-                continue;
-            }
-
             if cursor.next_if(Punctuator::Comma)?.is_none() {
                 let next_token = cursor.next()?.ok_or(ParseError::AbruptEnd)?;
                 return Err(ParseError::expected(
