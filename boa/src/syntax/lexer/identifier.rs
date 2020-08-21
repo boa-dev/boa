@@ -37,16 +37,7 @@ impl<R> Tokenizer<R> for Identifier {
 
         let mut buf = self.init.to_string();
 
-        while let Some(c) = cursor.peek()? {
-            if c.is_alphabetic() || c.is_digit(10) || c == '_' {
-                cursor
-                    .next_char()?
-                    .expect("Character in identifier has vanished");
-                buf.push(c);
-            } else {
-                break;
-            }
-        }
+        cursor.take_until_pred(&mut buf, &|c: char| c.is_alphabetic() || c.is_digit(10) || c == '_')?;
 
         let tk = match buf.as_str() {
             "true" => TokenKind::BooleanLiteral(true),
