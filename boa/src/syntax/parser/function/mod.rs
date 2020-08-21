@@ -59,6 +59,7 @@ where
     type Output = Box<[node::FormalParameter]>;
 
     fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
+        let _timer = BoaProfiler::global().start_event("FormalParameters", "Parsing");
         cursor.set_goal(InputElement::RegExp);
 
         let mut params = Vec::new();
