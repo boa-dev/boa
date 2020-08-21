@@ -115,7 +115,7 @@ fn check_after_numeric_literal<R>(cursor: &mut Cursor<R>) -> Result<(), Error>
 where
     R: Read,
 {
-    let pred = |ch: char| ch.is_ascii_alphabetic() || ch == '$' || ch == '_' || ch.is_ascii_digit();
+    let pred = |ch: char| ch.is_ascii_alphanumeric() || ch == '$' || ch == '_';
     if cursor.next_is_pred(&pred)? {
         Err(Error::syntax("a numeric literal must not be followed by an alphanumeric, $ or _ characters"))
     } else {
@@ -179,7 +179,7 @@ impl<R> Tokenizer<R> for NumberLiteral {
                             if self.strict_mode {
                                 // LegacyOctalIntegerLiteral is forbidden with strict mode true.
                                 return Err(Error::syntax(
-                                    "Implicit octal literals are not allowed in strict mode.",
+                                    "implicit octal literals are not allowed in strict mode",
                                 ));
                             } else {
                                 // Remove the initial '0' from buffer.
@@ -195,7 +195,7 @@ impl<R> Tokenizer<R> for NumberLiteral {
                             // forbidden in strict mode.
                             if self.strict_mode {
                                 return Err(Error::syntax(
-                                    "Leading 0's are not allowed in strict mode.",
+                                    "leading 0's are not allowed in strict mode",
                                 ));
                             } else {
                                 buf.push(cursor.next_char()?.expect("Number digit vanished"));
@@ -299,7 +299,7 @@ impl<R> Tokenizer<R> for NumberLiteral {
                     let b = f64::from(base);
                     let mut result = 0.0_f64;
                     for c in buf.chars() {
-                        let digit = f64::from(c.to_digit(base).expect("Couldn't parse digit after already checking validity"));
+                        let digit = f64::from(c.to_digit(base).expect("could not parse digit after already checking validity"));
                         result = result * b + digit;
                     }
                     Numeric::Rational(result)
