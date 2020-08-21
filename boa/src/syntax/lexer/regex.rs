@@ -54,14 +54,14 @@ impl<R> Tokenizer<R> for RegexLiteral {
                                     '\n' | '\r' | '\u{2028}' | '\u{2029}' => {
                                         // Not allowed in Regex literal.
                                         return Err(Error::syntax(
-                                            "Encountered new line during regex",
+                                            "new lines are not allowed in regular expressions",
                                         ));
                                     }
                                     ch => body.push(ch),
                                 }
                             } else {
                                 // Abrupt end of regex.
-                                return Err(Error::syntax("Abrupt end, regex not terminated"));
+                                return Err(Error::syntax("abrupt end on regular expression"));
                             }
                         }
                         _ => body.push(c),
