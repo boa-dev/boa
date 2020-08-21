@@ -33,7 +33,6 @@ use crate::syntax::ast::{Punctuator, Span};
 pub use crate::{profiler::BoaProfiler, syntax::ast::Position};
 pub use error::Error;
 pub use token::{Token, TokenKind};
-
 use std::io::Read;
 
 trait Tokenizer<R> {
@@ -74,6 +73,7 @@ impl<R> Lexer<R> {
         self.goal_symbol = elm;
     }
 
+    /// Gets the goal symbol the lexer is currently using.
     #[inline]
     pub(crate) fn get_goal(&self) -> InputElement {
         self.goal_symbol
@@ -145,7 +145,9 @@ impl<R> Lexer<R> {
         }
     }
 
-    #[allow(clippy::should_implement_trait)] // We intentionally don't implement Iterator trait as Result<Option> is cleaner to handle.
+    /// Retrieves the next token from the lexer.
+    // We intentionally don't implement Iterator trait as Result<Option> is cleaner to handle.
+    #[allow(clippy::should_implement_trait)] 
     pub fn next(&mut self) -> Result<Option<Token>, Error>
     where
         R: Read,
@@ -227,7 +229,7 @@ impl<R> Lexer<R> {
             }
             _ => {
                 let details = format!(
-                    "Unexpected '{}' at line {}, column {}",
+                    "unexpected '{}' at line {}, column {}",
                     next_chr,
                     start.line_number(),
                     start.column_number()
