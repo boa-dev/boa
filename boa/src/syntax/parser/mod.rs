@@ -83,7 +83,7 @@ impl From<bool> for AllowDefault {
 
 #[derive(Debug)]
 pub struct Parser<R> {
-    /// Lexer used to get tokens for the parser.
+    /// Cursor of the parser, pointing to the lexer and used to get tokens for the parser.
     cursor: Cursor<R>,
 }
 
