@@ -148,6 +148,7 @@ where
     type Output = node::FormalParameter;
 
     fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
+        let _timer = BoaProfiler::global().start_event("BindingRestElement", "Parsing");
         cursor.expect(Punctuator::Spread, "rest parameter")?;
 
         let param = BindingIdentifier::new(self.allow_yield, self.allow_await).parse(cursor)?;
