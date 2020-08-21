@@ -22,7 +22,6 @@ fn expression_parser(c: &mut Criterion) {
 static HELLO_WORLD: &str = include_str!("bench_scripts/hello_world.js");
 
 fn hello_world_parser(c: &mut Criterion) {
-    // We include the lexing in the benchmarks, since they will get together soon, anyways.
 
     c.bench_function("Hello World (Parser)", move |b| {
         b.iter(|| Parser::new(black_box(HELLO_WORLD.as_bytes())).parse_all())
@@ -32,7 +31,6 @@ fn hello_world_parser(c: &mut Criterion) {
 static FOR_LOOP: &str = include_str!("bench_scripts/for_loop.js");
 
 fn for_loop_parser(c: &mut Criterion) {
-    // We include the lexing in the benchmarks, since they will get together soon, anyways.
 
     c.bench_function("For loop (Parser)", move |b| {
         b.iter(|| Parser::new(black_box(FOR_LOOP.as_bytes())).parse_all())
@@ -70,7 +68,6 @@ fn long_file_parser(c: &mut Criterion) {
 static GOAL_SYMBOL_SWITCH: &str = include_str!("bench_scripts/goal_symbol_switch.js");
 
 fn goal_symbol_switch(c: &mut Criterion) {
-    // We include the lexing in the benchmarks, since they will get together soon, anyways.
 
     c.bench_function("Goal Symbols (Parser)", move |b| {
         b.iter(|| Parser::new(black_box(GOAL_SYMBOL_SWITCH.as_bytes())).parse_all())
