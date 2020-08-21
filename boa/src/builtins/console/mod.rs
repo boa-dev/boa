@@ -2,7 +2,8 @@
 //!
 //! The `console` object can be accessed from any global object.
 //!
-//! The specifics of how it works varies from browser to browser, but there is a de facto set of features that are typically provided.
+//! The specifics of how it works varies from browser to browser, but there is a
+//! de facto set of features that are typically provided.
 //!
 //! More information:
 //!  - [MDN documentation][mdn]
@@ -73,7 +74,7 @@ pub fn formatter(data: &[Value], ctx: &mut Interpreter) -> Result<String> {
                 if c == '%' {
                     let fmt = chars.next().unwrap_or('%');
                     match fmt {
-                        /* integer */
+                        // integer
                         'd' | 'i' => {
                             let arg = data
                                 .get(arg_index)
@@ -83,7 +84,7 @@ pub fn formatter(data: &[Value], ctx: &mut Interpreter) -> Result<String> {
                             formatted.push_str(&format!("{}", arg));
                             arg_index += 1;
                         }
-                        /* float */
+                        // float
                         'f' => {
                             let arg = data
                                 .get(arg_index)
@@ -93,13 +94,13 @@ pub fn formatter(data: &[Value], ctx: &mut Interpreter) -> Result<String> {
                             formatted.push_str(&format!("{number:.prec$}", number = arg, prec = 6));
                             arg_index += 1
                         }
-                        /* object, FIXME: how to render this properly? */
+                        // object, FIXME: how to render this properly?
                         'o' | 'O' => {
                             let arg = data.get(arg_index).cloned().unwrap_or_default();
                             formatted.push_str(&format!("{}", arg.display()));
                             arg_index += 1
                         }
-                        /* string */
+                        // string
                         's' => {
                             let arg = data
                                 .get(arg_index)
@@ -110,7 +111,7 @@ pub fn formatter(data: &[Value], ctx: &mut Interpreter) -> Result<String> {
                             arg_index += 1
                         }
                         '%' => formatted.push('%'),
-                        /* TODO: %c is not implemented */
+                        // TODO: %c is not implemented
                         c => {
                             formatted.push('%');
                             formatted.push(c);
@@ -121,7 +122,7 @@ pub fn formatter(data: &[Value], ctx: &mut Interpreter) -> Result<String> {
                 };
             }
 
-            /* unformatted data */
+            // unformatted data
             for rest in data.iter().skip(arg_index) {
                 formatted.push_str(&format!(" {}", rest.to_string(ctx)?))
             }
@@ -145,8 +146,8 @@ impl Console {
 
     /// `console.assert(condition, ...data)`
     ///
-    /// Prints a JavaScript value to the standard error if first argument evaluates to `false` or there
-    /// were no arguments.
+    /// Prints a JavaScript value to the standard error if first argument
+    /// evaluates to `false` or there were no arguments.
     ///
     /// More information:
     ///  - [MDN documentation][mdn]
@@ -264,7 +265,7 @@ impl Console {
         if !args.is_empty() {
             logger(LogMessage::Log(formatter(args, ctx)?), ctx.console());
 
-            /* TODO: get and print stack trace */
+            // TODO: get and print stack trace
             logger(
                 LogMessage::Log("Not implemented: <stack trace>".to_string()),
                 ctx.console(),
@@ -291,7 +292,8 @@ impl Console {
 
     /// `console.count(label)`
     ///
-    /// Prints number of times the function was called with that particular label.
+    /// Prints number of times the function was called with that particular
+    /// label.
     ///
     /// More information:
     ///  - [MDN documentation][mdn]

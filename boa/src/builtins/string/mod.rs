@@ -1,6 +1,7 @@
 //! This module implements the global `String` object.
 //!
-//! The `String` global object is a constructor for strings or a sequence of characters.
+//! The `String` global object is a constructor for strings or a sequence of
+//! characters.
 //!
 //! More information:
 //!  - [ECMAScript reference][spec]
@@ -24,10 +25,10 @@ use crate::{
     BoaProfiler, Result,
 };
 use regex::Regex;
-use std::string::String as StdString;
 use std::{
     cmp::{max, min},
     f64::NAN,
+    string::String as StdString,
 };
 
 /// JavaScript `String` implementation.
@@ -41,11 +42,13 @@ impl String {
     /// The amount of arguments this function object takes.
     pub(crate) const LENGTH: usize = 1;
 
-    ///  JavaScript strings must be between `0` and less than positive `Infinity` and cannot be a negative number.
-    /// The range of allowed values can be described like this: `[0, +∞)`.
+    ///  JavaScript strings must be between `0` and less than positive
+    /// `Infinity` and cannot be a negative number. The range of allowed
+    /// values can be described like this: `[0, +∞)`.
     ///
-    /// The resulting string can also not be larger than the maximum string size,
-    /// which can differ in JavaScript engines. In Boa it is `2^32 - 1`
+    /// The resulting string can also not be larger than the maximum string
+    /// size, which can differ in JavaScript engines. In Boa it is `2^32 -
+    /// 1`
     pub(crate) const MAX_STRING_LENGTH: f64 = u32::MAX as f64;
 
     fn this_string_value(this: &Value, ctx: &mut Interpreter) -> Result<RcString> {
@@ -72,7 +75,8 @@ impl String {
         args: &[Value],
         ctx: &mut Interpreter,
     ) -> Result<Value> {
-        // This value is used by console.log and other routines to match Obexpecty"failed to parse argument for String method"pe
+        // This value is used by console.log and other routines to match
+        // Obexpecty"failed to parse argument for String method"pe
         // to its Javascript Identifier (global constructor method name)
         let string = match args.get(0) {
             Some(ref value) => value.to_string(ctx)?,
@@ -98,11 +102,15 @@ impl String {
 
     /// `String.prototype.charAt( index )`
     ///
-    /// The `String` object's `charAt()` method returns a new string consisting of the single UTF-16 code unit located at the specified offset into the string.
+    /// The `String` object's `charAt()` method returns a new string consisting
+    /// of the single UTF-16 code unit located at the specified offset into the
+    /// string.
     ///
-    /// Characters in a string are indexed from left to right. The index of the first character is `0`,
-    /// and the index of the last character—in a string called `stringName`—is `stringName.length - 1`.
-    /// If the `index` you supply is out of this range, JavaScript returns an empty string.
+    /// Characters in a string are indexed from left to right. The index of the
+    /// first character is `0`, and the index of the last character—in a
+    /// string called `stringName`—is `stringName.length - 1`.
+    /// If the `index` you supply is out of this range, JavaScript returns an
+    /// empty string.
     ///
     /// If no index is provided to `charAt()`, the default is `0`.
     ///
@@ -113,18 +121,19 @@ impl String {
     /// [spec]: https://tc39.es/ecma262/#sec-string.prototype.charat
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/charAt
     pub(crate) fn char_at(this: &Value, args: &[Value], ctx: &mut Interpreter) -> Result<Value> {
-        // First we get it the actual string a private field stored on the object only the engine has access to.
-        // Then we convert it into a Rust String by wrapping it in from_value
+        // First we get it the actual string a private field stored on the object only
+        // the engine has access to. Then we convert it into a Rust String by
+        // wrapping it in from_value
         let primitive_val = this.to_string(ctx)?;
         let pos = args
             .get(0)
             .expect("failed to get argument for String method")
             .to_integer(ctx)? as i32;
 
-        // Calling .len() on a string would give the wrong result, as they are bytes not the number of
-        // unicode code points
-        // Note that this is an O(N) operation (because UTF-8 is complex) while getting the number of
-        // bytes is an O(1) operation.
+        // Calling .len() on a string would give the wrong result, as they are bytes not
+        // the number of unicode code points
+        // Note that this is an O(N) operation (because UTF-8 is complex) while getting
+        // the number of bytes is an O(1) operation.
         let length = primitive_val.chars().count();
 
         // We should return an empty string is pos is out of range
@@ -142,11 +151,15 @@ impl String {
 
     /// `String.prototype.charCodeAt( index )`
     ///
-    /// The `charCodeAt()` method returns an integer between `0` and `65535` representing the UTF-16 code unit at the given index.
+    /// The `charCodeAt()` method returns an integer between `0` and `65535`
+    /// representing the UTF-16 code unit at the given index.
     ///
-    /// Unicode code points range from `0` to `1114111` (`0x10FFFF`). The first 128 Unicode code points are a direct match of the ASCII character encoding.
+    /// Unicode code points range from `0` to `1114111` (`0x10FFFF`). The first
+    /// 128 Unicode code points are a direct match of the ASCII character
+    /// encoding.
     ///
-    /// `charCodeAt()` returns `NaN` if the given index is less than `0`, or if it is equal to or greater than the `length` of the string.
+    /// `charCodeAt()` returns `NaN` if the given index is less than `0`, or if
+    /// it is equal to or greater than the `length` of the string.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -159,12 +172,15 @@ impl String {
         args: &[Value],
         ctx: &mut Interpreter,
     ) -> Result<Value> {
-        // First we get it the actual string a private field stored on the object only the engine has access to.
-        // Then we convert it into a Rust String by wrapping it in from_value
+        // First we get it the actual string a private field stored on the object only
+        // the engine has access to. Then we convert it into a Rust String by
+        // wrapping it in from_value
         let primitive_val = this.to_string(ctx)?;
 
-        // Calling .len() on a string would give the wrong result, as they are bytes not the number of unicode code points
-        // Note that this is an O(N) operation (because UTF-8 is complex) while getting the number of bytes is an O(1) operation.
+        // Calling .len() on a string would give the wrong result, as they are bytes not
+        // the number of unicode code points Note that this is an O(N) operation
+        // (because UTF-8 is complex) while getting the number of bytes is an O(1)
+        // operation.
         let length = primitive_val.chars().count();
         let pos = args
             .get(0)
@@ -186,11 +202,14 @@ impl String {
 
     /// `String.prototype.concat( str1[, ...strN] )`
     ///
-    /// The `concat()` method concatenates the string arguments to the calling string and returns a new string.
+    /// The `concat()` method concatenates the string arguments to the calling
+    /// string and returns a new string.
     ///
-    /// Changes to the original string or the returned string don't affect the other.
+    /// Changes to the original string or the returned string don't affect the
+    /// other.
     ///
-    /// If the arguments are not of the type string, they are converted to string values before concatenating.
+    /// If the arguments are not of the type string, they are converted to
+    /// string values before concatenating.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -211,8 +230,9 @@ impl String {
 
     /// `String.prototype.repeat( count )`
     ///
-    /// The `repeat()` method constructs and returns a new string which contains the specified number of
-    /// copies of the string on which it was called, concatenated together.
+    /// The `repeat()` method constructs and returns a new string which contains
+    /// the specified number of copies of the string on which it was called,
+    /// concatenated together.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -246,7 +266,8 @@ impl String {
 
     /// `String.prototype.slice( beginIndex [, endIndex] )`
     ///
-    /// The `slice()` method extracts a section of a string and returns it as a new string, without modifying the original string.
+    /// The `slice()` method extracts a section of a string and returns it as a
+    /// new string, without modifying the original string.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -255,8 +276,9 @@ impl String {
     /// [spec]: https://tc39.es/ecma262/#sec-string.prototype.slice
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/slice
     pub(crate) fn slice(this: &Value, args: &[Value], ctx: &mut Interpreter) -> Result<Value> {
-        // First we get it the actual string a private field stored on the object only the engine has access to.
-        // Then we convert it into a Rust String by wrapping it in from_value
+        // First we get it the actual string a private field stored on the object only
+        // the engine has access to. Then we convert it into a Rust String by
+        // wrapping it in from_value
         let primitive_val = this.to_string(ctx)?;
 
         let start = args
@@ -269,8 +291,10 @@ impl String {
             .expect("failed to get argument in slice")
             .to_integer(ctx)? as i32;
 
-        // Calling .len() on a string would give the wrong result, as they are bytes not the number of unicode code points
-        // Note that this is an O(N) operation (because UTF-8 is complex) while getting the number of bytes is an O(1) operation.
+        // Calling .len() on a string would give the wrong result, as they are bytes not
+        // the number of unicode code points Note that this is an O(N) operation
+        // (because UTF-8 is complex) while getting the number of bytes is an O(1)
+        // operation.
         let length = primitive_val.chars().count() as i32;
 
         let from = if start < 0 {
@@ -296,7 +320,9 @@ impl String {
 
     /// `String.prototype.startWith( searchString[, position] )`
     ///
-    /// The `startsWith()` method determines whether a string begins with the characters of a specified string, returning `true` or `false` as appropriate.
+    /// The `startsWith()` method determines whether a string begins with the
+    /// characters of a specified string, returning `true` or `false` as
+    /// appropriate.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -309,8 +335,9 @@ impl String {
         args: &[Value],
         ctx: &mut Interpreter,
     ) -> Result<Value> {
-        // First we get it the actual string a private field stored on the object only the engine has access to.
-        // Then we convert it into a Rust String by wrapping it in from_value
+        // First we get it the actual string a private field stored on the object only
+        // the engine has access to. Then we convert it into a Rust String by
+        // wrapping it in from_value
         let primitive_val = this.to_string(ctx)?;
 
         // TODO: Should throw TypeError if pattern is regular expression
@@ -343,7 +370,9 @@ impl String {
 
     /// `String.prototype.endsWith( searchString[, length] )`
     ///
-    /// The `endsWith()` method determines whether a string ends with the characters of a specified string, returning `true` or `false` as appropriate.
+    /// The `endsWith()` method determines whether a string ends with the
+    /// characters of a specified string, returning `true` or `false` as
+    /// appropriate.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -352,8 +381,9 @@ impl String {
     /// [spec]: https://tc39.es/ecma262/#sec-string.prototype.endswith
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/endsWith
     pub(crate) fn ends_with(this: &Value, args: &[Value], ctx: &mut Interpreter) -> Result<Value> {
-        // First we get it the actual string a private field stored on the object only the engine has access to.
-        // Then we convert it into a Rust String by wrapping it in from_value
+        // First we get it the actual string a private field stored on the object only
+        // the engine has access to. Then we convert it into a Rust String by
+        // wrapping it in from_value
         let primitive_val = this.to_string(ctx)?;
 
         // TODO: Should throw TypeError if search_string is regular expression
@@ -389,7 +419,8 @@ impl String {
 
     /// `String.prototype.includes( searchString[, position] )`
     ///
-    /// The `includes()` method determines whether one string may be found within another string, returning `true` or `false` as appropriate.
+    /// The `includes()` method determines whether one string may be found
+    /// within another string, returning `true` or `false` as appropriate.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -398,8 +429,9 @@ impl String {
     /// [spec]: https://tc39.es/ecma262/#sec-string.prototype.includes
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/includes
     pub(crate) fn includes(this: &Value, args: &[Value], ctx: &mut Interpreter) -> Result<Value> {
-        // First we get it the actual string a private field stored on the object only the engine has access to.
-        // Then we convert it into a Rust String by wrapping it in from_value
+        // First we get it the actual string a private field stored on the object only
+        // the engine has access to. Then we convert it into a Rust String by
+        // wrapping it in from_value
         let primitive_val = this.to_string(ctx)?;
 
         // TODO: Should throw TypeError if search_string is regular expression
@@ -446,10 +478,12 @@ impl String {
 
     /// `String.prototype.replace( regexp|substr, newSubstr|function )`
     ///
-    /// The `replace()` method returns a new string with some or all matches of a `pattern` replaced by a `replacement`.
+    /// The `replace()` method returns a new string with some or all matches of
+    /// a `pattern` replaced by a `replacement`.
     ///
-    /// The `pattern` can be a string or a `RegExp`, and the `replacement` can be a string or a function to be called for each match.
-    /// If `pattern` is a string, only the first occurrence will be replaced.
+    /// The `pattern` can be a string or a `RegExp`, and the `replacement` can
+    /// be a string or a function to be called for each match. If `pattern`
+    /// is a string, only the first occurrence will be replaced.
     ///
     /// The original string is left unchanged.
     ///
@@ -478,7 +512,7 @@ impl String {
             let replace_object: &Value = args.get(1).expect("second argument expected");
             match replace_object {
                 Value::String(val) => {
-                    // https://tc39.es/ecma262/#table-45
+                    // <https://tc39.es/ecma262/#table-45>
                     let mut result = val.to_string();
                     let re = Regex::new(r"\$(\d)").unwrap();
 
@@ -517,7 +551,8 @@ impl String {
                     result
                 }
                 Value::Object(_) => {
-                    // This will return the matched substring first, then captured parenthesized groups later
+                    // This will return the matched substring first, then captured parenthesized
+                    // groups later
                     let mut results: Vec<Value> = caps
                         .iter()
                         .map(|capture| Value::from(capture.unwrap().as_str()))
@@ -551,8 +586,9 @@ impl String {
 
     /// `String.prototype.indexOf( searchValue[, fromIndex] )`
     ///
-    /// The `indexOf()` method returns the index within the calling `String` object of the first occurrence
-    /// of the specified value, starting the search at `fromIndex`.
+    /// The `indexOf()` method returns the index within the calling `String`
+    /// object of the first occurrence of the specified value, starting the
+    /// search at `fromIndex`.
     ///
     /// Returns `-1` if the value is not found.
     ///
@@ -594,8 +630,9 @@ impl String {
 
     /// `String.prototype.lastIndexOf( searchValue[, fromIndex] )`
     ///
-    /// The `lastIndexOf()` method returns the index within the calling `String` object of the last occurrence
-    /// of the specified value, searching backwards from `fromIndex`.
+    /// The `lastIndexOf()` method returns the index within the calling `String`
+    /// object of the last occurrence of the specified value, searching
+    /// backwards from `fromIndex`.
     ///
     /// Returns `-1` if the value is not found.
     ///
@@ -641,7 +678,8 @@ impl String {
 
     /// `String.prototype.match( regexp )`
     ///
-    /// The `match()` method retrieves the result of matching a **string** against a [`regular expression`][regex].
+    /// The `match()` method retrieves the result of matching a **string**
+    /// against a [`regular expression`][regex].
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -691,7 +729,9 @@ impl String {
 
     /// `String.prototype.padEnd( targetLength[, padString] )`
     ///
-    /// The `padEnd()` method pads the current string with a given string (repeated, if needed) so that the resulting string reaches a given length.
+    /// The `padEnd()` method pads the current string with a given string
+    /// (repeated, if needed) so that the resulting string reaches a given
+    /// length.
     ///
     /// The padding is applied from the end of the current string.
     ///
@@ -718,7 +758,9 @@ impl String {
 
     /// `String.prototype.padStart( targetLength [, padString] )`
     ///
-    /// The `padStart()` method pads the current string with another string (multiple times, if needed) until the resulting string reaches the given length.
+    /// The `padStart()` method pads the current string with another string
+    /// (multiple times, if needed) until the resulting string reaches the given
+    /// length.
     ///
     /// The padding is applied from the start of the current string.
     ///
@@ -746,7 +788,8 @@ impl String {
     /// Helper function to check if a `char` is trimmable.
     #[inline]
     fn is_trimmable_whitespace(c: char) -> bool {
-        // The rust implementation of `trim` does not regard the same characters whitespace as ecma standard does
+        // The rust implementation of `trim` does not regard the same characters
+        // whitespace as ecma standard does
         //
         // Rust uses \p{White_Space} by default, which also includes:
         // `\u{0085}' (next line)
@@ -767,7 +810,9 @@ impl String {
     ///
     /// The `trim()` method removes whitespace from both ends of a string.
     ///
-    /// Whitespace in this context is all the whitespace characters (space, tab, no-break space, etc.) and all the line terminator characters (LF, CR, etc.).
+    /// Whitespace in this context is all the whitespace characters (space, tab,
+    /// no-break space, etc.) and all the line terminator characters (LF, CR,
+    /// etc.).
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -785,9 +830,12 @@ impl String {
 
     /// `String.prototype.trimStart()`
     ///
-    /// The `trimStart()` method removes whitespace from the beginning of a string.
+    /// The `trimStart()` method removes whitespace from the beginning of a
+    /// string.
     ///
-    /// Whitespace in this context is all the whitespace characters (space, tab, no-break space, etc.) and all the line terminator characters (LF, CR, etc.).
+    /// Whitespace in this context is all the whitespace characters (space, tab,
+    /// no-break space, etc.) and all the line terminator characters (LF, CR,
+    /// etc.).
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -807,7 +855,9 @@ impl String {
     ///
     /// The `trimEnd()` method removes whitespace from the end of a string.
     ///
-    /// Whitespace in this context is all the whitespace characters (space, tab, no-break space, etc.) and all the line terminator characters (LF, CR, etc.).
+    /// Whitespace in this context is all the whitespace characters (space, tab,
+    /// no-break space, etc.) and all the line terminator characters (LF, CR,
+    /// etc.).
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -825,7 +875,8 @@ impl String {
 
     /// `String.prototype.toLowerCase()`
     ///
-    /// The `toLowerCase()` method returns the calling string value converted to lower case.
+    /// The `toLowerCase()` method returns the calling string value converted to
+    /// lower case.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -835,17 +886,20 @@ impl String {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/toLowerCase
     #[allow(clippy::wrong_self_convention)]
     pub(crate) fn to_lowercase(this: &Value, _: &[Value], ctx: &mut Interpreter) -> Result<Value> {
-        // First we get it the actual string a private field stored on the object only the engine has access to.
-        // Then we convert it into a Rust String by wrapping it in from_value
+        // First we get it the actual string a private field stored on the object only
+        // the engine has access to. Then we convert it into a Rust String by
+        // wrapping it in from_value
         let this_str = this.to_string(ctx)?;
         // The Rust String is mapped to uppercase using the builtin .to_lowercase().
-        // There might be corner cases where it does not behave exactly like Javascript expects
+        // There might be corner cases where it does not behave exactly like Javascript
+        // expects
         Ok(Value::from(this_str.to_lowercase()))
     }
 
     /// `String.prototype.toUpperCase()`
     ///
-    /// The `toUpperCase()` method returns the calling string value converted to uppercase.
+    /// The `toUpperCase()` method returns the calling string value converted to
+    /// uppercase.
     ///
     /// The value will be **converted** to a string if it isn't one
     ///
@@ -857,17 +911,20 @@ impl String {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/toUpperCase
     #[allow(clippy::wrong_self_convention)]
     pub(crate) fn to_uppercase(this: &Value, _: &[Value], ctx: &mut Interpreter) -> Result<Value> {
-        // First we get it the actual string a private field stored on the object only the engine has access to.
-        // Then we convert it into a Rust String by wrapping it in from_value
+        // First we get it the actual string a private field stored on the object only
+        // the engine has access to. Then we convert it into a Rust String by
+        // wrapping it in from_value
         let this_str = this.to_string(ctx)?;
         // The Rust String is mapped to uppercase using the builtin .to_uppercase().
-        // There might be corner cases where it does not behave exactly like Javascript expects
+        // There might be corner cases where it does not behave exactly like Javascript
+        // expects
         Ok(Value::from(this_str.to_uppercase()))
     }
 
     /// `String.prototype.substring( indexStart[, indexEnd] )`
     ///
-    /// The `substring()` method returns the part of the `string` between the start and end indexes, or to the end of the string.
+    /// The `substring()` method returns the part of the `string` between the
+    /// start and end indexes, or to the end of the string.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -876,8 +933,9 @@ impl String {
     /// [spec]: https://tc39.es/ecma262/#sec-string.prototype.substring
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/substring
     pub(crate) fn substring(this: &Value, args: &[Value], ctx: &mut Interpreter) -> Result<Value> {
-        // First we get it the actual string a private field stored on the object only the engine has access to.
-        // Then we convert it into a Rust String by wrapping it in from_value
+        // First we get it the actual string a private field stored on the object only
+        // the engine has access to. Then we convert it into a Rust String by
+        // wrapping it in from_value
         let primitive_val = this.to_string(ctx)?;
         // If no args are specified, start is 'undefined', defaults to 0
         let start = if args.is_empty() {
@@ -888,7 +946,8 @@ impl String {
                 .to_integer(ctx)? as i32
         };
         let length = primitive_val.chars().count() as i32;
-        // If less than 2 args specified, end is the length of the this object converted to a String
+        // If less than 2 args specified, end is the length of the this object converted
+        // to a String
         let end = if args.len() < 2 {
             length
         } else {
@@ -903,8 +962,8 @@ impl String {
         // Start and end are swapped if start is greater than end
         let from = min(final_start, final_end) as usize;
         let to = max(final_start, final_end) as usize;
-        // Extract the part of the string contained between the start index and the end index
-        // where start is guaranteed to be smaller or equals to end
+        // Extract the part of the string contained between the start index and the end
+        // index where start is guaranteed to be smaller or equals to end
         let extracted_string: StdString = primitive_val
             .chars()
             .skip(from)
@@ -915,7 +974,9 @@ impl String {
 
     /// `String.prototype.substr( start[, length] )`
     ///
-    /// The `substr()` method returns a portion of the string, starting at the specified index and extending for a given number of characters afterward.
+    /// The `substr()` method returns a portion of the string, starting at the
+    /// specified index and extending for a given number of characters
+    /// afterward.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -925,8 +986,9 @@ impl String {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/substr
     /// <https://tc39.es/ecma262/#sec-string.prototype.substr>
     pub(crate) fn substr(this: &Value, args: &[Value], ctx: &mut Interpreter) -> Result<Value> {
-        // First we get it the actual string a private field stored on the object only the engine has access to.
-        // Then we convert it into a Rust String by wrapping it in from_value
+        // First we get it the actual string a private field stored on the object only
+        // the engine has access to. Then we convert it into a Rust String by
+        // wrapping it in from_value
         let primitive_val = this.to_string(ctx)?;
         // If no args are specified, start is 'undefined', defaults to 0
         let mut start = if args.is_empty() {
@@ -938,8 +1000,8 @@ impl String {
         };
         let length = primitive_val.chars().count() as i32;
         // If less than 2 args specified, end is +infinity, the maximum number value.
-        // Using i32::max_value() should be safe because the final length used is at most
-        // the number of code units from start to the end of the string,
+        // Using i32::max_value() should be safe because the final length used is at
+        // most the number of code units from start to the end of the string,
         // which should always be smaller or equals to both +infinity and i32::max_value
         let end = if args.len() < 2 {
             i32::max_value()
@@ -948,15 +1010,18 @@ impl String {
                 .expect("Could not get argument")
                 .to_integer(ctx)? as i32
         };
-        // If start is negative it become the number of code units from the end of the string
+        // If start is negative it become the number of code units from the end of the
+        // string
         if start < 0 {
             start = max(length.wrapping_add(start), 0);
         }
         // length replaced by 0 if it was negative
-        // or by the number of code units from start to the end of the string if it was greater
+        // or by the number of code units from start to the end of the string if it was
+        // greater
         let result_length = min(max(end, 0), length.wrapping_sub(start));
         // If length is negative we return an empty string
-        // otherwise we extract the part of the string from start and is length code units long
+        // otherwise we extract the part of the string from start and is length code
+        // units long
         if result_length <= 0 {
             Ok(Value::from(""))
         } else {
@@ -981,13 +1046,16 @@ impl String {
     /// [spec]: https://tc39.es/ecma262/#sec-string.prototype.value_of
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/valueOf
     pub(crate) fn value_of(this: &Value, args: &[Value], ctx: &mut Interpreter) -> Result<Value> {
-        // Use the to_string method because it is specified to do the same thing in this case
+        // Use the to_string method because it is specified to do the same thing in this
+        // case
         Self::to_string(this, args, ctx)
     }
 
     /// `String.prototype.matchAll( regexp )`
     ///
-    /// The `matchAll()` method returns an iterator of all results matching a string against a [`regular expression`][regex], including [capturing groups][cg].
+    /// The `matchAll()` method returns an iterator of all results matching a
+    /// string against a [`regular expression`][regex], including [capturing
+    /// groups][cg].
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]

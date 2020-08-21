@@ -16,7 +16,7 @@ fn check_switch_no_closeblock() {
             case 10:
                 a = 20;
                 break;
-        
+
         "#,
     );
 }
@@ -30,7 +30,7 @@ fn check_switch_case_unclosed() {
         switch (a) {
             case 10:
                 a = 20;
-        
+
         "#,
     );
 }
@@ -83,7 +83,8 @@ fn check_switch_unknown_label() {
     );
 }
 
-/// Checks parsing malformed switch with two defaults that are seperated by cases.
+/// Checks parsing malformed switch with two defaults that are seperated by
+/// cases.
 #[test]
 fn check_switch_seperated_defaults() {
     check_invalid(
@@ -104,15 +105,15 @@ fn check_switch_seperated_defaults() {
     );
 }
 
-/// Example of JS code https://jsfiddle.net/zq6jx47h/4/.
+/// Example of JS code <https://jsfiddle.net/zq6jx47h/4/>.
 #[test]
 fn check_seperated_switch() {
     let s = r#"
         let a = 10;
 
-        switch 
+        switch
 
-        (a) 
+        (a)
 
         {
 

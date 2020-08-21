@@ -7,20 +7,23 @@ use std::fmt;
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
-/// This property accessor provides access to an object's properties by using the
-/// [dot notation][mdn].
+/// This property accessor provides access to an object's properties by using
+/// the [dot notation][mdn].
 ///
-/// In the object.property syntax, the property must be a valid JavaScript identifier.
-/// (In the ECMAScript standard, the names of properties are technically "IdentifierNames", not
-/// "Identifiers", so reserved words can be used but are not recommended).
+/// In the object.property syntax, the property must be a valid JavaScript
+/// identifier. (In the ECMAScript standard, the names of properties are
+/// technically "IdentifierNames", not "Identifiers", so reserved words can be
+/// used but are not recommended).
 ///
-/// One can think of an object as an associative array (a.k.a. map, dictionary, hash, lookup
-/// table). The keys in this array are the names of the object's properties.
+/// One can think of an object as an associative array (a.k.a. map, dictionary,
+/// hash, lookup table). The keys in this array are the names of the object's
+/// properties.
 ///
-/// It's typical when speaking of an object's properties to make a distinction between
-/// properties and methods. However, the property/method distinction is little more than a
-/// convention. A method is simply a property that can be called (for example, if it has a
-/// reference to a Function instance as its value).
+/// It's typical when speaking of an object's properties to make a distinction
+/// between properties and methods. However, the property/method distinction is
+/// little more than a convention. A method is simply a property that can be
+/// called (for example, if it has a reference to a Function instance as its
+/// value).
 ///
 /// More information:
 ///  - [ECMAScript reference][spec]
@@ -71,20 +74,22 @@ impl From<GetConstField> for Node {
     }
 }
 
-/// This property accessor provides access to an object's properties by using the
-/// [bracket notation][mdn].
+/// This property accessor provides access to an object's properties by using
+/// the [bracket notation][mdn].
 ///
 /// In the object[property_name] syntax, the property_name is just a string or
-/// [Symbol][symbol]. So, it can be any string, including '1foo', '!bar!', or even ' ' (a
-/// space).
+/// [Symbol][symbol]. So, it can be any string, including '1foo', '!bar!', or
+/// even ' ' (a space).
 ///
-/// One can think of an object as an associative array (a.k.a. map, dictionary, hash, lookup
-/// table). The keys in this array are the names of the object's properties.
+/// One can think of an object as an associative array (a.k.a. map, dictionary,
+/// hash, lookup table). The keys in this array are the names of the object's
+/// properties.
 ///
-/// It's typical when speaking of an object's properties to make a distinction between
-/// properties and methods. However, the property/method distinction is little more than a
-/// convention. A method is simply a property that can be called (for example, if it has a
-/// reference to a Function instance as its value).
+/// It's typical when speaking of an object's properties to make a distinction
+/// between properties and methods. However, the property/method distinction is
+/// little more than a convention. A method is simply a property that can be
+/// called (for example, if it has a reference to a Function instance as its
+/// value).
 ///
 /// More information:
 ///  - [ECMAScript reference][spec]

@@ -210,8 +210,8 @@ where
             }
         // match *t.kind() {
         //     TokenKind::Punctuator(Punctuator::Assign) => {
-        //         Some(Initializer::new(true, self.allow_yield, self.allow_await).parse(cursor)?)
-        //     },
+        //         Some(Initializer::new(true, self.allow_yield,
+        // self.allow_await).parse(cursor)?)     },
         //     TokenKind::Punctuator(Punctuator::Inc) => {
         //         Some(operator::UnaryOp::new(UnaryOp::IncrementPre, param))
         //     }

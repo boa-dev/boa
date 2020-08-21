@@ -4,13 +4,12 @@ mod finally;
 #[cfg(test)]
 mod tests;
 
-use self::catch::Catch;
-use self::finally::Finally;
+use self::{catch::Catch, finally::Finally};
 use super::block::Block;
-use crate::syntax::lexer::TokenKind;
 use crate::{
     syntax::{
         ast::{node::Try, Keyword},
+        lexer::TokenKind,
         parser::{AllowAwait, AllowReturn, AllowYield, Cursor, ParseError, TokenParser},
     },
     BoaProfiler,

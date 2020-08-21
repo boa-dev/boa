@@ -1,10 +1,12 @@
 //! This module implements the Property Descriptor.
 //!
-//! The Property Descriptor type is used to explain the manipulation and reification of Object property attributes.
-//! Values of the Property Descriptor type are Records. Each field's name is an attribute name
-//! and its value is a corresponding attribute value as specified in [6.1.7.1][section].
+//! The Property Descriptor type is used to explain the manipulation and
+//! reification of Object property attributes. Values of the Property Descriptor
+//! type are Records. Each field's name is an attribute name and its value is a
+//! corresponding attribute value as specified in [6.1.7.1][section].
 //! In addition, any field may be present or absent.
-//! The schema name used within this specification to tag literal descriptions of Property Descriptor records is “PropertyDescriptor”.
+//! The schema name used within this specification to tag literal descriptions
+//! of Property Descriptor records is “PropertyDescriptor”.
 //!
 //! More information:
 //!  - [MDN documentation][mdn]
@@ -14,12 +16,12 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/defineProperty
 //! [section]: https://tc39.es/ecma262/#sec-property-attributes
 
-use crate::builtins::value::RcString;
-use crate::builtins::value::RcSymbol;
-use crate::builtins::Value;
+use crate::builtins::{
+    value::{RcString, RcSymbol},
+    Value,
+};
 use gc::{Finalize, Trace};
-use std::convert::TryFrom;
-use std::fmt;
+use std::{convert::TryFrom, fmt};
 
 pub mod attribute;
 pub use attribute::Attribute;
@@ -30,9 +32,10 @@ pub use attribute::Attribute;
 ///  - data descriptors
 ///  - accessor descriptors
 ///
-/// A data descriptor is a property that has a value, which may or may not be writable.
-/// An accessor descriptor is a property described by a getter-setter pair of functions.
-/// A descriptor must be one of these two flavors; it cannot be both.
+/// A data descriptor is a property that has a value, which may or may not be
+/// writable. An accessor descriptor is a property described by a getter-setter
+/// pair of functions. A descriptor must be one of these two flavors; it cannot
+/// be both.
 ///
 /// Any field in a JavaScript Property may be present or absent.
 ///
@@ -181,7 +184,8 @@ impl Property {
             && self.set.is_none()
     }
 
-    /// An accessor Property Descriptor is one that includes any fields named either [[Get]] or [[Set]].
+    /// An accessor Property Descriptor is one that includes any fields named
+    /// either [[Get]] or [[Set]].
     ///
     /// More information:
     /// - [ECMAScript reference][spec]
@@ -192,7 +196,8 @@ impl Property {
         self.get.is_some() || self.set.is_some()
     }
 
-    /// A data Property Descriptor is one that includes any fields named either [[Value]] or [[Writable]].
+    /// A data Property Descriptor is one that includes any fields named either
+    /// [[Value]] or [[Writable]].
     ///
     /// More information:
     /// - [ECMAScript reference][spec]
@@ -251,8 +256,8 @@ impl From<&Property> for Value {
 }
 
 impl<'a> From<&'a Value> for Property {
-    /// Attempt to fetch values "configurable", "enumerable", "writable" from the value,
-    /// if they're not there default to false
+    /// Attempt to fetch values "configurable", "enumerable", "writable" from
+    /// the value, if they're not there default to false
     fn from(value: &Value) -> Self {
         let mut attribute = Attribute::empty();
 
@@ -280,8 +285,8 @@ impl<'a> From<&'a Value> for Property {
     }
 }
 
-/// This abstracts away the need for IsPropertyKey by transforming the PropertyKey
-/// values into an enum with both valid types: String and Symbol
+/// This abstracts away the need for IsPropertyKey by transforming the
+/// PropertyKey values into an enum with both valid types: String and Symbol
 ///
 /// More information:
 /// - [ECMAScript reference][spec]

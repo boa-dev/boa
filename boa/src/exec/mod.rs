@@ -79,7 +79,8 @@ impl Interpreter {
         };
 
         // Add new builtIns to Interpreter Realm
-        // At a later date this can be removed from here and called explicitly, but for now we almost always want these default builtins
+        // At a later date this can be removed from here and called explicitly, but for
+        // now we almost always want these default builtins
         interpreter.create_intrinsics();
 
         interpreter
@@ -120,7 +121,8 @@ impl Interpreter {
         hash
     }
 
-    /// Utility to create a function Value for Function Declarations, Arrow Functions or Function Expressions
+    /// Utility to create a function Value for Function Declarations, Arrow
+    /// Functions or Function Expressions
     pub(crate) fn create_function<P, B>(
         &mut self,
         params: P,
@@ -158,7 +160,8 @@ impl Interpreter {
         val
     }
 
-    /// Utility to create a function Value for Function Declarations, Arrow Functions or Function Expressions
+    /// Utility to create a function Value for Function Declarations, Arrow
+    /// Functions or Function Expressions
     pub fn create_builtin_function(
         &mut self,
         name: &str,
@@ -201,7 +204,8 @@ impl Interpreter {
 
     /// Converts an array object into a rust vector of values.
     ///
-    /// This is useful for the spread operator, for any other object an `Err` is returned
+    /// This is useful for the spread operator, for any other object an `Err` is
+    /// returned
     pub(crate) fn extract_array_properties(&mut self, value: &Value) -> StdResult<Vec<Value>, ()> {
         if let Value::Object(ref x) = value {
             // Check if object is array
@@ -293,7 +297,7 @@ impl Interpreter {
         self.throw_type_error("cannot convert object to primitive value")
     }
 
-    /// https://tc39.es/ecma262/#sec-hasproperty
+    /// <https://tc39.es/ecma262/#sec-hasproperty>
     pub(crate) fn has_property(&self, obj: &Value, key: &PropertyKey) -> bool {
         if let Some(obj) = obj.as_object() {
             obj.has_property(key)
@@ -336,8 +340,8 @@ impl Interpreter {
     /// Check if the `Value` can be converted to an `Object`
     ///
     /// The abstract operation `RequireObjectCoercible` takes argument argument.
-    /// It throws an error if argument is a value that cannot be converted to an Object using `ToObject`.
-    /// It is defined by [Table 15][table]
+    /// It throws an error if argument is a value that cannot be converted to an
+    /// Object using `ToObject`. It is defined by [Table 15][table]
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -353,12 +357,14 @@ impl Interpreter {
         }
     }
 
-    /// A helper function for getting a immutable reference to the `console` object.
+    /// A helper function for getting a immutable reference to the `console`
+    /// object.
     pub(crate) fn console(&self) -> &Console {
         &self.console
     }
 
-    /// A helper function for getting a mutable reference to the `console` object.
+    /// A helper function for getting a mutable reference to the `console`
+    /// object.
     pub(crate) fn console_mut(&mut self) -> &mut Console {
         &mut self.console
     }
@@ -386,9 +392,10 @@ impl Executable for Node {
             Node::Const(Const::Int(num)) => Ok(Value::integer(num)),
             Node::Const(Const::BigInt(ref num)) => Ok(Value::from(num.clone())),
             Node::Const(Const::Undefined) => Ok(Value::Undefined),
-            // we can't move String from Const into value, because const is a garbage collected value
-            // Which means Drop() get's called on Const, but str will be gone at that point.
-            // Do Const values need to be garbage collected? We no longer need them once we've generated Values
+            // we can't move String from Const into value, because const is a garbage collected
+            // value Which means Drop() get's called on Const, but str will be gone at
+            // that point. Do Const values need to be garbage collected? We no longer
+            // need them once we've generated Values
             Node::Const(Const::String(ref value)) => Ok(Value::string(value.to_string())),
             Node::Const(Const::Bool(value)) => Ok(Value::boolean(value)),
             Node::Block(ref block) => block.run(interpreter),

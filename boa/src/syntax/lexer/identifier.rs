@@ -37,7 +37,9 @@ impl<R> Tokenizer<R> for Identifier {
 
         let mut buf = self.init.to_string();
 
-        cursor.take_until_pred(&mut buf, &|c: char| c.is_alphabetic() || c.is_digit(10) || c == '_')?;
+        cursor.take_until_pred(&mut buf, &|c: char| {
+            c.is_alphabetic() || c.is_digit(10) || c == '_'
+        })?;
 
         let tk = match buf.as_str() {
             "true" => TokenKind::BooleanLiteral(true),

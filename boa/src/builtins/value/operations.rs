@@ -410,16 +410,21 @@ impl Value {
 
     /// Abstract relational comparison
     ///
-    /// The comparison `x < y`, where `x` and `y` are values, produces `true`, `false`,
-    /// or `undefined` (which indicates that at least one operand is `NaN`).
+    /// The comparison `x < y`, where `x` and `y` are values, produces `true`,
+    /// `false`, or `undefined` (which indicates that at least one operand
+    /// is `NaN`).
     ///
-    /// In addition to `x` and `y` the algorithm takes a Boolean flag named `LeftFirst` as a parameter.
-    /// The flag is used to control the order in which operations with potentially visible side-effects
-    /// are performed upon `x` and `y`. It is necessary because ECMAScript specifies left to right evaluation
-    /// of expressions. The default value of LeftFirst is `true` and indicates that the `x` parameter
-    /// corresponds to an expression that occurs to the left of the `y` parameter's corresponding expression.
+    /// In addition to `x` and `y` the algorithm takes a Boolean flag named
+    /// `LeftFirst` as a parameter. The flag is used to control the order in
+    /// which operations with potentially visible side-effects are performed
+    /// upon `x` and `y`. It is necessary because ECMAScript specifies left to
+    /// right evaluation of expressions. The default value of LeftFirst is
+    /// `true` and indicates that the `x` parameter corresponds to an
+    /// expression that occurs to the left of the `y` parameter's corresponding
+    /// expression.
     ///
-    /// If `LeftFirst` is `false`, the reverse is the case and operations must be performed upon `y` before `x`.
+    /// If `LeftFirst` is `false`, the reverse is the case and operations must
+    /// be performed upon `y` before `x`.
     ///
     /// More Information:
     ///  - [ECMAScript reference][spec]
@@ -446,7 +451,8 @@ impl Value {
                     let py = other.to_primitive(ctx, PreferredType::Number)?;
                     (px, py)
                 } else {
-                    // NOTE: The order of evaluation needs to be reversed to preserve left to right evaluation.
+                    // NOTE: The order of evaluation needs to be reversed to preserve left to right
+                    // evaluation.
                     let py = other.to_primitive(ctx, PreferredType::Number)?;
                     let px = self.to_primitive(ctx, PreferredType::Number)?;
                     (px, py)
@@ -518,8 +524,8 @@ impl Value {
         })
     }
 
-    /// The less than operator (`<`) returns `true` if the left operand is less than the right operand,
-    /// and `false` otherwise.
+    /// The less than operator (`<`) returns `true` if the left operand is less
+    /// than the right operand, and `false` otherwise.
     ///
     /// More Information:
     ///  - [MDN documentation][mdn]
@@ -535,8 +541,9 @@ impl Value {
         }
     }
 
-    /// The less than or equal operator (`<=`) returns `true` if the left operand is less than
-    /// or equal to the right operand, and `false` otherwise.
+    /// The less than or equal operator (`<=`) returns `true` if the left
+    /// operand is less than or equal to the right operand, and `false`
+    /// otherwise.
     ///
     /// More Information:
     ///  - [MDN documentation][mdn]
@@ -552,8 +559,8 @@ impl Value {
         }
     }
 
-    /// The greater than operator (`>`) returns `true` if the left operand is greater than
-    /// the right operand, and `false` otherwise.
+    /// The greater than operator (`>`) returns `true` if the left operand is
+    /// greater than the right operand, and `false` otherwise.
     ///
     /// More Information:
     ///  - [MDN documentation][mdn]
@@ -569,8 +576,9 @@ impl Value {
         }
     }
 
-    /// The greater than or equal operator (`>=`) returns `true` if the left operand is greater than
-    /// or equal to the right operand, and `false` otherwise.
+    /// The greater than or equal operator (`>=`) returns `true` if the left
+    /// operand is greater than or equal to the right operand, and `false`
+    /// otherwise.
     ///
     /// More Information:
     ///  - [MDN documentation][mdn]

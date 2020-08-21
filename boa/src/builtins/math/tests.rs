@@ -690,7 +690,8 @@ fn sqrt() {
     assert_eq!(c.to_number(&mut engine).unwrap(), 3_f64);
 }
 
-// TODO: Precision is always off between ci and local. We proably need a better way to compare floats anyways
+// TODO: Precision is always off between ci and local. We proably need a better
+// way to compare floats anyways
 
 // #[test]
 // fn tan() {

@@ -36,7 +36,8 @@ pub enum EnvironmentType {
 /// The scope of a given variable
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum VariableScope {
-    /// The variable declaration is scoped to the current block (`let` and `const`)
+    /// The variable declaration is scoped to the current block (`let` and
+    /// `const`)
     Block,
     /// The variable declaration is scoped to the current function (`var`)
     Function,
@@ -187,16 +188,18 @@ impl LexicalEnvironment {
         env.borrow_mut().initialize_binding(name, value);
     }
 
-    /// get_current_environment_ref is used when you only need to borrow the environment
-    /// (you only need to add a new variable binding, or you want to fetch a value)
+    /// get_current_environment_ref is used when you only need to borrow the
+    /// environment (you only need to add a new variable binding, or you
+    /// want to fetch a value)
     pub fn get_current_environment_ref(&self) -> &Environment {
         self.environment_stack
             .back()
             .expect("Could not get current environment")
     }
 
-    /// When neededing to clone an environment (linking it with another environnment)
-    /// cloning is more suited. The GC will remove the env once nothing is linking to it anymore
+    /// When neededing to clone an environment (linking it with another
+    /// environnment) cloning is more suited. The GC will remove the env
+    /// once nothing is linking to it anymore
     pub fn get_current_environment(&mut self) -> &mut Environment {
         self.environment_stack
             .back_mut()
@@ -237,7 +240,9 @@ pub fn new_function_environment(
         this_binding_status: binding_status,
         home_object: Value::undefined(),
         new_target: Value::undefined(),
-        outer_env: outer, // this will come from Environment set as a private property of F - https://tc39.es/ecma262/#sec-ecmascript-function-objects
+        // this will come from Environment set as a private property of F.
+        // See <https://tc39.es/ecma262/#sec-ecmascript-function-objects>
+        outer_env: outer,
         this_value: Value::undefined(),
     };
     // If a `this` value has been passed, bind it to the environment
@@ -252,10 +257,11 @@ pub fn new_object_environment(object: Value, environment: Option<Environment>) -
         bindings: object,
         outer_env: environment,
         /// Object Environment Records created for with statements (13.11)
-        /// can provide their binding object as an implicit this value for use in function calls.
-        /// The capability is controlled by a withEnvironment Boolean value that is associated
-        /// with each object Environment Record. By default, the value of withEnvironment is false
-        /// for any object Environment Record.
+        /// can provide their binding object as an implicit this value for use
+        /// in function calls. The capability is controlled by a
+        /// withEnvironment Boolean value that is associated
+        /// with each object Environment Record. By default, the value of
+        /// withEnvironment is false for any object Environment Record.
         with_environment: false,
     })))
 }
@@ -265,10 +271,11 @@ pub fn new_global_environment(global: Value, this_value: Value) -> Environment {
         bindings: global,
         outer_env: None,
         /// Object Environment Records created for with statements (13.11)
-        /// can provide their binding object as an implicit this value for use in function calls.
-        /// The capability is controlled by a withEnvironment Boolean value that is associated
-        /// with each object Environment Record. By default, the value of withEnvironment is false
-        /// for any object Environment Record.
+        /// can provide their binding object as an implicit this value for use
+        /// in function calls. The capability is controlled by a
+        /// withEnvironment Boolean value that is associated
+        /// with each object Environment Record. By default, the value of
+        /// withEnvironment is false for any object Environment Record.
         with_environment: false,
     };
 

@@ -15,7 +15,8 @@ use std::{
 
 /// String literal lexing.
 ///
-/// Note: expects for the initializer `'` or `"` to already be consumed from the cursor.
+/// Note: expects for the initializer `'` or `"` to already be consumed from the
+/// cursor.
 ///
 /// More information:
 ///  - [ECMAScript reference][spec]
@@ -135,7 +136,10 @@ impl<R> Tokenizer<R> for StringLiteral {
                                             )
                                         })?;
                                     if as_num > 0x10_FFFF {
-                                        return Err(Error::syntax("Unicode codepoint must not be greater than 0x10FFFF in escape sequence"));
+                                        return Err(Error::syntax(
+                                            "Unicode codepoint must not be greater than 0x10FFFF \
+                                             in escape sequence",
+                                        ));
                                     }
                                     char::try_from(as_num).map_err(|_| {
                                         Error::syntax("invalid Unicode escape sequence")
@@ -143,7 +147,8 @@ impl<R> Tokenizer<R> for StringLiteral {
                                 } else {
                                     let mut codepoints: Vec<u16> = vec![];
                                     loop {
-                                        // Collect each character after \u e.g \uD83D will give "D83D"
+                                        // Collect each character after \u e.g \uD83D will give
+                                        // "D83D"
                                         let mut code_point = [0u8; 4];
                                         cursor.fill_bytes(&mut code_point)?;
 

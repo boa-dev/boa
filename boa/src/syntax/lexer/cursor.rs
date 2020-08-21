@@ -69,7 +69,8 @@ where
         }
     }
 
-    /// Compares the character passed in to the next character, if they match true is returned and the buffer is incremented
+    /// Compares the character passed in to the next character, if they match
+    /// true is returned and the buffer is incremented
     #[inline]
     pub(super) fn next_is(&mut self, peek: char) -> io::Result<bool> {
         let _timer = BoaProfiler::global().start_event("cursor::next_is()", "Lexing");
@@ -121,10 +122,11 @@ where
         }
     }
 
-    /// Fills the buffer with characters until the first character (x) for which the predicate (pred) is false
-    /// (or the next character is none).
+    /// Fills the buffer with characters until the first character (x) for which
+    /// the predicate (pred) is false (or the next character is none).
     ///
-    /// Note that all characters up until x are added to the buffer including the character right before.
+    /// Note that all characters up until x are added to the buffer including
+    /// the character right before.
     pub(super) fn take_until_pred<F>(&mut self, buf: &mut String, pred: &F) -> io::Result<()>
     where
         F: Fn(char) -> bool,
@@ -137,7 +139,8 @@ where
             } else if let Some(ch) = self.next_char()? {
                 buf.push(ch);
             } else {
-                // next_is_pred will return false if the next value is None so the None case should already be handled.
+                // next_is_pred will return false if the next value is None so the None case
+                // should already be handled.
                 unreachable!();
             }
         }
@@ -145,8 +148,8 @@ where
 
     /// It will fill the buffer with checked ASCII bytes.
     ///
-    /// This expects for the buffer to be fully filled. If it's not, it will fail with an
-    /// `UnexpectedEof` I/O error.
+    /// This expects for the buffer to be fully filled. If it's not, it will
+    /// fail with an `UnexpectedEof` I/O error.
     #[inline]
     pub(super) fn fill_bytes(&mut self, buf: &mut [u8]) -> io::Result<()> {
         let _timer = BoaProfiler::global().start_event("cursor::fill_bytes()", "Lexing");
@@ -195,8 +198,8 @@ where
 {
     /// It will fill the buffer with checked ASCII bytes.
     ///
-    /// This expects for the buffer to be fully filled. If it's not, it will fail with an
-    /// `UnexpectedEof` I/O error.
+    /// This expects for the buffer to be fully filled. If it's not, it will
+    /// fail with an `UnexpectedEof` I/O error.
     #[inline]
     fn fill_bytes(&mut self, buf: &mut [u8]) -> io::Result<()> {
         for byte in buf.iter_mut() {

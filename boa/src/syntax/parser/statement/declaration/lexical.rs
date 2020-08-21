@@ -7,13 +7,13 @@
 //!
 //! [spec]: https://tc39.es/ecma262/#sec-let-and-const-declarations
 
-use crate::syntax::lexer::TokenKind;
 use crate::{
     syntax::{
         ast::{
             node::{ConstDecl, ConstDeclList, LetDecl, LetDeclList, Node},
             Keyword, Punctuator,
         },
+        lexer::TokenKind,
         parser::{
             cursor::{Cursor, SemicolonResult},
             expression::Initializer,
@@ -81,8 +81,8 @@ where
 
 /// Parses a binding list.
 ///
-/// It will return an error if a `const` declaration is being parsed and there is no
-/// initializer.
+/// It will return an error if a `const` declaration is being parsed and there
+/// is no initializer.
 ///
 /// More information:
 ///  - [ECMAScript specification][spec]
@@ -123,7 +123,8 @@ where
         let _timer = BoaProfiler::global().start_event("BindingList", "Parsing");
 
         // Create vectors to store the variable declarations
-        // Const and Let signatures are slightly different, Const needs definitions, Lets don't
+        // Const and Let signatures are slightly different, Const needs definitions,
+        // Lets don't
         let mut let_decls = Vec::new();
         let mut const_decls = Vec::new();
 

@@ -60,8 +60,8 @@ fn check_do_while_semicolon_insertion() {
     );
 }
 
-// Checks automatic semicolon insertion after do-while with no space between closing paren
-// and next statement.
+// Checks automatic semicolon insertion after do-while with no space between
+// closing paren and next statement.
 #[test]
 fn check_do_while_semicolon_insertion_no_space() {
     check_parser(
@@ -91,7 +91,8 @@ fn check_do_while_semicolon_insertion_no_space() {
     );
 }
 
-/// Checks parsing of a while statement which is seperated out with line terminators.
+/// Checks parsing of a while statement which is seperated out with line
+/// terminators.
 #[test]
 fn while_spaces() {
     check_parser(
@@ -112,7 +113,8 @@ fn while_spaces() {
     );
 }
 
-/// Checks parsing of a while statement which is seperated out with line terminators.
+/// Checks parsing of a while statement which is seperated out with line
+/// terminators.
 #[test]
 fn do_while_spaces() {
     check_parser(

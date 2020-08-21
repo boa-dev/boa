@@ -1,10 +1,10 @@
 //! # Global Environment Records
 //!
-//! A global Environment Record is used to represent the outer most scope that is shared by all
-//! of the ECMAScript Script elements that are processed in a common realm.
-//! A global Environment Record provides the bindings for built-in globals (clause 18),
-//! properties of the global object, and for all top-level declarations (13.2.8, 13.2.10)
-//! that occur within a Script.
+//! A global Environment Record is used to represent the outer most scope that
+//! is shared by all of the ECMAScript Script elements that are processed in a
+//! common realm. A global Environment Record provides the bindings for built-in
+//! globals (clause 18), properties of the global object, and for all top-level
+//! declarations (13.2.8, 13.2.10) that occur within a Script.
 //! More info:  <https://tc39.es/ecma262/#sec-global-environment-records>
 
 use crate::{

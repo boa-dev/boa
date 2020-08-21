@@ -5,12 +5,12 @@ use std::fmt;
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
-/// The `try...catch` statement marks a block of statements to try and specifies a response
-/// should an exception be thrown.
+/// The `try...catch` statement marks a block of statements to try and specifies
+/// a response should an exception be thrown.
 ///
-/// The `try` statement consists of a `try`-block, which contains one or more statements. `{}`
-/// must always be used, even for single statements. At least one `catch`-block, or a
-/// `finally`-block, must be present.
+/// The `try` statement consists of a `try`-block, which contains one or more
+/// statements. `{}` must always be used, even for single statements. At least
+/// one `catch`-block, or a `finally`-block, must be present.
 ///
 /// More information:
 ///  - [ECMAScript reference][spec]

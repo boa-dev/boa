@@ -53,16 +53,20 @@ use serde::{Deserialize, Serialize};
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub enum Node {
-    /// Array declaration node. [More information](./array/struct.ArrayDecl.html).
+    /// Array declaration node. [More
+    /// information](./array/struct.ArrayDecl.html).
     ArrayDecl(ArrayDecl),
 
-    /// An arrow function expression node. [More information](./arrow_function/struct.ArrowFunctionDecl.html).
+    /// An arrow function expression node. [More
+    /// information](./arrow_function/struct.ArrowFunctionDecl.html).
     ArrowFunctionDecl(ArrowFunctionDecl),
 
-    /// An assignment operator node. [More information](./operator/struct.Assign.html).
+    /// An assignment operator node. [More
+    /// information](./operator/struct.Assign.html).
     Assign(Assign),
 
-    /// A binary operator node. [More information](./operator/struct.BinOp.html).
+    /// A binary operator node. [More
+    /// information](./operator/struct.BinOp.html).
     BinOp(BinOp),
 
     /// A Block node. [More information](./block/struct.Block.html).
@@ -74,12 +78,14 @@ pub enum Node {
     /// A function call. [More information](./expression/struct.Call.html).
     Call(Call),
 
-    /// A javascript conditional operand ( x ? y : z ). [More information](./conditional/struct.ConditionalOp.html).
+    /// A JavaScript conditional operand ( x ? y : z ). [More
+    /// information](./conditional/struct.ConditionalOp.html).
     ConditionalOp(ConditionalOp),
 
     /// Literals represent values in JavaScript.
     ///
-    /// These are fixed values not variables that you literally provide in your script.
+    /// These are fixed values not variables that you literally provide in your
+    /// script.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -89,25 +95,32 @@ pub enum Node {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Grammar_and_types#Literals
     Const(Const),
 
-    /// A constant declaration list. [More information](./declaration/struct.ConstDeclList.html).
+    /// A constant declaration list. [More
+    /// information](./declaration/struct.ConstDeclList.html).
     ConstDeclList(ConstDeclList),
 
-    /// A continue statement. [More information](./iteration/struct.Continue.html).
+    /// A continue statement. [More
+    /// information](./iteration/struct.Continue.html).
     Continue(Continue),
 
-    /// A do ... while statement. [More information](./iteration/struct.DoWhileLoop.html).
+    /// A do ... while statement. [More
+    /// information](./iteration/struct.DoWhileLoop.html).
     DoWhileLoop(DoWhileLoop),
 
-    /// A function declaration node. [More information](./declaration/struct.FunctionDecl.html).
+    /// A function declaration node. [More
+    /// information](./declaration/struct.FunctionDecl.html).
     FunctionDecl(FunctionDecl),
 
-    /// A function expressino node. [More information](./declaration/struct.FunctionExpr.html).
+    /// A function expressino node. [More
+    /// information](./declaration/struct.FunctionExpr.html).
     FunctionExpr(FunctionExpr),
 
-    /// Provides access to an object types' constant properties. [More information](./declaration/struct.GetConstField.html).
+    /// Provides access to an object types' constant properties. [More
+    /// information](./declaration/struct.GetConstField.html).
     GetConstField(GetConstField),
 
-    /// Provides access to object fields. [More information](./declaration/struct.GetField.html).
+    /// Provides access to object fields. [More
+    /// information](./declaration/struct.GetField.html).
     GetField(GetField),
 
     /// A `for` statement. [More information](./iteration/struct.ForLoop.html).
@@ -116,10 +129,12 @@ pub enum Node {
     /// An 'if' statement. [More information](./conditional/struct.If.html).
     If(If),
 
-    /// A `let` declaration list. [More information](./declaration/struct.LetDeclList.html).
+    /// A `let` declaration list. [More
+    /// information](./declaration/struct.LetDeclList.html).
     LetDeclList(LetDeclList),
 
-    /// A local identifier node. [More information](./identifier/struct.Identifier.html).
+    /// A local identifier node. [More
+    /// information](./identifier/struct.Identifier.html).
     Identifier(Identifier),
 
     /// A `new` expression. [More information](./expression/struct.New.html).
@@ -131,10 +146,12 @@ pub enum Node {
     /// A return statement. [More information](./object/struct.Return.html).
     Return(Return),
 
-    /// A switch {case} statement. [More information](./switch/struct.Switch.html).
+    /// A switch {case} statement. [More
+    /// information](./switch/struct.Switch.html).
     Switch(Switch),
 
-    /// A spread (...x) statement. [More information](./spread/struct.Spread.html).
+    /// A spread (...x) statement. [More
+    /// information](./spread/struct.Spread.html).
     Spread(Spread),
 
     /// A throw statement. [More information](./throw/struct.Throw.html).
@@ -160,10 +177,12 @@ pub enum Node {
     /// Unary operation node. [More information](./operator/struct.UnaryOp.html)
     UnaryOp(UnaryOp),
 
-    /// Array declaration node. [More information](./declaration/struct.VarDeclList.html).
+    /// Array declaration node. [More
+    /// information](./declaration/struct.VarDeclList.html).
     VarDeclList(VarDeclList),
 
-    /// A 'while {...}' node. [More information](./iteration/struct.WhileLoop.html).
+    /// A 'while {...}' node. [More
+    /// information](./iteration/struct.WhileLoop.html).
     WhileLoop(WhileLoop),
 }
 
@@ -260,10 +279,10 @@ where
 ///
 /// In the declaration of a function, the parameters must be identifiers,
 /// not any value like numbers, strings, or objects.
-///```text
-///function foo(formalParameter1, formalParameter2) {
-///}
-///```
+/// ```text
+/// function foo(formalParameter1, formalParameter2) {
+/// }
+/// ```
 ///
 /// More information:
 ///  - [ECMAScript reference][spec]
@@ -321,11 +340,14 @@ impl Display for FormalParameter {
     }
 }
 
-/// A JavaScript property is a characteristic of an object, often describing attributes associated with a data structure.
+/// A JavaScript property is a characteristic of an object, often describing
+/// attributes associated with a data structure.
 ///
-/// A property has a name (a string) and a value (primitive, method, or object reference).
-/// Note that when we say that "a property holds an object", that is shorthand for "a property holds an object reference".
-/// This distinction matters because the original referenced object remains unchanged when you change the property's value.
+/// A property has a name (a string) and a value (primitive, method, or object
+/// reference). Note that when we say that "a property holds an object", that is
+/// shorthand for "a property holds an object reference". This distinction
+/// matters because the original referenced object remains unchanged when you
+/// change the property's value.
 ///
 /// More information:
 ///  - [ECMAScript reference][spec]
@@ -357,7 +379,8 @@ pub enum PropertyDefinition {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Object_initializer#Property_definitions
     Property(Box<str>, Node),
 
-    /// A property of an object can also refer to a function or a getter or setter method.
+    /// A property of an object can also refer to a function or a getter or
+    /// setter method.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -367,10 +390,12 @@ pub enum PropertyDefinition {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Object_initializer#Method_definitions
     MethodDefinition(MethodDefinitionKind, Box<str>, FunctionExpr),
 
-    /// The Rest/Spread Properties for ECMAScript proposal (stage 4) adds spread properties to object literals.
-    /// It copies own enumerable properties from a provided object onto a new object.
+    /// The Rest/Spread Properties for ECMAScript proposal (stage 4) adds spread
+    /// properties to object literals. It copies own enumerable properties
+    /// from a provided object onto a new object.
     ///
-    /// Shallow-cloning (excluding `prototype`) or merging objects is now possible using a shorter syntax than `Object.assign()`.
+    /// Shallow-cloning (excluding `prototype`) or merging objects is now
+    /// possible using a shorter syntax than `Object.assign()`.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -418,8 +443,9 @@ impl PropertyDefinition {
 
 /// Method definition kinds.
 ///
-/// Starting with ECMAScript 2015, a shorter syntax for method definitions on objects initializers is introduced.
-/// It is a shorthand for a function assigned to the method's name.
+/// Starting with ECMAScript 2015, a shorter syntax for method definitions on
+/// objects initializers is introduced. It is a shorthand for a function
+/// assigned to the method's name.
 ///
 /// More information:
 ///  - [ECMAScript reference][spec]
@@ -430,14 +456,18 @@ impl PropertyDefinition {
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, PartialEq, Copy, Finalize)]
 pub enum MethodDefinitionKind {
-    /// The `get` syntax binds an object property to a function that will be called when that property is looked up.
+    /// The `get` syntax binds an object property to a function that will be
+    /// called when that property is looked up.
     ///
-    /// Sometimes it is desirable to allow access to a property that returns a dynamically computed value,
-    /// or you may want to reflect the status of an internal variable without requiring the use of explicit method calls.
+    /// Sometimes it is desirable to allow access to a property that returns a
+    /// dynamically computed value, or you may want to reflect the status of
+    /// an internal variable without requiring the use of explicit method calls.
     /// In JavaScript, this can be accomplished with the use of a getter.
     ///
-    /// It is not possible to simultaneously have a getter bound to a property and have that property actually hold a value,
-    /// although it is possible to use a getter and a setter in conjunction to create a type of pseudo-property.
+    /// It is not possible to simultaneously have a getter bound to a property
+    /// and have that property actually hold a value, although it is
+    /// possible to use a getter and a setter in conjunction to create a type of
+    /// pseudo-property.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -447,11 +477,14 @@ pub enum MethodDefinitionKind {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/get
     Get,
 
-    /// The `set` syntax binds an object property to a function to be called when there is an attempt to set that property.
+    /// The `set` syntax binds an object property to a function to be called
+    /// when there is an attempt to set that property.
     ///
-    /// In JavaScript, a setter can be used to execute a function whenever a specified property is attempted to be changed.
-    /// Setters are most often used in conjunction with getters to create a type of pseudo-property.
-    /// It is not possible to simultaneously have a setter on a property that holds an actual value.
+    /// In JavaScript, a setter can be used to execute a function whenever a
+    /// specified property is attempted to be changed. Setters are most
+    /// often used in conjunction with getters to create a type of
+    /// pseudo-property. It is not possible to simultaneously have a setter
+    /// on a property that holds an actual value.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -461,7 +494,8 @@ pub enum MethodDefinitionKind {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/set
     Set,
 
-    /// Starting with ECMAScript 2015, you are able to define own methods in a shorter syntax, similar to the getters and setters.
+    /// Starting with ECMAScript 2015, you are able to define own methods in a
+    /// shorter syntax, similar to the getters and setters.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]

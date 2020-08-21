@@ -18,27 +18,29 @@ mod update;
 use self::assignment::ExponentiationExpression;
 pub(super) use self::{assignment::AssignmentExpression, primary::Initializer};
 use super::{AllowAwait, AllowIn, AllowYield, Cursor, ParseResult, TokenParser};
-use crate::syntax::lexer::{InputElement, TokenKind};
 use crate::{
     profiler::BoaProfiler,
-    syntax::ast::{
-        node::{BinOp, Node},
-        Keyword, Punctuator,
+    syntax::{
+        ast::{
+            node::{BinOp, Node},
+            Keyword, Punctuator,
+        },
+        lexer::{InputElement, TokenKind},
     },
 };
 
 use std::io::Read;
 
-// For use in the expression! macro to allow for both Punctuator and Keyword parameters.
-// Always returns false.
+// For use in the expression! macro to allow for both Punctuator and Keyword
+// parameters. Always returns false.
 impl PartialEq<Keyword> for Punctuator {
     fn eq(&self, _other: &Keyword) -> bool {
         false
     }
 }
 
-// For use in the expression! macro to allow for both Punctuator and Keyword parameters.
-// Always returns false.
+// For use in the expression! macro to allow for both Punctuator and Keyword
+// parameters. Always returns false.
 impl PartialEq<Punctuator> for Keyword {
     fn eq(&self, _other: &Punctuator) -> bool {
         false
@@ -49,11 +51,14 @@ impl PartialEq<Punctuator> for Keyword {
 ///
 /// This macro has 2 mandatory identifiers:
 ///  - The `$name` identifier will contain the name of the parsing structure.
-///  - The `$lower` identifier will contain the parser for lower level expressions.
+///  - The `$lower` identifier will contain the parser for lower level
+///    expressions.
 ///
-/// Those exressions are divided by the punctuators passed as the third parameter.
+/// Those exressions are divided by the punctuators passed as the third
+/// parameter.
 ///
-/// The fifth parameter is an Option<InputElement> which sets the goal symbol to set before parsing (or None to leave it as is).
+/// The fifth parameter is an Option<InputElement> which sets the goal symbol to
+/// set before parsing (or None to leave it as is).
 macro_rules! expression { ($name:ident, $lower:ident, [$( $op:path ),*], [$( $low_param:ident ),*], $goal:expr, $profile:expr ) => {
     impl<R> TokenParser<R> for $name
     where
@@ -510,7 +515,8 @@ expression!(
 
 /// Parses a multiplicative expression.
 ///
-/// This can be either a multiplication, division or a modulo (remainder) expression.
+/// This can be either a multiplication, division or a modulo (remainder)
+/// expression.
 ///
 /// More information:
 ///  - [MDN documentation][mdn]

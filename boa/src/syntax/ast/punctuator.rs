@@ -1,4 +1,5 @@
-//! This module implements the `Punctuator`, which represents all punctuators used in JavaScript
+//! This module implements the `Punctuator`, which represents all punctuators
+//! used in JavaScript
 //!
 //! More information:
 //!  - [ECMAScript Reference][spec]

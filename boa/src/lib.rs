@@ -1,4 +1,5 @@
-//! This is an experimental Javascript lexer, parser and compiler written in Rust. Currently, it has support for some of the language.
+//! This is an experimental JavaScript lexer, parser and compiler written in
+//! Rust. Currently, it has support for some of the language.
 
 #![doc(
     html_logo_url = "https://raw.githubusercontent.com/jasonwilliams/boa/master/assets/logo.svg",
@@ -53,7 +54,8 @@ pub use crate::{
 };
 use std::result::Result as StdResult;
 
-/// The result of a Javascript expression is represented like this so it can succeed (`Ok`) or fail (`Err`)
+/// The result of a Javascript expression is represented like this so it can
+/// succeed (`Ok`) or fail (`Err`)
 #[must_use]
 pub type Result<T> = StdResult<T, Value>;
 
@@ -79,8 +81,9 @@ pub fn forward(engine: &mut Interpreter, src: &str) -> String {
 
 /// Execute the code using an existing Interpreter.
 /// The str is consumed and the state of the Interpreter is changed
-/// Similar to `forward`, except the current value is returned instad of the string
-/// If the interpreter fails parsing an error value is returned instead (error object)
+/// Similar to `forward`, except the current value is returned instad of the
+/// string If the interpreter fails parsing an error value is returned instead
+/// (error object)
 #[allow(clippy::unit_arg, clippy::drop_copy)]
 pub fn forward_val(engine: &mut Interpreter, src: &str) -> Result<Value> {
     let main_timer = BoaProfiler::global().start_event("Main", "Main");

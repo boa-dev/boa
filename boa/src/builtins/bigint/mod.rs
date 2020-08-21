@@ -1,8 +1,8 @@
 //! This module implements the global `BigInt` object.
 //!
-//! `BigInt` is a built-in object that provides a way to represent whole numbers larger
-//! than the largest number JavaScript can reliably represent with the Number primitive
-//! and represented by the `Number.MAX_SAFE_INTEGER` constant.
+//! `BigInt` is a built-in object that provides a way to represent whole numbers
+//! larger than the largest number JavaScript can reliably represent with the
+//! Number primitive and represented by the `Number.MAX_SAFE_INTEGER` constant.
 //! `BigInt` can be used for arbitrarily large integers.
 //!
 //! More information:
@@ -52,9 +52,10 @@ impl BigInt {
 
     /// The abstract operation thisBigIntValue takes argument value.
     ///
-    /// The phrase “this BigInt value” within the specification of a method refers to the
-    /// result returned by calling the abstract operation thisBigIntValue with the `this` value
-    /// of the method invocation passed as the argument.
+    /// The phrase “this BigInt value” within the specification of a method
+    /// refers to the result returned by calling the abstract operation
+    /// thisBigIntValue with the `this` value of the method invocation
+    /// passed as the argument.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -101,7 +102,8 @@ impl BigInt {
 
     /// `BigInt.prototype.toString( [radix] )`
     ///
-    /// The `toString()` method returns a string representing the specified BigInt object.
+    /// The `toString()` method returns a string representing the specified
+    /// BigInt object.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -127,7 +129,8 @@ impl BigInt {
 
     /// `BigInt.prototype.valueOf()`
     ///
-    /// The `valueOf()` method returns the wrapped primitive value of a Number object.
+    /// The `valueOf()` method returns the wrapped primitive value of a Number
+    /// object.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -141,7 +144,8 @@ impl BigInt {
 
     /// `BigInt.asIntN()`
     ///
-    /// The `BigInt.asIntN()` method wraps the value of a `BigInt` to a signed integer between `-2**(width - 1)` and `2**(width-1) - 1`.
+    /// The `BigInt.asIntN()` method wraps the value of a `BigInt` to a signed
+    /// integer between `-2**(width - 1)` and `2**(width-1) - 1`.
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-bigint.asintn
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/BigInt/asIntN
@@ -160,7 +164,8 @@ impl BigInt {
 
     /// `BigInt.asUintN()`
     ///
-    /// The `BigInt.asUintN()` method wraps the value of a `BigInt` to an unsigned integer between `0` and `2**(width) - 1`.
+    /// The `BigInt.asUintN()` method wraps the value of a `BigInt` to an
+    /// unsigned integer between `0` and `2**(width) - 1`.
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-bigint.asuintn
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/BigInt/asUintN
@@ -173,9 +178,10 @@ impl BigInt {
 
     /// Helper function to wrap the value of a `BigInt` to an unsigned integer.
     ///
-    /// This function expects the same arguments as `as_uint_n` and wraps the value of a `BigInt`.
-    /// Additionally to the wrapped unsigned value it returns the converted `bits` argument, so it
-    /// can be reused from the `as_int_n` method.
+    /// This function expects the same arguments as `as_uint_n` and wraps the
+    /// value of a `BigInt`. Additionally to the wrapped unsigned value it
+    /// returns the converted `bits` argument, so it can be reused from the
+    /// `as_int_n` method.
     fn calculate_as_uint_n(args: &[Value], ctx: &mut Interpreter) -> Result<(BigInt, u32)> {
         use std::convert::TryFrom;
 

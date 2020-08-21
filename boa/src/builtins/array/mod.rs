@@ -1,6 +1,7 @@
 //! This module implements the global `Array` object.
 //!
-//! The JavaScript `Array` class is a global object that is used in the construction of arrays; which are high-level, list-like objects.
+//! The JavaScript `Array` class is a global object that is used in the
+//! construction of arrays; which are high-level, list-like objects.
 //!
 //! More information:
 //!  - [ECMAScript reference][spec]
@@ -63,8 +64,8 @@ impl Array {
 
     /// Utility function for creating array objects.
     ///
-    /// `array_obj` can be any array with prototype already set (it will be wiped and
-    /// recreated from `array_contents`)
+    /// `array_obj` can be any array with prototype already set (it will be
+    /// wiped and recreated from `array_contents`)
     pub(crate) fn construct_array(array_obj: &Value, array_contents: &[Value]) -> Result<Value> {
         let array_obj_ptr = array_obj.clone();
 
@@ -87,8 +88,8 @@ impl Array {
         Ok(array_obj_ptr)
     }
 
-    /// Utility function which takes an existing array object and puts additional
-    /// values on the end, correctly rewriting the length
+    /// Utility function which takes an existing array object and puts
+    /// additional values on the end, correctly rewriting the length
     pub(crate) fn add_to_array_object(array_ptr: &Value, add_values: &[Value]) -> Result<Value> {
         let orig_length = array_ptr.get_field("length").as_number().unwrap() as i32;
 
@@ -125,7 +126,8 @@ impl Array {
         match args.len() {
             1 if args[0].is_integer() => {
                 length = args[0].as_number().unwrap() as i32;
-                // TODO: It should not create an array of undefineds, but an empty array ("holy" array in V8) with length `n`.
+                // TODO: It should not create an array of undefineds, but an empty array ("holy"
+                // array in V8) with length `n`.
                 for n in 0..length {
                     this.set_field(n, Value::undefined());
                 }
@@ -153,8 +155,9 @@ impl Array {
 
     /// `Array.isArray( arg )`
     ///
-    /// The isArray function takes one argument arg, and returns the Boolean value true
-    /// if the argument is an object whose class internal property is "Array"; otherwise it returns false.
+    /// The isArray function takes one argument arg, and returns the Boolean
+    /// value true if the argument is an object whose class internal
+    /// property is "Array"; otherwise it returns false.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -175,9 +178,9 @@ impl Array {
 
     /// `Array.prototype.concat(...arguments)`
     ///
-    /// When the concat method is called with zero or more arguments, it returns an
-    /// array containing the array elements of the object followed by the array
-    /// elements of each argument in order.
+    /// When the concat method is called with zero or more arguments, it returns
+    /// an array containing the array elements of the object followed by the
+    /// array elements of each argument in order.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -212,9 +215,9 @@ impl Array {
 
     /// `Array.prototype.push( ...items )`
     ///
-    /// The arguments are appended to the end of the array, in the order in which
-    /// they appear. The new length of the array is returned as the result of the
-    /// call.
+    /// The arguments are appended to the end of the array, in the order in
+    /// which they appear. The new length of the array is returned as the
+    /// result of the call.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -252,7 +255,8 @@ impl Array {
 
     /// `Array.prototype.forEach( callbackFn [ , thisArg ] )`
     ///
-    /// This method executes the provided callback function for each element in the array.
+    /// This method executes the provided callback function for each element in
+    /// the array.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -286,9 +290,9 @@ impl Array {
 
     /// `Array.prototype.join( separator )`
     ///
-    /// The elements of the array are converted to Strings, and these Strings are
-    /// then concatenated, separated by occurrences of the separator. If no
-    /// separator is provided, a single comma is used as the separator.
+    /// The elements of the array are converted to Strings, and these Strings
+    /// are then concatenated, separated by occurrences of the separator. If
+    /// no separator is provided, a single comma is used as the separator.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -439,9 +443,9 @@ impl Array {
 
     /// `Array.prototype.unshift( ...items )`
     ///
-    /// The arguments are prepended to the start of the array, such that their order
-    /// within the array is the same as the order in which they appear in the
-    /// argument list.
+    /// The arguments are prepended to the start of the array, such that their
+    /// order within the array is the same as the order in which they appear
+    /// in the argument list.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -484,9 +488,9 @@ impl Array {
     /// `Array.prototype.every( callback, [ thisArg ] )`
     ///
     /// The every method executes the provided callback function once for each
-    /// element present in the array until it finds the one where callback returns
-    /// a falsy value. It returns `false` if it finds such element, otherwise it
-    /// returns `true`.
+    /// element present in the array until it finds the one where callback
+    /// returns a falsy value. It returns `false` if it finds such element,
+    /// otherwise it returns `true`.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -575,14 +579,16 @@ impl Array {
     /// `Array.prototype.indexOf( searchElement[, fromIndex ] )`
     ///
     ///
-    /// indexOf compares searchElement to the elements of the array, in ascending order,
-    /// using the Strict Equality Comparison algorithm, and if found at one or more indices,
-    /// returns the smallest such index; otherwise, -1 is returned.
+    /// indexOf compares searchElement to the elements of the array, in
+    /// ascending order, using the Strict Equality Comparison algorithm, and
+    /// if found at one or more indices, returns the smallest such index;
+    /// otherwise, -1 is returned.
     ///
-    /// The optional second argument fromIndex defaults to 0 (i.e. the whole array is searched).
-    /// If it is greater than or equal to the length of the array, -1 is returned,
-    /// i.e. the array will not be searched. If it is negative, it is used as the offset
-    /// from the end of the array to compute fromIndex. If the computed index is less than 0,
+    /// The optional second argument fromIndex defaults to 0 (i.e. the whole
+    /// array is searched). If it is greater than or equal to the length of
+    /// the array, -1 is returned, i.e. the array will not be searched. If
+    /// it is negative, it is used as the offset from the end of the array
+    /// to compute fromIndex. If the computed index is less than 0,
     /// the whole array will be searched.
     ///
     /// More information:
@@ -629,14 +635,17 @@ impl Array {
     /// `Array.prototype.lastIndexOf( searchElement[, fromIndex ] )`
     ///
     ///
-    /// lastIndexOf compares searchElement to the elements of the array in descending order
-    /// using the Strict Equality Comparison algorithm, and if found at one or more indices,
-    /// returns the largest such index; otherwise, -1 is returned.
+    /// lastIndexOf compares searchElement to the elements of the array in
+    /// descending order using the Strict Equality Comparison algorithm, and
+    /// if found at one or more indices, returns the largest such index;
+    /// otherwise, -1 is returned.
     ///
-    /// The optional second argument fromIndex defaults to the array's length minus one
-    /// (i.e. the whole array is searched). If it is greater than or equal to the length of the array,
-    /// the whole array will be searched. If it is negative, it is used as the offset from the end
-    /// of the array to compute fromIndex. If the computed index is less than 0, -1 is returned.
+    /// The optional second argument fromIndex defaults to the array's length
+    /// minus one (i.e. the whole array is searched). If it is greater than
+    /// or equal to the length of the array, the whole array will be
+    /// searched. If it is negative, it is used as the offset from the end
+    /// of the array to compute fromIndex. If the computed index is less than 0,
+    /// -1 is returned.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -685,9 +694,10 @@ impl Array {
 
     /// `Array.prototype.find( callback, [thisArg] )`
     ///
-    /// The find method executes the callback function once for each index of the array
-    /// until the callback returns a truthy value. If so, find immediately returns the value
-    /// of that element. Otherwise, find returns undefined.
+    /// The find method executes the callback function once for each index of
+    /// the array until the callback returns a truthy value. If so, find
+    /// immediately returns the value of that element. Otherwise, find
+    /// returns undefined.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -721,9 +731,10 @@ impl Array {
 
     /// `Array.prototype.findIndex( predicate [ , thisArg ] )`
     ///
-    /// This method executes the provided predicate function for each element of the array.
-    /// If the predicate function returns `true` for an element, this method returns the index of the element.
-    /// If all elements return `false`, the value `-1` is returned.
+    /// This method executes the provided predicate function for each element of
+    /// the array. If the predicate function returns `true` for an element,
+    /// this method returns the index of the element. If all elements return
+    /// `false`, the value `-1` is returned.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -764,8 +775,9 @@ impl Array {
 
     /// `Array.prototype.fill( value[, start[, end]] )`
     ///
-    /// The method fills (modifies) all the elements of an array from start index (default 0)
-    /// to an end index (default array length) with a static value. It returns the modified array.
+    /// The method fills (modifies) all the elements of an array from start
+    /// index (default 0) to an end index (default array length) with a
+    /// static value. It returns the modified array.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -805,7 +817,8 @@ impl Array {
 
     /// `Array.prototype.includes( valueToFind [, fromIndex] )`
     ///
-    /// Determines whether an array includes a certain value among its entries, returning `true` or `false` as appropriate.
+    /// Determines whether an array includes a certain value among its entries,
+    /// returning `true` or `false` as appropriate.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -835,11 +848,12 @@ impl Array {
 
     /// `Array.prototype.slice( [begin[, end]] )`
     ///
-    /// The slice method takes two arguments, start and end, and returns an array containing the
-    /// elements of the array from element start up to, but not including, element end (or through the
-    /// end of the array if end is undefined). If start is negative, it is treated as length + start
-    /// where length is the length of the array. If end is negative, it is treated as length + end where
-    /// length is the length of the array.
+    /// The slice method takes two arguments, start and end, and returns an
+    /// array containing the elements of the array from element start up to,
+    /// but not including, element end (or through the end of the array if
+    /// end is undefined). If start is negative, it is treated as length + start
+    /// where length is the length of the array. If end is negative, it is
+    /// treated as length + end where length is the length of the array.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -888,7 +902,8 @@ impl Array {
     /// `Array.prototype.filter( callback, [ thisArg ] )`
     ///
     /// For each element in the array the callback function is called, and a new
-    /// array is constructed for every value whose callback returned a truthy value.
+    /// array is constructed for every value whose callback returned a truthy
+    /// value.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -938,11 +953,12 @@ impl Array {
     /// Array.prototype.some ( callbackfn [ , thisArg ] )
     ///
     /// The some method tests whether at least one element in the array passes
-    /// the test implemented by the provided callback function. It returns a Boolean value,
-    /// true if the callback function returns a truthy value for at least one element
-    /// in the array. Otherwise, false.
+    /// the test implemented by the provided callback function. It returns a
+    /// Boolean value, true if the callback function returns a truthy value
+    /// for at least one element in the array. Otherwise, false.
     ///
-    /// Caution: Calling this method on an empty array returns false for any condition!
+    /// Caution: Calling this method on an empty array returns false for any
+    /// condition!
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -988,8 +1004,9 @@ impl Array {
 
     /// `Array.prototype.reduce( callbackFn [ , initialValue ] )`
     ///
-    /// The reduce method traverses left to right starting from the first defined value in the array,
-    /// accumulating a value using a given callback function. It returns the accumulated value.
+    /// The reduce method traverses left to right starting from the first
+    /// defined value in the array, accumulating a value using a given
+    /// callback function. It returns the accumulated value.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -1038,9 +1055,9 @@ impl Array {
             if this.has_field(k) {
                 let arguments = [accumulator, this.get_field(k), Value::from(k), this.clone()];
                 accumulator = interpreter.call(&callback, &Value::undefined(), &arguments)?;
-                /* We keep track of possibly shortened length in order to prevent unnecessary iteration.
-                It may also be necessary to do this since shortening the array length does not
-                delete array elements. See: https://github.com/boa-dev/boa/issues/557 */
+                // We keep track of possibly shortened length in order to prevent unnecessary
+                // iteration. It may also be necessary to do this since
+                // shortening the array length does not delete array elements. See: https://github.com/boa-dev/boa/issues/557
                 length = min(length, this.get_field("length").to_length(interpreter)?);
             }
             k += 1;
@@ -1050,8 +1067,9 @@ impl Array {
 
     /// `Array.prototype.reduceRight( callbackFn [ , initialValue ] )`
     ///
-    /// The reduceRight method traverses right to left starting from the last defined value in the array,
-    /// accumulating a value using a given callback function. It returns the accumulated value.
+    /// The reduceRight method traverses right to left starting from the last
+    /// defined value in the array, accumulating a value using a given
+    /// callback function. It returns the accumulated value.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -1110,12 +1128,13 @@ impl Array {
             if this.has_field(k) {
                 let arguments = [accumulator, this.get_field(k), Value::from(k), this.clone()];
                 accumulator = interpreter.call(&callback, &Value::undefined(), &arguments)?;
-                /* We keep track of possibly shortened length in order to prevent unnecessary iteration.
-                It may also be necessary to do this since shortening the array length does not
-                delete array elements. See: https://github.com/boa-dev/boa/issues/557 */
+                // We keep track of possibly shortened length in order to prevent unnecessary
+                // iteration. It may also be necessary to do this since
+                // shortening the array length does not delete array elements. See: https://github.com/boa-dev/boa/issues/557
                 length = min(length, this.get_field("length").to_length(interpreter)?);
 
-                // move k to the last defined element if necessary or return if the length was set to 0
+                // move k to the last defined element if necessary or return if the length was
+                // set to 0
                 if k >= length {
                     if length == 0 {
                         return Ok(accumulator);

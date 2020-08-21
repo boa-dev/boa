@@ -69,7 +69,8 @@ impl Map {
 
     /// `Map.prototype.delete( key )`
     ///
-    /// This method removes the element associated with the key, if it exists. Returns true if there was an element, false otherwise.
+    /// This method removes the element associated with the key, if it exists.
+    /// Returns true if there was an element, false otherwise.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -101,7 +102,8 @@ impl Map {
 
     /// `Map.prototype.get( key )`
     ///
-    /// This method returns the value associated with the key, or undefined if there is none.
+    /// This method returns the value associated with the key, or undefined if
+    /// there is none.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -177,7 +179,8 @@ impl Map {
 
     /// `Map.prototype.forEach( callbackFn [ , thisArg ] )`
     ///
-    /// This method executes the provided callback function for each key-value pair in the map.
+    /// This method executes the provided callback function for each key-value
+    /// pair in the map.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]

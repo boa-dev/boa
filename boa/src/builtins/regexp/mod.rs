@@ -127,7 +127,7 @@ impl RegExp {
         if regex_flags.contains('u') {
             unicode = true;
             sorted_flags.push('u');
-            //pattern.push('s'); // rust uses utf-8 anyway
+            // pattern.push('s'); // rust uses utf-8 anyway
         }
         if regex_flags.contains('y') {
             sticky = true;
@@ -161,22 +161,22 @@ impl RegExp {
 
     // /// `RegExp.prototype.dotAll`
     // ///
-    // /// The `dotAll` property indicates whether or not the "`s`" flag is used with the regular expression.
-    // ///
+    // /// The `dotAll` property indicates whether or not the "`s`" flag is used
+    // with the regular expression. ///
     // /// More information:
     // ///  - [ECMAScript reference][spec]
     // ///  - [MDN documentation][mdn]
     // ///
     // /// [spec]: https://tc39.es/ecma262/#sec-get-regexp.prototype.dotAll
     // /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/dotAll
-    // fn get_dot_all(this: &Value, _: &[Value], _: &mut Interpreter) -> Result<Value> {
-    //     this.with_internal_state_ref(|regex: &RegExp| Ok(Value::from(regex.dot_all)))
-    // }
+    // fn get_dot_all(this: &Value, _: &[Value], _: &mut Interpreter) ->
+    // Result<Value> {     this.with_internal_state_ref(|regex: &RegExp|
+    // Ok(Value::from(regex.dot_all))) }
 
     // /// `RegExp.prototype.flags`
     // ///
-    // /// The `flags` property returns a string consisting of the [`flags`][flags] of the current regular expression object.
-    // ///
+    // /// The `flags` property returns a string consisting of the [`flags`][flags]
+    // of the current regular expression object. ///
     // /// More information:
     // ///  - [ECMAScript reference][spec]
     // ///  - [MDN documentation][mdn]
@@ -184,99 +184,100 @@ impl RegExp {
     // /// [spec]: https://tc39.es/ecma262/#sec-get-regexp.prototype.flags
     // /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/flags
     // /// [flags]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions#Advanced_searching_with_flags_2
-    // fn get_flags(this: &Value, _: &[Value], _: &mut Interpreter) -> Result<Value> {
-    //     this.with_internal_state_ref(|regex: &RegExp| Ok(Value::from(regex.flags.clone())))
-    // }
+    // fn get_flags(this: &Value, _: &[Value], _: &mut Interpreter) -> Result<Value>
+    // {     this.with_internal_state_ref(|regex: &RegExp|
+    // Ok(Value::from(regex.flags.clone()))) }
 
     // /// `RegExp.prototype.global`
     // ///
-    // /// The `global` property indicates whether or not the "`g`" flag is used with the regular expression.
-    // ///
+    // /// The `global` property indicates whether or not the "`g`" flag is used
+    // with the regular expression. ///
     // /// More information:
     // ///  - [ECMAScript reference][spec]
     // ///  - [MDN documentation][mdn]
     // ///
     // /// [spec]: https://tc39.es/ecma262/#sec-get-regexp.prototype.global
     // /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/global
-    // fn get_global(this: &Value, _: &[Value], _: &mut Interpreter) -> Result<Value> {
-    //     this.with_internal_state_ref(|regex: &RegExp| Ok(Value::from(regex.global)))
-    // }
+    // fn get_global(this: &Value, _: &[Value], _: &mut Interpreter) ->
+    // Result<Value> {     this.with_internal_state_ref(|regex: &RegExp|
+    // Ok(Value::from(regex.global))) }
 
     // /// `RegExp.prototype.ignoreCase`
     // ///
-    // /// The `ignoreCase` property indicates whether or not the "`i`" flag is used with the regular expression.
-    // ///
+    // /// The `ignoreCase` property indicates whether or not the "`i`" flag is used
+    // with the regular expression. ///
     // /// More information:
     // ///  - [ECMAScript reference][spec]
     // ///  - [MDN documentation][mdn]
     // ///
     // /// [spec]: https://tc39.es/ecma262/#sec-get-regexp.prototype.ignorecase
     // /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/ignoreCase
-    // fn get_ignore_case(this: &Value, _: &[Value], _: &mut Interpreter) -> Result<Value> {
-    //     this.with_internal_state_ref(|regex: &RegExp| Ok(Value::from(regex.ignore_case)))
-    // }
+    // fn get_ignore_case(this: &Value, _: &[Value], _: &mut Interpreter) ->
+    // Result<Value> {     this.with_internal_state_ref(|regex: &RegExp|
+    // Ok(Value::from(regex.ignore_case))) }
 
     // /// `RegExp.prototype.multiline`
     // ///
-    // /// The multiline property indicates whether or not the "m" flag is used with the regular expression.
-    // ///
+    // /// The multiline property indicates whether or not the "m" flag is used with
+    // the regular expression. ///
     // /// More information:
     // ///  - [ECMAScript reference][spec]
     // ///  - [MDN documentation][mdn]
     // ///
     // /// [spec]: https://tc39.es/ecma262/#sec-get-regexp.prototype.multiline
     // /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/multiline
-    // fn get_multiline(this: &Value, _: &[Value], _: &mut Interpreter) -> Result<Value> {
-    //     this.with_internal_state_ref(|regex: &RegExp| Ok(Value::from(regex.multiline)))
-    // }
+    // fn get_multiline(this: &Value, _: &[Value], _: &mut Interpreter) ->
+    // Result<Value> {     this.with_internal_state_ref(|regex: &RegExp|
+    // Ok(Value::from(regex.multiline))) }
 
     // /// `RegExp.prototype.source`
     // ///
-    // /// The `source` property returns a `String` containing the source text of the regexp object,
-    // /// and it doesn't contain the two forward slashes on both sides and any flags.
-    // ///
+    // /// The `source` property returns a `String` containing the source text of
+    // the regexp object, /// and it doesn't contain the two forward slashes on
+    // both sides and any flags. ///
     // /// More information:
     // ///  - [ECMAScript reference][spec]
     // ///  - [MDN documentation][mdn]
     // ///
     // /// [spec]: https://tc39.es/ecma262/#sec-get-regexp.prototype.source
     // /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/source
-    // fn get_source(this: &Value, _: &[Value], _: &mut Interpreter) -> Result<Value> {
-    //     Ok(this.get_internal_slot("OriginalSource"))
+    // fn get_source(this: &Value, _: &[Value], _: &mut Interpreter) ->
+    // Result<Value> {     Ok(this.get_internal_slot("OriginalSource"))
     // }
 
     // /// `RegExp.prototype.sticky`
     // ///
-    // /// The `flags` property returns a string consisting of the [`flags`][flags] of the current regular expression object.
-    // ///
+    // /// The `flags` property returns a string consisting of the [`flags`][flags]
+    // of the current regular expression object. ///
     // /// More information:
     // ///  - [ECMAScript reference][spec]
     // ///  - [MDN documentation][mdn]
     // ///
     // /// [spec]: https://tc39.es/ecma262/#sec-get-regexp.prototype.sticky
     // /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/sticky
-    // fn get_sticky(this: &Value, _: &[Value], _: &mut Interpreter) -> Result<Value> {
-    //     this.with_internal_state_ref(|regex: &RegExp| Ok(Value::from(regex.sticky)))
-    // }
+    // fn get_sticky(this: &Value, _: &[Value], _: &mut Interpreter) ->
+    // Result<Value> {     this.with_internal_state_ref(|regex: &RegExp|
+    // Ok(Value::from(regex.sticky))) }
 
     // /// `RegExp.prototype.unicode`
     // ///
-    // /// The unicode property indicates whether or not the "`u`" flag is used with a regular expression.
-    // /// unicode is a read-only property of an individual regular expression instance.
-    // ///
+    // /// The unicode property indicates whether or not the "`u`" flag is used with
+    // a regular expression. /// unicode is a read-only property of an
+    // individual regular expression instance. ///
     // /// More information:
     // ///  - [ECMAScript reference][spec]
     // ///  - [MDN documentation][mdn]
     // ///
     // /// [spec]: https://tc39.es/ecma262/#sec-get-regexp.prototype.unicode
     // /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/unicode
-    // fn get_unicode(this: &Value, _: &[Value], _: &mut Interpreter) -> Result<Value> {
-    //     this.with_internal_state_ref(|regex: &RegExp| Ok(Value::from(regex.unicode)))
-    // }
+    // fn get_unicode(this: &Value, _: &[Value], _: &mut Interpreter) ->
+    // Result<Value> {     this.with_internal_state_ref(|regex: &RegExp|
+    // Ok(Value::from(regex.unicode))) }
 
     /// `RegExp.prototype.test( string )`
     ///
-    /// The `test()` method executes a search for a match between a regular expression and a specified string.
+    /// The `test()` method executes a search for a match between a regular
+    /// expression and a specified string.
     ///
     /// Returns `true` or `false`.
     ///
@@ -373,7 +374,8 @@ impl RegExp {
 
     /// `RegExp.prototype[ @@match ]( string )`
     ///
-    /// This method retrieves the matches when matching a string against a regular expression.
+    /// This method retrieves the matches when matching a string against a
+    /// regular expression.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -425,7 +427,8 @@ impl RegExp {
 
     /// `RegExp.prototype[ @@matchAll ]( string )`
     ///
-    /// The `[@@matchAll]` method returns all matches of the regular expression against a string.
+    /// The `[@@matchAll]` method returns all matches of the regular expression
+    /// against a string.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]

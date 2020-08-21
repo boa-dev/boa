@@ -8,7 +8,7 @@
     />
 </p>
 
-This is an experimental Javascript lexer, parser and compiler written in Rust.
+This is an experimental JavaScript lexer, parser and compiler written in Rust.
 Currently, it has support for some of the language.
 
 [![Build Status][build_badge]][build_link]
@@ -46,7 +46,7 @@ Check [debugging.md](./docs/debugging.md) for more info on debugging.
 
 ### Web Assembly
 
-This interpreter can be exposed to javascript!
+This interpreter can be exposed to JavaScript!
 You can build the example locally with:
 
 ```

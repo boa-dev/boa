@@ -37,8 +37,9 @@ impl<R> Tokenizer<R> for TemplateLiteral {
                         "Unterminated template literal",
                     )));
                 }
-                Some('`') => break,                 // Template literal finished.
-                Some(next_ch) => buf.push(next_ch), // TODO when there is an expression inside the literal
+                Some('`') => break, // Template literal finished.
+                Some(next_ch) => buf.push(next_ch), /* TODO when there is an expression inside
+                                      * the literal */
             }
         }
 

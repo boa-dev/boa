@@ -1,4 +1,5 @@
-//! This module implements the `Pos` structure, which represents a position in the source code.
+//! This module implements the `Pos` structure, which represents a position in
+//! the source code.
 
 use std::{cmp::Ordering, fmt, num::NonZeroU32};
 
@@ -9,7 +10,8 @@ use serde::{Deserialize, Serialize};
 ///
 /// Stores both the column number and the line number.
 ///
-/// Note that spans are of the form [begining, end) i.e. that the begining position is inclusive and the end position is exclusive.
+/// Note that spans are of the form [begining, end) i.e. that the begining
+/// position is inclusive and the end position is exclusive.
 /// See test check_positions from syntax/lexer/tests.rs for an example.
 ///
 /// ## Similar Implementations

@@ -8,7 +8,6 @@
 //! [spec]: https://tc39.es/ecma262/#sec-exp-operator
 
 use super::ParseError;
-use crate::syntax::lexer::TokenKind;
 use crate::{
     syntax::{
         ast::{
@@ -16,6 +15,7 @@ use crate::{
             op::NumOp,
             Keyword, Punctuator,
         },
+        lexer::TokenKind,
         parser::{
             expression::{unary::UnaryExpression, update::UpdateExpression},
             AllowAwait, AllowYield, Cursor, ParseResult, TokenParser,
@@ -54,7 +54,8 @@ impl ExponentiationExpression {
     }
 }
 
-/// Checks by looking at the next token to see whether it's a unary operator or not.
+/// Checks by looking at the next token to see whether it's a unary operator or
+/// not.
 fn is_unary_expression<R>(cursor: &mut Cursor<R>) -> Result<bool, ParseError>
 where
     R: Read,

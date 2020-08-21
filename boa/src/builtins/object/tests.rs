@@ -58,7 +58,8 @@ fn object_create_with_number() {
 
 #[test]
 #[ignore]
-// to test on __proto__ somehow. __proto__ getter is not working as expected currently
+// to test on __proto__ somehow. __proto__ getter is not working as expected
+// currently
 fn object_create_with_function() {
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);

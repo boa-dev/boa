@@ -74,7 +74,8 @@ where
 
         match tok.kind() {
             TokenKind::Keyword(Keyword::This) => Ok(Node::This),
-            // TokenKind::Keyword(Keyword::Arguments) => Ok(Node::new(NodeBase::Arguments, tok.pos)),
+            // TokenKind::Keyword(Keyword::Arguments) => Ok(Node::new(NodeBase::Arguments,
+            // tok.pos)),
             TokenKind::Keyword(Keyword::Function) => {
                 FunctionExpression.parse(cursor).map(Node::from)
             }
@@ -99,7 +100,7 @@ where
             }
             TokenKind::BooleanLiteral(boolean) => Ok(Const::from(*boolean).into()),
             TokenKind::NullLiteral => Ok(Const::Null.into()),
-            TokenKind::Identifier(ident) => Ok(Identifier::from(ident.as_ref()).into()), // TODO: IdentifierReference
+            TokenKind::Identifier(ident) => Ok(Identifier::from(ident.as_ref()).into()), /* TODO: IdentifierReference */
             TokenKind::StringLiteral(s) => Ok(Const::from(s.as_ref()).into()),
             TokenKind::NumericLiteral(Numeric::Integer(num)) => Ok(Const::from(*num).into()),
             TokenKind::NumericLiteral(Numeric::Rational(num)) => Ok(Const::from(*num).into()),

@@ -15,8 +15,8 @@ const MAX_PEEK_SKIP: usize = 2;
 
 /// The fixed size of the buffer used for storing values that are peeked ahead.
 ///
-/// The size is calculated for a worst case scenario, where we want to peek `MAX_PEEK_SKIP` tokens
-/// skipping line terminators:
+/// The size is calculated for a worst case scenario, where we want to peek
+/// `MAX_PEEK_SKIP` tokens skipping line terminators:
 /// ```text
 /// [\n, B, \n, C, \n, D, \n, E, \n, F]
 ///   0  0   1  1   2  2   3  3   4  4
@@ -74,7 +74,8 @@ where
         self.lexer.set_goal(elm)
     }
 
-    /// Lexes the next tokens as a regex assuming that the starting '/' has already been consumed.
+    /// Lexes the next tokens as a regex assuming that the starting '/' has
+    /// already been consumed.
     #[inline]
     pub(super) fn lex_regex(&mut self, start: Position) -> Result<Token, ParseError> {
         let _timer = BoaProfiler::global().start_event("cursor::lex_regex()", "Parsing");
@@ -95,8 +96,8 @@ where
 
         if let Some(ref token) = self.peeked[previous_index] {
             if token.kind() == &TokenKind::LineTerminator {
-                // We don't want to have multiple contiguous line terminators in the buffer, since
-                // they have no meaning.
+                // We don't want to have multiple contiguous line terminators in the buffer,
+                // since they have no meaning.
                 let next = loop {
                     let next = self.lexer.next()?;
                     if let Some(ref token) = next {
@@ -131,10 +132,12 @@ where
 
     /// Moves the cursor to the next token and returns the token.
     ///
-    /// If skip_line_terminators is true then line terminators will be discarded.
+    /// If skip_line_terminators is true then line terminators will be
+    /// discarded.
     ///
-    /// This follows iterator semantics in that a `peek(0, false)` followed by a `next(false)` will
-    /// return the same value. Note that because a `peek(n, false)` may return a line terminator a
+    /// This follows iterator semantics in that a `peek(0, false)` followed by a
+    /// `next(false)` will return the same value. Note that because a
+    /// `peek(n, false)` may return a line terminator a
     // subsequent `next(true)` may not return the same value.
     pub(super) fn next(
         &mut self,
@@ -148,8 +151,9 @@ where
             let tok = if !skip_line_terminators || token.kind() != &TokenKind::LineTerminator {
                 self.peeked[self.read_index].take()
             } else {
-                // We only store 1 contiguous line terminator, so if the one at `self.read_index`
-                // was a line terminator, we know that the next won't be one.
+                // We only store 1 contiguous line terminator, so if the one at
+                // `self.read_index` was a line terminator, we know that the
+                // next won't be one.
                 self.read_index = (self.read_index + 1) % PEEK_BUF_SIZE;
                 if self.read_index == self.write_index {
                     self.fill()?;
@@ -161,7 +165,8 @@ where
 
             Ok(tok)
         } else {
-            // We do not update the read index, since we should always return `None` from now on.
+            // We do not update the read index, since we should always return `None` from
+            // now on.
             Ok(None)
         }
     }
@@ -169,14 +174,15 @@ where
     /// Peeks the `n`th token after the next token.
     ///
     /// **Note:** `n` must be in the range `[0, 3]`.
-    /// i.e. if there are tokens `A`, `B`, `C`, `D`, `E` and `peek(0, false)` returns `A` then:
+    /// i.e. if there are tokens `A`, `B`, `C`, `D`, `E` and `peek(0, false)`
+    /// returns `A` then:
     ///  - `peek(1, false) == peek(1, true) == B`.
     ///  - `peek(2, false)` will return `C`.
     /// where `A`, `B`, `C`, `D` and `E` are tokens but not line terminators.
     ///
-    /// If `skip_line_terminators` is `true` then line terminators will be discarded.
-    /// i.e. If there are tokens `A`, `\n`, `B` and `peek(0, false)` is `A` then the following
-    /// will hold:
+    /// If `skip_line_terminators` is `true` then line terminators will be
+    /// discarded. i.e. If there are tokens `A`, `\n`, `B` and `peek(0,
+    /// false)` is `A` then the following will hold:
     ///  - `peek(0, true) == A`
     ///  - `peek(0, false) == A`
     ///  - `peek(1, true) == B`
@@ -208,8 +214,9 @@ where
                     }
                 } else {
                     read_index = (read_index + 1) % PEEK_BUF_SIZE;
-                    // We only store 1 contiguous line terminator, so if the one at `self.read_index`
-                    // was a line terminator, we know that the next won't be one.
+                    // We only store 1 contiguous line terminator, so if the one at
+                    // `self.read_index` was a line terminator, we know that the
+                    // next won't be one.
                     if read_index == self.write_index {
                         self.fill()?;
                     }

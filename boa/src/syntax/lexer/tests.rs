@@ -1,8 +1,7 @@
 //! Tests for the lexer.
 #![allow(clippy::indexing_slicing)]
 
-use super::token::Numeric;
-use super::*;
+use super::{token::Numeric, *};
 use crate::syntax::ast::Keyword;
 
 fn span(start: (u32, u32), end: (u32, u32)) -> Span {
@@ -88,9 +87,8 @@ fn check_template_literal_unterminated() {
 
 #[test]
 fn check_punctuators() {
-    // https://tc39.es/ecma262/#sec-punctuators
-    let s = "{ ( ) [ ] . ... ; , < > <= >= == != === !== \
-             + - * % -- << >> >>> & | ^ ! ~ && || ? : \
+    // <https://tc39.es/ecma262/#sec-punctuators>
+    let s = "{ ( ) [ ] . ... ; , < > <= >= == != === !== + - * % -- << >> >>> & | ^ ! ~ && || ? : \
              = += -= *= &= **= ++ ** <<= >>= >>>= &= |= ^= =>";
     let mut lexer = Lexer::new(s.as_bytes());
 
@@ -151,10 +149,10 @@ fn check_punctuators() {
 
 #[test]
 fn check_keywords() {
-    // https://tc39.es/ecma262/#sec-keywords
-    let s = "await break case catch class const continue debugger default delete \
-             do else export extends finally for function if import in instanceof \
-             new return super switch this throw try typeof var void while with yield";
+    // <https://tc39.es/ecma262/#sec-keywords>
+    let s = "await break case catch class const continue debugger default delete do else export \
+             extends finally for function if import in instanceof new return super switch this \
+             throw try typeof var void while with yield";
 
     let mut lexer = Lexer::new(s.as_bytes());
 
@@ -320,8 +318,9 @@ fn check_decrement_advances_lexer_2_places() {
         lexer.next().unwrap().unwrap().kind(),
         &TokenKind::Punctuator(Punctuator::Dec)
     );
-    // Decrementing means adding 2 characters '--', the lexer should consume it as a single token
-    // and move the curser forward by 2, meaning the next token should be a semicolon
+    // Decrementing means adding 2 characters '--', the lexer should consume it as a
+    // single token and move the curser forward by 2, meaning the next token
+    // should be a semicolon
 
     assert_eq!(
         lexer.next().unwrap().unwrap().kind(),
@@ -583,8 +582,9 @@ fn take_until_pred_entire_str() {
 
 #[test]
 fn illegal_following_numeric_literal() {
-    // Checks as per https://tc39.es/ecma262/#sec-literals-numeric-literals that a NumericLiteral cannot
-    // be immediately followed by an IdentifierStart or DecimalDigit.
+    // Checks as per <https://tc39.es/ecma262/#sec-literals-numeric-literals>
+    // that a `NumericLiteral` cannot be immediately followed by an
+    // `IdentifierStart` or `DecimalDigit`.
 
     // Decimal Digit
     let mut lexer = Lexer::new(&b"11.6n3"[0..]);
@@ -616,8 +616,9 @@ fn codepoint_with_no_braces() {
 #[test]
 #[ignore]
 fn illegal_code_point_following_numeric_literal() {
-    // Checks as per https://tc39.es/ecma262/#sec-literals-numeric-literals that a NumericLiteral cannot
-    // be immediately followed by an IdentifierStart where the IdentifierStart
+    // Checks as per <https://tc39.es/ecma262/#sec-literals-numeric-literals>
+    // that a `NumericLiteral` cannot be immediately followed by an
+    // `IdentifierStart` where the `IdentifierStart`
     let mut lexer = Lexer::new(r#"17.4\u{{2764}}"#.as_bytes());
     assert!(
         lexer.next().is_err(),

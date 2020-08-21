@@ -24,7 +24,8 @@ fn symbol_creation(c: &mut Criterion) {
     // Parse the AST nodes.
     let nodes = Parser::new(SYMBOL_CREATION.as_bytes()).parse_all().unwrap();
 
-    // Execute the parsed nodes, passing them through a black box, to avoid over-optimizing by the compiler
+    // Execute the parsed nodes, passing them through a black box, to avoid
+    // over-optimizing by the compiler
     c.bench_function("Symbols (Execution)", move |b| {
         b.iter(|| black_box(&nodes).run(&mut engine).unwrap())
     });
@@ -40,7 +41,8 @@ fn for_loop_execution(c: &mut Criterion) {
     // Parse the AST nodes.
     let nodes = Parser::new(FOR_LOOP.as_bytes()).parse_all().unwrap();
 
-    // Execute the parsed nodes, passing them through a black box, to avoid over-optimizing by the compiler
+    // Execute the parsed nodes, passing them through a black box, to avoid
+    // over-optimizing by the compiler
     c.bench_function("For loop (Execution)", move |b| {
         b.iter(|| black_box(&nodes).run(&mut engine).unwrap())
     });
@@ -56,7 +58,8 @@ fn fibonacci(c: &mut Criterion) {
     // Parse the AST nodes.
     let nodes = Parser::new(FIBONACCI.as_bytes()).parse_all().unwrap();
 
-    // Execute the parsed nodes, passing them through a black box, to avoid over-optimizing by the compiler
+    // Execute the parsed nodes, passing them through a black box, to avoid
+    // over-optimizing by the compiler
     c.bench_function("Fibonacci (Execution)", move |b| {
         b.iter(|| black_box(&nodes).run(&mut engine).unwrap())
     });
@@ -72,7 +75,8 @@ fn object_creation(c: &mut Criterion) {
     // Parse the AST nodes.
     let nodes = Parser::new(OBJECT_CREATION.as_bytes()).parse_all().unwrap();
 
-    // Execute the parsed nodes, passing them through a black box, to avoid over-optimizing by the compiler
+    // Execute the parsed nodes, passing them through a black box, to avoid
+    // over-optimizing by the compiler
     c.bench_function("Object Creation (Execution)", move |b| {
         b.iter(|| black_box(&nodes).run(&mut engine).unwrap())
     });
@@ -90,7 +94,8 @@ fn object_prop_access_const(c: &mut Criterion) {
         .parse_all()
         .unwrap();
 
-    // Execute the parsed nodes, passing them through a black box, to avoid over-optimizing by the compiler
+    // Execute the parsed nodes, passing them through a black box, to avoid
+    // over-optimizing by the compiler
     c.bench_function("Static Object Property Access (Execution)", move |b| {
         b.iter(|| black_box(&nodes).run(&mut engine).unwrap())
     });
@@ -108,7 +113,8 @@ fn object_prop_access_dyn(c: &mut Criterion) {
         .parse_all()
         .unwrap();
 
-    // Execute the parsed nodes, passing them through a black box, to avoid over-optimizing by the compiler
+    // Execute the parsed nodes, passing them through a black box, to avoid
+    // over-optimizing by the compiler
     c.bench_function("Dynamic Object Property Access (Execution)", move |b| {
         b.iter(|| black_box(&nodes).run(&mut engine).unwrap())
     });
@@ -126,7 +132,8 @@ fn regexp_literal_creation(c: &mut Criterion) {
         .parse_all()
         .unwrap();
 
-    // Execute the parsed nodes, passing them through a black box, to avoid over-optimizing by the compiler
+    // Execute the parsed nodes, passing them through a black box, to avoid
+    // over-optimizing by the compiler
     c.bench_function("RegExp Literal Creation (Execution)", move |b| {
         b.iter(|| black_box(&nodes).run(&mut engine).unwrap())
     });
@@ -142,7 +149,8 @@ fn regexp_creation(c: &mut Criterion) {
     // Parse the AST nodes.
     let nodes = Parser::new(REGEXP_CREATION.as_bytes()).parse_all().unwrap();
 
-    // Execute the parsed nodes, passing them through a black box, to avoid over-optimizing by the compiler
+    // Execute the parsed nodes, passing them through a black box, to avoid
+    // over-optimizing by the compiler
     c.bench_function("RegExp (Execution)", move |b| {
         b.iter(|| black_box(&nodes).run(&mut engine).unwrap())
     });
@@ -158,7 +166,8 @@ fn regexp_literal(c: &mut Criterion) {
     // Parse the AST nodes.
     let nodes = Parser::new(REGEXP_LITERAL.as_bytes()).parse_all().unwrap();
 
-    // Execute the parsed nodes, passing them through a black box, to avoid over-optimizing by the compiler
+    // Execute the parsed nodes, passing them through a black box, to avoid
+    // over-optimizing by the compiler
     c.bench_function("RegExp Literal (Execution)", move |b| {
         b.iter(|| black_box(&nodes).run(&mut engine).unwrap())
     });
@@ -174,7 +183,8 @@ fn regexp(c: &mut Criterion) {
     // Parse the AST nodes.
     let nodes = Parser::new(REGEXP.as_bytes()).parse_all().unwrap();
 
-    // Execute the parsed nodes, passing them through a black box, to avoid over-optimizing by the compiler
+    // Execute the parsed nodes, passing them through a black box, to avoid
+    // over-optimizing by the compiler
     c.bench_function("RegExp (Execution)", move |b| {
         b.iter(|| black_box(&nodes).run(&mut engine).unwrap())
     });

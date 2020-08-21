@@ -12,8 +12,8 @@ pub struct ValueDisplay<'value> {
 /// - The object to be printed
 /// - The function with which to print
 /// - The indentation for the current level (for nested objects)
-/// - A HashSet with the addresses of the already printed objects for the current branch
-///      (used to avoid infinite loops when there are cyclic deps)
+/// - A HashSet with the addresses of the already printed objects for the
+///   current branch (used to avoid infinite loops when there are cyclic deps)
 macro_rules! print_obj_value {
     (all of $obj:expr, $display_fn:ident, $indent:expr, $encounters:expr) => {
         {
@@ -166,7 +166,8 @@ pub(crate) fn log_string_from(x: &Value, print_internals: bool, print_children: 
 /// A helper function for specifically printing object values
 pub(crate) fn display_obj(v: &Value, print_internals: bool) -> String {
     // A simple helper for getting the address of a value
-    // TODO: Find a more general place for this, as it can be used in other situations as well
+    // TODO: Find a more general place for this, as it can be used in other
+    // situations as well
     fn address_of<T>(t: &T) -> usize {
         let my_ptr: *const T = t;
         my_ptr as usize
@@ -246,11 +247,13 @@ impl Display for ValueDisplay<'_> {
     }
 }
 
-/// This is different from the ECMAScript compliant number to string, in the printing of `-0`.
+/// This is different from the ECMAScript compliant number to string, in the
+/// printing of `-0`.
 ///
-/// This function prints `-0` as `-0` instead of pasitive `0` as the specification says.
-/// This is done to make it easer for the user of the REPL to identify what is a `-0` vs `0`,
-/// since the REPL is not bound to the ECMAScript specification we can do this.
+/// This function prints `-0` as `-0` instead of pasitive `0` as the
+/// specification says. This is done to make it easer for the user of the REPL
+/// to identify what is a `-0` vs `0`, since the REPL is not bound to the
+/// ECMAScript specification we can do this.
 fn format_rational(v: f64, f: &mut fmt::Formatter<'_>) -> fmt::Result {
     if v.is_sign_negative() && v == 0.0 {
         f.write_str("-0")

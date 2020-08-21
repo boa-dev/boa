@@ -1,8 +1,9 @@
 //! This module implements the global `SyntaxError` object.
 //!
-//! The SyntaxError object represents an error when trying to interpret syntactically invalid code.
-//! It is thrown when the JavaScript engine encounters tokens or token order that does not conform
-//! to the syntax of the language when parsing code.
+//! The SyntaxError object represents an error when trying to interpret
+//! syntactically invalid code. It is thrown when the JavaScript engine
+//! encounters tokens or token order that does not conform to the syntax of the
+//! language when parsing code.
 //!
 //! More information:
 //!  - [MDN documentation][mdn]
@@ -13,7 +14,9 @@
 
 use crate::{
     builtins::{
-        function::make_builtin_fn, function::make_constructor_fn, object::ObjectData, value::Value,
+        function::{make_builtin_fn, make_constructor_fn},
+        object::ObjectData,
+        value::Value,
     },
     exec::Interpreter,
     profiler::BoaProfiler,
@@ -45,7 +48,8 @@ impl SyntaxError {
 
     /// `Error.prototype.toString()`
     ///
-    /// The toString() method returns a string representing the specified Error object.
+    /// The toString() method returns a string representing the specified Error
+    /// object.
     ///
     /// More information:
     ///  - [MDN documentation][mdn]

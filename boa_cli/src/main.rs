@@ -26,8 +26,11 @@
 )]
 
 use boa::{
-    exec::Interpreter, forward_val, realm::Realm, syntax::ast::node::StatementList,
-    syntax::lexer::Token, Lexer,
+    exec::Interpreter,
+    forward_val,
+    realm::Realm,
+    syntax::{ast::node::StatementList, lexer::Token},
+    Lexer,
 };
 use colored::*;
 use rustyline::{config::Config, error::ReadlineError, EditMode, Editor};
@@ -48,9 +51,11 @@ static CLI_HISTORY: &str = ".boa_history";
 
 const READLINE_COLOR: Color = Color::Cyan;
 
-// Added #[allow(clippy::option_option)] because to StructOpt an Option<Option<T>>
-// is an optional argument that optionally takes a value ([--opt=[val]]).
-// https://docs.rs/structopt/0.3.11/structopt/#type-magic
+// Added #[allow(clippy::option_option)] because to StructOpt an
+// Option<Option<T>> is an optional argument that optionally takes a value
+// ([--opt=[val]]).
+//
+// More info: <https://docs.rs/structopt/0.3.11/structopt/#type-magic>
 #[allow(clippy::option_option)]
 #[derive(Debug, StructOpt)]
 #[structopt(author, about, name = "boa")]

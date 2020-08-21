@@ -1,10 +1,11 @@
 //! This module implements the global `Symbol` object.
 //!
 //! The data type symbol is a primitive data type.
-//! The `Symbol()` function returns a value of type symbol, has static properties that expose
-//! several members of built-in objects, has static methods that expose the global symbol registry,
-//! and resembles a built-in object class, but is incomplete as a constructor because it does not
-//! support the syntax "`new Symbol()`".
+//! The `Symbol()` function returns a value of type symbol, has static
+//! properties that expose several members of built-in objects, has static
+//! methods that expose the global symbol registry, and resembles a built-in
+//! object class, but is incomplete as a constructor because it does not support
+//! the syntax "`new Symbol()`".
 //!
 //! Every symbol value returned from `Symbol()` is unique.
 //!
@@ -114,7 +115,7 @@ impl Symbol {
     #[inline]
     pub fn init(interpreter: &mut Interpreter) -> (&'static str, Value) {
         // Define the Well-Known Symbols
-        // https://tc39.es/ecma262/#sec-well-known-symbols
+        // <https://tc39.es/ecma262/#sec-well-known-symbols>
         let symbol_async_iterator =
             interpreter.construct_symbol(Some("Symbol.asyncIterator".into()));
         let symbol_has_instance = interpreter.construct_symbol(Some("Symbol.hasInstance".into()));

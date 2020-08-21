@@ -1,11 +1,11 @@
 //! # Function Environment Records
 //!
-//! A function Environment Record is a declarative Environment Record that is used to represent
-//! the top-level scope of a function and, if the function is not an `ArrowFunction`,
-//! provides a `this` binding.
+//! A function Environment Record is a declarative Environment Record that is
+//! used to represent the top-level scope of a function and, if the function is
+//! not an `ArrowFunction`, provides a `this` binding.
 //! If a function is not an `ArrowFunction` function and references super,
-//! its function Environment Record also contains the state that is used to perform super method invocations
-//! from within the function.
+//! its function Environment Record also contains the state that is used to
+//! perform super method invocations from within the function.
 //! More info: <https://tc39.es/ecma262/#sec-function-environment-records>
 
 use crate::{
@@ -23,11 +23,14 @@ use rustc_hash::FxHashMap;
 /// Usually set on a function environment record
 #[derive(Copy, Finalize, Debug, Clone)]
 pub enum BindingStatus {
-    /// If the value is "lexical", this is an ArrowFunction and does not have a local this value.
+    /// If the value is "lexical", this is an ArrowFunction and does not have a
+    /// local this value.
     Lexical,
-    /// If initialized the function environment record has already been bound with a `this` value
+    /// If initialized the function environment record has already been bound
+    /// with a `this` value
     Initialized,
-    /// If uninitialized the function environment record has not been bouned with a `this` value
+    /// If uninitialized the function environment record has not been bouned
+    /// with a `this` value
     Uninitialized,
 }
 
@@ -41,27 +44,32 @@ pub struct FunctionEnvironmentRecord {
     pub env_rec: FxHashMap<String, DeclarativeEnvironmentRecordBinding>,
     /// This is the this value used for this invocation of the function.
     pub this_value: Value,
-    /// If the value is "lexical", this is an ArrowFunction and does not have a local this value.
+    /// If the value is "lexical", this is an ArrowFunction and does not have a
+    /// local this value.
     pub this_binding_status: BindingStatus,
-    /// The function object whose invocation caused this Environment Record to be created.
+    /// The function object whose invocation caused this Environment Record to
+    /// be created.
     pub function: GcObject,
-    /// If the associated function has super property accesses and is not an ArrowFunction,
-    /// [[HomeObject]] is the object that the function is bound to as a method.
-    /// The default value for [[HomeObject]] is undefined.
+    /// If the associated function has super property accesses and is not an
+    /// ArrowFunction, [[HomeObject]] is the object that the function is
+    /// bound to as a method. The default value for [[HomeObject]] is
+    /// undefined.
     pub home_object: Value,
-    /// If this Environment Record was created by the [[Construct]] internal method,
-    /// [[NewTarget]] is the value of the [[Construct]] newTarget parameter.
-    /// Otherwise, its value is undefined.
+    /// If this Environment Record was created by the [[Construct]] internal
+    /// method, [[NewTarget]] is the value of the [[Construct]] newTarget
+    /// parameter. Otherwise, its value is undefined.
     pub new_target: Value,
     /// Reference to the outer environment to help with the scope chain
-    /// Option type is needed as some environments can be created before we know what the outer env is
+    /// Option type is needed as some environments can be created before we know
+    /// what the outer env is
     pub outer_env: Option<Environment>,
 }
 
 impl FunctionEnvironmentRecord {
     pub fn bind_this_value(&mut self, value: Value) {
         match self.this_binding_status {
-            // You can not bind an arrow function, their `this` value comes from the lexical scope above
+            // You can not bind an arrow function, their `this` value comes from the lexical scope
+            // above
             BindingStatus::Lexical => {
                 // TODO: change this when error handling comes into play
                 panic!("Cannot bind to an arrow function!");
@@ -81,7 +89,8 @@ impl FunctionEnvironmentRecord {
 }
 
 impl EnvironmentRecordTrait for FunctionEnvironmentRecord {
-    // TODO: get_super_base can't implement until GetPrototypeof is implemented on object
+    // TODO: get_super_base can't implement until GetPrototypeof is implemented on
+    // object
 
     fn has_binding(&self, name: &str) -> bool {
         self.env_rec.contains_key(name)

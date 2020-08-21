@@ -9,7 +9,8 @@ use crate::{
     syntax::{
         ast::{node::FunctionDecl, Keyword, Node, Punctuator},
         parser::{
-            function::FormalParameters, function::FunctionBody, statement::BindingIdentifier,
+            function::{FormalParameters, FunctionBody},
+            statement::BindingIdentifier,
             AllowAwait, AllowDefault, AllowYield, Cursor, ParseError, ParseResult, TokenParser,
         },
     },

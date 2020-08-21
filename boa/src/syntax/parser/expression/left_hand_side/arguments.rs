@@ -7,11 +7,10 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Glossary/Argument
 //! [spec]: https://tc39.es/ecma262/#prod-Arguments
 
-use crate::syntax::lexer::TokenKind;
 use crate::{
     syntax::{
         ast::{node::Spread, Node, Punctuator},
-        lexer::InputElement,
+        lexer::{InputElement, TokenKind},
         parser::{
             expression::AssignmentExpression, AllowAwait, AllowYield, Cursor, ParseError,
             TokenParser,

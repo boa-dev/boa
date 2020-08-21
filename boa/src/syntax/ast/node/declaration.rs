@@ -7,17 +7,20 @@ use std::fmt;
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
-/// The `var` statement declares a variable, optionally initializing it to a value.
+/// The `var` statement declares a variable, optionally initializing it to a
+/// value.
 ///
-/// var declarations, wherever they occur, are processed before any code is executed. This is
-/// called hoisting, and is discussed further below.
+/// var declarations, wherever they occur, are processed before any code is
+/// executed. This is called hoisting, and is discussed further below.
 ///
-/// The scope of a variable declared with var is its current execution context, which is either
-/// the enclosing function or, for variables declared outside any function, global. If you
-/// re-declare a JavaScript variable, it will not lose its value.
+/// The scope of a variable declared with var is its current execution context,
+/// which is either the enclosing function or, for variables declared outside
+/// any function, global. If you re-declare a JavaScript variable, it will not
+/// lose its value.
 ///
-/// Assigning a value to an undeclared variable implicitly creates it as a global variable (it
-/// becomes a property of the global object) when the assignment is executed.
+/// Assigning a value to an undeclared variable implicitly creates it as a
+/// global variable (it becomes a property of the global object) when the
+/// assignment is executed.
 ///
 /// More information:
 ///  - [ECMAScript reference][spec]
@@ -116,13 +119,14 @@ impl VarDecl {
 
 /// The `function` expression defines a function with the specified parameters.
 ///
-/// A function created with a function expression is a `Function` object and has all the
-/// properties, methods and behavior of `Function`.
+/// A function created with a function expression is a `Function` object and has
+/// all the properties, methods and behavior of `Function`.
 ///
-/// A function can also be created using a declaration (see function expression).
+/// A function can also be created using a declaration (see function
+/// expression).
 ///
-/// By default, functions return `undefined`. To return any other value, the function must have
-/// a return statement that specifies the value to return.
+/// By default, functions return `undefined`. To return any other value, the
+/// function must have a return statement that specifies the value to return.
 ///
 /// More information:
 ///  - [ECMAScript reference][spec]
@@ -196,16 +200,17 @@ impl From<FunctionExpr> for Node {
     }
 }
 
-/// The `function` declaration (function statement) defines a function with the specified
-/// parameters.
+/// The `function` declaration (function statement) defines a function with the
+/// specified parameters.
 ///
-/// A function created with a function declaration is a `Function` object and has all the
-/// properties, methods and behavior of `Function`.
+/// A function created with a function declaration is a `Function` object and
+/// has all the properties, methods and behavior of `Function`.
 ///
-/// A function can also be created using an expression (see [function expression][func_expr]).
+/// A function can also be created using an expression (see [function
+/// expression][func_expr]).
 ///
-/// By default, functions return `undefined`. To return any other value, the function must have
-/// a return statement that specifies the value to return.
+/// By default, functions return `undefined`. To return any other value, the
+/// function must have a return statement that specifies the value to return.
 ///
 /// More information:
 ///  - [ECMAScript reference][spec]
@@ -276,12 +281,12 @@ impl fmt::Display for FunctionDecl {
     }
 }
 
-/// An arrow function expression is a syntactically compact alternative to a regular function
-/// expression.
+/// An arrow function expression is a syntactically compact alternative to a
+/// regular function expression.
 ///
-/// Arrow function expressions are ill suited as methods, and they cannot be used as
-/// constructors. Arrow functions cannot be used as constructors and will throw an error when
-/// used with new.
+/// Arrow function expressions are ill suited as methods, and they cannot be
+/// used as constructors. Arrow functions cannot be used as constructors and
+/// will throw an error when used with new.
 ///
 /// More information:
 ///  - [ECMAScript reference][spec]
@@ -340,15 +345,16 @@ impl From<ArrowFunctionDecl> for Node {
     }
 }
 
-/// The `const` statements are block-scoped, much like variables defined using the `let`
-/// keyword.
+/// The `const` statements are block-scoped, much like variables defined using
+/// the `let` keyword.
 ///
-/// This declaration creates a constant whose scope can be either global or local to the block
-/// in which it is declared. Global constants do not become properties of the window object,
-/// unlike var variables.
+/// This declaration creates a constant whose scope can be either global or
+/// local to the block in which it is declared. Global constants do not become
+/// properties of the window object, unlike var variables.
 ///
-/// An initializer for a constant is required. You must specify its value in the same statement
-/// in which it's declared. (This makes sense, given that it can't be changed later.)
+/// An initializer for a constant is required. You must specify its value in the
+/// same statement in which it's declared. (This makes sense, given that it
+/// can't be changed later.)
 ///
 /// More information:
 ///  - [ECMAScript reference][spec]
@@ -443,16 +449,17 @@ impl ConstDecl {
     }
 }
 
-/// The `let` statement declares a block scope local variable, optionally initializing it to a
-/// value.
+/// The `let` statement declares a block scope local variable, optionally
+/// initializing it to a value.
 ///
 ///
-/// `let` allows you to declare variables that are limited to a scope of a block statement, or
-/// expression on which it is used, unlike the `var` keyword, which defines a variable
-/// globally, or locally to an entire function regardless of block scope.
+/// `let` allows you to declare variables that are limited to a scope of a block
+/// statement, or expression on which it is used, unlike the `var` keyword,
+/// which defines a variable globally, or locally to an entire function
+/// regardless of block scope.
 ///
-/// Just like const the `let` does not create properties of the window object when declared
-/// globally (in the top-most scope).
+/// Just like const the `let` does not create properties of the window object
+/// when declared globally (in the top-most scope).
 ///
 /// More information:
 ///  - [ECMAScript reference][spec]

@@ -1,8 +1,9 @@
 //! This module implements the global `JSON` object.
 //!
-//! The `JSON` object contains methods for parsing [JavaScript Object Notation (JSON)][spec]
-//! and converting values to JSON. It can't be called or constructed, and aside from its
-//! two method properties, it has no interesting functionality of its own.
+//! The `JSON` object contains methods for parsing [JavaScript Object Notation
+//! (JSON)][spec] and converting values to JSON. It can't be called or
+//! constructed, and aside from its two method properties, it has no interesting
+//! functionality of its own.
 //!
 //! More information:
 //!  - [ECMAScript reference][spec]
@@ -37,9 +38,11 @@ impl Json {
 
     /// `JSON.parse( text[, reviver] )`
     ///
-    /// This `JSON` method parses a JSON string, constructing the JavaScript value or object described by the string.
+    /// This `JSON` method parses a JSON string, constructing the JavaScript
+    /// value or object described by the string.
     ///
-    /// An optional `reviver` function can be provided to perform a transformation on the resulting object before it is returned.
+    /// An optional `reviver` function can be provided to perform a
+    /// transformation on the resulting object before it is returned.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -71,8 +74,8 @@ impl Json {
 
     /// This is a translation of the [Polyfill implementation][polyfill]
     ///
-    /// This function recursively walks the structure, passing each key-value pair to the reviver function
-    /// for possible transformation.
+    /// This function recursively walks the structure, passing each key-value
+    /// pair to the reviver function for possible transformation.
     ///
     /// [polyfill]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/parse
     fn walk(
@@ -103,13 +106,16 @@ impl Json {
 
     /// `JSON.stringify( value[, replacer[, space]] )`
     ///
-    /// This `JSON` method converts a JavaScript object or value to a JSON string.
+    /// This `JSON` method converts a JavaScript object or value to a JSON
+    /// string.
     ///
-    /// This medhod optionally replaces values if a `replacer` function is specified or
-    /// optionally including only the specified properties if a replacer array is specified.
+    /// This medhod optionally replaces values if a `replacer` function is
+    /// specified or optionally including only the specified properties if a
+    /// replacer array is specified.
     ///
-    /// An optional `space` argument can be supplied of type `String` or `Number` that's used to insert
-    /// white space into the output JSON string for readability purposes.
+    /// An optional `space` argument can be supplied of type `String` or
+    /// `Number` that's used to insert white space into the output JSON
+    /// string for readability purposes.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]

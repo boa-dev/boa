@@ -1,8 +1,10 @@
 use crate::builtins::BigInt;
 
-use std::fmt::{self, Display};
-use std::ops::Deref;
-use std::rc::Rc;
+use std::{
+    fmt::{self, Display},
+    ops::Deref,
+    rc::Rc,
+};
 
 use gc::{unsafe_empty_trace, Finalize, Trace};
 

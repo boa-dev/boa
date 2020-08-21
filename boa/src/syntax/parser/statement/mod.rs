@@ -37,9 +37,11 @@ use self::{
 
 use super::{AllowAwait, AllowReturn, AllowYield, Cursor, ParseError, TokenParser};
 
-use crate::syntax::lexer::TokenKind;
 use crate::{
-    syntax::ast::{node, Keyword, Node, Punctuator},
+    syntax::{
+        ast::{node, Keyword, Node, Punctuator},
+        lexer::TokenKind,
+    },
     BoaProfiler,
 };
 
@@ -102,7 +104,8 @@ where
 
     fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("Statement", "Parsing");
-        // TODO: add BreakableStatement and divide Whiles, fors and so on to another place.
+        // TODO: add BreakableStatement and divide Whiles, fors and so on to another
+        // place.
         let tok = cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?;
 
         match tok.kind() {
@@ -178,7 +181,8 @@ where
 
 /// Reads a list of statements.
 ///
-/// If `break_when_closingbrase` is `true`, it will stop as soon as it finds a `}` character.
+/// If `break_when_closingbrase` is `true`, it will stop as soon as it finds a
+/// `}` character.
 ///
 /// More information:
 ///  - [ECMAScript specification][spec]
@@ -213,17 +217,22 @@ impl StatementList {
         }
     }
 
-    /// The function parses a node::StatementList using the given break_nodes to know when to terminate.
+    /// The function parses a node::StatementList using the given break_nodes to
+    /// know when to terminate.
     ///
     /// This ignores the break_when_closingbraces flag.
     ///
-    /// Returns a ParseError::AbruptEnd if end of stream is reached before a break token.
+    /// Returns a ParseError::AbruptEnd if end of stream is reached before a
+    /// break token.
     ///
-    /// This is a more general version of the TokenParser parse function for StatementList which can exit based on multiple
-    /// different tokens. This may eventually replace the parse() function but is currently seperate to allow testing the
-    /// performance impact of this more general mechanism.
+    /// This is a more general version of the TokenParser parse function for
+    /// StatementList which can exit based on multiple different tokens.
+    /// This may eventually replace the parse() function but is currently
+    /// seperate to allow testing the performance impact of this more
+    /// general mechanism.
     ///
-    /// Note that the last token which causes the parse to finish is not consumed.
+    /// Note that the last token which causes the parse to finish is not
+    /// consumed.
     pub(crate) fn parse_generalised<R>(
         self,
         cursor: &mut Cursor<R>,

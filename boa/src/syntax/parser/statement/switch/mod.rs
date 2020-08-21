@@ -137,7 +137,8 @@ where
                 }
                 Some(token) if token.kind() == &TokenKind::Keyword(Keyword::Default) => {
                     if default.is_some() {
-                        // If default has already been defined then it cannot be defined again and to do so is an error.
+                        // If default has already been defined then it cannot be defined again and
+                        // to do so is an error.
                         return Err(ParseError::unexpected(
                             token,
                             Some("more than one switch default"),

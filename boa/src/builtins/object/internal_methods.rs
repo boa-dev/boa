@@ -5,12 +5,14 @@
 //!
 //! [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots
 
-use crate::builtins::{
-    object::Object,
-    property::{Attribute, Property, PropertyKey},
-    value::{same_value, Value},
+use crate::{
+    builtins::{
+        object::Object,
+        property::{Attribute, Property, PropertyKey},
+        value::{same_value, Value},
+    },
+    BoaProfiler,
 };
-use crate::BoaProfiler;
 
 impl Object {
     /// Check if object has property.
@@ -75,7 +77,8 @@ impl Object {
     }
 
     /// [[Get]]
-    /// https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-get-p-receiver
+    ///
+    /// <https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-get-p-receiver>
     pub fn get(&self, property_key: &PropertyKey) -> Value {
         let desc = self.get_own_property(property_key);
         if desc.value.clone().is_none()
@@ -161,7 +164,7 @@ impl Object {
         let mut current = self.get_own_property(&key);
         let extensible = self.is_extensible();
 
-        // https://tc39.es/ecma262/#sec-validateandapplypropertydescriptor
+        // <https://tc39.es/ecma262/#sec-validateandapplypropertydescriptor>
         // There currently isn't a property, lets create a new one
         if current.value.is_none() || current.value.as_ref().expect("failed").is_undefined() {
             if !extensible {
@@ -284,8 +287,8 @@ impl Object {
 
     /// `Object.setPropertyOf(obj, prototype)`
     ///
-    /// This method sets the prototype (i.e., the internal `[[Prototype]]` property)
-    /// of a specified object to another object or `null`.
+    /// This method sets the prototype (i.e., the internal `[[Prototype]]`
+    /// property) of a specified object to another object or `null`.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -361,10 +364,11 @@ impl Object {
         }
     }
 
-    /// Inserts a field in the object `properties` without checking if it's writable.
+    /// Inserts a field in the object `properties` without checking if it's
+    /// writable.
     ///
-    /// If a field was already in the object with the same name that a `Some` is returned
-    /// with that field, otherwise None is retuned.
+    /// If a field was already in the object with the same name that a `Some` is
+    /// returned with that field, otherwise None is retuned.
     #[inline]
     pub(crate) fn insert_field<K>(&mut self, key: K, value: Value) -> Option<Property>
     where

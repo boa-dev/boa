@@ -26,8 +26,10 @@ use crate::{
 };
 use gc::{Finalize, Trace};
 use rustc_hash::FxHashMap;
-use std::fmt::{Debug, Display, Error, Formatter};
-use std::result::Result as StdResult;
+use std::{
+    fmt::{Debug, Display, Error, Formatter},
+    result::Result as StdResult,
+};
 
 use super::function::{make_builtin_fn, make_constructor_fn};
 use crate::builtins::value::same_value;
@@ -42,7 +44,8 @@ pub use iter::*;
 #[cfg(test)]
 mod tests;
 
-/// Static `prototype`, usually set on constructors as a key to point to their respective prototype object.
+/// Static `prototype`, usually set on constructors as a key to point to their
+/// respective prototype object.
 pub static PROTOTYPE: &str = "prototype";
 
 /// The internal representation of an JavaScript object.
@@ -138,7 +141,8 @@ impl Object {
         }
     }
 
-    /// ObjectCreate is used to specify the runtime creation of new ordinary objects.
+    /// ObjectCreate is used to specify the runtime creation of new ordinary
+    /// objects.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -151,7 +155,8 @@ impl Object {
         obj
     }
 
-    /// Return a new Boolean object whose `[[BooleanData]]` internal slot is set to argument.
+    /// Return a new Boolean object whose `[[BooleanData]]` internal slot is set
+    /// to argument.
     pub fn boolean(value: bool) -> Self {
         Self {
             data: ObjectData::Boolean(value),
@@ -163,7 +168,8 @@ impl Object {
         }
     }
 
-    /// Return a new `Number` object whose `[[NumberData]]` internal slot is set to argument.
+    /// Return a new `Number` object whose `[[NumberData]]` internal slot is set
+    /// to argument.
     pub fn number(value: f64) -> Self {
         Self {
             data: ObjectData::Number(value),
@@ -175,7 +181,8 @@ impl Object {
         }
     }
 
-    /// Return a new `String` object whose `[[StringData]]` internal slot is set to argument.
+    /// Return a new `String` object whose `[[StringData]]` internal slot is set
+    /// to argument.
     pub fn string<S>(value: S) -> Self
     where
         S: Into<RcString>,
@@ -190,7 +197,8 @@ impl Object {
         }
     }
 
-    /// Return a new `BigInt` object whose `[[BigIntData]]` internal slot is set to argument.
+    /// Return a new `BigInt` object whose `[[BigIntData]]` internal slot is set
+    /// to argument.
     pub fn bigint(value: RcBigInt) -> Self {
         Self {
             data: ObjectData::BigInt(value),
@@ -220,7 +228,8 @@ impl Object {
         }
     }
 
-    /// It determines if Object is a callable function with a [[Call]] internal method.
+    /// It determines if Object is a callable function with a [[Call]] internal
+    /// method.
     ///
     /// More information:
     /// - [EcmaScript reference][spec]
@@ -231,7 +240,8 @@ impl Object {
         matches!(self.data, ObjectData::Function(ref f) if f.is_callable())
     }
 
-    /// It determines if Object is a function object with a [[Construct]] internal method.
+    /// It determines if Object is a function object with a [[Construct]]
+    /// internal method.
     ///
     /// More information:
     /// - [EcmaScript reference][spec]
@@ -500,8 +510,8 @@ pub fn to_string(this: &Value, _: &[Value], _: &mut Interpreter) -> Result<Value
 
 /// `Object.prototype.hasOwnPrototype( property )`
 ///
-/// The method returns a boolean indicating whether the object has the specified property
-/// as its own property (as opposed to inheriting it).
+/// The method returns a boolean indicating whether the object has the specified
+/// property as its own property (as opposed to inheriting it).
 ///
 /// More information:
 ///  - [ECMAScript reference][spec]

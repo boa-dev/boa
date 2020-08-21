@@ -10,10 +10,10 @@
 #[cfg(test)]
 mod tests;
 
-use crate::syntax::lexer::TokenKind;
 use crate::{
     syntax::{
         ast::{node::Continue, Keyword, Punctuator},
+        lexer::TokenKind,
         parser::{
             cursor::{Cursor, SemicolonResult},
             statement::LabelIdentifier,

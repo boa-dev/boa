@@ -1,7 +1,7 @@
 use crate::syntax::{
-    ast::op::{AssignOp, BitOp, CompOp, NumOp},
     ast::{
         node::{BinOp, Identifier},
+        op::{AssignOp, BitOp, CompOp, NumOp},
         Const,
     },
     parser::tests::check_parser,

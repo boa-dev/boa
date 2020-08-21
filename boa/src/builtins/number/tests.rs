@@ -379,8 +379,9 @@ fn num_to_string_exponential() {
 fn value_of() {
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);
-    // TODO: In addition to parsing numbers from strings, parse them bare As of October 2019
-    // the parser does not understand scientific e.g., Xe+Y or -Xe-Y notation.
+    // TODO: In addition to parsing numbers from strings, parse them bare As of
+    // October 2019 the parser does not understand scientific e.g., Xe+Y or
+    // -Xe-Y notation.
     let init = r#"
         var default_val = Number().valueOf();
         var int_val = Number("123").valueOf();
@@ -521,8 +522,9 @@ fn parse_int_inferred_hex() {
     assert_eq!(&forward(&mut engine, "parseInt(\"0xA\")"), "10");
 }
 
-/// This test demonstrates that this version of parseInt treats strings starting with 0 to be parsed with
-/// a radix 10 if no radix is specified. Some alternative implementations default to a radix of 8.
+/// This test demonstrates that this version of parseInt treats strings starting
+/// with 0 to be parsed with a radix 10 if no radix is specified. Some
+/// alternative implementations default to a radix of 8.
 #[test]
 fn parse_int_zero_start() {
     let realm = Realm::create();
@@ -662,7 +664,8 @@ fn parse_float_undefined() {
     assert_eq!(&forward(&mut engine, "parseFloat(undefined)"), "NaN");
 }
 
-/// No arguments to parseFloat is treated the same as passing undefined as the first argument.
+/// No arguments to parseFloat is treated the same as passing undefined as the
+/// first argument.
 #[test]
 fn parse_float_no_args() {
     let realm = Realm::create();
@@ -713,8 +716,8 @@ fn global_is_nan() {
     assert_eq!("true", &forward(&mut engine, "isNaN('37,5')"));
     assert_eq!("true", &forward(&mut engine, "isNaN('123ABC')"));
     // Incorrect due to ToNumber implementation inconsistencies.
-    //assert_eq!("false", &forward(&mut engine, "isNaN('')"));
-    //assert_eq!("false", &forward(&mut engine, "isNaN(' ')"));
+    // assert_eq!("false", &forward(&mut engine, "isNaN('')"));
+    // assert_eq!("false", &forward(&mut engine, "isNaN(' ')"));
     assert_eq!("true", &forward(&mut engine, "isNaN('blabla')"));
 }
 
@@ -811,8 +814,8 @@ fn number_is_nan() {
     assert_eq!("false", &forward(&mut engine, "Number.isNaN('37,5')"));
     assert_eq!("false", &forward(&mut engine, "Number.isNaN('123ABC')"));
     // Incorrect due to ToNumber implementation inconsistencies.
-    //assert_eq!("false", &forward(&mut engine, "Number.isNaN('')"));
-    //assert_eq!("false", &forward(&mut engine, "Number.isNaN(' ')"));
+    // assert_eq!("false", &forward(&mut engine, "Number.isNaN('')"));
+    // assert_eq!("false", &forward(&mut engine, "Number.isNaN(' ')"));
     assert_eq!("false", &forward(&mut engine, "Number.isNaN('blabla')"));
     assert_eq!("false", &forward(&mut engine, "Number.isNaN(Number(5))"));
     assert_eq!("true", &forward(&mut engine, "Number.isNaN(Number(NaN))"));

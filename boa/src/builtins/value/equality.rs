@@ -4,8 +4,8 @@ use crate::{builtins::Number, Interpreter};
 impl Value {
     /// Strict equality comparison.
     ///
-    /// This method is executed when doing strict equality comparisons with the `===` operator.
-    /// For more information, check <https://tc39.es/ecma262/#sec-strict-equality-comparison>.
+    /// This method is executed when doing strict equality comparisons with the
+    /// `===` operator. For more information, check <https://tc39.es/ecma262/#sec-strict-equality-comparison>.
     pub fn strict_equals(&self, other: &Self) -> bool {
         // 1. If Type(x) is different from Type(y), return false.
         if self.get_type() != other.get_type() {
@@ -21,10 +21,10 @@ impl Value {
             (Self::Integer(x), Self::Rational(y)) => Number::equal(f64::from(*x), *y),
             (Self::Integer(x), Self::Integer(y)) => x == y,
 
-            //Null has to be handled specially because "typeof null" returns object and if we managed
-            //this without a special case we would compare self and other as if they were actually
-            //objects which unfortunately fails
-            //Specification Link: https://tc39.es/ecma262/#sec-typeof-operator
+            // Null has to be handled specially because "typeof null" returns object and if we
+            // managed this without a special case we would compare self and other as if
+            // they were actually objects which unfortunately fails
+            // Specification Link: https://tc39.es/ecma262/#sec-typeof-operator
             (Self::Null, Self::Null) => true,
 
             // 3. Return ! SameValueNonNumeric(x, y).
@@ -34,8 +34,8 @@ impl Value {
 
     /// Abstract equality comparison.
     ///
-    /// This method is executed when doing abstract equality comparisons with the `==` operator.
-    ///  For more information, check <https://tc39.es/ecma262/#sec-abstract-equality-comparison>
+    /// This method is executed when doing abstract equality comparisons with
+    /// the `==` operator.  For more information, check <https://tc39.es/ecma262/#sec-abstract-equality-comparison>
     #[allow(clippy::float_cmp)]
     pub fn equals(&self, other: &Self, interpreter: &mut Interpreter) -> Result<bool> {
         // 1. If Type(x) is the same as Type(y), then
@@ -49,10 +49,11 @@ impl Value {
             // 3. If x is undefined and y is null, return true.
             (Self::Null, Self::Undefined) | (Self::Undefined, Self::Null) => true,
 
-            // 3. If Type(x) is Number and Type(y) is String, return the result of the comparison x == ! ToNumber(y).
-            // 4. If Type(x) is String and Type(y) is Number, return the result of the comparison ! ToNumber(x) == y.
+            // 3. If Type(x) is Number and Type(y) is String, return the result of the comparison x
+            // == ! ToNumber(y). 4. If Type(x) is String and Type(y) is Number, return
+            // the result of the comparison ! ToNumber(x) == y.
             //
-            // https://github.com/rust-lang/rust/issues/54883
+            // <https://github.com/rust-lang/rust/issues/54883>
             (Self::Integer(_), Self::String(_))
             | (Self::Rational(_), Self::String(_))
             | (Self::String(_), Self::Integer(_))
@@ -73,7 +74,8 @@ impl Value {
                 None => false,
             },
 
-            // 7. If Type(x) is String and Type(y) is BigInt, return the result of the comparison y == x.
+            // 7. If Type(x) is String and Type(y) is BigInt, return the result of the comparison y
+            // == x.
             (Self::String(ref a), Self::BigInt(ref b)) => match string_to_bigint(a) {
                 Some(ref a) => a == b.as_inner(),
                 None => false,
@@ -85,23 +87,25 @@ impl Value {
             // 9. If Type(y) is Boolean, return the result of the comparison x == ! ToNumber(y).
             (_, Self::Boolean(y)) => return self.equals(&Value::from(*y as i32), interpreter),
 
-            // 10. If Type(x) is either String, Number, BigInt, or Symbol and Type(y) is Object, return the result
-            // of the comparison x == ? ToPrimitive(y).
+            // 10. If Type(x) is either String, Number, BigInt, or Symbol and Type(y) is Object,
+            // return the result of the comparison x == ? ToPrimitive(y).
             (Self::Object(_), _) => {
                 let primitive = self.to_primitive(interpreter, PreferredType::Default)?;
                 return primitive.equals(other, interpreter);
             }
 
-            // 11. If Type(x) is Object and Type(y) is either String, Number, BigInt, or Symbol, return the result
-            // of the comparison ? ToPrimitive(x) == y.
+            // 11. If Type(x) is Object and Type(y) is either String, Number, BigInt, or Symbol,
+            // return the result of the comparison ? ToPrimitive(x) == y.
             (_, Self::Object(_)) => {
                 let primitive = other.to_primitive(interpreter, PreferredType::Default)?;
                 return primitive.equals(self, interpreter);
             }
 
-            // 12. If Type(x) is BigInt and Type(y) is Number, or if Type(x) is Number and Type(y) is BigInt, then
+            // 12. If Type(x) is BigInt and Type(y) is Number, or if Type(x) is Number and Type(y)
+            // is BigInt, then
             //    a. If x or y are any of NaN, +∞, or -∞, return false.
-            //    b. If the mathematical value of x is equal to the mathematical value of y, return true; otherwise return false.
+            //    b. If the mathematical value of x is equal to the mathematical value of y, return
+            // true; otherwise return false.
             (Self::BigInt(ref a), Self::Rational(ref b)) => a.as_inner() == b,
             (Self::Rational(ref a), Self::BigInt(ref b)) => a == b.as_inner(),
             (Self::BigInt(ref a), Self::Integer(ref b)) => a.as_inner() == b,
@@ -157,9 +161,11 @@ pub fn same_value(x: &Value, y: &Value) -> bool {
 }
 
 /// The internal comparison abstract operation `SameValueZero(x, y)`,
-/// where `x` and `y` are ECMAScript language values, produces `true` or `false`.
+/// where `x` and `y` are ECMAScript language values, produces `true` or
+/// `false`.
 ///
-/// `SameValueZero` differs from SameValue only in its treatment of `+0` and `-0`.
+/// `SameValueZero` differs from SameValue only in its treatment of `+0` and
+/// `-0`.
 ///
 /// More information:
 ///  - [ECMAScript][spec]

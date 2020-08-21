@@ -6,8 +6,8 @@ use crate::{
 };
 use chrono::prelude::*;
 
-// NOTE: Javascript Uses 0-based months, where chrono uses 1-based months. Many of the assertions look wrong because of
-// this.
+// NOTE: Javascript Uses 0-based months, where chrono uses 1-based months. Many
+// of the assertions look wrong because of this.
 
 fn forward_dt_utc(engine: &mut Interpreter, src: &str) -> Option<NaiveDateTime> {
     let date_time = if let Ok(v) = forward_val(engine, src) {
@@ -438,7 +438,8 @@ fn date_proto_get_timezone_offset() -> Result<(), Box<dyn std::error::Error>> {
 
     let actual = forward_val(
         &mut engine,
-        "new Date('August 19, 1975 23:15:30 GMT+07:00').getTimezoneOffset() === new Date('August 19, 1975 23:15:30 GMT-02:00').getTimezoneOffset()",
+        "new Date('August 19, 1975 23:15:30 GMT+07:00').getTimezoneOffset() === new Date('August \
+         19, 1975 23:15:30 GMT-02:00').getTimezoneOffset()",
     );
 
     // NB: Host Settings, not TZ specified in the DateTime.
@@ -449,7 +450,8 @@ fn date_proto_get_timezone_offset() -> Result<(), Box<dyn std::error::Error>> {
         "new Date('August 19, 1975 23:15:30 GMT+07:00').getTimezoneOffset()",
     );
 
-    // The value of now().offset() depends on the host machine, so we have to replicate the method code here.
+    // The value of now().offset() depends on the host machine, so we have to
+    // replicate the method code here.
     let offset_seconds = chrono::Local::now().offset().local_minus_utc() as f64;
     let offset_minutes = offset_seconds / 60f64;
     assert_eq!(Ok(Value::Rational(offset_minutes)), actual);
@@ -1006,7 +1008,11 @@ fn date_proto_set_utc_full_year() -> Result<(), Box<dyn std::error::Error>> {
 
     let actual = forward_dt_utc(
         &mut engine,
-        "dt = new Date(Date.UTC(2020, 06, 08, 09, 16, 15, 779)); dt.setUTCFullYear(2012, 8, 10); dt",
+        r#"
+             dt = new Date(Date.UTC(2020, 06, 08, 09, 16, 15, 779));
+             dt.setUTCFullYear(2012, 8, 10);
+             dt;
+         "#,
     );
     assert_eq!(
         Some(NaiveDate::from_ymd(2012, 09, 10).and_hms_milli(09, 16, 15, 779)),
@@ -1035,7 +1041,11 @@ fn date_proto_set_utc_full_year() -> Result<(), Box<dyn std::error::Error>> {
 
     let actual = forward_dt_utc(
         &mut engine,
-        "dt = new Date(Date.UTC(2020, 07, 08, 09, 16, 15, 779)); dt.setUTCFullYear(2012, 9, 950); dt",
+        r#"
+            dt = new Date(Date.UTC(2020, 07, 08, 09, 16, 15, 779));
+            dt.setUTCFullYear(2012, 9, 950);
+            dt
+        "#,
     );
     assert_eq!(
         Some(NaiveDate::from_ymd(2015, 05, 08).and_hms_milli(09, 16, 15, 779)),
@@ -1044,7 +1054,11 @@ fn date_proto_set_utc_full_year() -> Result<(), Box<dyn std::error::Error>> {
 
     let actual = forward_dt_utc(
         &mut engine,
-        "dt = new Date(Date.UTC(2020, 07, 08, 09, 16, 15, 779)); dt.setUTCFullYear(2012, 9, -950); dt",
+        r#"
+            dt = new Date(Date.UTC(2020, 07, 08, 09, 16, 15, 779));
+            dt.setUTCFullYear(2012, 9, -950);
+            dt
+        "#,
     );
     assert_eq!(
         Some(NaiveDate::from_ymd(2010, 02, 23).and_hms_milli(09, 16, 15, 779)),
@@ -1088,7 +1102,11 @@ fn date_proto_set_utc_hours() -> Result<(), Box<dyn std::error::Error>> {
 
     let actual = forward_dt_utc(
         &mut engine,
-        "dt = new Date(Date.UTC(2020, 06, 08, 09, 16, 15, 779)); dt.setUTCHours(11, 35, 23, 537); dt",
+        r#"
+            dt = new Date(Date.UTC(2020, 06, 08, 09, 16, 15, 779));
+            dt.setUTCHours(11, 35, 23, 537);
+            dt
+        "#,
     );
     assert_eq!(
         Some(NaiveDate::from_ymd(2020, 07, 08).and_hms_milli(11, 35, 23, 537)),
@@ -1099,7 +1117,11 @@ fn date_proto_set_utc_hours() -> Result<(), Box<dyn std::error::Error>> {
 
     let actual = forward_dt_utc(
         &mut engine,
-        "dt = new Date(Date.UTC(2020, 06, 08, 09, 16, 15, 779)); dt.setUTCHours(10000, 20000, 30000, 40123); dt",
+        r#"
+            dt = new Date(Date.UTC(2020, 06, 08, 09, 16, 15, 779));
+            dt.setUTCHours(10000, 20000, 30000, 40123);
+            dt
+        "#,
     );
     assert_eq!(
         Some(NaiveDate::from_ymd(2021, 09, 11).and_hms_milli(21, 40, 40, 123)),
@@ -1116,7 +1138,11 @@ fn date_proto_set_utc_milliseconds() -> Result<(), Box<dyn std::error::Error>> {
 
     let actual = forward_dt_utc(
         &mut engine,
-        "let dt = new Date(Date.UTC(2020, 06, 08, 09, 16, 15, 779)); dt.setUTCMilliseconds(597); dt",
+        r#"
+            let dt = new Date(Date.UTC(2020, 06, 08, 09, 16, 15, 779));
+            dt.setUTCMilliseconds(597);
+            dt
+        "#,
     );
     assert_eq!(
         Some(NaiveDate::from_ymd(2020, 07, 08).and_hms_milli(09, 16, 15, 597)),
@@ -1175,7 +1201,11 @@ fn date_proto_set_utc_minutes() -> Result<(), Box<dyn std::error::Error>> {
 
     let actual = forward_dt_utc(
         &mut engine,
-        "dt = new Date(Date.UTC(2020, 06, 08, 09, 16, 15, 779)); dt.setUTCMinutes(600000, 30000, 40123); dt",
+        r#"
+            dt = new Date(Date.UTC(2020, 06, 08, 09, 16, 15, 779));
+            dt.setUTCMinutes(600000, 30000, 40123);
+            dt
+        "#,
     );
     assert_eq!(
         Some(NaiveDate::from_ymd(2021, 08, 29).and_hms_milli(09, 20, 40, 123)),
@@ -1251,7 +1281,11 @@ fn date_proto_set_utc_seconds() -> Result<(), Box<dyn std::error::Error>> {
 
     let actual = forward_dt_utc(
         &mut engine,
-        "dt = new Date(Date.UTC(2020, 07, 08, 09, 16, 15, 779)); dt.setUTCSeconds(40000000, 40123); dt",
+        r#"
+            dt = new Date(Date.UTC(2020, 07, 08, 09, 16, 15, 779));
+            dt.setUTCSeconds(40000000, 40123);
+            dt
+        "#,
     );
     assert_eq!(
         Some(NaiveDate::from_ymd(2021, 11, 14).and_hms_milli(08, 23, 20, 123)),

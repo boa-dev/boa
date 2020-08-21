@@ -17,13 +17,14 @@ use std::io::Read;
 
 /// Trait implemented by parsers.
 ///
-/// This makes it possible to abstract over the underlying implementation of a parser.
+/// This makes it possible to abstract over the underlying implementation of a
+/// parser.
 trait TokenParser<R>: Sized
 where
     R: Read,
 {
     /// Output type for the parser.
-    type Output; // = Node; waiting for https://github.com/rust-lang/rust/issues/29661
+    type Output; // = Node; waiting for <https://github.com/rust-lang/rust/issues/29661>
 
     /// Parses the token stream using the current parser.
     ///
@@ -83,7 +84,8 @@ impl From<bool> for AllowDefault {
 
 #[derive(Debug)]
 pub struct Parser<R> {
-    /// Cursor of the parser, pointing to the lexer and used to get tokens for the parser.
+    /// Cursor of the parser, pointing to the lexer and used to get tokens for
+    /// the parser.
     cursor: Cursor<R>,
 }
 

@@ -1,18 +1,21 @@
 //! This module implements the JavaScript Value.
 //!
-//! Javascript values, utility methods and conversion between Javascript values and Rust values.
+//! Javascript values, utility methods and conversion between Javascript values
+//! and Rust values.
 
 #[cfg(test)]
 mod tests;
 
 use super::number::{f64_to_int32, f64_to_uint32};
-use crate::builtins::{
-    object::{GcObject, Object, ObjectData, PROTOTYPE},
-    property::{Attribute, Property, PropertyKey},
-    BigInt, Number,
+use crate::{
+    builtins::{
+        object::{GcObject, Object, ObjectData, PROTOTYPE},
+        property::{Attribute, Property, PropertyKey},
+        BigInt, Number,
+    },
+    exec::Interpreter,
+    BoaProfiler, Result,
 };
-use crate::exec::Interpreter;
-use crate::{BoaProfiler, Result};
 use gc::{Finalize, GcCellRef, GcCellRefMut, Trace};
 use serde_json::{map::Map, Number as JSONNumber, Value as JSONValue};
 use std::{
@@ -49,7 +52,8 @@ pub use rcsymbol::RcSymbol;
 pub enum Value {
     /// `null` - A null value, for when a value doesn't exist.
     Null,
-    /// `undefined` - An undefined value, for when a field or index doesn't exist.
+    /// `undefined` - An undefined value, for when a field or index doesn't
+    /// exist.
     Undefined,
     /// `boolean` - A `true` / `false` value, for if a certain criteria is met.
     Boolean(bool),
@@ -61,7 +65,8 @@ pub enum Value {
     Integer(i32),
     /// `BigInt` - holds any arbitrary large signed integer.
     BigInt(RcBigInt),
-    /// `Object` - An object, such as `Math`, represented by a binary tree of string keys to Javascript values.
+    /// `Object` - An object, such as `Math`, represented by a binary tree of
+    /// string keys to Javascript values.
     Object(GcObject),
     /// `Symbol` - A Symbol Primitive type.
     Symbol(RcSymbol),
@@ -163,7 +168,8 @@ impl Value {
         }
     }
 
-    /// Similar to `new_object`, but you can pass a prototype to create from, plus a kind
+    /// Similar to `new_object`, but you can pass a prototype to create from,
+    /// plus a kind
     pub fn new_object_from_prototype(proto: Value, data: ObjectData) -> Self {
         let mut object = Object::default();
         object.data = data;
@@ -276,12 +282,13 @@ impl Value {
         }
     }
 
-    /// This will tell us if we can exten an object or not, not properly implemented yet
+    /// This will tell us if we can exten an object or not, not properly
+    /// implemented yet
     ///
     /// For now always returns true.
     ///
-    /// For scalar types it should be false, for objects check the private field for extensibilaty.
-    /// By default true.
+    /// For scalar types it should be false, for objects check the private field
+    /// for extensibilaty. By default true.
     ///
     /// <https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/seal would turn extensible to false/>
     /// <https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/freeze would also turn extensible to false/>
@@ -415,7 +422,8 @@ impl Value {
         matches!(self, Self::BigInt(_))
     }
 
-    /// Returns an optional reference to a `BigInt` if the value is a BigInt primitive.
+    /// Returns an optional reference to a `BigInt` if the value is a BigInt
+    /// primitive.
     #[inline]
     pub fn as_bigint(&self) -> Option<&BigInt> {
         match self {
@@ -445,7 +453,8 @@ impl Value {
 
     /// Removes a property from a Value object.
     ///
-    /// It will return a boolean based on if the value was removed, if there was no value to remove false is returned.
+    /// It will return a boolean based on if the value was removed, if there was
+    /// no value to remove false is returned.
     pub fn remove_property<Key>(&self, key: Key) -> bool
     where
         Key: Into<PropertyKey>,
@@ -490,9 +499,11 @@ impl Value {
         }
     }
 
-    /// Resolve the property in the object and get its value, or undefined if this is not an object or the field doesn't exist
-    /// get_field recieves a Property from get_prop(). It should then return the [[Get]] result value if that's set, otherwise fall back to [[Value]]
-    /// TODO: this function should use the get Value if its set
+    /// Resolve the property in the object and get its value, or undefined if
+    /// this is not an object or the field doesn't exist get_field recieves
+    /// a Property from get_prop(). It should then return the [[Get]] result
+    /// value if that's set, otherwise fall back to [[Value]] TODO: this
+    /// function should use the get Value if its set
     pub fn get_field<K>(&self, key: K) -> Self
     where
         K: Into<PropertyKey>,
@@ -501,7 +512,8 @@ impl Value {
         let key = key.into();
         match self.get_property(key) {
             Some(prop) => {
-                // If the Property has [[Get]] set to a function, we should run that and return the Value
+                // If the Property has [[Get]] set to a function, we should run that and return
+                // the Value
                 let prop_getter = match prop.get {
                     Some(_) => None,
                     None => None,
@@ -522,7 +534,8 @@ impl Value {
         }
     }
 
-    /// Check to see if the Value has the field, mainly used by environment records.
+    /// Check to see if the Value has the field, mainly used by environment
+    /// records.
     #[inline]
     pub fn has_field<K>(&self, key: K) -> bool
     where
@@ -577,7 +590,8 @@ impl Value {
         property
     }
 
-    /// The abstract operation ToPrimitive takes an input argument and an optional argument PreferredType.
+    /// The abstract operation ToPrimitive takes an input argument and an
+    /// optional argument PreferredType.
     ///
     /// <https://tc39.es/ecma262/#sec-toprimitive>
     pub fn to_primitive(
@@ -585,8 +599,8 @@ impl Value {
         ctx: &mut Interpreter,
         preferred_type: PreferredType,
     ) -> Result<Value> {
-        // 1. Assert: input is an ECMAScript language value. (always a value not need to check)
-        // 2. If Type(input) is Object, then
+        // 1. Assert: input is an ECMAScript language value. (always a value not need to
+        // check) 2. If Type(input) is Object, then
         if let Value::Object(_) = self {
             let mut hint = preferred_type;
 
@@ -761,7 +775,8 @@ impl Value {
         }
     }
 
-    /// Converts the value to a `PropertyKey`, that can be used as a key for properties.
+    /// Converts the value to a `PropertyKey`, that can be used as a key for
+    /// properties.
     ///
     /// See <https://tc39.es/ecma262/#sec-topropertykey>
     pub fn to_property_key(&self, ctx: &mut Interpreter) -> Result<PropertyKey> {
@@ -778,7 +793,8 @@ impl Value {
         })
     }
 
-    /// It returns value converted to a numeric value of type `Number` or `BigInt`.
+    /// It returns value converted to a numeric value of type `Number` or
+    /// `BigInt`.
     ///
     /// See: <https://tc39.es/ecma262/#sec-tonumeric>
     pub fn to_numeric(&self, ctx: &mut Interpreter) -> Result<Numeric> {
@@ -817,7 +833,8 @@ impl Value {
         Ok(f64_to_int32(number))
     }
 
-    /// Converts a value to a non-negative integer if it is a valid integer index value.
+    /// Converts a value to a non-negative integer if it is a valid integer
+    /// index value.
     ///
     /// See: <https://tc39.es/ecma262/#sec-toindex>
     pub fn to_index(&self, ctx: &mut Interpreter) -> Result<usize> {
@@ -838,7 +855,8 @@ impl Value {
         Ok(integer_index as usize)
     }
 
-    /// Converts argument to an integer suitable for use as the length of an array-like object.
+    /// Converts argument to an integer suitable for use as the length of an
+    /// array-like object.
     ///
     /// See: <https://tc39.es/ecma262/#sec-tolength>
     pub fn to_length(&self, ctx: &mut Interpreter) -> Result<usize> {
@@ -870,15 +888,16 @@ impl Value {
             return Ok(number);
         }
 
-        // 4. Let integer be the Number value that is the same sign as number and whose magnitude is floor(abs(number)).
-        // 5. If integer is -0, return +0.
+        // 4. Let integer be the Number value that is the same sign as number and whose
+        // magnitude is floor(abs(number)). 5. If integer is -0, return +0.
         // 6. Return integer.
         Ok(number.trunc() + 0.0) // We add 0.0 to convert -0.0 to +0.0
     }
 
     /// Converts a value to a double precision floating point.
     ///
-    /// This function is equivalent to the unary `+` operator (`+value`) in JavaScript
+    /// This function is equivalent to the unary `+` operator (`+value`) in
+    /// JavaScript
     ///
     /// See: https://tc39.es/ecma262/#sec-tonumber
     pub fn to_number(&self, ctx: &mut Interpreter) -> Result<f64> {
@@ -886,7 +905,8 @@ impl Value {
             Value::Null => Ok(0.0),
             Value::Undefined => Ok(f64::NAN),
             Value::Boolean(b) => Ok(if b { 1.0 } else { 0.0 }),
-            // TODO: this is probably not 100% correct, see https://tc39.es/ecma262/#sec-tonumber-applied-to-the-string-type
+            // TODO: this is probably not 100% correct, see
+            // <https://tc39.es/ecma262/#sec-tonumber-applied-to-the-string-type>
             Value::String(ref string) => {
                 if string.trim().is_empty() {
                     return Ok(0.0);

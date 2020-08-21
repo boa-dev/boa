@@ -43,7 +43,7 @@ fn is_array() {
 #[test]
 #[ignore]
 fn concat() {
-    //TODO: array display formatter
+    // TODO: array display formatter
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);
     let init = r#"
@@ -111,7 +111,7 @@ fn to_string() {
 fn every() {
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);
-    // taken from https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/every
+    // taken from <https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/every>
     let init = r#"
         var empty = [];
 
@@ -587,8 +587,8 @@ fn map() {
         String::from("\"zyx\"")
     );
 
-    // NB: These tests need to be rewritten once `Display` has been implemented for `Array`
-    // Empty
+    // NB: These tests need to be rewritten once `Display` has been implemented for
+    // `Array` Empty
     assert_eq!(
         forward(&mut engine, "empty_mapped.length"),
         String::from("0")
@@ -616,8 +616,9 @@ fn map() {
 
     // TODO: uncomment when `this` has been implemented
     // One but it uses `this` inside the callback
-    // let one_with_this = forward(&mut engine, "one.map(callbackThatUsesThis, _this)[0];");
-    // assert_eq!(one_with_this, String::from("The answer to life is: 42"))
+    // let one_with_this = forward(&mut engine, "one.map(callbackThatUsesThis,
+    // _this)[0];"); assert_eq!(one_with_this, String::from("The answer to
+    // life is: 42"))
 }
 
 #[test]
@@ -714,8 +715,8 @@ fn filter() {
         String::from("\"101\"")
     );
 
-    // NB: These tests need to be rewritten once `Display` has been implemented for `Array`
-    // Empty
+    // NB: These tests need to be rewritten once `Display` has been implemented for
+    // `Array` Empty
     assert_eq!(
         forward(&mut engine, "empty_filtered.length"),
         String::from("0")

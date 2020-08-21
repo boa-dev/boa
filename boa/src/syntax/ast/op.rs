@@ -16,7 +16,8 @@ use serde::{Deserialize, Serialize};
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[derive(Clone, Copy, Debug, Finalize, PartialEq)]
 pub enum NumOp {
-    /// The addition operator produces the sum of numeric operands or string concatenation.
+    /// The addition operator produces the sum of numeric operands or string
+    /// concatenation.
     ///
     /// Syntax: `x + y`
     ///
@@ -28,7 +29,8 @@ pub enum NumOp {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Arithmetic_Operators#Addition
     Add,
 
-    /// The subtraction operator subtracts the two operands, producing their difference.
+    /// The subtraction operator subtracts the two operands, producing their
+    /// difference.
     ///
     /// Syntax: `x - y`
     ///
@@ -40,8 +42,8 @@ pub enum NumOp {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Arithmetic_Operators#Subtraction
     Sub,
 
-    /// The division operator produces the quotient of its operands where the left operand
-    /// is the dividend and the right operand is the divisor.
+    /// The division operator produces the quotient of its operands where the
+    /// left operand is the dividend and the right operand is the divisor.
     ///
     /// Syntax: `x / y`
     ///
@@ -65,12 +67,13 @@ pub enum NumOp {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Arithmetic_Operators#Multiplication
     Mul,
 
-    /// The exponentiation operator returns the result of raising the first operand to
-    /// the power of the second operand.
+    /// The exponentiation operator returns the result of raising the first
+    /// operand to the power of the second operand.
     ///
     /// Syntax: `x ** y`
     ///
-    /// The exponentiation operator is right-associative. a ** b ** c is equal to a ** (b ** c).
+    /// The exponentiation operator is right-associative. a ** b ** c is equal
+    /// to a ** (b ** c).
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -80,7 +83,8 @@ pub enum NumOp {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Arithmetic_Operators#Exponentiation
     Exp,
 
-    /// The remainder operator returns the remainder left over when one operand is divided by a second operand.
+    /// The remainder operator returns the remainder left over when one operand
+    /// is divided by a second operand.
     ///
     /// Syntax: `x % y`
     ///
@@ -116,11 +120,12 @@ unsafe impl Trace for NumOp {
     unsafe_empty_trace!();
 }
 
-/// A unary operator is one that takes a single operand/argument and performs an operation.
+/// A unary operator is one that takes a single operand/argument and performs an
+/// operation.
 ///
-/// A unary operation is an operation with only one operand. This operand comes either
-/// before or after the operator. Unary operators are more efficient than standard JavaScript
-/// function calls.
+/// A unary operation is an operation with only one operand. This operand comes
+/// either before or after the operator. Unary operators are more efficient than
+/// standard JavaScript function calls.
 ///
 /// More information:
 ///  - [ECMAScript reference][spec]
@@ -131,7 +136,8 @@ unsafe impl Trace for NumOp {
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[derive(Clone, Copy, Debug, Finalize, PartialEq)]
 pub enum UnaryOp {
-    /// The increment operator increments (adds one to) its operand and returns a value.
+    /// The increment operator increments (adds one to) its operand and returns
+    /// a value.
     ///
     /// Syntax: `++x`
     ///
@@ -145,7 +151,8 @@ pub enum UnaryOp {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Arithmetic_Operators#Increment
     IncrementPost,
 
-    /// The increment operator increments (adds one to) its operand and returns a value.
+    /// The increment operator increments (adds one to) its operand and returns
+    /// a value.
     ///
     /// Syntax: `x++`
     ///
@@ -159,7 +166,8 @@ pub enum UnaryOp {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Arithmetic_Operators#Increment
     IncrementPre,
 
-    /// The decrement operator decrements (subtracts one from) its operand and returns a value.
+    /// The decrement operator decrements (subtracts one from) its operand and
+    /// returns a value.
     ///
     /// Syntax: `--x`
     ///
@@ -173,11 +181,13 @@ pub enum UnaryOp {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Arithmetic_Operators#Decrement
     DecrementPost,
 
-    /// The decrement operator decrements (subtracts one from) its operand and returns a value.
+    /// The decrement operator decrements (subtracts one from) its operand and
+    /// returns a value.
     ///
     /// Syntax: `x--`
     ///
-    /// This operator decrements the operand and returns the value after decrementing.
+    /// This operator decrements the operand and returns the value after
+    /// decrementing.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -202,13 +212,16 @@ pub enum UnaryOp {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Arithmetic_Operators#Unary_negation
     Minus,
 
-    /// The unary plus operator attempts to convert the operand into a number, if it isn't already.
+    /// The unary plus operator attempts to convert the operand into a number,
+    /// if it isn't already.
     ///
     /// Syntax: `+x`
     ///
-    /// Although unary negation (`-`) also can convert non-numbers, unary plus is the fastest and preferred
-    /// way of converting something into a number, because it does not perform any other operations on the number.
-    /// It can convert `string` representations of integers and floats, as well as the non-string values `true`, `false`, and `null`.
+    /// Although unary negation (`-`) also can convert non-numbers, unary plus
+    /// is the fastest and preferred way of converting something into a
+    /// number, because it does not perform any other operations on the number.
+    /// It can convert `string` representations of integers and floats, as well
+    /// as the non-string values `true`, `false`, and `null`.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -218,14 +231,16 @@ pub enum UnaryOp {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Arithmetic_Operators#Unary_plus
     Plus,
 
-    /// Returns `false` if its single operand can be converted to `true`; otherwise, returns `true`.
+    /// Returns `false` if its single operand can be converted to `true`;
+    /// otherwise, returns `true`.
     ///
     /// Syntax: `!x`
     ///
-    /// Boolean values simply get inverted: `!true === false` and `!false === true`.
-    /// Non-boolean values get converted to boolean values first, then are negated.
-    /// This means that it is possible to use a couple of NOT operators in series to explicitly
-    /// force the conversion of any value to the corresponding boolean primitive.
+    /// Boolean values simply get inverted: `!true === false` and `!false ===
+    /// true`. Non-boolean values get converted to boolean values first,
+    /// then are negated. This means that it is possible to use a couple of
+    /// NOT operators in series to explicitly force the conversion of any
+    /// value to the corresponding boolean primitive.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -250,13 +265,15 @@ pub enum UnaryOp {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Bitwise_Operators#Bitwise_NOT
     Tilde,
 
-    /// The `typeof` operator returns a string indicating the type of the unevaluated operand.
+    /// The `typeof` operator returns a string indicating the type of the
+    /// unevaluated operand.
     ///
     /// Syntax: `typeof x` or `typeof(x)`
     ///
-    /// The `typeof` is a JavaScript keyword that will return the type of a variable when you call it.
-    /// You can use this to validate function parameters or check if variables are defined.
-    /// There are other uses as well.
+    /// The `typeof` is a JavaScript keyword that will return the type of a
+    /// variable when you call it. You can use this to validate function
+    /// parameters or check if variables are defined. There are other uses
+    /// as well.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -270,12 +287,13 @@ pub enum UnaryOp {
     ///
     /// Syntax: `delete x`
     ///
-    /// Unlike what common belief suggests, the delete operator has nothing to do with
-    /// directly freeing memory. Memory management is done indirectly via breaking references.
-    /// If no more references to the same property are held, it is eventually released automatically.
+    /// Unlike what common belief suggests, the delete operator has nothing to
+    /// do with directly freeing memory. Memory management is done
+    /// indirectly via breaking references. If no more references to the
+    /// same property are held, it is eventually released automatically.
     ///
-    /// The `delete` operator returns `true` for all cases except when the property is an
-    /// [own](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/hasOwnProperty)
+    /// The `delete` operator returns `true` for all cases except when the
+    /// property is an [own](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/hasOwnProperty)
     /// [non-configurable](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Errors/Cant_delete)
     /// property, in which case, `false` is returned in non-strict mode.
     ///
@@ -287,17 +305,20 @@ pub enum UnaryOp {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/delete
     Delete,
 
-    /// The `void` operator evaluates the given `expression` and then returns `undefined`.
+    /// The `void` operator evaluates the given `expression` and then returns
+    /// `undefined`.
     ///
     /// Syntax: `void x`
     ///
-    /// This operator allows evaluating expressions that produce a value into places where an
-    /// expression that evaluates to `undefined` is desired.
-    /// The `void` operator is often used merely to obtain the `undefined` primitive value, usually using `void(0)`
-    /// (which is equivalent to `void 0`). In these cases, the global variable undefined can be used.
+    /// This operator allows evaluating expressions that produce a value into
+    /// places where an expression that evaluates to `undefined` is desired.
+    /// The `void` operator is often used merely to obtain the `undefined`
+    /// primitive value, usually using `void(0)` (which is equivalent to
+    /// `void 0`). In these cases, the global variable undefined can be used.
     ///
     /// When using an [immediately-invoked function expression](https://developer.mozilla.org/en-US/docs/Glossary/IIFE),
-    /// `void` can be used to force the function keyword to be treated as an expression instead of a declaration.
+    /// `void` can be used to force the function keyword to be treated as an
+    /// expression instead of a declaration.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -333,7 +354,8 @@ unsafe impl Trace for UnaryOp {
 }
 
 /// A bitwise operator is an operator used to perform bitwise operations
-/// on bit patterns or binary numerals that involve the manipulation of individual bits.
+/// on bit patterns or binary numerals that involve the manipulation of
+/// individual bits.
 ///
 /// More information:
 ///  - [MDN documentation][mdn]
@@ -342,7 +364,8 @@ unsafe impl Trace for UnaryOp {
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[derive(Clone, Copy, Debug, Finalize, PartialEq)]
 pub enum BitOp {
-    /// Performs the AND operation on each pair of bits. a AND b yields 1 only if both a and b are 1.
+    /// Performs the AND operation on each pair of bits. a AND b yields 1 only
+    /// if both a and b are 1.
     ///
     /// Syntax: `x & y`
     ///
@@ -354,7 +377,8 @@ pub enum BitOp {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Bitwise_Operators#Bitwise_AND
     And,
 
-    /// Performs the OR operation on each pair of bits. a OR b yields 1 if either a or b is 1.
+    /// Performs the OR operation on each pair of bits. a OR b yields 1 if
+    /// either a or b is 1.
     ///
     /// Syntax: `x | y`
     ///
@@ -366,7 +390,8 @@ pub enum BitOp {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Bitwise_Operators#Bitwise_OR
     Or,
 
-    /// Performs the XOR operation on each pair of bits. a XOR b yields 1 if a and b are different.
+    /// Performs the XOR operation on each pair of bits. a XOR b yields 1 if a
+    /// and b are different.
     ///
     /// Syntax: `x ^ y`
     ///
@@ -378,11 +403,13 @@ pub enum BitOp {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Bitwise_Operators#Bitwise_XOR
     Xor,
 
-    /// This operator shifts the first operand the specified number of bits to the left.
+    /// This operator shifts the first operand the specified number of bits to
+    /// the left.
     ///
     /// Syntax: `x << y`
     ///
-    /// Excess bits shifted off to the left are discarded. Zero bits are shifted in from the right.
+    /// Excess bits shifted off to the left are discarded. Zero bits are shifted
+    /// in from the right.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -392,14 +419,16 @@ pub enum BitOp {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Bitwise_Operators#Left_shift
     Shl,
 
-    /// This operator shifts the first operand the specified number of bits to the right.
+    /// This operator shifts the first operand the specified number of bits to
+    /// the right.
     ///
     /// Syntax: `x >> y`
     ///
-    /// Excess bits shifted off to the right are discarded. Copies of the leftmost bit
-    /// are shifted in from the left. Since the new leftmost bit has the same value as
-    /// the previous leftmost bit, the sign bit (the leftmost bit) does not change.
-    /// Hence the name "sign-propagating".
+    /// Excess bits shifted off to the right are discarded. Copies of the
+    /// leftmost bit are shifted in from the left. Since the new leftmost
+    /// bit has the same value as the previous leftmost bit, the sign bit
+    /// (the leftmost bit) does not change. Hence the name
+    /// "sign-propagating".
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -409,13 +438,15 @@ pub enum BitOp {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Bitwise_Operators#Right_shift
     Shr,
 
-    /// This operator shifts the first operand the specified number of bits to the right.
+    /// This operator shifts the first operand the specified number of bits to
+    /// the right.
     ///
     /// Syntax: `x >>> y`
     ///
-    /// Excess bits shifted off to the right are discarded. Zero bits are shifted in
-    /// from the left. The sign bit becomes 0, so the result is always non-negative.
-    /// Unlike the other bitwise operators, zero-fill right shift returns an unsigned 32-bit integer.
+    /// Excess bits shifted off to the right are discarded. Zero bits are
+    /// shifted in from the left. The sign bit becomes 0, so the result is
+    /// always non-negative. Unlike the other bitwise operators, zero-fill
+    /// right shift returns an unsigned 32-bit integer.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -447,14 +478,18 @@ unsafe impl Trace for BitOp {
     unsafe_empty_trace!();
 }
 
-/// A comparison operator compares its operands and returns a logical value based on whether the comparison is true.
+/// A comparison operator compares its operands and returns a logical value
+/// based on whether the comparison is true.
 ///
-/// The operands can be numerical, string, logical, or object values. Strings are compared based on standard
-/// lexicographical ordering, using Unicode values. In most cases, if the two operands are not of the same type,
-/// JavaScript attempts to convert them to an appropriate type for the comparison. This behavior generally results in
-/// comparing the operands numerically. The sole exceptions to type conversion within comparisons involve the `===` and `!==`
-/// operators, which perform strict equality and inequality comparisons. These operators do not attempt to convert the operands
-/// to compatible types before checking equality.
+/// The operands can be numerical, string, logical, or object values. Strings
+/// are compared based on standard lexicographical ordering, using Unicode
+/// values. In most cases, if the two operands are not of the same type,
+/// JavaScript attempts to convert them to an appropriate type for the
+/// comparison. This behavior generally results in comparing the operands
+/// numerically. The sole exceptions to type conversion within comparisons
+/// involve the `===` and `!==` operators, which perform strict equality and
+/// inequality comparisons. These operators do not attempt to convert the
+/// operands to compatible types before checking equality.
 ///
 /// More information:
 ///  - [ECMAScript reference][spec]
@@ -465,13 +500,14 @@ unsafe impl Trace for BitOp {
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[derive(Clone, Copy, Debug, Finalize, PartialEq)]
 pub enum CompOp {
-    /// The equality operator converts the operands if they are not of the same type, then applies
-    /// strict comparison.
+    /// The equality operator converts the operands if they are not of the same
+    /// type, then applies strict comparison.
     ///
     /// Syntax: `y == y`
     ///
-    /// If both operands are objects, then JavaScript compares internal references which are equal
-    /// when operands refer to the same object in memory.
+    /// If both operands are objects, then JavaScript compares internal
+    /// references which are equal when operands refer to the same object in
+    /// memory.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -485,9 +521,10 @@ pub enum CompOp {
     ///
     /// Syntax: `x != y`
     ///
-    /// If the two operands are not of the same type, JavaScript attempts to convert the operands
-    /// to an appropriate type for the comparison. If both operands are objects, then JavaScript
-    /// compares internal references which are not equal when operands refer to different objects
+    /// If the two operands are not of the same type, JavaScript attempts to
+    /// convert the operands to an appropriate type for the comparison. If
+    /// both operands are objects, then JavaScript compares internal
+    /// references which are not equal when operands refer to different objects
     /// in memory.
     ///
     /// More information:
@@ -498,8 +535,8 @@ pub enum CompOp {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Comparison_Operators#Inequality
     NotEqual,
 
-    /// The identity operator returns `true` if the operands are strictly equal **with no type
-    /// conversion**.
+    /// The identity operator returns `true` if the operands are strictly equal
+    /// **with no type conversion**.
     ///
     /// Syntax: `x === y`
     ///
@@ -513,12 +550,13 @@ pub enum CompOp {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Comparison_Operators#Identity
     StrictEqual,
 
-    /// The non-identity operator returns `true` if the operands **are not equal and/or not of the
-    /// same type**.
+    /// The non-identity operator returns `true` if the operands **are not equal
+    /// and/or not of the same type**.
     ///
     /// Syntax: `x !== y`
     ///
-    /// Returns `true` if the operands are of the same type but not equal, or are of different type.
+    /// Returns `true` if the operands are of the same type but not equal, or
+    /// are of different type.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -528,8 +566,8 @@ pub enum CompOp {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Comparison_Operators#Nonidentity>
     StrictNotEqual,
 
-    /// The greater than operator returns `true` if the left operand is greater than the right
-    /// operand.
+    /// The greater than operator returns `true` if the left operand is greater
+    /// than the right operand.
     ///
     /// Syntax: `x > y`
     ///
@@ -543,8 +581,8 @@ pub enum CompOp {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Comparison_Operators#Greater_than_operator
     GreaterThan,
 
-    /// The greater than or equal operator returns `true` if the left operand is greater than or
-    /// equal to the right operand.
+    /// The greater than or equal operator returns `true` if the left operand is
+    /// greater than or equal to the right operand.
     ///
     /// Syntax: `x >= y`
     ///
@@ -558,7 +596,8 @@ pub enum CompOp {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Comparison_Operators#Greater_than_operator
     GreaterThanOrEqual,
 
-    /// The less than operator returns `true` if the left operand is less than the right operand.
+    /// The less than operator returns `true` if the left operand is less than
+    /// the right operand.
     ///
     /// Syntax: `x < y`
     ///
@@ -572,12 +611,13 @@ pub enum CompOp {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Comparison_Operators#Less_than_operator
     LessThan,
 
-    /// The less than or equal operator returns `true` if the left operand is less than or equal to
-    /// the right operand.
+    /// The less than or equal operator returns `true` if the left operand is
+    /// less than or equal to the right operand.
     ///
     /// Syntax: `x <= y`
     ///
-    /// Returns `true` if the left operand is less than or equal to the right operand.
+    /// Returns `true` if the left operand is less than or equal to the right
+    /// operand.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -587,12 +627,13 @@ pub enum CompOp {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Comparison_Operators#Less_than_or_equal_operator
     LessThanOrEqual,
 
-    /// The `in` operator returns `true` if the specified property is in the specified object or
-    /// its prototype chain.
+    /// The `in` operator returns `true` if the specified property is in the
+    /// specified object or its prototype chain.
     ///
     /// Syntax: `prop in object`
     ///
-    /// Returns `true` the specified property is in the specified object or its prototype chain.
+    /// Returns `true` the specified property is in the specified object or its
+    /// prototype chain.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -602,13 +643,13 @@ pub enum CompOp {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/in
     In,
 
-    /// The `instanceop` operator returns `true` if the specified object is an instance of the
-    /// right hand side object.
+    /// The `instanceop` operator returns `true` if the specified object is an
+    /// instance of the right hand side object.
     ///
     /// Syntax: `obj instanceof Object`
     ///
-    /// Returns `true` the `prototype` property of the right hand side constructor appears anywhere
-    /// in the prototype chain of the object.
+    /// Returns `true` the `prototype` property of the right hand side
+    /// constructor appears anywhere in the prototype chain of the object.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -644,10 +685,12 @@ unsafe impl Trace for CompOp {
     unsafe_empty_trace!();
 }
 
-/// Logical operators are typically used with Boolean (logical) values; when they are, they return a Boolean value.
+/// Logical operators are typically used with Boolean (logical) values; when
+/// they are, they return a Boolean value.
 ///
-/// However, the `&&` and `||` operators actually return the value of one of the specified operands,
-/// so if these operators are used with non-Boolean values, they may return a non-Boolean value.
+/// However, the `&&` and `||` operators actually return the value of one of the
+/// specified operands, so if these operators are used with non-Boolean values,
+/// they may return a non-Boolean value.
 ///
 /// More information:
 ///  - [ECMAScript reference][spec]
@@ -658,8 +701,9 @@ unsafe impl Trace for CompOp {
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[derive(Clone, Copy, Debug, Finalize, PartialEq)]
 pub enum LogOp {
-    /// The logical AND operator returns the value of the first operand if it can be coerced into `false`;
-    /// otherwise, it returns the second operand.
+    /// The logical AND operator returns the value of the first operand if it
+    /// can be coerced into `false`; otherwise, it returns the second
+    /// operand.
     ///
     /// Syntax: `x && y`
     ///
@@ -671,8 +715,8 @@ pub enum LogOp {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Logical_Operators#Logical_AND
     And,
 
-    /// The logical OR operator returns the value the first operand if it can be coerced into `true`;
-    /// otherwise, it returns the second operand.
+    /// The logical OR operator returns the value the first operand if it can be
+    /// coerced into `true`; otherwise, it returns the second operand.
     ///
     /// Syntax: `x || y`
     ///
@@ -786,12 +830,15 @@ unsafe impl Trace for BinOp {
     unsafe_empty_trace!();
 }
 
-/// An assignment operator assigns a value to its left operand based on the value of its right operand.
+/// An assignment operator assigns a value to its left operand based on the
+/// value of its right operand.
 ///
-/// The simple assignment operator is equal (`=`), which assigns the value of its right operand to its
-/// left operand. That is, `x = y` assigns the value of `y to x`.
+/// The simple assignment operator is equal (`=`), which assigns the value of
+/// its right operand to its left operand. That is, `x = y` assigns the value of
+/// `y to x`.
 ///
-/// There are also compound assignment operators that are shorthand for the operations
+/// There are also compound assignment operators that are shorthand for the
+/// operations
 ///
 /// More information:
 ///  - [ECMAScript reference][spec]
@@ -802,11 +849,13 @@ unsafe impl Trace for BinOp {
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[derive(Clone, Copy, Debug, Finalize, PartialEq)]
 pub enum AssignOp {
-    /// The addition assignment operator adds the value of the right operand to a variable and assigns the result to the variable.
+    /// The addition assignment operator adds the value of the right operand to
+    /// a variable and assigns the result to the variable.
     ///
     /// Syntax: `x += y`
     ///
-    /// The types of the two operands determine the behavior of the addition assignment operator. Addition or concatenation is possible.
+    /// The types of the two operands determine the behavior of the addition
+    /// assignment operator. Addition or concatenation is possible.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -816,7 +865,8 @@ pub enum AssignOp {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Assignment_Operators#Addition_assignment
     Add,
 
-    /// The subtraction assignment operator subtracts the value of the right operand from a variable and assigns the result to the variable.
+    /// The subtraction assignment operator subtracts the value of the right
+    /// operand from a variable and assigns the result to the variable.
     ///
     /// Syntax: `x -= y`
     ///
@@ -828,7 +878,8 @@ pub enum AssignOp {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Assignment_Operators#Subtraction_assignment
     Sub,
 
-    /// The multiplication assignment operator multiplies a variable by the value of the right operand and assigns the result to the variable.
+    /// The multiplication assignment operator multiplies a variable by the
+    /// value of the right operand and assigns the result to the variable.
     ///
     /// Syntax: `x *= y`
     ///
@@ -840,7 +891,8 @@ pub enum AssignOp {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Assignment_Operators#Multiplication_assignment
     Mul,
 
-    /// The division assignment operator divides a variable by the value of the right operand and assigns the result to the variable.
+    /// The division assignment operator divides a variable by the value of the
+    /// right operand and assigns the result to the variable.
     ///
     /// Syntax: `x /= y`
     ///
@@ -852,7 +904,8 @@ pub enum AssignOp {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Assignment_Operators#Division_assignment
     Div,
 
-    /// The remainder assignment operator divides a variable by the value of the right operand and assigns the remainder to the variable.
+    /// The remainder assignment operator divides a variable by the value of the
+    /// right operand and assigns the remainder to the variable.
     ///
     /// Syntax: `x %= y`
     ///
@@ -864,7 +917,8 @@ pub enum AssignOp {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Assignment_Operators#Remainder_assignment
     Mod,
 
-    /// The exponentiation assignment operator raises the value of a variable to the power of the right operand.
+    /// The exponentiation assignment operator raises the value of a variable to
+    /// the power of the right operand.
     ///
     /// Syntax: `x ** y`
     ///
@@ -876,8 +930,9 @@ pub enum AssignOp {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Assignment_Operators#Exponentiation_assignment
     Exp,
 
-    /// The bitwise AND assignment operator uses the binary representation of both operands, does a bitwise AND operation on
-    /// them and assigns the result to the variable.
+    /// The bitwise AND assignment operator uses the binary representation of
+    /// both operands, does a bitwise AND operation on them and assigns the
+    /// result to the variable.
     ///
     /// Syntax: `x &= y`
     ///
@@ -889,8 +944,9 @@ pub enum AssignOp {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Assignment_Operators#Bitwise_AND_assignment
     And,
 
-    /// The bitwise OR assignment operator uses the binary representation of both operands, does a bitwise OR operation on
-    /// them and assigns the result to the variable.
+    /// The bitwise OR assignment operator uses the binary representation of
+    /// both operands, does a bitwise OR operation on them and assigns the
+    /// result to the variable.
     ///
     /// Syntax: `x |= y`
     ///
@@ -902,8 +958,9 @@ pub enum AssignOp {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Assignment_Operators#Bitwise_OR_assignment
     Or,
 
-    /// The bitwise XOR assignment operator uses the binary representation of both operands, does a bitwise XOR operation on
-    /// them and assigns the result to the variable.
+    /// The bitwise XOR assignment operator uses the binary representation of
+    /// both operands, does a bitwise XOR operation on them and assigns the
+    /// result to the variable.
     ///
     /// Syntax: `x ^= y`
     ///
@@ -915,7 +972,8 @@ pub enum AssignOp {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Assignment_Operators#Bitwise_XOR_assignment
     Xor,
 
-    /// The left shift assignment operator moves the specified amount of bits to the left and assigns the result to the variable.
+    /// The left shift assignment operator moves the specified amount of bits to
+    /// the left and assigns the result to the variable.
     ///
     /// Syntax: `x <<= y`
     ///
@@ -927,7 +985,8 @@ pub enum AssignOp {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Assignment_Operators#Left_shift_assignment
     Shl,
 
-    /// The right shift assignment operator moves the specified amount of bits to the right and assigns the result to the variable.
+    /// The right shift assignment operator moves the specified amount of bits
+    /// to the right and assigns the result to the variable.
     ///
     /// Syntax: `x >>= y`
     ///

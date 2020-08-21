@@ -1,10 +1,10 @@
 use crate::{exec::Interpreter, forward, forward_val, realm::Realm};
 
-///TODO: re-enable when getProperty() is finished;
+/// TODO: re-enable when getProperty() is finished;
 #[test]
 #[ignore]
 fn length() {
-    //TEST262: https://github.com/tc39/test262/blob/master/test/built-ins/String/length.js
+    // TEST262: https://github.com/tc39/test262/blob/master/test/built-ins/String/length.js
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);
     let init = r#"

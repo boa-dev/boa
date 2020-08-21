@@ -25,13 +25,14 @@ where
     );
 }
 
-/// Checks that the given javascript string creates a parse error.
+/// Checks that the given JavaScript string creates a parse error.
 // TODO: #[track_caller]: https://github.com/rust-lang/rust/issues/47809
 pub(super) fn check_invalid(js: &str) {
     assert!(Parser::new(js.as_bytes()).parse_all().is_err());
 }
 
-/// Should be parsed as `new Class().method()` instead of `new (Class().method())`
+/// Should be parsed as `new Class().method()` instead of `new
+/// (Class().method())`
 #[test]
 fn check_construct_call_precedence() {
     check_parser(
@@ -214,7 +215,7 @@ fn assignment_line_terminator() {
     let s = r#"
     let a = 3;
 
-    a = 
+    a =
     5;
     "#;
 
@@ -241,7 +242,7 @@ fn assignment_multiline_terminator() {
 
 
 
-    a = 
+    a =
 
 
 
@@ -249,7 +250,7 @@ fn assignment_multiline_terminator() {
 
 
 
-    
+
     5;
     "#;
 

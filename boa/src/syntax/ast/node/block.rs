@@ -7,14 +7,14 @@ use std::fmt;
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
-/// A `block` statement (or compound statement in other languages) is used to group zero or
-/// more statements.
+/// A `block` statement (or compound statement in other languages) is used to
+/// group zero or more statements.
 ///
 /// The block statement is often called compound statement in other languages.
-/// It allows you to use multiple statements where JavaScript expects only one statement.
-/// Combining statements into blocks is a common practice in JavaScript. The opposite behavior
-/// is possible using an empty statement, where you provide no statement, although one is
-/// required.
+/// It allows you to use multiple statements where JavaScript expects only one
+/// statement. Combining statements into blocks is a common practice in
+/// JavaScript. The opposite behavior is possible using an empty statement,
+/// where you provide no statement, although one is required.
 ///
 /// More information:
 ///  - [ECMAScript reference][spec]

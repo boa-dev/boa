@@ -2,7 +2,8 @@ use super::{Object, Property, PropertyKey, RcString, RcSymbol};
 use std::{collections::hash_map, iter::FusedIterator};
 
 impl Object {
-    /// An iterator visiting all key-value pairs in arbitrary order. The iterator element type is `(PropertyKey, &'a Property)`.
+    /// An iterator visiting all key-value pairs in arbitrary order. The
+    /// iterator element type is `(PropertyKey, &'a Property)`.
     ///
     /// This iterator does not recurse down the prototype chain.
     #[inline]
@@ -14,7 +15,8 @@ impl Object {
         }
     }
 
-    /// An iterator visiting all keys in arbitrary order. The iterator element type is `PropertyKey`.
+    /// An iterator visiting all keys in arbitrary order. The iterator element
+    /// type is `PropertyKey`.
     ///
     /// This iterator does not recurse down the prototype chain.
     #[inline]
@@ -22,7 +24,8 @@ impl Object {
         Keys(self.iter())
     }
 
-    /// An iterator visiting all values in arbitrary order. The iterator element type is `&'a Property`.
+    /// An iterator visiting all values in arbitrary order. The iterator element
+    /// type is `&'a Property`.
     ///
     /// This iterator does not recurse down the prototype chain.
     #[inline]
@@ -30,7 +33,8 @@ impl Object {
         Values(self.iter())
     }
 
-    /// An iterator visiting all symbol key-value pairs in arbitrary order. The iterator element type is `(&'a RcSymbol, &'a Property)`.
+    /// An iterator visiting all symbol key-value pairs in arbitrary order. The
+    /// iterator element type is `(&'a RcSymbol, &'a Property)`.
     ///
     ///
     /// This iterator does not recurse down the prototype chain.
@@ -39,7 +43,8 @@ impl Object {
         SymbolProperties(self.symbol_properties.iter())
     }
 
-    /// An iterator visiting all symbol keys in arbitrary order. The iterator element type is `&'a RcSymbol`.
+    /// An iterator visiting all symbol keys in arbitrary order. The iterator
+    /// element type is `&'a RcSymbol`.
     ///
     /// This iterator does not recurse down the prototype chain.
     #[inline]
@@ -47,7 +52,8 @@ impl Object {
         SymbolPropertyKeys(self.symbol_properties.keys())
     }
 
-    /// An iterator visiting all symbol values in arbitrary order. The iterator element type is `&'a Property`.
+    /// An iterator visiting all symbol values in arbitrary order. The iterator
+    /// element type is `&'a Property`.
     ///
     /// This iterator does not recurse down the prototype chain.
     #[inline]
@@ -55,7 +61,8 @@ impl Object {
         SymbolPropertyValues(self.symbol_properties.values())
     }
 
-    /// An iterator visiting all indexed key-value pairs in arbitrary order. The iterator element type is `(&'a u32, &'a Property)`.
+    /// An iterator visiting all indexed key-value pairs in arbitrary order. The
+    /// iterator element type is `(&'a u32, &'a Property)`.
     ///
     /// This iterator does not recurse down the prototype chain.
     #[inline]
@@ -63,7 +70,8 @@ impl Object {
         IndexProperties(self.indexed_properties.iter())
     }
 
-    /// An iterator visiting all index keys in arbitrary order. The iterator element type is `&'a u32`.
+    /// An iterator visiting all index keys in arbitrary order. The iterator
+    /// element type is `&'a u32`.
     ///
     /// This iterator does not recurse down the prototype chain.
     #[inline]
@@ -71,7 +79,8 @@ impl Object {
         IndexPropertyKeys(self.indexed_properties.keys())
     }
 
-    /// An iterator visiting all index values in arbitrary order. The iterator element type is `&'a Property`.
+    /// An iterator visiting all index values in arbitrary order. The iterator
+    /// element type is `&'a Property`.
     ///
     /// This iterator does not recurse down the prototype chain.
     #[inline]
@@ -79,7 +88,8 @@ impl Object {
         IndexPropertyValues(self.indexed_properties.values())
     }
 
-    /// An iterator visiting all string key-value pairs in arbitrary order. The iterator element type is `(&'a RcString, &'a Property)`.
+    /// An iterator visiting all string key-value pairs in arbitrary order. The
+    /// iterator element type is `(&'a RcString, &'a Property)`.
     ///
     /// This iterator does not recurse down the prototype chain.
     #[inline]
@@ -87,7 +97,8 @@ impl Object {
         StringProperties(self.string_properties.iter())
     }
 
-    /// An iterator visiting all string keys in arbitrary order. The iterator element type is `&'a RcString`.
+    /// An iterator visiting all string keys in arbitrary order. The iterator
+    /// element type is `&'a RcString`.
     ///
     /// This iterator does not recurse down the prototype chain.
     #[inline]
@@ -95,7 +106,8 @@ impl Object {
         StringPropertyKeys(self.string_properties.keys())
     }
 
-    /// An iterator visiting all string values in arbitrary order. The iterator element type is `&'a Property`.
+    /// An iterator visiting all string values in arbitrary order. The iterator
+    /// element type is `&'a Property`.
     ///
     /// This iterator does not recurse down the prototype chain.
     #[inline]

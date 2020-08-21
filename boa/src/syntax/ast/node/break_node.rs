@@ -5,13 +5,14 @@ use std::fmt;
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
-/// The `break` statement terminates the current loop, switch, or label statement and transfers
-/// program control to the statement following the terminated statement.
+/// The `break` statement terminates the current loop, switch, or label
+/// statement and transfers program control to the statement following the
+/// terminated statement.
 ///
-/// The break statement includes an optional label that allows the program to break out of a
-/// labeled statement. The break statement needs to be nested within the referenced label. The
-/// labeled statement can be any block statement; it does not have to be preceded by a loop
-/// statement.
+/// The break statement includes an optional label that allows the program to
+/// break out of a labeled statement. The break statement needs to be nested
+/// within the referenced label. The labeled statement can be any block
+/// statement; it does not have to be preceded by a loop statement.
 ///
 /// More information:
 ///  - [ECMAScript reference][spec]

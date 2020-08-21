@@ -3,10 +3,10 @@ mod tests;
 
 use super::Statement;
 
-use crate::syntax::lexer::TokenKind;
 use crate::{
     syntax::{
         ast::{node::If, Keyword, Node, Punctuator},
+        lexer::TokenKind,
         parser::{
             expression::Expression, AllowAwait, AllowReturn, AllowYield, Cursor, ParseError,
             TokenParser,
@@ -19,7 +19,8 @@ use std::io::Read;
 
 /// If statement parsing.
 ///
-/// An _If_ statement will have a condition, a block statemet, and an optional _else_ statement.
+/// An _If_ statement will have a condition, a block statemet, and an optional
+/// _else_ statement.
 ///
 /// More information:
 ///  - [MDN documentation][mdn]

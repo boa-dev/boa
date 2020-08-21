@@ -28,8 +28,9 @@ impl BigInt {
 
     /// Checks for mathematical equality.
     ///
-    /// The abstract operation BigInt::equal takes arguments x (a `BigInt`) and y (a `BigInt`).
-    /// It returns `true` if x and y have the same mathematical integer value and false otherwise.
+    /// The abstract operation BigInt::equal takes arguments x (a `BigInt`) and
+    /// y (a `BigInt`). It returns `true` if x and y have the same
+    /// mathematical integer value and false otherwise.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]

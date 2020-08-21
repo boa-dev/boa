@@ -1,7 +1,8 @@
 //! This module implements the global `Error` object.
 //!
 //! Error objects are thrown when runtime errors occur.
-//! The Error object can also be used as a base object for user-defined exceptions.
+//! The Error object can also be used as a base object for user-defined
+//! exceptions.
 //!
 //! More information:
 //!  - [MDN documentation][mdn]
@@ -28,10 +29,9 @@ pub(crate) mod r#type;
 // pub(crate) mod eval;
 // pub(crate) mod uri;
 
-pub(crate) use self::r#type::TypeError;
-pub(crate) use self::range::RangeError;
-pub(crate) use self::reference::ReferenceError;
-pub(crate) use self::syntax::SyntaxError;
+pub(crate) use self::{
+    r#type::TypeError, range::RangeError, reference::ReferenceError, syntax::SyntaxError,
+};
 // pub(crate) use self::eval::EvalError;
 // pub(crate) use self::uri::UriError;
 
@@ -60,7 +60,8 @@ impl Error {
 
     /// `Error.prototype.toString()`
     ///
-    /// The toString() method returns a string representing the specified Error object.
+    /// The toString() method returns a string representing the specified Error
+    /// object.
     ///
     /// More information:
     ///  - [MDN documentation][mdn]

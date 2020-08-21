@@ -14,11 +14,11 @@ use crate::{
     Executable, Interpreter, Result,
 };
 use gc::{Finalize, Gc, GcCell, GcCellRef, GcCellRefMut, Trace};
-use std::result::Result as StdResult;
 use std::{
     cell::RefCell,
     collections::HashSet,
     fmt::{self, Debug, Display},
+    result::Result as StdResult,
 };
 
 /// Garbage collected `Object`.
@@ -74,7 +74,8 @@ impl GcObject {
                         environment,
                         flags,
                     } => {
-                        // Create a new Function environment who's parent is set to the scope of the function declaration (self.environment)
+                        // Create a new Function environment who's parent is set to the scope of the
+                        // function declaration (self.environment):
                         // <https://tc39.es/ecma262/#sec-prepareforordinarycall>
                         let local_env = new_function_environment(
                             this_function_object,
@@ -84,7 +85,8 @@ impl GcObject {
                                 Some(this.clone())
                             },
                             Some(environment.clone()),
-                            // Arrow functions do not have a this binding https://tc39.es/ecma262/#sec-function-environment-records
+                            // Arrow functions do not have a this binding:
+                            // <https://tc39.es/ecma262/#sec-function-environment-records>
                             if flags.is_lexical_this_mode() {
                                 BindingStatus::Lexical
                             } else {
@@ -148,13 +150,15 @@ impl GcObject {
                         environment,
                         flags,
                     } => {
-                        // Create a new Function environment who's parent is set to the scope of the function declaration (self.environment)
+                        // Create a new Function environment who's parent is set to the scope of the
+                        // function declaration (self.environment):
                         // <https://tc39.es/ecma262/#sec-prepareforordinarycall>
                         let local_env = new_function_environment(
                             this_function_object,
                             Some(this.clone()),
                             Some(environment.clone()),
-                            // Arrow functions do not have a this binding https://tc39.es/ecma262/#sec-function-environment-records
+                            // Arrow functions do not have a this binding:
+                            // <https://tc39.es/ecma262/#sec-function-environment-records>
                             if flags.is_lexical_this_mode() {
                                 BindingStatus::Lexical
                             } else {
@@ -210,7 +214,8 @@ impl AsRef<GcCell<Object>> for GcObject {
     }
 }
 
-/// An error returned by [`GcObject::try_borrow`](struct.GcObject.html#method.try_borrow).
+/// An error returned by
+/// [`GcObject::try_borrow`](struct.GcObject.html#method.try_borrow).
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct BorrowError;
 
@@ -243,13 +248,16 @@ impl Clone for RecursionLimiter {
 
 impl Drop for RecursionLimiter {
     fn drop(&mut self) {
-        // Typically, calling hs.remove(ptr) for "first" objects would be the correct choice here. This would allow the
-        // same object to appear multiple times in the output (provided it does not appear under itself recursively).
-        // However, the JS object hierarchy involves quite a bit of repitition, and the sheer amount of data makes
-        // understanding the Debug output impossible; limiting the usefulness of it.
+        // Typically, calling hs.remove(ptr) for "first" objects would be the correct
+        // choice here. This would allow the same object to appear multiple
+        // times in the output (provided it does not appear under itself recursively).
+        // However, the JS object hierarchy involves quite a bit of repitition, and the
+        // sheer amount of data makes understanding the Debug output impossible;
+        // limiting the usefulness of it.
         //
-        // Instead, the entire hashset is emptied at by the first GcObject involved. This means that objects will appear
-        // at most once, throughout the graph, hopefully making things a bit clearer.
+        // Instead, the entire hashset is emptied at by the first GcObject involved.
+        // This means that objects will appear at most once, throughout the
+        // graph, hopefully making things a bit clearer.
         if self.free {
             Self::VISITED.with(|hs| hs.borrow_mut().clear());
         }
@@ -262,11 +270,13 @@ impl RecursionLimiter {
         static VISITED: RefCell<HashSet<usize>> = RefCell::new(HashSet::new());
     }
 
-    /// Determines if the specified `GcObject` has been visited, and returns a struct that will free it when dropped.
+    /// Determines if the specified `GcObject` has been visited, and returns a
+    /// struct that will free it when dropped.
     ///
-    /// This is done by maintaining a thread-local hashset containing the pointers of `GcObject` values that have been
-    /// visited. The first `GcObject` visited will clear the hashset, while any others will check if they are contained
-    /// by the hashset.
+    /// This is done by maintaining a thread-local hashset containing the
+    /// pointers of `GcObject` values that have been visited. The first
+    /// `GcObject` visited will clear the hashset, while any others will check
+    /// if they are contained by the hashset.
     fn new(o: &GcObject) -> Self {
         // We shouldn't have to worry too much about this being moved during Debug::fmt.
         let ptr = (o.as_ref() as *const _) as usize;
@@ -291,7 +301,8 @@ impl Debug for GcObject {
     }
 }
 
-/// An error returned by [`GcObject::try_borrow_mut`](struct.GcObject.html#method.try_borrow_mut).
+/// An error returned by
+/// [`GcObject::try_borrow_mut`](struct.GcObject.html#method.try_borrow_mut).
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct BorrowMutError;
 

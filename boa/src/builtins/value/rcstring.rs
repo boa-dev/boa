@@ -1,7 +1,9 @@
-use std::borrow::Borrow;
-use std::fmt::{self, Display};
-use std::ops::Deref;
-use std::rc::Rc;
+use std::{
+    borrow::Borrow,
+    fmt::{self, Display},
+    ops::Deref,
+    rc::Rc,
+};
 
 use gc::{unsafe_empty_trace, Finalize, Trace};
 

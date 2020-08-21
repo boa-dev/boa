@@ -2,9 +2,10 @@
 //!
 //! This module contains the Boa lexer or tokenizer implementation.
 //!
-//! The Lexer splits its input source code into a sequence of input elements called tokens,
-//! represented by the [Token](../ast/token/struct.Token.html) structure. It also removes
-//! whitespace and comments and attaches them to the next token.
+//! The Lexer splits its input source code into a sequence of input elements
+//! called tokens, represented by the [Token](../ast/token/struct.Token.html)
+//! structure. It also removes whitespace and comments and attaches them to the
+//! next token.
 
 mod comment;
 mod cursor;
@@ -55,10 +56,11 @@ pub struct Lexer<R> {
 impl<R> Lexer<R> {
     /// Checks if a character is whitespace as per ECMAScript standards.
     ///
-    /// The Rust `char::is_whitespace` function and the ECMAScript standard use different sets of
-    /// characters as whitespaces:
+    /// The Rust `char::is_whitespace` function and the ECMAScript standard use
+    /// different sets of characters as whitespaces:
     ///  * Rust uses `\p{White_Space}`,
-    ///  * ECMAScript standard uses `\{Space_Separator}` + `\u{0009}`, `\u{000B}`, `\u{000C}`, `\u{FEFF}`
+    ///  * ECMAScript standard uses `\{Space_Separator}` + `\u{0009}`,
+    ///    `\u{000B}`, `\u{000C}`, `\u{FEFF}`
     ///
     /// [More information](https://tc39.es/ecma262/#table-32)
     fn is_whitespace(ch: char) -> bool {
@@ -98,9 +100,10 @@ impl<R> Lexer<R> {
     // This could be a divide symbol or the start of a regex.
     //
     // A '/' symbol can always be a comment but if as tested above it is not then
-    // that means it could be multiple different tokens depending on the input token.
+    // that means it could be multiple different tokens depending on the input
+    // token.
     //
-    // As per https://tc39.es/ecma262/#sec-ecmascript-language-lexical-grammar
+    // As per <https://tc39.es/ecma262/#sec-ecmascript-language-lexical-grammar>
     pub(crate) fn lex_slash_token(&mut self, start: Position) -> Result<Token, Error>
     where
         R: Read,
@@ -149,7 +152,7 @@ impl<R> Lexer<R> {
     }
 
     /// Retrieves the next token from the lexer.
-    // We intentionally don't implement Iterator trait as Result<Option> is cleaner to handle.
+    // We intentionally don't implement `Iterator` trait as `Result<Option>` is cleaner to handle.
     #[allow(clippy::should_implement_trait)]
     pub fn next(&mut self) -> Result<Option<Token>, Error>
     where

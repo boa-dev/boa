@@ -3,8 +3,7 @@
 use super::{Executable, Interpreter};
 use crate::{
     builtins::value::Value,
-    syntax::ast::node::MethodDefinitionKind,
-    syntax::ast::node::{Object, PropertyDefinition},
+    syntax::ast::node::{MethodDefinitionKind, Object, PropertyDefinition},
     Result,
 };
 

@@ -1,4 +1,5 @@
-//! This module implements all of the [Token]s used in the JavaScript programing language.
+//! This module implements all of the [Token]s used in the JavaScript programing
+//! language.
 //!
 //! More information:
 //!  - [ECMAScript reference][spec]
@@ -21,7 +22,8 @@ use std::{
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
-/// This represents the smallest individual words, phrases, or characters that JavaScript can understand.
+/// This represents the smallest individual words, phrases, or characters that
+/// JavaScript can understand.
 ///
 /// More information:
 ///  - [ECMAScript reference][spec]
@@ -37,7 +39,8 @@ pub struct Token {
 }
 
 impl Token {
-    /// Create a new detailed token from the token data, line number and column number
+    /// Create a new detailed token from the token data, line number and column
+    /// number
     #[inline]
     pub fn new(kind: TokenKind, span: Span) -> Self {
         Self { kind, span }

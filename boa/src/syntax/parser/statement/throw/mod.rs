@@ -1,10 +1,10 @@
 #[cfg(test)]
 mod tests;
 
-use crate::syntax::lexer::TokenKind;
 use crate::{
     syntax::{
         ast::{node::Throw, Keyword, Punctuator},
+        lexer::TokenKind,
         parser::{expression::Expression, AllowAwait, AllowYield, Cursor, ParseError, TokenParser},
     },
     BoaProfiler,

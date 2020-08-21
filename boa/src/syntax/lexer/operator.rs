@@ -8,9 +8,11 @@ use crate::{
 };
 use std::io::Read;
 
-/// `vop` tests the next token to see if we're on an assign operation of just a plain binary operation.
+/// `vop` tests the next token to see if we're on an assign operation of just a
+/// plain binary operation.
 ///
-/// If the next value is not an assignment operation it will pattern match  the provided values and return the corresponding token.
+/// If the next value is not an assignment operation it will pattern match  the
+/// provided values and return the corresponding token.
 macro_rules! vop {
     ($cursor:ident, $assign_op:expr, $op:expr) => ({
         match $cursor.peek()? {
@@ -52,7 +54,8 @@ macro_rules! vop {
     }
 }
 
-/// The `op` macro handles binary operations or assignment operations and converts them into tokens.
+/// The `op` macro handles binary operations or assignment operations and
+/// converts them into tokens.
 macro_rules! op {
     ($cursor:ident, $start_pos:expr, $assign_op:expr, $op:expr) => ({
         Ok(Token::new(
@@ -76,7 +79,8 @@ pub(super) struct Operator {
 
 /// Operator lexing.
 ///
-/// Assumes that the cursor has already consumed the operator starting symbol (stored in init).
+/// Assumes that the cursor has already consumed the operator starting symbol
+/// (stored in init).
 ///
 /// More information:
 ///  - [ECMAScript reference][spec]

@@ -9,13 +9,13 @@
 
 #[cfg(test)]
 mod tests;
-use crate::syntax::lexer::TokenKind;
 use crate::{
     syntax::{
         ast::{
             node::{self, FunctionExpr, MethodDefinitionKind, Node, Object},
             Punctuator,
         },
+        lexer::TokenKind,
         parser::{
             expression::AssignmentExpression,
             function::{FormalParameters, FunctionBody},

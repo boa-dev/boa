@@ -7,13 +7,14 @@ use std::fmt;
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
-/// Calling the function actually performs the specified actions with the indicated parameters.
+/// Calling the function actually performs the specified actions with the
+/// indicated parameters.
 ///
-/// Defining a function does not execute it. Defining it simply names the function and
-/// specifies what to do when the function is called. Functions must be in scope when they are
-/// called, but the function declaration can be hoisted. The scope of a function is the
-/// function in which it is declared (or the entire program, if it is declared at the top
-/// level).
+/// Defining a function does not execute it. Defining it simply names the
+/// function and specifies what to do when the function is called. Functions
+/// must be in scope when they are called, but the function declaration can be
+/// hoisted. The scope of a function is the function in which it is declared (or
+/// the entire program, if it is declared at the top level).
 ///
 /// More information:
 ///  - [ECMAScript reference][spec]
@@ -66,8 +67,9 @@ impl From<Call> for Node {
     }
 }
 
-/// The `new` operator lets developers create an instance of a user-defined object type or of
-/// one of the built-in object types that has a constructor function.
+/// The `new` operator lets developers create an instance of a user-defined
+/// object type or of one of the built-in object types that has a constructor
+/// function.
 ///
 /// The new keyword does the following things:
 ///  - Creates a blank, plain JavaScript object;

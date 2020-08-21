@@ -34,7 +34,8 @@ impl NumberLiteral {
 
 /// This is a helper structure
 ///
-/// This structure helps with identifying what numerical type it is and what base is it.
+/// This structure helps with identifying what numerical type it is and what
+/// base is it.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum NumericKind {
     Rational,
@@ -105,7 +106,8 @@ where
     Ok(())
 }
 
-/// Utility function for checking the NumericLiteral is not followed by an `IdentifierStart` or `DecimalDigit` character.
+/// Utility function for checking the NumericLiteral is not followed by an
+/// `IdentifierStart` or `DecimalDigit` character.
 ///
 /// More information:
 ///  - [ECMAScript Specification][spec]
@@ -192,8 +194,9 @@ impl<R> Tokenizer<R> for NumberLiteral {
                                 kind = NumericKind::Integer(8);
                             }
                         } else if ch.is_digit(10) {
-                            // Indicates a numerical digit comes after then 0 but it isn't an octal digit
-                            // so therefore this must be a number with an unneeded leading 0. This is
+                            // Indicates a numerical digit comes after then 0 but it isn't an octal
+                            // digit so therefore this must be a number
+                            // with an unneeded leading 0. This is
                             // forbidden in strict mode.
                             if self.strict_mode {
                                 return Err(Error::syntax(
@@ -215,7 +218,8 @@ impl<R> Tokenizer<R> for NumberLiteral {
             }
         }
 
-        // Consume digits until a non-digit character is encountered or all the characters are consumed.
+        // Consume digits until a non-digit character is encountered or all the
+        // characters are consumed.
         cursor.take_until_pred(&mut buf, &|c: char| c.is_digit(kind.base()))?;
 
         // The non-digit character could be:
@@ -235,17 +239,19 @@ impl<R> Tokenizer<R> for NumberLiteral {
             Some('.') => {
                 if kind.base() == 10 {
                     // Only base 10 numbers can have a decimal seperator.
-                    // Number literal lexing finished if a . is found for a number in a different base.
+                    // Number literal lexing finished if a . is found for a number in a different
+                    // base.
 
                     cursor.next_char()?.expect(". token vanished");
                     buf.push('.'); // Consume the .
                     kind = NumericKind::Rational;
 
-                    // Consume digits until a non-digit character is encountered or all the characters are consumed.
+                    // Consume digits until a non-digit character is encountered or all the
+                    // characters are consumed.
                     cursor.take_until_pred(&mut buf, &|c: char| c.is_digit(kind.base()))?;
 
-                    // The non-digit character at this point must be an 'e' or 'E' to indicate an Exponent Part.
-                    // Another '.' or 'n' is not allowed.
+                    // The non-digit character at this point must be an 'e' or 'E' to indicate an
+                    // Exponent Part. Another '.' or 'n' is not allowed.
                     match cursor.peek()? {
                         Some('e') | Some('E') => {
                             // Consume the ExponentIndicator.
@@ -284,7 +290,7 @@ impl<R> Tokenizer<R> for NumberLiteral {
                 let val = f64::from_str(&buf).expect("Failed to parse float after checks");
                 let int_val = val as i32;
 
-                // The truncated float should be identically to the non-truncated float for the conversion to be loss-less, 
+                // The truncated float should be identically to the non-truncated float for the conversion to be loss-less,
                 // any other different and the number must be stored as a rational.
                 #[allow(clippy::float_cmp)]
                 if (int_val as f64) == val {

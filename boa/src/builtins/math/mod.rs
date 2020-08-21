@@ -1,6 +1,7 @@
 //! This module implements the global `Math` object.
 //!
-//! `Math` is a built-in object that has properties and methods for mathematical constants and functions. It’s not a function object.
+//! `Math` is a built-in object that has properties and methods for mathematical
+//! constants and functions. It’s not a function object.
 //!
 //! `Math` works with the `Number` type. It doesn't work with `BigInt`.
 //!
@@ -270,9 +271,9 @@ impl Math {
             .into())
     }
 
-    /// The Math.expm1() function returns e^x - 1, where x is the argument, and e the base of
-    /// the natural logarithms. The result is computed in a way that is accurate even when the
-    /// value of x is close 0
+    /// The Math.expm1() function returns e^x - 1, where x is the argument, and
+    /// e the base of the natural logarithms. The result is computed in a
+    /// way that is accurate even when the value of x is close 0
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -306,7 +307,8 @@ impl Math {
             .into())
     }
 
-    /// Get the nearest 32-bit single precision float representation of a number.
+    /// Get the nearest 32-bit single precision float representation of a
+    /// number.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -323,7 +325,8 @@ impl Math {
             .into())
     }
 
-    /// Get an approximation of the square root of the sum of squares of all arguments.
+    /// Get an approximation of the square root of the sum of squares of all
+    /// arguments.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -340,7 +343,8 @@ impl Math {
         Ok(result.into())
     }
 
-    /// Get the result of the C-like 32-bit multiplication of the two parameters.
+    /// Get the result of the C-like 32-bit multiplication of the two
+    /// parameters.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]

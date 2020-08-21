@@ -1,4 +1,5 @@
-/// Converts a 64-bit floating point number to an `i32` according to the [`ToInt32`][ToInt32] algorithm.
+/// Converts a 64-bit floating point number to an `i32` according to the
+/// [`ToInt32`][ToInt32] algorithm.
 ///
 /// [ToInt32]: https://tc39.es/ecma262/#sec-toint32
 #[inline]
@@ -77,8 +78,8 @@ pub(crate) fn f64_to_int32(number: f64) -> i32 {
     (sign(number) * (bits as i64)) as i32
 }
 
-/// Converts a 64-bit floating point number to an `u32` according to the [`ToUint32`][ToUint32] algorithm.
-///
+/// Converts a 64-bit floating point number to an `u32` according to the
+/// [`ToUint32`][ToUint32] algorithm.
 // [ToInt32]: https://tc39.es/ecma262/#sec-touint32
 #[inline]
 pub(crate) fn f64_to_uint32(number: f64) -> u32 {

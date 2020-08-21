@@ -1,7 +1,10 @@
 use super::Value;
 
-/// Possible types of values as defined at https://tc39.es/ecma262/#sec-typeof-operator.
+/// Possible types of values as defined in the [spec][spec].
+///
 /// Note that an object which implements call is referred to here as 'Function'.
+///
+/// [spec]: https://tc39.es/ecma262/#sec-typeof-operator
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum Type {
     Undefined,
@@ -34,9 +37,11 @@ impl Type {
 impl Value {
     /// Get the type of the value.
     ///
-    /// This is similar to typeof as described at https://tc39.es/ecma262/#sec-typeof-operator but instead of
-    /// returning a string it returns a Type enum which implements fmt::Display to allow getting the string if
-    /// required using to_string().
+    /// This is similar to typeof as described at the [spec][spec] but instead
+    /// of returning a string it returns a `Type` enum which has an
+    /// `as_str()` function to easily and efficiently get the string if needed.
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-typeof-operator
     pub fn get_type(&self) -> Type {
         match *self {
             Self::Rational(_) | Self::Integer(_) => Type::Number,

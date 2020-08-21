@@ -1,7 +1,6 @@
 //! This module implements the `BigInt` operations.
 
-use num_traits::cast::ToPrimitive;
-use num_traits::pow::Pow;
+use num_traits::{cast::ToPrimitive, pow::Pow};
 
 use super::BigInt;
 
@@ -59,8 +58,7 @@ impl std::ops::Shr for BigInt {
     type Output = Self;
 
     fn shr(mut self, other: Self) -> Self::Output {
-        use std::ops::ShlAssign;
-        use std::ops::ShrAssign;
+        use std::ops::{ShlAssign, ShrAssign};
 
         if let Some(n) = other.0.to_i32() {
             if n > 0 {
@@ -80,8 +78,7 @@ impl std::ops::Shl for BigInt {
     type Output = Self;
 
     fn shl(mut self, other: Self) -> Self::Output {
-        use std::ops::ShlAssign;
-        use std::ops::ShrAssign;
+        use std::ops::{ShlAssign, ShrAssign};
 
         if let Some(n) = other.0.to_i32() {
             if n > 0 {

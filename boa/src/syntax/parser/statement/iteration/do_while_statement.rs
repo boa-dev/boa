@@ -7,10 +7,10 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/do...while
 //! [spec]: https://tc39.es/ecma262/#sec-do-while-statement
 
-use crate::syntax::lexer::TokenKind;
 use crate::{
     syntax::{
         ast::{node::DoWhileLoop, Keyword, Punctuator},
+        lexer::TokenKind,
         parser::{
             expression::Expression, statement::Statement, AllowAwait, AllowReturn, AllowYield,
             Cursor, ParseError, TokenParser,
@@ -87,8 +87,8 @@ where
         cursor.expect(Punctuator::CloseParen, "do while statement")?;
 
         // Here, we only care to read the next token if it's a smicolon. If it's not, we
-        // automatically "enter" or assume a semicolon, since we have just read the `)` token:
-        // https://tc39.es/ecma262/#sec-automatic-semicolon-insertion
+        // automatically "enter" or assume a semicolon, since we have just read the `)`
+        // token: <https://tc39.es/ecma262/#sec-automatic-semicolon-insertion>
         if let Some(tok) = cursor.peek(0)? {
             if let TokenKind::Punctuator(Punctuator::Semicolon) = *tok.kind() {
                 cursor.next()?;

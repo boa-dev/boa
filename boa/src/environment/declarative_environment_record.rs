@@ -1,9 +1,9 @@
 //! # Declarative Records
 //!
-//! Each declarative Environment Record is associated with an ECMAScript program scope containing variable,
-//! `constant`, `let`, `class`, `module`, `import`, and/or function declarations.
-//! A declarative Environment Record binds the set of identifiers defined by the declarations contained within its scope.
-//! More info:  [ECMA-262 sec-declarative-environment-records](https://tc39.es/ecma262/#sec-declarative-environment-records)
+//! Each declarative Environment Record is associated with an ECMAScript program
+//! scope containing variable, `constant`, `let`, `class`, `module`, `import`,
+//! and/or function declarations. A declarative Environment Record binds the set
+//! of identifiers defined by the declarations contained within its scope. More info:  [ECMA-262 sec-declarative-environment-records](https://tc39.es/ecma262/#sec-declarative-environment-records)
 
 use crate::{
     builtins::value::Value,
@@ -15,8 +15,8 @@ use crate::{
 use gc::{Finalize, Trace};
 use rustc_hash::FxHashMap;
 
-/// Declarative Bindings have a few properties for book keeping purposes, such as mutability (const vs let).
-/// Can it be deleted? and strict mode.
+/// Declarative Bindings have a few properties for book keeping purposes, such
+/// as mutability (const vs let). Can it be deleted? and strict mode.
 ///
 /// So we need to create a struct to hold these values.
 /// From this point onwards, a binding is referring to one of these structures.

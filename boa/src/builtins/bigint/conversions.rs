@@ -6,8 +6,7 @@ use crate::{
 };
 use num_traits::cast::{FromPrimitive, ToPrimitive};
 
-use std::convert::TryFrom;
-use std::str::FromStr;
+use std::{convert::TryFrom, str::FromStr};
 
 impl BigInt {
     /// This function takes a string and conversts it to BigInt type.

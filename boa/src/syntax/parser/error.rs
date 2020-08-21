@@ -1,7 +1,9 @@
 //! Error and result implementation for the parser.
 
-use crate::syntax::ast::{position::Position, Node};
-use crate::syntax::lexer::{Error as LexError, Token, TokenKind};
+use crate::syntax::{
+    ast::{position::Position, Node},
+    lexer::{Error as LexError, Token, TokenKind},
+};
 use std::fmt;
 
 /// Result of a parsing operation.
@@ -23,10 +25,12 @@ impl From<LexError> for ParseError {
     }
 }
 
-/// `ParseError` is an enum which represents errors encounted during parsing an expression
+/// `ParseError` is an enum which represents errors encounted during parsing an
+/// expression
 #[derive(Debug)]
 pub enum ParseError {
-    /// When it expected a certain kind of token, but got another as part of something
+    /// When it expected a certain kind of token, but got another as part of
+    /// something
     Expected {
         expected: Box<[TokenKind]>,
         found: Token,

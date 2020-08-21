@@ -7,8 +7,7 @@ use rustyline::{
     validate::{MatchingBracketValidator, ValidationContext, ValidationResult, Validator},
 };
 use rustyline_derive::{Completer, Helper, Hinter};
-use std::borrow::Cow;
-use std::collections::HashSet;
+use std::{borrow::Cow, collections::HashSet};
 
 const STRING_COLOR: Color = Color::Green;
 const KEYWORD_COLOR: Color = Color::Yellow;

@@ -7,17 +7,16 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/for
 //! [spec]: https://tc39.es/ecma262/#sec-for-statement
 
-use crate::syntax::lexer::TokenKind;
 use crate::{
     syntax::{
         ast::{
             node::{ForLoop, Node},
             Const, Keyword, Punctuator,
         },
+        lexer::TokenKind,
         parser::{
             expression::Expression,
-            statement::declaration::Declaration,
-            statement::{variable::VariableDeclarationList, Statement},
+            statement::{declaration::Declaration, variable::VariableDeclarationList, Statement},
             AllowAwait, AllowReturn, AllowYield, Cursor, ParseError, TokenParser,
         },
     },

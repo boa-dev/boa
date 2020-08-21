@@ -40,15 +40,16 @@ impl Case {
     }
 }
 
-/// The `switch` statement evaluates an expression, matching the expression's value to a case
-/// clause, and executes statements associated with that case, as well as statements in cases
-/// that follow the matching case.
+/// The `switch` statement evaluates an expression, matching the expression's
+/// value to a case clause, and executes statements associated with that case,
+/// as well as statements in cases that follow the matching case.
 ///
-/// A `switch` statement first evaluates its expression. It then looks for the first case
-/// clause whose expression evaluates to the same value as the result of the input expression
-/// (using the strict comparison, `===`) and transfers control to that clause, executing the
-/// associated statements. (If multiple cases match the provided value, the first case that
-/// matches is selected, even if the cases are not equal to each other.)
+/// A `switch` statement first evaluates its expression. It then looks for the
+/// first case clause whose expression evaluates to the same value as the result
+/// of the input expression (using the strict comparison, `===`) and transfers
+/// control to that clause, executing the associated statements. (If multiple
+/// cases match the provided value, the first case that matches is selected,
+/// even if the cases are not equal to each other.)
 ///
 /// More information:
 ///  - [ECMAScript reference][spec]

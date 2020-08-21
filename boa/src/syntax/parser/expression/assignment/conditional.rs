@@ -7,10 +7,10 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Conditional_Operator
 //! [spec]: https://tc39.es/ecma262/#sec-conditional-operator
 
-use crate::syntax::lexer::TokenKind;
 use crate::{
     syntax::{
         ast::{node::ConditionalOp, Node, Punctuator},
+        lexer::TokenKind,
         parser::{
             expression::{AssignmentExpression, LogicalORExpression},
             AllowAwait, AllowIn, AllowYield, Cursor, ParseResult, TokenParser,

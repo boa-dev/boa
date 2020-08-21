@@ -5,17 +5,18 @@ use std::fmt;
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
-/// The `return` statement ends function execution and specifies a value to be returned to the
-/// function caller.
+/// The `return` statement ends function execution and specifies a value to be
+/// returned to the function caller.
 ///
 /// Syntax: `return [expression];`
 ///
 /// `expression`:
-///  > The expression whose value is to be returned. If omitted, `undefined` is returned
-///  > instead.
+///  > The expression whose value is to be returned. If omitted, `undefined` is
+/// returned  > instead.
 ///
-/// When a `return` statement is used in a function body, the execution of the function is
-/// stopped. If specified, a given value is returned to the function caller.
+/// When a `return` statement is used in a function body, the execution of the
+/// function is stopped. If specified, a given value is returned to the function
+/// caller.
 ///
 /// More information:
 ///  - [ECMAScript reference][spec]

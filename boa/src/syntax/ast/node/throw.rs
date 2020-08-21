@@ -9,9 +9,10 @@ use serde::{Deserialize, Serialize};
 ///
 /// Syntax: `throw expression;`
 ///
-/// Execution of the current function will stop (the statements after throw won't be executed),
-/// and control will be passed to the first catch block in the call stack. If no catch block
-/// exists among caller functions, the program will terminate.
+/// Execution of the current function will stop (the statements after throw
+/// won't be executed), and control will be passed to the first catch block in
+/// the call stack. If no catch block exists among caller functions, the program
+/// will terminate.
 ///
 /// More information:
 ///  - [ECMAScript reference][spec]

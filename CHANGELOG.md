@@ -179,7 +179,7 @@ Security:
 # [# 0.7.0 (2020-04-13) - New Parser is 67% faster](https://github.com/boa-dev/boa/compare/v0.6.0...v0.7.0)
 
 `v0.7.0` brings a REPL, Improved parser messages and a new parser!
-This is now the default behaviour of Boa, so running Boa without a file argument will bring you into a javascript shell.
+This is now the default behaviour of Boa, so running Boa without a file argument will bring you into a JavaScript shell.
 Tests have also been moved to their own files, we had a lot of tests in some modules so it was time to separate.
 
 ## New Parser

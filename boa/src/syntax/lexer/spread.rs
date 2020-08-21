@@ -10,7 +10,8 @@ use std::io::Read;
 
 /// Spread literal lexing.
 ///
-/// Note: expects for the initializer `'` or `"` to already be consumed from the cursor.
+/// Note: expects for the initializer `'` or `"` to already be consumed from the
+/// cursor.
 ///
 /// More information:
 ///  - [ECMAScript reference][spec]

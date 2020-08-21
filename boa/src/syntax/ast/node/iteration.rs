@@ -5,7 +5,8 @@ use std::fmt;
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
-/// The `for` statement creates a loop that consists of three optional expressions.
+/// The `for` statement creates a loop that consists of three optional
+/// expressions.
 ///
 /// A `for` loop repeats until a specified condition evaluates to `false`.
 /// The JavaScript for loop is similar to the Java and C for loop.
@@ -138,8 +139,8 @@ impl InnerForLoop {
     }
 }
 
-/// The `while` statement creates a loop that executes a specified statement as long as the
-/// test condition evaluates to `true`.
+/// The `while` statement creates a loop that executes a specified statement as
+/// long as the test condition evaluates to `true`.
 ///
 /// The condition is evaluated before executing the statement.
 ///
@@ -195,11 +196,11 @@ impl From<WhileLoop> for Node {
     }
 }
 
-/// The `do...while` statement creates a loop that executes a specified statement until the
-/// test condition evaluates to false.
+/// The `do...while` statement creates a loop that executes a specified
+/// statement until the test condition evaluates to false.
 ///
-/// The condition is evaluated after executing the statement, resulting in the specified
-/// statement executing at least once.
+/// The condition is evaluated after executing the statement, resulting in the
+/// specified statement executing at least once.
 ///
 /// More information:
 ///  - [ECMAScript reference][spec]
@@ -254,12 +255,14 @@ impl From<DoWhileLoop> for Node {
     }
 }
 
-/// The `continue` statement terminates execution of the statements in the current iteration of
-/// the current or labeled loop, and continues execution of the loop with the next iteration.
+/// The `continue` statement terminates execution of the statements in the
+/// current iteration of the current or labeled loop, and continues execution of
+/// the loop with the next iteration.
 ///
-/// The continue statement can include an optional label that allows the program to jump to the
-/// next iteration of a labeled loop statement instead of the current loop. In this case, the
-/// continue statement needs to be nested within this labeled statement.
+/// The continue statement can include an optional label that allows the program
+/// to jump to the next iteration of a labeled loop statement instead of the
+/// current loop. In this case, the continue statement needs to be nested within
+/// this labeled statement.
 ///
 /// More information:
 ///  - [ECMAScript reference][spec]

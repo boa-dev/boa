@@ -45,7 +45,7 @@ macro_rules! getter_method {
         }
         get_value
     }};
-    (Self::$name:ident) => {{
+    (Self:: $name:ident) => {{
         fn get_value(_: &Value, _: &[Value], _: &mut Interpreter) -> Result<Value> {
             Ok(Value::from(Date::$name()))
         }
@@ -132,8 +132,9 @@ impl Date {
 
     /// Optionally sets the individual components of the `Date`.
     ///
-    /// Each component does not have to be within the range of valid values. For example, if `month` is too large
-    /// then `year` will be incremented by the required amount.
+    /// Each component does not have to be within the range of valid values. For
+    /// example, if `month` is too large then `year` will be incremented by
+    /// the required amount.
     #[allow(clippy::too_many_arguments)]
     pub fn set_components(
         &mut self,
@@ -238,7 +239,8 @@ impl Date {
 
     /// `Date()`
     ///
-    /// Creates a JavaScript `Date` instance that represents a single moment in time in a platform-independent format.
+    /// Creates a JavaScript `Date` instance that represents a single moment in
+    /// time in a platform-independent format.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -260,7 +262,8 @@ impl Date {
 
     /// `Date()`
     ///
-    /// The `Date()` function is used to create a string that represent the current date and time.
+    /// The `Date()` function is used to create a string that represent the
+    /// current date and time.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -274,7 +277,8 @@ impl Date {
 
     /// `Date()`
     ///
-    /// The newly-created `Date` object represents the current date and time as of the time of instantiation.
+    /// The newly-created `Date` object represents the current date and time as
+    /// of the time of instantiation.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -290,7 +294,8 @@ impl Date {
 
     /// `Date(value)`
     ///
-    /// The newly-created `Date` object represents the value provided to the constructor.
+    /// The newly-created `Date` object represents the value provided to the
+    /// constructor.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -325,9 +330,11 @@ impl Date {
         Ok(this.clone())
     }
 
-    /// `Date(year, month [ , date [ , hours [ , minutes [ , seconds [ , ms ] ] ] ] ])`
+    /// `Date(year, month [ , date [ , hours [ , minutes [ , seconds [ , ms ] ]
+    /// ] ] ])`
     ///
-    /// The newly-created `Date` object represents the date components provided to the constructor.
+    /// The newly-created `Date` object represents the date components provided
+    /// to the constructor.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -381,7 +388,8 @@ impl Date {
 
     /// `Date.prototype.getDate()`
     ///
-    /// The `getDate()` method returns the day of the month for the specified date according to local time.
+    /// The `getDate()` method returns the day of the month for the specified
+    /// date according to local time.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -395,8 +403,8 @@ impl Date {
 
     /// `Date.prototype.getDay()`
     ///
-    /// The `getDay()` method returns the day of the week for the specified date according to local time, where 0
-    /// represents Sunday.
+    /// The `getDay()` method returns the day of the week for the specified date
+    /// according to local time, where 0 represents Sunday.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -414,7 +422,8 @@ impl Date {
 
     /// `Date.prototype.getFullYear()`
     ///
-    /// The `getFullYear()` method returns the year of the specified date according to local time.
+    /// The `getFullYear()` method returns the year of the specified date
+    /// according to local time.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -428,7 +437,8 @@ impl Date {
 
     /// `Date.prototype.getHours()`
     ///
-    /// The `getHours()` method returns the hour for the specified date, according to local time.
+    /// The `getHours()` method returns the hour for the specified date,
+    /// according to local time.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -442,7 +452,8 @@ impl Date {
 
     /// `Date.prototype.getMilliseconds()`
     ///
-    /// The `getMilliseconds()` method returns the milliseconds in the specified date according to local time.
+    /// The `getMilliseconds()` method returns the milliseconds in the specified
+    /// date according to local time.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -457,7 +468,8 @@ impl Date {
 
     /// `Date.prototype.getMinutes()`
     ///
-    /// The `getMinutes()` method returns the minutes in the specified date according to local time.
+    /// The `getMinutes()` method returns the minutes in the specified date
+    /// according to local time.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -471,8 +483,9 @@ impl Date {
 
     /// `Date.prototype.getMonth()`
     ///
-    /// The `getMonth()` method returns the month in the specified date according to local time, as a zero-based value
-    /// (where zero indicates the first month of the year).
+    /// The `getMonth()` method returns the month in the specified date
+    /// according to local time, as a zero-based value (where zero indicates
+    /// the first month of the year).
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -486,7 +499,8 @@ impl Date {
 
     /// `Date.prototype.getSeconds()`
     ///
-    /// The `getSeconds()` method returns the seconds in the specified date according to local time.
+    /// The `getSeconds()` method returns the seconds in the specified date
+    /// according to local time.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -500,8 +514,10 @@ impl Date {
 
     /// `Date.prototype.getYear()`
     ///
-    /// The getYear() method returns the year in the specified date according to local time. Because getYear() does not
-    /// return full years ("year 2000 problem"), it is no longer used and has been replaced by the getFullYear() method.
+    /// The getYear() method returns the year in the specified date according to
+    /// local time. Because getYear() does not return full years ("year 2000
+    /// problem"), it is no longer used and has been replaced by the
+    /// getFullYear() method.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -516,7 +532,8 @@ impl Date {
 
     /// `Date.prototype.getTime()`
     ///
-    /// The `getTime()` method returns the number of milliseconds since the Unix Epoch.
+    /// The `getTime()` method returns the number of milliseconds since the Unix
+    /// Epoch.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -531,8 +548,8 @@ impl Date {
 
     /// `Date.prototype.getTimeZoneOffset()`
     ///
-    /// The getTimezoneOffset() method returns the time zone difference, in minutes, from current locale (host system
-    /// settings) to UTC.
+    /// The getTimezoneOffset() method returns the time zone difference, in
+    /// minutes, from current locale (host system settings) to UTC.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -548,7 +565,8 @@ impl Date {
 
     /// `Date.prototype.getUTCDate()`
     ///
-    /// The `getUTCDate()` method returns the day (date) of the month in the specified date according to universal time.
+    /// The `getUTCDate()` method returns the day (date) of the month in the
+    /// specified date according to universal time.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -562,8 +580,8 @@ impl Date {
 
     /// `Date.prototype.getUTCDay()`
     ///
-    /// The `getUTCDay()` method returns the day of the week in the specified date according to universal time, where 0
-    /// represents Sunday.
+    /// The `getUTCDay()` method returns the day of the week in the specified
+    /// date according to universal time, where 0 represents Sunday.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -581,7 +599,8 @@ impl Date {
 
     /// `Date.prototype.getUTCFullYear()`
     ///
-    /// The `getUTCFullYear()` method returns the year in the specified date according to universal time.
+    /// The `getUTCFullYear()` method returns the year in the specified date
+    /// according to universal time.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -595,7 +614,8 @@ impl Date {
 
     /// `Date.prototype.getUTCHours()`
     ///
-    /// The `getUTCHours()` method returns the hours in the specified date according to universal time.
+    /// The `getUTCHours()` method returns the hours in the specified date
+    /// according to universal time.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -609,7 +629,8 @@ impl Date {
 
     /// `Date.prototype.getUTCMilliseconds()`
     ///
-    /// The `getUTCMilliseconds()` method returns the milliseconds portion of the time object's value.
+    /// The `getUTCMilliseconds()` method returns the milliseconds portion of
+    /// the time object's value.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -624,7 +645,8 @@ impl Date {
 
     /// `Date.prototype.getUTCMinutes()`
     ///
-    /// The `getUTCMinutes()` method returns the minutes in the specified date according to universal time.
+    /// The `getUTCMinutes()` method returns the minutes in the specified date
+    /// according to universal time.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -638,8 +660,9 @@ impl Date {
 
     /// `Date.prototype.getUTCMonth()`
     ///
-    /// The `getUTCMonth()` returns the month of the specified date according to universal time, as a zero-based value
-    /// (where zero indicates the first month of the year).
+    /// The `getUTCMonth()` returns the month of the specified date according to
+    /// universal time, as a zero-based value (where zero indicates the
+    /// first month of the year).
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -653,7 +676,8 @@ impl Date {
 
     /// `Date.prototype.getUTCSeconds()`
     ///
-    /// The `getUTCSeconds()` method returns the seconds in the specified date according to universal time.
+    /// The `getUTCSeconds()` method returns the seconds in the specified date
+    /// according to universal time.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -667,8 +691,8 @@ impl Date {
 
     /// `Date.prototype.setDate()`
     ///
-    /// The `setDate()` method sets the day of the `Date` object relative to the beginning of the currently set
-    /// month.
+    /// The `setDate()` method sets the day of the `Date` object relative to the
+    /// beginning of the currently set month.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -686,8 +710,8 @@ impl Date {
 
     /// `Date.prototype.setFullYear()`
     ///
-    /// The `setFullYear()` method sets the full year for a specified date according to local time. Returns new
-    /// timestamp.
+    /// The `setFullYear()` method sets the full year for a specified date
+    /// according to local time. Returns new timestamp.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -705,8 +729,9 @@ impl Date {
 
     /// `Date.prototype.setHours()`
     ///
-    /// The `setHours()` method sets the hours for a specified date according to local time, and returns the number
-    /// of milliseconds since January 1, 1970 00:00:00 UTC until the time represented by the updated `Date`
+    /// The `setHours()` method sets the hours for a specified date according to
+    /// local time, and returns the number of milliseconds since January 1,
+    /// 1970 00:00:00 UTC until the time represented by the updated `Date`
     /// instance.
     ///
     /// More information:
@@ -740,7 +765,8 @@ impl Date {
 
     /// `Date.prototype.setMilliseconds()`
     ///
-    /// The `setMilliseconds()` method sets the milliseconds for a specified date according to local time.
+    /// The `setMilliseconds()` method sets the milliseconds for a specified
+    /// date according to local time.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -758,7 +784,8 @@ impl Date {
 
     /// `Date.prototype.setMinutes()`
     ///
-    /// The `setMinutes()` method sets the minutes for a specified date according to local time.
+    /// The `setMinutes()` method sets the minutes for a specified date
+    /// according to local time.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -790,7 +817,8 @@ impl Date {
 
     /// `Date.prototype.setMonth()`
     ///
-    /// The `setMonth()` method sets the month for a specified date according to the currently set year.
+    /// The `setMonth()` method sets the month for a specified date according to
+    /// the currently set year.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -808,7 +836,8 @@ impl Date {
 
     /// `Date.prototype.setSeconds()`
     ///
-    /// The `setSeconds()` method sets the seconds for a specified date according to local time.
+    /// The `setSeconds()` method sets the seconds for a specified date
+    /// according to local time.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -835,7 +864,8 @@ impl Date {
 
     /// `Date.prototype.setYear()`
     ///
-    /// The `setYear()` method sets the year for a specified date according to local time.
+    /// The `setYear()` method sets the year for a specified date according to
+    /// local time.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -858,8 +888,8 @@ impl Date {
 
     /// `Date.prototype.setTime()`
     ///
-    /// The `setTime()` method sets the Date object to the time represented by a number of milliseconds since
-    /// January 1, 1970, 00:00:00 UTC.
+    /// The `setTime()` method sets the Date object to the time represented by a
+    /// number of milliseconds since January 1, 1970, 00:00:00 UTC.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -879,7 +909,8 @@ impl Date {
 
     /// `Date.prototype.setUTCDate()`
     ///
-    /// The `setUTCDate()` method sets the day of the month for a specified date according to universal time.
+    /// The `setUTCDate()` method sets the day of the month for a specified date
+    /// according to universal time.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -897,8 +928,8 @@ impl Date {
 
     /// `Date.prototype.setFullYear()`
     ///
-    /// The `setFullYear()` method sets the full year for a specified date according to local time. Returns new
-    /// timestamp.
+    /// The `setFullYear()` method sets the full year for a specified date
+    /// according to local time. Returns new timestamp.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -916,9 +947,10 @@ impl Date {
 
     /// `Date.prototype.setUTCHours()`
     ///
-    /// The `setUTCHours()` method sets the hour for a specified date according to universal time, and returns the
-    /// number of milliseconds since  January 1, 1970 00:00:00 UTC until the time represented by the updated `Date`
-    /// instance.
+    /// The `setUTCHours()` method sets the hour for a specified date according
+    /// to universal time, and returns the number of milliseconds since
+    /// January 1, 1970 00:00:00 UTC until the time represented by the updated
+    /// `Date` instance.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -951,7 +983,8 @@ impl Date {
 
     /// `Date.prototype.setUTCMilliseconds()`
     ///
-    /// The `setUTCMilliseconds()` method sets the milliseconds for a specified date according to universal time.
+    /// The `setUTCMilliseconds()` method sets the milliseconds for a specified
+    /// date according to universal time.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -969,7 +1002,8 @@ impl Date {
 
     /// `Date.prototype.setUTCMinutes()`
     ///
-    /// The `setUTCMinutes()` method sets the minutes for a specified date according to universal time.
+    /// The `setUTCMinutes()` method sets the minutes for a specified date
+    /// according to universal time.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -1001,7 +1035,8 @@ impl Date {
 
     /// `Date.prototype.setUTCMonth()`
     ///
-    /// The `setUTCMonth()` method sets the month for a specified date according to universal time.
+    /// The `setUTCMonth()` method sets the month for a specified date according
+    /// to universal time.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -1019,7 +1054,8 @@ impl Date {
 
     /// `Date.prototype.setUTCSeconds()`
     ///
-    /// The `setUTCSeconds()` method sets the seconds for a specified date according to universal time.
+    /// The `setUTCSeconds()` method sets the seconds for a specified date
+    /// according to universal time.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -1046,7 +1082,8 @@ impl Date {
 
     /// `Date.prototype.toDateString()`
     ///
-    /// The `toDateString()` method returns the date portion of a Date object in English.
+    /// The `toDateString()` method returns the date portion of a Date object in
+    /// English.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -1062,7 +1099,8 @@ impl Date {
 
     /// `Date.prototype.toGMTString()`
     ///
-    /// The `toGMTString()` method converts a date to a string, using Internet Greenwich Mean Time (GMT) conventions.
+    /// The `toGMTString()` method converts a date to a string, using Internet
+    /// Greenwich Mean Time (GMT) conventions.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -1076,7 +1114,8 @@ impl Date {
 
     /// `Date.prototype.toISOString()`
     ///
-    /// The `toISOString()` method returns a string in simplified extended ISO format (ISO 8601).
+    /// The `toISOString()` method returns a string in simplified extended ISO
+    /// format (ISO 8601).
     ///
     /// More information:
     ///  - [ISO 8601][iso8601]
@@ -1095,7 +1134,8 @@ impl Date {
 
     /// `Date.prototype.toJSON()`
     ///
-    /// The `toJSON()` method returns a string representation of the `Date` object.
+    /// The `toJSON()` method returns a string representation of the `Date`
+    /// object.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -1109,8 +1149,8 @@ impl Date {
 
     /// `Date.prototype.toTimeString()`
     ///
-    /// The `toTimeString()` method returns the time portion of a Date object in human readable form in American
-    /// English.
+    /// The `toTimeString()` method returns the time portion of a Date object in
+    /// human readable form in American English.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -1126,7 +1166,8 @@ impl Date {
 
     /// `Date.prototype.toUTCString()`
     ///
-    /// The `toUTCString()` method returns a string representing the specified Date object.
+    /// The `toUTCString()` method returns a string representing the specified
+    /// Date object.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -1156,7 +1197,8 @@ impl Date {
 
     /// `Date.now()`
     ///
-    /// The static `Date.now()` method returns the number of milliseconds elapsed since January 1, 1970 00:00:00 UTC.
+    /// The static `Date.now()` method returns the number of milliseconds
+    /// elapsed since January 1, 1970 00:00:00 UTC.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -1170,9 +1212,10 @@ impl Date {
 
     /// `Date.parse()`
     ///
-    /// The `Date.parse()` method parses a string representation of a date, and returns the number of milliseconds since
-    /// January 1, 1970, 00:00:00 UTC or NaN if the string is unrecognized or, in some cases, contains illegal date
-    /// values.
+    /// The `Date.parse()` method parses a string representation of a date, and
+    /// returns the number of milliseconds since January 1, 1970, 00:00:00
+    /// UTC or NaN if the string is unrecognized or, in some cases, contains
+    /// illegal date values.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -1181,8 +1224,8 @@ impl Date {
     /// [spec]: https://tc39.es/ecma262/#sec-date.parse
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/parse
     pub(crate) fn parse(_: &Value, args: &[Value], ctx: &mut Interpreter) -> Result<Value> {
-        // This method is implementation-defined and discouraged, so we just require the same format as the string
-        // constructor.
+        // This method is implementation-defined and discouraged, so we just require the
+        // same format as the string constructor.
 
         if args.is_empty() {
             return Ok(Value::number(f64::NAN));
@@ -1196,7 +1239,8 @@ impl Date {
 
     /// `Date.UTC()`
     ///
-    /// The `Date.UTC()` method accepts parameters similar to the `Date` constructor, but treats them as UTC.
+    /// The `Date.UTC()` method accepts parameters similar to the `Date`
+    /// constructor, but treats them as UTC.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -1570,10 +1614,12 @@ impl Date {
 
 /// The abstract operation `thisTimeValue` takes argument value.
 ///
-/// In following descriptions of functions that are properties of the Date prototype object, the phrase “this
-/// Date object” refers to the object that is the this value for the invocation of the function. If the `Type` of
-/// the this value is not `Object`, a `TypeError` exception is thrown. The phrase “this time value” within the
-/// specification of a method refers to the result returned by calling the abstract operation `thisTimeValue` with
+/// In following descriptions of functions that are properties of the Date
+/// prototype object, the phrase “this Date object” refers to the object that is
+/// the this value for the invocation of the function. If the `Type` of the this
+/// value is not `Object`, a `TypeError` exception is thrown. The phrase “this
+/// time value” within the specification of a method refers to the result
+/// returned by calling the abstract operation `thisTimeValue` with
 /// the this value of the method invocation passed as the argument.
 ///
 /// More information:

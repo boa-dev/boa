@@ -5,8 +5,9 @@ use std::fmt;
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
-/// The `if` statement executes a statement if a specified condition is [`truthy`][truthy]. If
-/// the condition is [`falsy`][falsy], another statement can be executed.
+/// The `if` statement executes a statement if a specified condition is
+/// [`truthy`][truthy]. If the condition is [`falsy`][falsy], another statement
+/// can be executed.
 ///
 /// Multiple `if...else` statements can be nested to create an else if clause.
 ///
@@ -82,13 +83,14 @@ impl From<If> for Node {
     }
 }
 
-/// The `conditional` (ternary) operator is the only JavaScript operator that takes three
-/// operands.
+/// The `conditional` (ternary) operator is the only JavaScript operator that
+/// takes three operands.
 ///
-/// This operator is the only JavaScript operator that takes three operands: a condition
-/// followed by a question mark (`?`), then an expression to execute `if` the condition is
-/// truthy followed by a colon (`:`), and finally the expression to execute if the condition
-/// is `false`. This operator is frequently used as a shortcut for the `if` statement.
+/// This operator is the only JavaScript operator that takes three operands: a
+/// condition followed by a question mark (`?`), then an expression to execute
+/// `if` the condition is truthy followed by a colon (`:`), and finally the
+/// expression to execute if the condition is `false`. This operator is
+/// frequently used as a shortcut for the `if` statement.
 ///
 /// More information:
 ///  - [ECMAScript reference][spec]

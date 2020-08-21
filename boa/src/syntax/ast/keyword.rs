@@ -1,4 +1,5 @@
-//! This module implements the `Keyword` structure, which represents reserved words of the JavaScript language.
+//! This module implements the `Keyword` structure, which represents reserved
+//! words of the JavaScript language.
 //!
 //! More information:
 //!  - [ECMAScript reference][spec]
@@ -15,7 +16,8 @@ use serde::{Deserialize, Serialize};
 
 /// Keywords are tokens that have special meaning in JavaScript.
 ///
-/// In JavaScript you cannot use these reserved words as variables, labels, or function names.
+/// In JavaScript you cannot use these reserved words as variables, labels, or
+/// function names.
 ///
 /// More information:
 ///  - [ECMAScript reference][spec]
@@ -431,7 +433,8 @@ pub enum Keyword {
 }
 
 impl Keyword {
-    /// Gets the keyword as a binary operation, if this keyword is the `in` keyword.
+    /// Gets the keyword as a binary operation, if this keyword is the `in`
+    /// keyword.
     pub fn as_binop(self) -> Option<BinOp> {
         match self {
             Keyword::In => Some(BinOp::Comp(CompOp::In)),

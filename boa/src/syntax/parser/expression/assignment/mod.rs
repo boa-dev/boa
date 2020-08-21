@@ -12,13 +12,13 @@ mod conditional;
 mod exponentiation;
 
 use self::{arrow_function::ArrowFunction, conditional::ConditionalExpression};
-use crate::syntax::lexer::{Error as LexError, InputElement, TokenKind};
 use crate::{
     syntax::{
         ast::{
             node::{Assign, BinOp, Node},
             Keyword, Punctuator,
         },
+        lexer::{Error as LexError, InputElement, TokenKind},
         parser::{AllowAwait, AllowIn, AllowYield, Cursor, ParseError, ParseResult, TokenParser},
     },
     BoaProfiler,
@@ -31,12 +31,15 @@ use std::io::Read;
 ///
 /// This can be one of the following:
 ///
-///  - [`ConditionalExpression`](../conditional_operator/struct.ConditionalExpression.html)
+///  - [`ConditionalExpression`](../conditional_operator/struct.
+///    ConditionalExpression.html)
 ///  - `YieldExpression`
-///  - [`ArrowFunction`](../../function/arrow_function/struct.ArrowFunction.html)
+///  - [`ArrowFunction`](../../function/arrow_function/struct.ArrowFunction.
+///    html)
 ///  - `AsyncArrowFunction`
 ///  - [`LeftHandSideExpression`][lhs] `=` `AssignmentExpression`
-///  - [`LeftHandSideExpression`][lhs] `AssignmentOperator` `AssignmentExpression`
+///  - [`LeftHandSideExpression`][lhs] `AssignmentOperator`
+///    `AssignmentExpression`
 ///
 /// More information:
 ///  - [MDN documentation][mdn]
@@ -82,8 +85,9 @@ where
         let _timer = BoaProfiler::global().start_event("AssignmentExpression", "Parsing");
         cursor.set_goal(InputElement::Div);
 
-        // Problem code: Currently an expression of the form (a, b) is treated as the start of (a, b) => {} but it might actually be
-        // part of a different structure e.g. let a = (b++, b)
+        // Problem code: Currently an expression of the form (a, b) is treated as the
+        // start of (a, b) => {} but it might actually be part of a different
+        // structure e.g. let a = (b++, b)
 
         // Arrow function
         match cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?.kind() {
@@ -109,7 +113,8 @@ where
                 if let Some(next_token) = cursor.peek(1)? {
                     match *next_token.kind() {
                         TokenKind::Punctuator(Punctuator::CloseParen) => {
-                            // Need to check if the token after the close paren is an arrow, if so then this is an ArrowFunction
+                            // Need to check if the token after the close paren is an arrow, if so
+                            // then this is an ArrowFunction
                             // otherwise it is an expression of the form (b).
                             if let Some(t) = cursor.peek(2)? {
                                 if t.kind() == &TokenKind::Punctuator(Punctuator::Arrow) {
@@ -146,7 +151,8 @@ where
                                         .map(Node::ArrowFunctionDecl);
                                     }
                                     TokenKind::Punctuator(Punctuator::CloseParen) => {
-                                        // Need to check if the token after the close paren is an arrow, if so then this is an ArrowFunction
+                                        // Need to check if the token after the close paren is an
+                                        // arrow, if so then this is an ArrowFunction
                                         // otherwise it is an expression of the form (b).
                                         if let Some(t) = cursor.peek(2)? {
                                             if t.kind() == &TokenKind::Punctuator(Punctuator::Arrow)

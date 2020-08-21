@@ -1,4 +1,5 @@
-//! This module implements the global `Function` object as well as creates Native Functions.
+//! This module implements the global `Function` object as well as creates
+//! Native Functions.
 //!
 //! Objects wrap `Function`s and expose them via call/construct slots.
 //!
@@ -27,7 +28,8 @@ use bitflags::bitflags;
 use gc::{unsafe_empty_trace, Finalize, Trace};
 use std::fmt::{self, Debug};
 
-/// _fn(this, arguments, ctx) -> Result<Value>_ - The signature of a built-in function
+/// _fn(this, arguments, ctx) -> Result<Value>_ - The signature of a built-in
+/// function
 pub type NativeFunction = fn(&Value, &[Value], &mut Interpreter) -> Result<Value>;
 
 #[derive(Clone, Copy, Finalize)]
@@ -94,7 +96,8 @@ unsafe impl Trace for FunctionFlags {
 
 /// Boa representation of a Function Object.
 ///
-/// FunctionBody is specific to this interpreter, it will either be Rust code or JavaScript code (AST Node)
+/// FunctionBody is specific to this interpreter, it will either be Rust code or
+/// JavaScript code (AST Node)
 ///
 /// <https://tc39.es/ecma262/#sec-ecmascript-function-objects>
 #[derive(Debug, Clone, Finalize, Trace)]
@@ -198,7 +201,7 @@ pub fn create_unmapped_arguments_object(arguments_list: &[Value]) -> Value {
 
 /// Create new function `[[Construct]]`
 ///
-// This gets called when a new Function() is created.
+/// This gets called when a new Function() is created.
 pub fn make_function(this: &Value, _: &[Value], _: &mut Interpreter) -> Result<Value> {
     this.set_data(ObjectData::Function(Function::BuiltIn(
         BuiltInFunction(|_, _, _| Ok(Value::undefined())),
@@ -230,7 +233,8 @@ pub fn make_constructor_fn(
     );
 
     // Get reference to Function.prototype
-    // Create the function object and point its instance prototype to Function.prototype
+    // Create the function object and point its instance prototype to
+    // Function.prototype
     let mut constructor =
         Object::function(function, global.get_field("Function").get_field(PROTOTYPE));
 
@@ -263,22 +267,29 @@ pub fn make_constructor_fn(
 
 /// Creates a new member function of a `Object` or `prototype`.
 ///
-/// A function registered using this macro can then be called from Javascript using:
+/// A function registered using this macro can then be called from Javascript
+/// using:
 ///
 /// parent.name()
 ///
-/// See the javascript 'Number.toString()' as an example.
+/// See the JavaScript 'Number.toString()' as an example.
 ///
 /// # Arguments
-/// function: The function to register as a built in function.
-/// name: The name of the function (how it will be called but without the ()).
-/// parent: The object to register the function on, if the global object is used then the function is instead called as name()
-///     without requiring the parent, see parseInt() as an example.
-/// length: As described at https://tc39.es/ecma262/#sec-function-instances-length, The value of the "length" property is an integer that
-///     indicates the typical number of arguments expected by the function. However, the language permits the function to be invoked with
-///     some other number of arguments.
+///  - **function:** The function to register as a built in function.
+///  - **name:** The name of the function (how it will be called but without the
+///    ()).
+///  - **parent:** The object to register the function on, if the global object
+///    is used then the function is instead called as name() without requiring
+///    the parent, see parseInt() as an example.
+/// - **length:** As described in the [spec][spec], The value of the "length"
+///   property is an integer that indicates the typical number of arguments
+///   expected by the function.
+/// However, the language permits the function to be invoked with some other
+/// number of arguments.
 ///
 /// If no length is provided, the length will be set to 0.
+///
+/// [spec]: https://tc39.es/ecma262/#sec-function-instances-length
 pub fn make_builtin_fn<N>(
     function: NativeFunction,
     name: N,

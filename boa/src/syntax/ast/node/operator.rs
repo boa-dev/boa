@@ -6,10 +6,11 @@ use std::fmt;
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
-/// An assignment operator assigns a value to its left operand based on the value of its right
-/// operand.
+/// An assignment operator assigns a value to its left operand based on the
+/// value of its right operand.
 ///
-/// Assignment operator (`=`), assigns the value of its right operand to its left operand.
+/// Assignment operator (`=`), assigns the value of its right operand to its
+/// left operand.
 ///
 /// More information:
 ///  - [ECMAScript reference][spec]
@@ -60,7 +61,8 @@ impl From<Assign> for Node {
     }
 }
 
-/// Binary operators requires two operands, one before the operator and one after the operator.
+/// Binary operators requires two operands, one before the operator and one
+/// after the operator.
 ///
 /// More information:
 ///  - [MDN documentation][mdn]

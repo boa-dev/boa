@@ -94,7 +94,8 @@ fn bigint_function_conversion_from_rational_with_fractional_part() {
     "#;
     assert_eq!(
         forward(&mut engine, scenario),
-        "\"TypeError: The number 0.1 cannot be converted to a BigInt because it is not an integer\""
+        "\"TypeError: The number 0.1 cannot be converted to a BigInt because it is not an \
+         integer\""
     );
 }
 

@@ -1,8 +1,8 @@
 use crate::syntax::{
-    ast::node::{
-        ArrowFunctionDecl, BinOp, FormalParameter, FunctionDecl, Identifier, Node, Return,
+    ast::{
+        node::{ArrowFunctionDecl, BinOp, FormalParameter, FunctionDecl, Identifier, Node, Return},
+        op::NumOp,
     },
-    ast::op::NumOp,
     parser::tests::check_parser,
 };
 
@@ -20,7 +20,8 @@ fn check_basic() {
     );
 }
 
-/// Checks basic function declaration parsing with automatic semicolon insertion.
+/// Checks basic function declaration parsing with automatic semicolon
+/// insertion.
 #[test]
 fn check_basic_semicolon_insertion() {
     check_parser(
@@ -125,7 +126,8 @@ fn check_arrow() {
     );
 }
 
-/// Checks an arrow function with expression return and automatic semicolon insertion
+/// Checks an arrow function with expression return and automatic semicolon
+/// insertion
 #[test]
 fn check_arrow_semicolon_insertion() {
     check_parser(
@@ -161,7 +163,8 @@ fn check_arrow_epty_return() {
     );
 }
 
-/// Checks an arrow function with empty return, with automatic semicolon insertion.
+/// Checks an arrow function with empty return, with automatic semicolon
+/// insertion.
 #[test]
 fn check_arrow_empty_return_semicolon_insertion() {
     check_parser(

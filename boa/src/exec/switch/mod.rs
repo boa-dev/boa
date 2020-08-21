@@ -11,8 +11,9 @@ impl Executable for Switch {
         let mut matched = false;
         interpreter.set_current_state(InterpreterState::Executing);
 
-        // If a case block does not end with a break statement then subsequent cases will be run without
-        // checking their conditions until a break is encountered.
+        // If a case block does not end with a break statement then subsequent cases
+        // will be run without checking their conditions until a break is
+        // encountered.
         let mut fall_through: bool = false;
 
         for case in self.cases().iter() {

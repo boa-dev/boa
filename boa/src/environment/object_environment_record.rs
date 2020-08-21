@@ -1,10 +1,10 @@
 //! # Object Records
 //!
-//! Each object Environment Record is associated with an object called its binding object.
-//! An object Environment Record binds the set of string identifier names that directly
-//! correspond to the property names of its binding object.
-//! Property keys that are not strings in the form of an `IdentifierName` are not included in the set of bound identifiers.
-//! More info:  [Object Records](https://tc39.es/ecma262/#sec-object-environment-records)
+//! Each object Environment Record is associated with an object called its
+//! binding object. An object Environment Record binds the set of string
+//! identifier names that directly correspond to the property names of its
+//! binding object. Property keys that are not strings in the form of an
+//! `IdentifierName` are not included in the set of bound identifiers. More info:  [Object Records](https://tc39.es/ecma262/#sec-object-environment-records)
 
 use crate::{
     builtins::{
@@ -39,7 +39,8 @@ impl EnvironmentRecordTrait for ObjectEnvironmentRecord {
 
     fn create_mutable_binding(&mut self, name: String, deletion: bool) {
         // TODO: could save time here and not bother generating a new undefined object,
-        // only for it to be replace with the real value later. We could just add the name to a Vector instead
+        // only for it to be replace with the real value later. We could just add the
+        // name to a Vector instead
         let bindings = &mut self.bindings;
         let mut prop = Property::data_descriptor(
             Value::undefined(),

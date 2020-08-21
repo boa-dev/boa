@@ -1,10 +1,12 @@
 //! This module implements the global `TypeError` object.
 //!
-//! The `TypeError` object represents an error when an operation could not be performed,
-//! typically (but not exclusively) when a value is not of the expected type.
+//! The `TypeError` object represents an error when an operation could not be
+//! performed, typically (but not exclusively) when a value is not of the
+//! expected type.
 //!
 //! A `TypeError` may be thrown when:
-//!  - an operand or argument passed to a function is incompatible with the type expected by that operator or function.
+//!  - an operand or argument passed to a function is incompatible with the type
+//!    expected by that operator or function.
 //!  - when attempting to modify a value that cannot be changed.
 //!  - when attempting to use a value in an inappropriate way.
 //!
@@ -17,7 +19,9 @@
 
 use crate::{
     builtins::{
-        function::make_builtin_fn, function::make_constructor_fn, object::ObjectData, value::Value,
+        function::{make_builtin_fn, make_constructor_fn},
+        object::ObjectData,
+        value::Value,
     },
     exec::Interpreter,
     BoaProfiler, Result,
@@ -48,7 +52,8 @@ impl TypeError {
 
     /// `Error.prototype.toString()`
     ///
-    /// The toString() method returns a string representing the specified Error object.
+    /// The toString() method returns a string representing the specified Error
+    /// object.
     ///
     /// More information:
     ///  - [MDN documentation][mdn]

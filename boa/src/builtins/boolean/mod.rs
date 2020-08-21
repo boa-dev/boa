@@ -66,7 +66,8 @@ impl Boolean {
         Ok(Value::from(data))
     }
 
-    /// The `toString()` method returns a string representing the specified `Boolean` object.
+    /// The `toString()` method returns a string representing the specified
+    /// `Boolean` object.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -100,7 +101,7 @@ impl Boolean {
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
         // Create Prototype
-        // https://tc39.es/ecma262/#sec-properties-of-the-boolean-prototype-object
+        // <https://tc39.es/ecma262/#sec-properties-of-the-boolean-prototype-object>
         let prototype = Value::new_object(Some(global));
 
         make_builtin_fn(Self::to_string, "toString", &prototype, 0, interpreter);

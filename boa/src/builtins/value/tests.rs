@@ -1,8 +1,10 @@
 use super::*;
 use crate::{forward, forward_val, Interpreter, Realm};
 
-use std::collections::hash_map::DefaultHasher;
-use std::hash::{Hash, Hasher};
+use std::{
+    collections::hash_map::DefaultHasher,
+    hash::{Hash, Hasher},
+};
 
 #[test]
 fn is_object() {
@@ -51,7 +53,7 @@ fn number_is_true() {
     assert_eq!(Value::from(NAN).to_boolean(), false);
 }
 
-// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Equality_comparisons_and_sameness
+// <https://developer.mozilla.org/en-US/docs/Web/JavaScript/Equality_comparisons_and_sameness>
 #[test]
 fn abstract_equality_comparison() {
     let realm = Realm::create();
@@ -455,16 +457,18 @@ fn debug_object() {
     let mut engine = Interpreter::new(realm);
     let value = forward_val(&mut engine, "new Array([new Date()])").unwrap();
 
-    // We don't care about the contents of the debug display (it is *debug* after all). In the commit that this test was
-    // added, this would cause a stack overflow, so executing Debug::fmt is the assertion.
+    // We don't care about the contents of the debug display (it is *debug* after
+    // all). In the commit that this test was added, this would cause a stack
+    // overflow, so executing Debug::fmt is the assertion.
     //
-    // However, we want to make sure that no data is being left in the internal hashset, so executing this twice should
-    // result in the same output.
+    // However, we want to make sure that no data is being left in the internal
+    // hashset, so executing this twice should result in the same output.
     assert_eq!(format!("{:?}", value), format!("{:?}", value));
 }
 
 #[test]
-#[ignore] // TODO: Once objects are printed in a simpler way this test can be simplified and used
+#[ignore] // TODO: Once objects are printed in a simpler way this test can be simplified
+          // and used
 fn display_object() {
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);

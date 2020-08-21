@@ -8,13 +8,13 @@
 //! [spec]: https://tc39.es/ecma262/#sec-arrow-function-definitions
 
 use super::AssignmentExpression;
-use crate::syntax::lexer::TokenKind;
 use crate::{
     syntax::{
         ast::{
             node::{ArrowFunctionDecl, FormalParameter, Node, Return, StatementList},
             Punctuator,
         },
+        lexer::TokenKind,
         parser::{
             error::{ErrorContext, ParseError, ParseResult},
             function::{FormalParameters, FunctionBody},
@@ -75,7 +75,8 @@ where
         let params = if let TokenKind::Punctuator(Punctuator::OpenParen) = &next_token.kind() {
             // CoverParenthesizedExpressionAndArrowParameterList
 
-            // Problem code - This doesn't work if the statement is of the form (expr) because the first '(' is consumed
+            // Problem code - This doesn't work if the statement is of the form (expr)
+            // because the first '(' is consumed
 
             cursor.expect(Punctuator::OpenParen, "arrow function")?;
 

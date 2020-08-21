@@ -58,9 +58,11 @@ where
 
     /// Returns an error if the next token is not of kind `kind`.
     ///
-    /// Note: it will consume the next token only if the next token is the expected type.
+    /// Note: it will consume the next token only if the next token is the
+    /// expected type.
     ///
-    /// If skip_line_terminators is true then line terminators will be discarded.
+    /// If skip_line_terminators is true then line terminators will be
+    /// discarded.
     #[inline]
     pub(super) fn expect<K>(&mut self, kind: K, context: &'static str) -> Result<Token, ParseError>
     where
@@ -78,7 +80,8 @@ where
 
     /// It will peek for the next token, to see if it's a semicolon.
     ///
-    /// It will automatically insert a semicolon if needed, as specified in the [spec][spec].
+    /// It will automatically insert a semicolon if needed, as specified in the
+    /// [spec][spec].
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-automatic-semicolon-insertion
     #[inline]
@@ -96,9 +99,11 @@ where
         }
     }
 
-    /// Consumes the next token if it is a semicolon, or returns a `ParseError` if it's not.
+    /// Consumes the next token if it is a semicolon, or returns a `ParseError`
+    /// if it's not.
     ///
-    /// It will automatically insert a semicolon if needed, as specified in the [spec][spec].
+    /// It will automatically insert a semicolon if needed, as specified in the
+    /// [spec][spec].
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-automatic-semicolon-insertion
     #[inline]
@@ -120,11 +125,13 @@ where
         }
     }
 
-    /// It will make sure that the peeked token (skipping n tokens) is not a line terminator.
+    /// It will make sure that the peeked token (skipping n tokens) is not a
+    /// line terminator.
     ///
     /// It expects that the token stream does not end here.
     ///
-    /// This is just syntatic sugar for a .peek(skip_n, false) call followed by a check that the result is not a line terminator or None.
+    /// This is just syntatic sugar for a .peek(skip_n, false) call followed by
+    /// a check that the result is not a line terminator or None.
     #[inline]
     pub(super) fn peek_expect_no_lineterminator(
         &mut self,
@@ -141,13 +148,16 @@ where
         }
     }
 
-    /// Advance the cursor to the next token and retrieve it, only if it's of `kind` type.
+    /// Advance the cursor to the next token and retrieve it, only if it's of
+    /// `kind` type.
     ///
-    /// When the next token is a `kind` token, get the token, otherwise return `None`.
+    /// When the next token is a `kind` token, get the token, otherwise return
+    /// `None`.
     ///
     /// No next token also returns None.
     ///
-    /// If skip_line_terminators is true then line terminators will be discarded.
+    /// If skip_line_terminators is true then line terminators will be
+    /// discarded.
     #[inline]
     pub(super) fn next_if<K>(&mut self, kind: K) -> Result<Option<Token>, ParseError>
     where

@@ -1,4 +1,5 @@
-//! This module implements the `Attribute` struct which contains the attibutes for property descriptors.
+//! This module implements the `Attribute` struct which contains the attibutes
+//! for property descriptors.
 
 use bitflags::bitflags;
 use gc::{unsafe_empty_trace, Finalize, Trace};
@@ -136,7 +137,8 @@ impl Attribute {
 }
 
 impl Default for Attribute {
-    /// Returns the default flags according to the [ECMAScript specification][spec].
+    /// Returns the default flags according to the [ECMAScript
+    /// specification][spec].
     ///
     /// [spec]: https://tc39.es/ecma262/#table-default-attribute-values
     fn default() -> Self {

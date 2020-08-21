@@ -24,8 +24,9 @@ pub struct BoaProfiler {
     profiler: Profiler<SerializationSink>,
 }
 
-/// This static instance should never be public, and its only access should be done through the `global()` and `drop()` methods
-/// This is because `get_or_init` manages synchronisation and the case of an empty value
+/// This static instance should never be public, and its only access should be
+/// done through the `global()` and `drop()` methods This is because
+/// `get_or_init` manages synchronisation and the case of an empty value
 #[cfg(feature = "profiler")]
 static mut INSTANCE: OnceCell<BoaProfiler> = OnceCell::new();
 
@@ -49,9 +50,11 @@ impl BoaProfiler {
     }
 
     pub fn drop(&self) {
-        // In order to drop the INSTANCE we need to get ownership of it, which isn't possible on a static unless you make it a mutable static
+        // In order to drop the INSTANCE we need to get ownership of it, which isn't
+        // possible on a static unless you make it a mutable static
         // mutating statics is unsafe, so we need to wrap it as so.
-        // This is actually safe though because init and drop are only called at the beginning and end of the application
+        // This is actually safe though because init and drop are only called at the
+        // beginning and end of the application
         unsafe {
             INSTANCE
                 .take()
@@ -60,9 +63,9 @@ impl BoaProfiler {
     }
 
     // Sadly we need to use the unsafe method until this is resolved:
-    // https://github.com/rust-lang/rust/issues/67939
+    // <https://github.com/rust-lang/rust/issues/67939>
     // Once `as_64()` is in stable we can do this:
-    // https://github.com/rust-lang/rust/pull/68531/commits/ea42b1c5b85f649728e3a3b334489bac6dce890a
+    // <https://github.com/rust-lang/rust/pull/68531/commits/ea42b1c5b85f649728e3a3b334489bac6dce890a>
     // Until then our options are: use rust-nightly or use unsafe {}
     fn thread_id_to_u32(tid: ThreadId) -> u32 {
         unsafe { std::mem::transmute::<ThreadId, u64>(tid) as u32 }
