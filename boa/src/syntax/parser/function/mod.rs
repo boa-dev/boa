@@ -91,7 +91,7 @@ where
 
             if rest_param {
                 return Err(ParseError::unexpected(
-                    cursor.next()?.expect("Peek token disappeared"),
+                    cursor.next()?.expect("peeked token disappeared"),
                     "rest parameter must be the last formal parameter",
                 ));
             }
