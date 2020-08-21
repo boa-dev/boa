@@ -43,7 +43,7 @@ impl<R> Tokenizer<R> for SpreadLiteral {
                     Span::new(start_pos, cursor.pos()),
                 ))
             } else {
-                Err(Error::syntax("Expecting Token ."))
+                Err(Error::syntax("Expecting Token '.' as part of spread"))
             }
         } else {
             Ok(Token::new(
