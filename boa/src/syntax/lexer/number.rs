@@ -117,7 +117,9 @@ where
 {
     let pred = |ch: char| ch.is_ascii_alphanumeric() || ch == '$' || ch == '_';
     if cursor.next_is_pred(&pred)? {
-        Err(Error::syntax("a numeric literal must not be followed by an alphanumeric, $ or _ characters"))
+        Err(Error::syntax(
+            "a numeric literal must not be followed by an alphanumeric, $ or _ characters",
+        ))
     } else {
         Ok(())
     }

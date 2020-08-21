@@ -44,7 +44,9 @@ impl<R> Tokenizer<R> for RegexLiteral {
                         '/' => break, // RegularExpressionBody finished.
                         '\n' | '\r' | '\u{2028}' | '\u{2029}' => {
                             // Not allowed in Regex literal.
-                            return Err(Error::syntax("new lines are not allowed in regular expressions"));
+                            return Err(Error::syntax(
+                                "new lines are not allowed in regular expressions",
+                            ));
                         }
                         '\\' => {
                             // Escape sequence

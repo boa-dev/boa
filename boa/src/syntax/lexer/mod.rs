@@ -32,8 +32,8 @@ use self::{
 use crate::syntax::ast::{Punctuator, Span};
 pub use crate::{profiler::BoaProfiler, syntax::ast::Position};
 pub use error::Error;
-pub use token::{Token, TokenKind};
 use std::io::Read;
+pub use token::{Token, TokenKind};
 
 trait Tokenizer<R> {
     /// Lexes the next token.
@@ -147,7 +147,7 @@ impl<R> Lexer<R> {
 
     /// Retrieves the next token from the lexer.
     // We intentionally don't implement Iterator trait as Result<Option> is cleaner to handle.
-    #[allow(clippy::should_implement_trait)] 
+    #[allow(clippy::should_implement_trait)]
     pub fn next(&mut self) -> Result<Option<Token>, Error>
     where
         R: Read,

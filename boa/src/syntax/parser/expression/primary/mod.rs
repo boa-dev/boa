@@ -126,10 +126,7 @@ where
                     ))))
                 } else {
                     // A regex was expected and nothing else.
-                    Err(ParseError::unexpected(
-                        tok,
-                        "regular expression literal",
-                    ))
+                    Err(ParseError::unexpected(tok, "regular expression literal"))
                 }
             }
             _ => Err(ParseError::unexpected(tok.clone(), "primary expression")),
