@@ -193,7 +193,7 @@ where
                     }
                 }
                 TokenKind::Punctuator(p) if p.as_binop().is_some() && p != &Punctuator::Comma => {
-                    cursor.next()?.expect("Token vanished"); // Consume the token.
+                    cursor.next()?.expect("token vanished"); // Consume the token.
                     if is_assignable(&lhs) {
                         let binop = p.as_binop().expect("binop disappeared");
                         let expr = self.parse(cursor)?;
