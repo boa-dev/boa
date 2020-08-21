@@ -128,7 +128,7 @@ where
                     // A regex was expected and nothing else.
                     Err(ParseError::unexpected(
                         tok,
-                        "primary expression - expected regex",
+                        "regular expression literal",
                     ))
                 }
             }
