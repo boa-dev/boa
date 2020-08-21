@@ -157,7 +157,7 @@ impl<R> Tokenizer<R> for Operator {
                 Punctuator::Neg.into(),
                 Span::new(start_pos, cursor.pos()),
             )),
-            _ => unimplemented!(),
+            op => unimplemented!("operator {}", op),
         }
     }
 }
