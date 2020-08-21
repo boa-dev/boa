@@ -37,7 +37,7 @@ impl<R> Tokenizer<R> for RegexLiteral {
             match cursor.next_char()? {
                 None => {
                     // Abrupt end.
-                    return Err(Error::syntax("Abrupt end, regex not terminated"));
+                    return Err(Error::syntax("abrupt end on regular expression"));
                 }
                 Some(c) => {
                     match c {
