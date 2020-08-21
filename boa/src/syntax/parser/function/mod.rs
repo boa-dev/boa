@@ -10,17 +10,20 @@
 #[cfg(test)]
 mod tests;
 
-use crate::syntax::{
-    ast::{
-        node::{self},
-        Punctuator,
+use crate::{
+    syntax::{
+        ast::{
+            node::{self},
+            Punctuator,
+        },
+        lexer::{InputElement, TokenKind},
+        parser::{
+            expression::Initializer,
+            statement::{BindingIdentifier, StatementList},
+            AllowAwait, AllowYield, Cursor, ParseError, TokenParser,
+        },
     },
-    lexer::{InputElement, TokenKind},
-    parser::{
-        expression::Initializer,
-        statement::{BindingIdentifier, StatementList},
-        AllowAwait, AllowYield, Cursor, ParseError, TokenParser,
-    },
+    BoaProfiler,
 };
 use std::io::Read;
 

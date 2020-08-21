@@ -5,7 +5,7 @@ use crate::{
         parser::error::ParseError,
     },
 };
-use std::{io::Read, mem};
+use std::io::Read;
 
 #[cfg(test)]
 mod tests;
@@ -146,7 +146,7 @@ where
 
         if let Some(ref token) = self.peeked[self.read_index] {
             let tok = if !skip_line_terminators || token.kind() != &TokenKind::LineTerminator {
-                mem::replace(&mut self.peeked[self.read_index], None)
+                self.peeked[self.read_index].take()
             } else {
                 // We only store 1 contiguous line terminator, so if the one at `self.read_index`
                 // was a line terminator, we know that the next won't be one.
@@ -155,7 +155,7 @@ where
                     self.fill()?;
                 }
 
-                mem::replace(&mut self.peeked[self.read_index], None)
+                self.peeked[self.read_index].take()
             };
             self.read_index = (self.read_index + 1) % PEEK_BUF_SIZE;
 
