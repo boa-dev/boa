@@ -1,7 +1,10 @@
 //! A lexical analyzer for JavaScript source code.
 //!
-//! The Lexer splits its input source code into a sequence of input elements called tokens, represented by the [Token](../ast/token/struct.Token.html) structure.
-//! It also removes whitespace and comments and attaches them to the next token.
+//! This module contains the Boa lexer or tokenizer implementation.
+//!
+//! The Lexer splits its input source code into a sequence of input elements called tokens,
+//! represented by the [Token](../ast/token/struct.Token.html) structure. It also removes
+//! whitespace and comments and attaches them to the next token.
 
 mod comment;
 mod cursor;
