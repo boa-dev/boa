@@ -117,7 +117,7 @@ where
 {
     let pred = |ch: char| ch.is_ascii_alphabetic() || ch == '$' || ch == '_' || ch.is_ascii_digit();
     if cursor.next_is_pred(&pred)? {
-        Err(Error::syntax("NumericLiteral token must not be followed by IdentifierStart nor DecimalDigit characters"))
+        Err(Error::syntax("a numeric literal must not be followed by an alphanumeric, $ or _ characters"))
     } else {
         Ok(())
     }
