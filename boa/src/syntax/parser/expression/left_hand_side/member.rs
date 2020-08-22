@@ -74,12 +74,13 @@ where
             PrimaryExpression::new(self.allow_yield, self.allow_await).parse(cursor)?
         };
         while let Some(tok) = cursor.peek(0)? {
-            let token = tok.clone();
-            match token.kind() {
+            match tok.kind() {
                 TokenKind::Punctuator(Punctuator::Dot) => {
-                    cursor.next()?.ok_or(ParseError::AbruptEnd)?; // We move the parser forward.
+                    cursor.next()?.expect("dot punctuator token disappeared"); // We move the parser forward.
 
-                    match cursor.next()?.ok_or(ParseError::AbruptEnd)?.kind() {
+                    let token = cursor.next()?.ok_or(ParseError::AbruptEnd)?;
+
+                    match token.kind() {
                         TokenKind::Identifier(name) => {
                             lhs = GetConstField::new(lhs, name.clone()).into()
                         }
@@ -96,7 +97,9 @@ where
                     }
                 }
                 TokenKind::Punctuator(Punctuator::OpenBracket) => {
-                    let _ = cursor.next()?.ok_or(ParseError::AbruptEnd)?; // We move the parser forward.
+                    cursor
+                        .next()?
+                        .expect("open bracket punctuator token disappeared"); // We move the parser forward.
                     let idx =
                         Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?;
                     cursor.expect(Punctuator::CloseBracket, "member expression")?;
