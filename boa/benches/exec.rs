@@ -323,9 +323,7 @@ static CLEAN_JS: &str = include_str!("bench_scripts/clean_js.js");
 fn clean_js(c: &mut Criterion) {
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);
-    let mut lexer = Lexer::new(CLEAN_JS);
-    lexer.lex().expect("failed to lex");
-    let nodes = Parser::new(&lexer.tokens).parse_all().unwrap();
+    let nodes = Parser::new(CLEAN_JS.as_bytes()).parse_all().unwrap();
     c.bench_function("Clean js (Execution)", move |b| {
         b.iter(|| black_box(&nodes).run(&mut engine).unwrap())
     });
@@ -336,9 +334,7 @@ static MINI_JS: &str = include_str!("bench_scripts/mini_js.js");
 fn mini_js(c: &mut Criterion) {
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);
-    let mut lexer = Lexer::new(MINI_JS);
-    lexer.lex().expect("failed to lex");
-    let nodes = Parser::new(&lexer.tokens).parse_all().unwrap();
+    let nodes = Parser::new(MINI_JS.as_bytes()).parse_all().unwrap();
     c.bench_function("Mini js (Execution)", move |b| {
         b.iter(|| black_box(&nodes).run(&mut engine).unwrap())
     });
