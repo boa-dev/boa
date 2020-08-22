@@ -17,8 +17,7 @@
 
 use crate::{
     builtins::{function::make_builtin_fn, function::make_constructor_fn, object::ObjectData},
-    exec::Interpreter,
-    BoaProfiler, Result, Value,
+    BoaProfiler, Context, Result, Value,
 };
 
 /// JavaScript `TypeError` implementation.
@@ -33,7 +32,7 @@ impl TypeError {
     pub(crate) const LENGTH: usize = 1;
 
     /// Create a new error object.
-    pub(crate) fn make_error(this: &Value, args: &[Value], ctx: &mut Interpreter) -> Result<Value> {
+    pub(crate) fn make_error(this: &Value, args: &[Value], ctx: &mut Context) -> Result<Value> {
         if let Some(message) = args.get(0) {
             this.set_field("message", message.to_string(ctx)?);
         }
@@ -55,7 +54,7 @@ impl TypeError {
     /// [spec]: https://tc39.es/ecma262/#sec-error.prototype.tostring
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error/toString
     #[allow(clippy::wrong_self_convention)]
-    pub(crate) fn to_string(this: &Value, _: &[Value], ctx: &mut Interpreter) -> Result<Value> {
+    pub(crate) fn to_string(this: &Value, _: &[Value], ctx: &mut Context) -> Result<Value> {
         let name = this.get_field("name").to_string(ctx)?;
         let message = this.get_field("message").to_string(ctx)?;
 
@@ -64,8 +63,8 @@ impl TypeError {
 
     /// Initialise the global object with the `RangeError` object.
     #[inline]
-    pub(crate) fn init(interpreter: &mut Interpreter) -> (&'static str, Value) {
-        let global = interpreter.global();
+    pub(crate) fn init(interpreter: &mut Context) -> (&'static str, Value) {
+        let global = interpreter.global_object();
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
         let prototype = Value::new_object(Some(global));

@@ -1,4 +1,4 @@
-use super::{Executable, Interpreter, InterpreterState};
+use super::{Context, Executable, InterpreterState};
 use crate::{
     syntax::ast::node::{Call, Node},
     value::{Type, Value},
@@ -6,7 +6,7 @@ use crate::{
 };
 
 impl Executable for Call {
-    fn run(&self, interpreter: &mut Interpreter) -> Result<Value> {
+    fn run(&self, interpreter: &mut Context) -> Result<Value> {
         let _timer = BoaProfiler::global().start_event("Call", "exec");
         let (this, func) = match self.expr() {
             Node::GetConstField(ref get_const_field) => {
@@ -44,7 +44,9 @@ impl Executable for Call {
         let fnct_result = interpreter.call(&func, &this, &v_args);
 
         // unset the early return flag
-        interpreter.set_current_state(InterpreterState::Executing);
+        interpreter
+            .executor()
+            .set_current_state(InterpreterState::Executing);
 
         fnct_result
     }

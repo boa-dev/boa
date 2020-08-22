@@ -2,7 +2,7 @@
 #[cfg(test)]
 mod tests;
 
-use super::{Executable, Interpreter};
+use super::{Context, Executable};
 use crate::{
     environment::lexical_environment::VariableScope,
     syntax::ast::{
@@ -13,7 +13,7 @@ use crate::{
 };
 
 impl Executable for Assign {
-    fn run(&self, interpreter: &mut Interpreter) -> Result<Value> {
+    fn run(&self, interpreter: &mut Context) -> Result<Value> {
         let _timer = BoaProfiler::global().start_event("Assign", "exec");
         let val = self.rhs().run(interpreter)?;
         match self.lhs() {
@@ -49,7 +49,7 @@ impl Executable for Assign {
 }
 
 impl Executable for BinOp {
-    fn run(&self, interpreter: &mut Interpreter) -> Result<Value> {
+    fn run(&self, interpreter: &mut Context) -> Result<Value> {
         match self.op() {
             op::BinOp::Num(op) => {
                 let x = self.lhs().run(interpreter)?;
@@ -133,7 +133,7 @@ impl Executable for BinOp {
                         .ok_or_else(|| interpreter.construct_reference_error(name.as_ref()))?;
                     let v_b = self.rhs().run(interpreter)?;
                     let value = Self::run_assign(op, v_a, v_b, interpreter)?;
-                    interpreter.realm.environment.set_mutable_binding(
+                    interpreter.realm_mut().environment.set_mutable_binding(
                         name.as_ref(),
                         value.clone(),
                         true,
@@ -160,12 +160,7 @@ impl Executable for BinOp {
 
 impl BinOp {
     /// Runs the assignment operators.
-    fn run_assign(
-        op: AssignOp,
-        x: Value,
-        y: Value,
-        interpreter: &mut Interpreter,
-    ) -> Result<Value> {
+    fn run_assign(op: AssignOp, x: Value, y: Value, interpreter: &mut Context) -> Result<Value> {
         match op {
             AssignOp::Add => x.add(&y, interpreter),
             AssignOp::Sub => x.sub(&y, interpreter),
@@ -183,7 +178,7 @@ impl BinOp {
 }
 
 impl Executable for UnaryOp {
-    fn run(&self, interpreter: &mut Interpreter) -> Result<Value> {
+    fn run(&self, interpreter: &mut Context) -> Result<Value> {
         let x = self.target().run(interpreter)?;
 
         Ok(match self.op() {

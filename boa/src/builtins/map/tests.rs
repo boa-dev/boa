@@ -1,9 +1,8 @@
-use crate::{exec::Interpreter, forward, realm::Realm};
+use crate::{forward, Context};
 
 #[test]
 fn construct_empty() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
     let init = r#"
         var empty = new Map();
         "#;
@@ -14,8 +13,7 @@ fn construct_empty() {
 
 #[test]
 fn construct_from_array() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
     let init = r#"
         let map = new Map([["1", "one"], ["2", "two"]]);
         "#;
@@ -26,8 +24,7 @@ fn construct_from_array() {
 
 #[test]
 fn clone() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
     let init = r#"
         let original = new Map([["1", "one"], ["2", "two"]]);
         let clone = new Map(original);
@@ -48,8 +45,7 @@ fn clone() {
 
 #[test]
 fn merge() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
     let init = r#"
         let first = new Map([["1", "one"], ["2", "two"]]);
         let second = new Map([["2", "second two"], ["3", "three"]]);
@@ -68,8 +64,7 @@ fn merge() {
 
 #[test]
 fn get() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
     let init = r#"
         let map = new Map([["1", "one"], ["2", "two"]]);
         "#;
@@ -86,8 +81,7 @@ fn get() {
 
 #[test]
 fn set() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
     let init = r#"
         let map = new Map();
         "#;
@@ -105,8 +99,7 @@ fn set() {
 
 #[test]
 fn clear() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
     let init = r#"
         let map = new Map([["1", "one"], ["2", "two"]]);
         map.clear();
@@ -118,8 +111,7 @@ fn clear() {
 
 #[test]
 fn delete() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
     let init = r#"
         let map = new Map([["1", "one"], ["2", "two"]]);
         "#;
@@ -134,8 +126,7 @@ fn delete() {
 
 #[test]
 fn has() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
     let init = r#"
         let map = new Map([["1", "one"]]);
         "#;
@@ -150,8 +141,7 @@ fn has() {
 
 #[test]
 fn for_each() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
     let init = r#"
         let map = new Map([[1, 5], [2, 10], [3, 15]]);
         let valueSum = 0;
@@ -172,8 +162,7 @@ fn for_each() {
 
 #[test]
 fn modify_key() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
     let init = r#"
         let obj = new Object();
         let map = new Map([[obj, "one"]]);
@@ -186,8 +175,7 @@ fn modify_key() {
 
 #[test]
 fn order() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
     let init = r#"
         let map = new Map([[1, "one"]]);
         map.set(2, "two");
@@ -213,8 +201,7 @@ fn order() {
 
 #[test]
 fn recursive_display() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
     let init = r#"
         let map = new Map();
         let array = new Array([map]);
@@ -229,8 +216,7 @@ fn recursive_display() {
 
 #[test]
 fn not_a_function() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
     let init = r"
         try {
             let map = Map()

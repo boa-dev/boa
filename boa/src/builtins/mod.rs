@@ -39,11 +39,11 @@ pub(crate) use self::{
     symbol::Symbol,
     undefined::Undefined,
 };
-use crate::{Interpreter, Value};
+use crate::{Context, Value};
 
 /// Initializes builtin objects and functions
 #[inline]
-pub fn init(interpreter: &mut Interpreter) {
+pub fn init(interpreter: &mut Context) {
     let globals = [
         // The `Function` global must be initialized before other types.
         function::init,
@@ -75,7 +75,7 @@ pub fn init(interpreter: &mut Interpreter) {
 
     for init in &globals {
         let (name, value) = init(interpreter);
-        let global = interpreter.global();
+        let global = interpreter.global_object();
         match global {
             Value::Object(ref global_object) => {
                 global_object.borrow_mut().insert_field(name, value);

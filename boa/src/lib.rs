@@ -44,20 +44,20 @@ pub mod realm;
 pub mod syntax;
 pub mod value;
 
-use crate::syntax::ast::node::StatementList;
-pub use crate::{
-    exec::{Executable, Interpreter},
-    profiler::BoaProfiler,
-    realm::Realm,
-    syntax::{
-        lexer::Lexer,
-        parser::{ParseError, Parser},
-    },
-    value::Value,
-};
+mod context;
+
 use std::result::Result as StdResult;
 
+pub(crate) use crate::{exec::Executable, profiler::BoaProfiler};
 pub use gc::{custom_trace, unsafe_empty_trace, Finalize, Trace};
+
+// Export things to root level
+pub use crate::{context::Context, value::Value};
+
+use crate::syntax::{
+    ast::node::StatementList,
+    parser::{ParseError, Parser},
+};
 
 /// The result of a Javascript expression is represented like this so it can succeed (`Ok`) or fail (`Err`)
 #[must_use]
@@ -72,9 +72,10 @@ pub fn parse(src: &str) -> StdResult<StatementList, ParseError> {
     Parser::new(src.as_bytes()).parse_all()
 }
 
-/// Execute the code using an existing Interpreter
-/// The str is consumed and the state of the Interpreter is changed
-pub fn forward(engine: &mut Interpreter, src: &str) -> String {
+/// Execute the code using an existing Context
+/// The str is consumed and the state of the Context is changed
+#[cfg(test)]
+pub(crate) fn forward(engine: &mut Context, src: &str) -> String {
     // Setup executor
     let expr = match parse(src) {
         Ok(res) => res,
@@ -94,12 +95,13 @@ pub fn forward(engine: &mut Interpreter, src: &str) -> String {
     )
 }
 
-/// Execute the code using an existing Interpreter.
-/// The str is consumed and the state of the Interpreter is changed
+/// Execute the code using an existing Context.
+/// The str is consumed and the state of the Context is changed
 /// Similar to `forward`, except the current value is returned instad of the string
 /// If the interpreter fails parsing an error value is returned instead (error object)
 #[allow(clippy::unit_arg, clippy::drop_copy)]
-pub fn forward_val(engine: &mut Interpreter, src: &str) -> Result<Value> {
+#[cfg(test)]
+pub(crate) fn forward_val(engine: &mut Context, src: &str) -> Result<Value> {
     let main_timer = BoaProfiler::global().start_event("Main", "Main");
     // Setup executor
     let result = parse(src)
@@ -117,10 +119,11 @@ pub fn forward_val(engine: &mut Interpreter, src: &str) -> Result<Value> {
     result
 }
 
-/// Create a clean Interpreter and execute the code
-pub fn exec(src: &str) -> String {
-    // Create new Realm
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
-    forward(&mut engine, src)
+/// Create a clean Context and execute the code
+#[cfg(test)]
+pub(crate) fn exec(src: &str) -> String {
+    match Context::new().eval(src) {
+        Ok(value) => value.display().to_string(),
+        Err(error) => error.display().to_string(),
+    }
 }

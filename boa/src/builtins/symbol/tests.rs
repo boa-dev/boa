@@ -1,9 +1,8 @@
-use crate::{exec::Interpreter, forward, forward_val, realm::Realm};
+use crate::{forward, forward_val, Context};
 
 #[test]
 fn call_symbol_and_check_return_type() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
     let init = r#"
         var sym = Symbol();
         "#;
@@ -14,8 +13,7 @@ fn call_symbol_and_check_return_type() {
 
 #[test]
 fn print_symbol_expect_description() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
     let init = r#"
         var sym = Symbol("Hello");
         "#;
@@ -26,8 +24,7 @@ fn print_symbol_expect_description() {
 
 #[test]
 fn symbol_access() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
     let init = r#"
         var x = {};
         var sym1 = Symbol("Hello");

@@ -1,11 +1,10 @@
-use boa::{parse, Executable, Interpreter, Realm};
+use boa::{exec::Executable, parse, Context};
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]
 pub fn evaluate(src: &str) -> Result<String, JsValue> {
     // Setup executor
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
 
     let expr = match parse(src) {
         Ok(res) => res,

@@ -3,9 +3,8 @@
 use super::function::{make_builtin_fn, make_constructor_fn};
 use crate::{
     builtins::object::{ObjectData, PROTOTYPE},
-    exec::Interpreter,
     property::{Attribute, Property},
-    BoaProfiler, Result, Value,
+    BoaProfiler, Context, Result, Value,
 };
 use ordered_map::OrderedMap;
 
@@ -41,7 +40,7 @@ impl Map {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-map.prototype.set
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/set
-    pub(crate) fn set(this: &Value, args: &[Value], ctx: &mut Interpreter) -> Result<Value> {
+    pub(crate) fn set(this: &Value, args: &[Value], ctx: &mut Context) -> Result<Value> {
         let (key, value) = match args.len() {
             0 => (Value::Undefined, Value::Undefined),
             1 => (args[0].clone(), Value::Undefined),
@@ -74,7 +73,7 @@ impl Map {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-map.prototype.delete
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/delete
-    pub(crate) fn delete(this: &Value, args: &[Value], ctx: &mut Interpreter) -> Result<Value> {
+    pub(crate) fn delete(this: &Value, args: &[Value], ctx: &mut Context) -> Result<Value> {
         let undefined = Value::Undefined;
         let key = match args.len() {
             0 => &undefined,
@@ -106,7 +105,7 @@ impl Map {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-map.prototype.get
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/get
-    pub(crate) fn get(this: &Value, args: &[Value], ctx: &mut Interpreter) -> Result<Value> {
+    pub(crate) fn get(this: &Value, args: &[Value], ctx: &mut Context) -> Result<Value> {
         let undefined = Value::Undefined;
         let key = match args.len() {
             0 => &undefined,
@@ -137,7 +136,7 @@ impl Map {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-map.prototype.clear
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/clear
-    pub(crate) fn clear(this: &Value, _: &[Value], _: &mut Interpreter) -> Result<Value> {
+    pub(crate) fn clear(this: &Value, _: &[Value], _: &mut Context) -> Result<Value> {
         this.set_data(ObjectData::Map(OrderedMap::new()));
 
         Self::set_size(this, 0);
@@ -155,7 +154,7 @@ impl Map {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-map.prototype.has
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/has
-    pub(crate) fn has(this: &Value, args: &[Value], ctx: &mut Interpreter) -> Result<Value> {
+    pub(crate) fn has(this: &Value, args: &[Value], ctx: &mut Context) -> Result<Value> {
         let undefined = Value::Undefined;
         let key = match args.len() {
             0 => &undefined,
@@ -185,7 +184,7 @@ impl Map {
     pub(crate) fn for_each(
         this: &Value,
         args: &[Value],
-        interpreter: &mut Interpreter,
+        interpreter: &mut Context,
     ) -> Result<Value> {
         if args.is_empty() {
             return Err(Value::from("Missing argument for Map.prototype.forEach"));
@@ -224,12 +223,12 @@ impl Map {
     }
 
     /// Create a new map
-    pub(crate) fn make_map(this: &Value, args: &[Value], ctx: &mut Interpreter) -> Result<Value> {
+    pub(crate) fn make_map(this: &Value, args: &[Value], ctx: &mut Context) -> Result<Value> {
         // Make a new Object which will internally represent the Array (mapping
         // between indices and values): this creates an Object with no prototype
 
         // Set Prototype
-        let prototype = ctx.realm.global_obj.get_field("Map").get_field(PROTOTYPE);
+        let prototype = ctx.global_object().get_field("Map").get_field(PROTOTYPE);
 
         this.as_object_mut()
             .expect("this is array object")
@@ -281,8 +280,8 @@ impl Map {
     }
 
     /// Initialise the `Map` object on the global object.
-    pub(crate) fn init(interpreter: &mut Interpreter) -> (&'static str, Value) {
-        let global = interpreter.global();
+    pub(crate) fn init(interpreter: &mut Context) -> (&'static str, Value) {
+        let global = interpreter.global_object();
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
         // Create prototype

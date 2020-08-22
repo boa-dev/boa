@@ -1,8 +1,8 @@
-use super::{Executable, Interpreter};
+use super::{Context, Executable};
 use crate::{syntax::ast::node::identifier::Identifier, Result, Value};
 
 impl Executable for Identifier {
-    fn run(&self, interpreter: &mut Interpreter) -> Result<Value> {
+    fn run(&self, interpreter: &mut Context) -> Result<Value> {
         interpreter
             .realm()
             .environment

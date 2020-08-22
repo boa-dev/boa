@@ -19,10 +19,9 @@ use crate::{
         map::ordered_map::OrderedMap,
         BigInt, Date, RegExp,
     },
-    exec::Interpreter,
     property::{Property, PropertyKey},
     value::{same_value, RcBigInt, RcString, RcSymbol, Value},
-    BoaProfiler, Result,
+    BoaProfiler, Context, Result,
 };
 use gc::{Finalize, Trace};
 use rustc_hash::FxHashMap;
@@ -469,14 +468,15 @@ impl Object {
 }
 
 /// Create a new object.
-pub fn make_object(_: &Value, args: &[Value], ctx: &mut Interpreter) -> Result<Value> {
+pub fn make_object(_: &Value, args: &[Value], ctx: &mut Context) -> Result<Value> {
     if let Some(arg) = args.get(0) {
         if !arg.is_null_or_undefined() {
             return arg.to_object(ctx);
         }
     }
+    let global = ctx.global_object();
 
-    Ok(Value::new_object(Some(ctx.global())))
+    Ok(Value::new_object(Some(global)))
 }
 
 /// `Object.create( proto, [propertiesObject] )`
@@ -489,7 +489,7 @@ pub fn make_object(_: &Value, args: &[Value], ctx: &mut Interpreter) -> Result<V
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-object.create
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/create
-pub fn create(_: &Value, args: &[Value], interpreter: &mut Interpreter) -> Result<Value> {
+pub fn create(_: &Value, args: &[Value], interpreter: &mut Context) -> Result<Value> {
     let prototype = args.get(0).cloned().unwrap_or_else(Value::undefined);
     let properties = args.get(1).cloned().unwrap_or_else(Value::undefined);
 
@@ -510,7 +510,7 @@ pub fn create(_: &Value, args: &[Value], interpreter: &mut Interpreter) -> Resul
 }
 
 /// Uses the SameValue algorithm to check equality of objects
-pub fn is(_: &Value, args: &[Value], _: &mut Interpreter) -> Result<Value> {
+pub fn is(_: &Value, args: &[Value], _: &mut Context) -> Result<Value> {
     let x = args.get(0).cloned().unwrap_or_else(Value::undefined);
     let y = args.get(1).cloned().unwrap_or_else(Value::undefined);
 
@@ -518,7 +518,7 @@ pub fn is(_: &Value, args: &[Value], _: &mut Interpreter) -> Result<Value> {
 }
 
 /// Get the `prototype` of an object.
-pub fn get_prototype_of(_: &Value, args: &[Value], _: &mut Interpreter) -> Result<Value> {
+pub fn get_prototype_of(_: &Value, args: &[Value], _: &mut Context) -> Result<Value> {
     let obj = args.get(0).expect("Cannot get object");
     Ok(obj
         .as_object()
@@ -526,7 +526,7 @@ pub fn get_prototype_of(_: &Value, args: &[Value], _: &mut Interpreter) -> Resul
 }
 
 /// Set the `prototype` of an object.
-pub fn set_prototype_of(_: &Value, args: &[Value], _: &mut Interpreter) -> Result<Value> {
+pub fn set_prototype_of(_: &Value, args: &[Value], _: &mut Context) -> Result<Value> {
     let obj = args.get(0).expect("Cannot get object").clone();
     let proto = args.get(1).expect("Cannot get object").clone();
     obj.as_object_mut().unwrap().prototype = proto;
@@ -534,7 +534,7 @@ pub fn set_prototype_of(_: &Value, args: &[Value], _: &mut Interpreter) -> Resul
 }
 
 /// Define a property in an object
-pub fn define_property(_: &Value, args: &[Value], ctx: &mut Interpreter) -> Result<Value> {
+pub fn define_property(_: &Value, args: &[Value], ctx: &mut Context) -> Result<Value> {
     let obj = args.get(0).expect("Cannot get object");
     let prop = args.get(1).expect("Cannot get object").to_string(ctx)?;
     let desc = Property::from(args.get(2).expect("Cannot get object"));
@@ -552,7 +552,7 @@ pub fn define_property(_: &Value, args: &[Value], ctx: &mut Interpreter) -> Resu
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-object.prototype.tostring
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/toString
-pub fn to_string(this: &Value, _: &[Value], _: &mut Interpreter) -> Result<Value> {
+pub fn to_string(this: &Value, _: &[Value], _: &mut Context) -> Result<Value> {
     // FIXME: it should not display the object.
     Ok(this.display().to_string().into())
 }
@@ -568,7 +568,7 @@ pub fn to_string(this: &Value, _: &[Value], _: &mut Interpreter) -> Result<Value
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-object.prototype.hasownproperty
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/hasOwnProperty
-pub fn has_own_property(this: &Value, args: &[Value], ctx: &mut Interpreter) -> Result<Value> {
+pub fn has_own_property(this: &Value, args: &[Value], ctx: &mut Context) -> Result<Value> {
     let prop = if args.is_empty() {
         None
     } else {
@@ -586,11 +586,7 @@ pub fn has_own_property(this: &Value, args: &[Value], ctx: &mut Interpreter) -> 
     }
 }
 
-pub fn property_is_enumerable(
-    this: &Value,
-    args: &[Value],
-    ctx: &mut Interpreter,
-) -> Result<Value> {
+pub fn property_is_enumerable(this: &Value, args: &[Value], ctx: &mut Context) -> Result<Value> {
     let key = match args.get(0) {
         None => return Ok(Value::from(false)),
         Some(key) => key,
@@ -610,8 +606,8 @@ pub fn property_is_enumerable(
 
 /// Initialise the `Object` object on the global object.
 #[inline]
-pub fn init(interpreter: &mut Interpreter) -> (&'static str, Value) {
-    let global = interpreter.global();
+pub fn init(interpreter: &mut Context) -> (&'static str, Value) {
+    let global = interpreter.global_object();
     let _timer = BoaProfiler::global().start_event("object", "init");
 
     let prototype = Value::new_object(None);

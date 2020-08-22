@@ -1,6 +1,6 @@
 //! Array declaration execution.
 
-use super::{Executable, Interpreter};
+use super::{Context, Executable};
 use crate::{
     builtins::Array,
     syntax::ast::node::{ArrayDecl, Node},
@@ -8,7 +8,7 @@ use crate::{
 };
 
 impl Executable for ArrayDecl {
-    fn run(&self, interpreter: &mut Interpreter) -> Result<Value> {
+    fn run(&self, interpreter: &mut Context) -> Result<Value> {
         let _timer = BoaProfiler::global().start_event("ArrayDecl", "exec");
         let array = Array::new_array(interpreter)?;
         let mut elements = Vec::new();

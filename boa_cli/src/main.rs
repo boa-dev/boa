@@ -25,7 +25,7 @@
     clippy::as_conversions
 )]
 
-use boa::{exec::Interpreter, forward_val, realm::Realm, syntax::ast::node::StatementList};
+use boa::{syntax::ast::node::StatementList, Context};
 use colored::*;
 use rustyline::{config::Config, error::ReadlineError, EditMode, Editor};
 use std::{fs::read_to_string, path::PathBuf};
@@ -139,9 +139,7 @@ fn dump(src: &str, args: &Opt) -> Result<(), String> {
 pub fn main() -> Result<(), std::io::Error> {
     let args = Opt::from_args();
 
-    let realm = Realm::create();
-
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
 
     for file in &args.files {
         let buffer = read_to_string(file)?;
@@ -151,7 +149,7 @@ pub fn main() -> Result<(), std::io::Error> {
                 eprintln!("{}", e);
             }
         } else {
-            match forward_val(&mut engine, &buffer) {
+            match engine.eval(&buffer) {
                 Ok(v) => println!("{}", v.display()),
                 Err(v) => eprintln!("Uncaught {}", v.display()),
             }
@@ -187,7 +185,7 @@ pub fn main() -> Result<(), std::io::Error> {
                             eprintln!("{}", e);
                         }
                     } else {
-                        match forward_val(&mut engine, line.trim_end()) {
+                        match engine.eval(line.trim_end()) {
                             Ok(v) => println!("{}", v.display()),
                             Err(v) => {
                                 eprintln!("{}: {}", "Uncaught".red(), v.display().to_string().red())

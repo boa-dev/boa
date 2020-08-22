@@ -11,7 +11,7 @@ use crate::{
         function_environment_record::BindingStatus, lexical_environment::new_function_environment,
     },
     syntax::ast::node::RcStatementList,
-    Executable, Interpreter, Result, Value,
+    Context, Executable, Result, Value,
 };
 use gc::{Finalize, Gc, GcCell, GcCellRef, GcCellRefMut, Trace};
 use std::{
@@ -107,7 +107,7 @@ impl GcObject {
     // <https://tc39.es/ecma262/#sec-prepareforordinarycall>
     // <https://tc39.es/ecma262/#sec-ecmascript-function-objects-call-thisargument-argumentslist>
     #[track_caller]
-    pub fn call(&self, this: &Value, args: &[Value], ctx: &mut Interpreter) -> Result<Value> {
+    pub fn call(&self, this: &Value, args: &[Value], ctx: &mut Context) -> Result<Value> {
         let this_function_object = self.clone();
         let f_body = if let Some(function) = self.borrow().as_function() {
             if function.is_callable() {
@@ -160,7 +160,7 @@ impl GcObject {
                             .borrow_mut()
                             .initialize_binding("arguments", arguments_obj);
 
-                        ctx.realm.environment.push(local_env);
+                        ctx.realm_mut().environment.push(local_env);
 
                         FunctionBody::Ordinary(body.clone())
                     }
@@ -176,7 +176,7 @@ impl GcObject {
             FunctionBody::BuiltIn(func) => func(this, args, ctx),
             FunctionBody::Ordinary(body) => {
                 let result = body.run(ctx);
-                ctx.realm.environment.pop();
+                ctx.realm_mut().environment.pop();
 
                 result
             }
@@ -189,7 +189,7 @@ impl GcObject {
     /// Panics if the object is currently mutably borrowed.
     // <https://tc39.es/ecma262/#sec-ecmascript-function-objects-construct-argumentslist-newtarget>
     #[track_caller]
-    pub fn construct(&self, args: &[Value], ctx: &mut Interpreter) -> Result<Value> {
+    pub fn construct(&self, args: &[Value], ctx: &mut Context) -> Result<Value> {
         let this = Object::create(self.borrow().get(&PROTOTYPE.into())).into();
 
         let this_function_object = self.clone();
@@ -242,13 +242,13 @@ impl GcObject {
                             .borrow_mut()
                             .initialize_binding("arguments", arguments_obj);
 
-                        ctx.realm.environment.push(local_env);
+                        ctx.realm_mut().environment.push(local_env);
 
                         // Call body should be set before reaching here
                         let _ = body.run(ctx);
 
                         // local_env gets dropped here, its no longer needed
-                        let binding = ctx.realm.environment.get_this_binding();
+                        let binding = ctx.realm_mut().environment.get_this_binding();
                         Ok(binding)
                     }
                 }

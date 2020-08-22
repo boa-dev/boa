@@ -1,4 +1,4 @@
-use super::{Executable, Interpreter, InterpreterState};
+use super::{Context, Executable, InterpreterState};
 use crate::{
     syntax::ast::node::{Break, Continue},
     Result, Value,
@@ -8,16 +8,20 @@ use crate::{
 mod tests;
 
 impl Executable for Break {
-    fn run(&self, interpreter: &mut Interpreter) -> Result<Value> {
-        interpreter.set_current_state(InterpreterState::Break(self.label().map(String::from)));
+    fn run(&self, interpreter: &mut Context) -> Result<Value> {
+        interpreter
+            .executor()
+            .set_current_state(InterpreterState::Break(self.label().map(String::from)));
 
         Ok(Value::undefined())
     }
 }
 
 impl Executable for Continue {
-    fn run(&self, interpreter: &mut Interpreter) -> Result<Value> {
-        interpreter.set_current_state(InterpreterState::Continue(self.label().map(String::from)));
+    fn run(&self, interpreter: &mut Context) -> Result<Value> {
+        interpreter
+            .executor()
+            .set_current_state(InterpreterState::Continue(self.label().map(String::from)));
 
         Ok(Value::undefined())
     }
