@@ -916,6 +916,26 @@ impl Value {
         }
         primitive.to_number(ctx)
     }
+
+    /// Check if the `Value` can be converted to an `Object`
+    ///
+    /// The abstract operation `RequireObjectCoercible` takes argument argument.
+    /// It throws an error if argument is a value that cannot be converted to an Object using `ToObject`.
+    /// It is defined by [Table 15][table]
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [table]: https://tc39.es/ecma262/#table-14
+    /// [spec]: https://tc39.es/ecma262/#sec-requireobjectcoercible
+    #[inline]
+    pub fn require_object_coercible<'a>(&'a self, ctx: &mut Interpreter) -> Result<&'a Value> {
+        if self.is_null_or_undefined() {
+            Err(ctx.construct_type_error("cannot convert null or undefined to Object"))
+        } else {
+            Ok(self)
+        }
+    }
 }
 
 impl Default for Value {

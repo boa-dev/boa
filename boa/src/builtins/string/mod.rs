@@ -199,7 +199,7 @@ impl String {
     /// [spec]: https://tc39.es/ecma262/#sec-string.prototype.concat
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/concat
     pub(crate) fn concat(this: &Value, args: &[Value], ctx: &mut Interpreter) -> Result<Value> {
-        let object = ctx.require_object_coercible(this)?;
+        let object = this.require_object_coercible(ctx)?;
         let mut string = object.to_string(ctx)?.to_string();
 
         for arg in args {
@@ -221,7 +221,7 @@ impl String {
     /// [spec]: https://tc39.es/ecma262/#sec-string.prototype.repeat
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/repeat
     pub(crate) fn repeat(this: &Value, args: &[Value], ctx: &mut Interpreter) -> Result<Value> {
-        let object = ctx.require_object_coercible(this)?;
+        let object = this.require_object_coercible(ctx)?;
         let string = object.to_string(ctx)?;
 
         if let Some(arg) = args.get(0) {
@@ -563,7 +563,7 @@ impl String {
     /// [spec]: https://tc39.es/ecma262/#sec-string.prototype.indexof
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/indexOf
     pub(crate) fn index_of(this: &Value, args: &[Value], ctx: &mut Interpreter) -> Result<Value> {
-        let this = ctx.require_object_coercible(this)?;
+        let this = this.require_object_coercible(ctx)?;
         let string = this.to_string(ctx)?;
 
         let search_string = args
@@ -610,7 +610,7 @@ impl String {
         args: &[Value],
         ctx: &mut Interpreter,
     ) -> Result<Value> {
-        let this = ctx.require_object_coercible(this)?;
+        let this = this.require_object_coercible(ctx)?;
         let string = this.to_string(ctx)?;
 
         let search_string = args
@@ -776,7 +776,7 @@ impl String {
     /// [spec]: https://tc39.es/ecma262/#sec-string.prototype.trim
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/trim
     pub(crate) fn trim(this: &Value, _: &[Value], ctx: &mut Interpreter) -> Result<Value> {
-        let this = ctx.require_object_coercible(this)?;
+        let this = this.require_object_coercible(ctx)?;
         let string = this.to_string(ctx)?;
         Ok(Value::from(
             string.trim_matches(Self::is_trimmable_whitespace),
@@ -796,7 +796,7 @@ impl String {
     /// [spec]: https://tc39.es/ecma262/#sec-string.prototype.trimstart
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/trimStart
     pub(crate) fn trim_start(this: &Value, _: &[Value], ctx: &mut Interpreter) -> Result<Value> {
-        let this = ctx.require_object_coercible(this)?;
+        let this = this.require_object_coercible(ctx)?;
         let string = this.to_string(ctx)?;
         Ok(Value::from(
             string.trim_start_matches(Self::is_trimmable_whitespace),
@@ -816,7 +816,7 @@ impl String {
     /// [spec]: https://tc39.es/ecma262/#sec-string.prototype.trimend
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/trimEnd
     pub(crate) fn trim_end(this: &Value, _: &[Value], ctx: &mut Interpreter) -> Result<Value> {
-        let this = ctx.require_object_coercible(this)?;
+        let this = this.require_object_coercible(ctx)?;
         let string = this.to_string(ctx)?;
         Ok(Value::from(
             string.trim_end_matches(Self::is_trimmable_whitespace),
