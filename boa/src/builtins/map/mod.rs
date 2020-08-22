@@ -7,7 +7,7 @@ use crate::{
         property::{Attribute, Property},
         value::Value,
     },
-    exec::Interpreter,
+    exec::{Interpreter, StandardConstructor},
     BoaProfiler, Result,
 };
 use ordered_map::OrderedMap;
@@ -285,11 +285,10 @@ impl Map {
 
     /// Initialise the `Map` object on the global object.
     pub(crate) fn init(interpreter: &mut Interpreter) -> (&'static str, Value) {
-        let global = interpreter.global();
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
         // Create prototype
-        let prototype = Value::new_object(Some(global));
+        let prototype: Value = interpreter.construct_object().into();
 
         make_builtin_fn(Self::set, "set", &prototype, 2, interpreter);
         make_builtin_fn(Self::delete, "delete", &prototype, 1, interpreter);
@@ -302,11 +301,14 @@ impl Map {
             Self::NAME,
             Self::LENGTH,
             Self::make_map,
-            global,
-            prototype,
+            interpreter,
+            prototype.clone(),
             true,
             false,
         );
+
+        interpreter.standard_objects.map =
+            StandardConstructor::new(map_object.unwrap_object(), prototype.unwrap_object());
 
         (Self::NAME, map_object)
     }

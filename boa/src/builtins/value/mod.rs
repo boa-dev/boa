@@ -155,6 +155,9 @@ impl Value {
 
         if let Some(global) = global {
             let object_prototype = global.get_field("Object").get_field(PROTOTYPE);
+            if object_prototype.is_undefined() {
+                panic!("is udef");
+            }
 
             let object = Object::create(object_prototype);
             Self::object(object)
@@ -184,11 +187,8 @@ impl Value {
             JSONValue::String(v) => Self::string(v),
             JSONValue::Bool(v) => Self::boolean(v),
             JSONValue::Array(vs) => {
-                let global_array_prototype = interpreter
-                    .realm
-                    .global_obj
-                    .get_field("Array")
-                    .get_field(PROTOTYPE);
+                let global_array_prototype: Value =
+                    interpreter.standard_objects.array.prototype.clone().into();
                 let new_obj =
                     Value::new_object_from_prototype(global_array_prototype, ObjectData::Array);
                 let length = vs.len();
@@ -209,6 +209,7 @@ impl Value {
             }
             JSONValue::Object(obj) => {
                 let new_obj = Value::new_object(Some(interpreter.global()));
+                // let new_obj: Value = interpreter.construct_object().into();
                 for (key, json) in obj.into_iter() {
                     let value = Self::from_json(json, interpreter);
                     new_obj.set_property(
@@ -319,6 +320,16 @@ impl Value {
         match *self {
             Self::Object(ref o) => Some(o.borrow_mut()),
             _ => None,
+        }
+    }
+
+    /// To be used to fetch GcObject
+    /// Panics if Value is not an object
+    #[inline]
+    pub fn unwrap_object(&self) -> GcObject {
+        match self {
+            Self::Object(ref o) => o.clone(),
+            _ => panic!("Not an object"),
         }
     }
 
@@ -683,76 +694,42 @@ impl Value {
                 ctx.throw_type_error("cannot convert 'null' or 'undefined' to object")
             }
             Value::Boolean(boolean) => {
-                let proto = ctx
-                    .realm
-                    .environment
-                    .get_binding_value("Boolean")
-                    .expect("Boolean was not initialized")
-                    .get_field(PROTOTYPE);
-
+                let proto: Value = ctx.standard_objects.boolean.prototype.clone().into();
                 Ok(Value::new_object_from_prototype(
                     proto,
                     ObjectData::Boolean(*boolean),
                 ))
             }
             Value::Integer(integer) => {
-                let proto = ctx
-                    .realm
-                    .environment
-                    .get_binding_value("Number")
-                    .expect("Number was not initialized")
-                    .get_field(PROTOTYPE);
+                let proto: Value = ctx.standard_objects.number.prototype.clone().into();
                 Ok(Value::new_object_from_prototype(
                     proto,
                     ObjectData::Number(f64::from(*integer)),
                 ))
             }
             Value::Rational(rational) => {
-                let proto = ctx
-                    .realm
-                    .environment
-                    .get_binding_value("Number")
-                    .expect("Number was not initialized")
-                    .get_field(PROTOTYPE);
-
+                let proto: Value = ctx.standard_objects.number.prototype.clone().into();
                 Ok(Value::new_object_from_prototype(
                     proto,
                     ObjectData::Number(*rational),
                 ))
             }
             Value::String(ref string) => {
-                let proto = ctx
-                    .realm
-                    .environment
-                    .get_binding_value("String")
-                    .expect("String was not initialized")
-                    .get_field(PROTOTYPE);
-
+                let proto: Value = ctx.standard_objects.string.prototype.clone().into();
                 Ok(Value::new_object_from_prototype(
                     proto,
                     ObjectData::String(string.clone()),
                 ))
             }
             Value::Symbol(ref symbol) => {
-                let proto = ctx
-                    .realm
-                    .environment
-                    .get_binding_value("Symbol")
-                    .expect("Symbol was not initialized")
-                    .get_field(PROTOTYPE);
-
+                let proto: Value = ctx.standard_objects.symbol.prototype.clone().into();
                 Ok(Value::new_object_from_prototype(
                     proto,
                     ObjectData::Symbol(symbol.clone()),
                 ))
             }
             Value::BigInt(ref bigint) => {
-                let proto = ctx
-                    .realm
-                    .environment
-                    .get_binding_value("BigInt")
-                    .expect("BigInt was not initialized")
-                    .get_field(PROTOTYPE);
+                let proto: Value = ctx.standard_objects.bigint.prototype.clone().into();
                 let bigint_obj =
                     Value::new_object_from_prototype(proto, ObjectData::BigInt(bigint.clone()));
                 Ok(bigint_obj)

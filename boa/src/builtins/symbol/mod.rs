@@ -24,7 +24,7 @@ use crate::{
         property::{Attribute, Property},
         value::{RcString, RcSymbol, Value},
     },
-    exec::Interpreter,
+    exec::{Interpreter, StandardConstructor},
     BoaProfiler, Result,
 };
 use gc::{Finalize, Trace};
@@ -131,11 +131,10 @@ impl Symbol {
         let symbol_to_string_tag = interpreter.construct_symbol(Some("Symbol.toStringTag".into()));
         let symbol_unscopables = interpreter.construct_symbol(Some("Symbol.unscopables".into()));
 
-        let global = interpreter.global();
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
         // Create prototype object
-        let prototype = Value::new_object(Some(global));
+        let prototype: Value = interpreter.construct_object().into();
 
         make_builtin_fn(Self::to_string, "toString", &prototype, 0, interpreter);
 
@@ -143,8 +142,8 @@ impl Symbol {
             Self::NAME,
             Self::LENGTH,
             Self::call,
-            global,
-            prototype,
+            interpreter,
+            prototype.clone(),
             false,
             true,
         );
@@ -206,6 +205,9 @@ impl Symbol {
             );
         }
 
+        // Set standard object
+        interpreter.standard_objects.symbol =
+            StandardConstructor::new(symbol_object.unwrap_object(), prototype.unwrap_object());
         (Self::NAME, symbol_object)
     }
 }

@@ -15,7 +15,7 @@ mod tests;
 use super::function::{make_builtin_fn, make_constructor_fn};
 use crate::{
     builtins::{object::ObjectData, value::Value},
-    exec::Interpreter,
+    exec::{Interpreter, StandardConstructor},
     BoaProfiler, Result,
 };
 
@@ -96,12 +96,12 @@ impl Boolean {
     /// Initialise the `Boolean` object on the global object.
     #[inline]
     pub(crate) fn init(interpreter: &mut Interpreter) -> (&'static str, Value) {
-        let global = interpreter.global();
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
         // Create Prototype
         // https://tc39.es/ecma262/#sec-properties-of-the-boolean-prototype-object
-        let prototype = Value::new_object(Some(global));
+        // TODO: prototype itself is a boolean object
+        let prototype = interpreter.construct_object().into();
 
         make_builtin_fn(Self::to_string, "toString", &prototype, 0, interpreter);
         make_builtin_fn(Self::value_of, "valueOf", &prototype, 0, interpreter);
@@ -110,11 +110,15 @@ impl Boolean {
             Self::NAME,
             Self::LENGTH,
             Self::construct_boolean,
-            global,
-            prototype,
+            interpreter,
+            prototype.clone(),
             true,
             true,
         );
+
+        // Set Standard Object
+        interpreter.standard_objects.boolean =
+            StandardConstructor::new(boolean_object.unwrap_object(), prototype.unwrap_object());
 
         (Self::NAME, boolean_object)
     }

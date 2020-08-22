@@ -18,7 +18,7 @@ use crate::{
         property::Property,
         value::{RcString, Value},
     },
-    exec::Interpreter,
+    exec::{Interpreter, StandardConstructor},
     BoaProfiler, Result,
 };
 use gc::{unsafe_empty_trace, Finalize, Trace};
@@ -482,10 +482,10 @@ impl RegExp {
     #[inline]
     pub(crate) fn init(interpreter: &mut Interpreter) -> (&'static str, Value) {
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
-        let global = interpreter.global();
 
         // Create prototype
-        let prototype = Value::new_object(Some(global));
+        let prototype: Value = interpreter.construct_object().into();
+
         prototype
             .as_object_mut()
             .unwrap()
@@ -509,11 +509,15 @@ impl RegExp {
             Self::NAME,
             Self::LENGTH,
             Self::make_regexp,
-            global,
-            prototype,
+            interpreter,
+            prototype.clone(),
             true,
             true,
         );
+
+        // Set standard Object
+        interpreter.standard_objects.regexp =
+            StandardConstructor::new(regexp.unwrap_object(), prototype.unwrap_object());
 
         (Self::NAME, regexp)
     }

@@ -19,7 +19,7 @@ use crate::{
         Array,
     },
     environment::lexical_environment::Environment,
-    exec::Interpreter,
+    exec::{Interpreter, StandardConstructor},
     syntax::ast::node::{FormalParameter, StatementList},
     BoaProfiler, Result,
 };
@@ -215,7 +215,7 @@ pub fn make_constructor_fn(
     name: &str,
     length: usize,
     body: NativeFunction,
-    global: &Value,
+    interpreter: &Interpreter,
     prototype: Value,
     constructable: bool,
     callable: bool,
@@ -231,8 +231,16 @@ pub fn make_constructor_fn(
 
     // Get reference to Function.prototype
     // Create the function object and point its instance prototype to Function.prototype
-    let mut constructor =
-        Object::function(function, global.get_field("Function").get_field(PROTOTYPE));
+    let mut constructor = Object::function(
+        function,
+        interpreter
+            .standard_objects
+            .function
+            .prototype
+            .clone()
+            .into(),
+    );
+    // global.get_field("Function").get_field(PROTOTYPE));
 
     let length = Property::data_descriptor(
         length.into(),
@@ -294,9 +302,11 @@ pub fn make_builtin_fn<N>(
     let mut function = Object::function(
         Function::BuiltIn(function.into(), FunctionFlags::CALLABLE),
         interpreter
-            .global()
-            .get_field("Function")
-            .get_field("prototype"),
+            .standard_objects
+            .function
+            .prototype
+            .clone()
+            .into(),
     );
     function.insert_field("length", Value::from(length));
 
@@ -309,12 +319,24 @@ pub fn make_builtin_fn<N>(
 /// Initialise the `Function` object on the global object.
 #[inline]
 pub fn init(interpreter: &mut Interpreter) -> (&'static str, Value) {
-    let global = interpreter.global();
     let _timer = BoaProfiler::global().start_event("function", "init");
-    let prototype = Value::new_object(Some(global));
 
-    let function_object =
-        make_constructor_fn("Function", 1, make_function, global, prototype, true, true);
+    // Function.prototype
+    let prototype: Value = interpreter.construct_object().into();
+
+    // function Function ()
+    let function_object = make_constructor_fn(
+        "Function",
+        1,
+        make_function,
+        interpreter,
+        prototype.clone(),
+        true,
+        true,
+    );
+
+    interpreter.standard_objects.function =
+        StandardConstructor::new(function_object.unwrap_object(), prototype.unwrap_object());
 
     ("Function", function_object)
 }

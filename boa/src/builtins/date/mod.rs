@@ -1243,10 +1243,9 @@ impl Date {
     /// Initialise the `Date` object on the global object.
     #[inline]
     pub(crate) fn init(interpreter: &mut Interpreter) -> (&'static str, Value) {
-        let global = interpreter.global();
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
-        let prototype = Value::new_object(Some(global));
+        let prototype = interpreter.construct_object().into();
 
         make_builtin_fn(
             getter_method!(get_date),
@@ -1555,7 +1554,7 @@ impl Date {
             Self::NAME,
             Self::LENGTH,
             Self::make_date,
-            global,
+            interpreter,
             prototype,
             true,
             true,

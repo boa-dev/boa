@@ -502,10 +502,9 @@ impl Console {
     /// Initialise the `console` object on the global object.
     #[inline]
     pub(crate) fn init(interpreter: &mut Interpreter) -> (&'static str, Value) {
-        let global = interpreter.global();
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
-        let console = Value::new_object(Some(global));
+        let console = interpreter.construct_object().into();
 
         make_builtin_fn(Self::assert, "assert", &console, 0, interpreter);
         make_builtin_fn(Self::clear, "clear", &console, 0, interpreter);

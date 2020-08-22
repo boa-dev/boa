@@ -20,7 +20,7 @@ use crate::{
         value::{RcString, Value},
         RegExp,
     },
-    exec::Interpreter,
+    exec::{Interpreter, StandardConstructor},
     BoaProfiler, Result,
 };
 use regex::Regex;
@@ -1034,8 +1034,7 @@ impl String {
 
         // Create `String` `prototype`
 
-        let global = interpreter.global();
-        let prototype = Value::new_object(Some(global));
+        let prototype: Value = interpreter.construct_object().into();
         let length = Property::default().value(Value::from(0));
 
         prototype.set_property("length", length);
@@ -1087,11 +1086,15 @@ impl String {
             Self::NAME,
             Self::LENGTH,
             Self::make_string,
-            global,
-            prototype,
+            interpreter,
+            prototype.clone(),
             true,
             true,
         );
+
+        // Set standard object
+        interpreter.standard_objects.string =
+            StandardConstructor::new(string_object.unwrap_object(), prototype.unwrap_object());
 
         (Self::NAME, string_object)
     }

@@ -18,7 +18,11 @@ use super::{
     object::ObjectData,
     value::AbstractRelation,
 };
-use crate::{builtins::value::Value, exec::Interpreter, BoaProfiler, Result};
+use crate::{
+    builtins::value::Value,
+    exec::{Interpreter, StandardConstructor},
+    BoaProfiler, Result,
+};
 use num_traits::float::FloatCore;
 
 mod conversions;
@@ -741,10 +745,10 @@ impl Number {
     /// Initialise the `Number` object on the global object.
     #[inline]
     pub(crate) fn init(interpreter: &mut Interpreter) -> (&'static str, Value) {
-        let global = interpreter.global();
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
-        let prototype = Value::new_object(Some(global));
+        let global = interpreter.global();
+        let prototype: Value = interpreter.construct_object().into();
 
         make_builtin_fn(
             Self::to_exponential,
@@ -793,8 +797,8 @@ impl Number {
             Self::NAME,
             Self::LENGTH,
             Self::make_number,
-            global,
-            prototype,
+            interpreter,
+            prototype.clone(),
             true,
             true,
         );
@@ -835,6 +839,10 @@ impl Number {
             properties.insert_field("POSITIVE_INFINITY", Value::from(f64::INFINITY));
             properties.insert_field("NaN", Value::from(f64::NAN));
         }
+
+        // Set standard object
+        interpreter.standard_objects.number =
+            StandardConstructor::new(number_object.unwrap_object(), prototype.unwrap_object());
 
         (Self::NAME, number_object)
     }

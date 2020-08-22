@@ -639,9 +639,8 @@ impl Math {
 
     /// Create a new `Math` object
     pub(crate) fn create(interpreter: &mut Interpreter) -> Value {
-        let global = interpreter.global();
         let _timer = BoaProfiler::global().start_event("math:create", "init");
-        let math = Value::new_object(Some(global));
+        let math: Value = interpreter.construct_object().into();
 
         {
             let mut properties = math.as_object_mut().unwrap();

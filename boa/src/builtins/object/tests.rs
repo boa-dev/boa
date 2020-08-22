@@ -142,3 +142,20 @@ fn object_property_is_enumerable() {
     );
     assert_eq!(forward(&mut engine, r#"x.propertyIsEnumerable()"#), "false",)
 }
+
+#[test]
+fn custom() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+    assert_eq!(
+        forward(&mut engine, r#"Object.getPrototypeOf(Object.prototype)"#),
+        "null"
+    );
+    assert_eq!(
+        forward(
+            &mut engine,
+            r#"Object.getPrototypeOf(Function.prototype) === Object.prototype"#
+        ),
+        "true"
+    );
+}

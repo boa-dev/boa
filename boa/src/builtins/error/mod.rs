@@ -82,10 +82,9 @@ impl Error {
     /// Initialise the global object with the `Error` object.
     #[inline]
     pub(crate) fn init(interpreter: &mut Interpreter) -> (&'static str, Value) {
-        let global = interpreter.global();
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
-        let prototype = Value::new_object(Some(global));
+        let prototype: Value = interpreter.construct_object().into();
         prototype.set_field("name", Self::NAME);
         prototype.set_field("message", "");
 
@@ -95,7 +94,7 @@ impl Error {
             Self::NAME,
             Self::LENGTH,
             Self::make_error,
-            global,
+            interpreter,
             prototype,
             true,
             true,

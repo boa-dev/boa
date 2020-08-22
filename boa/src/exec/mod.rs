@@ -66,6 +66,9 @@ pub struct Interpreter {
 
     /// console object state.
     console: Console,
+
+    /// Holds speical objects and their prototypes (Object, Function, etc)
+    pub standard_objects: StandardObjects,
 }
 
 impl Interpreter {
@@ -76,6 +79,7 @@ impl Interpreter {
             realm,
             symbol_count: 0,
             console: Console::default(),
+            standard_objects: StandardObjects::default(),
         };
 
         // Add new builtIns to Interpreter Realm
@@ -349,11 +353,12 @@ impl Interpreter {
         RcSymbol::from(Symbol::new(self.generate_hash(), description))
     }
 
-    /// Construct an empty object.
+    /// Construct an empty object with __proto__: Object.prototype
     #[inline]
     pub fn construct_object(&self) -> GcObject {
-        let object_prototype = self.global().get_field("Object").get_field(PROTOTYPE);
-        GcObject::new(Object::create(object_prototype))
+        GcObject::new(Object::create(
+            self.standard_objects.object.prototype.clone().into(),
+        ))
     }
 }
 
@@ -408,4 +413,44 @@ impl Executable for Node {
             Node::Continue(_) => unimplemented!("Continue"),
         }
     }
+}
+
+/// Store a builtin constructor (such as Object) and its corresponding prototype field
+#[derive(Debug)]
+pub struct StandardConstructor {
+    pub constructor: GcObject,
+    pub prototype: GcObject,
+}
+
+impl Default for StandardConstructor {
+    fn default() -> Self {
+        Self {
+            constructor: GcObject::new(Object::default()),
+            prototype: GcObject::new(Object::default()), // __proto__ === null
+        }
+    }
+}
+
+impl StandardConstructor {
+    pub fn new(constructor: GcObject, prototype: GcObject) -> Self {
+        Self {
+            constructor,
+            prototype,
+        }
+    }
+}
+
+/// Caches standard objects for use without hashmap lookup
+#[derive(Debug, Default)]
+pub struct StandardObjects {
+    pub array: StandardConstructor,
+    pub bigint: StandardConstructor,
+    pub boolean: StandardConstructor,
+    pub function: StandardConstructor,
+    pub map: StandardConstructor,
+    pub number: StandardConstructor,
+    pub object: StandardConstructor,
+    pub regexp: StandardConstructor,
+    pub string: StandardConstructor,
+    pub symbol: StandardConstructor,
 }

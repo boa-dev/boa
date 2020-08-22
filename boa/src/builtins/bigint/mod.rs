@@ -18,7 +18,7 @@ use crate::{
         object::ObjectData,
         value::{RcBigInt, Value},
     },
-    exec::Interpreter,
+    exec::{Interpreter, StandardConstructor},
     BoaProfiler, Result,
 };
 
@@ -201,10 +201,9 @@ impl BigInt {
     /// Initialise the `BigInt` object on the global object.
     #[inline]
     pub fn init(interpreter: &mut Interpreter) -> (&'static str, Value) {
-        let global = interpreter.global();
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
-        let prototype = Value::new_object(Some(global));
+        let prototype: Value = interpreter.construct_object().into();
 
         make_builtin_fn(Self::to_string, "toString", &prototype, 1, interpreter);
         make_builtin_fn(Self::value_of, "valueOf", &prototype, 0, interpreter);
@@ -213,14 +212,18 @@ impl BigInt {
             Self::NAME,
             Self::LENGTH,
             Self::make_bigint,
-            global,
-            prototype,
+            interpreter,
+            prototype.clone(),
             false,
             true,
         );
 
         make_builtin_fn(Self::as_int_n, "asIntN", &bigint_object, 2, interpreter);
         make_builtin_fn(Self::as_uint_n, "asUintN", &bigint_object, 2, interpreter);
+
+        // Set standard object
+        interpreter.standard_objects.bigint =
+            StandardConstructor::new(bigint_object.unwrap_object(), prototype.unwrap_object());
 
         (Self::NAME, bigint_object)
     }

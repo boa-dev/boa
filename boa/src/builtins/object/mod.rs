@@ -21,7 +21,7 @@ use crate::{
         value::{RcBigInt, RcString, RcSymbol, Value},
         BigInt, Date, RegExp,
     },
-    exec::Interpreter,
+    exec::{Interpreter, StandardConstructor},
     BoaProfiler, Result,
 };
 use gc::{Finalize, Trace};
@@ -122,6 +122,14 @@ impl Object {
     #[inline]
     pub fn new() -> Self {
         Default::default()
+    }
+
+    pub fn new_ordinary_from_prototype(prototype: GcObject) -> Self {
+        let mut object = Self::new();
+        object.prototype = prototype.into();
+        object.data = ObjectData::Ordinary;
+
+        object
     }
 
     /// Return a new ObjectData struct, with `kind` set to Ordinary
@@ -413,9 +421,8 @@ pub fn make_object(_: &Value, args: &[Value], ctx: &mut Interpreter) -> Result<V
             return Ok(Value::object(Object::from(arg).unwrap()));
         }
     }
-    let global = &ctx.realm.global_obj;
 
-    let object = Value::new_object(Some(global));
+    let object: Value = ctx.construct_object().into();
 
     Ok(object)
 }
@@ -552,10 +559,12 @@ pub fn property_is_enumerable(
 /// Initialise the `Object` object on the global object.
 #[inline]
 pub fn init(interpreter: &mut Interpreter) -> (&'static str, Value) {
-    let global = interpreter.global();
     let _timer = BoaProfiler::global().start_event("object", "init");
 
-    let prototype = Value::new_object(None);
+    // Object.prototype is an Object with null as __proto__.
+    // StandardObject::default() sets prototype field to an Object with __proto__ = null.
+    // Already used by Function
+    let prototype: Value = interpreter.standard_objects.object.prototype.clone().into();
 
     make_builtin_fn(
         has_own_property,
@@ -573,7 +582,15 @@ pub fn init(interpreter: &mut Interpreter) -> (&'static str, Value) {
     );
     make_builtin_fn(to_string, "toString", &prototype, 0, interpreter);
 
-    let object = make_constructor_fn("Object", 1, make_object, global, prototype, true, true);
+    let object = make_constructor_fn(
+        "Object",
+        1,
+        make_object,
+        interpreter,
+        prototype.clone(),
+        true,
+        true,
+    );
 
     // static methods of the builtin Object
     make_builtin_fn(create, "create", &object, 2, interpreter);
@@ -581,6 +598,12 @@ pub fn init(interpreter: &mut Interpreter) -> (&'static str, Value) {
     make_builtin_fn(get_prototype_of, "getPrototypeOf", &object, 1, interpreter);
     make_builtin_fn(define_property, "defineProperty", &object, 3, interpreter);
     make_builtin_fn(is, "is", &object, 2, interpreter);
+
+    // Set standard object
+    interpreter.standard_objects.object = StandardConstructor::new(
+        object.unwrap_object(),
+        prototype.unwrap_object()
+    );
 
     ("Object", object)
 }

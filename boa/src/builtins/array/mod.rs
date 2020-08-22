@@ -19,7 +19,7 @@ use crate::{
         property::{Attribute, Property},
         value::{same_value_zero, Value},
     },
-    exec::Interpreter,
+    exec::{Interpreter, StandardConstructor},
     BoaProfiler, Result,
 };
 use std::{
@@ -1136,11 +1136,10 @@ impl Array {
     /// Initialise the `Array` object on the global object.
     #[inline]
     pub(crate) fn init(interpreter: &mut Interpreter) -> (&'static str, Value) {
-        let global = interpreter.global();
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
         // Create prototype
-        let prototype = Value::new_object(Some(global));
+        let prototype: Value = interpreter.construct_object().into();
         let length = Property::default().value(Value::from(0));
 
         prototype.set_property("length", length);
@@ -1184,14 +1183,18 @@ impl Array {
             Self::NAME,
             Self::LENGTH,
             Self::make_array,
-            global,
-            prototype,
+            interpreter,
+            prototype.clone(),
             true,
             true,
         );
 
         // Static Methods
         make_builtin_fn(Self::is_array, "isArray", &array, 1, interpreter);
+
+        // Set standard object
+        interpreter.standard_objects.array =
+            StandardConstructor::new(array.unwrap_object(), prototype.unwrap_object());
 
         (Self::NAME, array)
     }

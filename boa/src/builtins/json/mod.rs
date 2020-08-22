@@ -182,9 +182,8 @@ impl Json {
     /// Initialise the `JSON` object on the global object.
     #[inline]
     pub(crate) fn init(interpreter: &mut Interpreter) -> (&'static str, Value) {
-        let global = interpreter.global();
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
-        let json = Value::new_object(Some(global));
+        let json: Value = interpreter.construct_object().into();
 
         make_builtin_fn(Self::parse, "parse", &json, 2, interpreter);
         make_builtin_fn(Self::stringify, "stringify", &json, 3, interpreter);
