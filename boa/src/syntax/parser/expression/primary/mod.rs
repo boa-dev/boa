@@ -74,7 +74,6 @@ where
 
         match tok.kind() {
             TokenKind::Keyword(Keyword::This) => Ok(Node::This),
-            // TokenKind::Keyword(Keyword::Arguments) => Ok(Node::new(NodeBase::Arguments, tok.pos)),
             TokenKind::Keyword(Keyword::Function) => {
                 FunctionExpression.parse(cursor).map(Node::from)
             }
