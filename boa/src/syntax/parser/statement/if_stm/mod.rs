@@ -68,17 +68,18 @@ where
         let then_stm =
             Statement::new(self.allow_yield, self.allow_await, self.allow_return).parse(cursor)?;
 
-        let else_tok = cursor.peek(0)?;
-
-        let else_stm = match else_tok {
-            Some(_) if else_tok.unwrap().kind() == &TokenKind::Keyword(Keyword::Else) => {
+        let else_stm = if let Some(else_tok) = cursor.peek(0)? {
+            if else_tok.kind() == &TokenKind::Keyword(Keyword::Else) {
                 cursor.next()?.expect("else token vanished");
                 Some(
                     Statement::new(self.allow_yield, self.allow_await, self.allow_return)
                         .parse(cursor)?,
                 )
+            } else {
+                None
             }
-            _ => None,
+        } else {
+            None
         };
 
         Ok(If::new::<_, _, Node, _>(cond, then_stm, else_stm))
