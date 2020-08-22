@@ -5,6 +5,14 @@
 //! The Lexer splits its input source code into a sequence of input elements called tokens,
 //! represented by the [Token](../ast/token/struct.Token.html) structure. It also removes
 //! whitespace and comments and attaches them to the next token.
+//!
+//! This is tightly coupled with the parser due to the javascript goal-symbol requirements
+//! as documented by the spec.
+//!
+//! More information:
+//!  - [ECMAScript reference][spec]
+//!
+//! [spec]: https://tc39.es/ecma262/#sec-ecmascript-language-lexical-grammar
 
 mod comment;
 mod cursor;

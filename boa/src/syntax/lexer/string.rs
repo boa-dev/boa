@@ -1,3 +1,5 @@
+//! This module implements lexing for string literals used in the JavaScript programing language.
+
 use super::{Cursor, Error, Tokenizer};
 use crate::{
     profiler::BoaProfiler,

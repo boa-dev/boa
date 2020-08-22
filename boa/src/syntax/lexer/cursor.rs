@@ -1,4 +1,4 @@
-//! Module implementing the lexer cursor.
+//! Module implementing the lexer cursor. This is used for managing the input byte stream.
 
 use crate::{profiler::BoaProfiler, syntax::ast::Position};
 use std::io::{self, Bytes, Error, ErrorKind, Read};

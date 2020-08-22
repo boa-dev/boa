@@ -1,3 +1,5 @@
+//! This module contains the errors used by the lexer.
+
 use std::{error::Error as StdError, fmt, io};
 
 #[derive(Debug)]

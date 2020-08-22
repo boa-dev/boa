@@ -1,3 +1,5 @@
+//! This module implements lexing for regex literals used in the JavaScript programing language.
+
 use super::{Cursor, Error, Span, Tokenizer};
 use crate::{
     profiler::BoaProfiler,

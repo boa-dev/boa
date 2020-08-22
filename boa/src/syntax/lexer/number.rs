@@ -1,3 +1,5 @@
+//! This module implements lexing for number literals (123, 787) used in the JavaScript programing language.
+
 use super::{Cursor, Error, TokenKind, Tokenizer};
 use crate::{
     builtins::BigInt,
