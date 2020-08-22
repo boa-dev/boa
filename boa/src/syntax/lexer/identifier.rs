@@ -37,7 +37,7 @@ impl<R> Tokenizer<R> for Identifier {
 
         let mut buf = self.init.to_string();
 
-        cursor.take_until_pred(&mut buf, &|c: char| {
+        cursor.take_while_pred(&mut buf, &|c: char| {
             c.is_alphabetic() || c.is_digit(10) || c == '_'
         })?;
 

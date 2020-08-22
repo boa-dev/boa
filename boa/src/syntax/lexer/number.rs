@@ -100,7 +100,7 @@ where
     }
 
     // Consume the decimal digits.
-    cursor.take_until_pred(buf, &|c: char| c.is_digit(kind.base()))?;
+    cursor.take_while_pred(buf, &|c: char| c.is_digit(kind.base()))?;
 
     Ok(())
 }
@@ -216,7 +216,7 @@ impl<R> Tokenizer<R> for NumberLiteral {
         }
 
         // Consume digits until a non-digit character is encountered or all the characters are consumed.
-        cursor.take_until_pred(&mut buf, &|c: char| c.is_digit(kind.base()))?;
+        cursor.take_while_pred(&mut buf, &|c: char| c.is_digit(kind.base()))?;
 
         // The non-digit character could be:
         // 'n' To indicate a BigIntLiteralSuffix.
@@ -242,7 +242,7 @@ impl<R> Tokenizer<R> for NumberLiteral {
                     kind = NumericKind::Rational;
 
                     // Consume digits until a non-digit character is encountered or all the characters are consumed.
-                    cursor.take_until_pred(&mut buf, &|c: char| c.is_digit(kind.base()))?;
+                    cursor.take_while_pred(&mut buf, &|c: char| c.is_digit(kind.base()))?;
 
                     // The non-digit character at this point must be an 'e' or 'E' to indicate an Exponent Part.
                     // Another '.' or 'n' is not allowed.

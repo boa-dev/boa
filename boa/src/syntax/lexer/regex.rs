@@ -74,7 +74,7 @@ impl<R> Tokenizer<R> for RegexLiteral {
 
         // body was parsed, now look for flags
         let mut flags = String::new();
-        cursor.take_until_pred(&mut flags, &char::is_alphabetic)?;
+        cursor.take_while_pred(&mut flags, &char::is_alphabetic)?;
 
         Ok(Token::new(
             TokenKind::regular_expression_literal(body, flags.parse()?),

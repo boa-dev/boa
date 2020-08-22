@@ -547,35 +547,35 @@ fn addition_no_spaces_e_number() {
 }
 
 #[test]
-fn take_until_pred_simple() {
+fn take_while_pred_simple() {
     let mut cur = Cursor::new(&b"abcdefghijk"[0..]);
 
     let mut buf: String = String::new();
 
-    cur.take_until_pred(&mut buf, &|c| c == 'a' || c == 'b' || c == 'c')
+    cur.take_while_pred(&mut buf, &|c| c == 'a' || c == 'b' || c == 'c')
         .unwrap();
 
     assert_eq!(buf, "abc");
 }
 
 #[test]
-fn take_until_pred_immediate_stop() {
+fn take_while_pred_immediate_stop() {
     let mut cur = Cursor::new(&b"abcdefghijk"[0..]);
 
     let mut buf: String = String::new();
 
-    cur.take_until_pred(&mut buf, &|c| c == 'd').unwrap();
+    cur.take_while_pred(&mut buf, &|c| c == 'd').unwrap();
 
     assert_eq!(buf, "");
 }
 
 #[test]
-fn take_until_pred_entire_str() {
+fn take_while_pred_entire_str() {
     let mut cur = Cursor::new(&b"abcdefghijk"[0..]);
 
     let mut buf: String = String::new();
 
-    cur.take_until_pred(&mut buf, &|c| c.is_alphabetic())
+    cur.take_while_pred(&mut buf, &|c| c.is_alphabetic())
         .unwrap();
 
     assert_eq!(buf, "abcdefghijk");

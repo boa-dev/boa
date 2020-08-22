@@ -125,11 +125,11 @@ where
     /// (or the next character is none).
     ///
     /// Note that all characters up until x are added to the buffer including the character right before.
-    pub(super) fn take_until_pred<F>(&mut self, buf: &mut String, pred: &F) -> io::Result<()>
+    pub(super) fn take_while_pred<F>(&mut self, buf: &mut String, pred: &F) -> io::Result<()>
     where
         F: Fn(char) -> bool,
     {
-        let _timer = BoaProfiler::global().start_event("cursor::take_until_pred()", "Lexing");
+        let _timer = BoaProfiler::global().start_event("cursor::take_while_pred()", "Lexing");
 
         loop {
             if !self.next_is_pred(pred)? {
