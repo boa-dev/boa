@@ -86,9 +86,7 @@ FLAGS:
     -V, --version    Prints version information
 
 OPTIONS:
-    -a, --dump-ast <FORMAT>       Dump the ast to stdout with the given format [possible values: Debug, Json,
-                                  JsonPretty]
-    -t, --dump-tokens <FORMAT>    Dump the token stream to stdout with the given format [possible values: Debug, Json,
+    -a, --dump-ast <FORMAT>       Dump the abstract syntax tree (ast) to stdout with the given format [possible values: Debug, Json,
                                   JsonPretty]
 
 ARGS:

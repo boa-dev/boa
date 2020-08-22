@@ -25,10 +25,7 @@
     clippy::as_conversions
 )]
 
-use boa::{
-    exec::Interpreter, forward_val, realm::Realm, syntax::ast::node::StatementList,
-    syntax::lexer::Token, Lexer,
-};
+use boa::{exec::Interpreter, forward_val, realm::Realm, syntax::ast::node::StatementList};
 use colored::*;
 use rustyline::{config::Config, error::ReadlineError, EditMode, Editor};
 use std::{fs::read_to_string, path::PathBuf};
@@ -59,17 +56,6 @@ struct Opt {
     #[structopt(name = "FILE", parse(from_os_str))]
     files: Vec<PathBuf>,
 
-    /// Dump the token stream to stdout with the given format.
-    #[structopt(
-        long,
-        short = "t",
-        value_name = "FORMAT",
-        possible_values = &DumpFormat::variants(),
-        case_insensitive = true,
-        conflicts_with = "dump-ast"
-    )]
-    dump_tokens: Option<Option<DumpFormat>>,
-
     /// Dump the AST to stdout with the given format.
     #[structopt(
         long,
@@ -88,7 +74,7 @@ struct Opt {
 impl Opt {
     /// Returns whether a dump flag has been used.
     fn has_dump_flag(&self) -> bool {
-        self.dump_tokens.is_some() || self.dump_ast.is_some()
+        self.dump_ast.is_some()
     }
 }
 
@@ -114,23 +100,6 @@ arg_enum! {
     }
 }
 
-/// Lexes the given source code into a stream of tokens and return it.
-///
-/// Returns a error of type String with a message,
-/// if the source has a syntax error.
-fn lex_source(src: &str) -> Result<Vec<Token>, String> {
-    let mut lexer = Lexer::new(src.as_bytes());
-
-    // Goes through and lexes entire given string.
-    let mut res = Vec::new();
-
-    while let Some(tk) = lexer.next().expect("Failed to lex") {
-        res.push(tk);
-    }
-
-    Ok(res)
-}
-
 /// Parses the the token stream into an AST and returns it.
 ///
 /// Returns a error of type String with a message,
@@ -143,26 +112,12 @@ fn parse_tokens(src: &str) -> Result<StatementList, String> {
         .map_err(|e| format!("ParsingError: {}", e))
 }
 
-/// Dumps the token stream or AST to stdout depending on the given arguments.
+/// Dumps the AST to stdout with format controlled by the given arguments.
 ///
 /// Returns a error of type String with a error message,
 /// if the source has a syntax or parsing error.
 fn dump(src: &str, args: &Opt) -> Result<(), String> {
-    let tokens = lex_source(src)?;
-
-    if let Some(ref arg) = args.dump_tokens {
-        match arg {
-            Some(format) => match format {
-                DumpFormat::Debug => println!("{:#?}", tokens),
-                DumpFormat::Json => println!("{}", serde_json::to_string(&tokens).unwrap()),
-                DumpFormat::JsonPretty => {
-                    println!("{}", serde_json::to_string_pretty(&tokens).unwrap())
-                }
-            },
-            // Default token stream dumping format.
-            None => println!("{:#?}", tokens),
-        }
-    } else if let Some(ref arg) = args.dump_ast {
+    if let Some(ref arg) = args.dump_ast {
         let ast = parse_tokens(src)?;
 
         match arg {
