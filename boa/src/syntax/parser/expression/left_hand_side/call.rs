@@ -65,22 +65,18 @@ where
     fn parse(self, cursor: &mut Cursor<R>) -> ParseResult {
         let _timer = BoaProfiler::global().start_event("CallExpression", "Parsing");
 
-        let tk = cursor.peek(0)?;
+        let token = cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?;
 
-        let mut lhs = match tk {
-            Some(_) if tk.unwrap().kind() == &TokenKind::Punctuator(Punctuator::OpenParen) => {
-                let args = Arguments::new(self.allow_yield, self.allow_await).parse(cursor)?;
-
-                Node::from(Call::new(self.first_member_expr, args))
-            }
-            _ => {
-                let next_token = cursor.next()?.ok_or(ParseError::AbruptEnd)?;
-                return Err(ParseError::expected(
-                    vec![TokenKind::Punctuator(Punctuator::OpenParen)],
-                    next_token,
-                    "call expression",
-                ));
-            }
+        let mut lhs = if token.kind() == &TokenKind::Punctuator(Punctuator::OpenParen) {
+            let args = Arguments::new(self.allow_yield, self.allow_await).parse(cursor)?;
+            Node::from(Call::new(self.first_member_expr, args))
+        } else {
+            let next_token = cursor.next()?.expect("token vanished");
+            return Err(ParseError::expected(
+                vec![TokenKind::Punctuator(Punctuator::OpenParen)],
+                next_token,
+                "call expression",
+            ));
         };
 
         while let Some(tok) = cursor.peek(0)? {
