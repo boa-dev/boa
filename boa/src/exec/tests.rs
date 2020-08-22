@@ -16,6 +16,12 @@ fn function_declaration_returns_undefined() {
 }
 
 #[test]
+fn empty_function_returns_undefined() {
+    let scenario = "(function () {}) ()";
+    assert_eq!(&exec(scenario), "undefined");
+}
+
+#[test]
 fn property_accessor_member_expression_dot_notation_on_string_literal() {
     let scenario = r#"
         typeof 'asd'.matchAll;
@@ -622,7 +628,7 @@ fn unary_delete() {
         const c = delete a.c + '';
         a.b + c
     "#;
-    assert_eq!(&exec(delete_not_existing_prop), "\"5false\"");
+    assert_eq!(&exec(delete_not_existing_prop), "\"5true\"");
 
     let delete_field = r#"
         const a = { b: 5 };
@@ -760,8 +766,12 @@ mod in_operator {
             var bar = new Foo();
         "#;
         forward(&mut engine, scenario);
-        let a = forward_val(&mut engine, "bar").unwrap();
-        assert!(a.as_object().unwrap().prototype().is_object());
+        let bar_val = forward_val(&mut engine, "bar").unwrap();
+        let bar_obj = bar_val.as_object().unwrap();
+        let foo_val = forward_val(&mut engine, "Foo").unwrap();
+        assert!(bar_obj
+            .prototype()
+            .strict_equals(&foo_val.get_field("prototype")));
     }
 }
 
@@ -956,7 +966,7 @@ fn to_length() {
     assert_eq!(
         Value::number(100000000000.0)
             .to_length(&mut engine)
-            .unwrap(),
+            .unwrap() as u64,
         100000000000
     );
     assert_eq!(
@@ -1204,4 +1214,22 @@ fn comma_operator() {
         a
     "#;
     assert_eq!(&exec(scenario), "2");
+}
+
+#[test]
+fn test_result_of_empty_block() {
+    let scenario = "{}";
+    assert_eq!(&exec(scenario), "undefined");
+}
+
+#[test]
+fn test_undefined_constant() {
+    let scenario = "undefined";
+    assert_eq!(&exec(scenario), "undefined");
+}
+
+#[test]
+fn test_undefined_type() {
+    let scenario = "typeof undefined";
+    assert_eq!(&exec(scenario), "\"undefined\"");
 }

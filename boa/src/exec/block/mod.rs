@@ -16,7 +16,9 @@ impl Executable for Block {
             )));
         }
 
-        let mut obj = Value::null();
+        // https://tc39.es/ecma262/#sec-block-runtime-semantics-evaluation
+        // The return value is uninitialized, which means it defaults to Value::Undefined
+        let mut obj = Value::default();
         for statement in self.statements() {
             obj = statement.run(interpreter)?;
 

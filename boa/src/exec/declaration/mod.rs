@@ -2,7 +2,7 @@
 
 use super::{Executable, Interpreter};
 use crate::{
-    builtins::{function::ThisMode, value::Value},
+    builtins::{function::FunctionFlags, Value},
     environment::lexical_environment::VariableScope,
     syntax::ast::node::{
         ArrowFunctionDecl, ConstDeclList, FunctionDecl, FunctionExpr, LetDeclList, VarDeclList,
@@ -16,9 +16,7 @@ impl Executable for FunctionDecl {
         let val = interpreter.create_function(
             self.parameters().to_vec(),
             self.body().to_vec(),
-            ThisMode::NonLexical,
-            true,
-            true,
+            FunctionFlags::CALLABLE | FunctionFlags::CONSTRUCTABLE,
         );
 
         // Set the name and assign it in the current environment
@@ -43,9 +41,7 @@ impl Executable for FunctionExpr {
         let val = interpreter.create_function(
             self.parameters().to_vec(),
             self.body().to_vec(),
-            ThisMode::NonLexical,
-            true,
-            true,
+            FunctionFlags::CALLABLE | FunctionFlags::CONSTRUCTABLE,
         );
 
         if let Some(name) = self.name() {
@@ -127,9 +123,9 @@ impl Executable for ArrowFunctionDecl {
         Ok(interpreter.create_function(
             self.params().to_vec(),
             self.body().to_vec(),
-            ThisMode::Lexical,
-            false,
-            true,
+            FunctionFlags::CALLABLE
+                | FunctionFlags::CONSTRUCTABLE
+                | FunctionFlags::LEXICAL_THIS_MODE,
         ))
     }
 }

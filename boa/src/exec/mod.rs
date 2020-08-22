@@ -25,11 +25,11 @@ mod try_node;
 use crate::{
     builtins,
     builtins::{
-        function::{Function as FunctionObject, FunctionBody, ThisMode},
-        object::{Object, ObjectData, PROTOTYPE},
+        function::{Function, FunctionFlags, NativeFunction},
+        object::{GcObject, Object, ObjectData, PROTOTYPE},
         property::PropertyKey,
-        value::{PreferredType, Type, Value},
-        Console,
+        value::{PreferredType, RcString, RcSymbol, Type, Value},
+        Console, Symbol,
     },
     realm::Realm,
     syntax::ast::{
@@ -125,65 +125,76 @@ impl Interpreter {
         &mut self,
         params: P,
         body: B,
-        this_mode: ThisMode,
-        constructable: bool,
-        callable: bool,
+        flags: FunctionFlags,
     ) -> Value
     where
         P: Into<Box<[FormalParameter]>>,
         B: Into<StatementList>,
     {
-        let function_prototype = self
-            .realm
-            .environment
-            .get_global_object()
-            .expect("Could not get the global object")
-            .get_field("Function")
-            .get_field(PROTOTYPE);
+        let function_prototype = self.global().get_field("Function").get_field(PROTOTYPE);
 
         // Every new function has a prototype property pre-made
-        let global_val = &self
-            .realm
-            .environment
-            .get_global_object()
-            .expect("Could not get the global object");
-        let proto = Value::new_object(Some(global_val));
+        let proto = Value::new_object(Some(self.global()));
 
         let params = params.into();
         let params_len = params.len();
-        let func = FunctionObject::new(
+        let func = Function::Ordinary {
+            flags,
+            body: body.into(),
             params,
-            Some(self.realm.environment.get_current_environment().clone()),
-            FunctionBody::Ordinary(body.into()),
-            this_mode,
-            constructable,
-            callable,
-        );
+            environment: self.realm.environment.get_current_environment().clone(),
+        };
 
         let new_func = Object::function(func, function_prototype);
 
         let val = Value::from(new_func);
+
+        // Set constructor field to the newly created Value (function object)
+        proto.set_field("constructor", val.clone());
+
         val.set_field(PROTOTYPE, proto);
         val.set_field("length", Value::from(params_len));
 
         val
     }
 
-    /// <https://tc39.es/ecma262/#sec-call>
-    pub(crate) fn call(
+    /// Utility to create a function Value for Function Declarations, Arrow Functions or Function Expressions
+    pub fn create_builtin_function(
         &mut self,
-        f: &Value,
-        this: &Value,
-        arguments_list: &[Value],
-    ) -> Result<Value> {
+        name: &str,
+        length: usize,
+        body: NativeFunction,
+    ) -> Result<GcObject> {
+        let function_prototype = self.global().get_field("Function").get_field(PROTOTYPE);
+
+        // Every new function has a prototype property pre-made
+        let proto = Value::new_object(Some(self.global()));
+        let mut function = Object::function(
+            Function::BuiltIn(body.into(), FunctionFlags::CALLABLE),
+            function_prototype,
+        );
+        function.set(PROTOTYPE.into(), proto);
+        function.set("length".into(), length.into());
+        function.set("name".into(), name.into());
+
+        Ok(GcObject::new(function))
+    }
+
+    pub fn register_global_function(
+        &mut self,
+        name: &str,
+        length: usize,
+        body: NativeFunction,
+    ) -> Result<()> {
+        let function = self.create_builtin_function(name, length, body)?;
+        self.global().set_field(name, function);
+        Ok(())
+    }
+
+    /// <https://tc39.es/ecma262/#sec-call>
+    pub(crate) fn call(&mut self, f: &Value, this: &Value, args: &[Value]) -> Result<Value> {
         match *f {
-            Value::Object(ref obj) => {
-                let obj = obj.borrow();
-                if let ObjectData::Function(ref func) = obj.data {
-                    return func.call(f.clone(), this, arguments_list, self);
-                }
-                self.throw_type_error("not a function")
-            }
+            Value::Object(ref object) => object.call(this, args, self),
             _ => self.throw_type_error("not a function"),
         }
     }
@@ -322,26 +333,6 @@ impl Interpreter {
         &self.state
     }
 
-    /// Check if the `Value` can be converted to an `Object`
-    ///
-    /// The abstract operation `RequireObjectCoercible` takes argument argument.
-    /// It throws an error if argument is a value that cannot be converted to an Object using `ToObject`.
-    /// It is defined by [Table 15][table]
-    ///
-    /// More information:
-    ///  - [ECMAScript reference][spec]
-    ///
-    /// [table]: https://tc39.es/ecma262/#table-14
-    /// [spec]: https://tc39.es/ecma262/#sec-requireobjectcoercible
-    #[inline]
-    pub fn require_object_coercible<'a>(&mut self, value: &'a Value) -> Result<&'a Value> {
-        if value.is_null_or_undefined() {
-            Err(self.construct_type_error("cannot convert null or undefined to Object"))
-        } else {
-            Ok(value)
-        }
-    }
-
     /// A helper function for getting a immutable reference to the `console` object.
     pub(crate) fn console(&self) -> &Console {
         &self.console
@@ -350,6 +341,19 @@ impl Interpreter {
     /// A helper function for getting a mutable reference to the `console` object.
     pub(crate) fn console_mut(&mut self) -> &mut Console {
         &mut self.console
+    }
+
+    /// Construct a new `Symbol` with an optional description.
+    #[inline]
+    pub fn construct_symbol(&mut self, description: Option<RcString>) -> RcSymbol {
+        RcSymbol::from(Symbol::new(self.generate_hash(), description))
+    }
+
+    /// Construct an empty object.
+    #[inline]
+    pub fn construct_object(&self) -> GcObject {
+        let object_prototype = self.global().get_field("Object").get_field(PROTOTYPE);
+        GcObject::new(Object::create(object_prototype))
     }
 }
 
@@ -361,6 +365,7 @@ impl Executable for Node {
             Node::Const(Const::Num(num)) => Ok(Value::rational(num)),
             Node::Const(Const::Int(num)) => Ok(Value::integer(num)),
             Node::Const(Const::BigInt(ref num)) => Ok(Value::from(num.clone())),
+            Node::Const(Const::Undefined) => Ok(Value::Undefined),
             // we can't move String from Const into value, because const is a garbage collected value
             // Which means Drop() get's called on Const, but str will be gone at that point.
             // Do Const values need to be garbage collected? We no longer need them once we've generated Values
@@ -399,7 +404,8 @@ impl Executable for Node {
             }
             Node::Try(ref try_node) => try_node.run(interpreter),
             Node::Break(ref break_node) => break_node.run(interpreter),
-            ref i => unimplemented!("{:?}", i),
+            Node::ConditionalOp(_) => unimplemented!("ConditionalOp"),
+            Node::Continue(_) => unimplemented!("Continue"),
         }
     }
 }

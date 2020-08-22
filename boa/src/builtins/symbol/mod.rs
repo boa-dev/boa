@@ -30,7 +30,16 @@ use crate::{
 use gc::{Finalize, Trace};
 
 #[derive(Debug, Finalize, Trace, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct Symbol(Option<RcString>, u32);
+pub struct Symbol {
+    hash: u32,
+    description: Option<RcString>,
+}
+
+impl Symbol {
+    pub(crate) fn new(hash: u32, description: Option<RcString>) -> Self {
+        Self { hash, description }
+    }
+}
 
 impl Symbol {
     /// The name of the object.
@@ -41,12 +50,12 @@ impl Symbol {
 
     /// Returns the `Symbol`s description.
     pub fn description(&self) -> Option<&str> {
-        self.0.as_deref()
+        self.description.as_deref()
     }
 
     /// Returns the `Symbol`s hash.
     pub fn hash(&self) -> u32 {
-        self.1
+        self.hash
     }
 
     fn this_symbol_value(value: &Value, ctx: &mut Interpreter) -> Result<RcSymbol> {
@@ -81,7 +90,7 @@ impl Symbol {
             _ => None,
         };
 
-        Ok(Value::symbol(Symbol(description, ctx.generate_hash())))
+        Ok(ctx.construct_symbol(description).into())
     }
 
     /// `Symbol.prototype.toString()`
@@ -106,37 +115,21 @@ impl Symbol {
     pub fn init(interpreter: &mut Interpreter) -> (&'static str, Value, Attribute) {
         // Define the Well-Known Symbols
         // https://tc39.es/ecma262/#sec-well-known-symbols
-        let symbol_async_iterator = Symbol(
-            Some("Symbol.asyncIterator".into()),
-            interpreter.generate_hash(),
-        );
-        let symbol_has_instance = Symbol(
-            Some("Symbol.hasInstance".into()),
-            interpreter.generate_hash(),
-        );
-        let symbol_is_concat_spreadable = Symbol(
-            Some("Symbol.isConcatSpreadable".into()),
-            interpreter.generate_hash(),
-        );
-        let symbol_iterator = Symbol(Some("Symbol.iterator".into()), interpreter.generate_hash());
-        let symbol_match = Symbol(Some("Symbol.match".into()), interpreter.generate_hash());
-        let symbol_match_all = Symbol(Some("Symbol.matchAll".into()), interpreter.generate_hash());
-        let symbol_replace = Symbol(Some("Symbol.replace".into()), interpreter.generate_hash());
-        let symbol_search = Symbol(Some("Symbol.search".into()), interpreter.generate_hash());
-        let symbol_species = Symbol(Some("Symbol.species".into()), interpreter.generate_hash());
-        let symbol_split = Symbol(Some("Symbol.split".into()), interpreter.generate_hash());
-        let symbol_to_primitive = Symbol(
-            Some("Symbol.toPrimitive".into()),
-            interpreter.generate_hash(),
-        );
-        let symbol_to_string_tag = Symbol(
-            Some("Symbol.toStringTag".into()),
-            interpreter.generate_hash(),
-        );
-        let symbol_unscopables = Symbol(
-            Some("Symbol.unscopables".into()),
-            interpreter.generate_hash(),
-        );
+        let symbol_async_iterator =
+            interpreter.construct_symbol(Some("Symbol.asyncIterator".into()));
+        let symbol_has_instance = interpreter.construct_symbol(Some("Symbol.hasInstance".into()));
+        let symbol_is_concat_spreadable =
+            interpreter.construct_symbol(Some("Symbol.isConcatSpreadable".into()));
+        let symbol_iterator = interpreter.construct_symbol(Some("Symbol.iterator".into()));
+        let symbol_match = interpreter.construct_symbol(Some("Symbol.match".into()));
+        let symbol_match_all = interpreter.construct_symbol(Some("Symbol.matchAll".into()));
+        let symbol_replace = interpreter.construct_symbol(Some("Symbol.replace".into()));
+        let symbol_search = interpreter.construct_symbol(Some("Symbol.search".into()));
+        let symbol_species = interpreter.construct_symbol(Some("Symbol.species".into()));
+        let symbol_split = interpreter.construct_symbol(Some("Symbol.split".into()));
+        let symbol_to_primitive = interpreter.construct_symbol(Some("Symbol.toPrimitive".into()));
+        let symbol_to_string_tag = interpreter.construct_symbol(Some("Symbol.toStringTag".into()));
+        let symbol_unscopables = interpreter.construct_symbol(Some("Symbol.unscopables".into()));
 
         let global = interpreter.global();
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
@@ -156,22 +149,27 @@ impl Symbol {
             true,
         );
 
-        symbol_object.set_field("asyncIterator", Value::symbol(symbol_async_iterator));
-        symbol_object.set_field("hasInstance", Value::symbol(symbol_has_instance));
-        symbol_object.set_field(
-            "isConcatSpreadable",
-            Value::symbol(symbol_is_concat_spreadable),
-        );
-        symbol_object.set_field("iterator", Value::symbol(symbol_iterator));
-        symbol_object.set_field("match", Value::symbol(symbol_match));
-        symbol_object.set_field("matchAll", Value::symbol(symbol_match_all));
-        symbol_object.set_field("replace", Value::symbol(symbol_replace));
-        symbol_object.set_field("search", Value::symbol(symbol_search));
-        symbol_object.set_field("species", Value::symbol(symbol_species));
-        symbol_object.set_field("split", Value::symbol(symbol_split));
-        symbol_object.set_field("toPrimitive", Value::symbol(symbol_to_primitive));
-        symbol_object.set_field("toStringTag", Value::symbol(symbol_to_string_tag));
-        symbol_object.set_field("unscopables", Value::symbol(symbol_unscopables));
+        {
+            let mut symbol_object = symbol_object.as_object_mut().unwrap();
+            let attribute = Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT;
+            symbol_object.insert_property("asyncIterator", symbol_async_iterator, attribute);
+            symbol_object.insert_property("hasInstance", symbol_has_instance, attribute);
+            symbol_object.insert_property(
+                "isConcatSpreadable",
+                symbol_is_concat_spreadable,
+                attribute,
+            );
+            symbol_object.insert_property("iterator", symbol_iterator, attribute);
+            symbol_object.insert_property("match", symbol_match, attribute);
+            symbol_object.insert_property("matchAll", symbol_match_all, attribute);
+            symbol_object.insert_property("replace", symbol_replace, attribute);
+            symbol_object.insert_property("search", symbol_search, attribute);
+            symbol_object.insert_property("species", symbol_species, attribute);
+            symbol_object.insert_property("split", symbol_split, attribute);
+            symbol_object.insert_property("toPrimitive", symbol_to_primitive, attribute);
+            symbol_object.insert_property("toStringTag", symbol_to_string_tag, attribute);
+            symbol_object.insert_property("unscopables", symbol_unscopables, attribute);
+        }
 
         (
             Self::NAME,

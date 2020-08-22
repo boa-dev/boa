@@ -7,17 +7,15 @@ mod tests;
 
 use super::number::{f64_to_int32, f64_to_uint32};
 use crate::builtins::{
-    function::Function,
-    object::{GcObject, InternalState, InternalStateCell, Object, ObjectData, PROTOTYPE},
+    object::{GcObject, Object, ObjectData, PROTOTYPE},
     property::{Attribute, Property, PropertyKey},
-    BigInt, Number, Symbol,
+    BigInt, Number,
 };
 use crate::exec::Interpreter;
 use crate::{BoaProfiler, Result};
 use gc::{Finalize, GcCellRef, GcCellRefMut, Trace};
 use serde_json::{map::Map, Number as JSONNumber, Value as JSONValue};
 use std::{
-    any::Any,
     collections::HashSet,
     convert::TryFrom,
     f64::NAN,
@@ -147,8 +145,8 @@ impl Value {
 
     /// Creates a new symbol value.
     #[inline]
-    pub(crate) fn symbol(symbol: Symbol) -> Self {
-        Self::Symbol(RcSymbol::from(symbol))
+    pub fn symbol(symbol: RcSymbol) -> Self {
+        Self::Symbol(symbol)
     }
 
     /// Returns a new empty object
@@ -241,7 +239,7 @@ impl Value {
             Self::Object(ref obj) => {
                 if obj.borrow().is_array() {
                     let mut arr: Vec<JSONValue> = Vec::new();
-                    for k in obj.borrow().properties().keys() {
+                    for k in obj.borrow().keys() {
                         if k != "length" {
                             let value = self.get_field(k.to_string());
                             if value.is_undefined() || value.is_function() || value.is_symbol() {
@@ -254,7 +252,7 @@ impl Value {
                     Ok(JSONValue::Array(arr))
                 } else {
                     let mut new_obj = Map::new();
-                    for k in obj.borrow().properties().keys() {
+                    for k in obj.borrow().keys() {
                         let key = k.clone();
                         let value = self.get_field(k.to_string());
                         if !value.is_undefined() && !value.is_function() && !value.is_symbol() {
@@ -448,30 +446,33 @@ impl Value {
     /// Removes a property from a Value object.
     ///
     /// It will return a boolean based on if the value was removed, if there was no value to remove false is returned.
-    pub fn remove_property(&self, field: &str) -> bool {
+    pub fn remove_property<Key>(&self, key: Key) -> bool
+    where
+        Key: Into<PropertyKey>,
+    {
         self.as_object_mut()
-            .and_then(|mut x| x.properties_mut().remove(field))
+            .map(|mut x| x.remove_property(&key.into()))
             .is_some()
     }
 
     /// Resolve the property in the object.
     ///
     /// A copy of the Property is returned.
-    pub fn get_property(&self, field: &str) -> Option<Property> {
+    pub fn get_property<Key>(&self, key: Key) -> Option<Property>
+    where
+        Key: Into<PropertyKey>,
+    {
+        let key = key.into();
         let _timer = BoaProfiler::global().start_event("Value::get_property", "value");
-        // Spidermonkey has its own GetLengthProperty: https://searchfox.org/mozilla-central/source/js/src/vm/Interpreter-inl.h#154
-        // This is only for primitive strings, String() objects have their lengths calculated in string.rs
         match self {
-            Self::Undefined => None,
-            Self::String(ref s) if field == "length" => {
-                Some(Property::default().value(Value::from(s.chars().count())))
-            }
             Self::Object(ref object) => {
                 let object = object.borrow();
-                match object.properties().get(field) {
-                    Some(value) => Some(value.clone()),
-                    None => object.prototype().get_property(field),
+                let property = object.get_own_property(&key);
+                if !property.is_none() {
+                    return Some(property);
                 }
+
+                object.prototype().get_property(key)
             }
             _ => None,
         }
@@ -485,142 +486,75 @@ impl Value {
         let _timer = BoaProfiler::global().start_event("Value::update_property", "value");
 
         if let Some(ref mut object) = self.as_object_mut() {
-            // Use value, or walk up the prototype chain
-            if let Some(property) = object.properties_mut().get_mut(field) {
-                *property = new_property;
-            }
+            // FIXME overwrite the property
+            object.insert(field, new_property);
         }
     }
 
     /// Resolve the property in the object and get its value, or undefined if this is not an object or the field doesn't exist
     /// get_field recieves a Property from get_prop(). It should then return the [[Get]] result value if that's set, otherwise fall back to [[Value]]
     /// TODO: this function should use the get Value if its set
-    pub fn get_field<F>(&self, field: F) -> Self
+    pub fn get_field<K>(&self, key: K) -> Self
     where
-        F: Into<Value>,
+        K: Into<PropertyKey>,
     {
         let _timer = BoaProfiler::global().start_event("Value::get_field", "value");
-        match field.into() {
-            // Our field will either be a String or a Symbol
-            Self::String(ref s) => {
-                match self.get_property(s) {
-                    Some(prop) => {
-                        // If the Property has [[Get]] set to a function, we should run that and return the Value
-                        let prop_getter = match prop.get {
-                            Some(_) => None,
-                            None => None,
-                        };
+        let key = key.into();
+        match self.get_property(key) {
+            Some(prop) => {
+                // If the Property has [[Get]] set to a function, we should run that and return the Value
+                let prop_getter = match prop.get {
+                    Some(_) => None,
+                    None => None,
+                };
 
-                        // If the getter is populated, use that. If not use [[Value]] instead
-                        if let Some(val) = prop_getter {
-                            val
-                        } else {
-                            let val = prop
-                                .value
-                                .as_ref()
-                                .expect("Could not get property as reference");
-                            val.clone()
-                        }
-                    }
-                    None => Value::undefined(),
+                // If the getter is populated, use that. If not use [[Value]] instead
+                if let Some(val) = prop_getter {
+                    val
+                } else {
+                    let val = prop
+                        .value
+                        .as_ref()
+                        .expect("Could not get property as reference");
+                    val.clone()
                 }
             }
-            Self::Symbol(_) => unimplemented!(),
-            _ => Value::undefined(),
-        }
-    }
-
-    /// Check whether an object has an internal state set.
-    #[inline]
-    pub fn has_internal_state(&self) -> bool {
-        matches!(self.as_object(), Some(object) if object.state().is_some())
-    }
-
-    /// Get the internal state of an object.
-    pub fn get_internal_state(&self) -> Option<InternalStateCell> {
-        self.as_object()
-            .and_then(|object| object.state().as_ref().cloned())
-    }
-
-    /// Run a function with a reference to the internal state.
-    ///
-    /// # Panics
-    ///
-    /// This will panic if this value doesn't have an internal state or if the internal state doesn't
-    /// have the concrete type `S`.
-    pub fn with_internal_state_ref<S, R, F>(&self, f: F) -> R
-    where
-        S: Any + InternalState,
-        F: FnOnce(&S) -> R,
-    {
-        if let Some(object) = self.as_object() {
-            let state = object
-                .state()
-                .as_ref()
-                .expect("no state")
-                .downcast_ref()
-                .expect("wrong state type");
-            f(state)
-        } else {
-            panic!("not an object");
-        }
-    }
-
-    /// Run a function with a mutable reference to the internal state.
-    ///
-    /// # Panics
-    ///
-    /// This will panic if this value doesn't have an internal state or if the internal state doesn't
-    /// have the concrete type `S`.
-    pub fn with_internal_state_mut<S, R, F>(&self, f: F) -> R
-    where
-        S: Any + InternalState,
-        F: FnOnce(&mut S) -> R,
-    {
-        if let Some(mut object) = self.as_object_mut() {
-            let state = object
-                .state_mut()
-                .as_mut()
-                .expect("no state")
-                .downcast_mut()
-                .expect("wrong state type");
-            f(state)
-        } else {
-            panic!("not an object");
+            None => Value::undefined(),
         }
     }
 
     /// Check to see if the Value has the field, mainly used by environment records.
     #[inline]
-    pub fn has_field(&self, field: &str) -> bool {
+    pub fn has_field<K>(&self, key: K) -> bool
+    where
+        K: Into<PropertyKey>,
+    {
         let _timer = BoaProfiler::global().start_event("Value::has_field", "value");
-        self.get_property(field).is_some()
+        self.as_object()
+            .map(|object| object.has_property(&key.into()))
+            .unwrap_or(false)
     }
 
     /// Set the field in the value
     #[inline]
-    pub fn set_field<F, V>(&self, field: F, value: V) -> Value
+    pub fn set_field<K, V>(&self, key: K, value: V) -> Value
     where
-        F: Into<PropertyKey>,
+        K: Into<PropertyKey>,
         V: Into<Value>,
     {
-        let field = field.into();
+        let key = key.into();
         let value = value.into();
         let _timer = BoaProfiler::global().start_event("Value::set_field", "value");
         if let Self::Object(ref obj) = *self {
-            if let PropertyKey::String(ref string) = field {
+            if let PropertyKey::Index(index) = key {
                 if obj.borrow().is_array() {
-                    if let Ok(num) = string.parse::<usize>() {
-                        if num > 0 {
-                            let len = self.get_field("length").as_number().unwrap() as i32;
-                            if len < (num + 1) as i32 {
-                                self.set_field("length", num + 1);
-                            }
-                        }
+                    let len = self.get_field("length").as_number().unwrap() as u32;
+                    if len < index + 1 {
+                        self.set_field("length", index + 1);
                     }
                 }
             }
-            obj.borrow_mut().set(&field, value.clone());
+            obj.borrow_mut().set(key, value.clone());
         }
         value
     }
@@ -634,37 +568,14 @@ impl Value {
     }
 
     /// Set the property in the value.
-    pub fn set_property<S>(&self, field: S, property: Property) -> Property
+    pub fn set_property<K>(&self, key: K, property: Property) -> Property
     where
-        S: Into<RcString>,
+        K: Into<PropertyKey>,
     {
         if let Some(mut object) = self.as_object_mut() {
-            object
-                .properties_mut()
-                .insert(field.into(), property.clone());
+            object.insert(key, property.clone());
         }
         property
-    }
-
-    /// Set internal state of an Object. Discards the previous state if it was set.
-    pub fn set_internal_state<T: Any + InternalState>(&self, state: T) {
-        if let Some(mut object) = self.as_object_mut() {
-            object.state_mut().replace(InternalStateCell::new(state));
-        }
-    }
-
-    /// Consume the function and return a Value
-    pub fn from_func(function: Function) -> Value {
-        // Get Length
-        let length = function.params.len();
-        // Object with Kind set to function
-        // TODO: FIXME: Add function prototype
-        let new_func = Object::function(function, Value::null());
-        // Wrap Object in GC'd Value
-        let new_func_val = Value::from(new_func);
-        // Set length to parameters
-        new_func_val.set_field("length", Value::from(length));
-        new_func_val
     }
 
     /// The abstract operation ToPrimitive takes an input argument and an optional argument PreferredType.
@@ -1005,6 +916,26 @@ impl Value {
             return Ok(bigint.to_f64());
         }
         primitive.to_number(ctx)
+    }
+
+    /// Check if the `Value` can be converted to an `Object`
+    ///
+    /// The abstract operation `RequireObjectCoercible` takes argument argument.
+    /// It throws an error if argument is a value that cannot be converted to an Object using `ToObject`.
+    /// It is defined by [Table 15][table]
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [table]: https://tc39.es/ecma262/#table-14
+    /// [spec]: https://tc39.es/ecma262/#sec-requireobjectcoercible
+    #[inline]
+    pub fn require_object_coercible<'a>(&'a self, ctx: &mut Interpreter) -> Result<&'a Value> {
+        if self.is_null_or_undefined() {
+            Err(ctx.construct_type_error("cannot convert null or undefined to Object"))
+        } else {
+            Ok(self)
+        }
     }
 }
 

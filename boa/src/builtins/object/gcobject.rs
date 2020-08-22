@@ -3,7 +3,18 @@
 //! The `GcObject` is a garbage collected Object.
 
 use super::Object;
+use crate::{
+    builtins::{
+        function::{create_unmapped_arguments_object, BuiltInFunction, Function},
+        Value,
+    },
+    environment::{
+        function_environment_record::BindingStatus, lexical_environment::new_function_environment,
+    },
+    Executable, Interpreter, Result,
+};
 use gc::{Finalize, Gc, GcCell, GcCellRef, GcCellRefMut, Trace};
+use std::result::Result as StdResult;
 use std::{
     cell::RefCell,
     collections::HashSet,
@@ -31,12 +42,12 @@ impl GcObject {
     }
 
     #[inline]
-    pub fn try_borrow(&self) -> Result<GcCellRef<'_, Object>, BorrowError> {
+    pub fn try_borrow(&self) -> StdResult<GcCellRef<'_, Object>, BorrowError> {
         self.0.try_borrow().map_err(|_| BorrowError)
     }
 
     #[inline]
-    pub fn try_borrow_mut(&self) -> Result<GcCellRefMut<'_, Object>, BorrowMutError> {
+    pub fn try_borrow_mut(&self) -> StdResult<GcCellRefMut<'_, Object>, BorrowMutError> {
         self.0.try_borrow_mut().map_err(|_| BorrowMutError)
     }
 
@@ -44,6 +55,151 @@ impl GcObject {
     #[inline]
     pub fn equals(lhs: &Self, rhs: &Self) -> bool {
         std::ptr::eq(lhs.as_ref(), rhs.as_ref())
+    }
+
+    /// This will handle calls for both ordinary and built-in functions
+    ///
+    /// <https://tc39.es/ecma262/#sec-prepareforordinarycall>
+    /// <https://tc39.es/ecma262/#sec-ecmascript-function-objects-call-thisargument-argumentslist>
+    pub fn call(&self, this: &Value, args: &[Value], ctx: &mut Interpreter) -> Result<Value> {
+        let this_function_object = self.clone();
+        let object = self.borrow();
+        if let Some(function) = object.as_function() {
+            if function.is_callable() {
+                match function {
+                    Function::BuiltIn(BuiltInFunction(function), _) => function(this, args, ctx),
+                    Function::Ordinary {
+                        body,
+                        params,
+                        environment,
+                        flags,
+                    } => {
+                        // Create a new Function environment who's parent is set to the scope of the function declaration (self.environment)
+                        // <https://tc39.es/ecma262/#sec-prepareforordinarycall>
+                        let local_env = new_function_environment(
+                            this_function_object,
+                            if flags.is_lexical_this_mode() {
+                                None
+                            } else {
+                                Some(this.clone())
+                            },
+                            Some(environment.clone()),
+                            // Arrow functions do not have a this binding https://tc39.es/ecma262/#sec-function-environment-records
+                            if flags.is_lexical_this_mode() {
+                                BindingStatus::Lexical
+                            } else {
+                                BindingStatus::Uninitialized
+                            },
+                        );
+
+                        // Add argument bindings to the function environment
+                        for (i, param) in params.iter().enumerate() {
+                            // Rest Parameters
+                            if param.is_rest_param() {
+                                function.add_rest_param(param, i, args, ctx, &local_env);
+                                break;
+                            }
+
+                            let value = args.get(i).cloned().unwrap_or_else(Value::undefined);
+                            function.add_arguments_to_environment(param, value, &local_env);
+                        }
+
+                        // Add arguments object
+                        let arguments_obj = create_unmapped_arguments_object(args);
+                        local_env
+                            .borrow_mut()
+                            .create_mutable_binding("arguments".to_string(), false);
+                        local_env
+                            .borrow_mut()
+                            .initialize_binding("arguments", arguments_obj);
+
+                        ctx.realm.environment.push(local_env);
+
+                        // Call body should be set before reaching here
+                        let result = body.run(ctx);
+
+                        // local_env gets dropped here, its no longer needed
+                        ctx.realm.environment.pop();
+                        result
+                    }
+                }
+            } else {
+                ctx.throw_type_error("function object is not callable")
+            }
+        } else {
+            ctx.throw_type_error("not a function")
+        }
+    }
+
+    /// <https://tc39.es/ecma262/#sec-ecmascript-function-objects-construct-argumentslist-newtarget>
+    pub fn construct(&self, this: &Value, args: &[Value], ctx: &mut Interpreter) -> Result<Value> {
+        let this_function_object = self.clone();
+        let object = self.borrow();
+        if let Some(function) = object.as_function() {
+            if function.is_constructable() {
+                match function {
+                    Function::BuiltIn(BuiltInFunction(function), _) => {
+                        function(this, args, ctx)?;
+                        Ok(this.clone())
+                    }
+                    Function::Ordinary {
+                        body,
+                        params,
+                        environment,
+                        flags,
+                    } => {
+                        // Create a new Function environment who's parent is set to the scope of the function declaration (self.environment)
+                        // <https://tc39.es/ecma262/#sec-prepareforordinarycall>
+                        let local_env = new_function_environment(
+                            this_function_object,
+                            Some(this.clone()),
+                            Some(environment.clone()),
+                            // Arrow functions do not have a this binding https://tc39.es/ecma262/#sec-function-environment-records
+                            if flags.is_lexical_this_mode() {
+                                BindingStatus::Lexical
+                            } else {
+                                BindingStatus::Uninitialized
+                            },
+                        );
+
+                        // Add argument bindings to the function environment
+                        for (i, param) in params.iter().enumerate() {
+                            // Rest Parameters
+                            if param.is_rest_param() {
+                                function.add_rest_param(param, i, args, ctx, &local_env);
+                                break;
+                            }
+
+                            let value = args.get(i).cloned().unwrap_or_else(Value::undefined);
+                            function.add_arguments_to_environment(param, value, &local_env);
+                        }
+
+                        // Add arguments object
+                        let arguments_obj = create_unmapped_arguments_object(args);
+                        local_env
+                            .borrow_mut()
+                            .create_mutable_binding("arguments".to_string(), false);
+                        local_env
+                            .borrow_mut()
+                            .initialize_binding("arguments", arguments_obj);
+
+                        ctx.realm.environment.push(local_env);
+
+                        // Call body should be set before reaching here
+                        let _ = body.run(ctx);
+
+                        // local_env gets dropped here, its no longer needed
+                        let binding = ctx.realm.environment.get_this_binding();
+                        Ok(binding)
+                    }
+                }
+            } else {
+                let name = this.get_field("name").display().to_string();
+                ctx.throw_type_error(format!("{} is not a constructor", name))
+            }
+        } else {
+            ctx.throw_type_error("not a function")
+        }
     }
 }
 

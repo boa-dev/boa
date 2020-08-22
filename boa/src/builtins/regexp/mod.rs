@@ -14,7 +14,7 @@ use regex::Regex;
 use super::function::{make_builtin_fn, make_constructor_fn};
 use crate::{
     builtins::{
-        object::{InternalState, ObjectData},
+        object::ObjectData,
         property::{Attribute, Property},
         value::{RcString, Value},
     },
@@ -63,8 +63,6 @@ pub struct RegExp {
 unsafe impl Trace for RegExp {
     unsafe_empty_trace!();
 }
-
-impl InternalState for RegExp {}
 
 impl RegExp {
     /// The name of the object.
@@ -156,7 +154,7 @@ impl RegExp {
             original_flags: regex_flags,
         };
 
-        this.set_data(ObjectData::RegExp(regexp));
+        this.set_data(ObjectData::RegExp(Box::new(regexp)));
 
         Ok(this.clone())
     }
