@@ -82,9 +82,6 @@ where
         let _timer = BoaProfiler::global().start_event("AssignmentExpression", "Parsing");
         cursor.set_goal(InputElement::Div);
 
-        // Problem code: Currently an expression of the form (a, b) is treated as the start of (a, b) => {} but it might actually be
-        // part of a different structure e.g. let a = (b++, b)
-
         // Arrow function
         match cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?.kind() {
             // a=>{}
