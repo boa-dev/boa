@@ -333,26 +333,6 @@ impl Interpreter {
         &self.state
     }
 
-    /// Check if the `Value` can be converted to an `Object`
-    ///
-    /// The abstract operation `RequireObjectCoercible` takes argument argument.
-    /// It throws an error if argument is a value that cannot be converted to an Object using `ToObject`.
-    /// It is defined by [Table 15][table]
-    ///
-    /// More information:
-    ///  - [ECMAScript reference][spec]
-    ///
-    /// [table]: https://tc39.es/ecma262/#table-14
-    /// [spec]: https://tc39.es/ecma262/#sec-requireobjectcoercible
-    #[inline]
-    pub fn require_object_coercible<'a>(&mut self, value: &'a Value) -> Result<&'a Value> {
-        if value.is_null_or_undefined() {
-            Err(self.construct_type_error("cannot convert null or undefined to Object"))
-        } else {
-            Ok(value)
-        }
-    }
-
     /// A helper function for getting a immutable reference to the `console` object.
     pub(crate) fn console(&self) -> &Console {
         &self.console
