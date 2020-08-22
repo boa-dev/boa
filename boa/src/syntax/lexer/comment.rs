@@ -73,7 +73,10 @@ impl<R> Tokenizer<R> for MultiLineComment {
                     new_line = true;
                 }
             } else {
-                return Err(Error::syntax("unterminated multiline comment"));
+                return Err(Error::syntax(
+                    "unterminated multiline comment",
+                    cursor.pos(),
+                ));
             }
         }
 

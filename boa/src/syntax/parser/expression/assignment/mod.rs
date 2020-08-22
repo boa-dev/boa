@@ -186,6 +186,7 @@ where
                     } else {
                         return Err(ParseError::lex(LexError::Syntax(
                             "Invalid left-hand side in assignment".into(),
+                            tok.span().start(),
                         )));
                     }
                 }
@@ -199,6 +200,7 @@ where
                     } else {
                         return Err(ParseError::lex(LexError::Syntax(
                             "Invalid left-hand side in assignment".into(),
+                            tok.span().start(),
                         )));
                     }
                 }

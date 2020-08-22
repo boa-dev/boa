@@ -104,11 +104,14 @@ impl<R> Tokenizer<R> for StringLiteral {
                                 match from_u32(as_num as u32) {
                                     Some(v) => v,
                                     None => {
-                                        return Err(Error::syntax(format!(
-                                            "{}: {} is not a valid Unicode scalar value",
+                                        return Err(Error::syntax(
+                                            format!(
+                                                "{}: {} is not a valid Unicode scalar value",
+                                                cursor.pos(),
+                                                as_num
+                                            ),
                                             cursor.pos(),
-                                            as_num
-                                        )))
+                                        ))
                                     }
                                 }
                             }
@@ -134,13 +137,17 @@ impl<R> Tokenizer<R> for StringLiteral {
                                         u32::from_str_radix(&code_point, 16).map_err(|_| {
                                             Error::syntax(
                                                 "malformed Unicode character escape sequence",
+                                                cursor.pos(),
                                             )
                                         })?;
                                     if as_num > 0x10_FFFF {
-                                        return Err(Error::syntax("Unicode codepoint must not be greater than 0x10FFFF in escape sequence"));
+                                        return Err(Error::syntax("Unicode codepoint must not be greater than 0x10FFFF in escape sequence", cursor.pos()));
                                     }
                                     char::try_from(as_num).map_err(|_| {
-                                        Error::syntax("invalid Unicode escape sequence")
+                                        Error::syntax(
+                                            "invalid Unicode escape sequence",
+                                            cursor.pos(),
+                                        )
                                     })?
                                 } else {
                                     let mut codepoints: Vec<u16> = vec![];
@@ -186,7 +193,7 @@ impl<R> Tokenizer<R> for StringLiteral {
                                     next_chr_start.column_number(),
                                     ch
                                 );
-                                return Err(Error::syntax(details));
+                                return Err(Error::syntax(details, cursor.pos()));
                             }
                         };
                         buf.push(escaped_ch);

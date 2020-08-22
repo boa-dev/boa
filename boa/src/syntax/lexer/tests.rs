@@ -1,6 +1,7 @@
 //! Tests for the lexer.
 #![allow(clippy::indexing_slicing)]
 
+use super::regex::RegExpFlags;
 use super::token::Numeric;
 use super::*;
 use crate::syntax::ast::Keyword;
@@ -450,7 +451,7 @@ fn regex_literal() {
 
     let expected = [TokenKind::regular_expression_literal(
         "(?:)",
-        "".parse().unwrap(),
+        RegExpFlags::default(),
     )];
 
     expect_tokens(&mut lexer, &expected);
@@ -460,9 +461,14 @@ fn regex_literal() {
 fn regex_literal_flags() {
     let mut lexer = Lexer::new(&br"/\/[^\/]*\/*/gmi"[0..]);
 
+    let mut flags = RegExpFlags::default();
+    flags.insert(RegExpFlags::GLOBAL);
+    flags.insert(RegExpFlags::MULTILINE);
+    flags.insert(RegExpFlags::IGNORE_CASE);
+
     let expected = [TokenKind::regular_expression_literal(
         "\\/[^\\/]*\\/*",
-        "gmi".parse().unwrap(),
+        flags,
     )];
 
     expect_tokens(&mut lexer, &expected);

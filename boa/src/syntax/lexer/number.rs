@@ -79,25 +79,31 @@ where
             buf.push('+');
             if !cursor.next_is_pred(&|c: char| c.is_digit(kind.base()))? {
                 // A digit must follow the + or - symbol.
-                return Err(Error::syntax("No digit found after + symbol"));
+                return Err(Error::syntax("No digit found after + symbol", cursor.pos()));
             }
         }
         Some('-') => {
             buf.push('-');
             if !cursor.next_is_pred(&|c: char| c.is_digit(kind.base()))? {
                 // A digit must follow the + or - symbol.
-                return Err(Error::syntax("No digit found after - symbol"));
+                return Err(Error::syntax("No digit found after - symbol", cursor.pos()));
             }
         }
         Some(c) if c.is_digit(kind.base()) => buf.push(c),
         Some(c) => {
-            return Err(Error::syntax(format!(
-                "When lexing exponential value found unexpected char: '{}'",
-                c
-            )));
+            return Err(Error::syntax(
+                format!(
+                    "When lexing exponential value found unexpected char: '{}'",
+                    c
+                ),
+                cursor.pos(),
+            ));
         }
         None => {
-            return Err(Error::syntax("Abrupt end: No exponential value found"));
+            return Err(Error::syntax(
+                "Abrupt end: No exponential value found",
+                cursor.pos(),
+            ));
         }
     }
 
@@ -121,6 +127,7 @@ where
     if cursor.next_is_pred(&pred)? {
         Err(Error::syntax(
             "a numeric literal must not be followed by an alphanumeric, $ or _ characters",
+            cursor.pos(),
         ))
     } else {
         Ok(())
@@ -184,6 +191,7 @@ impl<R> Tokenizer<R> for NumberLiteral {
                                 // LegacyOctalIntegerLiteral is forbidden with strict mode true.
                                 return Err(Error::syntax(
                                     "implicit octal literals are not allowed in strict mode",
+                                    start_pos,
                                 ));
                             } else {
                                 // Remove the initial '0' from buffer.
@@ -200,6 +208,7 @@ impl<R> Tokenizer<R> for NumberLiteral {
                             if self.strict_mode {
                                 return Err(Error::syntax(
                                     "leading 0's are not allowed in strict mode",
+                                    start_pos,
                                 ));
                             } else {
                                 buf.push(cursor.next_char()?.expect("Number digit vanished"));

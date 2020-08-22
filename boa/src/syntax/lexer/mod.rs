@@ -152,7 +152,10 @@ impl<R> Lexer<R> {
                 }
             }
         } else {
-            Err(Error::syntax("Abrupt end: Expecting Token /,*,= or regex"))
+            Err(Error::syntax(
+                "Abrupt end: Expecting Token /,*,= or regex",
+                start,
+            ))
         }
     }
 
@@ -245,7 +248,7 @@ impl<R> Lexer<R> {
                     start.line_number(),
                     start.column_number()
                 );
-                Err(Error::syntax(details))
+                Err(Error::syntax(details, start))
             }
         }?;
 

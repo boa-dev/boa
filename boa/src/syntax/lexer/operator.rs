@@ -16,7 +16,7 @@ use std::io::Read;
 macro_rules! vop {
     ($cursor:ident, $assign_op:expr, $op:expr) => ({
         match $cursor.peek()? {
-            None => Err(Error::syntax("abrupt end - could not preview next value as part of the operator")),
+            None => Err(Error::syntax("abrupt end - could not preview next value as part of the operator", $cursor.pos())),
             Some('=') => {
                 $cursor.next_char()?.expect("= token vanished");
                 $cursor.next_column();
@@ -27,7 +27,7 @@ macro_rules! vop {
     });
     ($cursor:ident, $assign_op:expr, $op:expr, {$($case:pat => $block:expr), +}) => ({
         match $cursor.peek()? {
-            None => Err(Error::syntax("abrupt end - could not preview next value as part of the operator")),
+            None => Err(Error::syntax("abrupt end - could not preview next value as part of the operator", $cursor.pos())),
             Some('=') => {
                 $cursor.next_char()?.expect("= token vanished");
                 $cursor.next_column();
@@ -42,7 +42,7 @@ macro_rules! vop {
         }
     });
     ($cursor:ident, $op:expr, {$($case:pat => $block:expr),+}) => {
-        match $cursor.peek().ok_or_else(|| LexerError::syntax("could not preview next value"))? {
+        match $cursor.peek().ok_or_else(|| Error::syntax("could not preview next value", $cursor.pos()))? {
             $($case => {
                 $cursor.next_char()?;
                 $cursor.next_column();
