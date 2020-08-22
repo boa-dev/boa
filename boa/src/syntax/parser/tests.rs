@@ -3,8 +3,9 @@
 use super::Parser;
 use crate::syntax::ast::{
     node::{
-        field::GetConstField, Assign, BinOp, Call, FunctionDecl, Identifier, LetDecl, LetDeclList,
-        New, Node, Return, StatementList, UnaryOp, VarDecl, VarDeclList,
+        field::GetConstField, ArrowFunctionDecl, Assign, BinOp, Call, FormalParameter,
+        FunctionDecl, Identifier, LetDecl, LetDeclList, New, Node, Return, StatementList, UnaryOp,
+        VarDecl, VarDeclList,
     },
     op::{self, CompOp, LogOp, NumOp},
     Const,
@@ -286,5 +287,25 @@ fn increment_in_comma_op() {
             Identifier::from("b").into(),
         )
         .into()],
+    );
+}
+
+#[test]
+fn spread_in_arrow_function() {
+    let s = r#"
+    (...b) => {
+        b
+    }
+    "#;
+
+    check_parser(
+        s,
+        vec![
+            ArrowFunctionDecl::new::<Box<[FormalParameter]>, StatementList>(
+                Box::new([FormalParameter::new("b", None, true)]),
+                vec![Identifier::from("b").into()].into(),
+            )
+            .into(),
+        ],
     );
 }

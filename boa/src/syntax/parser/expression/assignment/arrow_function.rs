@@ -88,16 +88,9 @@ where
 
         cursor.peek_expect_no_lineterminator(0)?;
 
-        if cursor
-            .next_if(TokenKind::Punctuator(Punctuator::Arrow))?
-            .is_some()
-        {
-            let body = ConciseBody::new(self.allow_in).parse(cursor)?;
-            Ok(ArrowFunctionDecl::new(params, body))
-        } else {
-            // This might actually be an expresison.
-            unimplemented!("Todo handle this might be an expression");
-        }
+        cursor.expect(TokenKind::Punctuator(Punctuator::Arrow), "arrow function")?;
+        let body = ConciseBody::new(self.allow_in).parse(cursor)?;
+        Ok(ArrowFunctionDecl::new(params, body))
     }
 }
 
