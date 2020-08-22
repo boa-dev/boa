@@ -203,20 +203,12 @@ where
         let param = BindingIdentifier::new(self.allow_yield, self.allow_await).parse(cursor)?;
 
         let init = if let Some(t) = cursor.peek(0)? {
+            // Check that this is an initilizer before attempting parse.
             if *t.kind() == TokenKind::Punctuator(Punctuator::Assign) {
                 Some(Initializer::new(true, self.allow_yield, self.allow_await).parse(cursor)?)
             } else {
                 None
             }
-        // match *t.kind() {
-        //     TokenKind::Punctuator(Punctuator::Assign) => {
-        //         Some(Initializer::new(true, self.allow_yield, self.allow_await).parse(cursor)?)
-        //     },
-        //     TokenKind::Punctuator(Punctuator::Inc) => {
-        //         Some(operator::UnaryOp::new(UnaryOp::IncrementPre, param))
-        //     }
-        //     _ => None
-        // }
         } else {
             None
         };
