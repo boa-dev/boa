@@ -74,9 +74,6 @@ where
         let next_token = cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?;
         let params = if let TokenKind::Punctuator(Punctuator::OpenParen) = &next_token.kind() {
             // CoverParenthesizedExpressionAndArrowParameterList
-
-            // Problem code - This doesn't work if the statement is of the form (expr) because the first '(' is consumed
-
             cursor.expect(Punctuator::OpenParen, "arrow function")?;
 
             let params = FormalParameters::new(self.allow_yield, self.allow_await).parse(cursor)?;
