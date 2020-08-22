@@ -709,10 +709,7 @@ mod in_operator {
     }
 
     #[test]
-    #[ignore]
     fn symbol_in_object() {
-        // FIXME: this scenario works in Firefox's console, this is probably an issue
-        // with Symbol comparison.
         let sym_in_object = r#"
             var sym = Symbol('hi');
             var o = {};
