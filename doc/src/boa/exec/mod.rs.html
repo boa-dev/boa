@@ -409,26 +409,6 @@
 <span id="409">409</span>
 <span id="410">410</span>
 <span id="411">411</span>
-<span id="412">412</span>
-<span id="413">413</span>
-<span id="414">414</span>
-<span id="415">415</span>
-<span id="416">416</span>
-<span id="417">417</span>
-<span id="418">418</span>
-<span id="419">419</span>
-<span id="420">420</span>
-<span id="421">421</span>
-<span id="422">422</span>
-<span id="423">423</span>
-<span id="424">424</span>
-<span id="425">425</span>
-<span id="426">426</span>
-<span id="427">427</span>
-<span id="428">428</span>
-<span id="429">429</span>
-<span id="430">430</span>
-<span id="431">431</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Execution of the AST, this is where the interpreter actually runs</span>
 
@@ -763,26 +743,6 @@
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_current_state</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">InterpreterState</span> {
         <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">state</span>
-    }
-
-    <span class="doccomment">/// Check if the `Value` can be converted to an `Object`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The abstract operation `RequireObjectCoercible` takes argument argument.</span>
-    <span class="doccomment">/// It throws an error if argument is a value that cannot be converted to an Object using `ToObject`.</span>
-    <span class="doccomment">/// It is defined by [Table 15][table]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [table]: https://tc39.es/ecma262/#table-14</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-requireobjectcoercible</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">require_object_coercible</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Value</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Value</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="ident">value</span>.<span class="ident">is_null_or_undefined</span>() {
-            <span class="prelude-val">Err</span>(<span class="self">self</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;cannot convert null or undefined to Object&quot;</span>))
-        } <span class="kw">else</span> {
-            <span class="prelude-val">Ok</span>(<span class="ident">value</span>)
-        }
     }
 
     <span class="doccomment">/// A helper function for getting a immutable reference to the `console` object.</span>

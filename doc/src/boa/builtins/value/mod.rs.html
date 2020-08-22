@@ -1012,6 +1012,26 @@
 <span id="1012">1012</span>
 <span id="1013">1013</span>
 <span id="1014">1014</span>
+<span id="1015">1015</span>
+<span id="1016">1016</span>
+<span id="1017">1017</span>
+<span id="1018">1018</span>
+<span id="1019">1019</span>
+<span id="1020">1020</span>
+<span id="1021">1021</span>
+<span id="1022">1022</span>
+<span id="1023">1023</span>
+<span id="1024">1024</span>
+<span id="1025">1025</span>
+<span id="1026">1026</span>
+<span id="1027">1027</span>
+<span id="1028">1028</span>
+<span id="1029">1029</span>
+<span id="1030">1030</span>
+<span id="1031">1031</span>
+<span id="1032">1032</span>
+<span id="1033">1033</span>
+<span id="1034">1034</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements the JavaScript Value.</span>
 <span class="doccomment">//!</span>
@@ -1930,6 +1950,26 @@
             <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">bigint</span>.<span class="ident">to_f64</span>());
         }
         <span class="ident">primitive</span>.<span class="ident">to_number</span>(<span class="ident">ctx</span>)
+    }
+
+    <span class="doccomment">/// Check if the `Value` can be converted to an `Object`</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// The abstract operation `RequireObjectCoercible` takes argument argument.</span>
+    <span class="doccomment">/// It throws an error if argument is a value that cannot be converted to an Object using `ToObject`.</span>
+    <span class="doccomment">/// It is defined by [Table 15][table]</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// More information:</span>
+    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// [table]: https://tc39.es/ecma262/#table-14</span>
+    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-requireobjectcoercible</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">require_object_coercible</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="self">self</span>, <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Value</span><span class="op">&gt;</span> {
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_null_or_undefined</span>() {
+            <span class="prelude-val">Err</span>(<span class="ident">ctx</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;cannot convert null or undefined to Object&quot;</span>))
+        } <span class="kw">else</span> {
+            <span class="prelude-val">Ok</span>(<span class="self">self</span>)
+        }
     }
 }
 
