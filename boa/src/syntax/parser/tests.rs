@@ -271,8 +271,6 @@ fn assignment_multiline_terminator() {
 fn bracketed_expr() {
     let s = r#"(b)"#;
 
-    // Note that currently the expected expression isn't set correctly yet.
-    // First just to get to the point where the parser can handle the expression.
     check_parser(s, vec![Identifier::from("b").into()]);
 }
 
@@ -280,8 +278,6 @@ fn bracketed_expr() {
 fn increment_in_comma_op() {
     let s = r#"(b++, b)"#;
 
-    // Note that currently the expected expression isn't set correctly yet.
-    // First just to get to the point where the parser can handle the expression.
     check_parser(
         s,
         vec![BinOp::new::<_, Node, Node>(
