@@ -134,7 +134,7 @@ impl Symbol {
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
         // Create prototype object
-        let prototype: Value = interpreter.construct_object().into();
+        let prototype = interpreter.construct_object();
 
         make_builtin_fn(Self::to_string, "toString", &prototype, 0, interpreter);
 
@@ -149,7 +149,7 @@ impl Symbol {
         );
 
         {
-            let mut symbol_object = symbol_object.as_object_mut().unwrap();
+            let mut symbol_object = symbol_object.borrow_mut();
             let attribute = Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT;
             symbol_object.insert_property(
                 "asyncIterator",
@@ -207,7 +207,7 @@ impl Symbol {
 
         // Set standard object
         interpreter.standard_objects.symbol =
-            StandardConstructor::new(symbol_object.unwrap_object(), prototype.unwrap_object());
-        (Self::NAME, symbol_object)
+            StandardConstructor::new(symbol_object.clone(), prototype);
+        (Self::NAME, symbol_object.into())
     }
 }

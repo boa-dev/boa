@@ -748,7 +748,7 @@ impl Number {
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
         let global = interpreter.global();
-        let prototype: Value = interpreter.construct_object().into();
+        let prototype = interpreter.construct_object();
 
         make_builtin_fn(
             Self::to_exponential,
@@ -778,20 +778,32 @@ impl Number {
         make_builtin_fn(
             Self::parse_int,
             "parseInt",
-            global,
+            &global.unwrap_object(),
             PARSE_INT_MAX_ARG_COUNT,
             interpreter,
         );
         make_builtin_fn(
             Self::parse_float,
             "parseFloat",
-            global,
+            &global.unwrap_object(),
             PARSE_FLOAT_MAX_ARG_COUNT,
             interpreter,
         );
 
-        make_builtin_fn(Self::global_is_finite, "isFinite", global, 1, interpreter);
-        make_builtin_fn(Self::global_is_nan, "isNaN", global, 1, interpreter);
+        make_builtin_fn(
+            Self::global_is_finite,
+            "isFinite",
+            &global.unwrap_object(),
+            1,
+            interpreter,
+        );
+        make_builtin_fn(
+            Self::global_is_nan,
+            "isNaN",
+            &global.unwrap_object(),
+            1,
+            interpreter,
+        );
 
         let number_object = make_constructor_fn(
             Self::NAME,
@@ -829,7 +841,7 @@ impl Number {
         // Constants from:
         // https://tc39.es/ecma262/#sec-properties-of-the-number-constructor
         {
-            let mut properties = number_object.as_object_mut().expect("'Number' object");
+            let mut properties = number_object.borrow_mut();
             properties.insert_field("EPSILON", Value::from(f64::EPSILON));
             properties.insert_field("MAX_SAFE_INTEGER", Value::from(Self::MAX_SAFE_INTEGER));
             properties.insert_field("MIN_SAFE_INTEGER", Value::from(Self::MIN_SAFE_INTEGER));
@@ -842,9 +854,9 @@ impl Number {
 
         // Set standard object
         interpreter.standard_objects.number =
-            StandardConstructor::new(number_object.unwrap_object(), prototype.unwrap_object());
+            StandardConstructor::new(number_object.clone(), prototype);
 
-        (Self::NAME, number_object)
+        (Self::NAME, number_object.into())
     }
 
     /// The abstract operation Number::equal takes arguments

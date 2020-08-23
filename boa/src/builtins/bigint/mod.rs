@@ -203,7 +203,7 @@ impl BigInt {
     pub fn init(interpreter: &mut Interpreter) -> (&'static str, Value) {
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
-        let prototype: Value = interpreter.construct_object().into();
+        let prototype = interpreter.construct_object();
 
         make_builtin_fn(Self::to_string, "toString", &prototype, 1, interpreter);
         make_builtin_fn(Self::value_of, "valueOf", &prototype, 0, interpreter);
@@ -223,9 +223,9 @@ impl BigInt {
 
         // Set standard object
         interpreter.standard_objects.bigint =
-            StandardConstructor::new(bigint_object.unwrap_object(), prototype.unwrap_object());
+            StandardConstructor::new(bigint_object.clone(), prototype);
 
-        (Self::NAME, bigint_object)
+        (Self::NAME, bigint_object.into())
     }
 }
 

@@ -183,11 +183,11 @@ impl Json {
     #[inline]
     pub(crate) fn init(interpreter: &mut Interpreter) -> (&'static str, Value) {
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
-        let json: Value = interpreter.construct_object().into();
+        let json = interpreter.construct_object();
 
         make_builtin_fn(Self::parse, "parse", &json, 2, interpreter);
         make_builtin_fn(Self::stringify, "stringify", &json, 3, interpreter);
 
-        (Self::NAME, json)
+        (Self::NAME, json.into())
     }
 }

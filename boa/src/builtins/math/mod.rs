@@ -640,10 +640,10 @@ impl Math {
     /// Create a new `Math` object
     pub(crate) fn create(interpreter: &mut Interpreter) -> Value {
         let _timer = BoaProfiler::global().start_event("math:create", "init");
-        let math: Value = interpreter.construct_object().into();
+        let math = interpreter.construct_object();
 
         {
-            let mut properties = math.as_object_mut().unwrap();
+            let mut properties = math.borrow_mut();
             properties.insert_field("E", Value::from(f64::consts::E));
             properties.insert_field("LN2", Value::from(f64::consts::LN_2));
             properties.insert_field("LN10", Value::from(f64::consts::LN_10));
@@ -690,7 +690,7 @@ impl Math {
         make_builtin_fn(Self::tanh, "tanh", &math, 1, interpreter);
         make_builtin_fn(Self::trunc, "trunc", &math, 1, interpreter);
 
-        math
+        math.into()
     }
 
     /// Initialise the `Math` object on the global object.

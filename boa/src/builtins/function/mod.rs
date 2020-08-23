@@ -13,7 +13,7 @@
 
 use crate::{
     builtins::{
-        object::{Object, ObjectData, PROTOTYPE},
+        object::{GcObject, Object, ObjectData, PROTOTYPE},
         property::{Attribute, Property},
         value::Value,
         Array,
@@ -216,10 +216,10 @@ pub fn make_constructor_fn(
     length: usize,
     body: NativeFunction,
     interpreter: &Interpreter,
-    prototype: Value,
+    prototype: GcObject,
     constructable: bool,
     callable: bool,
-) -> Value {
+) -> GcObject {
     let _timer =
         BoaProfiler::global().start_event(&format!("make_constructor_fn: {}", name), "init");
 
@@ -254,17 +254,15 @@ pub fn make_constructor_fn(
     );
     constructor.insert_property("name", name);
 
-    let constructor = Value::from(constructor);
+    let constructor = GcObject::new(constructor);
 
     prototype
-        .as_object_mut()
-        .unwrap()
-        .insert_field("constructor", constructor.clone());
+        .borrow_mut()
+        .insert_field("constructor", constructor.clone().into());
 
     constructor
-        .as_object_mut()
-        .expect("constructor object")
-        .insert_field(PROTOTYPE, prototype);
+        .borrow_mut()
+        .insert_field(PROTOTYPE, prototype.into());
 
     constructor
 }
@@ -290,7 +288,7 @@ pub fn make_constructor_fn(
 pub fn make_builtin_fn<N>(
     function: NativeFunction,
     name: N,
-    parent: &Value,
+    parent: &GcObject,
     length: usize,
     interpreter: &Interpreter,
 ) where
@@ -311,8 +309,7 @@ pub fn make_builtin_fn<N>(
     function.insert_field("length", Value::from(length));
 
     parent
-        .as_object_mut()
-        .unwrap()
+        .borrow_mut()
         .insert_field(name, Value::from(function));
 }
 
@@ -322,7 +319,7 @@ pub fn init(interpreter: &mut Interpreter) -> (&'static str, Value) {
     let _timer = BoaProfiler::global().start_event("function", "init");
 
     // Function.prototype
-    let prototype: Value = interpreter.construct_object().into();
+    let prototype = interpreter.construct_object();
 
     // function Function ()
     let function_object = make_constructor_fn(
@@ -336,7 +333,7 @@ pub fn init(interpreter: &mut Interpreter) -> (&'static str, Value) {
     );
 
     interpreter.standard_objects.function =
-        StandardConstructor::new(function_object.unwrap_object(), prototype.unwrap_object());
+        StandardConstructor::new(function_object.clone(), prototype);
 
-    ("Function", function_object)
+    ("Function", function_object.into())
 }

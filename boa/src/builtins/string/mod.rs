@@ -16,7 +16,6 @@ use super::function::{make_builtin_fn, make_constructor_fn};
 use crate::{
     builtins::{
         object::{Object, ObjectData},
-        property::Property,
         value::{RcString, Value},
         RegExp,
     },
@@ -1034,10 +1033,8 @@ impl String {
 
         // Create `String` `prototype`
 
-        let prototype: Value = interpreter.construct_object().into();
-        let length = Property::default().value(Value::from(0));
-
-        prototype.set_property("length", length);
+        let prototype = interpreter.standard_objects.string.prototype.clone();
+        prototype.borrow_mut().insert_field("length", 0.into());
 
         make_builtin_fn(Self::char_at, "charAt", &prototype, 1, interpreter);
         make_builtin_fn(Self::char_code_at, "charCodeAt", &prototype, 1, interpreter);
@@ -1094,8 +1091,8 @@ impl String {
 
         // Set standard object
         interpreter.standard_objects.string =
-            StandardConstructor::new(string_object.unwrap_object(), prototype.unwrap_object());
+            StandardConstructor::new(string_object.clone(), prototype);
 
-        (Self::NAME, string_object)
+        (Self::NAME, string_object.into())
     }
 }

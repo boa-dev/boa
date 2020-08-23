@@ -484,11 +484,10 @@ impl RegExp {
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
         // Create prototype
-        let prototype: Value = interpreter.construct_object().into();
+        let prototype = interpreter.construct_object();
 
         prototype
-            .as_object_mut()
-            .unwrap()
+            .borrow_mut()
             .insert_field("lastIndex", Value::from(0));
 
         make_builtin_fn(Self::test, "test", &prototype, 1, interpreter);
@@ -516,9 +515,8 @@ impl RegExp {
         );
 
         // Set standard Object
-        interpreter.standard_objects.regexp =
-            StandardConstructor::new(regexp.unwrap_object(), prototype.unwrap_object());
+        interpreter.standard_objects.regexp = StandardConstructor::new(regexp.clone(), prototype);
 
-        (Self::NAME, regexp)
+        (Self::NAME, regexp.into())
     }
 }
