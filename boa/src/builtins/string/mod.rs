@@ -480,89 +480,88 @@ impl String {
                 Value::String(val) => {
                     // https://tc39.es/ecma262/#table-45
                     let mut result = StdString::new();
-                    let mut chars = val.chars();
+                    let mut chars = val.chars().peekable();
 
                     let m = caps.len();
-                    while let Some(chr) = chars.next() {
-                        match chr {
-                            '$' => match chars.next() {
-                                Some(next_chr) => match next_chr {
-                                    '$' => result.push(chr),
-                                    '&' => {
-                                        // get matched value
-                                        let matched =
-                                            caps.get(0).expect("cannot get matched value");
-                                        result.push_str(matched.as_str())
-                                    }
-                                    '`' => {
-                                        let start_of_match = mat.start();
-                                        let slice = &primitive_val[..start_of_match];
-                                        result.push_str(slice)
-                                    }
-                                    '\'' => {
-                                        let end_of_match = mat.end();
-                                        let slice = &primitive_val[end_of_match..];
-                                        result.push_str(slice);
-                                    }
-                                    _ if next_chr.is_digit(10) => {
-                                        match chars.next() {
-                                            Some(next_next_chr) if next_next_chr.is_digit(10) => {
-                                                // 2 digit group
-                                                let tens = next_chr.to_digit(10).unwrap() as usize;
-                                                let units =
-                                                    next_next_chr.to_digit(10).unwrap() as usize;
-                                                let nn = 10 * tens + units;
-                                                if nn == 0 || nn > m {
-                                                    result.push(chr);
-                                                    result.push(next_chr);
-                                                    result.push(next_next_chr);
-                                                } else {
-                                                    let group = match caps.get(nn) {
-                                                        Some(text) => text.as_str(),
-                                                        None => "",
-                                                    };
-                                                    result.push_str(group);
-                                                }
-                                            }
-                                            Some(next_next_chr) => {
-                                                let n = next_chr.to_digit(10).unwrap() as usize;
-                                                if n == 0 || n > m {
-                                                    result.push(chr);
-                                                    result.push(next_chr);
-                                                } else {
-                                                    let group = match caps.get(n) {
-                                                        Some(text) => text.as_str(),
-                                                        None => "",
-                                                    };
-                                                    result.push_str(group);
-                                                }
-                                                // 1 digit group, place next_next_chr afterwards
-                                                result.push(next_next_chr);
-                                            }
-                                            None => {
-                                                // 1 digit group
-                                                let n = next_chr.to_digit(10).unwrap() as usize;
-                                                if n == 0 || n > m {
-                                                    result.push(chr);
-                                                    result.push(next_chr);
-                                                } else {
-                                                    let group = match caps.get(n) {
-                                                        Some(text) => text.as_str(),
-                                                        None => "",
-                                                    };
-                                                    result.push_str(group);
-                                                }
-                                            }
-                                        }
-                                    }
-                                    '<' => unimplemented!(),
-                                    _ => result.push(chr),
-                                },
-                                None => {
-                                    result.push(chr);
+
+                    while let Some(first) = chars.next() {
+                        if first == '$' {
+                            let second = chars.next();
+                            let second_is_digit = second.map(|ch| ch.is_digit(10)).unwrap_or(false);
+                            // we use peek so that it is still in the iterator if not used
+                            let third = if second_is_digit { chars.peek() } else { None };
+                            let third_is_digit = third.map(|ch| ch.is_digit(10)).unwrap_or(false);
+
+                            match (second, third) {
+                                (Some('$'), _) => {
+                                    // $$
+                                    result.push('$');
                                 }
-                            },
-                            _ => result.push(chr),
+                                (Some('&'), _) => {
+                                    // $&
+                                    let matched = caps.get(0).expect("cannot get matched value");
+                                    result.push_str(matched.as_str());
+                                }
+                                (Some('`'), _) => {
+                                    // $`
+                                    let start_of_match = mat.start();
+                                    let slice = &primitive_val[..start_of_match];
+                                    result.push_str(slice);
+                                }
+                                (Some('\''), _) => {
+                                    // $'
+                                    let end_of_match = mat.end();
+                                    let slice = &primitive_val[end_of_match..];
+                                    result.push_str(slice);
+                                }
+                                (_, _) if second_is_digit && third_is_digit => {
+                                    // $nn
+                                    let tens = second.unwrap().to_digit(10).unwrap() as usize;
+                                    let units = third.unwrap().to_digit(10).unwrap() as usize;
+                                    let nn = 10 * tens + units;
+                                    if nn == 0 || nn > m {
+                                        [Some(first), second, chars.next()]
+                                            .iter()
+                                            .flatten()
+                                            .for_each(|ch: &char| result.push(*ch));
+                                    } else {
+                                        let group = match caps.get(nn) {
+                                            Some(text) => text.as_str(),
+                                            None => "",
+                                        };
+                                        result.push_str(group);
+                                        chars.next(); // consume third
+                                    }
+                                }
+                                (_, _) if second_is_digit => {
+                                    // $n
+                                    let n = second.unwrap().to_digit(10).unwrap() as usize;
+                                    if n == 0 || n > m {
+                                        [Some(first), second]
+                                            .iter()
+                                            .flatten()
+                                            .for_each(|ch: &char| result.push(*ch));
+                                    } else {
+                                        let group = match caps.get(n) {
+                                            Some(text) => text.as_str(),
+                                            None => "",
+                                        };
+                                        result.push_str(group);
+                                    }
+                                }
+                                (Some('<'), _) => {
+                                    // $<
+                                    todo!("named capture groups")
+                                }
+                                _ => {
+                                    // $?, ? is none of the above
+                                    // we can consume second because it isn't $
+                                    result.push(first);
+                                    second.iter().for_each(|ch: &char| result.push(*ch));
+                                }
+                            }
+                        } else {
+                            result.push(first);
                         }
                     }
 
