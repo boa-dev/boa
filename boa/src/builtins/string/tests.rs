@@ -219,7 +219,7 @@ fn replace() {
 }
 
 #[test]
-fn replace_with_regex() {
+fn replace_with_capture_groups() {
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);
     let init = r#"
@@ -232,6 +232,44 @@ fn replace_with_regex() {
     forward(&mut engine, init);
 
     assert_eq!(forward(&mut engine, "a"), "\"Smith, John\"");
+}
+
+#[test]
+fn replace_with_tenth_capture_group() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+    let init = r#"
+        var re = /(\d)(\d)(\d)(\d)(\d)(\d)(\d)(\d)(\d)(\d)/;
+        var a = "0123456789";
+        let res = a.replace(re, '$10');
+        "#;
+
+    forward(&mut engine, init);
+
+    assert_eq!(forward(&mut engine, "res"), "\"9\"");
+}
+
+#[test]
+fn replace_substitutions() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+    let init = r#"
+        var re = / two /;
+        var a = "one two three";
+        var dollar = a.replace(re, " $$ ");
+        var matched = a.replace(re, "$&$&");
+        var start = a.replace(re, " $` ");
+        var end = a.replace(re, " $' ");
+        var no_sub = a.replace(re, " $_ ");
+        "#;
+
+    forward(&mut engine, init);
+
+    assert_eq!(forward(&mut engine, "dollar"), "\"one $ three\"");
+    assert_eq!(forward(&mut engine, "matched"), "\"one two  two three\"");
+    assert_eq!(forward(&mut engine, "start"), "\"one one three\"");
+    assert_eq!(forward(&mut engine, "end"), "\"one three three\"");
+    assert_eq!(forward(&mut engine, "no_sub"), "\"one $_ three\"");
 }
 
 #[test]
