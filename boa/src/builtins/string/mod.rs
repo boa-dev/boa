@@ -479,39 +479,91 @@ impl String {
             match replace_object {
                 Value::String(val) => {
                     // https://tc39.es/ecma262/#table-45
-                    let mut result = val.to_string();
-                    let re = Regex::new(r"\$(\d)").unwrap();
+                    let mut result = StdString::new();
+                    let mut chars = val.chars();
 
-                    if val.find("$$").is_some() {
-                        result = val.replace("$$", "$")
-                    }
-
-                    if val.find("$`").is_some() {
-                        let start_of_match = mat.start();
-                        let slice = &primitive_val[..start_of_match];
-                        result = val.replace("$`", slice);
-                    }
-
-                    if val.find("$'").is_some() {
-                        let end_of_match = mat.end();
-                        let slice = &primitive_val[end_of_match..];
-                        result = val.replace("$'", slice);
-                    }
-
-                    if val.find("$&").is_some() {
-                        // get matched value
-                        let matched = caps.get(0).expect("cannot get matched value");
-                        result = val.replace("$&", matched.as_str());
-                    }
-
-                    // Capture $1, $2, $3 etc
-                    while re.is_match(&result) {
-                        let mat_caps = re.captures(&result).unwrap();
-                        let group_str = mat_caps.get(1).unwrap().as_str();
-                        let group_int = group_str.parse::<usize>().unwrap();
-                        result = re
-                            .replace(result.as_str(), caps.get(group_int).unwrap().as_str())
-                            .to_string()
+                    let m = caps.len();
+                    while let Some(chr) = chars.next() {
+                        match chr {
+                            '$' => match chars.next() {
+                                Some(next_chr) => match next_chr {
+                                    '$' => result.push(chr),
+                                    '&' => {
+                                        // get matched value
+                                        let matched =
+                                            caps.get(0).expect("cannot get matched value");
+                                        result.push_str(matched.as_str())
+                                    }
+                                    '`' => {
+                                        let start_of_match = mat.start();
+                                        let slice = &primitive_val[..start_of_match];
+                                        result.push_str(slice)
+                                    }
+                                    '\'' => {
+                                        let end_of_match = mat.end();
+                                        let slice = &primitive_val[end_of_match..];
+                                        result.push_str(slice);
+                                    }
+                                    _ if next_chr.is_digit(10) => {
+                                        match chars.next() {
+                                            Some(next_next_chr) if next_next_chr.is_digit(10) => {
+                                                // 2 digit group
+                                                let tens = next_chr.to_digit(10).unwrap() as usize;
+                                                let units =
+                                                    next_next_chr.to_digit(10).unwrap() as usize;
+                                                let nn = 10 * tens + units;
+                                                if nn == 0 || nn > m {
+                                                    result.push(chr);
+                                                    result.push(next_chr);
+                                                    result.push(next_next_chr);
+                                                } else {
+                                                    let group = match caps.get(nn) {
+                                                        Some(text) => text.as_str(),
+                                                        None => "",
+                                                    };
+                                                    result.push_str(group);
+                                                }
+                                            }
+                                            Some(next_next_chr) => {
+                                                let n = next_chr.to_digit(10).unwrap() as usize;
+                                                if n == 0 || n > m {
+                                                    result.push(chr);
+                                                    result.push(next_chr);
+                                                } else {
+                                                    let group = match caps.get(n) {
+                                                        Some(text) => text.as_str(),
+                                                        None => "",
+                                                    };
+                                                    result.push_str(group);
+                                                }
+                                                // 1 digit group, place next_next_chr afterwards
+                                                result.push(next_next_chr);
+                                            }
+                                            None => {
+                                                // 1 digit group
+                                                let n = next_chr.to_digit(10).unwrap() as usize;
+                                                if n == 0 || n > m {
+                                                    result.push(chr);
+                                                    result.push(next_chr);
+                                                } else {
+                                                    let group = match caps.get(n) {
+                                                        Some(text) => text.as_str(),
+                                                        None => "",
+                                                    };
+                                                    result.push_str(group);
+                                                }
+                                            }
+                                        }
+                                    }
+                                    '<' => unimplemented!(),
+                                    _ => result.push(chr),
+                                },
+                                None => {
+                                    result.push(chr);
+                                }
+                            },
+                            _ => result.push(chr),
+                        }
                     }
 
                     result
