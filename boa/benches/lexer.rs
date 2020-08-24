@@ -10,9 +10,7 @@ use criterion::{black_box, criterion_group, criterion_main, Criterion};
 )]
 static ALLOC: jemallocator::Jemalloc = jemallocator::Jemalloc;
 
-static EXPRESSION: &str = r#"
-1 + 1 + 1 + 1 + 1 + 1 / 1 + 1 + 1 * 1 + 1 + 1 + 1;
-"#;
+static EXPRESSION: &str = include_str!("bench_scripts/expression.js");
 
 fn expression_lexer(c: &mut Criterion) {
     c.bench_function("Expression (Lexer)", move |b| {
@@ -24,7 +22,7 @@ fn expression_lexer(c: &mut Criterion) {
     });
 }
 
-static HELLO_WORLD: &str = "let foo = 'hello world!'; foo;";
+static HELLO_WORLD: &str = include_str!("bench_scripts/hello_world.js");
 
 fn hello_world_lexer(c: &mut Criterion) {
     c.bench_function("Hello World (Lexer)", move |b| {
@@ -37,17 +35,7 @@ fn hello_world_lexer(c: &mut Criterion) {
     });
 }
 
-static FOR_LOOP: &str = r#"
-for (let a = 10; a < 100; a++) {
-    if (a < 10) {
-        console.log("impossible D:");
-    } else if (a < 50) {
-        console.log("starting");
-    } else {
-        console.log("finishing");
-    }
-}
-"#;
+static FOR_LOOP: &str = include_str!("bench_scripts/for_loop.js");
 
 fn for_loop_lexer(c: &mut Criterion) {
     c.bench_function("For loop (Lexer)", move |b| {

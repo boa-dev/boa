@@ -40,7 +40,7 @@ pub(crate) use self::{
     string::String,
     symbol::Symbol,
     undefined::Undefined,
-    value::{ResultValue, Value},
+    value::Value,
 };
 use crate::Interpreter;
 

@@ -2,26 +2,21 @@
 
 use super::{Executable, Interpreter};
 use crate::{
-    builtins::{
-        function::ThisMode,
-        value::{ResultValue, Value},
-    },
+    builtins::{function::FunctionFlags, Value},
     environment::lexical_environment::VariableScope,
     syntax::ast::node::{
         ArrowFunctionDecl, ConstDeclList, FunctionDecl, FunctionExpr, LetDeclList, VarDeclList,
     },
-    BoaProfiler,
+    BoaProfiler, Result,
 };
 
 impl Executable for FunctionDecl {
-    fn run(&self, interpreter: &mut Interpreter) -> ResultValue {
+    fn run(&self, interpreter: &mut Interpreter) -> Result<Value> {
         let _timer = BoaProfiler::global().start_event("FunctionDecl", "exec");
         let val = interpreter.create_function(
             self.parameters().to_vec(),
             self.body().to_vec(),
-            ThisMode::NonLexical,
-            true,
-            true,
+            FunctionFlags::CALLABLE | FunctionFlags::CONSTRUCTABLE,
         );
 
         // Set the name and assign it in the current environment
@@ -42,13 +37,11 @@ impl Executable for FunctionDecl {
 }
 
 impl Executable for FunctionExpr {
-    fn run(&self, interpreter: &mut Interpreter) -> ResultValue {
+    fn run(&self, interpreter: &mut Interpreter) -> Result<Value> {
         let val = interpreter.create_function(
             self.parameters().to_vec(),
             self.body().to_vec(),
-            ThisMode::NonLexical,
-            true,
-            true,
+            FunctionFlags::CALLABLE | FunctionFlags::CONSTRUCTABLE,
         );
 
         if let Some(name) = self.name() {
@@ -60,7 +53,7 @@ impl Executable for FunctionExpr {
 }
 
 impl Executable for VarDeclList {
-    fn run(&self, interpreter: &mut Interpreter) -> ResultValue {
+    fn run(&self, interpreter: &mut Interpreter) -> Result<Value> {
         for var in self.as_ref() {
             let val = match var.init() {
                 Some(v) => v.run(interpreter)?,
@@ -86,7 +79,7 @@ impl Executable for VarDeclList {
 }
 
 impl Executable for ConstDeclList {
-    fn run(&self, interpreter: &mut Interpreter) -> ResultValue {
+    fn run(&self, interpreter: &mut Interpreter) -> Result<Value> {
         for decl in self.as_ref() {
             let val = decl.init().run(interpreter)?;
 
@@ -105,7 +98,7 @@ impl Executable for ConstDeclList {
 }
 
 impl Executable for LetDeclList {
-    fn run(&self, interpreter: &mut Interpreter) -> ResultValue {
+    fn run(&self, interpreter: &mut Interpreter) -> Result<Value> {
         for var in self.as_ref() {
             let val = match var.init() {
                 Some(v) => v.run(interpreter)?,
@@ -126,13 +119,13 @@ impl Executable for LetDeclList {
 }
 
 impl Executable for ArrowFunctionDecl {
-    fn run(&self, interpreter: &mut Interpreter) -> ResultValue {
+    fn run(&self, interpreter: &mut Interpreter) -> Result<Value> {
         Ok(interpreter.create_function(
             self.params().to_vec(),
             self.body().to_vec(),
-            ThisMode::Lexical,
-            false,
-            true,
+            FunctionFlags::CALLABLE
+                | FunctionFlags::CONSTRUCTABLE
+                | FunctionFlags::LEXICAL_THIS_MODE,
         ))
     }
 }

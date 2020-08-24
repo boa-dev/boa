@@ -1,10 +1,12 @@
+#![allow(clippy::zero_prefixed_literal)]
+
 use crate::{
     builtins::{object::ObjectData, Value},
     forward, forward_val, Interpreter, Realm,
 };
 use chrono::prelude::*;
 
-// NB: Javascript Uses 0-based months, where chrono uses 1-based months. Many of the assertions look wrong because of
+// NOTE: Javascript Uses 0-based months, where chrono uses 1-based months. Many of the assertions look wrong because of
 // this.
 
 fn forward_dt_utc(engine: &mut Interpreter, src: &str) -> Option<NaiveDateTime> {
@@ -14,19 +16,15 @@ fn forward_dt_utc(engine: &mut Interpreter, src: &str) -> Option<NaiveDateTime> 
         panic!("expected success")
     };
 
-    let date_time = if let Value::Object(date_time) = &date_time {
-        date_time
+    if let Value::Object(ref date_time) = date_time {
+        if let ObjectData::Date(ref date_time) = date_time.borrow().data {
+            date_time.0
+        } else {
+            panic!("expected date")
+        }
     } else {
         panic!("expected object")
-    };
-
-    let date_time = if let ObjectData::Date(date_time) = &date_time.borrow().data {
-        date_time.0
-    } else {
-        panic!("expected date")
-    };
-
-    date_time.clone()
+    }
 }
 
 fn forward_dt_local(engine: &mut Interpreter, src: &str) -> Option<NaiveDateTime> {

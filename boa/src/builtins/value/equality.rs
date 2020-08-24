@@ -1,7 +1,5 @@
 use super::*;
-use crate::{builtins::Number, exec::PreferredType, Interpreter};
-
-use std::borrow::Borrow;
+use crate::{builtins::Number, Interpreter};
 
 impl Value {
     /// Strict equality comparison.
@@ -39,7 +37,7 @@ impl Value {
     /// This method is executed when doing abstract equality comparisons with the `==` operator.
     ///  For more information, check <https://tc39.es/ecma262/#sec-abstract-equality-comparison>
     #[allow(clippy::float_cmp)]
-    pub fn equals(&self, other: &Self, interpreter: &mut Interpreter) -> Result<bool, Value> {
+    pub fn equals(&self, other: &Self, interpreter: &mut Interpreter) -> Result<bool> {
         // 1. If Type(x) is the same as Type(y), then
         //     a. Return the result of performing Strict Equality Comparison x === y.
         if self.get_type() == other.get_type() {
@@ -61,9 +59,9 @@ impl Value {
             | (Self::String(_), Self::Rational(_))
             | (Self::Rational(_), Self::Boolean(_))
             | (Self::Integer(_), Self::Boolean(_)) => {
-                let a: &Value = self.borrow();
-                let b: &Value = other.borrow();
-                Number::equal(f64::from(a), f64::from(b))
+                let x = self.to_number(interpreter)?;
+                let y = other.to_number(interpreter)?;
+                Number::equal(x, y)
             }
 
             // 6. If Type(x) is BigInt and Type(y) is String, then
@@ -82,26 +80,22 @@ impl Value {
             },
 
             // 8. If Type(x) is Boolean, return the result of the comparison ! ToNumber(x) == y.
-            (Self::Boolean(_), _) => {
-                return other.equals(&Value::from(self.to_integer()), interpreter)
-            }
+            (Self::Boolean(x), _) => return other.equals(&Value::from(*x as i32), interpreter),
 
             // 9. If Type(y) is Boolean, return the result of the comparison x == ! ToNumber(y).
-            (_, Self::Boolean(_)) => {
-                return self.equals(&Value::from(other.to_integer()), interpreter)
-            }
+            (_, Self::Boolean(y)) => return self.equals(&Value::from(*y as i32), interpreter),
 
             // 10. If Type(x) is either String, Number, BigInt, or Symbol and Type(y) is Object, return the result
             // of the comparison x == ? ToPrimitive(y).
             (Self::Object(_), _) => {
-                let primitive = interpreter.to_primitive(self, PreferredType::Default)?;
+                let primitive = self.to_primitive(interpreter, PreferredType::Default)?;
                 return primitive.equals(other, interpreter);
             }
 
             // 11. If Type(x) is Object and Type(y) is either String, Number, BigInt, or Symbol, return the result
             // of the comparison ? ToPrimitive(x) == y.
             (_, Self::Object(_)) => {
-                let primitive = interpreter.to_primitive(other, PreferredType::Default)?;
+                let primitive = other.to_primitive(interpreter, PreferredType::Default)?;
                 return primitive.equals(self, interpreter);
             }
 

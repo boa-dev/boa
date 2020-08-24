@@ -19,6 +19,6 @@ pub fn evaluate(src: &str) -> Result<String, JsValue> {
 
     // Setup executor
     expr.run(&mut engine)
-        .map_err(|e| JsValue::from(format!("Error: {}", e)))
-        .map(|v| v.to_string())
+        .map_err(|e| JsValue::from(format!("Error: {}", e.display())))
+        .map(|v| v.display().to_string())
 }

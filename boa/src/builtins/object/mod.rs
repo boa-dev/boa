@@ -17,26 +17,27 @@ use crate::{
     builtins::{
         function::Function,
         map::ordered_map::OrderedMap,
-        property::Property,
-        value::{RcBigInt, RcString, RcSymbol, ResultValue, Value},
+        property::{Property, PropertyKey},
+        value::{RcBigInt, RcString, RcSymbol, Value},
         BigInt, Date, RegExp,
     },
     exec::Interpreter,
-    BoaProfiler,
+    BoaProfiler, Result,
 };
 use gc::{Finalize, Trace};
 use rustc_hash::FxHashMap;
 use std::fmt::{Debug, Display, Error, Formatter};
+use std::result::Result as StdResult;
 
 use super::function::{make_builtin_fn, make_constructor_fn};
 use crate::builtins::value::same_value;
-pub use internal_state::{InternalState, InternalStateCell};
 
-pub mod gcobject;
-pub mod internal_methods;
-mod internal_state;
+mod gcobject;
+mod internal_methods;
+mod iter;
 
 pub use gcobject::GcObject;
+pub use iter::*;
 
 #[cfg(test)]
 mod tests;
@@ -44,22 +45,18 @@ mod tests;
 /// Static `prototype`, usually set on constructors as a key to point to their respective prototype object.
 pub static PROTOTYPE: &str = "prototype";
 
-// /// Static `__proto__`, usually set on Object instances as a key to point to their respective prototype object.
-// pub static INSTANCE_PROTOTYPE: &str = "__proto__";
-
 /// The internal representation of an JavaScript object.
 #[derive(Debug, Trace, Finalize, Clone)]
 pub struct Object {
     /// The type of the object.
     pub data: ObjectData,
+    indexed_properties: FxHashMap<u32, Property>,
     /// Properties
-    properties: FxHashMap<RcString, Property>,
+    string_properties: FxHashMap<RcString, Property>,
     /// Symbol Properties
-    symbol_properties: FxHashMap<u32, Property>,
+    symbol_properties: FxHashMap<RcSymbol, Property>,
     /// Instance prototype `__proto__`.
     prototype: Value,
-    /// Some rust object that stores internal state
-    state: Option<InternalStateCell>,
     /// Whether it can have new properties added to it.
     extensible: bool,
 }
@@ -69,7 +66,7 @@ pub struct Object {
 pub enum ObjectData {
     Array,
     Map(OrderedMap<Value, Value>),
-    RegExp(RegExp),
+    RegExp(Box<RegExp>),
     BigInt(RcBigInt),
     Boolean(bool),
     Function(Function),
@@ -83,7 +80,7 @@ pub enum ObjectData {
 }
 
 impl Display for ObjectData {
-    fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), Error> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> StdResult<(), Error> {
         write!(
             f,
             "{}",
@@ -112,10 +109,10 @@ impl Default for Object {
     fn default() -> Self {
         Self {
             data: ObjectData::Ordinary,
-            properties: FxHashMap::default(),
+            indexed_properties: FxHashMap::default(),
+            string_properties: FxHashMap::default(),
             symbol_properties: FxHashMap::default(),
             prototype: Value::null(),
-            state: None,
             extensible: true,
         }
     }
@@ -133,10 +130,10 @@ impl Object {
 
         Self {
             data: ObjectData::Function(function),
-            properties: FxHashMap::default(),
+            indexed_properties: FxHashMap::default(),
+            string_properties: FxHashMap::default(),
             symbol_properties: FxHashMap::default(),
             prototype,
-            state: None,
             extensible: true,
         }
     }
@@ -158,10 +155,10 @@ impl Object {
     pub fn boolean(value: bool) -> Self {
         Self {
             data: ObjectData::Boolean(value),
-            properties: FxHashMap::default(),
+            indexed_properties: FxHashMap::default(),
+            string_properties: FxHashMap::default(),
             symbol_properties: FxHashMap::default(),
             prototype: Value::null(),
-            state: None,
             extensible: true,
         }
     }
@@ -170,10 +167,10 @@ impl Object {
     pub fn number(value: f64) -> Self {
         Self {
             data: ObjectData::Number(value),
-            properties: FxHashMap::default(),
+            indexed_properties: FxHashMap::default(),
+            string_properties: FxHashMap::default(),
             symbol_properties: FxHashMap::default(),
             prototype: Value::null(),
-            state: None,
             extensible: true,
         }
     }
@@ -185,10 +182,10 @@ impl Object {
     {
         Self {
             data: ObjectData::String(value.into()),
-            properties: FxHashMap::default(),
+            indexed_properties: FxHashMap::default(),
+            string_properties: FxHashMap::default(),
             symbol_properties: FxHashMap::default(),
             prototype: Value::null(),
-            state: None,
             extensible: true,
         }
     }
@@ -197,10 +194,10 @@ impl Object {
     pub fn bigint(value: RcBigInt) -> Self {
         Self {
             data: ObjectData::BigInt(value),
-            properties: FxHashMap::default(),
+            indexed_properties: FxHashMap::default(),
+            string_properties: FxHashMap::default(),
             symbol_properties: FxHashMap::default(),
             prototype: Value::null(),
-            state: None,
             extensible: true,
         }
     }
@@ -211,7 +208,7 @@ impl Object {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-toobject
-    pub fn from(value: &Value) -> Result<Self, ()> {
+    pub fn from(value: &Value) -> StdResult<Self, ()> {
         match *value {
             Value::Boolean(a) => Ok(Self::boolean(a)),
             Value::Rational(a) => Ok(Self::number(a)),
@@ -399,36 +396,6 @@ impl Object {
         matches!(self.data, ObjectData::Ordinary)
     }
 
-    #[inline]
-    pub fn properties(&self) -> &FxHashMap<RcString, Property> {
-        &self.properties
-    }
-
-    #[inline]
-    pub fn properties_mut(&mut self) -> &mut FxHashMap<RcString, Property> {
-        &mut self.properties
-    }
-
-    #[inline]
-    pub fn symbol_properties(&self) -> &FxHashMap<u32, Property> {
-        &self.symbol_properties
-    }
-
-    #[inline]
-    pub fn symbol_properties_mut(&mut self) -> &mut FxHashMap<u32, Property> {
-        &mut self.symbol_properties
-    }
-
-    #[inline]
-    pub fn state(&self) -> &Option<InternalStateCell> {
-        &self.state
-    }
-
-    #[inline]
-    pub fn state_mut(&mut self) -> &mut Option<InternalStateCell> {
-        &mut self.state
-    }
-
     pub fn prototype(&self) -> &Value {
         &self.prototype
     }
@@ -440,7 +407,7 @@ impl Object {
 }
 
 /// Create a new object.
-pub fn make_object(_: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
+pub fn make_object(_: &Value, args: &[Value], ctx: &mut Interpreter) -> Result<Value> {
     if let Some(arg) = args.get(0) {
         if !arg.is_null_or_undefined() {
             return Ok(Value::object(Object::from(arg).unwrap()));
@@ -463,7 +430,7 @@ pub fn make_object(_: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultVa
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-object.create
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/create
-pub fn create(_: &Value, args: &[Value], interpreter: &mut Interpreter) -> ResultValue {
+pub fn create(_: &Value, args: &[Value], interpreter: &mut Interpreter) -> Result<Value> {
     let prototype = args.get(0).cloned().unwrap_or_else(Value::undefined);
     let properties = args.get(1).cloned().unwrap_or_else(Value::undefined);
 
@@ -478,13 +445,13 @@ pub fn create(_: &Value, args: &[Value], interpreter: &mut Interpreter) -> Resul
         )),
         _ => interpreter.throw_type_error(format!(
             "Object prototype may only be an Object or null: {}",
-            prototype
+            prototype.display()
         )),
     }
 }
 
 /// Uses the SameValue algorithm to check equality of objects
-pub fn is(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
+pub fn is(_: &Value, args: &[Value], _: &mut Interpreter) -> Result<Value> {
     let x = args.get(0).cloned().unwrap_or_else(Value::undefined);
     let y = args.get(1).cloned().unwrap_or_else(Value::undefined);
 
@@ -492,7 +459,7 @@ pub fn is(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
 }
 
 /// Get the `prototype` of an object.
-pub fn get_prototype_of(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
+pub fn get_prototype_of(_: &Value, args: &[Value], _: &mut Interpreter) -> Result<Value> {
     let obj = args.get(0).expect("Cannot get object");
     Ok(obj
         .as_object()
@@ -500,7 +467,7 @@ pub fn get_prototype_of(_: &Value, args: &[Value], _: &mut Interpreter) -> Resul
 }
 
 /// Set the `prototype` of an object.
-pub fn set_prototype_of(_: &Value, args: &[Value], _: &mut Interpreter) -> ResultValue {
+pub fn set_prototype_of(_: &Value, args: &[Value], _: &mut Interpreter) -> Result<Value> {
     let obj = args.get(0).expect("Cannot get object").clone();
     let proto = args.get(1).expect("Cannot get object").clone();
     obj.as_object_mut().unwrap().prototype = proto;
@@ -508,9 +475,9 @@ pub fn set_prototype_of(_: &Value, args: &[Value], _: &mut Interpreter) -> Resul
 }
 
 /// Define a property in an object
-pub fn define_property(_: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
+pub fn define_property(_: &Value, args: &[Value], ctx: &mut Interpreter) -> Result<Value> {
     let obj = args.get(0).expect("Cannot get object");
-    let prop = ctx.to_string(args.get(1).expect("Cannot get object"))?;
+    let prop = args.get(1).expect("Cannot get object").to_string(ctx)?;
     let desc = Property::from(args.get(2).expect("Cannot get object"));
     obj.set_property(prop, desc);
     Ok(Value::undefined())
@@ -526,8 +493,9 @@ pub fn define_property(_: &Value, args: &[Value], ctx: &mut Interpreter) -> Resu
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-object.prototype.tostring
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/toString
-pub fn to_string(this: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue {
-    Ok(Value::from(this.to_string()))
+pub fn to_string(this: &Value, _: &[Value], _: &mut Interpreter) -> Result<Value> {
+    // FIXME: it should not display the object.
+    Ok(this.display().to_string().into())
 }
 
 /// `Object.prototype.hasOwnPrototype( property )`
@@ -541,11 +509,11 @@ pub fn to_string(this: &Value, _: &[Value], _: &mut Interpreter) -> ResultValue 
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-object.prototype.hasownproperty
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/hasOwnProperty
-pub fn has_own_property(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
+pub fn has_own_property(this: &Value, args: &[Value], ctx: &mut Interpreter) -> Result<Value> {
     let prop = if args.is_empty() {
         None
     } else {
-        Some(ctx.to_string(args.get(0).expect("Cannot get object"))?)
+        Some(args.get(0).expect("Cannot get object").to_string(ctx)?)
     };
     let own_property = this
         .as_object()
@@ -559,17 +527,21 @@ pub fn has_own_property(this: &Value, args: &[Value], ctx: &mut Interpreter) -> 
     }
 }
 
-pub fn property_is_enumerable(this: &Value, args: &[Value], ctx: &mut Interpreter) -> ResultValue {
+pub fn property_is_enumerable(
+    this: &Value,
+    args: &[Value],
+    ctx: &mut Interpreter,
+) -> Result<Value> {
     let key = match args.get(0) {
         None => return Ok(Value::from(false)),
         Some(key) => key,
     };
 
-    let property_key = ctx.to_property_key(key)?;
-    let own_property = ctx.to_object(this).map(|obj| {
+    let key = key.to_property_key(ctx)?;
+    let own_property = this.to_object(ctx).map(|obj| {
         obj.as_object()
             .expect("Unable to deref object")
-            .get_own_property(&property_key)
+            .get_own_property(&key)
     });
 
     Ok(own_property.map_or(Value::from(false), |own_prop| {
