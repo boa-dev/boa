@@ -468,7 +468,10 @@ impl String {
 
         let regex_body = Self::get_regex_string(args.get(0).expect("Value needed"));
         let re = Regex::new(&regex_body).expect("unable to convert regex to regex object");
-        let mat = re.find(&primitive_val).expect("unable to find value");
+        let mat = match re.find(&primitive_val) {
+            Some(mat) => mat,
+            None => return Ok(Value::from(primitive_val)),
+        };
         let caps = re
             .captures(&primitive_val)
             .expect("unable to get capture groups from text");

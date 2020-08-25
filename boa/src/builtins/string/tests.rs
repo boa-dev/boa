@@ -219,6 +219,20 @@ fn replace() {
 }
 
 #[test]
+fn replace_no_match() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+    let init = r#"
+        var a = "abc";
+        a = a.replace(/d/, "$&$&");
+        "#;
+
+    forward(&mut engine, init);
+
+    assert_eq!(forward(&mut engine, "a"), "\"abc\"");
+}
+
+#[test]
 fn replace_with_capture_groups() {
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);
