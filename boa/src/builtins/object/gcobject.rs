@@ -24,7 +24,7 @@ use std::{
 /// A wrapper type for an immutably borrowed `Object`.
 pub type Ref<'object> = GcCellRef<'object, Object>;
 
-/// A wrapper type for an mutably borrowed `Object`.
+/// A wrapper type for a mutably borrowed `Object`.
 pub type RefMut<'object> = GcCellRefMut<'object, Object>;
 
 /// Garbage collected `Object`.
