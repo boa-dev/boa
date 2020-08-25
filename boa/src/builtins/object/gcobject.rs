@@ -14,11 +14,12 @@ use crate::{
     Executable, Interpreter, Result,
 };
 use gc::{Finalize, Gc, GcCell, GcCellRef, GcCellRefMut, Trace};
-use std::result::Result as StdResult;
 use std::{
     cell::RefCell,
     collections::HashSet,
+    error::Error,
     fmt::{self, Debug, Display},
+    result::Result as StdResult,
 };
 
 /// Garbage collected `Object`.
@@ -223,8 +224,23 @@ impl Display for BorrowError {
     }
 }
 
-#[derive(Debug)]
+impl Error for BorrowError {}
+
+/// An error returned by [`GcObject::try_borrow_mut`](struct.GcObject.html#method.try_borrow_mut).
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub struct BorrowMutError;
+
+impl Display for BorrowMutError {
+    #[inline]
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        Display::fmt("Object already borrowed", f)
+    }
+}
+
+impl Error for BorrowMutError {}
+
 /// Prevents infinite recursion during `Debug::fmt`.
+#[derive(Debug)]
 struct RecursionLimiter {
     /// If this was the first `GcObject` in the tree.
     free: bool,
@@ -290,16 +306,5 @@ impl Debug for GcObject {
         } else {
             f.write_str("{ ... }")
         }
-    }
-}
-
-/// An error returned by [`GcObject::try_borrow_mut`](struct.GcObject.html#method.try_borrow_mut).
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct BorrowMutError;
-
-impl Display for BorrowMutError {
-    #[inline]
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        Display::fmt("Object already borrowed", f)
     }
 }
