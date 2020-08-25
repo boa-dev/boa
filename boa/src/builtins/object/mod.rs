@@ -36,7 +36,7 @@ mod gcobject;
 mod internal_methods;
 mod iter;
 
-pub use gcobject::GcObject;
+pub use gcobject::{GcObject, Ref, RefMut};
 pub use iter::*;
 
 #[cfg(test)]

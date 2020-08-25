@@ -21,33 +21,66 @@ use std::{
     fmt::{self, Debug, Display},
 };
 
+/// A wrapper type for an immutably borrowed `Object`.
+pub type Ref<'object> = GcCellRef<'object, Object>;
+
+/// A wrapper type for an mutably borrowed `Object`.
+pub type RefMut<'object> = GcCellRefMut<'object, Object>;
+
 /// Garbage collected `Object`.
 #[derive(Trace, Finalize, Clone)]
 pub struct GcObject(Gc<GcCell<Object>>);
 
 impl GcObject {
+    /// Create a new `GcObject` from a `Object`.
     #[inline]
-    pub(crate) fn new(object: Object) -> Self {
+    pub fn new(object: Object) -> Self {
         Self(Gc::new(GcCell::new(object)))
     }
 
+    /// Immutably borrows the `Object`.
+    ///
+    /// The borrow lasts until the returned `GcCellRef` exits scope.
+    /// Multiple immutable borrows can be taken out at the same time.
+    ///
+    ///# Panics
+    /// Panics if the object is currently mutably borrowed.
     #[inline]
-    pub fn borrow(&self) -> GcCellRef<'_, Object> {
+    pub fn borrow(&self) -> Ref<'_> {
         self.try_borrow().expect("Object already mutably borrowed")
     }
 
+    /// Mutably borrows the Object.
+    ///
+    /// The borrow lasts until the returned `GcCellRefMut` exits scope.
+    /// The object cannot be borrowed while this borrow is active.
+    ///
+    ///# Panics
+    /// Panics if the object is currently borrowed.
     #[inline]
-    pub fn borrow_mut(&self) -> GcCellRefMut<'_, Object> {
+    pub fn borrow_mut(&self) -> RefMut<'_> {
         self.try_borrow_mut().expect("Object already borrowed")
     }
 
+    /// Immutably borrows the `Object`, returning an error if the value is currently mutably borrowed.
+    ///
+    /// The borrow lasts until the returned `GcCellRef` exits scope.
+    /// Multiple immutable borrows can be taken out at the same time.
+    ///
+    /// This is the non-panicking variant of [`borrow`](#method.borrow).
     #[inline]
-    pub fn try_borrow(&self) -> StdResult<GcCellRef<'_, Object>, BorrowError> {
+    pub fn try_borrow(&self) -> StdResult<Ref<'_>, BorrowError> {
         self.0.try_borrow().map_err(|_| BorrowError)
     }
 
+    /// Mutably borrows the object, returning an error if the value is currently borrowed.
+    ///
+    /// The borrow lasts until the returned `GcCellRefMut` exits scope.
+    /// The object be borrowed while this borrow is active.
+    ///
+    /// This is the non-panicking variant of [`borrow_mut`](#method.borrow_mut).
     #[inline]
-    pub fn try_borrow_mut(&self) -> StdResult<GcCellRefMut<'_, Object>, BorrowMutError> {
+    pub fn try_borrow_mut(&self) -> StdResult<RefMut<'_>, BorrowMutError> {
         self.0.try_borrow_mut().map_err(|_| BorrowMutError)
     }
 
@@ -57,10 +90,12 @@ impl GcObject {
         std::ptr::eq(lhs.as_ref(), rhs.as_ref())
     }
 
-    /// This will handle calls for both ordinary and built-in functions
+    /// Call this object.
     ///
-    /// <https://tc39.es/ecma262/#sec-prepareforordinarycall>
-    /// <https://tc39.es/ecma262/#sec-ecmascript-function-objects-call-thisargument-argumentslist>
+    ///# Panics
+    /// Panics if the object is currently mutably borrowed.
+    // <https://tc39.es/ecma262/#sec-prepareforordinarycall>
+    // <https://tc39.es/ecma262/#sec-ecmascript-function-objects-call-thisargument-argumentslist>
     pub fn call(&self, this: &Value, args: &[Value], ctx: &mut Interpreter) -> Result<Value> {
         let this_function_object = self.clone();
         let object = self.borrow();
@@ -131,7 +166,11 @@ impl GcObject {
         }
     }
 
-    /// <https://tc39.es/ecma262/#sec-ecmascript-function-objects-construct-argumentslist-newtarget>
+    /// Construct an instance of this object with the specified arguments.
+    ///
+    ///# Panics
+    /// Panics if the object is currently mutably borrowed.
+    // <https://tc39.es/ecma262/#sec-ecmascript-function-objects-construct-argumentslist-newtarget>
     pub fn construct(&self, args: &[Value], ctx: &mut Interpreter) -> Result<Value> {
         let this = Object::create(self.borrow().get(&PROTOTYPE.into())).into();
 
