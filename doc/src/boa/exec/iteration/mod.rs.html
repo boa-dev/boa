@@ -128,6 +128,26 @@
 <span id="128">128</span>
 <span id="129">129</span>
 <span id="130">130</span>
+<span id="131">131</span>
+<span id="132">132</span>
+<span id="133">133</span>
+<span id="134">134</span>
+<span id="135">135</span>
+<span id="136">136</span>
+<span id="137">137</span>
+<span id="138">138</span>
+<span id="139">139</span>
+<span id="140">140</span>
+<span id="141">141</span>
+<span id="142">142</span>
+<span id="143">143</span>
+<span id="144">144</span>
+<span id="145">145</span>
+<span id="146">146</span>
+<span id="147">147</span>
+<span id="148">148</span>
+<span id="149">149</span>
+<span id="150">150</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Iteration node execution.</span>
 
@@ -174,10 +194,15 @@
                     <span class="ident">interpreter</span>.<span class="ident">set_current_state</span>(<span class="ident">InterpreterState</span>::<span class="ident">Executing</span>);
                     <span class="kw">break</span>;
                 }
+                <span class="ident">InterpreterState</span>::<span class="ident">Continue</span>(<span class="ident">_label</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="comment">// TODO continue to label.</span>
+                    <span class="ident">interpreter</span>.<span class="ident">set_current_state</span>(<span class="ident">InterpreterState</span>::<span class="ident">Executing</span>);
+                    <span class="comment">// after breaking out of the block, continue execution of the loop</span>
+                }
                 <span class="ident">InterpreterState</span>::<span class="ident">Return</span> <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">result</span>);
                 }
-                <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">InterpreterState</span>::<span class="ident">Executing</span> <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="comment">// Continue execution.</span>
                 }
             }
@@ -207,10 +232,15 @@
                     <span class="ident">interpreter</span>.<span class="ident">set_current_state</span>(<span class="ident">InterpreterState</span>::<span class="ident">Executing</span>);
                     <span class="kw">break</span>;
                 }
+                <span class="ident">InterpreterState</span>::<span class="ident">Continue</span>(<span class="ident">_label</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="comment">// TODO continue to label.</span>
+                    <span class="ident">interpreter</span>.<span class="ident">set_current_state</span>(<span class="ident">InterpreterState</span>::<span class="ident">Executing</span>);
+                    <span class="comment">// after breaking out of the block, continue execution of the loop</span>
+                }
                 <span class="ident">InterpreterState</span>::<span class="ident">Return</span> <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">result</span>);
                 }
-                <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">InterpreterState</span>::<span class="ident">Executing</span> <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="comment">// Continue execution.</span>
                 }
             }
@@ -230,10 +260,15 @@
                 <span class="ident">interpreter</span>.<span class="ident">set_current_state</span>(<span class="ident">InterpreterState</span>::<span class="ident">Executing</span>);
                 <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">result</span>);
             }
+            <span class="ident">InterpreterState</span>::<span class="ident">Continue</span>(<span class="ident">_label</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="comment">// TODO continue to label;</span>
+                <span class="ident">interpreter</span>.<span class="ident">set_current_state</span>(<span class="ident">InterpreterState</span>::<span class="ident">Executing</span>);
+                <span class="comment">// after breaking out of the block, continue execution of the loop</span>
+            }
             <span class="ident">InterpreterState</span>::<span class="ident">Return</span> <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">result</span>);
             }
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">InterpreterState</span>::<span class="ident">Executing</span> <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="comment">// Continue execution.</span>
             }
         }
@@ -248,10 +283,15 @@
                     <span class="ident">interpreter</span>.<span class="ident">set_current_state</span>(<span class="ident">InterpreterState</span>::<span class="ident">Executing</span>);
                     <span class="kw">break</span>;
                 }
+                <span class="ident">InterpreterState</span>::<span class="ident">Continue</span>(<span class="ident">_label</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="comment">// TODO continue to label.</span>
+                    <span class="ident">interpreter</span>.<span class="ident">set_current_state</span>(<span class="ident">InterpreterState</span>::<span class="ident">Executing</span>);
+                    <span class="comment">// after breaking out of the block, continue execution of the loop</span>
+                }
                 <span class="ident">InterpreterState</span>::<span class="ident">Return</span> <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">result</span>);
                 }
-                <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">InterpreterState</span>::<span class="ident">Executing</span> <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="comment">// Continue execution.</span>
                 }
             }
