@@ -2,7 +2,7 @@
 //!
 //! The `GcObject` is a garbage collected Object.
 
-use super::Object;
+use super::{Object, PROTOTYPE};
 use crate::{
     builtins::{
         function::{create_unmapped_arguments_object, BuiltInFunction, Function},
@@ -132,15 +132,17 @@ impl GcObject {
     }
 
     /// <https://tc39.es/ecma262/#sec-ecmascript-function-objects-construct-argumentslist-newtarget>
-    pub fn construct(&self, this: &Value, args: &[Value], ctx: &mut Interpreter) -> Result<Value> {
+    pub fn construct(&self, args: &[Value], ctx: &mut Interpreter) -> Result<Value> {
+        let this = Object::create(self.borrow().get(&PROTOTYPE.into())).into();
+
         let this_function_object = self.clone();
         let object = self.borrow();
         if let Some(function) = object.as_function() {
             if function.is_constructable() {
                 match function {
                     Function::BuiltIn(BuiltInFunction(function), _) => {
-                        function(this, args, ctx)?;
-                        Ok(this.clone())
+                        function(&this, args, ctx)?;
+                        Ok(this)
                     }
                     Function::Ordinary {
                         body,
@@ -152,7 +154,7 @@ impl GcObject {
                         // <https://tc39.es/ecma262/#sec-prepareforordinarycall>
                         let local_env = new_function_environment(
                             this_function_object,
-                            Some(this.clone()),
+                            Some(this),
                             Some(environment.clone()),
                             // Arrow functions do not have a this binding https://tc39.es/ecma262/#sec-function-environment-records
                             if flags.is_lexical_this_mode() {

@@ -1,9 +1,5 @@
 use super::{Executable, Interpreter};
-use crate::{
-    builtins::{object::PROTOTYPE, Value},
-    syntax::ast::node::New,
-    BoaProfiler, Result,
-};
+use crate::{builtins::Value, syntax::ast::node::New, BoaProfiler, Result};
 
 impl Executable for New {
     fn run(&self, interpreter: &mut Interpreter) -> Result<Value> {
@@ -14,14 +10,9 @@ impl Executable for New {
         for arg in self.args() {
             v_args.push(arg.run(interpreter)?);
         }
-        let this = Value::new_object(None);
-        // Create a blank object, then set its __proto__ property to the [Constructor].prototype
-        this.as_object_mut()
-            .expect("this was not an object")
-            .set_prototype(func_object.get_field(PROTOTYPE));
 
         match func_object {
-            Value::Object(ref object) => object.construct(&this, &v_args, interpreter),
+            Value::Object(ref object) => object.construct(&v_args, interpreter),
             _ => Ok(Value::undefined()),
         }
     }
