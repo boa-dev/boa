@@ -17,22 +17,9 @@
 <span id="17">17</span>
 <span id="18">18</span>
 <span id="19">19</span>
-<span id="20">20</span>
-<span id="21">21</span>
-<span id="22">22</span>
-<span id="23">23</span>
-<span id="24">24</span>
-<span id="25">25</span>
-<span id="26">26</span>
-<span id="27">27</span>
-<span id="28">28</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">Executable</span>, <span class="ident">Interpreter</span>};
-<span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">builtins</span>::{<span class="ident">object</span>::<span class="ident">PROTOTYPE</span>, <span class="ident">Value</span>},
-    <span class="ident">syntax</span>::<span class="ident">ast</span>::<span class="ident">node</span>::<span class="ident">New</span>,
-    <span class="ident">BoaProfiler</span>, <span class="prelude-ty">Result</span>,
-};
+<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">builtins</span>::<span class="ident">Value</span>, <span class="ident">syntax</span>::<span class="ident">ast</span>::<span class="ident">node</span>::<span class="ident">New</span>, <span class="ident">BoaProfiler</span>, <span class="prelude-ty">Result</span>};
 
 <span class="kw">impl</span> <span class="ident">Executable</span> <span class="kw">for</span> <span class="ident">New</span> {
     <span class="kw">fn</span> <span class="ident">run</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">interpreter</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
@@ -43,14 +30,9 @@
         <span class="kw">for</span> <span class="ident">arg</span> <span class="kw">in</span> <span class="self">self</span>.<span class="ident">args</span>() {
             <span class="ident">v_args</span>.<span class="ident">push</span>(<span class="ident">arg</span>.<span class="ident">run</span>(<span class="ident">interpreter</span>)<span class="question-mark">?</span>);
         }
-        <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <span class="ident">Value</span>::<span class="ident">new_object</span>(<span class="prelude-val">None</span>);
-        <span class="comment">// Create a blank object, then set its __proto__ property to the [Constructor].prototype</span>
-        <span class="ident">this</span>.<span class="ident">as_object_mut</span>()
-            .<span class="ident">expect</span>(<span class="string">&quot;this was not an object&quot;</span>)
-            .<span class="ident">set_prototype</span>(<span class="ident">func_object</span>.<span class="ident">get_field</span>(<span class="ident">PROTOTYPE</span>));
 
         <span class="kw">match</span> <span class="ident">func_object</span> {
-            <span class="ident">Value</span>::<span class="ident">Object</span>(<span class="kw-2">ref</span> <span class="ident">object</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">object</span>.<span class="ident">construct</span>(<span class="kw-2">&amp;</span><span class="ident">this</span>, <span class="kw-2">&amp;</span><span class="ident">v_args</span>, <span class="ident">interpreter</span>),
+            <span class="ident">Value</span>::<span class="ident">Object</span>(<span class="kw-2">ref</span> <span class="ident">object</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">object</span>.<span class="ident">construct</span>(<span class="kw-2">&amp;</span><span class="ident">v_args</span>, <span class="ident">interpreter</span>),
             <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">undefined</span>()),
         }
     }
