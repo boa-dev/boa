@@ -4,6 +4,7 @@
 use super::regex::RegExpFlags;
 use super::token::Numeric;
 use super::*;
+use super::{Error, Position};
 use crate::syntax::ast::Keyword;
 
 fn span(start: (u32, u32), end: (u32, u32)) -> Span {
@@ -594,23 +595,32 @@ fn illegal_following_numeric_literal() {
 
     // Decimal Digit
     let mut lexer = Lexer::new(&b"11.6n3"[0..]);
-    assert!(
-        lexer.next().is_err(),
-        "DecimalDigit following NumericLiteral not rejected as expected"
-    );
+    match lexer.next() {
+        Err(Error::Syntax(_, pos)) => assert_eq!(pos, Position::new(1, 5)),
+        _ => assert!(
+            false,
+            "DecimalDigit following NumericLiteral not rejected as expected"
+        ),
+    }
 
     // Identifier Start
     let mut lexer = Lexer::new(&b"17.4$"[0..]);
-    assert!(
-        lexer.next().is_err(),
-        "IdentifierStart '$' following NumericLiteral not rejected as expected"
-    );
+    match lexer.next() {
+        Err(Error::Syntax(_, pos)) => assert_eq!(pos, Position::new(1, 5)),
+        _ => assert!(
+            false,
+            "IdentifierStart '$' following NumericLiteral not rejected as expected"
+        ),
+    }
 
     let mut lexer = Lexer::new(&b"17.4_"[0..]);
-    assert!(
-        lexer.next().is_err(),
-        "IdentifierStart '_' following NumericLiteral not rejected as expected"
-    );
+    match lexer.next() {
+        Err(Error::Syntax(_, pos)) => assert_eq!(pos, Position::new(1, 5)),
+        _ => assert!(
+            false,
+            "IdentifierStart '_' following NumericLiteral not rejected as expected"
+        ),
+    }
 }
 
 #[test]
