@@ -1296,15 +1296,16 @@ fn assignment_to_non_assignable() {
     //
     // [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Expressions_and_Operators#Assignment
     // [spec]: https://tc39.es/ecma262/#prod-AssignmentOperator
-    assert!(forward(&mut engine, "3 = 5").starts_with("Syntax Error: "));
-    assert!(forward(&mut engine, "3 += 5").starts_with("Syntax Error: "));
-    assert!(forward(&mut engine, "3 -= 5").starts_with("Syntax Error: "));
-    assert!(forward(&mut engine, "3 *= 5").starts_with("Syntax Error: "));
-    assert!(forward(&mut engine, "3 /= 5").starts_with("Syntax Error: "));
-    assert!(forward(&mut engine, "3 %= 5").starts_with("Syntax Error: "));
-    assert!(forward(&mut engine, "3 &= 5").starts_with("Syntax Error: "));
-    assert!(forward(&mut engine, "3 ^= 5").starts_with("Syntax Error: "));
-    assert!(forward(&mut engine, "3 |= 5").starts_with("Syntax Error: "));
+    let test_cases = [
+        "3 -= 5", "3 *= 5", "3 /= 5", "3 %= 5", "3 &= 5", "3 ^= 5", "3 |= 5", "3 += 5", "3 = 5",
+    ];
+
+    for case in test_cases.iter() {
+        let string = forward(&mut engine, case);
+
+        assert!(string.starts_with("Syntax Error: "));
+        assert!(string.contains("1:3"));
+    }
 }
 
 #[test]
@@ -1314,9 +1315,14 @@ fn multicharacter_assignment_to_non_assignable() {
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);
 
-    assert!(forward(&mut engine, "3 **= 5").starts_with("Syntax Error: "));
-    assert!(forward(&mut engine, "3 <<= 5").starts_with("Syntax Error: "));
-    assert!(forward(&mut engine, "3 >>= 5").starts_with("Syntax Error: "));
+    let test_cases = ["3 **= 5", "3 <<= 5", "3 >>= 5"];
+
+    for case in test_cases.iter() {
+        let string = forward(&mut engine, case);
+
+        assert!(string.starts_with("Syntax Error: "));
+        assert!(string.contains("1:3"));
+    }
 }
 
 #[test]
@@ -1326,10 +1332,14 @@ fn multicharacter_bitwise_assignment_to_non_assignable() {
     let mut engine = Interpreter::new(realm);
 
     // Disabled - awaiting implementation.
-    assert!(forward(&mut engine, "3 >>>= 5").starts_with("Syntax Error: "));
-    assert!(forward(&mut engine, "3 &&= 5").starts_with("Syntax Error: "));
-    assert!(forward(&mut engine, "3 ||= 5").starts_with("Syntax Error: "));
-    assert!(forward(&mut engine, "3 ??= 5").starts_with("Syntax Error: "));
+    let test_cases = ["3 >>>= 5", "3 &&= 5", "3 ||= 5", "3 ??= 5"];
+
+    for case in test_cases.iter() {
+        let string = forward(&mut engine, case);
+
+        assert!(string.starts_with("Syntax Error: "));
+        assert!(string.contains("1:3"));
+    }
 }
 
 #[test]
