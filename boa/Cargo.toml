@@ -26,6 +26,7 @@ bitflags = "1.2.1"
 indexmap = "1.4.0"
 ryu-js = "0.2.0"
 chrono = "0.4"
+float-cmp = { version = "0.8.0", features = ["std"] }
 
 # Optional Dependencies
 serde = { version = "1.0.114", features = ["derive"], optional = true }

@@ -305,10 +305,26 @@ fn expm1() {
 
     assert_eq!(a, String::from("NaN"));
     assert_eq!(b, String::from("NaN"));
-    assert_eq!(c.to_number(&mut engine).unwrap(), 1.718_281_828_459_045);
-    assert_eq!(d.to_number(&mut engine).unwrap(), -0.632_120_558_828_557_7);
-    assert_eq!(e.to_number(&mut engine).unwrap(), 0_f64);
-    assert_eq!(f.to_number(&mut engine).unwrap(), 6.389_056_098_930_65);
+    assert!(float_cmp::approx_eq!(
+        f64,
+        c.to_number(&mut engine).unwrap(),
+        1.718_281_828_459_045
+    ));
+    assert!(float_cmp::approx_eq!(
+        f64,
+        d.to_number(&mut engine).unwrap(),
+        -0.632_120_558_828_557_7
+    ));
+    assert!(float_cmp::approx_eq!(
+        f64,
+        e.to_number(&mut engine).unwrap(),
+        0_f64
+    ));
+    assert!(float_cmp::approx_eq!(
+        f64,
+        f.to_number(&mut engine).unwrap(),
+        6.389_056_098_930_65
+    ));
 }
 
 #[test]
