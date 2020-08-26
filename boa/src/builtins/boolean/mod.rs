@@ -101,7 +101,7 @@ impl Boolean {
         // Create Prototype
         // https://tc39.es/ecma262/#sec-properties-of-the-boolean-prototype-object
         // TODO: prototype itself is a boolean object
-        let prototype = interpreter.construct_object().into();
+        let prototype = interpreter.construct_object();
 
         make_builtin_fn(Self::to_string, "toString", &prototype, 0, interpreter);
         make_builtin_fn(Self::value_of, "valueOf", &prototype, 0, interpreter);
@@ -118,8 +118,8 @@ impl Boolean {
 
         // Set Standard Object
         interpreter.standard_objects.boolean =
-            StandardConstructor::new(boolean_object.unwrap_object(), prototype.unwrap_object());
+            StandardConstructor::new(boolean_object.clone(), prototype);
 
-        (Self::NAME, boolean_object)
+        (Self::NAME, boolean_object.into())
     }
 }

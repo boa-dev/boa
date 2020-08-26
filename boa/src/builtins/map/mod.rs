@@ -288,7 +288,7 @@ impl Map {
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
         // Create prototype
-        let prototype: Value = interpreter.construct_object().into();
+        let prototype = interpreter.construct_object();
 
         make_builtin_fn(Self::set, "set", &prototype, 2, interpreter);
         make_builtin_fn(Self::delete, "delete", &prototype, 1, interpreter);
@@ -307,9 +307,8 @@ impl Map {
             false,
         );
 
-        interpreter.standard_objects.map =
-            StandardConstructor::new(map_object.unwrap_object(), prototype.unwrap_object());
+        interpreter.standard_objects.map = StandardConstructor::new(map_object.clone(), prototype);
 
-        (Self::NAME, map_object)
+        (Self::NAME, map_object.into())
     }
 }

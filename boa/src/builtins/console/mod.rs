@@ -504,7 +504,7 @@ impl Console {
     pub(crate) fn init(interpreter: &mut Interpreter) -> (&'static str, Value) {
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
-        let console = interpreter.construct_object().into();
+        let console = interpreter.construct_object();
 
         make_builtin_fn(Self::assert, "assert", &console, 0, interpreter);
         make_builtin_fn(Self::clear, "clear", &console, 0, interpreter);
@@ -526,6 +526,6 @@ impl Console {
         make_builtin_fn(Self::dir, "dir", &console, 0, interpreter);
         make_builtin_fn(Self::dir, "dirxml", &console, 0, interpreter);
 
-        (Self::NAME, console)
+        (Self::NAME, console.into())
     }
 }

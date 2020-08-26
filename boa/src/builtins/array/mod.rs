@@ -1139,10 +1139,9 @@ impl Array {
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
         // Create prototype
-        let prototype: Value = interpreter.construct_object().into();
-        let length = Property::default().value(Value::from(0));
+        let prototype = interpreter.construct_object();
 
-        prototype.set_property("length", length);
+        prototype.borrow_mut().insert_field("length", 0.into());
 
         make_builtin_fn(Self::concat, "concat", &prototype, 1, interpreter);
         make_builtin_fn(Self::push, "push", &prototype, 1, interpreter);
@@ -1193,9 +1192,8 @@ impl Array {
         make_builtin_fn(Self::is_array, "isArray", &array, 1, interpreter);
 
         // Set standard object
-        interpreter.standard_objects.array =
-            StandardConstructor::new(array.unwrap_object(), prototype.unwrap_object());
+        interpreter.standard_objects.array = StandardConstructor::new(array.clone(), prototype);
 
-        (Self::NAME, array)
+        (Self::NAME, array.into())
     }
 }

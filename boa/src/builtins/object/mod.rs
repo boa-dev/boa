@@ -564,7 +564,7 @@ pub fn init(interpreter: &mut Interpreter) -> (&'static str, Value) {
     // Object.prototype is an Object with null as __proto__.
     // StandardObject::default() sets prototype field to an Object with __proto__ = null.
     // Already used by Function
-    let prototype: Value = interpreter.standard_objects.object.prototype.clone().into();
+    let prototype = interpreter.standard_objects.object.prototype.clone();
 
     make_builtin_fn(
         has_own_property,
@@ -600,10 +600,7 @@ pub fn init(interpreter: &mut Interpreter) -> (&'static str, Value) {
     make_builtin_fn(is, "is", &object, 2, interpreter);
 
     // Set standard object
-    interpreter.standard_objects.object = StandardConstructor::new(
-        object.unwrap_object(),
-        prototype.unwrap_object()
-    );
+    interpreter.standard_objects.object = StandardConstructor::new(object.clone(), prototype);
 
-    ("Object", object)
+    ("Object", object.into())
 }

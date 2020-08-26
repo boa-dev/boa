@@ -62,9 +62,12 @@ impl ReferenceError {
     pub(crate) fn init(interpreter: &mut Interpreter) -> (&'static str, Value) {
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
-        let prototype: Value = interpreter.construct_object().into();
-        prototype.set_field("name", Self::NAME);
-        prototype.set_field("message", "");
+        let prototype = interpreter.construct_object();
+        {
+            let mut prototype = prototype.borrow_mut();
+            prototype.insert_field("name", Self::NAME.into());
+            prototype.insert_field("message", "".into());
+        }
 
         make_builtin_fn(Self::to_string, "toString", &prototype, 0, interpreter);
 
@@ -78,6 +81,6 @@ impl ReferenceError {
             true,
         );
 
-        (Self::NAME, reference_error_object)
+        (Self::NAME, reference_error_object.into())
     }
 }

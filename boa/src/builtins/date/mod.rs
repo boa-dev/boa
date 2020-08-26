@@ -1245,7 +1245,7 @@ impl Date {
     pub(crate) fn init(interpreter: &mut Interpreter) -> (&'static str, Value) {
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
-        let prototype = interpreter.construct_object().into();
+        let prototype = interpreter.construct_object();
 
         make_builtin_fn(
             getter_method!(get_date),
@@ -1563,7 +1563,7 @@ impl Date {
         make_builtin_fn(Self::now, "now", &date_time_object, 0, interpreter);
         make_builtin_fn(Self::parse, "parse", &date_time_object, 1, interpreter);
         make_builtin_fn(Self::utc, "UTC", &date_time_object, 7, interpreter);
-        (Self::NAME, date_time_object)
+        (Self::NAME, date_time_object.into())
     }
 }
 
