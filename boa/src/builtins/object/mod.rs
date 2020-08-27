@@ -79,7 +79,7 @@ pub trait Class: NativeObject + Sized {
     fn constructor(this: &Value, args: &[Value], ctx: &mut Interpreter) -> Result<Self>;
 
     /// Initializes the internals and the methods of the class.
-    fn methods(class: &mut ClassBuilder<'_>) -> Result<()>;
+    fn init(class: &mut ClassBuilder<'_>) -> Result<()>;
 }
 
 /// This is a wrapper around `Class::constructor` that sets the internal data of a class.

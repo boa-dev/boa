@@ -360,7 +360,7 @@ impl Interpreter {
     /// Register a global class of type `T`, where `T` implemets `Class`.
     ///
     /// # Example
-    /// ```no_run
+    /// ```ignore
     /// #[derive(Debug, Trace, Finalize)]
     /// struct MyClass;
     ///
@@ -375,7 +375,7 @@ impl Interpreter {
         T: Class,
     {
         let mut class_builder = ClassBuilder::new::<T>(self);
-        T::methods(&mut class_builder)?;
+        T::init(&mut class_builder)?;
 
         let class = class_builder.build();
         let property = Property::data_descriptor(class.into(), T::ATTRIBUTE);

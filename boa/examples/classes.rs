@@ -84,7 +84,7 @@ impl Class for Person {
     }
 
     /// This is where the object is intitialized.
-    fn methods(class: &mut ClassBuilder) -> Result<()> {
+    fn init(class: &mut ClassBuilder) -> Result<()> {
         // we add a inheritable method `sayHello` with length `0` the amount of args it takes.
         //
         // This function is added to `Person.prototype.sayHello()`
