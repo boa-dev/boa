@@ -211,7 +211,6 @@ where
     }
 
     /// Retrieves the next UTF-8 checked character.
-    #[inline]
     fn next_char(&mut self) -> io::Result<Option<char>> {
         let first_byte = match self.iter.next().transpose()? {
             Some(b) => b,
