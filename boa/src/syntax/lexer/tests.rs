@@ -595,7 +595,9 @@ fn illegal_following_numeric_literal() {
 
     // Decimal Digit
     let mut lexer = Lexer::new(&b"11.6n3"[0..]);
-    let err = lexer.next().expect_err("DecimalDigit following NumericLiteral not rejected as expected");
+    let err = lexer
+        .next()
+        .expect_err("DecimalDigit following NumericLiteral not rejected as expected");
     if let Error::Syntax(_, pos) = err {
         assert_eq!(pos, Position::new(1, 5))
     } else {
