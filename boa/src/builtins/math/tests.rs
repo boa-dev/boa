@@ -718,7 +718,11 @@ fn tan() {
 
     let a = forward_val(&mut engine, "a").unwrap();
 
-    assert!(float_cmp::approx_eq!(f64, a.to_number(&mut engine).unwrap(), f64::from(1.964_759_657_248_652_5)));
+    assert!(float_cmp::approx_eq!(
+        f64,
+        a.to_number(&mut engine).unwrap(),
+        f64::from(1.964_759_657_248_652_5)
+    ));
 }
 
 #[test]
