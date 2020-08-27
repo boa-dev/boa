@@ -18,15 +18,20 @@ use self::{
     object_initializer::ObjectLiteral,
 };
 use super::Expression;
-use crate::syntax::{
-    ast::{
-        node::{Call, Identifier, New, Node},
-        token::NumericLiteral,
-        Const, Keyword, Punctuator, TokenKind,
+use crate::{
+    profiler::BoaProfiler,
+    syntax::{
+        ast::{
+            node::{Call, Identifier, New, Node},
+            Const, Keyword, Punctuator,
+        },
+        lexer::{token::Numeric, InputElement, TokenKind},
+        parser::{AllowAwait, AllowYield, Cursor, ParseError, ParseResult, TokenParser},
     },
-    parser::{AllowAwait, AllowYield, Cursor, ParseError, ParseResult, TokenParser},
 };
 pub(in crate::syntax::parser) use object_initializer::Initializer;
+
+use std::io::Read;
 
 /// Parses a primary expression.
 ///
@@ -56,30 +61,37 @@ impl PrimaryExpression {
     }
 }
 
-impl TokenParser for PrimaryExpression {
+impl<R> TokenParser<R> for PrimaryExpression
+where
+    R: Read,
+{
     type Output = Node;
 
-    fn parse(self, cursor: &mut Cursor<'_>) -> ParseResult {
-        let tok = cursor.next().ok_or(ParseError::AbruptEnd)?;
+    fn parse(self, cursor: &mut Cursor<R>) -> ParseResult {
+        let _timer = BoaProfiler::global().start_event("PrimaryExpression", "Parsing");
 
-        match &tok.kind {
+        let tok = cursor.next()?.ok_or(ParseError::AbruptEnd)?;
+
+        match tok.kind() {
             TokenKind::Keyword(Keyword::This) => Ok(Node::This),
-            // TokenKind::Keyword(Keyword::Arguments) => Ok(Node::new(NodeBase::Arguments, tok.pos)),
             TokenKind::Keyword(Keyword::Function) => {
                 FunctionExpression.parse(cursor).map(Node::from)
             }
             TokenKind::Punctuator(Punctuator::OpenParen) => {
+                cursor.set_goal(InputElement::RegExp);
                 let expr =
                     Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?;
                 cursor.expect(Punctuator::CloseParen, "primary expression")?;
                 Ok(expr)
             }
             TokenKind::Punctuator(Punctuator::OpenBracket) => {
+                cursor.set_goal(InputElement::RegExp);
                 ArrayLiteral::new(self.allow_yield, self.allow_await)
                     .parse(cursor)
                     .map(Node::ArrayDecl)
             }
             TokenKind::Punctuator(Punctuator::OpenBlock) => {
+                cursor.set_goal(InputElement::RegExp);
                 Ok(ObjectLiteral::new(self.allow_yield, self.allow_await)
                     .parse(cursor)?
                     .into())
@@ -88,13 +100,9 @@ impl TokenParser for PrimaryExpression {
             TokenKind::NullLiteral => Ok(Const::Null.into()),
             TokenKind::Identifier(ident) => Ok(Identifier::from(ident.as_ref()).into()), // TODO: IdentifierReference
             TokenKind::StringLiteral(s) => Ok(Const::from(s.as_ref()).into()),
-            TokenKind::NumericLiteral(NumericLiteral::Integer(num)) => Ok(Const::from(*num).into()),
-            TokenKind::NumericLiteral(NumericLiteral::Rational(num)) => {
-                Ok(Const::from(*num).into())
-            }
-            TokenKind::NumericLiteral(NumericLiteral::BigInt(num)) => {
-                Ok(Const::from(num.clone()).into())
-            }
+            TokenKind::NumericLiteral(Numeric::Integer(num)) => Ok(Const::from(*num).into()),
+            TokenKind::NumericLiteral(Numeric::Rational(num)) => Ok(Const::from(*num).into()),
+            TokenKind::NumericLiteral(Numeric::BigInt(num)) => Ok(Const::from(num.clone()).into()),
             TokenKind::RegularExpressionLiteral(body, flags) => {
                 Ok(Node::from(New::from(Call::new(
                     Identifier::from("RegExp"),
@@ -103,6 +111,22 @@ impl TokenParser for PrimaryExpression {
                         Const::from(flags.to_string()).into(),
                     ],
                 ))))
+            }
+            TokenKind::Punctuator(Punctuator::Div) => {
+                let tok = cursor.lex_regex(tok.span().start())?;
+
+                if let TokenKind::RegularExpressionLiteral(body, flags) = tok.kind() {
+                    Ok(Node::from(New::from(Call::new(
+                        Identifier::from("RegExp"),
+                        vec![
+                            Const::from(body.as_ref()).into(),
+                            Const::from(flags.to_string()).into(),
+                        ],
+                    ))))
+                } else {
+                    // A regex was expected and nothing else.
+                    Err(ParseError::unexpected(tok, "regular expression literal"))
+                }
             }
             _ => Err(ParseError::unexpected(tok.clone(), "primary expression")),
         }

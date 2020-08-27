@@ -1,16 +1,14 @@
 //! Tests for the parser.
 
 use super::Parser;
-use crate::syntax::{
-    ast::{
-        node::{
-            field::GetConstField, Assign, BinOp, Call, FunctionDecl, Identifier, New, Node, Return,
-            StatementList, UnaryOp, VarDecl, VarDeclList,
-        },
-        op::{self, NumOp},
-        Const,
+use crate::syntax::ast::{
+    node::{
+        field::GetConstField, ArrowFunctionDecl, Assign, BinOp, Call, FormalParameter,
+        FunctionDecl, Identifier, LetDecl, LetDeclList, New, Node, Return, StatementList, UnaryOp,
+        VarDecl, VarDeclList,
     },
-    lexer::Lexer,
+    op::{self, CompOp, LogOp, NumOp},
+    Const,
 };
 
 /// Checks that the given JavaScript string gives the expected expression.
@@ -20,11 +18,8 @@ pub(super) fn check_parser<L>(js: &str, expr: L)
 where
     L: Into<Box<[Node]>>,
 {
-    let mut lexer = Lexer::new(js);
-    lexer.lex().expect("failed to lex");
-
     assert_eq!(
-        Parser::new(&lexer.tokens)
+        Parser::new(js.as_bytes())
             .parse_all()
             .expect("failed to parse"),
         StatementList::from(expr)
@@ -34,10 +29,7 @@ where
 /// Checks that the given javascript string creates a parse error.
 // TODO: #[track_caller]: https://github.com/rust-lang/rust/issues/47809
 pub(super) fn check_invalid(js: &str) {
-    let mut lexer = Lexer::new(js);
-    lexer.lex().expect("failed to lex");
-
-    assert!(Parser::new(&lexer.tokens).parse_all().is_err());
+    assert!(Parser::new(js.as_bytes()).parse_all().is_err());
 }
 
 /// Should be parsed as `new Class().method()` instead of `new (Class().method())`
@@ -101,6 +93,219 @@ fn hoisting() {
             Assign::new(Identifier::from("a"), Const::from(10)).into(),
             UnaryOp::new(op::UnaryOp::IncrementPost, Identifier::from("a")).into(),
             VarDeclList::from(vec![VarDecl::new("a", None)]).into(),
+        ],
+    );
+}
+
+#[test]
+fn ambigous_regex_divide_expression() {
+    let s = "1 / a === 1 / b";
+
+    check_parser(
+        s,
+        vec![BinOp::new(
+            CompOp::StrictEqual,
+            BinOp::new(NumOp::Div, Const::Int(1), Identifier::from("a")),
+            BinOp::new(NumOp::Div, Const::Int(1), Identifier::from("b")),
+        )
+        .into()],
+    );
+}
+
+#[test]
+fn two_divisions_in_expression() {
+    let s = "a !== 0 || 1 / a === 1 / b;";
+
+    check_parser(
+        s,
+        vec![BinOp::new(
+            LogOp::Or,
+            BinOp::new(CompOp::StrictNotEqual, Identifier::from("a"), Const::Int(0)),
+            BinOp::new(
+                CompOp::StrictEqual,
+                BinOp::new(NumOp::Div, Const::Int(1), Identifier::from("a")),
+                BinOp::new(NumOp::Div, Const::Int(1), Identifier::from("b")),
+            ),
+        )
+        .into()],
+    );
+}
+
+#[test]
+fn comment_semi_colon_insertion() {
+    let s = r#"
+    let a = 10 // Comment
+    let b = 20;
+    "#;
+
+    check_parser(
+        s,
+        vec![
+            LetDeclList::from(vec![LetDecl::new::<&str, Option<Node>>(
+                "a",
+                Some(Const::Int(10).into()),
+            )
+            .into()])
+            .into(),
+            LetDeclList::from(vec![LetDecl::new::<&str, Option<Node>>(
+                "b",
+                Some(Const::Int(20).into()),
+            )
+            .into()])
+            .into(),
+        ],
+    );
+}
+
+#[test]
+fn multiline_comment_semi_colon_insertion() {
+    let s = r#"
+    let a = 10 /* Test
+    Multiline
+    Comment
+    */ let b = 20;
+    "#;
+
+    check_parser(
+        s,
+        vec![
+            LetDeclList::from(vec![LetDecl::new::<&str, Option<Node>>(
+                "a",
+                Some(Const::Int(10).into()),
+            )
+            .into()])
+            .into(),
+            LetDeclList::from(vec![LetDecl::new::<&str, Option<Node>>(
+                "b",
+                Some(Const::Int(20).into()),
+            )
+            .into()])
+            .into(),
+        ],
+    );
+}
+
+#[test]
+fn multiline_comment_no_lineterminator() {
+    let s = r#"
+    let a = 10; /* Test comment */ let b = 20;
+    "#;
+
+    check_parser(
+        s,
+        vec![
+            LetDeclList::from(vec![LetDecl::new::<&str, Option<Node>>(
+                "a",
+                Some(Const::Int(10).into()),
+            )
+            .into()])
+            .into(),
+            LetDeclList::from(vec![LetDecl::new::<&str, Option<Node>>(
+                "b",
+                Some(Const::Int(20).into()),
+            )
+            .into()])
+            .into(),
+        ],
+    );
+}
+
+#[test]
+fn assignment_line_terminator() {
+    let s = r#"
+    let a = 3;
+
+    a = 
+    5;
+    "#;
+
+    check_parser(
+        s,
+        vec![
+            LetDeclList::from(vec![LetDecl::new::<&str, Option<Node>>(
+                "a",
+                Some(Const::Int(3).into()),
+            )
+            .into()])
+            .into(),
+            Assign::new(Identifier::from("a"), Const::from(5)).into(),
+        ],
+    );
+}
+
+#[test]
+fn assignment_multiline_terminator() {
+    let s = r#"
+    let a = 3;
+
+
+
+
+
+    a = 
+
+
+
+
+
+
+
+    
+    5;
+    "#;
+
+    check_parser(
+        s,
+        vec![
+            LetDeclList::from(vec![LetDecl::new::<&str, Option<Node>>(
+                "a",
+                Some(Const::Int(3).into()),
+            )
+            .into()])
+            .into(),
+            Assign::new(Identifier::from("a"), Const::from(5)).into(),
+        ],
+    );
+}
+
+#[test]
+fn bracketed_expr() {
+    let s = r#"(b)"#;
+
+    check_parser(s, vec![Identifier::from("b").into()]);
+}
+
+#[test]
+fn increment_in_comma_op() {
+    let s = r#"(b++, b)"#;
+
+    check_parser(
+        s,
+        vec![BinOp::new::<_, Node, Node>(
+            op::BinOp::Comma,
+            UnaryOp::new::<Node>(op::UnaryOp::IncrementPost, Identifier::from("b").into()).into(),
+            Identifier::from("b").into(),
+        )
+        .into()],
+    );
+}
+
+#[test]
+fn spread_in_arrow_function() {
+    let s = r#"
+    (...b) => {
+        b
+    }
+    "#;
+
+    check_parser(
+        s,
+        vec![
+            ArrowFunctionDecl::new::<Box<[FormalParameter]>, StatementList>(
+                Box::new([FormalParameter::new("b", None, true)]),
+                vec![Identifier::from("b").into()].into(),
+            )
+            .into(),
         ],
     );
 }

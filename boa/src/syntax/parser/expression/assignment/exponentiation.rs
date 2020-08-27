@@ -7,12 +7,14 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Arithmetic_Operators#Exponentiation
 //! [spec]: https://tc39.es/ecma262/#sec-exp-operator
 
+use super::ParseError;
+use crate::syntax::lexer::TokenKind;
 use crate::{
     syntax::{
         ast::{
             node::{BinOp, Node},
             op::NumOp,
-            Keyword, Punctuator, TokenKind,
+            Keyword, Punctuator,
         },
         parser::{
             expression::{unary::UnaryExpression, update::UpdateExpression},
@@ -21,6 +23,8 @@ use crate::{
     },
     BoaProfiler,
 };
+
+use std::io::Read;
 
 /// Parses an exponentiation expression.
 ///
@@ -50,41 +54,45 @@ impl ExponentiationExpression {
     }
 }
 
-impl ExponentiationExpression {
-    /// Checks by looking at the next token to see whether it's a unary operator or not.
-    fn is_unary_expression(cursor: &mut Cursor<'_>) -> bool {
-        if let Some(tok) = cursor.peek(0) {
-            match tok.kind {
-                TokenKind::Keyword(Keyword::Delete)
-                | TokenKind::Keyword(Keyword::Void)
-                | TokenKind::Keyword(Keyword::TypeOf)
-                | TokenKind::Punctuator(Punctuator::Add)
-                | TokenKind::Punctuator(Punctuator::Sub)
-                | TokenKind::Punctuator(Punctuator::Not)
-                | TokenKind::Punctuator(Punctuator::Neg) => true,
-                _ => false,
-            }
-        } else {
-            false
+/// Checks by looking at the next token to see whether it's a unary operator or not.
+fn is_unary_expression<R>(cursor: &mut Cursor<R>) -> Result<bool, ParseError>
+where
+    R: Read,
+{
+    Ok(if let Some(tok) = cursor.peek(0)? {
+        match tok.kind() {
+            TokenKind::Keyword(Keyword::Delete)
+            | TokenKind::Keyword(Keyword::Void)
+            | TokenKind::Keyword(Keyword::TypeOf)
+            | TokenKind::Punctuator(Punctuator::Add)
+            | TokenKind::Punctuator(Punctuator::Sub)
+            | TokenKind::Punctuator(Punctuator::Not)
+            | TokenKind::Punctuator(Punctuator::Neg) => true,
+            _ => false,
         }
-    }
+    } else {
+        false
+    })
 }
 
-impl TokenParser for ExponentiationExpression {
+impl<R> TokenParser<R> for ExponentiationExpression
+where
+    R: Read,
+{
     type Output = Node;
 
-    fn parse(self, cursor: &mut Cursor<'_>) -> ParseResult {
+    fn parse(self, cursor: &mut Cursor<R>) -> ParseResult {
         let _timer = BoaProfiler::global().start_event("ExponentiationExpression", "Parsing");
-        if Self::is_unary_expression(cursor) {
+
+        if is_unary_expression(cursor)? {
             return UnaryExpression::new(self.allow_yield, self.allow_await).parse(cursor);
         }
 
         let lhs = UpdateExpression::new(self.allow_yield, self.allow_await).parse(cursor)?;
-        if let Some(tok) = cursor.next() {
-            if let TokenKind::Punctuator(Punctuator::Exp) = tok.kind {
+        if let Some(tok) = cursor.peek(0)? {
+            if let TokenKind::Punctuator(Punctuator::Exp) = tok.kind() {
+                cursor.next()?.expect("** token vanished"); // Consume the token.
                 return Ok(BinOp::new(NumOp::Exp, lhs, self.parse(cursor)?).into());
-            } else {
-                cursor.back();
             }
         }
         Ok(lhs)

@@ -18,13 +18,16 @@ mod update;
 use self::assignment::ExponentiationExpression;
 pub(super) use self::{assignment::AssignmentExpression, primary::Initializer};
 use super::{AllowAwait, AllowIn, AllowYield, Cursor, ParseResult, TokenParser};
+use crate::syntax::lexer::{InputElement, TokenKind};
 use crate::{
     profiler::BoaProfiler,
     syntax::ast::{
         node::{BinOp, Node},
-        Keyword, Punctuator, TokenKind,
+        Keyword, Punctuator,
     },
 };
+
+use std::io::Read;
 
 // For use in the expression! macro to allow for both Punctuator and Keyword parameters.
 // Always returns false.
@@ -49,15 +52,25 @@ impl PartialEq<Punctuator> for Keyword {
 ///  - The `$lower` identifier will contain the parser for lower level expressions.
 ///
 /// Those exressions are divided by the punctuators passed as the third parameter.
-macro_rules! expression { ($name:ident, $lower:ident, [$( $op:path ),*], [$( $low_param:ident ),*] ) => {
-    impl TokenParser for $name {
+///
+/// The fifth parameter is an Option<InputElement> which sets the goal symbol to set before parsing (or None to leave it as is).
+macro_rules! expression { ($name:ident, $lower:ident, [$( $op:path ),*], [$( $low_param:ident ),*], $goal:expr, $profile:expr ) => {
+    impl<R> TokenParser<R> for $name
+    where
+        R: Read
+    {
         type Output = Node;
 
-        fn parse(self, cursor: &mut Cursor<'_>) -> ParseResult {
-            let _timer = BoaProfiler::global().start_event("Expression", "Parsing");
+        fn parse(self, cursor: &mut Cursor<R>) -> ParseResult {
+            let _timer = BoaProfiler::global().start_event($profile, "Parsing");
+
+            if $goal.is_some() {
+                cursor.set_goal($goal.unwrap());
+            }
+
             let mut lhs = $lower::new($( self.$low_param ),*).parse(cursor)?;
-            while let Some(tok) = cursor.peek(0) {
-                match tok.kind {
+            while let Some(tok) = cursor.peek(0)? {
+                match *tok.kind() {
                     TokenKind::Punctuator(op) if $( op == $op )||* => {
                         let _ = cursor.next().expect("token disappeared");
                         lhs = BinOp::new(
@@ -77,6 +90,7 @@ macro_rules! expression { ($name:ident, $lower:ident, [$( $op:path ),*], [$( $lo
                     _ => break
                 }
             }
+
             Ok(lhs)
         }
     }
@@ -117,7 +131,9 @@ expression!(
     Expression,
     AssignmentExpression,
     [Punctuator::Comma],
-    [allow_in, allow_yield, allow_await]
+    [allow_in, allow_yield, allow_await],
+    None::<InputElement>,
+    "Expression"
 );
 
 /// Parses a logical `OR` expression.
@@ -155,7 +171,9 @@ expression!(
     LogicalORExpression,
     LogicalANDExpression,
     [Punctuator::BoolOr],
-    [allow_in, allow_yield, allow_await]
+    [allow_in, allow_yield, allow_await],
+    None::<InputElement>,
+    "LogicalOrExpression"
 );
 
 /// Parses a logical `AND` expression.
@@ -193,7 +211,9 @@ expression!(
     LogicalANDExpression,
     BitwiseORExpression,
     [Punctuator::BoolAnd],
-    [allow_in, allow_yield, allow_await]
+    [allow_in, allow_yield, allow_await],
+    None::<InputElement>,
+    "LogicalANDExpression"
 );
 
 /// Parses a bitwise `OR` expression.
@@ -231,7 +251,9 @@ expression!(
     BitwiseORExpression,
     BitwiseXORExpression,
     [Punctuator::Or],
-    [allow_in, allow_yield, allow_await]
+    [allow_in, allow_yield, allow_await],
+    None::<InputElement>,
+    "BitwiseORExpression"
 );
 
 /// Parses a bitwise `XOR` expression.
@@ -269,7 +291,9 @@ expression!(
     BitwiseXORExpression,
     BitwiseANDExpression,
     [Punctuator::Xor],
-    [allow_in, allow_yield, allow_await]
+    [allow_in, allow_yield, allow_await],
+    None::<InputElement>,
+    "BitwiseXORExpression"
 );
 
 /// Parses a bitwise `AND` expression.
@@ -307,7 +331,9 @@ expression!(
     BitwiseANDExpression,
     EqualityExpression,
     [Punctuator::And],
-    [allow_in, allow_yield, allow_await]
+    [allow_in, allow_yield, allow_await],
+    None::<InputElement>,
+    "BitwiseANDExpression"
 );
 
 /// Parses an equality expression.
@@ -350,7 +376,9 @@ expression!(
         Punctuator::StrictEq,
         Punctuator::StrictNotEq
     ],
-    [allow_in, allow_yield, allow_await]
+    [allow_in, allow_yield, allow_await],
+    None::<InputElement>,
+    "EqualityExpression"
 );
 
 /// Parses a relational expression.
@@ -392,9 +420,12 @@ expression!(
         Punctuator::GreaterThan,
         Punctuator::LessThanOrEq,
         Punctuator::GreaterThanOrEq,
+        Keyword::InstanceOf,
         Keyword::In
     ],
-    [allow_yield, allow_await]
+    [allow_yield, allow_await],
+    None::<InputElement>,
+    "RelationoalExpression"
 );
 
 /// Parses a bitwise shift expression.
@@ -433,7 +464,9 @@ expression!(
         Punctuator::RightSh,
         Punctuator::URightSh
     ],
-    [allow_yield, allow_await]
+    [allow_yield, allow_await],
+    None::<InputElement>,
+    "ShiftExpression"
 );
 
 /// Parses an additive expression.
@@ -470,7 +503,9 @@ expression!(
     AdditiveExpression,
     MultiplicativeExpression,
     [Punctuator::Add, Punctuator::Sub],
-    [allow_yield, allow_await]
+    [allow_yield, allow_await],
+    None::<InputElement>,
+    "AdditiveExpression"
 );
 
 /// Parses a multiplicative expression.
@@ -507,5 +542,7 @@ expression!(
     MultiplicativeExpression,
     ExponentiationExpression,
     [Punctuator::Mul, Punctuator::Div, Punctuator::Mod],
-    [allow_yield, allow_await]
+    [allow_yield, allow_await],
+    Some(InputElement::Div),
+    "MultiplicativeExpression"
 );

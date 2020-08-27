@@ -34,11 +34,16 @@ use self::{
     try_stm::TryStatement,
     variable::VariableStatement,
 };
+
 use super::{AllowAwait, AllowReturn, AllowYield, Cursor, ParseError, TokenParser};
+
+use crate::syntax::lexer::TokenKind;
 use crate::{
-    syntax::ast::{node, Keyword, Node, Punctuator, TokenKind},
+    syntax::ast::{node, Keyword, Node, Punctuator},
     BoaProfiler,
 };
+
+use std::io::Read;
 
 /// Statement parsing.
 ///
@@ -89,15 +94,18 @@ impl Statement {
     }
 }
 
-impl TokenParser for Statement {
+impl<R> TokenParser<R> for Statement
+where
+    R: Read,
+{
     type Output = Node;
 
-    fn parse(self, cursor: &mut Cursor<'_>) -> Result<Self::Output, ParseError> {
+    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("Statement", "Parsing");
         // TODO: add BreakableStatement and divide Whiles, fors and so on to another place.
-        let tok = cursor.peek(0).ok_or(ParseError::AbruptEnd)?;
+        let tok = cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?;
 
-        match tok.kind {
+        match tok.kind() {
             TokenKind::Keyword(Keyword::If) => {
                 IfStatement::new(self.allow_yield, self.allow_await, self.allow_return)
                     .parse(cursor)
@@ -163,9 +171,6 @@ impl TokenParser for Statement {
                     .map(Node::from)
             }
             // TODO: https://tc39.es/ecma262/#prod-LabelledStatement
-            // TokenKind::Punctuator(Punctuator::Semicolon) => {
-            //     return Ok(Node::new(NodeBase::Nope, tok.pos))
-            // }
             _ => ExpressionStatement::new(self.allow_yield, self.allow_await).parse(cursor),
         }
     }
@@ -219,27 +224,33 @@ impl StatementList {
     /// performance impact of this more general mechanism.
     ///
     /// Note that the last token which causes the parse to finish is not consumed.
-    pub(crate) fn parse_generalised(
+    pub(crate) fn parse_generalised<R>(
         self,
-        cursor: &mut Cursor<'_>,
+        cursor: &mut Cursor<R>,
         break_nodes: &[TokenKind],
-    ) -> Result<node::StatementList, ParseError> {
+    ) -> Result<node::StatementList, ParseError>
+    where
+        R: Read,
+    {
         let mut items = Vec::new();
 
         loop {
-            match cursor.peek(0) {
-                Some(token) if break_nodes.contains(&token.kind) => break,
-                None => return Err(ParseError::AbruptEnd),
-                _ => {}
+            if let Some(token) = cursor.peek(0)? {
+                if break_nodes.contains(token.kind()) {
+                    break;
+                }
+            } else {
+                return Err(ParseError::AbruptEnd);
             }
 
             let item =
                 StatementListItem::new(self.allow_yield, self.allow_await, self.allow_return)
                     .parse(cursor)?;
+
             items.push(item);
 
             // move the cursor forward for any consecutive semicolon.
-            while cursor.next_if(Punctuator::Semicolon).is_some() {}
+            while cursor.next_if(Punctuator::Semicolon)?.is_some() {}
         }
 
         items.sort_by(Node::hoistable_order);
@@ -248,16 +259,19 @@ impl StatementList {
     }
 }
 
-impl TokenParser for StatementList {
+impl<R> TokenParser<R> for StatementList
+where
+    R: Read,
+{
     type Output = node::StatementList;
 
-    fn parse(self, cursor: &mut Cursor<'_>) -> Result<Self::Output, ParseError> {
+    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("StatementList", "Parsing");
         let mut items = Vec::new();
 
         loop {
-            match cursor.peek(0) {
-                Some(token) if token.kind == TokenKind::Punctuator(Punctuator::CloseBlock) => {
+            match cursor.peek(0)? {
+                Some(token) if token.kind() == &TokenKind::Punctuator(Punctuator::CloseBlock) => {
                     if self.break_when_closingbraces {
                         break;
                     } else {
@@ -280,7 +294,7 @@ impl TokenParser for StatementList {
             items.push(item);
 
             // move the cursor forward for any consecutive semicolon.
-            while cursor.next_if(Punctuator::Semicolon).is_some() {}
+            while cursor.next_if(Punctuator::Semicolon)?.is_some() {}
         }
 
         items.sort_by(Node::hoistable_order);
@@ -322,14 +336,17 @@ impl StatementListItem {
     }
 }
 
-impl TokenParser for StatementListItem {
+impl<R> TokenParser<R> for StatementListItem
+where
+    R: Read,
+{
     type Output = Node;
 
-    fn parse(self, cursor: &mut Cursor<'_>) -> Result<Self::Output, ParseError> {
+    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("StatementListItem", "Parsing");
-        let tok = cursor.peek(0).ok_or(ParseError::AbruptEnd)?;
+        let tok = cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?;
 
-        match tok.kind {
+        match *tok.kind() {
             TokenKind::Keyword(Keyword::Function)
             | TokenKind::Keyword(Keyword::Const)
             | TokenKind::Keyword(Keyword::Let) => {
@@ -378,22 +395,25 @@ impl BindingIdentifier {
     }
 }
 
-impl TokenParser for BindingIdentifier {
+impl<R> TokenParser<R> for BindingIdentifier
+where
+    R: Read,
+{
     type Output = Box<str>;
 
-    fn parse(self, cursor: &mut Cursor<'_>) -> Result<Self::Output, ParseError> {
+    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("BindingIdentifier", "Parsing");
         // TODO: strict mode.
 
-        let next_token = cursor.next().ok_or(ParseError::AbruptEnd)?;
+        let next_token = cursor.next()?.ok_or(ParseError::AbruptEnd)?;
 
-        match next_token.kind {
+        match next_token.kind() {
             TokenKind::Identifier(ref s) => Ok(s.clone()),
             TokenKind::Keyword(k @ Keyword::Yield) if !self.allow_yield.0 => Ok(k.as_str().into()),
             TokenKind::Keyword(k @ Keyword::Await) if !self.allow_await.0 => Ok(k.as_str().into()),
             _ => Err(ParseError::expected(
                 vec![TokenKind::identifier("identifier")],
-                next_token.clone(),
+                next_token,
                 "binding identifier",
             )),
         }

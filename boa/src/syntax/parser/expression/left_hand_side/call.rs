@@ -8,7 +8,6 @@
 //! [spec]: https://tc39.es/ecma262/#prod-CallExpression
 
 use super::arguments::Arguments;
-
 use crate::{
     syntax::{
         ast::{
@@ -16,8 +15,9 @@ use crate::{
                 field::{GetConstField, GetField},
                 Call, Node,
             },
-            Punctuator, TokenKind,
+            Punctuator,
         },
+        lexer::TokenKind,
         parser::{
             expression::Expression, AllowAwait, AllowYield, Cursor, ParseError, ParseResult,
             TokenParser,
@@ -25,6 +25,8 @@ use crate::{
     },
     BoaProfiler,
 };
+
+use std::io::Read;
 
 /// Parses a call expression.
 ///
@@ -54,35 +56,40 @@ impl CallExpression {
     }
 }
 
-impl TokenParser for CallExpression {
+impl<R> TokenParser<R> for CallExpression
+where
+    R: Read,
+{
     type Output = Node;
 
-    fn parse(self, cursor: &mut Cursor<'_>) -> ParseResult {
+    fn parse(self, cursor: &mut Cursor<R>) -> ParseResult {
         let _timer = BoaProfiler::global().start_event("CallExpression", "Parsing");
-        let mut lhs = match cursor.peek(0) {
-            Some(tk) if tk.kind == TokenKind::Punctuator(Punctuator::OpenParen) => {
-                let args = Arguments::new(self.allow_yield, self.allow_await).parse(cursor)?;
-                Node::from(Call::new(self.first_member_expr, args))
-            }
-            _ => {
-                let next_token = cursor.next().ok_or(ParseError::AbruptEnd)?;
-                return Err(ParseError::expected(
-                    vec![TokenKind::Punctuator(Punctuator::OpenParen)],
-                    next_token.clone(),
-                    "call expression",
-                ));
-            }
+
+        let token = cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?;
+
+        let mut lhs = if token.kind() == &TokenKind::Punctuator(Punctuator::OpenParen) {
+            let args = Arguments::new(self.allow_yield, self.allow_await).parse(cursor)?;
+            Node::from(Call::new(self.first_member_expr, args))
+        } else {
+            let next_token = cursor.next()?.expect("token vanished");
+            return Err(ParseError::expected(
+                vec![TokenKind::Punctuator(Punctuator::OpenParen)],
+                next_token,
+                "call expression",
+            ));
         };
 
-        while let Some(tok) = cursor.peek(0) {
-            match tok.kind {
+        while let Some(tok) = cursor.peek(0)? {
+            let token = tok.clone();
+            match token.kind() {
                 TokenKind::Punctuator(Punctuator::OpenParen) => {
                     let args = Arguments::new(self.allow_yield, self.allow_await).parse(cursor)?;
                     lhs = Node::from(Call::new(lhs, args));
                 }
                 TokenKind::Punctuator(Punctuator::Dot) => {
-                    let _ = cursor.next().ok_or(ParseError::AbruptEnd)?; // We move the cursor.
-                    match &cursor.next().ok_or(ParseError::AbruptEnd)?.kind {
+                    cursor.next()?.ok_or(ParseError::AbruptEnd)?; // We move the parser forward.
+
+                    match &cursor.next()?.ok_or(ParseError::AbruptEnd)?.kind() {
                         TokenKind::Identifier(name) => {
                             lhs = GetConstField::new(lhs, name.clone()).into();
                         }
@@ -92,14 +99,14 @@ impl TokenParser for CallExpression {
                         _ => {
                             return Err(ParseError::expected(
                                 vec![TokenKind::identifier("identifier")],
-                                tok.clone(),
+                                token,
                                 "call expression",
                             ));
                         }
                     }
                 }
                 TokenKind::Punctuator(Punctuator::OpenBracket) => {
-                    let _ = cursor.next().ok_or(ParseError::AbruptEnd)?; // We move the cursor.
+                    let _ = cursor.next()?.ok_or(ParseError::AbruptEnd)?; // We move the parser.
                     let idx =
                         Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?;
                     cursor.expect(Punctuator::CloseBracket, "call expression")?;

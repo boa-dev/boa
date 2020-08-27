@@ -7,9 +7,11 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Glossary/Argument
 //! [spec]: https://tc39.es/ecma262/#prod-Arguments
 
+use crate::syntax::lexer::TokenKind;
 use crate::{
     syntax::{
-        ast::{node::Spread, Node, Punctuator, TokenKind},
+        ast::{node::Spread, Node, Punctuator},
+        lexer::InputElement,
         parser::{
             expression::AssignmentExpression, AllowAwait, AllowYield, Cursor, ParseError,
             TokenParser,
@@ -17,6 +19,8 @@ use crate::{
     },
     BoaProfiler,
 };
+
+use std::io::Read;
 
 /// Parses a list of arguments.
 ///
@@ -46,23 +50,33 @@ impl Arguments {
     }
 }
 
-impl TokenParser for Arguments {
+impl<R> TokenParser<R> for Arguments
+where
+    R: Read,
+{
     type Output = Box<[Node]>;
 
-    fn parse(self, cursor: &mut Cursor<'_>) -> Result<Self::Output, ParseError> {
+    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("Arguments", "Parsing");
+
         cursor.expect(Punctuator::OpenParen, "arguments")?;
         let mut args = Vec::new();
         loop {
-            let next_token = cursor.next().ok_or(ParseError::AbruptEnd)?;
-            match next_token.kind {
-                TokenKind::Punctuator(Punctuator::CloseParen) => break,
+            let next_token = cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?;
+
+            match next_token.kind() {
+                TokenKind::Punctuator(Punctuator::CloseParen) => {
+                    cursor.next()?.expect(") token vanished"); // Consume the token.
+                    break;
+                }
                 TokenKind::Punctuator(Punctuator::Comma) => {
+                    let next_token = cursor.next()?.expect(", token vanished"); // Consume the token.
+
                     if args.is_empty() {
-                        return Err(ParseError::unexpected(next_token.clone(), None));
+                        return Err(ParseError::unexpected(next_token, None));
                     }
 
-                    if cursor.next_if(Punctuator::CloseParen).is_some() {
+                    if cursor.next_if(Punctuator::CloseParen)?.is_some() {
                         break;
                     }
                 }
@@ -76,13 +90,11 @@ impl TokenParser for Arguments {
                             next_token.clone(),
                             "argument list",
                         ));
-                    } else {
-                        cursor.back();
                     }
                 }
             }
 
-            if cursor.next_if(Punctuator::Spread).is_some() {
+            if cursor.next_if(Punctuator::Spread)?.is_some() {
                 args.push(
                     Spread::new(
                         AssignmentExpression::new(true, self.allow_yield, self.allow_await)
@@ -91,6 +103,7 @@ impl TokenParser for Arguments {
                     .into(),
                 );
             } else {
+                cursor.set_goal(InputElement::RegExp);
                 args.push(
                     AssignmentExpression::new(true, self.allow_yield, self.allow_await)
                         .parse(cursor)?,

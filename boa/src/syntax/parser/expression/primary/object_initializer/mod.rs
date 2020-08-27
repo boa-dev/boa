@@ -9,12 +9,11 @@
 
 #[cfg(test)]
 mod tests;
-
+use crate::syntax::lexer::TokenKind;
 use crate::{
     syntax::{
         ast::{
             node::{self, FunctionExpr, MethodDefinitionKind, Node, Object},
-            token::{Token, TokenKind},
             Punctuator,
         },
         parser::{
@@ -25,6 +24,7 @@ use crate::{
     },
     BoaProfiler,
 };
+use std::io::Read;
 
 /// Parses an object literal.
 ///
@@ -54,33 +54,36 @@ impl ObjectLiteral {
     }
 }
 
-impl TokenParser for ObjectLiteral {
+impl<R> TokenParser<R> for ObjectLiteral
+where
+    R: Read,
+{
     type Output = Object;
 
-    fn parse(self, cursor: &mut Cursor<'_>) -> Result<Self::Output, ParseError> {
+    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("ObjectLiteral", "Parsing");
         let mut elements = Vec::new();
 
         loop {
-            if cursor.next_if(Punctuator::CloseBlock).is_some() {
+            if cursor.next_if(Punctuator::CloseBlock)?.is_some() {
                 break;
             }
 
             elements
                 .push(PropertyDefinition::new(self.allow_yield, self.allow_await).parse(cursor)?);
 
-            if cursor.next_if(Punctuator::CloseBlock).is_some() {
+            if cursor.next_if(Punctuator::CloseBlock)?.is_some() {
                 break;
             }
 
-            if cursor.next_if(Punctuator::Comma).is_none() {
-                let next_token = cursor.next().ok_or(ParseError::AbruptEnd)?;
+            if cursor.next_if(Punctuator::Comma)?.is_none() {
+                let next_token = cursor.next()?.ok_or(ParseError::AbruptEnd)?;
                 return Err(ParseError::expected(
                     vec![
                         TokenKind::Punctuator(Punctuator::Comma),
                         TokenKind::Punctuator(Punctuator::CloseBlock),
                     ],
-                    next_token.clone(),
+                    next_token,
                     "object literal",
                 ));
             }
@@ -116,28 +119,30 @@ impl PropertyDefinition {
     }
 }
 
-impl TokenParser for PropertyDefinition {
+impl<R> TokenParser<R> for PropertyDefinition
+where
+    R: Read,
+{
     type Output = node::PropertyDefinition;
 
-    fn parse(self, cursor: &mut Cursor<'_>) -> Result<Self::Output, ParseError> {
-        if cursor.next_if(Punctuator::Spread).is_some() {
+    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
+        let _timer = BoaProfiler::global().start_event("PropertyDefinition", "Parsing");
+
+        if cursor.next_if(Punctuator::Spread)?.is_some() {
             let node = AssignmentExpression::new(true, self.allow_yield, self.allow_await)
                 .parse(cursor)?;
             return Ok(node::PropertyDefinition::SpreadObject(node));
         }
 
-        let prop_name = cursor
-            .next()
-            .map(Token::to_string)
-            .ok_or(ParseError::AbruptEnd)?;
-        if cursor.next_if(Punctuator::Colon).is_some() {
+        let prop_name = cursor.next()?.ok_or(ParseError::AbruptEnd)?.to_string();
+        if cursor.next_if(Punctuator::Colon)?.is_some() {
             let val = AssignmentExpression::new(true, self.allow_yield, self.allow_await)
                 .parse(cursor)?;
             return Ok(node::PropertyDefinition::property(prop_name, val));
         }
 
         if cursor
-            .next_if(TokenKind::Punctuator(Punctuator::OpenParen))
+            .next_if(TokenKind::Punctuator(Punctuator::OpenParen))?
             .is_some()
             || ["get", "set"].contains(&prop_name.as_str())
         {
@@ -145,10 +150,7 @@ impl TokenParser for PropertyDefinition {
                 .parse(cursor);
         }
 
-        let pos = cursor
-            .peek(0)
-            .map(|tok| tok.span().start())
-            .ok_or(ParseError::AbruptEnd)?;
+        let pos = cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?.span().start();
         Err(ParseError::general("expected property definition", pos))
     }
 }
@@ -182,21 +184,23 @@ impl MethodDefinition {
     }
 }
 
-impl TokenParser for MethodDefinition {
+impl<R> TokenParser<R> for MethodDefinition
+where
+    R: Read,
+{
     type Output = node::PropertyDefinition;
 
-    fn parse(self, cursor: &mut Cursor<'_>) -> Result<Self::Output, ParseError> {
+    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
+        let _timer = BoaProfiler::global().start_event("MethodDefinition", "Parsing");
+
         let (methodkind, prop_name, params) = match self.identifier.as_str() {
             idn @ "get" | idn @ "set" => {
-                let prop_name = cursor
-                    .next()
-                    .map(Token::to_string)
-                    .ok_or(ParseError::AbruptEnd)?;
+                let prop_name = cursor.next()?.ok_or(ParseError::AbruptEnd)?.to_string();
                 cursor.expect(
                     TokenKind::Punctuator(Punctuator::OpenParen),
                     "property method definition",
                 )?;
-                let first_param = cursor.peek(0).expect("current token disappeared").clone();
+                let first_param = cursor.peek(0)?.expect("current token disappeared").clone();
                 let params = FormalParameters::new(false, false).parse(cursor)?;
                 cursor.expect(Punctuator::CloseParen, "method definition")?;
                 if idn == "get" {
@@ -279,11 +283,16 @@ impl Initializer {
     }
 }
 
-impl TokenParser for Initializer {
+impl<R> TokenParser<R> for Initializer
+where
+    R: Read,
+{
     type Output = Node;
 
-    fn parse(self, cursor: &mut Cursor<'_>) -> ParseResult {
-        cursor.expect(TokenKind::Punctuator(Punctuator::Assign), "initializer")?;
+    fn parse(self, cursor: &mut Cursor<R>) -> ParseResult {
+        let _timer = BoaProfiler::global().start_event("Initializer", "Parsing");
+
+        cursor.expect(Punctuator::Assign, "initializer")?;
         AssignmentExpression::new(self.allow_in, self.allow_yield, self.allow_await).parse(cursor)
     }
 }

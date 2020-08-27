@@ -1,17 +1,22 @@
-// use super::lexical_declaration_continuation;
+//! Variable statement parsing.
+
 use crate::{
     syntax::{
         ast::{
             node::{VarDecl, VarDeclList},
-            Keyword, Punctuator, TokenKind,
+            Keyword, Punctuator,
         },
+        lexer::TokenKind,
         parser::{
-            expression::Initializer, statement::BindingIdentifier, AllowAwait, AllowIn, AllowYield,
-            Cursor, ParseError, TokenParser,
+            cursor::{Cursor, SemicolonResult},
+            expression::Initializer,
+            statement::BindingIdentifier,
+            AllowAwait, AllowIn, AllowYield, ParseError, TokenParser,
         },
     },
     BoaProfiler,
 };
+use std::io::Read;
 
 /// Variable statement parsing.
 ///
@@ -43,17 +48,20 @@ impl VariableStatement {
     }
 }
 
-impl TokenParser for VariableStatement {
+impl<R> TokenParser<R> for VariableStatement
+where
+    R: Read,
+{
     type Output = VarDeclList;
 
-    fn parse(self, cursor: &mut Cursor<'_>) -> Result<Self::Output, ParseError> {
+    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("VariableStatement", "Parsing");
         cursor.expect(Keyword::Var, "variable statement")?;
 
         let decl_list =
             VariableDeclarationList::new(true, self.allow_yield, self.allow_await).parse(cursor)?;
 
-        cursor.expect_semicolon(false, "variable statement")?;
+        cursor.expect_semicolon("variable statement")?;
 
         Ok(decl_list)
     }
@@ -94,10 +102,13 @@ impl VariableDeclarationList {
     }
 }
 
-impl TokenParser for VariableDeclarationList {
+impl<R> TokenParser<R> for VariableDeclarationList
+where
+    R: Read,
+{
     type Output = VarDeclList;
 
-    fn parse(self, cursor: &mut Cursor<'_>) -> Result<Self::Output, ParseError> {
+    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         let mut list = Vec::new();
 
         loop {
@@ -106,21 +117,13 @@ impl TokenParser for VariableDeclarationList {
                     .parse(cursor)?,
             );
 
-            match cursor.peek_semicolon(false) {
-                (true, _) => break,
-                (false, Some(tk)) if tk.kind == TokenKind::Punctuator(Punctuator::Comma) => {
+            match cursor.peek_semicolon()? {
+                SemicolonResult::NotFound(tk)
+                    if tk.kind() == &TokenKind::Punctuator(Punctuator::Comma) =>
+                {
                     let _ = cursor.next();
                 }
-                _ => {
-                    return Err(ParseError::expected(
-                        vec![
-                            TokenKind::Punctuator(Punctuator::Semicolon),
-                            TokenKind::LineTerminator,
-                        ],
-                        cursor.next().ok_or(ParseError::AbruptEnd)?.clone(),
-                        "lexical declaration",
-                    ))
-                }
+                _ => break,
             }
         }
 
@@ -157,17 +160,27 @@ impl VariableDeclaration {
     }
 }
 
-impl TokenParser for VariableDeclaration {
+impl<R> TokenParser<R> for VariableDeclaration
+where
+    R: Read,
+{
     type Output = VarDecl;
 
-    fn parse(self, cursor: &mut Cursor<'_>) -> Result<Self::Output, ParseError> {
+    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         // TODO: BindingPattern
 
         let name = BindingIdentifier::new(self.allow_yield, self.allow_await).parse(cursor)?;
 
-        let ident =
-            Initializer::new(self.allow_in, self.allow_yield, self.allow_await).try_parse(cursor);
+        let init = if let Some(t) = cursor.peek(0)? {
+            if *t.kind() == TokenKind::Punctuator(Punctuator::Assign) {
+                Some(Initializer::new(true, self.allow_yield, self.allow_await).parse(cursor)?)
+            } else {
+                None
+            }
+        } else {
+            None
+        };
 
-        Ok(VarDecl::new(name, ident))
+        Ok(VarDecl::new(name, init))
     }
 }

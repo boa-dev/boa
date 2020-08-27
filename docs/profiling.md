@@ -27,7 +27,7 @@ In the same directory as the `.events, string_data, string_index` files run `cro
 ### Summarize
 
 If you just want a summary of what functions were ran the most or where the most time was spent you can run `summarize`.  
-This is the same as above except instead of calling `$ crox my_trace` you call `$ summarize summzarize my_trace`. This will generate something like below:
+This is the same as above except instead of calling `$ crox my_trace` you call `$ summarize summarize my_trace`. This will generate something like below:
 
 ```
 +---------------------------------------+-----------+-----------------+----------+------------+

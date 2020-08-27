@@ -1,6 +1,6 @@
 //! Benchmarks of the whole execution engine in Boa.
 
-use boa::{exec::Interpreter, realm::Realm, Executable, Lexer, Parser};
+use boa::{exec::Interpreter, realm::Realm, Executable, Parser};
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
 
 #[cfg(all(target_arch = "x86_64", target_os = "linux", target_env = "gnu"))]
@@ -21,12 +21,8 @@ fn symbol_creation(c: &mut Criterion) {
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);
 
-    // Lex all the tokens.
-    let mut lexer = Lexer::new(SYMBOL_CREATION);
-    lexer.lex().expect("failed to lex");
-
     // Parse the AST nodes.
-    let nodes = Parser::new(&lexer.tokens).parse_all().unwrap();
+    let nodes = Parser::new(SYMBOL_CREATION.as_bytes()).parse_all().unwrap();
 
     // Execute the parsed nodes, passing them through a black box, to avoid over-optimizing by the compiler
     c.bench_function("Symbols (Execution)", move |b| {
@@ -41,12 +37,8 @@ fn for_loop_execution(c: &mut Criterion) {
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);
 
-    // Lex all the tokens.
-    let mut lexer = Lexer::new(FOR_LOOP);
-    lexer.lex().expect("failed to lex");
-
     // Parse the AST nodes.
-    let nodes = Parser::new(&lexer.tokens).parse_all().unwrap();
+    let nodes = Parser::new(FOR_LOOP.as_bytes()).parse_all().unwrap();
 
     // Execute the parsed nodes, passing them through a black box, to avoid over-optimizing by the compiler
     c.bench_function("For loop (Execution)", move |b| {
@@ -61,12 +53,8 @@ fn fibonacci(c: &mut Criterion) {
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);
 
-    // Lex all the tokens.
-    let mut lexer = Lexer::new(FIBONACCI);
-    lexer.lex().expect("failed to lex");
-
     // Parse the AST nodes.
-    let nodes = Parser::new(&lexer.tokens).parse_all().unwrap();
+    let nodes = Parser::new(FIBONACCI.as_bytes()).parse_all().unwrap();
 
     // Execute the parsed nodes, passing them through a black box, to avoid over-optimizing by the compiler
     c.bench_function("Fibonacci (Execution)", move |b| {
@@ -81,12 +69,8 @@ fn object_creation(c: &mut Criterion) {
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);
 
-    // Lex all the tokens.
-    let mut lexer = Lexer::new(OBJECT_CREATION);
-    lexer.lex().expect("failed to lex");
-
     // Parse the AST nodes.
-    let nodes = Parser::new(&lexer.tokens).parse_all().unwrap();
+    let nodes = Parser::new(OBJECT_CREATION.as_bytes()).parse_all().unwrap();
 
     // Execute the parsed nodes, passing them through a black box, to avoid over-optimizing by the compiler
     c.bench_function("Object Creation (Execution)", move |b| {
@@ -101,12 +85,10 @@ fn object_prop_access_const(c: &mut Criterion) {
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);
 
-    // Lex all the tokens.
-    let mut lexer = Lexer::new(OBJECT_PROP_ACCESS_CONST);
-    lexer.lex().expect("failed to lex");
-
     // Parse the AST nodes.
-    let nodes = Parser::new(&lexer.tokens).parse_all().unwrap();
+    let nodes = Parser::new(OBJECT_PROP_ACCESS_CONST.as_bytes())
+        .parse_all()
+        .unwrap();
 
     // Execute the parsed nodes, passing them through a black box, to avoid over-optimizing by the compiler
     c.bench_function("Static Object Property Access (Execution)", move |b| {
@@ -121,12 +103,10 @@ fn object_prop_access_dyn(c: &mut Criterion) {
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);
 
-    // Lex all the tokens.
-    let mut lexer = Lexer::new(OBJECT_PROP_ACCESS_DYN);
-    lexer.lex().expect("failed to lex");
-
     // Parse the AST nodes.
-    let nodes = Parser::new(&lexer.tokens).parse_all().unwrap();
+    let nodes = Parser::new(OBJECT_PROP_ACCESS_DYN.as_bytes())
+        .parse_all()
+        .unwrap();
 
     // Execute the parsed nodes, passing them through a black box, to avoid over-optimizing by the compiler
     c.bench_function("Dynamic Object Property Access (Execution)", move |b| {
@@ -141,12 +121,10 @@ fn regexp_literal_creation(c: &mut Criterion) {
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);
 
-    // Lex all the tokens.
-    let mut lexer = Lexer::new(REGEXP_LITERAL_CREATION);
-    lexer.lex().expect("failed to lex");
-
     // Parse the AST nodes.
-    let nodes = Parser::new(&lexer.tokens).parse_all().unwrap();
+    let nodes = Parser::new(REGEXP_LITERAL_CREATION.as_bytes())
+        .parse_all()
+        .unwrap();
 
     // Execute the parsed nodes, passing them through a black box, to avoid over-optimizing by the compiler
     c.bench_function("RegExp Literal Creation (Execution)", move |b| {
@@ -161,12 +139,8 @@ fn regexp_creation(c: &mut Criterion) {
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);
 
-    // Lex all the tokens.
-    let mut lexer = Lexer::new(REGEXP_CREATION);
-    lexer.lex().expect("failed to lex");
-
     // Parse the AST nodes.
-    let nodes = Parser::new(&lexer.tokens).parse_all().unwrap();
+    let nodes = Parser::new(REGEXP_CREATION.as_bytes()).parse_all().unwrap();
 
     // Execute the parsed nodes, passing them through a black box, to avoid over-optimizing by the compiler
     c.bench_function("RegExp (Execution)", move |b| {
@@ -181,12 +155,8 @@ fn regexp_literal(c: &mut Criterion) {
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);
 
-    // Lex all the tokens.
-    let mut lexer = Lexer::new(REGEXP_LITERAL);
-    lexer.lex().expect("failed to lex");
-
     // Parse the AST nodes.
-    let nodes = Parser::new(&lexer.tokens).parse_all().unwrap();
+    let nodes = Parser::new(REGEXP_LITERAL.as_bytes()).parse_all().unwrap();
 
     // Execute the parsed nodes, passing them through a black box, to avoid over-optimizing by the compiler
     c.bench_function("RegExp Literal (Execution)", move |b| {
@@ -201,12 +171,8 @@ fn regexp(c: &mut Criterion) {
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);
 
-    // Lex all the tokens.
-    let mut lexer = Lexer::new(REGEXP);
-    lexer.lex().expect("failed to lex");
-
     // Parse the AST nodes.
-    let nodes = Parser::new(&lexer.tokens).parse_all().unwrap();
+    let nodes = Parser::new(REGEXP.as_bytes()).parse_all().unwrap();
 
     // Execute the parsed nodes, passing them through a black box, to avoid over-optimizing by the compiler
     c.bench_function("RegExp (Execution)", move |b| {
@@ -220,10 +186,7 @@ fn array_access(c: &mut Criterion) {
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);
 
-    let mut lexer = Lexer::new(ARRAY_ACCESS);
-    lexer.lex().expect("failed to lex");
-
-    let nodes = Parser::new(&lexer.tokens).parse_all().unwrap();
+    let nodes = Parser::new(ARRAY_ACCESS.as_bytes()).parse_all().unwrap();
 
     c.bench_function("Array access (Execution)", move |b| {
         b.iter(|| black_box(&nodes).run(&mut engine).unwrap())
@@ -236,10 +199,7 @@ fn array_creation(c: &mut Criterion) {
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);
 
-    let mut lexer = Lexer::new(ARRAY_CREATE);
-    lexer.lex().expect("failed to lex");
-
-    let nodes = Parser::new(&lexer.tokens).parse_all().unwrap();
+    let nodes = Parser::new(ARRAY_CREATE.as_bytes()).parse_all().unwrap();
 
     c.bench_function("Array creation (Execution)", move |b| {
         b.iter(|| black_box(&nodes).run(&mut engine).unwrap())
@@ -252,10 +212,7 @@ fn array_pop(c: &mut Criterion) {
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);
 
-    let mut lexer = Lexer::new(ARRAY_POP);
-    lexer.lex().expect("failed to lex");
-
-    let nodes = Parser::new(&lexer.tokens).parse_all().unwrap();
+    let nodes = Parser::new(ARRAY_POP.as_bytes()).parse_all().unwrap();
 
     c.bench_function("Array pop (Execution)", move |b| {
         b.iter(|| black_box(&nodes).run(&mut engine).unwrap())
@@ -268,10 +225,7 @@ fn string_concat(c: &mut Criterion) {
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);
 
-    let mut lexer = Lexer::new(STRING_CONCAT);
-    lexer.lex().expect("failed to lex");
-
-    let nodes = Parser::new(&lexer.tokens).parse_all().unwrap();
+    let nodes = Parser::new(STRING_CONCAT.as_bytes()).parse_all().unwrap();
 
     c.bench_function("String concatenation (Execution)", move |b| {
         b.iter(|| black_box(&nodes).run(&mut engine).unwrap())
@@ -284,10 +238,7 @@ fn string_compare(c: &mut Criterion) {
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);
 
-    let mut lexer = Lexer::new(STRING_COMPARE);
-    lexer.lex().expect("failed to lex");
-
-    let nodes = Parser::new(&lexer.tokens).parse_all().unwrap();
+    let nodes = Parser::new(STRING_COMPARE.as_bytes()).parse_all().unwrap();
 
     c.bench_function("String comparison (Execution)", move |b| {
         b.iter(|| black_box(&nodes).run(&mut engine).unwrap())
@@ -300,10 +251,7 @@ fn string_copy(c: &mut Criterion) {
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);
 
-    let mut lexer = Lexer::new(STRING_COPY);
-    lexer.lex().expect("failed to lex");
-
-    let nodes = Parser::new(&lexer.tokens).parse_all().unwrap();
+    let nodes = Parser::new(STRING_COPY.as_bytes()).parse_all().unwrap();
 
     c.bench_function("String copy (Execution)", move |b| {
         b.iter(|| black_box(&nodes).run(&mut engine).unwrap())
@@ -316,10 +264,9 @@ fn number_object_access(c: &mut Criterion) {
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);
 
-    let mut lexer = Lexer::new(NUMBER_OBJECT_ACCESS);
-    lexer.lex().expect("failed to lex");
-
-    let nodes = Parser::new(&lexer.tokens).parse_all().unwrap();
+    let nodes = Parser::new(NUMBER_OBJECT_ACCESS.as_bytes())
+        .parse_all()
+        .unwrap();
 
     c.bench_function("Number Object Access (Execution)", move |b| {
         b.iter(|| black_box(&nodes).run(&mut engine).unwrap())
@@ -332,10 +279,9 @@ fn boolean_object_access(c: &mut Criterion) {
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);
 
-    let mut lexer = Lexer::new(BOOLEAN_OBJECT_ACCESS);
-    lexer.lex().expect("failed to lex");
-
-    let nodes = Parser::new(&lexer.tokens).parse_all().unwrap();
+    let nodes = Parser::new(BOOLEAN_OBJECT_ACCESS.as_bytes())
+        .parse_all()
+        .unwrap();
 
     c.bench_function("Boolean Object Access (Execution)", move |b| {
         b.iter(|| black_box(&nodes).run(&mut engine).unwrap())
@@ -348,10 +294,9 @@ fn string_object_access(c: &mut Criterion) {
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);
 
-    let mut lexer = Lexer::new(STRING_OBJECT_ACCESS);
-    lexer.lex().expect("failed to lex");
-
-    let nodes = Parser::new(&lexer.tokens).parse_all().unwrap();
+    let nodes = Parser::new(STRING_OBJECT_ACCESS.as_bytes())
+        .parse_all()
+        .unwrap();
 
     c.bench_function("String Object Access (Execution)", move |b| {
         b.iter(|| black_box(&nodes).run(&mut engine).unwrap())
@@ -364,10 +309,9 @@ fn arithmetic_operations(c: &mut Criterion) {
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);
 
-    let mut lexer = Lexer::new(ARITHMETIC_OPERATIONS);
-    lexer.lex().expect("failed to lex");
-
-    let nodes = Parser::new(&lexer.tokens).parse_all().unwrap();
+    let nodes = Parser::new(ARITHMETIC_OPERATIONS.as_bytes())
+        .parse_all()
+        .unwrap();
 
     c.bench_function("Arithmetic operations (Execution)", move |b| {
         b.iter(|| black_box(&nodes).run(&mut engine).unwrap())
@@ -379,9 +323,7 @@ static CLEAN_JS: &str = include_str!("bench_scripts/clean_js.js");
 fn clean_js(c: &mut Criterion) {
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);
-    let mut lexer = Lexer::new(CLEAN_JS);
-    lexer.lex().expect("failed to lex");
-    let nodes = Parser::new(&lexer.tokens).parse_all().unwrap();
+    let nodes = Parser::new(CLEAN_JS.as_bytes()).parse_all().unwrap();
     c.bench_function("Clean js (Execution)", move |b| {
         b.iter(|| black_box(&nodes).run(&mut engine).unwrap())
     });
@@ -392,9 +334,7 @@ static MINI_JS: &str = include_str!("bench_scripts/mini_js.js");
 fn mini_js(c: &mut Criterion) {
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);
-    let mut lexer = Lexer::new(MINI_JS);
-    lexer.lex().expect("failed to lex");
-    let nodes = Parser::new(&lexer.tokens).parse_all().unwrap();
+    let nodes = Parser::new(MINI_JS.as_bytes()).parse_all().unwrap();
     c.bench_function("Mini js (Execution)", move |b| {
         b.iter(|| black_box(&nodes).run(&mut engine).unwrap())
     });

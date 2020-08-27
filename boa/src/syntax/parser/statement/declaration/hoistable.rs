@@ -16,6 +16,8 @@ use crate::{
     BoaProfiler,
 };
 
+use std::io::Read;
+
 /// Hoistable declaration parsing.
 ///
 /// More information:
@@ -45,10 +47,13 @@ impl HoistableDeclaration {
     }
 }
 
-impl TokenParser for HoistableDeclaration {
+impl<R> TokenParser<R> for HoistableDeclaration
+where
+    R: Read,
+{
     type Output = Node;
 
-    fn parse(self, cursor: &mut Cursor<'_>) -> ParseResult {
+    fn parse(self, cursor: &mut Cursor<R>) -> ParseResult {
         let _timer = BoaProfiler::global().start_event("HoistableDeclaration", "Parsing");
         // TODO: check for generators and async functions + generators
         FunctionDeclaration::new(self.allow_yield, self.allow_await, self.is_default)
@@ -88,10 +93,13 @@ impl FunctionDeclaration {
     }
 }
 
-impl TokenParser for FunctionDeclaration {
+impl<R> TokenParser<R> for FunctionDeclaration
+where
+    R: Read,
+{
     type Output = FunctionDecl;
 
-    fn parse(self, cursor: &mut Cursor<'_>) -> Result<Self::Output, ParseError> {
+    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         cursor.expect(Keyword::Function, "function declaration")?;
 
         // TODO: If self.is_default, then this can be empty.

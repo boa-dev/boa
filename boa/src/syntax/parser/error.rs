@@ -1,9 +1,7 @@
 //! Error and result implementation for the parser.
-use crate::syntax::ast::{
-    position::Position,
-    token::{Token, TokenKind},
-    Node,
-};
+
+use crate::syntax::ast::{position::Position, Node};
+use crate::syntax::lexer::{Error as LexError, Token, TokenKind};
 use std::fmt;
 
 /// Result of a parsing operation.
@@ -19,8 +17,14 @@ impl<T> ErrorContext for Result<T, ParseError> {
     }
 }
 
+impl From<LexError> for ParseError {
+    fn from(e: LexError) -> ParseError {
+        ParseError::lex(e)
+    }
+}
+
 /// `ParseError` is an enum which represents errors encounted during parsing an expression
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub enum ParseError {
     /// When it expected a certain kind of token, but got another as part of something
     Expected {
@@ -35,6 +39,8 @@ pub enum ParseError {
     },
     /// When there is an abrupt end to the parsing
     AbruptEnd,
+    /// A lexing error.
+    Lex { err: LexError },
     /// Catch all General Error
     General {
         message: &'static str,
@@ -76,8 +82,14 @@ impl ParseError {
         }
     }
 
+    /// Creates a "general" parsing error.
     pub(super) fn general(message: &'static str, position: Position) -> Self {
         Self::General { message, position }
+    }
+
+    /// Creates a parsing error from a lexing error.
+    pub(super) fn lex(e: LexError) -> Self {
+        Self::Lex { err: e }
     }
 }
 
@@ -135,7 +147,7 @@ impl fmt::Display for ParseError {
                 found.span().start().line_number(),
                 found.span().start().column_number()
             ),
-            Self::AbruptEnd => write!(f, "Abrupt End"),
+            Self::AbruptEnd => f.write_str("abrupt end"),
             Self::General { message, position } => write!(
                 f,
                 "{} at line {}, col {}",
@@ -143,6 +155,7 @@ impl fmt::Display for ParseError {
                 position.line_number(),
                 position.column_number()
             ),
+            Self::Lex { err } => fmt::Display::fmt(err, f),
         }
     }
 }

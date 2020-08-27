@@ -465,12 +465,13 @@ unsafe impl Trace for BitOp {
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[derive(Clone, Copy, Debug, Finalize, PartialEq)]
 pub enum CompOp {
-    /// The equality operator converts the operands if they are not of the same type, then applies strict comparison.
+    /// The equality operator converts the operands if they are not of the same type, then applies
+    /// strict comparison.
     ///
     /// Syntax: `y == y`
     ///
-    /// If both operands are objects, then JavaScript compares internal references which are equal when operands
-    /// refer to the same object in memory.
+    /// If both operands are objects, then JavaScript compares internal references which are equal
+    /// when operands refer to the same object in memory.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -480,13 +481,14 @@ pub enum CompOp {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Comparison_Operators#Equality
     Equal,
 
-    /// The inequality operator returns true if the operands are not equal.
+    /// The inequality operator returns `true` if the operands are not equal.
     ///
     /// Syntax: `x != y`
     ///
-    ///  If the two operands are not of the same type, JavaScript attempts to convert the operands to
-    /// an appropriate type for the comparison. If both operands are objects, then JavaScript compares
-    /// internal references which are not equal when operands refer to different objects in memory.
+    /// If the two operands are not of the same type, JavaScript attempts to convert the operands
+    /// to an appropriate type for the comparison. If both operands are objects, then JavaScript
+    /// compares internal references which are not equal when operands refer to different objects
+    /// in memory.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -496,7 +498,8 @@ pub enum CompOp {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Comparison_Operators#Inequality
     NotEqual,
 
-    /// The identity operator returns true if the operands are strictly equal **with no type conversion**.
+    /// The identity operator returns `true` if the operands are strictly equal **with no type
+    /// conversion**.
     ///
     /// Syntax: `x === y`
     ///
@@ -510,7 +513,8 @@ pub enum CompOp {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Comparison_Operators#Identity
     StrictEqual,
 
-    /// The non-identity operator returns true if the operands **are not equal and/or not of the same type**.
+    /// The non-identity operator returns `true` if the operands **are not equal and/or not of the
+    /// same type**.
     ///
     /// Syntax: `x !== y`
     ///
@@ -524,7 +528,8 @@ pub enum CompOp {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Comparison_Operators#Nonidentity>
     StrictNotEqual,
 
-    /// The greater than operator returns true if the left operand is greater than the right operand.
+    /// The greater than operator returns `true` if the left operand is greater than the right
+    /// operand.
     ///
     /// Syntax: `x > y`
     ///
@@ -538,7 +543,8 @@ pub enum CompOp {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Comparison_Operators#Greater_than_operator
     GreaterThan,
 
-    /// The greater than or equal operator returns true if the left operand is greater than or equal to the right operand.
+    /// The greater than or equal operator returns `true` if the left operand is greater than or
+    /// equal to the right operand.
     ///
     /// Syntax: `x >= y`
     ///
@@ -552,7 +558,7 @@ pub enum CompOp {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Comparison_Operators#Greater_than_operator
     GreaterThanOrEqual,
 
-    /// The less than operator returns true if the left operand is less than the right operand.
+    /// The less than operator returns `true` if the left operand is less than the right operand.
     ///
     /// Syntax: `x < y`
     ///
@@ -566,7 +572,8 @@ pub enum CompOp {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Comparison_Operators#Less_than_operator
     LessThan,
 
-    /// The less than or equal operator returns true if the left operand is less than or equal to the right operand.
+    /// The less than or equal operator returns `true` if the left operand is less than or equal to
+    /// the right operand.
     ///
     /// Syntax: `x <= y`
     ///
@@ -580,7 +587,8 @@ pub enum CompOp {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Comparison_Operators#Less_than_or_equal_operator
     LessThanOrEqual,
 
-    /// The `in` operator returns true if the specified property is in the specified object or its prototype chain.
+    /// The `in` operator returns `true` if the specified property is in the specified object or
+    /// its prototype chain.
     ///
     /// Syntax: `prop in object`
     ///
@@ -593,6 +601,22 @@ pub enum CompOp {
     /// [spec]: https://tc39.es/ecma262/#prod-RelationalExpression
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/in
     In,
+
+    /// The `instanceop` operator returns `true` if the specified object is an instance of the
+    /// right hand side object.
+    ///
+    /// Syntax: `obj instanceof Object`
+    ///
+    /// Returns `true` the `prototype` property of the right hand side constructor appears anywhere
+    /// in the prototype chain of the object.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#prod-RelationalExpression
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/instanceof
+    InstanceOf,
 }
 
 impl Display for CompOp {
@@ -610,6 +634,7 @@ impl Display for CompOp {
                 Self::LessThan => "<",
                 Self::LessThanOrEqual => "<=",
                 Self::In => "in",
+                Self::InstanceOf => "instanceof",
             }
         )
     }

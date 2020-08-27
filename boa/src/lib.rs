@@ -46,7 +46,10 @@ pub use crate::{
     exec::{Executable, Interpreter},
     profiler::BoaProfiler,
     realm::Realm,
-    syntax::{lexer::Lexer, parser::Parser},
+    syntax::{
+        lexer::Lexer,
+        parser::{ParseError, Parser},
+    },
 };
 use std::result::Result as StdResult;
 
@@ -55,12 +58,9 @@ use std::result::Result as StdResult;
 pub type Result<T> = StdResult<T, Value>;
 
 fn parser_expr(src: &str) -> StdResult<StatementList, String> {
-    let mut lexer = Lexer::new(src);
-    lexer.lex().map_err(|e| format!("Syntax Error: {}", e))?;
-    let tokens = lexer.tokens;
-    Parser::new(&tokens)
+    Parser::new(src.as_bytes())
         .parse_all()
-        .map_err(|e| format!("Parsing Error: {}", e))
+        .map_err(|e| e.to_string())
 }
 
 /// Execute the code using an existing Interpreter
@@ -89,7 +89,7 @@ pub fn forward_val(engine: &mut Interpreter, src: &str) -> Result<Value> {
         Ok(expr) => expr.run(engine),
         Err(e) => {
             eprintln!("{}", e);
-            std::process::exit(1);
+            panic!();
         }
     };
 

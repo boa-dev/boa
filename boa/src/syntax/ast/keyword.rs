@@ -435,6 +435,7 @@ impl Keyword {
     pub fn as_binop(self) -> Option<BinOp> {
         match self {
             Keyword::In => Some(BinOp::Comp(CompOp::In)),
+            Keyword::InstanceOf => Some(BinOp::Comp(CompOp::InstanceOf)),
             _ => None,
         }
     }

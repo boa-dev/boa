@@ -10,17 +10,22 @@
 #[cfg(test)]
 mod tests;
 
-use crate::syntax::{
-    ast::{
-        node::{self},
-        Punctuator, TokenKind,
+use crate::{
+    syntax::{
+        ast::{
+            node::{self},
+            Punctuator,
+        },
+        lexer::{InputElement, TokenKind},
+        parser::{
+            expression::Initializer,
+            statement::{BindingIdentifier, StatementList},
+            AllowAwait, AllowYield, Cursor, ParseError, TokenParser,
+        },
     },
-    parser::{
-        expression::Initializer,
-        statement::{BindingIdentifier, StatementList},
-        AllowAwait, AllowYield, Cursor, ParseError, TokenParser,
-    },
+    BoaProfiler,
 };
+use std::io::Read;
 
 /// Formal parameters parsing.
 ///
@@ -50,14 +55,20 @@ impl FormalParameters {
     }
 }
 
-impl TokenParser for FormalParameters {
+impl<R> TokenParser<R> for FormalParameters
+where
+    R: Read,
+{
     type Output = Box<[node::FormalParameter]>;
 
-    fn parse(self, cursor: &mut Cursor<'_>) -> Result<Self::Output, ParseError> {
+    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
+        let _timer = BoaProfiler::global().start_event("FormalParameters", "Parsing");
+        cursor.set_goal(InputElement::RegExp);
+
         let mut params = Vec::new();
 
-        if cursor.peek(0).ok_or(ParseError::AbruptEnd)?.kind
-            == TokenKind::Punctuator(Punctuator::CloseParen)
+        if cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?.kind()
+            == &TokenKind::Punctuator(Punctuator::CloseParen)
         {
             return Ok(params.into_boxed_slice());
         }
@@ -65,25 +76,25 @@ impl TokenParser for FormalParameters {
         loop {
             let mut rest_param = false;
 
-            params.push(if cursor.next_if(Punctuator::Spread).is_some() {
-                rest_param = true;
-                FunctionRestParameter::new(self.allow_yield, self.allow_await).parse(cursor)?
-            } else {
-                FormalParameter::new(self.allow_yield, self.allow_await).parse(cursor)?
-            });
+            let next_param = match cursor.peek(0)? {
+                Some(tok) if tok.kind() == &TokenKind::Punctuator(Punctuator::Spread) => {
+                    rest_param = true;
+                    FunctionRestParameter::new(self.allow_yield, self.allow_await).parse(cursor)?
+                }
+                _ => FormalParameter::new(self.allow_yield, self.allow_await).parse(cursor)?,
+            };
 
-            if cursor.peek(0).ok_or(ParseError::AbruptEnd)?.kind
-                == TokenKind::Punctuator(Punctuator::CloseParen)
+            params.push(next_param);
+
+            if cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?.kind()
+                == &TokenKind::Punctuator(Punctuator::CloseParen)
             {
                 break;
             }
 
             if rest_param {
                 return Err(ParseError::unexpected(
-                    cursor
-                        .peek_prev()
-                        .expect("current token disappeared")
-                        .clone(),
+                    cursor.next()?.expect("peeked token disappeared"),
                     "rest parameter must be the last formal parameter",
                 ));
             }
@@ -133,12 +144,15 @@ impl BindingRestElement {
     }
 }
 
-impl TokenParser for BindingRestElement {
+impl<R> TokenParser<R> for BindingRestElement
+where
+    R: Read,
+{
     type Output = node::FormalParameter;
 
-    fn parse(self, cursor: &mut Cursor<'_>) -> Result<Self::Output, ParseError> {
-        // FIXME: we are reading the spread operator before the rest element.
-        // cursor.expect(Punctuator::Spread, "rest parameter")?;
+    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
+        let _timer = BoaProfiler::global().start_event("BindingRestElement", "Parsing");
+        cursor.expect(Punctuator::Spread, "rest parameter")?;
 
         let param = BindingIdentifier::new(self.allow_yield, self.allow_await).parse(cursor)?;
         // TODO: BindingPattern
@@ -175,15 +189,29 @@ impl FormalParameter {
     }
 }
 
-impl TokenParser for FormalParameter {
+impl<R> TokenParser<R> for FormalParameter
+where
+    R: Read,
+{
     type Output = node::FormalParameter;
 
-    fn parse(self, cursor: &mut Cursor<'_>) -> Result<Self::Output, ParseError> {
+    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
+        let _timer = BoaProfiler::global().start_event("FormalParameter", "Parsing");
+
         // TODO: BindingPattern
 
         let param = BindingIdentifier::new(self.allow_yield, self.allow_await).parse(cursor)?;
 
-        let init = Initializer::new(true, self.allow_yield, self.allow_await).try_parse(cursor);
+        let init = if let Some(t) = cursor.peek(0)? {
+            // Check that this is an initilizer before attempting parse.
+            if *t.kind() == TokenKind::Punctuator(Punctuator::Assign) {
+                Some(Initializer::new(true, self.allow_yield, self.allow_await).parse(cursor)?)
+            } else {
+                None
+            }
+        } else {
+            None
+        };
 
         Ok(Self::Output::new(param, init, false))
     }
@@ -223,12 +251,16 @@ impl FunctionStatementList {
     }
 }
 
-impl TokenParser for FunctionStatementList {
+impl<R> TokenParser<R> for FunctionStatementList
+where
+    R: Read,
+{
     type Output = node::StatementList;
 
-    fn parse(self, cursor: &mut Cursor<'_>) -> Result<Self::Output, ParseError> {
-        if let Some(tk) = cursor.peek(0) {
-            if tk.kind == Punctuator::CloseBlock.into() {
+    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
+        let _timer = BoaProfiler::global().start_event("FunctionStatementList", "Parsing");
+        if let Some(tk) = cursor.peek(0)? {
+            if tk.kind() == &Punctuator::CloseBlock.into() {
                 return Ok(Vec::new().into());
             }
         }

@@ -9,7 +9,8 @@
 
 use crate::{
     syntax::{
-        ast::{node::FunctionExpr, Punctuator},
+        ast::{node::FunctionExpr, Keyword, Punctuator},
+        lexer::TokenKind,
         parser::{
             function::{FormalParameters, FunctionBody},
             statement::BindingIdentifier,
@@ -18,6 +19,8 @@ use crate::{
     },
     BoaProfiler,
 };
+
+use std::io::Read;
 
 /// Function expression parsing.
 ///
@@ -30,12 +33,27 @@ use crate::{
 #[derive(Debug, Clone, Copy)]
 pub(super) struct FunctionExpression;
 
-impl TokenParser for FunctionExpression {
+impl<R> TokenParser<R> for FunctionExpression
+where
+    R: Read,
+{
     type Output = FunctionExpr;
 
-    fn parse(self, cursor: &mut Cursor<'_>) -> Result<Self::Output, ParseError> {
+    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("FunctionExpression", "Parsing");
-        let name = BindingIdentifier::new(false, false).try_parse(cursor);
+
+        let name = if let Some(token) = cursor.peek(0)? {
+            match token.kind() {
+                TokenKind::Identifier(_)
+                | TokenKind::Keyword(Keyword::Yield)
+                | TokenKind::Keyword(Keyword::Await) => {
+                    Some(BindingIdentifier::new(false, false).parse(cursor)?)
+                }
+                _ => None,
+            }
+        } else {
+            None
+        };
 
         cursor.expect(Punctuator::OpenParen, "function expression")?;
 

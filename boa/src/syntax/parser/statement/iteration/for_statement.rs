@@ -7,11 +7,12 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/for
 //! [spec]: https://tc39.es/ecma262/#sec-for-statement
 
+use crate::syntax::lexer::TokenKind;
 use crate::{
     syntax::{
         ast::{
             node::{ForLoop, Node},
-            Const, Keyword, Punctuator, TokenKind,
+            Const, Keyword, Punctuator,
         },
         parser::{
             expression::Expression,
@@ -22,6 +23,8 @@ use crate::{
     },
     BoaProfiler,
 };
+
+use std::io::Read;
 
 /// For statement parsing
 ///
@@ -58,20 +61,26 @@ impl ForStatement {
     }
 }
 
-impl TokenParser for ForStatement {
+impl<R> TokenParser<R> for ForStatement
+where
+    R: Read,
+{
     type Output = ForLoop;
 
-    fn parse(self, cursor: &mut Cursor<'_>) -> Result<Self::Output, ParseError> {
+    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("ForStatement", "Parsing");
         cursor.expect(Keyword::For, "for statement")?;
         cursor.expect(Punctuator::OpenParen, "for statement")?;
 
-        let init = match cursor.peek(0).ok_or(ParseError::AbruptEnd)?.kind {
-            TokenKind::Keyword(Keyword::Var) => Some(
-                VariableDeclarationList::new(false, self.allow_yield, self.allow_await)
-                    .parse(cursor)
-                    .map(Node::from)?,
-            ),
+        let init = match cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?.kind() {
+            TokenKind::Keyword(Keyword::Var) => {
+                let _ = cursor.next()?;
+                Some(
+                    VariableDeclarationList::new(false, self.allow_yield, self.allow_await)
+                        .parse(cursor)
+                        .map(Node::from)?,
+                )
+            }
             TokenKind::Keyword(Keyword::Let) | TokenKind::Keyword(Keyword::Const) => {
                 Some(Declaration::new(self.allow_yield, self.allow_await).parse(cursor)?)
             }
@@ -79,9 +88,20 @@ impl TokenParser for ForStatement {
             _ => Some(Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?),
         };
 
+        // TODO: for..in, for..of
+        match cursor.peek(0)? {
+            Some(tok) if tok.kind() == &TokenKind::Keyword(Keyword::In) => {
+                unimplemented!("for...in statement")
+            }
+            Some(tok) if tok.kind() == &TokenKind::identifier("of") => {
+                unimplemented!("for...of statement")
+            }
+            _ => {}
+        }
+
         cursor.expect(Punctuator::Semicolon, "for statement")?;
 
-        let cond = if cursor.next_if(Punctuator::Semicolon).is_some() {
+        let cond = if cursor.next_if(Punctuator::Semicolon)?.is_some() {
             Const::from(true).into()
         } else {
             let step = Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?;
@@ -89,7 +109,7 @@ impl TokenParser for ForStatement {
             step
         };
 
-        let step = if cursor.next_if(Punctuator::CloseParen).is_some() {
+        let step = if cursor.next_if(Punctuator::CloseParen)?.is_some() {
             None
         } else {
             let step = Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?;

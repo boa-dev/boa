@@ -1,6 +1,6 @@
 //! Benchmarks of the parsing process in Boa.
 
-use boa::syntax::{lexer::Lexer, parser::Parser};
+use boa::syntax::parser::Parser;
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
 
 #[cfg(all(target_arch = "x86_64", target_os = "linux", target_env = "gnu"))]
@@ -13,45 +13,24 @@ static ALLOC: jemallocator::Jemalloc = jemallocator::Jemalloc;
 static EXPRESSION: &str = include_str!("bench_scripts/expression.js");
 
 fn expression_parser(c: &mut Criterion) {
-    // We include the lexing in the benchmarks, since they will get together soon, anyways.
-
     c.bench_function("Expression (Parser)", move |b| {
-        b.iter(|| {
-            let mut lexer = Lexer::new(black_box(EXPRESSION));
-            lexer.lex().expect("failed to lex");
-
-            Parser::new(&black_box(lexer.tokens)).parse_all()
-        })
+        b.iter(|| Parser::new(black_box(EXPRESSION.as_bytes())).parse_all())
     });
 }
 
 static HELLO_WORLD: &str = include_str!("bench_scripts/hello_world.js");
 
 fn hello_world_parser(c: &mut Criterion) {
-    // We include the lexing in the benchmarks, since they will get together soon, anyways.
-
     c.bench_function("Hello World (Parser)", move |b| {
-        b.iter(|| {
-            let mut lexer = Lexer::new(black_box(HELLO_WORLD));
-            lexer.lex().expect("failed to lex");
-
-            Parser::new(&black_box(lexer.tokens)).parse_all()
-        })
+        b.iter(|| Parser::new(black_box(HELLO_WORLD.as_bytes())).parse_all())
     });
 }
 
 static FOR_LOOP: &str = include_str!("bench_scripts/for_loop.js");
 
 fn for_loop_parser(c: &mut Criterion) {
-    // We include the lexing in the benchmarks, since they will get together soon, anyways.
-
     c.bench_function("For loop (Parser)", move |b| {
-        b.iter(|| {
-            let mut lexer = Lexer::new(black_box(FOR_LOOP));
-            lexer.lex().expect("failed to lex");
-
-            Parser::new(&black_box(lexer.tokens)).parse_all()
-        })
+        b.iter(|| Parser::new(black_box(FOR_LOOP.as_bytes())).parse_all())
     });
 }
 
@@ -74,16 +53,10 @@ fn long_file_parser(c: &mut Criterion) {
                 .unwrap_or_else(|_| panic!("could not write {}", FILE_NAME));
         }
     }
+
+    let file = std::fs::File::open(FILE_NAME).expect("Could not open file");
     c.bench_function("Long file (Parser)", move |b| {
-        b.iter(|| {
-            let file_str = fs::read_to_string(FILE_NAME)
-                .unwrap_or_else(|_| panic!("could not read {}", FILE_NAME));
-
-            let mut lexer = Lexer::new(black_box(&file_str));
-            lexer.lex().expect("failed to lex");
-
-            Parser::new(&black_box(lexer.tokens)).parse_all()
-        })
+        b.iter(|| Parser::new(black_box(&file)).parse_all())
     });
 
     fs::remove_file(FILE_NAME).unwrap_or_else(|_| panic!("could not remove {}", FILE_NAME));
@@ -92,15 +65,8 @@ fn long_file_parser(c: &mut Criterion) {
 static GOAL_SYMBOL_SWITCH: &str = include_str!("bench_scripts/goal_symbol_switch.js");
 
 fn goal_symbol_switch(c: &mut Criterion) {
-    // We include the lexing in the benchmarks, since they will get together soon, anyways.
-
     c.bench_function("Goal Symbols (Parser)", move |b| {
-        b.iter(|| {
-            let mut lexer = Lexer::new(black_box(GOAL_SYMBOL_SWITCH));
-            lexer.lex().expect("failed to lex");
-
-            Parser::new(&black_box(lexer.tokens)).parse_all()
-        })
+        b.iter(|| Parser::new(black_box(GOAL_SYMBOL_SWITCH.as_bytes())).parse_all())
     });
 }
 
@@ -108,12 +74,7 @@ static CLEAN_JS: &str = include_str!("bench_scripts/clean_js.js");
 
 fn clean_js(c: &mut Criterion) {
     c.bench_function("Clean js (Parser)", move |b| {
-        b.iter(|| {
-            let mut lexer = Lexer::new(black_box(CLEAN_JS));
-            lexer.lex().expect("failed to lex");
-
-            Parser::new(&black_box(lexer.tokens)).parse_all()
-        })
+        b.iter(|| Parser::new(black_box(CLEAN_JS.as_bytes())).parse_all())
     });
 }
 
@@ -121,12 +82,7 @@ static MINI_JS: &str = include_str!("bench_scripts/mini_js.js");
 
 fn mini_js(c: &mut Criterion) {
     c.bench_function("Mini js (Parser)", move |b| {
-        b.iter(|| {
-            let mut lexer = Lexer::new(black_box(MINI_JS));
-            lexer.lex().expect("failed to lex");
-
-            Parser::new(&black_box(lexer.tokens)).parse_all()
-        })
+        b.iter(|| Parser::new(black_box(MINI_JS.as_bytes())).parse_all())
     });
 }
 
