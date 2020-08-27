@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/syn-1.0.35/src/expr.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>expr.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../syn/index.html'><div class='logo-container'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/syn-1.0.38/src/expr.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>expr.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../syn/index.html'><div class='logo-container'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
 <span id="3">   3</span>
 <span id="4">   4</span>
@@ -3326,6 +3326,14 @@
 <span id="3326">3326</span>
 <span id="3327">3327</span>
 <span id="3328">3328</span>
+<span id="3329">3329</span>
+<span id="3330">3330</span>
+<span id="3331">3331</span>
+<span id="3332">3332</span>
+<span id="3333">3333</span>
+<span id="3334">3334</span>
+<span id="3335">3335</span>
+<span id="3336">3336</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">punctuated</span>::<span class="ident">Punctuated</span>;
@@ -3337,7 +3345,7 @@
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;printing&quot;</span>)]</span>
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">fmt</span>::{<span class="self">self</span>, <span class="ident">Display</span>};
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">hash</span>::{<span class="ident">Hash</span>, <span class="ident">Hasher</span>};
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;parsing&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;parsing&quot;</span>)]</span>
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">mem</span>;
 
 <span class="macro">ast_enum_of_structs</span><span class="macro">!</span> {
@@ -4991,7 +4999,7 @@
                     <span class="ident">args</span>: <span class="ident">content</span>.<span class="ident">parse_terminated</span>(<span class="ident">Expr</span>::<span class="ident">parse</span>)<span class="question-mark">?</span>,
                 });
             } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">input</span>.<span class="ident">peek</span>(<span class="macro">Token</span><span class="macro">!</span>[.]) <span class="kw-2">&amp;</span><span class="op">&amp;</span> <span class="op">!</span><span class="ident">input</span>.<span class="ident">peek</span>(<span class="macro">Token</span><span class="macro">!</span>[..]) {
-                <span class="kw">let</span> <span class="ident">dot_token</span>: <span class="macro">Token</span><span class="macro">!</span>[.] <span class="op">=</span> <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>;
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">dot_token</span>: <span class="macro">Token</span><span class="macro">!</span>[.] <span class="op">=</span> <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>;
 
                 <span class="kw">let</span> <span class="ident">await_token</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">token</span>::<span class="ident">Await</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>;
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">await_token</span>) <span class="op">=</span> <span class="ident">await_token</span> {
@@ -5006,8 +5014,9 @@
 
                 <span class="kw">let</span> <span class="ident">float_token</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">LitFloat</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>;
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">float_token</span>) <span class="op">=</span> <span class="ident">float_token</span> {
-                    <span class="ident">e</span> <span class="op">=</span> <span class="ident">multi_index</span>(<span class="ident">e</span>, <span class="ident">dot_token</span>, <span class="ident">float_token</span>)<span class="question-mark">?</span>;
-                    <span class="kw">continue</span>;
+                    <span class="kw">if</span> <span class="ident">multi_index</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">e</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">dot_token</span>, <span class="ident">float_token</span>)<span class="question-mark">?</span> {
+                        <span class="kw">continue</span>;
+                    }
                 }
 
                 <span class="kw">let</span> <span class="ident">member</span>: <span class="ident">Member</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>;
@@ -5095,18 +5104,19 @@
                 });
             } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">input</span>.<span class="ident">peek</span>(<span class="macro">Token</span><span class="macro">!</span>[.]) <span class="kw-2">&amp;</span><span class="op">&amp;</span> <span class="op">!</span><span class="ident">input</span>.<span class="ident">peek</span>(<span class="macro">Token</span><span class="macro">!</span>[..]) <span class="kw-2">&amp;</span><span class="op">&amp;</span> <span class="op">!</span><span class="ident">input</span>.<span class="ident">peek2</span>(<span class="ident">token</span>::<span class="ident">Await</span>)
             {
-                <span class="kw">let</span> <span class="ident">dot_token</span>: <span class="macro">Token</span><span class="macro">!</span>[.] <span class="op">=</span> <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>;
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">dot_token</span>: <span class="macro">Token</span><span class="macro">!</span>[.] <span class="op">=</span> <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>;
                 <span class="kw">let</span> <span class="ident">float_token</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">LitFloat</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>;
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">float_token</span>) <span class="op">=</span> <span class="ident">float_token</span> {
-                    <span class="ident">e</span> <span class="op">=</span> <span class="ident">multi_index</span>(<span class="ident">e</span>, <span class="ident">dot_token</span>, <span class="ident">float_token</span>)<span class="question-mark">?</span>;
-                } <span class="kw">else</span> {
-                    <span class="ident">e</span> <span class="op">=</span> <span class="ident">Expr</span>::<span class="ident">Field</span>(<span class="ident">ExprField</span> {
-                        <span class="ident">attrs</span>: <span class="ident">Vec</span>::<span class="ident">new</span>(),
-                        <span class="ident">base</span>: <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">e</span>),
-                        <span class="ident">dot_token</span>,
-                        <span class="ident">member</span>: <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>,
-                    });
+                    <span class="kw">if</span> <span class="ident">multi_index</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">e</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">dot_token</span>, <span class="ident">float_token</span>)<span class="question-mark">?</span> {
+                        <span class="kw">continue</span>;
+                    }
                 }
+                <span class="ident">e</span> <span class="op">=</span> <span class="ident">Expr</span>::<span class="ident">Field</span>(<span class="ident">ExprField</span> {
+                    <span class="ident">attrs</span>: <span class="ident">Vec</span>::<span class="ident">new</span>(),
+                    <span class="ident">base</span>: <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">e</span>),
+                    <span class="ident">dot_token</span>,
+                    <span class="ident">member</span>: <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>,
+                });
             } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">input</span>.<span class="ident">peek</span>(<span class="ident">token</span>::<span class="ident">Bracket</span>) {
                 <span class="kw">let</span> <span class="ident">content</span>;
                 <span class="ident">e</span> <span class="op">=</span> <span class="ident">Expr</span>::<span class="ident">Index</span>(<span class="ident">ExprIndex</span> {
@@ -6068,18 +6078,24 @@
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">multi_index</span>(<span class="kw-2">mut</span> <span class="ident">e</span>: <span class="ident">Expr</span>, <span class="kw-2">mut</span> <span class="ident">dot_token</span>: <span class="macro">Token</span><span class="macro">!</span>[.], <span class="ident">float</span>: <span class="ident">LitFloat</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Expr</span><span class="op">&gt;</span> {
-        <span class="kw">for</span> <span class="ident">part</span> <span class="kw">in</span> <span class="ident">float</span>.<span class="ident">to_string</span>().<span class="ident">split</span>(<span class="string">&#39;.&#39;</span>) {
+    <span class="kw">fn</span> <span class="ident">multi_index</span>(<span class="ident">e</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Expr</span>, <span class="ident">dot_token</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="macro">Token</span><span class="macro">!</span>[.], <span class="ident">float</span>: <span class="ident">LitFloat</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">float_repr</span> <span class="op">=</span> <span class="ident">float</span>.<span class="ident">to_string</span>();
+        <span class="kw">let</span> <span class="ident">trailing_dot</span> <span class="op">=</span> <span class="ident">float_repr</span>.<span class="ident">ends_with</span>(<span class="string">&#39;.&#39;</span>);
+        <span class="kw">if</span> <span class="ident">trailing_dot</span> {
+            <span class="ident">float_repr</span>.<span class="ident">truncate</span>(<span class="ident">float_repr</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="number">1</span>);
+        }
+        <span class="kw">for</span> <span class="ident">part</span> <span class="kw">in</span> <span class="ident">float_repr</span>.<span class="ident">split</span>(<span class="string">&#39;.&#39;</span>) {
             <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">parse_str</span>(<span class="ident">part</span>).<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">err</span><span class="op">|</span> <span class="ident">Error</span>::<span class="ident">new</span>(<span class="ident">float</span>.<span class="ident">span</span>(), <span class="ident">err</span>))<span class="question-mark">?</span>;
-            <span class="ident">e</span> <span class="op">=</span> <span class="ident">Expr</span>::<span class="ident">Field</span>(<span class="ident">ExprField</span> {
+            <span class="kw">let</span> <span class="ident">base</span> <span class="op">=</span> <span class="ident">mem</span>::<span class="ident">replace</span>(<span class="ident">e</span>, <span class="ident">Expr</span>::<span class="ident">__Nonexhaustive</span>);
+            <span class="kw-2">*</span><span class="ident">e</span> <span class="op">=</span> <span class="ident">Expr</span>::<span class="ident">Field</span>(<span class="ident">ExprField</span> {
                 <span class="ident">attrs</span>: <span class="ident">Vec</span>::<span class="ident">new</span>(),
-                <span class="ident">base</span>: <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">e</span>),
-                <span class="ident">dot_token</span>,
+                <span class="ident">base</span>: <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">base</span>),
+                <span class="ident">dot_token</span>: <span class="macro">Token</span><span class="macro">!</span>[.](<span class="ident">dot_token</span>.<span class="ident">span</span>),
                 <span class="ident">member</span>: <span class="ident">Member</span>::<span class="ident">Unnamed</span>(<span class="ident">index</span>),
             });
-            <span class="ident">dot_token</span> <span class="op">=</span> <span class="macro">Token</span><span class="macro">!</span>[.](<span class="ident">float</span>.<span class="ident">span</span>());
+            <span class="kw-2">*</span><span class="ident">dot_token</span> <span class="op">=</span> <span class="macro">Token</span><span class="macro">!</span>[.](<span class="ident">float</span>.<span class="ident">span</span>());
         }
-        <span class="prelude-val">Ok</span>(<span class="ident">e</span>)
+        <span class="prelude-val">Ok</span>(<span class="op">!</span><span class="ident">trailing_dot</span>)
     }
 
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>

@@ -941,6 +941,31 @@
 <span id="941">941</span>
 <span id="942">942</span>
 <span id="943">943</span>
+<span id="944">944</span>
+<span id="945">945</span>
+<span id="946">946</span>
+<span id="947">947</span>
+<span id="948">948</span>
+<span id="949">949</span>
+<span id="950">950</span>
+<span id="951">951</span>
+<span id="952">952</span>
+<span id="953">953</span>
+<span id="954">954</span>
+<span id="955">955</span>
+<span id="956">956</span>
+<span id="957">957</span>
+<span id="958">958</span>
+<span id="959">959</span>
+<span id="960">960</span>
+<span id="961">961</span>
+<span id="962">962</span>
+<span id="963">963</span>
+<span id="964">964</span>
+<span id="965">965</span>
+<span id="966">966</span>
+<span id="967">967</span>
+<span id="968">968</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements various structure for logic handling.</span>
 
@@ -1409,12 +1434,13 @@
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde&quot;</span>, <span class="ident">derive</span>(<span class="ident">Serialize</span>, <span class="ident">Deserialize</span>))]</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">Finalize</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">CompOp</span> {
-    <span class="doccomment">/// The equality operator converts the operands if they are not of the same type, then applies strict comparison.</span>
+    <span class="doccomment">/// The equality operator converts the operands if they are not of the same type, then applies</span>
+    <span class="doccomment">/// strict comparison.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Syntax: `y == y`</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// If both operands are objects, then JavaScript compares internal references which are equal when operands</span>
-    <span class="doccomment">/// refer to the same object in memory.</span>
+    <span class="doccomment">/// If both operands are objects, then JavaScript compares internal references which are equal</span>
+    <span class="doccomment">/// when operands refer to the same object in memory.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// More information:</span>
     <span class="doccomment">///  - [ECMAScript reference][spec]</span>
@@ -1424,13 +1450,14 @@
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Comparison_Operators#Equality</span>
     <span class="ident">Equal</span>,
 
-    <span class="doccomment">/// The inequality operator returns true if the operands are not equal.</span>
+    <span class="doccomment">/// The inequality operator returns `true` if the operands are not equal.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Syntax: `x != y`</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">///  If the two operands are not of the same type, JavaScript attempts to convert the operands to</span>
-    <span class="doccomment">/// an appropriate type for the comparison. If both operands are objects, then JavaScript compares</span>
-    <span class="doccomment">/// internal references which are not equal when operands refer to different objects in memory.</span>
+    <span class="doccomment">/// If the two operands are not of the same type, JavaScript attempts to convert the operands</span>
+    <span class="doccomment">/// to an appropriate type for the comparison. If both operands are objects, then JavaScript</span>
+    <span class="doccomment">/// compares internal references which are not equal when operands refer to different objects</span>
+    <span class="doccomment">/// in memory.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// More information:</span>
     <span class="doccomment">///  - [ECMAScript reference][spec]</span>
@@ -1440,7 +1467,8 @@
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Comparison_Operators#Inequality</span>
     <span class="ident">NotEqual</span>,
 
-    <span class="doccomment">/// The identity operator returns true if the operands are strictly equal **with no type conversion**.</span>
+    <span class="doccomment">/// The identity operator returns `true` if the operands are strictly equal **with no type</span>
+    <span class="doccomment">/// conversion**.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Syntax: `x === y`</span>
     <span class="doccomment">///</span>
@@ -1454,7 +1482,8 @@
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Comparison_Operators#Identity</span>
     <span class="ident">StrictEqual</span>,
 
-    <span class="doccomment">/// The non-identity operator returns true if the operands **are not equal and/or not of the same type**.</span>
+    <span class="doccomment">/// The non-identity operator returns `true` if the operands **are not equal and/or not of the</span>
+    <span class="doccomment">/// same type**.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Syntax: `x !== y`</span>
     <span class="doccomment">///</span>
@@ -1468,7 +1497,8 @@
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Comparison_Operators#Nonidentity&gt;</span>
     <span class="ident">StrictNotEqual</span>,
 
-    <span class="doccomment">/// The greater than operator returns true if the left operand is greater than the right operand.</span>
+    <span class="doccomment">/// The greater than operator returns `true` if the left operand is greater than the right</span>
+    <span class="doccomment">/// operand.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Syntax: `x &gt; y`</span>
     <span class="doccomment">///</span>
@@ -1482,7 +1512,8 @@
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Comparison_Operators#Greater_than_operator</span>
     <span class="ident">GreaterThan</span>,
 
-    <span class="doccomment">/// The greater than or equal operator returns true if the left operand is greater than or equal to the right operand.</span>
+    <span class="doccomment">/// The greater than or equal operator returns `true` if the left operand is greater than or</span>
+    <span class="doccomment">/// equal to the right operand.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Syntax: `x &gt;= y`</span>
     <span class="doccomment">///</span>
@@ -1496,7 +1527,7 @@
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Comparison_Operators#Greater_than_operator</span>
     <span class="ident">GreaterThanOrEqual</span>,
 
-    <span class="doccomment">/// The less than operator returns true if the left operand is less than the right operand.</span>
+    <span class="doccomment">/// The less than operator returns `true` if the left operand is less than the right operand.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Syntax: `x &lt; y`</span>
     <span class="doccomment">///</span>
@@ -1510,7 +1541,8 @@
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Comparison_Operators#Less_than_operator</span>
     <span class="ident">LessThan</span>,
 
-    <span class="doccomment">/// The less than or equal operator returns true if the left operand is less than or equal to the right operand.</span>
+    <span class="doccomment">/// The less than or equal operator returns `true` if the left operand is less than or equal to</span>
+    <span class="doccomment">/// the right operand.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Syntax: `x &lt;= y`</span>
     <span class="doccomment">///</span>
@@ -1524,7 +1556,8 @@
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Comparison_Operators#Less_than_or_equal_operator</span>
     <span class="ident">LessThanOrEqual</span>,
 
-    <span class="doccomment">/// The `in` operator returns true if the specified property is in the specified object or its prototype chain.</span>
+    <span class="doccomment">/// The `in` operator returns `true` if the specified property is in the specified object or</span>
+    <span class="doccomment">/// its prototype chain.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Syntax: `prop in object`</span>
     <span class="doccomment">///</span>
@@ -1537,6 +1570,22 @@
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#prod-RelationalExpression</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/in</span>
     <span class="ident">In</span>,
+
+    <span class="doccomment">/// The `instanceop` operator returns `true` if the specified object is an instance of the</span>
+    <span class="doccomment">/// right hand side object.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Syntax: `obj instanceof Object`</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Returns `true` the `prototype` property of the right hand side constructor appears anywhere</span>
+    <span class="doccomment">/// in the prototype chain of the object.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// More information:</span>
+    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
+    <span class="doccomment">///  - [MDN documentation][mdn]</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#prod-RelationalExpression</span>
+    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/instanceof</span>
+    <span class="ident">InstanceOf</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">Display</span> <span class="kw">for</span> <span class="ident">CompOp</span> {
@@ -1554,6 +1603,7 @@
                 <span class="self">Self</span>::<span class="ident">LessThan</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;&lt;&quot;</span>,
                 <span class="self">Self</span>::<span class="ident">LessThanOrEqual</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;&lt;=&quot;</span>,
                 <span class="self">Self</span>::<span class="ident">In</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;in&quot;</span>,
+                <span class="self">Self</span>::<span class="ident">InstanceOf</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;instanceof&quot;</span>,
             }
         )
     }

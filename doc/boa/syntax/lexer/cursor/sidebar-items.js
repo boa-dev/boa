@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["Cursor","Cursor over the source code."],["InnerIter","Inner iterator for a cursor."]]});

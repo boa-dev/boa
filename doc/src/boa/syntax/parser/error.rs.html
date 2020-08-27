@@ -146,13 +146,24 @@
 <span id="146">146</span>
 <span id="147">147</span>
 <span id="148">148</span>
+<span id="149">149</span>
+<span id="150">150</span>
+<span id="151">151</span>
+<span id="152">152</span>
+<span id="153">153</span>
+<span id="154">154</span>
+<span id="155">155</span>
+<span id="156">156</span>
+<span id="157">157</span>
+<span id="158">158</span>
+<span id="159">159</span>
+<span id="160">160</span>
+<span id="161">161</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Error and result implementation for the parser.</span>
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">syntax</span>::<span class="ident">ast</span>::{
-    <span class="ident">position</span>::<span class="ident">Position</span>,
-    <span class="ident">token</span>::{<span class="ident">Token</span>, <span class="ident">TokenKind</span>},
-    <span class="ident">Node</span>,
-};
+
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">syntax</span>::<span class="ident">ast</span>::{<span class="ident">position</span>::<span class="ident">Position</span>, <span class="ident">Node</span>};
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">syntax</span>::<span class="ident">lexer</span>::{<span class="ident">Error</span> <span class="kw">as</span> <span class="ident">LexError</span>, <span class="ident">Token</span>, <span class="ident">TokenKind</span>};
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">fmt</span>;
 
 <span class="doccomment">/// Result of a parsing operation.</span>
@@ -168,8 +179,14 @@
     }
 }
 
+<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">LexError</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">ParseError</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">e</span>: <span class="ident">LexError</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ParseError</span> {
+        <span class="ident">ParseError</span>::<span class="ident">lex</span>(<span class="ident">e</span>)
+    }
+}
+
 <span class="doccomment">/// `ParseError` is an enum which represents errors encounted during parsing an expression</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">ParseError</span> {
     <span class="doccomment">/// When it expected a certain kind of token, but got another as part of something</span>
     <span class="ident">Expected</span> {
@@ -184,6 +201,8 @@
     },
     <span class="doccomment">/// When there is an abrupt end to the parsing</span>
     <span class="ident">AbruptEnd</span>,
+    <span class="doccomment">/// A lexing error.</span>
+    <span class="ident">Lex</span> { <span class="ident">err</span>: <span class="ident">LexError</span> },
     <span class="doccomment">/// Catch all General Error</span>
     <span class="ident">General</span> {
         <span class="ident">message</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>,
@@ -225,8 +244,14 @@
         }
     }
 
+    <span class="doccomment">/// Creates a &quot;general&quot; parsing error.</span>
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">general</span>(<span class="ident">message</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>, <span class="ident">position</span>: <span class="ident">Position</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="self">Self</span>::<span class="ident">General</span> { <span class="ident">message</span>, <span class="ident">position</span> }
+    }
+
+    <span class="doccomment">/// Creates a parsing error from a lexing error.</span>
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">lex</span>(<span class="ident">e</span>: <span class="ident">LexError</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <span class="self">Self</span>::<span class="ident">Lex</span> { <span class="ident">err</span>: <span class="ident">e</span> }
     }
 }
 
@@ -284,7 +309,7 @@
                 <span class="ident">found</span>.<span class="ident">span</span>().<span class="ident">start</span>().<span class="ident">line_number</span>(),
                 <span class="ident">found</span>.<span class="ident">span</span>().<span class="ident">start</span>().<span class="ident">column_number</span>()
             ),
-            <span class="self">Self</span>::<span class="ident">AbruptEnd</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;Abrupt End&quot;</span>),
+            <span class="self">Self</span>::<span class="ident">AbruptEnd</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="string">&quot;abrupt end&quot;</span>),
             <span class="self">Self</span>::<span class="ident">General</span> { <span class="ident">message</span>, <span class="ident">position</span> } <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write</span><span class="macro">!</span>(
                 <span class="ident">f</span>,
                 <span class="string">&quot;{} at line {}, col {}&quot;</span>,
@@ -292,6 +317,7 @@
                 <span class="ident">position</span>.<span class="ident">line_number</span>(),
                 <span class="ident">position</span>.<span class="ident">column_number</span>()
             ),
+            <span class="self">Self</span>::<span class="ident">Lex</span> { <span class="ident">err</span> } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="ident">Display</span>::<span class="ident">fmt</span>(<span class="ident">err</span>, <span class="ident">f</span>),
         }
     }
 }

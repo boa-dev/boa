@@ -559,6 +559,7 @@
 <span id="559">559</span>
 <span id="560">560</span>
 <span id="561">561</span>
+<span id="562">562</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements the `Keyword` structure, which represents reserved words of the JavaScript language.</span>
 <span class="doccomment">//!</span>
@@ -997,6 +998,7 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_binop</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">BinOp</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="self">self</span> {
             <span class="ident">Keyword</span>::<span class="ident">In</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">BinOp</span>::<span class="ident">Comp</span>(<span class="ident">CompOp</span>::<span class="ident">In</span>)),
+            <span class="ident">Keyword</span>::<span class="ident">InstanceOf</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">BinOp</span>::<span class="ident">Comp</span>(<span class="ident">CompOp</span>::<span class="ident">InstanceOf</span>)),
             <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
         }
     }

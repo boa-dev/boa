@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/chrono-0.4.13/src/format/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css"><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script src="../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="shortcut icon" href="../../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../chrono/index.html'><div class='logo-container'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/chrono-0.4.15/src/format/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css"><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script src="../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="shortcut icon" href="../../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../chrono/index.html'><div class='logo-container'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -759,6 +759,183 @@
 <span id="759">759</span>
 <span id="760">760</span>
 <span id="761">761</span>
+<span id="762">762</span>
+<span id="763">763</span>
+<span id="764">764</span>
+<span id="765">765</span>
+<span id="766">766</span>
+<span id="767">767</span>
+<span id="768">768</span>
+<span id="769">769</span>
+<span id="770">770</span>
+<span id="771">771</span>
+<span id="772">772</span>
+<span id="773">773</span>
+<span id="774">774</span>
+<span id="775">775</span>
+<span id="776">776</span>
+<span id="777">777</span>
+<span id="778">778</span>
+<span id="779">779</span>
+<span id="780">780</span>
+<span id="781">781</span>
+<span id="782">782</span>
+<span id="783">783</span>
+<span id="784">784</span>
+<span id="785">785</span>
+<span id="786">786</span>
+<span id="787">787</span>
+<span id="788">788</span>
+<span id="789">789</span>
+<span id="790">790</span>
+<span id="791">791</span>
+<span id="792">792</span>
+<span id="793">793</span>
+<span id="794">794</span>
+<span id="795">795</span>
+<span id="796">796</span>
+<span id="797">797</span>
+<span id="798">798</span>
+<span id="799">799</span>
+<span id="800">800</span>
+<span id="801">801</span>
+<span id="802">802</span>
+<span id="803">803</span>
+<span id="804">804</span>
+<span id="805">805</span>
+<span id="806">806</span>
+<span id="807">807</span>
+<span id="808">808</span>
+<span id="809">809</span>
+<span id="810">810</span>
+<span id="811">811</span>
+<span id="812">812</span>
+<span id="813">813</span>
+<span id="814">814</span>
+<span id="815">815</span>
+<span id="816">816</span>
+<span id="817">817</span>
+<span id="818">818</span>
+<span id="819">819</span>
+<span id="820">820</span>
+<span id="821">821</span>
+<span id="822">822</span>
+<span id="823">823</span>
+<span id="824">824</span>
+<span id="825">825</span>
+<span id="826">826</span>
+<span id="827">827</span>
+<span id="828">828</span>
+<span id="829">829</span>
+<span id="830">830</span>
+<span id="831">831</span>
+<span id="832">832</span>
+<span id="833">833</span>
+<span id="834">834</span>
+<span id="835">835</span>
+<span id="836">836</span>
+<span id="837">837</span>
+<span id="838">838</span>
+<span id="839">839</span>
+<span id="840">840</span>
+<span id="841">841</span>
+<span id="842">842</span>
+<span id="843">843</span>
+<span id="844">844</span>
+<span id="845">845</span>
+<span id="846">846</span>
+<span id="847">847</span>
+<span id="848">848</span>
+<span id="849">849</span>
+<span id="850">850</span>
+<span id="851">851</span>
+<span id="852">852</span>
+<span id="853">853</span>
+<span id="854">854</span>
+<span id="855">855</span>
+<span id="856">856</span>
+<span id="857">857</span>
+<span id="858">858</span>
+<span id="859">859</span>
+<span id="860">860</span>
+<span id="861">861</span>
+<span id="862">862</span>
+<span id="863">863</span>
+<span id="864">864</span>
+<span id="865">865</span>
+<span id="866">866</span>
+<span id="867">867</span>
+<span id="868">868</span>
+<span id="869">869</span>
+<span id="870">870</span>
+<span id="871">871</span>
+<span id="872">872</span>
+<span id="873">873</span>
+<span id="874">874</span>
+<span id="875">875</span>
+<span id="876">876</span>
+<span id="877">877</span>
+<span id="878">878</span>
+<span id="879">879</span>
+<span id="880">880</span>
+<span id="881">881</span>
+<span id="882">882</span>
+<span id="883">883</span>
+<span id="884">884</span>
+<span id="885">885</span>
+<span id="886">886</span>
+<span id="887">887</span>
+<span id="888">888</span>
+<span id="889">889</span>
+<span id="890">890</span>
+<span id="891">891</span>
+<span id="892">892</span>
+<span id="893">893</span>
+<span id="894">894</span>
+<span id="895">895</span>
+<span id="896">896</span>
+<span id="897">897</span>
+<span id="898">898</span>
+<span id="899">899</span>
+<span id="900">900</span>
+<span id="901">901</span>
+<span id="902">902</span>
+<span id="903">903</span>
+<span id="904">904</span>
+<span id="905">905</span>
+<span id="906">906</span>
+<span id="907">907</span>
+<span id="908">908</span>
+<span id="909">909</span>
+<span id="910">910</span>
+<span id="911">911</span>
+<span id="912">912</span>
+<span id="913">913</span>
+<span id="914">914</span>
+<span id="915">915</span>
+<span id="916">916</span>
+<span id="917">917</span>
+<span id="918">918</span>
+<span id="919">919</span>
+<span id="920">920</span>
+<span id="921">921</span>
+<span id="922">922</span>
+<span id="923">923</span>
+<span id="924">924</span>
+<span id="925">925</span>
+<span id="926">926</span>
+<span id="927">927</span>
+<span id="928">928</span>
+<span id="929">929</span>
+<span id="930">930</span>
+<span id="931">931</span>
+<span id="932">932</span>
+<span id="933">933</span>
+<span id="934">934</span>
+<span id="935">935</span>
+<span id="936">936</span>
+<span id="937">937</span>
+<span id="938">938</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// This is a part of Chrono.</span>
 <span class="comment">// See README.md and LICENSE.txt for details.</span>
@@ -791,18 +968,26 @@
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">error</span>::<span class="ident">Error</span>;
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;alloc&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>, <span class="ident">test</span>))]</span>
-<span class="kw">use</span> <span class="ident">div</span>::{<span class="ident">div_floor</span>, <span class="ident">mod_floor</span>};
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;alloc&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>, <span class="ident">test</span>))]</span>
 <span class="kw">use</span> <span class="ident">naive</span>::{<span class="ident">NaiveDate</span>, <span class="ident">NaiveTime</span>};
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;alloc&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>, <span class="ident">test</span>))]</span>
 <span class="kw">use</span> <span class="ident">offset</span>::{<span class="ident">FixedOffset</span>, <span class="ident">Offset</span>};
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;alloc&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>, <span class="ident">test</span>))]</span>
 <span class="kw">use</span> {<span class="ident">Datelike</span>, <span class="ident">Timelike</span>};
-<span class="kw">use</span> {<span class="ident">ParseWeekdayError</span>, <span class="ident">Weekday</span>};
+<span class="kw">use</span> {<span class="ident">Month</span>, <span class="ident">ParseMonthError</span>, <span class="ident">ParseWeekdayError</span>, <span class="ident">Weekday</span>};
+
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;unstable-locales&quot;</span>)]</span>
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod</span> <span class="ident">locales</span>;
 
 <span class="kw">pub</span> <span class="kw">use</span> <span class="self">self</span>::<span class="ident">parse</span>::<span class="ident">parse</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="self">self</span>::<span class="ident">parsed</span>::<span class="ident">Parsed</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="self">self</span>::<span class="ident">strftime</span>::<span class="ident">StrftimeItems</span>;
+<span class="doccomment">/// L10n locales.</span>
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;unstable-locales&quot;</span>)]</span>
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">pure_rust_locales</span>::<span class="ident">Locale</span>;
+
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;unstable-locales&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
+<span class="kw">struct</span> <span class="ident">Locale</span>;
 
 <span class="doccomment">/// An uninhabited type used for `InternalNumeric` and `InternalFixed` below.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
@@ -1150,7 +1335,7 @@
     <span class="ident">item</span>: <span class="kw-2">&amp;</span><span class="ident">Item</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
 ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">String</span>::<span class="ident">new</span>();
-    <span class="ident">format_inner</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">result</span>, <span class="ident">date</span>, <span class="ident">time</span>, <span class="ident">off</span>, <span class="ident">item</span>)<span class="question-mark">?</span>;
+    <span class="ident">format_inner</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">result</span>, <span class="ident">date</span>, <span class="ident">time</span>, <span class="ident">off</span>, <span class="ident">item</span>, <span class="prelude-val">None</span>)<span class="question-mark">?</span>;
     <span class="ident">w</span>.<span class="ident">pad</span>(<span class="kw-2">&amp;</span><span class="ident">result</span>)
 }
 
@@ -1161,29 +1346,48 @@
     <span class="ident">time</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">NaiveTime</span><span class="op">&gt;</span>,
     <span class="ident">off</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span>(<span class="ident">String</span>, <span class="ident">FixedOffset</span>)<span class="op">&gt;</span>,
     <span class="ident">item</span>: <span class="kw-2">&amp;</span><span class="ident">Item</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
+    <span class="ident">_locale</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Locale</span><span class="op">&gt;</span>,
 ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
-    <span class="comment">// full and abbreviated month and weekday names</span>
-    <span class="kw">static</span> <span class="ident">SHORT_MONTHS</span>: [<span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>; <span class="number">12</span>] <span class="op">=</span>
-        [<span class="string">&quot;Jan&quot;</span>, <span class="string">&quot;Feb&quot;</span>, <span class="string">&quot;Mar&quot;</span>, <span class="string">&quot;Apr&quot;</span>, <span class="string">&quot;May&quot;</span>, <span class="string">&quot;Jun&quot;</span>, <span class="string">&quot;Jul&quot;</span>, <span class="string">&quot;Aug&quot;</span>, <span class="string">&quot;Sep&quot;</span>, <span class="string">&quot;Oct&quot;</span>, <span class="string">&quot;Nov&quot;</span>, <span class="string">&quot;Dec&quot;</span>];
-    <span class="kw">static</span> <span class="ident">LONG_MONTHS</span>: [<span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>; <span class="number">12</span>] <span class="op">=</span> [
-        <span class="string">&quot;January&quot;</span>,
-        <span class="string">&quot;February&quot;</span>,
-        <span class="string">&quot;March&quot;</span>,
-        <span class="string">&quot;April&quot;</span>,
-        <span class="string">&quot;May&quot;</span>,
-        <span class="string">&quot;June&quot;</span>,
-        <span class="string">&quot;July&quot;</span>,
-        <span class="string">&quot;August&quot;</span>,
-        <span class="string">&quot;September&quot;</span>,
-        <span class="string">&quot;October&quot;</span>,
-        <span class="string">&quot;November&quot;</span>,
-        <span class="string">&quot;December&quot;</span>,
-    ];
-    <span class="kw">static</span> <span class="ident">SHORT_WEEKDAYS</span>: [<span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>; <span class="number">7</span>] <span class="op">=</span> [<span class="string">&quot;Mon&quot;</span>, <span class="string">&quot;Tue&quot;</span>, <span class="string">&quot;Wed&quot;</span>, <span class="string">&quot;Thu&quot;</span>, <span class="string">&quot;Fri&quot;</span>, <span class="string">&quot;Sat&quot;</span>, <span class="string">&quot;Sun&quot;</span>];
-    <span class="kw">static</span> <span class="ident">LONG_WEEKDAYS</span>: [<span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>; <span class="number">7</span>] <span class="op">=</span>
-        [<span class="string">&quot;Monday&quot;</span>, <span class="string">&quot;Tuesday&quot;</span>, <span class="string">&quot;Wednesday&quot;</span>, <span class="string">&quot;Thursday&quot;</span>, <span class="string">&quot;Friday&quot;</span>, <span class="string">&quot;Saturday&quot;</span>, <span class="string">&quot;Sunday&quot;</span>];
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;unstable-locales&quot;</span>)]</span>
+    <span class="kw">let</span> (<span class="ident">short_months</span>, <span class="ident">long_months</span>, <span class="ident">short_weekdays</span>, <span class="ident">long_weekdays</span>, <span class="ident">am_pm</span>, <span class="ident">am_pm_lowercase</span>) <span class="op">=</span> {
+        <span class="kw">let</span> <span class="ident">locale</span> <span class="op">=</span> <span class="ident">_locale</span>.<span class="ident">unwrap_or</span>(<span class="ident">Locale</span>::<span class="ident">POSIX</span>);
+        <span class="kw">let</span> <span class="ident">am_pm</span> <span class="op">=</span> <span class="ident">locales</span>::<span class="ident">am_pm</span>(<span class="ident">locale</span>);
+        (
+            <span class="ident">locales</span>::<span class="ident">short_months</span>(<span class="ident">locale</span>),
+            <span class="ident">locales</span>::<span class="ident">long_months</span>(<span class="ident">locale</span>),
+            <span class="ident">locales</span>::<span class="ident">short_weekdays</span>(<span class="ident">locale</span>),
+            <span class="ident">locales</span>::<span class="ident">long_weekdays</span>(<span class="ident">locale</span>),
+            <span class="ident">am_pm</span>,
+            <span class="kw-2">&amp;</span>[<span class="ident">am_pm</span>[<span class="number">0</span>].<span class="ident">to_lowercase</span>(), <span class="ident">am_pm</span>[<span class="number">1</span>].<span class="ident">to_lowercase</span>()],
+        )
+    };
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;unstable-locales&quot;</span>))]</span>
+    <span class="kw">let</span> (<span class="ident">short_months</span>, <span class="ident">long_months</span>, <span class="ident">short_weekdays</span>, <span class="ident">long_weekdays</span>, <span class="ident">am_pm</span>, <span class="ident">am_pm_lowercase</span>) <span class="op">=</span> {
+        (
+            <span class="kw-2">&amp;</span>[<span class="string">&quot;Jan&quot;</span>, <span class="string">&quot;Feb&quot;</span>, <span class="string">&quot;Mar&quot;</span>, <span class="string">&quot;Apr&quot;</span>, <span class="string">&quot;May&quot;</span>, <span class="string">&quot;Jun&quot;</span>, <span class="string">&quot;Jul&quot;</span>, <span class="string">&quot;Aug&quot;</span>, <span class="string">&quot;Sep&quot;</span>, <span class="string">&quot;Oct&quot;</span>, <span class="string">&quot;Nov&quot;</span>, <span class="string">&quot;Dec&quot;</span>],
+            <span class="kw-2">&amp;</span>[
+                <span class="string">&quot;January&quot;</span>,
+                <span class="string">&quot;February&quot;</span>,
+                <span class="string">&quot;March&quot;</span>,
+                <span class="string">&quot;April&quot;</span>,
+                <span class="string">&quot;May&quot;</span>,
+                <span class="string">&quot;June&quot;</span>,
+                <span class="string">&quot;July&quot;</span>,
+                <span class="string">&quot;August&quot;</span>,
+                <span class="string">&quot;September&quot;</span>,
+                <span class="string">&quot;October&quot;</span>,
+                <span class="string">&quot;November&quot;</span>,
+                <span class="string">&quot;December&quot;</span>,
+            ],
+            <span class="kw-2">&amp;</span>[<span class="string">&quot;Sun&quot;</span>, <span class="string">&quot;Mon&quot;</span>, <span class="string">&quot;Tue&quot;</span>, <span class="string">&quot;Wed&quot;</span>, <span class="string">&quot;Thu&quot;</span>, <span class="string">&quot;Fri&quot;</span>, <span class="string">&quot;Sat&quot;</span>],
+            <span class="kw-2">&amp;</span>[<span class="string">&quot;Sunday&quot;</span>, <span class="string">&quot;Monday&quot;</span>, <span class="string">&quot;Tuesday&quot;</span>, <span class="string">&quot;Wednesday&quot;</span>, <span class="string">&quot;Thursday&quot;</span>, <span class="string">&quot;Friday&quot;</span>, <span class="string">&quot;Saturday&quot;</span>],
+            <span class="kw-2">&amp;</span>[<span class="string">&quot;AM&quot;</span>, <span class="string">&quot;PM&quot;</span>],
+            <span class="kw-2">&amp;</span>[<span class="string">&quot;am&quot;</span>, <span class="string">&quot;pm&quot;</span>],
+        )
+    };
 
     <span class="kw">use</span> <span class="ident">core</span>::<span class="ident">fmt</span>::<span class="ident">Write</span>;
+    <span class="kw">use</span> <span class="ident">div</span>::{<span class="ident">div_floor</span>, <span class="ident">mod_floor</span>};
 
     <span class="kw">match</span> <span class="kw-2">*</span><span class="ident">item</span> {
         <span class="ident">Item</span>::<span class="ident">Literal</span>(<span class="ident">s</span>) <span class="op">|</span> <span class="ident">Item</span>::<span class="ident">Space</span>(<span class="ident">s</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">result</span>.<span class="ident">push_str</span>(<span class="ident">s</span>),
@@ -1283,28 +1487,35 @@
             <span class="kw">let</span> <span class="ident">ret</span> <span class="op">=</span>
                 <span class="kw">match</span> <span class="kw-2">*</span><span class="ident">spec</span> {
                     <span class="ident">ShortMonthName</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">date</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">d</span><span class="op">|</span> {
-                        <span class="ident">result</span>.<span class="ident">push_str</span>(<span class="ident">SHORT_MONTHS</span>[<span class="ident">d</span>.<span class="ident">month0</span>() <span class="kw">as</span> <span class="ident">usize</span>]);
+                        <span class="ident">result</span>.<span class="ident">push_str</span>(<span class="ident">short_months</span>[<span class="ident">d</span>.<span class="ident">month0</span>() <span class="kw">as</span> <span class="ident">usize</span>]);
                         <span class="prelude-val">Ok</span>(())
                     }),
                     <span class="ident">LongMonthName</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">date</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">d</span><span class="op">|</span> {
-                        <span class="ident">result</span>.<span class="ident">push_str</span>(<span class="ident">LONG_MONTHS</span>[<span class="ident">d</span>.<span class="ident">month0</span>() <span class="kw">as</span> <span class="ident">usize</span>]);
+                        <span class="ident">result</span>.<span class="ident">push_str</span>(<span class="ident">long_months</span>[<span class="ident">d</span>.<span class="ident">month0</span>() <span class="kw">as</span> <span class="ident">usize</span>]);
                         <span class="prelude-val">Ok</span>(())
                     }),
                     <span class="ident">ShortWeekdayName</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">date</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">d</span><span class="op">|</span> {
                         <span class="ident">result</span>
-                            .<span class="ident">push_str</span>(<span class="ident">SHORT_WEEKDAYS</span>[<span class="ident">d</span>.<span class="ident">weekday</span>().<span class="ident">num_days_from_monday</span>() <span class="kw">as</span> <span class="ident">usize</span>]);
+                            .<span class="ident">push_str</span>(<span class="ident">short_weekdays</span>[<span class="ident">d</span>.<span class="ident">weekday</span>().<span class="ident">num_days_from_sunday</span>() <span class="kw">as</span> <span class="ident">usize</span>]);
                         <span class="prelude-val">Ok</span>(())
                     }),
                     <span class="ident">LongWeekdayName</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">date</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">d</span><span class="op">|</span> {
-                        <span class="ident">result</span>.<span class="ident">push_str</span>(<span class="ident">LONG_WEEKDAYS</span>[<span class="ident">d</span>.<span class="ident">weekday</span>().<span class="ident">num_days_from_monday</span>() <span class="kw">as</span> <span class="ident">usize</span>]);
+                        <span class="ident">result</span>.<span class="ident">push_str</span>(<span class="ident">long_weekdays</span>[<span class="ident">d</span>.<span class="ident">weekday</span>().<span class="ident">num_days_from_sunday</span>() <span class="kw">as</span> <span class="ident">usize</span>]);
                         <span class="prelude-val">Ok</span>(())
                     }),
                     <span class="ident">LowerAmPm</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">time</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">t</span><span class="op">|</span> {
-                        <span class="ident">result</span>.<span class="ident">push_str</span>(<span class="kw">if</span> <span class="ident">t</span>.<span class="ident">hour12</span>().<span class="number">0</span> { <span class="string">&quot;pm&quot;</span> } <span class="kw">else</span> { <span class="string">&quot;am&quot;</span> });
+                        <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;cargo-clippy&quot;</span>, <span class="ident">allow</span>(<span class="ident">useless_asref</span>))]</span>
+                        {
+                            <span class="ident">result</span>.<span class="ident">push_str</span>(<span class="kw">if</span> <span class="ident">t</span>.<span class="ident">hour12</span>().<span class="number">0</span> {
+                                <span class="ident">am_pm_lowercase</span>[<span class="number">1</span>].<span class="ident">as_ref</span>()
+                            } <span class="kw">else</span> {
+                                <span class="ident">am_pm_lowercase</span>[<span class="number">0</span>].<span class="ident">as_ref</span>()
+                            });
+                        }
                         <span class="prelude-val">Ok</span>(())
                     }),
                     <span class="ident">UpperAmPm</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">time</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">t</span><span class="op">|</span> {
-                        <span class="ident">result</span>.<span class="ident">push_str</span>(<span class="kw">if</span> <span class="ident">t</span>.<span class="ident">hour12</span>().<span class="number">0</span> { <span class="string">&quot;PM&quot;</span> } <span class="kw">else</span> { <span class="string">&quot;AM&quot;</span> });
+                        <span class="ident">result</span>.<span class="ident">push_str</span>(<span class="kw">if</span> <span class="ident">t</span>.<span class="ident">hour12</span>().<span class="number">0</span> { <span class="ident">am_pm</span>[<span class="number">1</span>] } <span class="kw">else</span> { <span class="ident">am_pm</span>[<span class="number">0</span>] });
                         <span class="prelude-val">Ok</span>(())
                     }),
                     <span class="ident">Nanosecond</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">time</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">t</span><span class="op">|</span> {
@@ -1373,9 +1584,9 @@
                             <span class="macro">write</span><span class="macro">!</span>(
                                 <span class="ident">result</span>,
                                 <span class="string">&quot;{}, {:02} {} {:04} {:02}:{:02}:{:02} &quot;</span>,
-                                <span class="ident">SHORT_WEEKDAYS</span>[<span class="ident">d</span>.<span class="ident">weekday</span>().<span class="ident">num_days_from_monday</span>() <span class="kw">as</span> <span class="ident">usize</span>],
+                                <span class="ident">short_weekdays</span>[<span class="ident">d</span>.<span class="ident">weekday</span>().<span class="ident">num_days_from_sunday</span>() <span class="kw">as</span> <span class="ident">usize</span>],
                                 <span class="ident">d</span>.<span class="ident">day</span>(),
-                                <span class="ident">SHORT_MONTHS</span>[<span class="ident">d</span>.<span class="ident">month0</span>() <span class="kw">as</span> <span class="ident">usize</span>],
+                                <span class="ident">short_months</span>[<span class="ident">d</span>.<span class="ident">month0</span>() <span class="kw">as</span> <span class="ident">usize</span>],
                                 <span class="ident">d</span>.<span class="ident">year</span>(),
                                 <span class="ident">t</span>.<span class="ident">hour</span>(),
                                 <span class="ident">t</span>.<span class="ident">minute</span>(),
@@ -1427,7 +1638,7 @@
 {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">String</span>::<span class="ident">new</span>();
     <span class="kw">for</span> <span class="ident">item</span> <span class="kw">in</span> <span class="ident">items</span> {
-        <span class="ident">format_inner</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">result</span>, <span class="ident">date</span>, <span class="ident">time</span>, <span class="ident">off</span>, <span class="ident">item</span>.<span class="ident">borrow</span>())<span class="question-mark">?</span>;
+        <span class="ident">format_inner</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">result</span>, <span class="ident">date</span>, <span class="ident">time</span>, <span class="ident">off</span>, <span class="ident">item</span>.<span class="ident">borrow</span>(), <span class="prelude-val">None</span>)<span class="question-mark">?</span>;
     }
     <span class="ident">w</span>.<span class="ident">pad</span>(<span class="kw-2">&amp;</span><span class="ident">result</span>)
 }
@@ -1453,13 +1664,15 @@
     <span class="ident">off</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">String</span>, <span class="ident">FixedOffset</span>)<span class="op">&gt;</span>,
     <span class="doccomment">/// An iterator returning formatting items.</span>
     <span class="ident">items</span>: <span class="ident">I</span>,
+    <span class="doccomment">/// Locale used for text.</span>
+    <span class="ident">locale</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Locale</span><span class="op">&gt;</span>,
 }
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;alloc&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>, <span class="ident">test</span>))]</span>
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">I</span>: <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">B</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Clone</span>, <span class="ident">B</span>: <span class="ident">Borrow</span><span class="op">&lt;</span><span class="ident">Item</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="ident">DelayedFormat</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span> {
     <span class="doccomment">/// Makes a new `DelayedFormat` value out of local date and time.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">date</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">NaiveDate</span><span class="op">&gt;</span>, <span class="ident">time</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">NaiveTime</span><span class="op">&gt;</span>, <span class="ident">items</span>: <span class="ident">I</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">DelayedFormat</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span> {
-        <span class="ident">DelayedFormat</span> { <span class="ident">date</span>: <span class="ident">date</span>, <span class="ident">time</span>: <span class="ident">time</span>, <span class="ident">off</span>: <span class="prelude-val">None</span>, <span class="ident">items</span>: <span class="ident">items</span> }
+        <span class="ident">DelayedFormat</span> { <span class="ident">date</span>: <span class="ident">date</span>, <span class="ident">time</span>: <span class="ident">time</span>, <span class="ident">off</span>: <span class="prelude-val">None</span>, <span class="ident">items</span>: <span class="ident">items</span>, <span class="ident">locale</span>: <span class="prelude-val">None</span> }
     }
 
     <span class="doccomment">/// Makes a new `DelayedFormat` value out of local date and time and UTC offset.</span>
@@ -1473,13 +1686,66 @@
         <span class="ident">Off</span>: <span class="ident">Offset</span> <span class="op">+</span> <span class="ident">fmt</span>::<span class="ident">Display</span>,
     {
         <span class="kw">let</span> <span class="ident">name_and_diff</span> <span class="op">=</span> (<span class="ident">offset</span>.<span class="ident">to_string</span>(), <span class="ident">offset</span>.<span class="ident">fix</span>());
-        <span class="ident">DelayedFormat</span> { <span class="ident">date</span>: <span class="ident">date</span>, <span class="ident">time</span>: <span class="ident">time</span>, <span class="ident">off</span>: <span class="prelude-val">Some</span>(<span class="ident">name_and_diff</span>), <span class="ident">items</span>: <span class="ident">items</span> }
+        <span class="ident">DelayedFormat</span> {
+            <span class="ident">date</span>: <span class="ident">date</span>,
+            <span class="ident">time</span>: <span class="ident">time</span>,
+            <span class="ident">off</span>: <span class="prelude-val">Some</span>(<span class="ident">name_and_diff</span>),
+            <span class="ident">items</span>: <span class="ident">items</span>,
+            <span class="ident">locale</span>: <span class="prelude-val">None</span>,
+        }
+    }
+
+    <span class="doccomment">/// Makes a new `DelayedFormat` value out of local date and time and locale.</span>
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;unstable-locales&quot;</span>)]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_with_locale</span>(
+        <span class="ident">date</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">NaiveDate</span><span class="op">&gt;</span>,
+        <span class="ident">time</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">NaiveTime</span><span class="op">&gt;</span>,
+        <span class="ident">items</span>: <span class="ident">I</span>,
+        <span class="ident">locale</span>: <span class="ident">Locale</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">DelayedFormat</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span> {
+        <span class="ident">DelayedFormat</span> { <span class="ident">date</span>: <span class="ident">date</span>, <span class="ident">time</span>: <span class="ident">time</span>, <span class="ident">off</span>: <span class="prelude-val">None</span>, <span class="ident">items</span>: <span class="ident">items</span>, <span class="ident">locale</span>: <span class="prelude-val">Some</span>(<span class="ident">locale</span>) }
+    }
+
+    <span class="doccomment">/// Makes a new `DelayedFormat` value out of local date and time, UTC offset and locale.</span>
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;unstable-locales&quot;</span>)]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_with_offset_and_locale</span><span class="op">&lt;</span><span class="ident">Off</span><span class="op">&gt;</span>(
+        <span class="ident">date</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">NaiveDate</span><span class="op">&gt;</span>,
+        <span class="ident">time</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">NaiveTime</span><span class="op">&gt;</span>,
+        <span class="ident">offset</span>: <span class="kw-2">&amp;</span><span class="ident">Off</span>,
+        <span class="ident">items</span>: <span class="ident">I</span>,
+        <span class="ident">locale</span>: <span class="ident">Locale</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">DelayedFormat</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span>
+    <span class="kw">where</span>
+        <span class="ident">Off</span>: <span class="ident">Offset</span> <span class="op">+</span> <span class="ident">fmt</span>::<span class="ident">Display</span>,
+    {
+        <span class="kw">let</span> <span class="ident">name_and_diff</span> <span class="op">=</span> (<span class="ident">offset</span>.<span class="ident">to_string</span>(), <span class="ident">offset</span>.<span class="ident">fix</span>());
+        <span class="ident">DelayedFormat</span> {
+            <span class="ident">date</span>: <span class="ident">date</span>,
+            <span class="ident">time</span>: <span class="ident">time</span>,
+            <span class="ident">off</span>: <span class="prelude-val">Some</span>(<span class="ident">name_and_diff</span>),
+            <span class="ident">items</span>: <span class="ident">items</span>,
+            <span class="ident">locale</span>: <span class="prelude-val">Some</span>(<span class="ident">locale</span>),
+        }
     }
 }
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;alloc&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>, <span class="ident">test</span>))]</span>
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">I</span>: <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">B</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Clone</span>, <span class="ident">B</span>: <span class="ident">Borrow</span><span class="op">&lt;</span><span class="ident">Item</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="ident">Display</span> <span class="kw">for</span> <span class="ident">DelayedFormat</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
+        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;unstable-locales&quot;</span>)]</span>
+        {
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">locale</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">locale</span> {
+                <span class="kw">return</span> <span class="ident">format_localized</span>(
+                    <span class="ident">f</span>,
+                    <span class="self">self</span>.<span class="ident">date</span>.<span class="ident">as_ref</span>(),
+                    <span class="self">self</span>.<span class="ident">time</span>.<span class="ident">as_ref</span>(),
+                    <span class="self">self</span>.<span class="ident">off</span>.<span class="ident">as_ref</span>(),
+                    <span class="self">self</span>.<span class="ident">items</span>.<span class="ident">clone</span>(),
+                    <span class="ident">locale</span>,
+                );
+            }
+        }
+
         <span class="ident">format</span>(<span class="ident">f</span>, <span class="self">self</span>.<span class="ident">date</span>.<span class="ident">as_ref</span>(), <span class="self">self</span>.<span class="ident">time</span>.<span class="ident">as_ref</span>(), <span class="self">self</span>.<span class="ident">off</span>.<span class="ident">as_ref</span>(), <span class="self">self</span>.<span class="ident">items</span>.<span class="ident">clone</span>())
     }
 }
@@ -1518,6 +1784,94 @@
             <span class="prelude-val">Ok</span>(<span class="ident">w</span>)
         } <span class="kw">else</span> {
             <span class="prelude-val">Err</span>(<span class="ident">ParseWeekdayError</span> { <span class="ident">_dummy</span>: () })
+        }
+    }
+}
+
+<span class="doccomment">/// Formats single formatting item</span>
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;unstable-locales&quot;</span>)]</span>
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">format_item_localized</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(
+    <span class="ident">w</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span>,
+    <span class="ident">date</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">NaiveDate</span><span class="op">&gt;</span>,
+    <span class="ident">time</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">NaiveTime</span><span class="op">&gt;</span>,
+    <span class="ident">off</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span>(<span class="ident">String</span>, <span class="ident">FixedOffset</span>)<span class="op">&gt;</span>,
+    <span class="ident">item</span>: <span class="kw-2">&amp;</span><span class="ident">Item</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
+    <span class="ident">locale</span>: <span class="ident">Locale</span>,
+) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">String</span>::<span class="ident">new</span>();
+    <span class="ident">format_inner</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">result</span>, <span class="ident">date</span>, <span class="ident">time</span>, <span class="ident">off</span>, <span class="ident">item</span>, <span class="prelude-val">Some</span>(<span class="ident">locale</span>))<span class="question-mark">?</span>;
+    <span class="ident">w</span>.<span class="ident">pad</span>(<span class="kw-2">&amp;</span><span class="ident">result</span>)
+}
+
+<span class="doccomment">/// Tries to format given arguments with given formatting items.</span>
+<span class="doccomment">/// Internally used by `DelayedFormat`.</span>
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;unstable-locales&quot;</span>)]</span>
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">format_localized</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">I</span>, <span class="ident">B</span><span class="op">&gt;</span>(
+    <span class="ident">w</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span>,
+    <span class="ident">date</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">NaiveDate</span><span class="op">&gt;</span>,
+    <span class="ident">time</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">NaiveTime</span><span class="op">&gt;</span>,
+    <span class="ident">off</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span>(<span class="ident">String</span>, <span class="ident">FixedOffset</span>)<span class="op">&gt;</span>,
+    <span class="ident">items</span>: <span class="ident">I</span>,
+    <span class="ident">locale</span>: <span class="ident">Locale</span>,
+) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span>
+<span class="kw">where</span>
+    <span class="ident">I</span>: <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">B</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Clone</span>,
+    <span class="ident">B</span>: <span class="ident">Borrow</span><span class="op">&lt;</span><span class="ident">Item</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+{
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">String</span>::<span class="ident">new</span>();
+    <span class="kw">for</span> <span class="ident">item</span> <span class="kw">in</span> <span class="ident">items</span> {
+        <span class="ident">format_inner</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">result</span>, <span class="ident">date</span>, <span class="ident">time</span>, <span class="ident">off</span>, <span class="ident">item</span>.<span class="ident">borrow</span>(), <span class="prelude-val">Some</span>(<span class="ident">locale</span>))<span class="question-mark">?</span>;
+    }
+    <span class="ident">w</span>.<span class="ident">pad</span>(<span class="kw-2">&amp;</span><span class="ident">result</span>)
+}
+
+<span class="doccomment">/// Parsing a `str` into a `Month` uses the format [`%W`](./format/strftime/index.html).</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// # Example</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// ~~~~</span>
+<span class="doccomment">/// use chrono::Month;</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// assert_eq!(&quot;January&quot;.parse::&lt;Month&gt;(), Ok(Month::January));</span>
+<span class="doccomment">/// assert!(&quot;any day&quot;.parse::&lt;Month&gt;().is_err());</span>
+<span class="doccomment">/// ~~~~</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// The parsing is case-insensitive.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// ~~~~</span>
+<span class="doccomment">/// # use chrono::Month;</span>
+<span class="doccomment">/// assert_eq!(&quot;fEbruARy&quot;.parse::&lt;Month&gt;(), Ok(Month::February));</span>
+<span class="doccomment">/// ~~~~</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// Only the shortest form (e.g. `jan`) and the longest form (e.g. `january`) is accepted.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// ~~~~</span>
+<span class="doccomment">/// # use chrono::Month;</span>
+<span class="doccomment">/// assert!(&quot;septem&quot;.parse::&lt;Month&gt;().is_err());</span>
+<span class="doccomment">/// assert!(&quot;Augustin&quot;.parse::&lt;Month&gt;().is_err());</span>
+<span class="doccomment">/// ~~~~</span>
+<span class="kw">impl</span> <span class="ident">FromStr</span> <span class="kw">for</span> <span class="ident">Month</span> {
+    <span class="kw">type</span> <span class="prelude-val">Err</span> <span class="op">=</span> <span class="ident">ParseMonthError</span>;
+
+    <span class="kw">fn</span> <span class="ident">from_str</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="self">Self</span>::<span class="prelude-val">Err</span><span class="op">&gt;</span> {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>((<span class="string">&quot;&quot;</span>, <span class="ident">w</span>)) <span class="op">=</span> <span class="ident">scan</span>::<span class="ident">short_or_long_month0</span>(<span class="ident">s</span>) {
+            <span class="kw">match</span> <span class="ident">w</span> {
+                <span class="number">0</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Month</span>::<span class="ident">January</span>),
+                <span class="number">1</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Month</span>::<span class="ident">February</span>),
+                <span class="number">2</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Month</span>::<span class="ident">March</span>),
+                <span class="number">3</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Month</span>::<span class="ident">April</span>),
+                <span class="number">4</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Month</span>::<span class="ident">May</span>),
+                <span class="number">5</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Month</span>::<span class="ident">June</span>),
+                <span class="number">6</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Month</span>::<span class="ident">July</span>),
+                <span class="number">7</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Month</span>::<span class="ident">August</span>),
+                <span class="number">8</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Month</span>::<span class="ident">September</span>),
+                <span class="number">9</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Month</span>::<span class="ident">October</span>),
+                <span class="number">10</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Month</span>::<span class="ident">November</span>),
+                <span class="number">11</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Month</span>::<span class="ident">December</span>),
+                <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">ParseMonthError</span> { <span class="ident">_dummy</span>: () }),
+            }
+        } <span class="kw">else</span> {
+            <span class="prelude-val">Err</span>(<span class="ident">ParseMonthError</span> { <span class="ident">_dummy</span>: () })
         }
     }
 }

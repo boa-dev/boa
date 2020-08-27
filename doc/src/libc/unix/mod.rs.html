@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/libc-0.2.73/src/unix/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css"><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script src="../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="shortcut icon" href="../../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../libc/index.html'><div class='logo-container'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/libc-0.2.76/src/unix/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css"><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script src="../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="shortcut icon" href="../../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../libc/index.html'><div class='logo-container'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
 <span id="3">   3</span>
 <span id="4">   4</span>
@@ -1594,6 +1594,35 @@
 <span id="1594">1594</span>
 <span id="1595">1595</span>
 <span id="1596">1596</span>
+<span id="1597">1597</span>
+<span id="1598">1598</span>
+<span id="1599">1599</span>
+<span id="1600">1600</span>
+<span id="1601">1601</span>
+<span id="1602">1602</span>
+<span id="1603">1603</span>
+<span id="1604">1604</span>
+<span id="1605">1605</span>
+<span id="1606">1606</span>
+<span id="1607">1607</span>
+<span id="1608">1608</span>
+<span id="1609">1609</span>
+<span id="1610">1610</span>
+<span id="1611">1611</span>
+<span id="1612">1612</span>
+<span id="1613">1613</span>
+<span id="1614">1614</span>
+<span id="1615">1615</span>
+<span id="1616">1616</span>
+<span id="1617">1617</span>
+<span id="1618">1618</span>
+<span id="1619">1619</span>
+<span id="1620">1620</span>
+<span id="1621">1621</span>
+<span id="1622">1622</span>
+<span id="1623">1623</span>
+<span id="1624">1624</span>
+<span id="1625">1625</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Definitions found commonly among almost all Unix derivatives</span>
 <span class="doccomment">//!</span>
@@ -2016,6 +2045,19 @@
         <span class="ident">mode</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_char</span>,
         <span class="ident">file</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">FILE</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">FILE</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">fmemopen</span>(
+        <span class="ident">buf</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>,
+        <span class="ident">size</span>: <span class="ident">size_t</span>,
+        <span class="ident">mode</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_char</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">FILE</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">open_memstream</span>(
+        <span class="ident">ptr</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_char</span>,
+        <span class="ident">sizeloc</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">size_t</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">FILE</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">open_wmemstream</span>(
+        <span class="ident">ptr</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">wchar_t</span>,
+        <span class="ident">sizeloc</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">size_t</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">FILE</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">fflush</span>(<span class="ident">file</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">FILE</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">fclose</span>(<span class="ident">file</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">FILE</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">remove</span>(<span class="ident">filename</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_char</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
@@ -2193,9 +2235,13 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">getchar_unlocked</span>() <span class="op">-</span><span class="op">&gt;</span> ::<span class="ident">c_int</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">putchar_unlocked</span>(<span class="ident">c</span>: ::<span class="ident">c_int</span>) <span class="op">-</span><span class="op">&gt;</span> ::<span class="ident">c_int</span>;
 
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">all</span>(<span class="ident">libc_cfg_target_vendor</span>, <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;powerpc&quot;</span>,
+          <span class="ident">target_vendor</span> <span class="op">=</span> <span class="string">&quot;nintendo&quot;</span>)))]</span>
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;netbsd&quot;</span>, <span class="ident">link_name</span> <span class="op">=</span> <span class="string">&quot;__socket30&quot;</span>)]</span>
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;illumos&quot;</span>, <span class="ident">link_name</span> <span class="op">=</span> <span class="string">&quot;__xnet_socket&quot;</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">socket</span>(<span class="ident">domain</span>: ::<span class="ident">c_int</span>, <span class="ident">ty</span>: ::<span class="ident">c_int</span>, <span class="ident">protocol</span>: ::<span class="ident">c_int</span>) <span class="op">-</span><span class="op">&gt;</span> ::<span class="ident">c_int</span>;
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">all</span>(<span class="ident">libc_cfg_target_vendor</span>, <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;powerpc&quot;</span>,
+          <span class="ident">target_vendor</span> <span class="op">=</span> <span class="string">&quot;nintendo&quot;</span>)))]</span>
     <span class="attribute">#[<span class="ident">cfg_attr</span>(
         <span class="ident">all</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;macos&quot;</span>, <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;x86&quot;</span>),
         <span class="ident">link_name</span> <span class="op">=</span> <span class="string">&quot;connect$UNIX2003&quot;</span>
@@ -2211,6 +2257,8 @@
         <span class="ident">link_name</span> <span class="op">=</span> <span class="string">&quot;listen$UNIX2003&quot;</span>
     )]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">listen</span>(<span class="ident">socket</span>: ::<span class="ident">c_int</span>, <span class="ident">backlog</span>: ::<span class="ident">c_int</span>) <span class="op">-</span><span class="op">&gt;</span> ::<span class="ident">c_int</span>;
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">all</span>(<span class="ident">libc_cfg_target_vendor</span>, <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;powerpc&quot;</span>,
+          <span class="ident">target_vendor</span> <span class="op">=</span> <span class="string">&quot;nintendo&quot;</span>)))]</span>
     <span class="attribute">#[<span class="ident">cfg_attr</span>(
         <span class="ident">all</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;macos&quot;</span>, <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;x86&quot;</span>),
         <span class="ident">link_name</span> <span class="op">=</span> <span class="string">&quot;accept$UNIX2003&quot;</span>
@@ -2220,6 +2268,8 @@
         <span class="ident">address</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">sockaddr</span>,
         <span class="ident">address_len</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">socklen_t</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> ::<span class="ident">c_int</span>;
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">all</span>(<span class="ident">libc_cfg_target_vendor</span>, <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;powerpc&quot;</span>,
+          <span class="ident">target_vendor</span> <span class="op">=</span> <span class="string">&quot;nintendo&quot;</span>)))]</span>
     <span class="attribute">#[<span class="ident">cfg_attr</span>(
         <span class="ident">all</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;macos&quot;</span>, <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;x86&quot;</span>),
         <span class="ident">link_name</span> <span class="op">=</span> <span class="string">&quot;getpeername$UNIX2003&quot;</span>
@@ -2229,6 +2279,8 @@
         <span class="ident">address</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">sockaddr</span>,
         <span class="ident">address_len</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">socklen_t</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> ::<span class="ident">c_int</span>;
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">all</span>(<span class="ident">libc_cfg_target_vendor</span>, <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;powerpc&quot;</span>,
+          <span class="ident">target_vendor</span> <span class="op">=</span> <span class="string">&quot;nintendo&quot;</span>)))]</span>
     <span class="attribute">#[<span class="ident">cfg_attr</span>(
         <span class="ident">all</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;macos&quot;</span>, <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;x86&quot;</span>),
         <span class="ident">link_name</span> <span class="op">=</span> <span class="string">&quot;getsockname$UNIX2003&quot;</span>
@@ -2256,6 +2308,8 @@
         <span class="ident">protocol</span>: ::<span class="ident">c_int</span>,
         <span class="ident">socket_vector</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> ::<span class="ident">c_int</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> ::<span class="ident">c_int</span>;
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">all</span>(<span class="ident">libc_cfg_target_vendor</span>, <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;powerpc&quot;</span>,
+          <span class="ident">target_vendor</span> <span class="op">=</span> <span class="string">&quot;nintendo&quot;</span>)))]</span>
     <span class="attribute">#[<span class="ident">cfg_attr</span>(
         <span class="ident">all</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;macos&quot;</span>, <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;x86&quot;</span>),
         <span class="ident">link_name</span> <span class="op">=</span> <span class="string">&quot;sendto$UNIX2003&quot;</span>
@@ -2831,6 +2885,8 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">dlclose</span>(<span class="ident">handle</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> ::<span class="ident">c_void</span>) <span class="op">-</span><span class="op">&gt;</span> ::<span class="ident">c_int</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">dladdr</span>(<span class="ident">addr</span>: <span class="kw-2">*</span><span class="kw">const</span> ::<span class="ident">c_void</span>, <span class="ident">info</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">Dl_info</span>) <span class="op">-</span><span class="op">&gt;</span> ::<span class="ident">c_int</span>;
 
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">all</span>(<span class="ident">libc_cfg_target_vendor</span>, <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;powerpc&quot;</span>,
+          <span class="ident">target_vendor</span> <span class="op">=</span> <span class="string">&quot;nintendo&quot;</span>)))]</span>
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;illumos&quot;</span>, <span class="ident">link_name</span> <span class="op">=</span> <span class="string">&quot;__xnet_getaddrinfo&quot;</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">getaddrinfo</span>(
         <span class="ident">node</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_char</span>,
@@ -2838,6 +2894,8 @@
         <span class="ident">hints</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">addrinfo</span>,
         <span class="ident">res</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">addrinfo</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> ::<span class="ident">c_int</span>;
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">all</span>(<span class="ident">libc_cfg_target_vendor</span>, <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;powerpc&quot;</span>,
+          <span class="ident">target_vendor</span> <span class="op">=</span> <span class="string">&quot;nintendo&quot;</span>)))]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">freeaddrinfo</span>(<span class="ident">res</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">addrinfo</span>);
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">gai_strerror</span>(<span class="ident">errcode</span>: ::<span class="ident">c_int</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw">const</span> ::<span class="ident">c_char</span>;
     <span class="attribute">#[<span class="ident">cfg_attr</span>(

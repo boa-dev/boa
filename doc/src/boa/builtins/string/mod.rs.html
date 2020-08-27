@@ -1631,7 +1631,7 @@
                     <span class="comment">// Push the whole string being examined</span>
                     <span class="ident">results</span>.<span class="ident">push</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">primitive_val</span>.<span class="ident">to_string</span>()));
 
-                    <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">call</span>(<span class="kw-2">&amp;</span><span class="ident">replace_object</span>, <span class="ident">this</span>, <span class="kw-2">&amp;</span><span class="ident">results</span>).<span class="ident">unwrap</span>();
+                    <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">call</span>(<span class="kw-2">&amp;</span><span class="ident">replace_object</span>, <span class="ident">this</span>, <span class="kw-2">&amp;</span><span class="ident">results</span>)<span class="question-mark">?</span>;
 
                     <span class="ident">result</span>.<span class="ident">to_string</span>(<span class="ident">ctx</span>)<span class="question-mark">?</span>.<span class="ident">to_string</span>()
                 }

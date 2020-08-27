@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/libc-0.2.73/src/unix/linux_like/linux/gnu/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../../../dark.css"><link rel="stylesheet" type="text/css" href="../../../../../../light.css" id="themeStyle"><script src="../../../../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../../../../noscript.css"></noscript><link rel="shortcut icon" href="../../../../../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../../../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../../../../libc/index.html'><div class='logo-container'><img src='../../../../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../../../../../settings.html"><img src="../../../../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/libc-0.2.76/src/unix/linux_like/linux/gnu/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../../../dark.css"><link rel="stylesheet" type="text/css" href="../../../../../../light.css" id="themeStyle"><script src="../../../../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../../../../noscript.css"></noscript><link rel="shortcut icon" href="../../../../../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../../../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../../../../libc/index.html'><div class='logo-container'><img src='../../../../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../../../../../settings.html"><img src="../../../../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
 <span id="3">   3</span>
 <span id="4">   4</span>
@@ -1415,6 +1415,72 @@
 <span id="1415">1415</span>
 <span id="1416">1416</span>
 <span id="1417">1417</span>
+<span id="1418">1418</span>
+<span id="1419">1419</span>
+<span id="1420">1420</span>
+<span id="1421">1421</span>
+<span id="1422">1422</span>
+<span id="1423">1423</span>
+<span id="1424">1424</span>
+<span id="1425">1425</span>
+<span id="1426">1426</span>
+<span id="1427">1427</span>
+<span id="1428">1428</span>
+<span id="1429">1429</span>
+<span id="1430">1430</span>
+<span id="1431">1431</span>
+<span id="1432">1432</span>
+<span id="1433">1433</span>
+<span id="1434">1434</span>
+<span id="1435">1435</span>
+<span id="1436">1436</span>
+<span id="1437">1437</span>
+<span id="1438">1438</span>
+<span id="1439">1439</span>
+<span id="1440">1440</span>
+<span id="1441">1441</span>
+<span id="1442">1442</span>
+<span id="1443">1443</span>
+<span id="1444">1444</span>
+<span id="1445">1445</span>
+<span id="1446">1446</span>
+<span id="1447">1447</span>
+<span id="1448">1448</span>
+<span id="1449">1449</span>
+<span id="1450">1450</span>
+<span id="1451">1451</span>
+<span id="1452">1452</span>
+<span id="1453">1453</span>
+<span id="1454">1454</span>
+<span id="1455">1455</span>
+<span id="1456">1456</span>
+<span id="1457">1457</span>
+<span id="1458">1458</span>
+<span id="1459">1459</span>
+<span id="1460">1460</span>
+<span id="1461">1461</span>
+<span id="1462">1462</span>
+<span id="1463">1463</span>
+<span id="1464">1464</span>
+<span id="1465">1465</span>
+<span id="1466">1466</span>
+<span id="1467">1467</span>
+<span id="1468">1468</span>
+<span id="1469">1469</span>
+<span id="1470">1470</span>
+<span id="1471">1471</span>
+<span id="1472">1472</span>
+<span id="1473">1473</span>
+<span id="1474">1474</span>
+<span id="1475">1475</span>
+<span id="1476">1476</span>
+<span id="1477">1477</span>
+<span id="1478">1478</span>
+<span id="1479">1479</span>
+<span id="1480">1480</span>
+<span id="1481">1481</span>
+<span id="1482">1482</span>
+<span id="1483">1483</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">pthread_t</span> <span class="op">=</span> <span class="ident">c_ulong</span>;
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">__priority_which_t</span> <span class="op">=</span> ::<span class="ident">c_uint</span>;
@@ -1728,6 +1794,68 @@
             <span class="ident">si_sigval</span>: ::<span class="ident">sigval</span>,
         }
         (<span class="kw-2">*</span>(<span class="self">self</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">siginfo_t</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">siginfo_timer</span>)).<span class="ident">si_sigval</span>
+    }
+}
+
+<span class="macro">cfg_if</span><span class="macro">!</span> {
+    <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">libc_union</span>)]</span> {
+        <span class="comment">// Internal, for casts to access union fields</span>
+        <span class="attribute">#[<span class="ident">repr</span>(<span class="ident">C</span>)]</span>
+        <span class="kw">struct</span> <span class="ident">sifields_sigchld</span> {
+            <span class="ident">si_pid</span>: ::<span class="ident">pid_t</span>,
+            <span class="ident">si_uid</span>: ::<span class="ident">uid_t</span>,
+            <span class="ident">si_status</span>: ::<span class="ident">c_int</span>,
+            <span class="ident">si_utime</span>: ::<span class="ident">c_long</span>,
+            <span class="ident">si_stime</span>: ::<span class="ident">c_long</span>,
+        }
+        <span class="kw">impl</span> ::<span class="ident">Copy</span> <span class="kw">for</span> <span class="ident">sifields_sigchld</span> {}
+        <span class="kw">impl</span> ::<span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">sifields_sigchld</span> {
+            <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">sifields_sigchld</span> {
+                <span class="kw-2">*</span><span class="self">self</span>
+            }
+        }
+
+        <span class="comment">// Internal, for casts to access union fields</span>
+        <span class="attribute">#[<span class="ident">repr</span>(<span class="ident">C</span>)]</span>
+        <span class="ident">union</span> <span class="ident">sifields</span> {
+            <span class="ident">_align_pointer</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> ::<span class="ident">c_void</span>,
+            <span class="ident">sigchld</span>: <span class="ident">sifields_sigchld</span>,
+        }
+
+        <span class="comment">// Internal, for casts to access union fields. Note that some variants</span>
+        <span class="comment">// of sifields start with a pointer, which makes the alignment of</span>
+        <span class="comment">// sifields vary on 32-bit and 64-bit architectures.</span>
+        <span class="attribute">#[<span class="ident">repr</span>(<span class="ident">C</span>)]</span>
+        <span class="kw">struct</span> <span class="ident">siginfo_f</span> {
+            <span class="ident">_siginfo_base</span>: [::<span class="ident">c_int</span>; <span class="number">3</span>],
+            <span class="ident">sifields</span>: <span class="ident">sifields</span>,
+        }
+
+        <span class="kw">impl</span> <span class="ident">siginfo_t</span> {
+            <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">sifields</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">sifields</span> {
+                <span class="kw-2">&amp;</span>(<span class="kw-2">*</span>(<span class="self">self</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">siginfo_t</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">siginfo_f</span>)).<span class="ident">sifields</span>
+            }
+
+            <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">si_pid</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> ::<span class="ident">pid_t</span> {
+                <span class="self">self</span>.<span class="ident">sifields</span>().<span class="ident">sigchld</span>.<span class="ident">si_pid</span>
+            }
+
+            <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">si_uid</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> ::<span class="ident">uid_t</span> {
+                <span class="self">self</span>.<span class="ident">sifields</span>().<span class="ident">sigchld</span>.<span class="ident">si_uid</span>
+            }
+
+            <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">si_status</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> ::<span class="ident">c_int</span> {
+                <span class="self">self</span>.<span class="ident">sifields</span>().<span class="ident">sigchld</span>.<span class="ident">si_status</span>
+            }
+
+            <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">si_utime</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> ::<span class="ident">c_long</span> {
+                <span class="self">self</span>.<span class="ident">sifields</span>().<span class="ident">sigchld</span>.<span class="ident">si_utime</span>
+            }
+
+            <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">si_stime</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> ::<span class="ident">c_long</span> {
+                <span class="self">self</span>.<span class="ident">sifields</span>().<span class="ident">sigchld</span>.<span class="ident">si_stime</span>
+            }
+        }
     }
 }
 
@@ -2188,6 +2316,10 @@
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NDA_MASTER</span>: ::<span class="ident">c_ushort</span> <span class="op">=</span> <span class="number">9</span>;
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NDA_LINK_NETNSID</span>: ::<span class="ident">c_ushort</span> <span class="op">=</span> <span class="number">10</span>;
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NDA_SRC_VNI</span>: ::<span class="ident">c_ushort</span> <span class="op">=</span> <span class="number">11</span>;
+
+<span class="comment">// linux/personality.h</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">UNAME26</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">0x0020000</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">FDPIC_FUNCPTRS</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">0x0080000</span>;
 
 <span class="comment">// linux/if_addr.h</span>
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">IFA_FLAGS</span>: ::<span class="ident">c_ushort</span> <span class="op">=</span> <span class="number">8</span>;

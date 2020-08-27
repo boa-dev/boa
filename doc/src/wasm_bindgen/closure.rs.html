@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/wasm-bindgen-0.2.65/src/closure.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>closure.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../wasm_bindgen/index.html'><div class='logo-container'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/wasm-bindgen-0.2.67/src/closure.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>closure.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../wasm_bindgen/index.html'><div class='logo-container'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -849,6 +849,17 @@
 <span id="849">849</span>
 <span id="850">850</span>
 <span id="851">851</span>
+<span id="852">852</span>
+<span id="853">853</span>
+<span id="854">854</span>
+<span id="855">855</span>
+<span id="856">856</span>
+<span id="857">857</span>
+<span id="858">858</span>
+<span id="859">859</span>
+<span id="860">860</span>
+<span id="861">861</span>
+<span id="862">862</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Support for long-lived closures in `wasm-bindgen`</span>
 <span class="doccomment">//!</span>
@@ -1208,22 +1219,33 @@
         }
     }
 
-    <span class="doccomment">/// Leaks this `Closure` to ensure it remains valid for the duration of the</span>
-    <span class="doccomment">/// entire program.</span>
+    <span class="doccomment">/// Release memory management of this closure from Rust to the JS GC.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// &gt; **Note**: this function will leak memory. It should be used sparingly</span>
-    <span class="doccomment">/// &gt; to ensure the memory leak doesn&#39;t affect the program too much.</span>
+    <span class="doccomment">/// When a `Closure` is dropped it will release the Rust memory and</span>
+    <span class="doccomment">/// invalidate the associated JS closure, but this isn&#39;t always desired.</span>
+    <span class="doccomment">/// Some callbacks are alive for the entire duration of the program or for a</span>
+    <span class="doccomment">/// lifetime dynamically managed by the JS GC. This function can be used</span>
+    <span class="doccomment">/// to drop this `Closure` while keeping the associated JS function still</span>
+    <span class="doccomment">/// valid.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// When a `Closure` is dropped it will invalidate the associated JS</span>
-    <span class="doccomment">/// closure, but this isn&#39;t always desired. Some callbacks are alive for</span>
-    <span class="doccomment">/// the entire duration of the program, so this can be used to conveniently</span>
-    <span class="doccomment">/// leak this instance of `Closure` while performing as much internal</span>
-    <span class="doccomment">/// cleanup as it can.</span>
+    <span class="doccomment">/// By default this function will leak memory. This can be dangerous if this</span>
+    <span class="doccomment">/// function is called many times in an application because the memory leak</span>
+    <span class="doccomment">/// will overwhelm the page quickly and crash the wasm.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// If the browser, however, supports weak references, then this function</span>
+    <span class="doccomment">/// will not leak memory. Instead the Rust memory will be reclaimed when the</span>
+    <span class="doccomment">/// JS closure is GC&#39;d. Weak references are not enabled by default since</span>
+    <span class="doccomment">/// they&#39;re still a proposal for the JS standard. They can be enabled with</span>
+    <span class="doccomment">/// `WASM_BINDGEN_WEAKREF=1` when running `wasm-bindgen`, however.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_js_value</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsValue</span> {
+        <span class="kw">let</span> <span class="ident">idx</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">js</span>.<span class="ident">idx</span>;
+        <span class="ident">mem</span>::<span class="ident">forget</span>(<span class="self">self</span>);
+        <span class="ident">JsValue</span>::<span class="ident">_new</span>(<span class="ident">idx</span>)
+    }
+
+    <span class="doccomment">/// Same as `into_js_value`, but doesn&#39;t return a value.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">forget</span>(<span class="self">self</span>) {
-        <span class="kw">unsafe</span> {
-            <span class="kw">super</span>::<span class="ident">__wbindgen_cb_forget</span>(<span class="self">self</span>.<span class="ident">js</span>.<span class="ident">idx</span>);
-            <span class="ident">mem</span>::<span class="ident">forget</span>(<span class="self">self</span>);
-        }
+        <span class="ident">drop</span>(<span class="self">self</span>.<span class="ident">into_js_value</span>());
     }
 }
 

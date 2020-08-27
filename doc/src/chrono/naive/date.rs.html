@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/chrono-0.4.13/src/naive/date.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>date.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css"><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script src="../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="shortcut icon" href="../../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../chrono/index.html'><div class='logo-container'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/chrono-0.4.15/src/naive/date.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>date.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css"><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script src="../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="shortcut icon" href="../../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../chrono/index.html'><div class='logo-container'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
 <span id="3">   3</span>
 <span id="4">   4</span>
@@ -2271,6 +2271,131 @@
 <span id="2271">2271</span>
 <span id="2272">2272</span>
 <span id="2273">2273</span>
+<span id="2274">2274</span>
+<span id="2275">2275</span>
+<span id="2276">2276</span>
+<span id="2277">2277</span>
+<span id="2278">2278</span>
+<span id="2279">2279</span>
+<span id="2280">2280</span>
+<span id="2281">2281</span>
+<span id="2282">2282</span>
+<span id="2283">2283</span>
+<span id="2284">2284</span>
+<span id="2285">2285</span>
+<span id="2286">2286</span>
+<span id="2287">2287</span>
+<span id="2288">2288</span>
+<span id="2289">2289</span>
+<span id="2290">2290</span>
+<span id="2291">2291</span>
+<span id="2292">2292</span>
+<span id="2293">2293</span>
+<span id="2294">2294</span>
+<span id="2295">2295</span>
+<span id="2296">2296</span>
+<span id="2297">2297</span>
+<span id="2298">2298</span>
+<span id="2299">2299</span>
+<span id="2300">2300</span>
+<span id="2301">2301</span>
+<span id="2302">2302</span>
+<span id="2303">2303</span>
+<span id="2304">2304</span>
+<span id="2305">2305</span>
+<span id="2306">2306</span>
+<span id="2307">2307</span>
+<span id="2308">2308</span>
+<span id="2309">2309</span>
+<span id="2310">2310</span>
+<span id="2311">2311</span>
+<span id="2312">2312</span>
+<span id="2313">2313</span>
+<span id="2314">2314</span>
+<span id="2315">2315</span>
+<span id="2316">2316</span>
+<span id="2317">2317</span>
+<span id="2318">2318</span>
+<span id="2319">2319</span>
+<span id="2320">2320</span>
+<span id="2321">2321</span>
+<span id="2322">2322</span>
+<span id="2323">2323</span>
+<span id="2324">2324</span>
+<span id="2325">2325</span>
+<span id="2326">2326</span>
+<span id="2327">2327</span>
+<span id="2328">2328</span>
+<span id="2329">2329</span>
+<span id="2330">2330</span>
+<span id="2331">2331</span>
+<span id="2332">2332</span>
+<span id="2333">2333</span>
+<span id="2334">2334</span>
+<span id="2335">2335</span>
+<span id="2336">2336</span>
+<span id="2337">2337</span>
+<span id="2338">2338</span>
+<span id="2339">2339</span>
+<span id="2340">2340</span>
+<span id="2341">2341</span>
+<span id="2342">2342</span>
+<span id="2343">2343</span>
+<span id="2344">2344</span>
+<span id="2345">2345</span>
+<span id="2346">2346</span>
+<span id="2347">2347</span>
+<span id="2348">2348</span>
+<span id="2349">2349</span>
+<span id="2350">2350</span>
+<span id="2351">2351</span>
+<span id="2352">2352</span>
+<span id="2353">2353</span>
+<span id="2354">2354</span>
+<span id="2355">2355</span>
+<span id="2356">2356</span>
+<span id="2357">2357</span>
+<span id="2358">2358</span>
+<span id="2359">2359</span>
+<span id="2360">2360</span>
+<span id="2361">2361</span>
+<span id="2362">2362</span>
+<span id="2363">2363</span>
+<span id="2364">2364</span>
+<span id="2365">2365</span>
+<span id="2366">2366</span>
+<span id="2367">2367</span>
+<span id="2368">2368</span>
+<span id="2369">2369</span>
+<span id="2370">2370</span>
+<span id="2371">2371</span>
+<span id="2372">2372</span>
+<span id="2373">2373</span>
+<span id="2374">2374</span>
+<span id="2375">2375</span>
+<span id="2376">2376</span>
+<span id="2377">2377</span>
+<span id="2378">2378</span>
+<span id="2379">2379</span>
+<span id="2380">2380</span>
+<span id="2381">2381</span>
+<span id="2382">2382</span>
+<span id="2383">2383</span>
+<span id="2384">2384</span>
+<span id="2385">2385</span>
+<span id="2386">2386</span>
+<span id="2387">2387</span>
+<span id="2388">2388</span>
+<span id="2389">2389</span>
+<span id="2390">2390</span>
+<span id="2391">2391</span>
+<span id="2392">2392</span>
+<span id="2393">2393</span>
+<span id="2394">2394</span>
+<span id="2395">2395</span>
+<span id="2396">2396</span>
+<span id="2397">2397</span>
+<span id="2398">2398</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// This is a part of Chrono.</span>
 <span class="comment">// See README.md and LICENSE.txt for details.</span>
@@ -3322,6 +3447,58 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">format</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fmt</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">DelayedFormat</span><span class="op">&lt;</span><span class="ident">StrftimeItems</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">format_with_items</span>(<span class="ident">StrftimeItems</span>::<span class="ident">new</span>(<span class="ident">fmt</span>))
     }
+
+    <span class="doccomment">/// Returns an iterator that steps by days until the last representable date.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// # Example</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// ```</span>
+    <span class="doccomment">/// # use chrono::NaiveDate;</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// let expected = [</span>
+    <span class="doccomment">///     NaiveDate::from_ymd(2016, 2, 27),</span>
+    <span class="doccomment">///     NaiveDate::from_ymd(2016, 2, 28),</span>
+    <span class="doccomment">///     NaiveDate::from_ymd(2016, 2, 29),</span>
+    <span class="doccomment">///     NaiveDate::from_ymd(2016, 3, 1),</span>
+    <span class="doccomment">/// ];</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// let mut count = 0;</span>
+    <span class="doccomment">/// for (idx, d) in NaiveDate::from_ymd(2016, 2, 27).iter_days().take(4).enumerate() {</span>
+    <span class="doccomment">///    assert_eq!(d, expected[idx]);</span>
+    <span class="doccomment">///    count += 1;</span>
+    <span class="doccomment">/// }</span>
+    <span class="doccomment">/// assert_eq!(count, 4);</span>
+    <span class="doccomment">/// ```</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">iter_days</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NaiveDateDaysIterator</span> {
+        <span class="ident">NaiveDateDaysIterator</span> { <span class="ident">value</span>: <span class="kw-2">*</span><span class="self">self</span> }
+    }
+
+    <span class="doccomment">/// Returns an iterator that steps by weeks until the last representable date.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// # Example</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// ```</span>
+    <span class="doccomment">/// # use chrono::NaiveDate;</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// let expected = [</span>
+    <span class="doccomment">///     NaiveDate::from_ymd(2016, 2, 27),</span>
+    <span class="doccomment">///     NaiveDate::from_ymd(2016, 3, 5),</span>
+    <span class="doccomment">///     NaiveDate::from_ymd(2016, 3, 12),</span>
+    <span class="doccomment">///     NaiveDate::from_ymd(2016, 3, 19),</span>
+    <span class="doccomment">/// ];</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// let mut count = 0;</span>
+    <span class="doccomment">/// for (idx, d) in NaiveDate::from_ymd(2016, 2, 27).iter_weeks().take(4).enumerate() {</span>
+    <span class="doccomment">///    assert_eq!(d, expected[idx]);</span>
+    <span class="doccomment">///    count += 1;</span>
+    <span class="doccomment">/// }</span>
+    <span class="doccomment">/// assert_eq!(count, 4);</span>
+    <span class="doccomment">/// ```</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">iter_weeks</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NaiveDateWeeksIterator</span> {
+        <span class="ident">NaiveDateWeeksIterator</span> { <span class="ident">value</span>: <span class="kw-2">*</span><span class="self">self</span> }
+    }
 }
 
 <span class="kw">impl</span> <span class="ident">Datelike</span> <span class="kw">for</span> <span class="ident">NaiveDate</span> {
@@ -3784,6 +3961,63 @@
         <span class="self">self</span>.<span class="ident">signed_duration_since</span>(<span class="ident">rhs</span>)
     }
 }
+
+<span class="doccomment">/// Iterator over `NaiveDate` with a step size of one day.</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">Hash</span>, <span class="ident">PartialEq</span>, <span class="ident">PartialOrd</span>, <span class="ident">Eq</span>, <span class="ident">Ord</span>)]</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">NaiveDateDaysIterator</span> {
+    <span class="ident">value</span>: <span class="ident">NaiveDate</span>,
+}
+
+<span class="kw">impl</span> <span class="ident">Iterator</span> <span class="kw">for</span> <span class="ident">NaiveDateDaysIterator</span> {
+    <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="ident">NaiveDate</span>;
+
+    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">Item</span><span class="op">&gt;</span> {
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">value</span> <span class="op">=</span><span class="op">=</span> <span class="ident">MAX_DATE</span> {
+            <span class="kw">return</span> <span class="prelude-val">None</span>;
+        }
+        <span class="comment">// current &lt; MAX_DATE from here on:</span>
+        <span class="kw">let</span> <span class="ident">current</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">value</span>;
+        <span class="comment">// This can&#39;t panic because current is &lt; MAX_DATE:</span>
+        <span class="self">self</span>.<span class="ident">value</span> <span class="op">=</span> <span class="ident">current</span>.<span class="ident">succ</span>();
+        <span class="prelude-val">Some</span>(<span class="ident">current</span>)
+    }
+
+    <span class="kw">fn</span> <span class="ident">size_hint</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="ident">usize</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>) {
+        <span class="kw">let</span> <span class="ident">exact_size</span> <span class="op">=</span> <span class="ident">MAX_DATE</span>.<span class="ident">signed_duration_since</span>(<span class="self">self</span>.<span class="ident">value</span>).<span class="ident">num_days</span>();
+        (<span class="ident">exact_size</span> <span class="kw">as</span> <span class="ident">usize</span>, <span class="prelude-val">Some</span>(<span class="ident">exact_size</span> <span class="kw">as</span> <span class="ident">usize</span>))
+    }
+}
+
+<span class="kw">impl</span> <span class="ident">ExactSizeIterator</span> <span class="kw">for</span> <span class="ident">NaiveDateDaysIterator</span> {}
+
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">Hash</span>, <span class="ident">PartialEq</span>, <span class="ident">PartialOrd</span>, <span class="ident">Eq</span>, <span class="ident">Ord</span>)]</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">NaiveDateWeeksIterator</span> {
+    <span class="ident">value</span>: <span class="ident">NaiveDate</span>,
+}
+
+<span class="kw">impl</span> <span class="ident">Iterator</span> <span class="kw">for</span> <span class="ident">NaiveDateWeeksIterator</span> {
+    <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="ident">NaiveDate</span>;
+
+    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">Item</span><span class="op">&gt;</span> {
+        <span class="kw">if</span> <span class="ident">MAX_DATE</span> <span class="op">-</span> <span class="self">self</span>.<span class="ident">value</span> <span class="op">&lt;</span> <span class="ident">OldDuration</span>::<span class="ident">weeks</span>(<span class="number">1</span>) {
+            <span class="kw">return</span> <span class="prelude-val">None</span>;
+        }
+        <span class="kw">let</span> <span class="ident">current</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">value</span>;
+        <span class="self">self</span>.<span class="ident">value</span> <span class="op">=</span> <span class="ident">current</span> <span class="op">+</span> <span class="ident">OldDuration</span>::<span class="ident">weeks</span>(<span class="number">1</span>);
+        <span class="prelude-val">Some</span>(<span class="ident">current</span>)
+    }
+
+    <span class="kw">fn</span> <span class="ident">size_hint</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="ident">usize</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>) {
+        <span class="kw">let</span> <span class="ident">exact_size</span> <span class="op">=</span> <span class="ident">MAX_DATE</span>.<span class="ident">signed_duration_since</span>(<span class="self">self</span>.<span class="ident">value</span>).<span class="ident">num_weeks</span>();
+        (<span class="ident">exact_size</span> <span class="kw">as</span> <span class="ident">usize</span>, <span class="prelude-val">Some</span>(<span class="ident">exact_size</span> <span class="kw">as</span> <span class="ident">usize</span>))
+    }
+}
+
+<span class="kw">impl</span> <span class="ident">ExactSizeIterator</span> <span class="kw">for</span> <span class="ident">NaiveDateWeeksIterator</span> {}
+
+<span class="comment">// TODO: NaiveDateDaysIterator and NaiveDateWeeksIterator should implement FusedIterator,</span>
+<span class="comment">// TrustedLen, and Step once they becomes stable.</span>
+<span class="comment">// See: https://github.com/chronotope/chrono/issues/208</span>
 
 <span class="doccomment">/// The `Debug` output of the naive date `d` is the same as</span>
 <span class="doccomment">/// [`d.format(&quot;%Y-%m-%d&quot;)`](../format/strftime/index.html).</span>
@@ -4542,6 +4776,22 @@
         <span class="macro">assert_eq</span><span class="macro">!</span>(
             <span class="ident">NaiveDate</span>::<span class="ident">from_ymd</span>(<span class="number">2010</span>, <span class="number">1</span>, <span class="number">3</span>).<span class="ident">format</span>(<span class="string">&quot;%G,%g,%U,%W,%V&quot;</span>).<span class="ident">to_string</span>(),
             <span class="string">&quot;2009,09,01,00,53&quot;</span>
+        );
+    }
+
+    <span class="attribute">#[<span class="ident">test</span>]</span>
+    <span class="kw">fn</span> <span class="ident">test_day_iterator_limit</span>() {
+        <span class="macro">assert_eq</span><span class="macro">!</span>(
+            <span class="ident">NaiveDate</span>::<span class="ident">from_ymd</span>(<span class="number">262143</span>, <span class="number">12</span>, <span class="number">29</span>).<span class="ident">iter_days</span>().<span class="ident">take</span>(<span class="number">4</span>).<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>().<span class="ident">len</span>(),
+            <span class="number">2</span>
+        );
+    }
+
+    <span class="attribute">#[<span class="ident">test</span>]</span>
+    <span class="kw">fn</span> <span class="ident">test_week_iterator_limit</span>() {
+        <span class="macro">assert_eq</span><span class="macro">!</span>(
+            <span class="ident">NaiveDate</span>::<span class="ident">from_ymd</span>(<span class="number">262143</span>, <span class="number">12</span>, <span class="number">12</span>).<span class="ident">iter_weeks</span>().<span class="ident">take</span>(<span class="number">4</span>).<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>().<span class="ident">len</span>(),
+            <span class="number">2</span>
         );
     }
 }

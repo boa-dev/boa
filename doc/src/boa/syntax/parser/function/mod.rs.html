@@ -236,6 +236,38 @@
 <span id="236">236</span>
 <span id="237">237</span>
 <span id="238">238</span>
+<span id="239">239</span>
+<span id="240">240</span>
+<span id="241">241</span>
+<span id="242">242</span>
+<span id="243">243</span>
+<span id="244">244</span>
+<span id="245">245</span>
+<span id="246">246</span>
+<span id="247">247</span>
+<span id="248">248</span>
+<span id="249">249</span>
+<span id="250">250</span>
+<span id="251">251</span>
+<span id="252">252</span>
+<span id="253">253</span>
+<span id="254">254</span>
+<span id="255">255</span>
+<span id="256">256</span>
+<span id="257">257</span>
+<span id="258">258</span>
+<span id="259">259</span>
+<span id="260">260</span>
+<span id="261">261</span>
+<span id="262">262</span>
+<span id="263">263</span>
+<span id="264">264</span>
+<span id="265">265</span>
+<span id="266">266</span>
+<span id="267">267</span>
+<span id="268">268</span>
+<span id="269">269</span>
+<span id="270">270</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Function definition parsing.</span>
 <span class="doccomment">//!</span>
@@ -249,17 +281,22 @@
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">tests</span>;
 
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">syntax</span>::{
-    <span class="ident">ast</span>::{
-        <span class="ident">node</span>::{<span class="self">self</span>},
-        <span class="ident">Punctuator</span>, <span class="ident">TokenKind</span>,
+<span class="kw">use</span> <span class="kw">crate</span>::{
+    <span class="ident">syntax</span>::{
+        <span class="ident">ast</span>::{
+            <span class="ident">node</span>::{<span class="self">self</span>},
+            <span class="ident">Punctuator</span>,
+        },
+        <span class="ident">lexer</span>::{<span class="ident">InputElement</span>, <span class="ident">TokenKind</span>},
+        <span class="ident">parser</span>::{
+            <span class="ident">expression</span>::<span class="ident">Initializer</span>,
+            <span class="ident">statement</span>::{<span class="ident">BindingIdentifier</span>, <span class="ident">StatementList</span>},
+            <span class="ident">AllowAwait</span>, <span class="ident">AllowYield</span>, <span class="ident">Cursor</span>, <span class="ident">ParseError</span>, <span class="ident">TokenParser</span>,
+        },
     },
-    <span class="ident">parser</span>::{
-        <span class="ident">expression</span>::<span class="ident">Initializer</span>,
-        <span class="ident">statement</span>::{<span class="ident">BindingIdentifier</span>, <span class="ident">StatementList</span>},
-        <span class="ident">AllowAwait</span>, <span class="ident">AllowYield</span>, <span class="ident">Cursor</span>, <span class="ident">ParseError</span>, <span class="ident">TokenParser</span>,
-    },
+    <span class="ident">BoaProfiler</span>,
 };
+<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">Read</span>;
 
 <span class="doccomment">/// Formal parameters parsing.</span>
 <span class="doccomment">///</span>
@@ -289,14 +326,20 @@
     }
 }
 
-<span class="kw">impl</span> <span class="ident">TokenParser</span> <span class="kw">for</span> <span class="ident">FormalParameters</span> {
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="ident">TokenParser</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">FormalParameters</span>
+<span class="kw">where</span>
+    <span class="ident">R</span>: <span class="ident">Read</span>,
+{
     <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">Box</span><span class="op">&lt;</span>[<span class="ident">node</span>::<span class="ident">FormalParameter</span>]<span class="op">&gt;</span>;
 
-    <span class="kw">fn</span> <span class="ident">parse</span>(<span class="self">self</span>, <span class="ident">cursor</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">Output</span>, <span class="ident">ParseError</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">parse</span>(<span class="self">self</span>, <span class="ident">cursor</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">Output</span>, <span class="ident">ParseError</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">BoaProfiler</span>::<span class="ident">global</span>().<span class="ident">start_event</span>(<span class="string">&quot;FormalParameters&quot;</span>, <span class="string">&quot;Parsing&quot;</span>);
+        <span class="ident">cursor</span>.<span class="ident">set_goal</span>(<span class="ident">InputElement</span>::<span class="ident">RegExp</span>);
+
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">params</span> <span class="op">=</span> <span class="ident">Vec</span>::<span class="ident">new</span>();
 
-        <span class="kw">if</span> <span class="ident">cursor</span>.<span class="ident">peek</span>(<span class="number">0</span>).<span class="ident">ok_or</span>(<span class="ident">ParseError</span>::<span class="ident">AbruptEnd</span>)<span class="question-mark">?</span>.<span class="ident">kind</span>
-            <span class="op">=</span><span class="op">=</span> <span class="ident">TokenKind</span>::<span class="ident">Punctuator</span>(<span class="ident">Punctuator</span>::<span class="ident">CloseParen</span>)
+        <span class="kw">if</span> <span class="ident">cursor</span>.<span class="ident">peek</span>(<span class="number">0</span>)<span class="question-mark">?</span>.<span class="ident">ok_or</span>(<span class="ident">ParseError</span>::<span class="ident">AbruptEnd</span>)<span class="question-mark">?</span>.<span class="ident">kind</span>()
+            <span class="op">=</span><span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">TokenKind</span>::<span class="ident">Punctuator</span>(<span class="ident">Punctuator</span>::<span class="ident">CloseParen</span>)
         {
             <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">params</span>.<span class="ident">into_boxed_slice</span>());
         }
@@ -304,25 +347,25 @@
         <span class="kw">loop</span> {
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rest_param</span> <span class="op">=</span> <span class="bool-val">false</span>;
 
-            <span class="ident">params</span>.<span class="ident">push</span>(<span class="kw">if</span> <span class="ident">cursor</span>.<span class="ident">next_if</span>(<span class="ident">Punctuator</span>::<span class="ident">Spread</span>).<span class="ident">is_some</span>() {
-                <span class="ident">rest_param</span> <span class="op">=</span> <span class="bool-val">true</span>;
-                <span class="ident">FunctionRestParameter</span>::<span class="ident">new</span>(<span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>).<span class="ident">parse</span>(<span class="ident">cursor</span>)<span class="question-mark">?</span>
-            } <span class="kw">else</span> {
-                <span class="ident">FormalParameter</span>::<span class="ident">new</span>(<span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>).<span class="ident">parse</span>(<span class="ident">cursor</span>)<span class="question-mark">?</span>
-            });
+            <span class="kw">let</span> <span class="ident">next_param</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">cursor</span>.<span class="ident">peek</span>(<span class="number">0</span>)<span class="question-mark">?</span> {
+                <span class="prelude-val">Some</span>(<span class="ident">tok</span>) <span class="kw">if</span> <span class="ident">tok</span>.<span class="ident">kind</span>() <span class="op">=</span><span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">TokenKind</span>::<span class="ident">Punctuator</span>(<span class="ident">Punctuator</span>::<span class="ident">Spread</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="ident">rest_param</span> <span class="op">=</span> <span class="bool-val">true</span>;
+                    <span class="ident">FunctionRestParameter</span>::<span class="ident">new</span>(<span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>).<span class="ident">parse</span>(<span class="ident">cursor</span>)<span class="question-mark">?</span>
+                }
+                <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">FormalParameter</span>::<span class="ident">new</span>(<span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>).<span class="ident">parse</span>(<span class="ident">cursor</span>)<span class="question-mark">?</span>,
+            };
 
-            <span class="kw">if</span> <span class="ident">cursor</span>.<span class="ident">peek</span>(<span class="number">0</span>).<span class="ident">ok_or</span>(<span class="ident">ParseError</span>::<span class="ident">AbruptEnd</span>)<span class="question-mark">?</span>.<span class="ident">kind</span>
-                <span class="op">=</span><span class="op">=</span> <span class="ident">TokenKind</span>::<span class="ident">Punctuator</span>(<span class="ident">Punctuator</span>::<span class="ident">CloseParen</span>)
+            <span class="ident">params</span>.<span class="ident">push</span>(<span class="ident">next_param</span>);
+
+            <span class="kw">if</span> <span class="ident">cursor</span>.<span class="ident">peek</span>(<span class="number">0</span>)<span class="question-mark">?</span>.<span class="ident">ok_or</span>(<span class="ident">ParseError</span>::<span class="ident">AbruptEnd</span>)<span class="question-mark">?</span>.<span class="ident">kind</span>()
+                <span class="op">=</span><span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">TokenKind</span>::<span class="ident">Punctuator</span>(<span class="ident">Punctuator</span>::<span class="ident">CloseParen</span>)
             {
                 <span class="kw">break</span>;
             }
 
             <span class="kw">if</span> <span class="ident">rest_param</span> {
                 <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError</span>::<span class="ident">unexpected</span>(
-                    <span class="ident">cursor</span>
-                        .<span class="ident">peek_prev</span>()
-                        .<span class="ident">expect</span>(<span class="string">&quot;current token disappeared&quot;</span>)
-                        .<span class="ident">clone</span>(),
+                    <span class="ident">cursor</span>.<span class="ident">next</span>()<span class="question-mark">?</span>.<span class="ident">expect</span>(<span class="string">&quot;peeked token disappeared&quot;</span>),
                     <span class="string">&quot;rest parameter must be the last formal parameter&quot;</span>,
                 ));
             }
@@ -372,12 +415,15 @@
     }
 }
 
-<span class="kw">impl</span> <span class="ident">TokenParser</span> <span class="kw">for</span> <span class="ident">BindingRestElement</span> {
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="ident">TokenParser</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">BindingRestElement</span>
+<span class="kw">where</span>
+    <span class="ident">R</span>: <span class="ident">Read</span>,
+{
     <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">node</span>::<span class="ident">FormalParameter</span>;
 
-    <span class="kw">fn</span> <span class="ident">parse</span>(<span class="self">self</span>, <span class="ident">cursor</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">Output</span>, <span class="ident">ParseError</span><span class="op">&gt;</span> {
-        <span class="comment">// FIXME: we are reading the spread operator before the rest element.</span>
-        <span class="comment">// cursor.expect(Punctuator::Spread, &quot;rest parameter&quot;)?;</span>
+    <span class="kw">fn</span> <span class="ident">parse</span>(<span class="self">self</span>, <span class="ident">cursor</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">Output</span>, <span class="ident">ParseError</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">BoaProfiler</span>::<span class="ident">global</span>().<span class="ident">start_event</span>(<span class="string">&quot;BindingRestElement&quot;</span>, <span class="string">&quot;Parsing&quot;</span>);
+        <span class="ident">cursor</span>.<span class="ident">expect</span>(<span class="ident">Punctuator</span>::<span class="ident">Spread</span>, <span class="string">&quot;rest parameter&quot;</span>)<span class="question-mark">?</span>;
 
         <span class="kw">let</span> <span class="ident">param</span> <span class="op">=</span> <span class="ident">BindingIdentifier</span>::<span class="ident">new</span>(<span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>).<span class="ident">parse</span>(<span class="ident">cursor</span>)<span class="question-mark">?</span>;
         <span class="comment">// TODO: BindingPattern</span>
@@ -414,15 +460,29 @@
     }
 }
 
-<span class="kw">impl</span> <span class="ident">TokenParser</span> <span class="kw">for</span> <span class="ident">FormalParameter</span> {
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="ident">TokenParser</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">FormalParameter</span>
+<span class="kw">where</span>
+    <span class="ident">R</span>: <span class="ident">Read</span>,
+{
     <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">node</span>::<span class="ident">FormalParameter</span>;
 
-    <span class="kw">fn</span> <span class="ident">parse</span>(<span class="self">self</span>, <span class="ident">cursor</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">Output</span>, <span class="ident">ParseError</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">parse</span>(<span class="self">self</span>, <span class="ident">cursor</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">Output</span>, <span class="ident">ParseError</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">BoaProfiler</span>::<span class="ident">global</span>().<span class="ident">start_event</span>(<span class="string">&quot;FormalParameter&quot;</span>, <span class="string">&quot;Parsing&quot;</span>);
+
         <span class="comment">// TODO: BindingPattern</span>
 
         <span class="kw">let</span> <span class="ident">param</span> <span class="op">=</span> <span class="ident">BindingIdentifier</span>::<span class="ident">new</span>(<span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>).<span class="ident">parse</span>(<span class="ident">cursor</span>)<span class="question-mark">?</span>;
 
-        <span class="kw">let</span> <span class="ident">init</span> <span class="op">=</span> <span class="ident">Initializer</span>::<span class="ident">new</span>(<span class="bool-val">true</span>, <span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>).<span class="ident">try_parse</span>(<span class="ident">cursor</span>);
+        <span class="kw">let</span> <span class="ident">init</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">t</span>) <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">peek</span>(<span class="number">0</span>)<span class="question-mark">?</span> {
+            <span class="comment">// Check that this is an initilizer before attempting parse.</span>
+            <span class="kw">if</span> <span class="kw-2">*</span><span class="ident">t</span>.<span class="ident">kind</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">TokenKind</span>::<span class="ident">Punctuator</span>(<span class="ident">Punctuator</span>::<span class="ident">Assign</span>) {
+                <span class="prelude-val">Some</span>(<span class="ident">Initializer</span>::<span class="ident">new</span>(<span class="bool-val">true</span>, <span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>).<span class="ident">parse</span>(<span class="ident">cursor</span>)<span class="question-mark">?</span>)
+            } <span class="kw">else</span> {
+                <span class="prelude-val">None</span>
+            }
+        } <span class="kw">else</span> {
+            <span class="prelude-val">None</span>
+        };
 
         <span class="prelude-val">Ok</span>(<span class="self">Self</span>::<span class="ident">Output</span>::<span class="ident">new</span>(<span class="ident">param</span>, <span class="ident">init</span>, <span class="bool-val">false</span>))
     }
@@ -462,12 +522,16 @@
     }
 }
 
-<span class="kw">impl</span> <span class="ident">TokenParser</span> <span class="kw">for</span> <span class="ident">FunctionStatementList</span> {
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="ident">TokenParser</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">FunctionStatementList</span>
+<span class="kw">where</span>
+    <span class="ident">R</span>: <span class="ident">Read</span>,
+{
     <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">node</span>::<span class="ident">StatementList</span>;
 
-    <span class="kw">fn</span> <span class="ident">parse</span>(<span class="self">self</span>, <span class="ident">cursor</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">Output</span>, <span class="ident">ParseError</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">tk</span>) <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">peek</span>(<span class="number">0</span>) {
-            <span class="kw">if</span> <span class="ident">tk</span>.<span class="ident">kind</span> <span class="op">=</span><span class="op">=</span> <span class="ident">Punctuator</span>::<span class="ident">CloseBlock</span>.<span class="ident">into</span>() {
+    <span class="kw">fn</span> <span class="ident">parse</span>(<span class="self">self</span>, <span class="ident">cursor</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">Output</span>, <span class="ident">ParseError</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">BoaProfiler</span>::<span class="ident">global</span>().<span class="ident">start_event</span>(<span class="string">&quot;FunctionStatementList&quot;</span>, <span class="string">&quot;Parsing&quot;</span>);
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">tk</span>) <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">peek</span>(<span class="number">0</span>)<span class="question-mark">?</span> {
+            <span class="kw">if</span> <span class="ident">tk</span>.<span class="ident">kind</span>() <span class="op">=</span><span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">Punctuator</span>::<span class="ident">CloseBlock</span>.<span class="ident">into</span>() {
                 <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Vec</span>::<span class="ident">new</span>().<span class="ident">into</span>());
             }
         }

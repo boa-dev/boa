@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/hashbrown-0.8.1/src/raw/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css"><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script src="../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="shortcut icon" href="../../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../hashbrown/index.html'><div class='logo-container'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/hashbrown-0.8.2/src/raw/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css"><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script src="../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="shortcut icon" href="../../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../hashbrown/index.html'><div class='logo-container'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
 <span id="3">   3</span>
 <span id="4">   4</span>
@@ -1737,6 +1737,112 @@
 <span id="1737">1737</span>
 <span id="1738">1738</span>
 <span id="1739">1739</span>
+<span id="1740">1740</span>
+<span id="1741">1741</span>
+<span id="1742">1742</span>
+<span id="1743">1743</span>
+<span id="1744">1744</span>
+<span id="1745">1745</span>
+<span id="1746">1746</span>
+<span id="1747">1747</span>
+<span id="1748">1748</span>
+<span id="1749">1749</span>
+<span id="1750">1750</span>
+<span id="1751">1751</span>
+<span id="1752">1752</span>
+<span id="1753">1753</span>
+<span id="1754">1754</span>
+<span id="1755">1755</span>
+<span id="1756">1756</span>
+<span id="1757">1757</span>
+<span id="1758">1758</span>
+<span id="1759">1759</span>
+<span id="1760">1760</span>
+<span id="1761">1761</span>
+<span id="1762">1762</span>
+<span id="1763">1763</span>
+<span id="1764">1764</span>
+<span id="1765">1765</span>
+<span id="1766">1766</span>
+<span id="1767">1767</span>
+<span id="1768">1768</span>
+<span id="1769">1769</span>
+<span id="1770">1770</span>
+<span id="1771">1771</span>
+<span id="1772">1772</span>
+<span id="1773">1773</span>
+<span id="1774">1774</span>
+<span id="1775">1775</span>
+<span id="1776">1776</span>
+<span id="1777">1777</span>
+<span id="1778">1778</span>
+<span id="1779">1779</span>
+<span id="1780">1780</span>
+<span id="1781">1781</span>
+<span id="1782">1782</span>
+<span id="1783">1783</span>
+<span id="1784">1784</span>
+<span id="1785">1785</span>
+<span id="1786">1786</span>
+<span id="1787">1787</span>
+<span id="1788">1788</span>
+<span id="1789">1789</span>
+<span id="1790">1790</span>
+<span id="1791">1791</span>
+<span id="1792">1792</span>
+<span id="1793">1793</span>
+<span id="1794">1794</span>
+<span id="1795">1795</span>
+<span id="1796">1796</span>
+<span id="1797">1797</span>
+<span id="1798">1798</span>
+<span id="1799">1799</span>
+<span id="1800">1800</span>
+<span id="1801">1801</span>
+<span id="1802">1802</span>
+<span id="1803">1803</span>
+<span id="1804">1804</span>
+<span id="1805">1805</span>
+<span id="1806">1806</span>
+<span id="1807">1807</span>
+<span id="1808">1808</span>
+<span id="1809">1809</span>
+<span id="1810">1810</span>
+<span id="1811">1811</span>
+<span id="1812">1812</span>
+<span id="1813">1813</span>
+<span id="1814">1814</span>
+<span id="1815">1815</span>
+<span id="1816">1816</span>
+<span id="1817">1817</span>
+<span id="1818">1818</span>
+<span id="1819">1819</span>
+<span id="1820">1820</span>
+<span id="1821">1821</span>
+<span id="1822">1822</span>
+<span id="1823">1823</span>
+<span id="1824">1824</span>
+<span id="1825">1825</span>
+<span id="1826">1826</span>
+<span id="1827">1827</span>
+<span id="1828">1828</span>
+<span id="1829">1829</span>
+<span id="1830">1830</span>
+<span id="1831">1831</span>
+<span id="1832">1832</span>
+<span id="1833">1833</span>
+<span id="1834">1834</span>
+<span id="1835">1835</span>
+<span id="1836">1836</span>
+<span id="1837">1837</span>
+<span id="1838">1838</span>
+<span id="1839">1839</span>
+<span id="1840">1840</span>
+<span id="1841">1841</span>
+<span id="1842">1842</span>
+<span id="1843">1843</span>
+<span id="1844">1844</span>
+<span id="1845">1845</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">alloc</span>::<span class="ident">alloc</span>::{<span class="ident">alloc</span>, <span class="ident">dealloc</span>, <span class="ident">handle_alloc_error</span>};
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">scopeguard</span>::<span class="ident">guard</span>;
@@ -1774,7 +1880,7 @@
 
 <span class="kw">mod</span> <span class="ident">bitmask</span>;
 
-<span class="kw">use</span> <span class="self">self</span>::<span class="ident">bitmask</span>::<span class="ident">BitMask</span>;
+<span class="kw">use</span> <span class="self">self</span>::<span class="ident">bitmask</span>::{<span class="ident">BitMask</span>, <span class="ident">BitMaskIter</span>};
 <span class="kw">use</span> <span class="self">self</span>::<span class="ident">imp</span>::<span class="ident">Group</span>;
 
 <span class="comment">// Branch prediction hint. This is currently only available on nightly but it</span>
@@ -2142,9 +2248,16 @@
         <span class="ident">fallability</span>: <span class="ident">Fallibility</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">TryReserveError</span><span class="op">&gt;</span> {
         <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="ident">buckets</span>.<span class="ident">is_power_of_two</span>());
-        <span class="kw">let</span> (<span class="ident">layout</span>, <span class="ident">ctrl_offset</span>) <span class="op">=</span>
-            <span class="ident">calculate_layout</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">buckets</span>).<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">fallability</span>.<span class="ident">capacity_overflow</span>())<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <span class="ident">NonNull</span>::<span class="ident">new</span>(<span class="ident">alloc</span>(<span class="ident">layout</span>)).<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">fallability</span>.<span class="ident">alloc_err</span>(<span class="ident">layout</span>))<span class="question-mark">?</span>;
+
+        <span class="comment">// Avoid `Option::ok_or_else` because it bloats LLVM IR.</span>
+        <span class="kw">let</span> (<span class="ident">layout</span>, <span class="ident">ctrl_offset</span>) <span class="op">=</span> <span class="kw">match</span> <span class="ident">calculate_layout</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">buckets</span>) {
+            <span class="prelude-val">Some</span>(<span class="ident">lco</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">lco</span>,
+            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">fallability</span>.<span class="ident">capacity_overflow</span>())
+        };
+        <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">NonNull</span>::<span class="ident">new</span>(<span class="ident">alloc</span>(<span class="ident">layout</span>)) {
+            <span class="prelude-val">Some</span>(<span class="ident">ptr</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ptr</span>,
+            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">fallability</span>.<span class="ident">alloc_err</span>(<span class="ident">layout</span>)),
+        };
         <span class="kw">let</span> <span class="ident">ctrl</span> <span class="op">=</span> <span class="ident">NonNull</span>::<span class="ident">new_unchecked</span>(<span class="ident">ptr</span>.<span class="ident">as_ptr</span>().<span class="ident">add</span>(<span class="ident">ctrl_offset</span>));
         <span class="prelude-val">Ok</span>(<span class="self">Self</span> {
             <span class="ident">ctrl</span>,
@@ -2165,8 +2278,11 @@
             <span class="prelude-val">Ok</span>(<span class="self">Self</span>::<span class="ident">new</span>())
         } <span class="kw">else</span> {
             <span class="kw">unsafe</span> {
-                <span class="kw">let</span> <span class="ident">buckets</span> <span class="op">=</span>
-                    <span class="ident">capacity_to_buckets</span>(<span class="ident">capacity</span>).<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">fallability</span>.<span class="ident">capacity_overflow</span>())<span class="question-mark">?</span>;
+                <span class="comment">// Avoid `Option::ok_or_else` because it bloats LLVM IR.</span>
+                <span class="kw">let</span> <span class="ident">buckets</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">capacity_to_buckets</span>(<span class="ident">capacity</span>) {
+                    <span class="prelude-val">Some</span>(<span class="ident">buckets</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">buckets</span>,
+                    <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">fallability</span>.<span class="ident">capacity_overflow</span>()),
+                };
                 <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="self">Self</span>::<span class="ident">new_uninitialized</span>(<span class="ident">buckets</span>, <span class="ident">fallability</span>)<span class="question-mark">?</span>;
                 <span class="ident">result</span>.<span class="ident">ctrl</span>(<span class="number">0</span>).<span class="ident">write_bytes</span>(<span class="ident">EMPTY</span>, <span class="ident">result</span>.<span class="ident">num_ctrl_bytes</span>());
 
@@ -2185,15 +2301,21 @@
     <span class="doccomment">/// Allocates a new hash table with at least enough capacity for inserting</span>
     <span class="doccomment">/// the given number of elements without reallocating.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">with_capacity</span>(<span class="ident">capacity</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="self">Self</span>::<span class="ident">fallible_with_capacity</span>(<span class="ident">capacity</span>, <span class="ident">Fallibility</span>::<span class="ident">Infallible</span>)
-            .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="kw">unsafe</span> { <span class="ident">hint</span>::<span class="ident">unreachable_unchecked</span>() })
+        <span class="comment">// Avoid `Result::unwrap_or_else` because it bloats LLVM IR.</span>
+        <span class="kw">match</span> <span class="self">Self</span>::<span class="ident">fallible_with_capacity</span>(<span class="ident">capacity</span>, <span class="ident">Fallibility</span>::<span class="ident">Infallible</span>) {
+            <span class="prelude-val">Ok</span>(<span class="ident">capacity</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">capacity</span>,
+            <span class="prelude-val">Err</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">unsafe</span> { <span class="ident">hint</span>::<span class="ident">unreachable_unchecked</span>() },
+        }
     }
 
     <span class="doccomment">/// Deallocates the table without dropping any entries.</span>
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;inline-more&quot;</span>, <span class="ident">inline</span>)]</span>
     <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">free_buckets</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
-        <span class="kw">let</span> (<span class="ident">layout</span>, <span class="ident">ctrl_offset</span>) <span class="op">=</span>
-            <span class="ident">calculate_layout</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="self">self</span>.<span class="ident">buckets</span>()).<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">hint</span>::<span class="ident">unreachable_unchecked</span>());
+        <span class="comment">// Avoid `Option::unwrap_or_else` because it bloats LLVM IR.</span>
+        <span class="kw">let</span> (<span class="ident">layout</span>, <span class="ident">ctrl_offset</span>) <span class="op">=</span> <span class="kw">match</span> <span class="ident">calculate_layout</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="self">self</span>.<span class="ident">buckets</span>()) {
+            <span class="prelude-val">Some</span>(<span class="ident">lco</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">lco</span>,
+            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">hint</span>::<span class="ident">unreachable_unchecked</span>(),
+        };
         <span class="ident">dealloc</span>(<span class="self">self</span>.<span class="ident">ctrl</span>.<span class="ident">as_ptr</span>().<span class="ident">sub</span>(<span class="ident">ctrl_offset</span>), <span class="ident">layout</span>);
     }
 
@@ -2376,7 +2498,7 @@
         <span class="comment">// Ensure that the table is reset even if one of the drops panic</span>
         <span class="kw">let</span> <span class="ident">self_</span> <span class="op">=</span> <span class="ident">guard</span>(<span class="self">self</span>, <span class="op">|</span><span class="ident">self_</span><span class="op">|</span> <span class="ident">self_</span>.<span class="ident">clear_no_drop</span>());
 
-        <span class="kw">if</span> <span class="ident">mem</span>::<span class="ident">needs_drop</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>() {
+        <span class="kw">if</span> <span class="ident">mem</span>::<span class="ident">needs_drop</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>() <span class="kw-2">&amp;</span><span class="op">&amp;</span> <span class="ident">self_</span>.<span class="ident">len</span>() <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
             <span class="kw">unsafe</span> {
                 <span class="kw">for</span> <span class="ident">item</span> <span class="kw">in</span> <span class="ident">self_</span>.<span class="ident">iter</span>() {
                     <span class="ident">item</span>.<span class="ident">drop</span>();
@@ -2411,8 +2533,10 @@
             <span class="kw">if</span> <span class="self">self</span>.<span class="ident">items</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
                 <span class="kw-2">*</span><span class="self">self</span> <span class="op">=</span> <span class="self">Self</span>::<span class="ident">with_capacity</span>(<span class="ident">min_size</span>)
             } <span class="kw">else</span> {
-                <span class="self">self</span>.<span class="ident">resize</span>(<span class="ident">min_size</span>, <span class="ident">hasher</span>, <span class="ident">Fallibility</span>::<span class="ident">Infallible</span>)
-                    .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="kw">unsafe</span> { <span class="ident">hint</span>::<span class="ident">unreachable_unchecked</span>() });
+                <span class="comment">// Avoid `Result::unwrap_or_else` because it bloats LLVM IR.</span>
+                <span class="kw">if</span> <span class="self">self</span>.<span class="ident">resize</span>(<span class="ident">min_size</span>, <span class="ident">hasher</span>, <span class="ident">Fallibility</span>::<span class="ident">Infallible</span>).<span class="ident">is_err</span>() {
+                    <span class="kw">unsafe</span> { <span class="ident">hint</span>::<span class="ident">unreachable_unchecked</span>() }
+                }
             }
         }
     }
@@ -2422,8 +2546,10 @@
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;inline-more&quot;</span>, <span class="ident">inline</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">reserve</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">additional</span>: <span class="ident">usize</span>, <span class="ident">hasher</span>: <span class="kw">impl</span> <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u64</span>) {
         <span class="kw">if</span> <span class="ident">additional</span> <span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">growth_left</span> {
-            <span class="self">self</span>.<span class="ident">reserve_rehash</span>(<span class="ident">additional</span>, <span class="ident">hasher</span>, <span class="ident">Fallibility</span>::<span class="ident">Infallible</span>)
-                .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="kw">unsafe</span> { <span class="ident">hint</span>::<span class="ident">unreachable_unchecked</span>() });
+            <span class="comment">// Avoid `Result::unwrap_or_else` because it bloats LLVM IR.</span>
+            <span class="kw">if</span> <span class="self">self</span>.<span class="ident">reserve_rehash</span>(<span class="ident">additional</span>, <span class="ident">hasher</span>, <span class="ident">Fallibility</span>::<span class="ident">Infallible</span>).<span class="ident">is_err</span>() {
+                <span class="kw">unsafe</span> { <span class="ident">hint</span>::<span class="ident">unreachable_unchecked</span>() }
+            }
         }
     }
 
@@ -2451,11 +2577,11 @@
         <span class="ident">hasher</span>: <span class="kw">impl</span> <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u64</span>,
         <span class="ident">fallability</span>: <span class="ident">Fallibility</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">TryReserveError</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">new_items</span> <span class="op">=</span> <span class="self">self</span>
-            .<span class="ident">items</span>
-            .<span class="ident">checked_add</span>(<span class="ident">additional</span>)
-            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">fallability</span>.<span class="ident">capacity_overflow</span>())<span class="question-mark">?</span>;
-
+        <span class="comment">// Avoid `Option::ok_or_else` because it bloats LLVM IR.</span>
+        <span class="kw">let</span> <span class="ident">new_items</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">items</span>.<span class="ident">checked_add</span>(<span class="ident">additional</span>) {
+            <span class="prelude-val">Some</span>(<span class="ident">new_items</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">new_items</span>,
+            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">fallability</span>.<span class="ident">capacity_overflow</span>()),
+        };
         <span class="kw">let</span> <span class="ident">full_capacity</span> <span class="op">=</span> <span class="ident">bucket_mask_to_capacity</span>(<span class="self">self</span>.<span class="ident">bucket_mask</span>);
         <span class="kw">if</span> <span class="ident">new_items</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">full_capacity</span> <span class="op">/</span> <span class="number">2</span> {
             <span class="comment">// Rehash in-place without re-allocating if we have plenty of spare</span>
@@ -2678,23 +2804,14 @@
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">find</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">hash</span>: <span class="ident">u64</span>, <span class="kw-2">mut</span> <span class="ident">eq</span>: <span class="kw">impl</span> <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Bucket</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="kw">unsafe</span> {
-            <span class="kw">for</span> <span class="ident">pos</span> <span class="kw">in</span> <span class="self">self</span>.<span class="ident">probe_seq</span>(<span class="ident">hash</span>) {
-                <span class="kw">let</span> <span class="ident">group</span> <span class="op">=</span> <span class="ident">Group</span>::<span class="ident">load</span>(<span class="self">self</span>.<span class="ident">ctrl</span>(<span class="ident">pos</span>));
-                <span class="kw">for</span> <span class="ident">bit</span> <span class="kw">in</span> <span class="ident">group</span>.<span class="ident">match_byte</span>(<span class="ident">h2</span>(<span class="ident">hash</span>)) {
-                    <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> (<span class="ident">pos</span> <span class="op">+</span> <span class="ident">bit</span>) <span class="op">&amp;</span> <span class="self">self</span>.<span class="ident">bucket_mask</span>;
-                    <span class="kw">let</span> <span class="ident">bucket</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">bucket</span>(<span class="ident">index</span>);
-                    <span class="kw">if</span> <span class="ident">likely</span>(<span class="ident">eq</span>(<span class="ident">bucket</span>.<span class="ident">as_ref</span>())) {
-                        <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="ident">bucket</span>);
-                    }
-                }
-                <span class="kw">if</span> <span class="ident">likely</span>(<span class="ident">group</span>.<span class="ident">match_empty</span>().<span class="ident">any_bit_set</span>()) {
-                    <span class="kw">return</span> <span class="prelude-val">None</span>;
+            <span class="kw">for</span> <span class="ident">bucket</span> <span class="kw">in</span> <span class="self">self</span>.<span class="ident">iter_hash</span>(<span class="ident">hash</span>) {
+                <span class="kw">let</span> <span class="ident">elm</span> <span class="op">=</span> <span class="ident">bucket</span>.<span class="ident">as_ref</span>();
+                <span class="kw">if</span> <span class="ident">likely</span>(<span class="ident">eq</span>(<span class="ident">elm</span>)) {
+                    <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="ident">bucket</span>);
                 }
             }
+            <span class="prelude-val">None</span>
         }
-
-        <span class="comment">// probe_seq never returns.</span>
-        <span class="macro">unreachable</span><span class="macro">!</span>();
     }
 
     <span class="doccomment">/// Returns the number of elements the map can hold without reallocating.</span>
@@ -2742,6 +2859,18 @@
             <span class="ident">iter</span>: <span class="ident">RawIterRange</span>::<span class="ident">new</span>(<span class="self">self</span>.<span class="ident">ctrl</span>.<span class="ident">as_ptr</span>(), <span class="ident">data</span>, <span class="self">self</span>.<span class="ident">buckets</span>()),
             <span class="ident">items</span>: <span class="self">self</span>.<span class="ident">items</span>,
         }
+    }
+
+    <span class="doccomment">/// Returns an iterator over occupied buckets that could match a given hash.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// In rare cases, the iterator may return a bucket with a different hash.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// It is up to the caller to ensure that the `RawTable` outlives the</span>
+    <span class="doccomment">/// `RawIterHash`. Because we cannot make the `next` method unsafe on the</span>
+    <span class="doccomment">/// `RawIterHash` struct, we have to make the `iter_hash` method unsafe.</span>
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;inline-more&quot;</span>, <span class="ident">inline</span>)]</span>
+    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">iter_hash</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">hash</span>: <span class="ident">u64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">RawIterHash</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">T</span><span class="op">&gt;</span> {
+        <span class="ident">RawIterHash</span>::<span class="ident">new</span>(<span class="self">self</span>, <span class="ident">hash</span>)
     }
 
     <span class="doccomment">/// Returns an iterator which removes all elements from the table without</span>
@@ -2802,8 +2931,11 @@
         <span class="kw">let</span> <span class="ident">alloc</span> <span class="op">=</span> <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_empty_singleton</span>() {
             <span class="prelude-val">None</span>
         } <span class="kw">else</span> {
-            <span class="kw">let</span> (<span class="ident">layout</span>, <span class="ident">ctrl_offset</span>) <span class="op">=</span> <span class="ident">calculate_layout</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="self">self</span>.<span class="ident">buckets</span>())
-                .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="kw">unsafe</span> { <span class="ident">hint</span>::<span class="ident">unreachable_unchecked</span>() });
+            <span class="comment">// Avoid `Option::unwrap_or_else` because it bloats LLVM IR.</span>
+            <span class="kw">let</span> (<span class="ident">layout</span>, <span class="ident">ctrl_offset</span>) <span class="op">=</span> <span class="kw">match</span> <span class="ident">calculate_layout</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="self">self</span>.<span class="ident">buckets</span>()) {
+                <span class="prelude-val">Some</span>(<span class="ident">lco</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">lco</span>,
+                <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">unsafe</span> { <span class="ident">hint</span>::<span class="ident">unreachable_unchecked</span>() },
+            };
             <span class="prelude-val">Some</span>((
                 <span class="kw">unsafe</span> { <span class="ident">NonNull</span>::<span class="ident">new_unchecked</span>(<span class="self">self</span>.<span class="ident">ctrl</span>.<span class="ident">as_ptr</span>().<span class="ident">sub</span>(<span class="ident">ctrl_offset</span>)) },
                 <span class="ident">layout</span>,
@@ -2824,8 +2956,11 @@
         } <span class="kw">else</span> {
             <span class="kw">unsafe</span> {
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">new_table</span> <span class="op">=</span> <span class="ident">ManuallyDrop</span>::<span class="ident">new</span>(
-                    <span class="self">Self</span>::<span class="ident">new_uninitialized</span>(<span class="self">self</span>.<span class="ident">buckets</span>(), <span class="ident">Fallibility</span>::<span class="ident">Infallible</span>)
-                        .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">hint</span>::<span class="ident">unreachable_unchecked</span>()),
+                    <span class="comment">// Avoid `Result::ok_or_else` because it bloats LLVM IR.</span>
+                    <span class="kw">match</span> <span class="self">Self</span>::<span class="ident">new_uninitialized</span>(<span class="self">self</span>.<span class="ident">buckets</span>(), <span class="ident">Fallibility</span>::<span class="ident">Infallible</span>) {
+                        <span class="prelude-val">Ok</span>(<span class="ident">table</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">table</span>,
+                        <span class="prelude-val">Err</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">hint</span>::<span class="ident">unreachable_unchecked</span>(),
+                    }
                 );
 
                 <span class="ident">new_table</span>.<span class="ident">clone_from_spec</span>(<span class="self">self</span>, <span class="op">|</span><span class="ident">new_table</span><span class="op">|</span> {
@@ -2845,7 +2980,7 @@
         } <span class="kw">else</span> {
             <span class="kw">unsafe</span> {
                 <span class="comment">// First, drop all our elements without clearing the control bytes.</span>
-                <span class="kw">if</span> <span class="ident">mem</span>::<span class="ident">needs_drop</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>() {
+                <span class="kw">if</span> <span class="ident">mem</span>::<span class="ident">needs_drop</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>() <span class="kw-2">&amp;</span><span class="op">&amp;</span> <span class="self">self</span>.<span class="ident">len</span>() <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
                     <span class="kw">for</span> <span class="ident">item</span> <span class="kw">in</span> <span class="self">self</span>.<span class="ident">iter</span>() {
                         <span class="ident">item</span>.<span class="ident">drop</span>();
                     }
@@ -2858,8 +2993,11 @@
                         <span class="self">self</span>.<span class="ident">free_buckets</span>();
                     }
                     (<span class="self">self</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="self">Self</span>).<span class="ident">write</span>(
-                        <span class="self">Self</span>::<span class="ident">new_uninitialized</span>(<span class="ident">source</span>.<span class="ident">buckets</span>(), <span class="ident">Fallibility</span>::<span class="ident">Infallible</span>)
-                            .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">hint</span>::<span class="ident">unreachable_unchecked</span>()),
+                        <span class="comment">// Avoid `Result::unwrap_or_else` because it bloats LLVM IR.</span>
+                        <span class="kw">match</span> <span class="self">Self</span>::<span class="ident">new_uninitialized</span>(<span class="ident">source</span>.<span class="ident">buckets</span>(), <span class="ident">Fallibility</span>::<span class="ident">Infallible</span>) {
+                            <span class="prelude-val">Ok</span>(<span class="ident">table</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">table</span>,
+                            <span class="prelude-val">Err</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">hint</span>::<span class="ident">unreachable_unchecked</span>(),
+                        }
                     );
                 }
 
@@ -2913,7 +3051,7 @@
         <span class="comment">// to make sure we drop only the elements that have been</span>
         <span class="comment">// cloned so far.</span>
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">guard</span> <span class="op">=</span> <span class="ident">guard</span>((<span class="number">0</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="self">self</span>), <span class="op">|</span>(<span class="ident">index</span>, <span class="ident">self_</span>)<span class="op">|</span> {
-            <span class="kw">if</span> <span class="ident">mem</span>::<span class="ident">needs_drop</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>() {
+            <span class="kw">if</span> <span class="ident">mem</span>::<span class="ident">needs_drop</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>() <span class="kw-2">&amp;</span><span class="op">&amp;</span> <span class="ident">self_</span>.<span class="ident">len</span>() <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
                 <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">0</span>..<span class="op">=</span><span class="kw-2">*</span><span class="ident">index</span> {
                     <span class="kw">if</span> <span class="ident">is_full</span>(<span class="kw-2">*</span><span class="ident">self_</span>.<span class="ident">ctrl</span>(<span class="ident">i</span>)) {
                         <span class="ident">self_</span>.<span class="ident">bucket</span>(<span class="ident">i</span>).<span class="ident">drop</span>();
@@ -2995,7 +3133,7 @@
     <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
         <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">is_empty_singleton</span>() {
             <span class="kw">unsafe</span> {
-                <span class="kw">if</span> <span class="ident">mem</span>::<span class="ident">needs_drop</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>() {
+                <span class="kw">if</span> <span class="ident">mem</span>::<span class="ident">needs_drop</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>() <span class="kw-2">&amp;</span><span class="op">&amp;</span> <span class="self">self</span>.<span class="ident">len</span>() <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
                     <span class="kw">for</span> <span class="ident">item</span> <span class="kw">in</span> <span class="self">self</span>.<span class="ident">iter</span>() {
                         <span class="ident">item</span>.<span class="ident">drop</span>();
                     }
@@ -3011,7 +3149,7 @@
     <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
         <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">is_empty_singleton</span>() {
             <span class="kw">unsafe</span> {
-                <span class="kw">if</span> <span class="ident">mem</span>::<span class="ident">needs_drop</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>() {
+                <span class="kw">if</span> <span class="ident">mem</span>::<span class="ident">needs_drop</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>() <span class="kw-2">&amp;</span><span class="op">&amp;</span> <span class="self">self</span>.<span class="ident">len</span>() <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
                     <span class="kw">for</span> <span class="ident">item</span> <span class="kw">in</span> <span class="self">self</span>.<span class="ident">iter</span>() {
                         <span class="ident">item</span>.<span class="ident">drop</span>();
                     }
@@ -3178,6 +3316,17 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">FusedIterator</span> <span class="kw">for</span> <span class="ident">RawIterRange</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {}
 
 <span class="doccomment">/// Iterator which returns a raw pointer to every full bucket in the table.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// For maximum flexibility this iterator is not bound by a lifetime, but you</span>
+<span class="doccomment">/// must observe several rules when using it:</span>
+<span class="doccomment">/// - You must not free the hash table while iterating (including via growing/shrinking).</span>
+<span class="doccomment">/// - It is fine to erase a bucket that has been yielded by the iterator.</span>
+<span class="doccomment">/// - Erasing a bucket that has not yet been yielded by the iterator may still</span>
+<span class="doccomment">///   result in the iterator yielding that bucket (unless `reflect_remove` is called).</span>
+<span class="doccomment">/// - It is unspecified whether an element inserted after the iterator was</span>
+<span class="doccomment">///   created will be yielded by that iterator (unless `reflect_insert` is called).</span>
+<span class="doccomment">/// - The order in which the iterator yields bucket is unspecified and may</span>
+<span class="doccomment">///   change in the future.</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">RawIter</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">iter</span>: <span class="ident">RawIterRange</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
     <span class="ident">items</span>: <span class="ident">usize</span>,
@@ -3360,7 +3509,7 @@
     <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
         <span class="kw">unsafe</span> {
             <span class="comment">// Drop all remaining elements</span>
-            <span class="kw">if</span> <span class="ident">mem</span>::<span class="ident">needs_drop</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>() {
+            <span class="kw">if</span> <span class="ident">mem</span>::<span class="ident">needs_drop</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>() <span class="kw-2">&amp;</span><span class="op">&amp;</span> <span class="self">self</span>.<span class="ident">iter</span>.<span class="ident">len</span>() <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
                 <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">item</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">iter</span>.<span class="ident">next</span>() {
                     <span class="ident">item</span>.<span class="ident">drop</span>();
                 }
@@ -3379,7 +3528,7 @@
     <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
         <span class="kw">unsafe</span> {
             <span class="comment">// Drop all remaining elements</span>
-            <span class="kw">if</span> <span class="ident">mem</span>::<span class="ident">needs_drop</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>() {
+            <span class="kw">if</span> <span class="ident">mem</span>::<span class="ident">needs_drop</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>() <span class="kw-2">&amp;</span><span class="op">&amp;</span> <span class="self">self</span>.<span class="ident">iter</span>.<span class="ident">len</span>() <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
                 <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">item</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">iter</span>.<span class="ident">next</span>() {
                     <span class="ident">item</span>.<span class="ident">drop</span>();
                 }
@@ -3440,7 +3589,7 @@
     <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
         <span class="kw">unsafe</span> {
             <span class="comment">// Drop all remaining elements. Note that this may panic.</span>
-            <span class="kw">if</span> <span class="ident">mem</span>::<span class="ident">needs_drop</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>() {
+            <span class="kw">if</span> <span class="ident">mem</span>::<span class="ident">needs_drop</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>() <span class="kw-2">&amp;</span><span class="op">&amp;</span> <span class="self">self</span>.<span class="ident">iter</span>.<span class="ident">len</span>() <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
                 <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">item</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">iter</span>.<span class="ident">next</span>() {
                     <span class="ident">item</span>.<span class="ident">drop</span>();
                 }
@@ -3477,5 +3626,68 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">ExactSizeIterator</span> <span class="kw">for</span> <span class="ident">RawDrain</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">T</span><span class="op">&gt;</span> {}
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">FusedIterator</span> <span class="kw">for</span> <span class="ident">RawDrain</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">T</span><span class="op">&gt;</span> {}
+
+<span class="doccomment">/// Iterator over occupied buckets that could match a given hash.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// In rare cases, the iterator may return a bucket with a different hash.</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">RawIterHash</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span> {
+    <span class="ident">table</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">RawTable</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
+
+    <span class="comment">// The top 7 bits of the hash.</span>
+    <span class="ident">h2_hash</span>: <span class="ident">u8</span>,
+
+    <span class="comment">// The sequence of groups to probe in the search.</span>
+    <span class="ident">probe_seq</span>: <span class="ident">ProbeSeq</span>,
+
+    <span class="comment">// The current group and its position.</span>
+    <span class="ident">pos</span>: <span class="ident">usize</span>,
+    <span class="ident">group</span>: <span class="ident">Group</span>,
+
+    <span class="comment">// The elements within the group with a matching h2-hash.</span>
+    <span class="ident">bitmask</span>: <span class="ident">BitMaskIter</span>,
+}
+
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span> <span class="ident">RawIterHash</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">table</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">RawTable</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">hash</span>: <span class="ident">u64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <span class="kw">unsafe</span> {
+            <span class="kw">let</span> <span class="ident">h2_hash</span> <span class="op">=</span> <span class="ident">h2</span>(<span class="ident">hash</span>);
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">probe_seq</span> <span class="op">=</span> <span class="ident">table</span>.<span class="ident">probe_seq</span>(<span class="ident">hash</span>);
+            <span class="kw">let</span> <span class="ident">pos</span> <span class="op">=</span> <span class="ident">probe_seq</span>.<span class="ident">next</span>().<span class="ident">unwrap</span>();
+            <span class="kw">let</span> <span class="ident">group</span> <span class="op">=</span> <span class="ident">Group</span>::<span class="ident">load</span>(<span class="ident">table</span>.<span class="ident">ctrl</span>(<span class="ident">pos</span>));
+            <span class="kw">let</span> <span class="ident">bitmask</span> <span class="op">=</span> <span class="ident">group</span>.<span class="ident">match_byte</span>(<span class="ident">h2_hash</span>).<span class="ident">into_iter</span>();
+
+            <span class="ident">RawIterHash</span> {
+                <span class="ident">table</span>,
+                <span class="ident">h2_hash</span>,
+                <span class="ident">probe_seq</span>,
+                <span class="ident">pos</span>,
+                <span class="ident">group</span>,
+                <span class="ident">bitmask</span>,
+            }
+        }
+    }
+}
+
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span> <span class="ident">Iterator</span> <span class="kw">for</span> <span class="ident">RawIterHash</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span> {
+    <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="ident">Bucket</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>;
+
+    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Bucket</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+        <span class="kw">unsafe</span> {
+            <span class="kw">loop</span> {
+                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">bit</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">bitmask</span>.<span class="ident">next</span>() {
+                    <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> (<span class="self">self</span>.<span class="ident">pos</span> <span class="op">+</span> <span class="ident">bit</span>) <span class="op">&amp;</span> <span class="self">self</span>.<span class="ident">table</span>.<span class="ident">bucket_mask</span>;
+                    <span class="kw">let</span> <span class="ident">bucket</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">table</span>.<span class="ident">bucket</span>(<span class="ident">index</span>);
+                    <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="ident">bucket</span>);
+                }
+                <span class="kw">if</span> <span class="ident">likely</span>(<span class="self">self</span>.<span class="ident">group</span>.<span class="ident">match_empty</span>().<span class="ident">any_bit_set</span>()) {
+                    <span class="kw">return</span> <span class="prelude-val">None</span>;
+                }
+                <span class="self">self</span>.<span class="ident">pos</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">probe_seq</span>.<span class="ident">next</span>().<span class="ident">unwrap</span>();
+                <span class="self">self</span>.<span class="ident">group</span> <span class="op">=</span> <span class="ident">Group</span>::<span class="ident">load</span>(<span class="self">self</span>.<span class="ident">table</span>.<span class="ident">ctrl</span>(<span class="self">self</span>.<span class="ident">pos</span>));
+                <span class="self">self</span>.<span class="ident">bitmask</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">group</span>.<span class="ident">match_byte</span>(<span class="self">self</span>.<span class="ident">h2_hash</span>).<span class="ident">into_iter</span>();
+            }
+        }
+    }
+}
 </pre></div>
 </section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../../../";window.currentCrate = "hashbrown";</script><script src="../../../main.js"></script><script src="../../../source-script.js"></script><script src="../../../source-files.js"></script><script defer src="../../../search-index.js"></script></body></html>

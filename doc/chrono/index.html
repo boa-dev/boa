@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="API documentation for the Rust `chrono` crate."><meta name="keywords" content="rust, rustlang, rust-lang, chrono"><title>chrono - Rust</title><link rel="stylesheet" type="text/css" href="../normalize.css"><link rel="stylesheet" type="text/css" href="../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../dark.css"><link rel="stylesheet" type="text/css" href="../light.css" id="themeStyle"><script src="../storage.js"></script><noscript><link rel="stylesheet" href="../noscript.css"></noscript><link rel="shortcut icon" href="../favicon.ico"><style type="text/css">#crate-search{background-image:url("../down-arrow.svg");}</style></head><body class="rustdoc mod"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../chrono/index.html'><div class='logo-container'><img src='../rust-logo.png' alt='logo'></div></a><p class='location'>Crate chrono</p><div class="sidebar-elems"><a id='all-types' href='all.html'><p>See all chrono's items</p></a><div class="block items"><ul><li><a href="#reexports">Re-exports</a></li><li><a href="#modules">Modules</a></li><li><a href="#structs">Structs</a></li><li><a href="#enums">Enums</a></li><li><a href="#constants">Constants</a></li><li><a href="#traits">Traits</a></li></ul></div><p class='location'></p><script>window.sidebarCurrent = {name: 'chrono', ty: 'mod', relpath: '../'};</script></div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../settings.html"><img src="../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><h1 class='fqn'><span class='out-of-band'><span id='render-detail'><a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">[<span class='inner'>&#x2212;</span>]</a></span><a class='srclink' href='../src/chrono/lib.rs.html#4-1152' title='goto source code'>[src]</a></span><span class='in-band'>Crate <a class="mod" href=''>chrono</a></span></h1><div class='docblock'><h1 id="chrono-date-and-time-for-rust" class="section-header"><a href="#chrono-date-and-time-for-rust">Chrono: Date and Time for Rust</a></h1>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="API documentation for the Rust `chrono` crate."><meta name="keywords" content="rust, rustlang, rust-lang, chrono"><title>chrono - Rust</title><link rel="stylesheet" type="text/css" href="../normalize.css"><link rel="stylesheet" type="text/css" href="../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../dark.css"><link rel="stylesheet" type="text/css" href="../light.css" id="themeStyle"><script src="../storage.js"></script><noscript><link rel="stylesheet" href="../noscript.css"></noscript><link rel="shortcut icon" href="../favicon.ico"><style type="text/css">#crate-search{background-image:url("../down-arrow.svg");}</style></head><body class="rustdoc mod"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../chrono/index.html'><div class='logo-container'><img src='../rust-logo.png' alt='logo'></div></a><p class='location'>Crate chrono</p><div class="sidebar-elems"><a id='all-types' href='all.html'><p>See all chrono's items</p></a><div class="block items"><ul><li><a href="#reexports">Re-exports</a></li><li><a href="#modules">Modules</a></li><li><a href="#structs">Structs</a></li><li><a href="#enums">Enums</a></li><li><a href="#constants">Constants</a></li><li><a href="#traits">Traits</a></li></ul></div><p class='location'></p><script>window.sidebarCurrent = {name: 'chrono', ty: 'mod', relpath: '../'};</script></div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../settings.html"><img src="../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><h1 class='fqn'><span class='out-of-band'><span id='render-detail'><a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">[<span class='inner'>&#x2212;</span>]</a></span><a class='srclink' href='../src/chrono/lib.rs.html#4-1518' title='goto source code'>[src]</a></span><span class='in-band'>Crate <a class="mod" href=''>chrono</a></span></h1><div class='docblock'><h1 id="chrono-date-and-time-for-rust" class="section-header"><a href="#chrono-date-and-time-for-rust">Chrono: Date and Time for Rust</a></h1>
 <p>It aims to be a feature-complete superset of
 the <a href="https://github.com/rust-lang-deprecated/time">time</a> library.
 In particular,</p>
@@ -16,26 +16,33 @@ the wiki</a></li>
 <li>Luis de Bethencourt's <a href="https://github.com/luisbg/rust-datetime">rust-datetime</a></li>
 </ul>
 <p>Any significant changes to Chrono are documented in
-the <a href="https://github.com/chronotope/chrono/blob/master/CHANGELOG.md"><code>CHANGELOG.md</code></a> file.</p>
+the <a href="https://github.com/chronotope/chrono/blob/main/CHANGELOG.md"><code>CHANGELOG.md</code></a> file.</p>
 <h2 id="usage" class="section-header"><a href="#usage">Usage</a></h2>
 <p>Put this in your <code>Cargo.toml</code>:</p>
 <pre><code class="language-toml">[dependencies]
 chrono = &quot;0.4&quot;
 </code></pre>
-<p>Or, if you want <a href="https://github.com/serde-rs/serde">Serde</a> include the
-feature like this:</p>
-<pre><code class="language-toml">[dependencies]
-chrono = { version = &quot;0.4&quot;, features = [&quot;serde&quot;] }
-</code></pre>
-<p>Then put this in your crate root:</p>
-
-<div class="example-wrap"><pre class="rust rust-example-rendered">
-<span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">chrono</span>;</pre></div>
-<p>Avoid using <code>use chrono::*;</code> as Chrono exports several modules other than types.
-If you prefer the glob imports, use the following instead:</p>
-
-<div class="example-wrap"><pre class="rust rust-example-rendered">
-<span class="kw">use</span> <span class="ident">chrono</span>::<span class="ident">prelude</span>::<span class="kw-2">*</span>;</pre></div>
+<h3 id="features" class="section-header"><a href="#features">Features</a></h3>
+<p>Chrono supports various runtime environments and operating systems, and has
+several features that may be enabled or disabled.</p>
+<p>Default features:</p>
+<ul>
+<li><code>alloc</code>: Enable features that depend on allocation (primarily string formatting)</li>
+<li><code>std</code>: Enables functionality that depends on the standard library. This
+is a superset of <code>alloc</code> and adds interoperation with standard library types
+and traits.</li>
+<li><code>clock</code>: enables reading the system time (<code>now</code>), independent of whether
+<code>std::time::SystemTime</code> is present, depends on having a libc.</li>
+</ul>
+<p>Optional features:</p>
+<ul>
+<li><code>wasmbind</code>: Enable integration with <a href="https://github.com/rustwasm/wasm-bindgen">wasm-bindgen</a> and its <code>js-sys</code> project</li>
+<li><a href="https://github.com/serde-rs/serde"><code>serde</code></a>: Enable serialization/deserialization via serde.</li>
+<li><code>unstable-locales</code>: Enable localization. This adds various methods with a
+<code>_localized</code> suffix. The implementation and API may change or even be
+removed in a patch release. Feedback welcome.</li>
+</ul>
+<p>See the <a href="https://doc.rust-lang.org/cargo/reference/specifying-dependencies.html#choosing-features">cargo docs</a> for examples of specifying features.</p>
 <h2 id="overview" class="section-header"><a href="#overview">Overview</a></h2><h3 id="duration" class="section-header"><a href="#duration">Duration</a></h3>
 <p>Chrono currently uses
 the <a href="https://docs.rs/time/0.1.40/time/struct.Duration.html"><code>time::Duration</code></a> type
@@ -176,6 +183,12 @@ documentation for full syntax and list of specifiers.</p>
 Chrono also provides <a href="./struct.DateTime.html#method.to_rfc2822"><code>to_rfc2822</code></a> and
 <a href="./struct.DateTime.html#method.to_rfc3339"><code>to_rfc3339</code></a> methods
 for well-known formats.</p>
+<p>Chrono now also provides date formatting in almost any language without the
+help of an additional C library. This functionality is under the feature
+<code>unstable-locales</code>:</p>
+<pre><code class="language-text">chrono { version = &quot;0.4&quot;, features = [&quot;unstable-locales&quot;]
+</code></pre>
+<p>The <code>unstable-locales</code> feature requires and implies at least the <code>alloc</code> feature.</p>
 
 <div class="example-wrap"><pre class="rust rust-example-rendered">
 <span class="kw">use</span> <span class="ident">chrono</span>::<span class="ident">prelude</span>::<span class="kw-2">*</span>;
@@ -183,6 +196,7 @@ for well-known formats.</p>
 <span class="kw">let</span> <span class="ident">dt</span> <span class="op">=</span> <span class="ident">Utc</span>.<span class="ident">ymd</span>(<span class="number">2014</span>, <span class="number">11</span>, <span class="number">28</span>).<span class="ident">and_hms</span>(<span class="number">12</span>, <span class="number">0</span>, <span class="number">9</span>);
 <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">dt</span>.<span class="ident">format</span>(<span class="string">&quot;%Y-%m-%d %H:%M:%S&quot;</span>).<span class="ident">to_string</span>(), <span class="string">&quot;2014-11-28 12:00:09&quot;</span>);
 <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">dt</span>.<span class="ident">format</span>(<span class="string">&quot;%a %b %e %T %Y&quot;</span>).<span class="ident">to_string</span>(), <span class="string">&quot;Fri Nov 28 12:00:09 2014&quot;</span>);
+<span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">dt</span>.<span class="ident">format_localized</span>(<span class="string">&quot;%A %e %B %Y, %T&quot;</span>, <span class="ident">Locale</span>::<span class="ident">fr_BE</span>).<span class="ident">to_string</span>(), <span class="string">&quot;vendredi 28 novembre 2014, 12:00:09&quot;</span>);
 <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">dt</span>.<span class="ident">format</span>(<span class="string">&quot;%a %b %e %T %Y&quot;</span>).<span class="ident">to_string</span>(), <span class="ident">dt</span>.<span class="ident">format</span>(<span class="string">&quot;%c&quot;</span>).<span class="ident">to_string</span>());
 
 <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">dt</span>.<span class="ident">to_string</span>(), <span class="string">&quot;2014-11-28 12:00:09 UTC&quot;</span>);
@@ -339,15 +353,19 @@ For now you can try the <a href="https://github.com/chronotope/chrono-tz/">Chron
 </td></tr><tr class='module-item'><td><a class="struct" href="struct.DateTime.html" title='chrono::DateTime struct'>DateTime</a></td><td class='docblock-short'><p>ISO 8601 combined date and time with time zone.</p>
 </td></tr><tr class='module-item'><td><a class="struct" href="struct.Duration.html" title='chrono::Duration struct'>Duration</a></td><td class='docblock-short'><p>ISO 8601 time duration with nanosecond precision.
 This also allows for the negative duration; see individual methods for details.</p>
+</td></tr><tr class='module-item'><td><a class="struct" href="struct.ParseMonthError.html" title='chrono::ParseMonthError struct'>ParseMonthError</a></td><td class='docblock-short'><p>An error resulting from reading <code>&lt;Month&gt;</code> value with <code>FromStr</code>.</p>
 </td></tr><tr class='module-item'><td><a class="struct" href="struct.ParseWeekdayError.html" title='chrono::ParseWeekdayError struct'>ParseWeekdayError</a></td><td class='docblock-short'><p>An error resulting from reading <code>Weekday</code> value with <code>FromStr</code>.</p>
 </td></tr></table><h2 id='enums' class='section-header'><a href="#enums">Enums</a></h2>
-<table><tr class='module-item'><td><a class="enum" href="enum.RoundingError.html" title='chrono::RoundingError enum'>RoundingError</a></td><td class='docblock-short'><p>An error from rounding by <code>Duration</code></p>
+<table><tr class='module-item'><td><a class="enum" href="enum.Month.html" title='chrono::Month enum'>Month</a></td><td class='docblock-short'><p>The month of the year.</p>
+</td></tr><tr class='module-item'><td><a class="enum" href="enum.RoundingError.html" title='chrono::RoundingError enum'>RoundingError</a></td><td class='docblock-short'><p>An error from rounding by <code>Duration</code></p>
 </td></tr><tr class='module-item'><td><a class="enum" href="enum.SecondsFormat.html" title='chrono::SecondsFormat enum'>SecondsFormat</a></td><td class='docblock-short'><p>Specific formatting options for seconds. This may be extended in the
 future, so exhaustive matching in external code is not recommended.</p>
 </td></tr><tr class='module-item'><td><a class="enum" href="enum.Weekday.html" title='chrono::Weekday enum'>Weekday</a></td><td class='docblock-short'><p>The day of week.</p>
 </td></tr></table><h2 id='constants' class='section-header'><a href="#constants">Constants</a></h2>
 <table><tr class='module-item'><td><a class="constant" href="constant.MAX_DATE.html" title='chrono::MAX_DATE constant'>MAX_DATE</a></td><td class='docblock-short'><p>The maximum possible <code>Date</code>.</p>
+</td></tr><tr class='module-item'><td><a class="constant" href="constant.MAX_DATETIME.html" title='chrono::MAX_DATETIME constant'>MAX_DATETIME</a></td><td class='docblock-short'><p>The maximum possible <code>DateTime&lt;Utc&gt;</code>.</p>
 </td></tr><tr class='module-item'><td><a class="constant" href="constant.MIN_DATE.html" title='chrono::MIN_DATE constant'>MIN_DATE</a></td><td class='docblock-short'><p>The minimum possible <code>Date</code>.</p>
+</td></tr><tr class='module-item'><td><a class="constant" href="constant.MIN_DATETIME.html" title='chrono::MIN_DATETIME constant'>MIN_DATETIME</a></td><td class='docblock-short'><p>The minimum possilbe <code>DateTime&lt;Utc&gt;</code>.</p>
 </td></tr></table><h2 id='traits' class='section-header'><a href="#traits">Traits</a></h2>
 <table><tr class='module-item'><td><a class="trait" href="trait.Datelike.html" title='chrono::Datelike trait'>Datelike</a></td><td class='docblock-short'><p>The common set of methods for date component.</p>
 </td></tr><tr class='module-item'><td><a class="trait" href="trait.DurationRound.html" title='chrono::DurationRound trait'>DurationRound</a></td><td class='docblock-short'><p>Extension trait for rounding or truncating a DateTime by a Duration.</p>

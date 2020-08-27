@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/libc-0.2.73/src/unix/linux_like/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../dark.css"><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script src="../../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="shortcut icon" href="../../../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../../libc/index.html'><div class='logo-container'><img src='../../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../../../settings.html"><img src="../../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/libc-0.2.76/src/unix/linux_like/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../dark.css"><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script src="../../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="shortcut icon" href="../../../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../../libc/index.html'><div class='logo-container'><img src='../../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../../../settings.html"><img src="../../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
 <span id="3">   3</span>
 <span id="4">   4</span>
@@ -1536,6 +1536,42 @@
 <span id="1536">1536</span>
 <span id="1537">1537</span>
 <span id="1538">1538</span>
+<span id="1539">1539</span>
+<span id="1540">1540</span>
+<span id="1541">1541</span>
+<span id="1542">1542</span>
+<span id="1543">1543</span>
+<span id="1544">1544</span>
+<span id="1545">1545</span>
+<span id="1546">1546</span>
+<span id="1547">1547</span>
+<span id="1548">1548</span>
+<span id="1549">1549</span>
+<span id="1550">1550</span>
+<span id="1551">1551</span>
+<span id="1552">1552</span>
+<span id="1553">1553</span>
+<span id="1554">1554</span>
+<span id="1555">1555</span>
+<span id="1556">1556</span>
+<span id="1557">1557</span>
+<span id="1558">1558</span>
+<span id="1559">1559</span>
+<span id="1560">1560</span>
+<span id="1561">1561</span>
+<span id="1562">1562</span>
+<span id="1563">1563</span>
+<span id="1564">1564</span>
+<span id="1565">1565</span>
+<span id="1566">1566</span>
+<span id="1567">1567</span>
+<span id="1568">1568</span>
+<span id="1569">1569</span>
+<span id="1570">1570</span>
+<span id="1571">1571</span>
+<span id="1572">1572</span>
+<span id="1573">1573</span>
+<span id="1574">1574</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">sa_family_t</span> <span class="op">=</span> <span class="ident">u16</span>;
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">speed_t</span> <span class="op">=</span> ::<span class="ident">c_uint</span>;
@@ -2317,6 +2353,7 @@
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">IP_MTU_DISCOVER</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">10</span>;
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">IP_RECVTOS</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">13</span>;
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">IP_RECVERR</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">11</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">IP_FREEBIND</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">15</span>;
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">IP_ADD_MEMBERSHIP</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">35</span>;
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">IP_DROP_MEMBERSHIP</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">36</span>;
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">IP_ADD_SOURCE_MEMBERSHIP</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">39</span>;
@@ -2499,6 +2536,17 @@
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">WCONTINUED</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">0x00000008</span>;
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">WNOWAIT</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">0x01000000</span>;
 
+<span class="comment">// Options for personality(2).</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ADDR_NO_RANDOMIZE</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">0x0040000</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MMAP_PAGE_ZERO</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">0x0100000</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ADDR_COMPAT_LAYOUT</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">0x0200000</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">READ_IMPLIES_EXEC</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">0x0400000</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ADDR_LIMIT_32BIT</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">0x0800000</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SHORT_INODE</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">0x1000000</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">WHOLE_SECONDS</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">0x2000000</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">STICKY_TIMEOUTS</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">0x4000000</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ADDR_LIMIT_3GB</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">0x8000000</span>;
+
 <span class="comment">// Options set using PTRACE_SETOPTIONS.</span>
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">PTRACE_O_TRACESYSGOOD</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">0x00000001</span>;
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">PTRACE_O_TRACEFORK</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">0x00000002</span>;
@@ -2520,8 +2568,6 @@
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">PTRACE_EVENT_VFORK_DONE</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">5</span>;
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">PTRACE_EVENT_EXIT</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">6</span>;
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">PTRACE_EVENT_SECCOMP</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">7</span>;
-<span class="comment">// PTRACE_EVENT_STOP was added to glibc in 2.26</span>
-<span class="comment">// pub const PTRACE_EVENT_STOP: ::c_int = 128;</span>
 
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">__WNOTHREAD</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">0x20000000</span>;
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">__WALL</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">0x40000000</span>;
@@ -2556,6 +2602,13 @@
 
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SI_LOAD_SHIFT</span>: ::<span class="ident">c_uint</span> <span class="op">=</span> <span class="number">16</span>;
 
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">CLD_EXITED</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">1</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">CLD_KILLED</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">2</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">CLD_DUMPED</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">3</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">CLD_TRAPPED</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">4</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">CLD_STOPPED</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">5</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">CLD_CONTINUED</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">6</span>;
+
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SIGEV_SIGNAL</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">0</span>;
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SIGEV_NONE</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">1</span>;
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SIGEV_THREAD</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">2</span>;
@@ -2563,6 +2616,11 @@
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">P_ALL</span>: <span class="ident">idtype_t</span> <span class="op">=</span> <span class="number">0</span>;
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">P_PID</span>: <span class="ident">idtype_t</span> <span class="op">=</span> <span class="number">1</span>;
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">P_PGID</span>: <span class="ident">idtype_t</span> <span class="op">=</span> <span class="number">2</span>;
+<span class="macro">cfg_if</span><span class="macro">!</span> {
+    <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;emscripten&quot;</span>))]</span> {
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">P_PIDFD</span>: <span class="ident">idtype_t</span> <span class="op">=</span> <span class="number">3</span>;
+    }
+}
 
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">UTIME_OMIT</span>: <span class="ident">c_long</span> <span class="op">=</span> <span class="number">1073741822</span>;
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">UTIME_NOW</span>: <span class="ident">c_long</span> <span class="op">=</span> <span class="number">1073741823</span>;
@@ -2783,6 +2841,14 @@
         (<span class="ident">status</span> <span class="op">&amp;</span> <span class="number">0x80</span>) <span class="op">!</span><span class="op">=</span> <span class="number">0</span>
     }
 
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">W_EXITCODE</span>(<span class="ident">ret</span>: ::<span class="ident">c_int</span>, <span class="ident">sig</span>: ::<span class="ident">c_int</span>) <span class="op">-</span><span class="op">&gt;</span> ::<span class="ident">c_int</span> {
+        (<span class="ident">ret</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">8</span>) <span class="op">|</span> <span class="ident">sig</span>
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">W_STOPCODE</span>(<span class="ident">sig</span>: ::<span class="ident">c_int</span>) <span class="op">-</span><span class="op">&gt;</span> ::<span class="ident">c_int</span> {
+        (<span class="ident">sig</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">8</span>) <span class="op">|</span> <span class="number">0x7f</span>
+    }
+
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">QCMD</span>(<span class="ident">cmd</span>: ::<span class="ident">c_int</span>, <span class="ident">type_</span>: ::<span class="ident">c_int</span>) <span class="op">-</span><span class="op">&gt;</span> ::<span class="ident">c_int</span> {
         (<span class="ident">cmd</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">8</span>) <span class="op">|</span> (<span class="ident">type_</span> <span class="op">&amp;</span> <span class="number">0x00ff</span>)
     }
@@ -2853,6 +2919,12 @@
         <span class="ident">fd</span>: ::<span class="ident">c_int</span>,
         <span class="ident">offset</span>: ::<span class="ident">off_t</span>,
         <span class="ident">len</span>: ::<span class="ident">off_t</span>,
+        <span class="ident">advise</span>: ::<span class="ident">c_int</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> ::<span class="ident">c_int</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">posix_fadvise64</span>(
+        <span class="ident">fd</span>: ::<span class="ident">c_int</span>,
+        <span class="ident">offset</span>: ::<span class="ident">off64_t</span>,
+        <span class="ident">len</span>: ::<span class="ident">off64_t</span>,
         <span class="ident">advise</span>: ::<span class="ident">c_int</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> ::<span class="ident">c_int</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">futimens</span>(<span class="ident">fd</span>: ::<span class="ident">c_int</span>, <span class="ident">times</span>: <span class="kw-2">*</span><span class="kw">const</span> ::<span class="ident">timespec</span>) <span class="op">-</span><span class="op">&gt;</span> ::<span class="ident">c_int</span>;

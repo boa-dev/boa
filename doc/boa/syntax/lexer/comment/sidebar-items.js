@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["MultiLineComment","Lexes a block (multi-line) comment."],["SingleLineComment","Lexes a single line comment."]]});

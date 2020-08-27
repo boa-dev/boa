@@ -63,6 +63,15 @@
 <span id="63">63</span>
 <span id="64">64</span>
 <span id="65">65</span>
+<span id="66">66</span>
+<span id="67">67</span>
+<span id="68">68</span>
+<span id="69">69</span>
+<span id="70">70</span>
+<span id="71">71</span>
+<span id="72">72</span>
+<span id="73">73</span>
+<span id="74">74</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Left hand side expression parsing.</span>
 <span class="doccomment">//!</span>
@@ -79,12 +88,15 @@
 
 <span class="kw">use</span> <span class="self">self</span>::{<span class="ident">call</span>::<span class="ident">CallExpression</span>, <span class="ident">member</span>::<span class="ident">MemberExpression</span>};
 <span class="kw">use</span> <span class="kw">crate</span>::{
+    <span class="ident">profiler</span>::<span class="ident">BoaProfiler</span>,
     <span class="ident">syntax</span>::{
-        <span class="ident">ast</span>::{<span class="ident">Node</span>, <span class="ident">Punctuator</span>, <span class="ident">TokenKind</span>},
-        <span class="ident">parser</span>::{<span class="ident">AllowAwait</span>, <span class="ident">AllowYield</span>, <span class="ident">Cursor</span>, <span class="ident">ParseResult</span>, <span class="ident">TokenParser</span>},
+        <span class="ident">ast</span>::{<span class="ident">Node</span>, <span class="ident">Punctuator</span>},
+        <span class="ident">lexer</span>::{<span class="ident">InputElement</span>, <span class="ident">TokenKind</span>},
+        <span class="ident">parser</span>::{<span class="ident">AllowAwait</span>, <span class="ident">AllowYield</span>, <span class="ident">Cursor</span>, <span class="ident">ParseError</span>, <span class="ident">TokenParser</span>},
     },
-    <span class="ident">BoaProfiler</span>,
 };
+
+<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">Read</span>;
 
 <span class="doccomment">/// Parses a left hand side expression.</span>
 <span class="doccomment">///</span>
@@ -114,19 +126,25 @@
     }
 }
 
-<span class="kw">impl</span> <span class="ident">TokenParser</span> <span class="kw">for</span> <span class="ident">LeftHandSideExpression</span> {
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="ident">TokenParser</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">LeftHandSideExpression</span>
+<span class="kw">where</span>
+    <span class="ident">R</span>: <span class="ident">Read</span>,
+{
     <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">Node</span>;
 
-    <span class="kw">fn</span> <span class="ident">parse</span>(<span class="self">self</span>, <span class="ident">cursor</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ParseResult</span> {
+    <span class="kw">fn</span> <span class="ident">parse</span>(<span class="self">self</span>, <span class="ident">cursor</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">Output</span>, <span class="ident">ParseError</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">BoaProfiler</span>::<span class="ident">global</span>().<span class="ident">start_event</span>(<span class="string">&quot;LeftHandSIdeExpression&quot;</span>, <span class="string">&quot;Parsing&quot;</span>);
+
+        <span class="ident">cursor</span>.<span class="ident">set_goal</span>(<span class="ident">InputElement</span>::<span class="ident">TemplateTail</span>);
+
         <span class="comment">// TODO: Implement NewExpression: new MemberExpression</span>
         <span class="kw">let</span> <span class="ident">lhs</span> <span class="op">=</span> <span class="ident">MemberExpression</span>::<span class="ident">new</span>(<span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>).<span class="ident">parse</span>(<span class="ident">cursor</span>)<span class="question-mark">?</span>;
-        <span class="kw">match</span> <span class="ident">cursor</span>.<span class="ident">peek</span>(<span class="number">0</span>) {
-            <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">tok</span>) <span class="kw">if</span> <span class="ident">tok</span>.<span class="ident">kind</span> <span class="op">=</span><span class="op">=</span> <span class="ident">TokenKind</span>::<span class="ident">Punctuator</span>(<span class="ident">Punctuator</span>::<span class="ident">OpenParen</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="ident">CallExpression</span>::<span class="ident">new</span>(<span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>, <span class="ident">lhs</span>).<span class="ident">parse</span>(<span class="ident">cursor</span>)
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">tok</span>) <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">peek</span>(<span class="number">0</span>)<span class="question-mark">?</span> {
+            <span class="kw">if</span> <span class="ident">tok</span>.<span class="ident">kind</span>() <span class="op">=</span><span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">TokenKind</span>::<span class="ident">Punctuator</span>(<span class="ident">Punctuator</span>::<span class="ident">OpenParen</span>) {
+                <span class="kw">return</span> <span class="ident">CallExpression</span>::<span class="ident">new</span>(<span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>, <span class="ident">lhs</span>).<span class="ident">parse</span>(<span class="ident">cursor</span>);
             }
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">lhs</span>), <span class="comment">// TODO: is this correct?</span>
         }
+        <span class="prelude-val">Ok</span>(<span class="ident">lhs</span>)
     }
 }
 </pre></div>

@@ -289,6 +289,9 @@
 <span id="289">289</span>
 <span id="290">290</span>
 <span id="291">291</span>
+<span id="292">292</span>
+<span id="293">293</span>
+<span id="294">294</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements the `Pos` structure, which represents a position in the source code.</span>
 
@@ -299,7 +302,10 @@
 
 <span class="doccomment">/// A position in the JavaScript source code.</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// Stores both the column number and the line number</span>
+<span class="doccomment">/// Stores both the column number and the line number.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// Note that spans are of the form [begining, end) i.e. that the begining position is inclusive and the end position is exclusive.</span>
+<span class="doccomment">/// See test check_positions from syntax/lexer/tests.rs for an example.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// ## Similar Implementations</span>
 <span class="doccomment">/// [V8: Location](https://cs.chromium.org/chromium/src/v8/src/parsing/scanner.h?type=cs&amp;q=isValid+Location&amp;g=0&amp;l=216)</span>
