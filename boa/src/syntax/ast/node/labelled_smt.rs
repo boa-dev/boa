@@ -8,20 +8,16 @@ use serde::{Deserialize, Serialize};
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub struct Label {
-    stmt: Box<Node>,
-    label: Box<str>,
+    pub(crate) stmt: Box<Node>,
 }
 
 impl Label {
     pub(super) fn display(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", format!("{}: {}", self.label, self.stmt))
+        write!(f, "{}", format!("{}", self.stmt))
     }
 
-    pub fn new(stmt: Node, label: Box<str>) -> Self {
-        Self {
-            stmt: stmt.into(),
-            label,
-        }
+    pub fn new(stmt: Node) -> Self {
+        Self { stmt: stmt.into() }
     }
 }
 

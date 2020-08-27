@@ -45,8 +45,9 @@ impl TokenParser for LabelledStatement {
         let _timer = BoaProfiler::global().start_event("Label", "Parsing");
         let name = LabelIdentifier::new(self.allow_yield, self.allow_await).parse(cursor)?;
         cursor.expect(Punctuator::Colon, "Labelled Statement")?;
-        let stmt =
+        let mut stmt =
             Statement::new(self.allow_yield, self.allow_await, self.allow_return).parse(cursor)?;
-        Ok(Label::new(stmt, name))
+        stmt.set_label(name);
+        Ok(Label::new(stmt))
     }
 }

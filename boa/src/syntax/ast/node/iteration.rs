@@ -21,6 +21,7 @@ use serde::{Deserialize, Serialize};
 pub struct ForLoop {
     #[cfg_attr(feature = "serde", serde(flatten))]
     inner: Box<InnerForLoop>,
+    label: Option<Box<str>>,
 }
 
 impl ForLoop {
@@ -34,6 +35,7 @@ impl ForLoop {
     {
         Self {
             inner: Box::new(InnerForLoop::new(init, condition, final_expr, body)),
+            label: None,
         }
     }
 
@@ -75,6 +77,10 @@ impl ForLoop {
         self.inner.body().display(f, indentation + 1)?;
 
         write!(f, "}}")
+    }
+
+    pub fn set_label(&mut self, label: Box<str>) {
+        self.label = Some(label);
     }
 }
 
