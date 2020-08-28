@@ -15,8 +15,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-      - name: Prettify code
-        uses: creyD/prettier_action@v3
+      - name: Check code formatting
+        uses: creyD/prettier_action@v3.0
         with:
           dry: true
           prettier_options: --check .
