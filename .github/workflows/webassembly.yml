@@ -1,0 +1,47 @@
+on:
+  pull_request:
+    branches:
+      - master
+  push:
+    branches:
+      - master
+
+name: Webassembly demo
+
+jobs:
+  check_style:
+    name: Check webassembly demo style
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Prettify code
+        uses: creyD/prettier_action@v3
+        with:
+          dry: true
+          prettier_options: --check .
+
+  build:
+    name: Build webassembly demo
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+          profile: minimal
+      - name: Cache yarn build
+        uses: actions/cache@v2
+        with:
+          path: |
+            node_modules
+            target
+            boa_wasm/pkg
+          key: ${{ runner.os }}-yarn-build-target-${{ hashFiles('**/yarn.lock') }}
+      - uses: borales/actions-yarn@v2
+        with:
+          cmd: install
+      - uses: borales/actions-yarn@v2
+        with:
+          cmd: build

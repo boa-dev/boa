@@ -6,6 +6,7 @@ information as you feel neccesary.
 This Pull Request fixes/closes #{issue_num}.
 
 It changes the following:
- - 
- - 
- - 
+
+-
+-
+-
