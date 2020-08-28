@@ -31,6 +31,8 @@ jobs:
           toolchain: stable
           override: true
           profile: minimal
+      - name: Install wasm-pack
+        run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh 
       - name: Cache yarn build
         uses: actions/cache@v2
         with:
