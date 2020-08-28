@@ -305,10 +305,26 @@ fn expm1() {
 
     assert_eq!(a, String::from("NaN"));
     assert_eq!(b, String::from("NaN"));
-    assert_eq!(c.to_number(&mut engine).unwrap(), 1.718_281_828_459_045);
-    assert_eq!(d.to_number(&mut engine).unwrap(), -0.632_120_558_828_557_7);
-    assert_eq!(e.to_number(&mut engine).unwrap(), 0_f64);
-    assert_eq!(f.to_number(&mut engine).unwrap(), 6.389_056_098_930_65);
+    assert!(float_cmp::approx_eq!(
+        f64,
+        c.to_number(&mut engine).unwrap(),
+        1.718_281_828_459_045
+    ));
+    assert!(float_cmp::approx_eq!(
+        f64,
+        d.to_number(&mut engine).unwrap(),
+        -0.632_120_558_828_557_7
+    ));
+    assert!(float_cmp::approx_eq!(
+        f64,
+        e.to_number(&mut engine).unwrap(),
+        0_f64
+    ));
+    assert!(float_cmp::approx_eq!(
+        f64,
+        f.to_number(&mut engine).unwrap(),
+        6.389_056_098_930_65
+    ));
 }
 
 #[test]
@@ -690,22 +706,24 @@ fn sqrt() {
     assert_eq!(c.to_number(&mut engine).unwrap(), 3_f64);
 }
 
-// TODO: Precision is always off between ci and local. We proably need a better way to compare floats anyways
+#[test]
+fn tan() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+    let init = r#"
+        var a = Math.tan(1.1);
+        "#;
 
-// #[test]
-// fn tan() {
-//     let realm = Realm::create();
-//     let mut engine = Interpreter::new(realm);
-//     let init = r#"
-//         var a = Math.tan(1.1);
-//         "#;
+    eprintln!("{}", forward(&mut engine, init));
 
-//     eprintln!("{}", forward(&mut engine, init));
+    let a = forward_val(&mut engine, "a").unwrap();
 
-//     let a = forward_val(&mut engine, "a").unwrap();
-
-//     assert_eq!(a.to_number(), f64::from(1.964_759_657_248_652_5));
-// }
+    assert!(float_cmp::approx_eq!(
+        f64,
+        a.to_number(&mut engine).unwrap(),
+        f64::from(1.964_759_657_248_652_5)
+    ));
+}
 
 #[test]
 fn tanh() {

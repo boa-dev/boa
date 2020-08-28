@@ -34,6 +34,7 @@ once_cell = { version = "1.4.1", optional = true }
 
 [dev-dependencies]
 criterion = "=0.3.2"
+float-cmp = "0.8.0"
 
 [target.x86_64-unknown-linux-gnu.dev-dependencies]
 jemallocator = "0.3.2"

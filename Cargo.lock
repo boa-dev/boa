@@ -7,6 +7,7 @@ dependencies = [
  "bitflags",
  "chrono",
  "criterion",
+ "float-cmp",
  "gc",
  "indexmap",
  "jemallocator",
@@ -344,6 +345,15 @@ name = "either"
 version = "1.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cd56b59865bce947ac5958779cfa508f6c3b9497cc762b7e24a12d11ccde2c4f"
+
+[[package]]
+name = "float-cmp"
+version = "0.8.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e1267f4ac4f343772758f7b1bdcbe767c218bbab93bb432acbf5162bbf85a6c4"
+dependencies = [
+ "num-traits",
+]
 
 [[package]]
 name = "fs_extra"
