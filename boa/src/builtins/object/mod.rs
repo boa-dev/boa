@@ -52,7 +52,10 @@ pub static PROTOTYPE: &str = "prototype";
 ///
 /// This is automatically implemented, when a type implements `Debug`, `Any` and `Trace`.
 pub trait NativeObject: Debug + Any + Trace {
+    /// Convert the Rust type which implements `NativeObject` to a `&dyn Any`.
     fn as_any(&self) -> &dyn Any;
+
+    /// Convert the Rust type which implements `NativeObject` to a `&mut dyn Any`.
     fn as_mut_any(&mut self) -> &mut dyn Any;
 }
 
