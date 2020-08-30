@@ -1,12 +1,10 @@
-use crate::exec::Executor;
-use crate::realm::Realm;
-use crate::{builtins::value::from_value, forward, forward_val};
+use crate::{exec::Interpreter, forward, forward_val, realm::Realm};
 
 #[allow(clippy::float_cmp)]
 #[test]
 fn check_arguments_object() {
     let realm = Realm::create();
-    let mut engine = Executor::new(realm);
+    let mut engine = Interpreter::new(realm);
     let init = r#"
         function jason(a, b) {
             return arguments[0];
@@ -15,11 +13,33 @@ fn check_arguments_object() {
         "#;
 
     eprintln!("{}", forward(&mut engine, init));
-    let expected_return_val = 100;
+
     let return_val = forward_val(&mut engine, "val").expect("value expected");
     assert_eq!(return_val.is_integer(), true);
     assert_eq!(
-        from_value::<i32>(return_val).expect("Could not convert value to i32"),
-        expected_return_val
+        return_val
+            .to_i32(&mut engine)
+            .expect("Could not convert value to i32"),
+        100
+    );
+}
+
+#[test]
+fn check_self_mutating_func() {
+    let realm = Realm::create();
+    let mut engine = Interpreter::new(realm);
+    let func = r#"
+        function x() {
+	        x.y = 3;
+        }
+        x();
+        "#;
+    eprintln!("{}", forward(&mut engine, func));
+    let y = forward_val(&mut engine, "x.y").expect("value expected");
+    assert_eq!(y.is_integer(), true);
+    assert_eq!(
+        y.to_i32(&mut engine)
+            .expect("Could not convert value to i32"),
+        3
     );
 }

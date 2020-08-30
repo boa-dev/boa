@@ -1,8 +1,10 @@
 //! Statement list node.
 
 use super::Node;
-use gc::{Finalize, Trace};
+use gc::{unsafe_empty_trace, Finalize, Trace};
 use std::fmt;
+use std::ops::Deref;
+use std::rc::Rc;
 
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
@@ -61,4 +63,29 @@ impl fmt::Display for StatementList {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         self.display(f, 0)
     }
+}
+
+// List of statements wrapped with Rc. We need this for self mutating functions.
+// Since we need to cheaply clone the function body and drop the borrow of the function object to
+// mutably borrow the function object and call this cloned function body
+#[derive(Clone, Debug, Finalize, PartialEq)]
+pub struct RcStatementList(Rc<StatementList>);
+
+impl Deref for RcStatementList {
+    type Target = StatementList;
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+impl From<StatementList> for RcStatementList {
+    #[inline]
+    fn from(statementlist: StatementList) -> Self {
+        Self(Rc::from(statementlist))
+    }
+}
+
+// SAFETY: This is safe for types not containing any `Trace` types.
+unsafe impl Trace for RcStatementList {
+    unsafe_empty_trace!();
 }

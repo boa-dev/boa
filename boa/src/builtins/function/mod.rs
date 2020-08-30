@@ -20,12 +20,15 @@ use crate::{
     },
     environment::lexical_environment::Environment,
     exec::Interpreter,
-    syntax::ast::node::{FormalParameter, StatementList},
+    syntax::ast::node::{FormalParameter, RcStatementList},
     BoaProfiler, Result,
 };
 use bitflags::bitflags;
 use gc::{unsafe_empty_trace, Finalize, Trace};
 use std::fmt::{self, Debug};
+
+#[cfg(test)]
+mod tests;
 
 /// _fn(this, arguments, ctx) -> Result<Value>_ - The signature of a built-in function
 pub type NativeFunction = fn(&Value, &[Value], &mut Interpreter) -> Result<Value>;
@@ -102,7 +105,7 @@ pub enum Function {
     BuiltIn(BuiltInFunction, FunctionFlags),
     Ordinary {
         flags: FunctionFlags,
-        body: StatementList,
+        body: RcStatementList,
         params: Box<[FormalParameter]>,
         environment: Environment,
     },
