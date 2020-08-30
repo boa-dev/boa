@@ -217,10 +217,7 @@ impl EnvironmentRecordTrait for FunctionEnvironmentRecord {
     }
 
     fn has_this_binding(&self) -> bool {
-        match self.this_binding_status {
-            BindingStatus::Lexical => false,
-            _ => true,
-        }
+        !matches!(self.this_binding_status, BindingStatus::Lexical)
     }
 
     fn with_base_object(&self) -> Value {
