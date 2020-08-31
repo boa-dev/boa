@@ -380,6 +380,7 @@ impl Executable for Node {
             Node::WhileLoop(ref while_loop) => while_loop.run(interpreter),
             Node::DoWhileLoop(ref do_while) => do_while.run(interpreter),
             Node::ForLoop(ref for_loop) => for_loop.run(interpreter),
+            Node::ForInLoop(ref _for_loop) => todo!(),
             Node::If(ref if_smt) => if_smt.run(interpreter),
             Node::ConditionalOp(ref op) => op.run(interpreter),
             Node::Switch(ref switch) => switch.run(interpreter),

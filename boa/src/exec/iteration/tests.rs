@@ -191,3 +191,21 @@ fn do_while_loop_continue() {
     "#;
     assert_eq!(&exec(scenario), "[ 1, 2 ]");
 }
+
+
+#[test]
+fn for_in_loop() {
+    let scenario = r#"
+    let myObject = {
+        a: 'test1',
+        b: 'test2'
+    };
+    let c = '';
+    for (var prop in myObject) {
+        c += prop + '=' + myObject[prop] + ';';
+    }
+    c
+    "#;
+
+    assert_eq!(&exec(scenario), "a=test1;b=test2;");
+}

@@ -138,6 +138,103 @@ impl InnerForLoop {
     }
 }
 
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[derive(Clone, Debug, Trace, Finalize, PartialEq)]
+pub struct ForInLoop {
+    #[cfg_attr(feature = "serde", serde(flatten))]
+    inner: Box<InnerForInLoop>,
+}
+
+impl ForInLoop {
+    /// Creates a new for loop AST node.
+    pub(in crate::syntax) fn new<V, O, B>(variable: V, object: O, body: B) -> Self
+    where
+        V: Into<Node>,
+        O: Into<Node>,
+        B: Into<Node>,
+    {
+        Self {
+            inner: Box::new(InnerForInLoop::new(variable, object, body)),
+        }
+    }
+
+    pub fn variable(&self) -> &Node {
+        self.inner.variable()
+    }
+
+    pub fn object(&self) -> &Node {
+        self.inner.object()
+    }
+
+    /// Gets the body of the for loop.
+    pub fn body(&self) -> &Node {
+        self.inner.body()
+    }
+
+    pub(super) fn display(&self, f: &mut fmt::Formatter<'_>, indentation: usize) -> fmt::Result {
+        f.write_str("for (")?;
+        fmt::Display::fmt(self.variable(), f)?;
+        f.write_str(" in ")?;
+        fmt::Display::fmt(self.object(), f)?;
+        writeln!(f, ") {{")?;
+
+        self.body().display(f, indentation + 1)?;
+
+        write!(f, "}}")
+    }
+}
+
+impl fmt::Display for ForInLoop {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        self.display(f, 0)
+    }
+}
+
+impl From<ForInLoop> for Node {
+    fn from(for_in_loop: ForInLoop) -> Self {
+        Self::ForInLoop(for_in_loop)
+    }
+}
+
+/// Inner structure to avoid multiple indirections in the heap.
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[derive(Clone, Debug, Trace, Finalize, PartialEq)]
+struct InnerForInLoop {
+    variable: Node,
+    object: Node,
+    body: Node,
+}
+
+
+impl InnerForInLoop {
+    /// Creates a new inner for loop.
+    fn new<V, O, B>(variable: V, object: O, body: B) -> Self
+    where
+        V: Into<Node>,
+        O: Into<Node>,
+        B: Into<Node>,
+    {
+        Self {
+            variable: variable.into(),
+            object: object.into(),
+            body: body.into(),
+        }
+    }
+
+    fn variable(&self) -> &Node {
+        &self.variable
+    }
+
+    fn object(&self) -> &Node {
+        &self.object
+    }
+
+    /// Gets the body of the for loop.
+    fn body(&self) -> &Node {
+        &self.body
+    }
+}
+
 /// The `while` statement creates a loop that executes a specified statement as long as the
 /// test condition evaluates to `true`.
 ///

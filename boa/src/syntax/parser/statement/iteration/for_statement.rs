@@ -11,7 +11,7 @@ use crate::syntax::lexer::TokenKind;
 use crate::{
     syntax::{
         ast::{
-            node::{ForLoop, Node},
+            node::{ForLoop, ForInLoop, Node},
             Const, Keyword, Punctuator,
         },
         parser::{
@@ -65,7 +65,7 @@ impl<R> TokenParser<R> for ForStatement
 where
     R: Read,
 {
-    type Output = ForLoop;
+    type Output = Node;
 
     fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("ForStatement", "Parsing");
@@ -88,42 +88,64 @@ where
             _ => Some(Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?),
         };
 
+        let can_iterate = match &init {
+            Some(Node::VarDeclList(v)) => v.as_ref().len() == 1,
+            Some(Node::ConstDeclList(v)) => v.as_ref().len() == 1,
+            Some(Node::LetDeclList(v)) => v.as_ref().len() == 1,
+            _ => false
+        };
+
         // TODO: for..in, for..of
         match cursor.peek(0)? {
-            Some(tok) if tok.kind() == &TokenKind::Keyword(Keyword::In) => {
-                unimplemented!("for...in statement")
+            Some(tok) if tok.kind() == &TokenKind::Keyword(Keyword::In) && can_iterate => {
+                cursor.next()?;
+                let variable = init.unwrap();
+                let object = Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?;
+                cursor.expect(
+                    TokenKind::Punctuator(Punctuator::CloseParen),
+                    "for..in statement",
+                )?;
+                let body =
+                    Statement::new(self.allow_yield, self.allow_await, self.allow_return).parse(cursor)?;
+                Ok(ForInLoop::new(variable, object, body).into())
             }
-            Some(tok) if tok.kind() == &TokenKind::identifier("of") => {
+            Some(tok) if tok.kind() == &TokenKind::identifier("of") && can_iterate => {
                 unimplemented!("for...of statement")
             }
-            _ => {}
+            Some(tok) if tok.kind() == &TokenKind::Punctuator(Punctuator::Semicolon) => {
+                cursor.next()?;
+
+                let cond = if cursor.next_if(Punctuator::Semicolon)?.is_some() {
+                    Const::from(true).into()
+                } else {
+                    let step = Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?;
+                    cursor.expect(Punctuator::Semicolon, "for statement")?;
+                    step
+                };
+        
+                let step = if cursor.next_if(Punctuator::CloseParen)?.is_some() {
+                    None
+                } else {
+                    let step = Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?;
+                    cursor.expect(
+                        TokenKind::Punctuator(Punctuator::CloseParen),
+                        "for statement",
+                    )?;
+                    Some(step)
+                };
+        
+                let body =
+                    Statement::new(self.allow_yield, self.allow_await, self.allow_return).parse(cursor)?;
+        
+                // TODO: do not encapsulate the `for` in a block just to have an inner scope.
+                Ok(ForLoop::new(init, cond, step, body).into())
+            }
+            Some(tok) => Err(ParseError::expected(vec![
+                TokenKind::Keyword(Keyword::In),
+                TokenKind::identifier("of"),
+                TokenKind::Punctuator(Punctuator::Semicolon)
+                ], tok.clone(), "for statement")),
+            None => Err(ParseError::AbruptEnd)
         }
-
-        cursor.expect(Punctuator::Semicolon, "for statement")?;
-
-        let cond = if cursor.next_if(Punctuator::Semicolon)?.is_some() {
-            Const::from(true).into()
-        } else {
-            let step = Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?;
-            cursor.expect(Punctuator::Semicolon, "for statement")?;
-            step
-        };
-
-        let step = if cursor.next_if(Punctuator::CloseParen)?.is_some() {
-            None
-        } else {
-            let step = Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?;
-            cursor.expect(
-                TokenKind::Punctuator(Punctuator::CloseParen),
-                "for statement",
-            )?;
-            Some(step)
-        };
-
-        let body =
-            Statement::new(self.allow_yield, self.allow_await, self.allow_return).parse(cursor)?;
-
-        // TODO: do not encapsulate the `for` in a block just to have an inner scope.
-        Ok(ForLoop::new(init, cond, step, body))
     }
 }

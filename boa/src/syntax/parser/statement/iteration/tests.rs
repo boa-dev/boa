@@ -2,13 +2,34 @@ use crate::syntax::{
     ast::{
         node::{
             field::GetConstField, BinOp, Block, Break, Call, DoWhileLoop, Identifier, UnaryOp,
-            VarDecl, VarDeclList, WhileLoop,
+            VarDecl, VarDeclList, WhileLoop, ForInLoop
         },
         op::{self, AssignOp, CompOp},
         Const,
     },
     parser::tests::check_parser,
 };
+
+/// Checks do-while statement parsing.
+#[test]
+fn check_for_in() {
+    check_parser(
+        r#"for(var a in b) {
+            a += 1;
+        }"#,
+        vec![ForInLoop::new(
+            VarDeclList::from(vec![VarDecl::new("a", None)]),
+            Identifier::from("b"),
+            Block::from(vec![BinOp::new(
+                AssignOp::Add,
+                Identifier::from("a"),
+                Const::from(1),
+            )
+            .into()])
+        )
+        .into()],
+    );
+}
 
 /// Checks do-while statement parsing.
 #[test]
