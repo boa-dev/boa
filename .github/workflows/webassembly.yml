@@ -24,6 +24,8 @@ jobs:
   build:
     name: Build webassembly demo
     runs-on: ubuntu-latest
+    env:
+      WASM_PACK_PATH: ~/.cargo/bin/wasm-pack
     steps:
       - uses: actions/checkout@v2
       - uses: actions-rs/toolchain@v1
