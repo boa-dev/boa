@@ -26,8 +26,8 @@ use crate::{
     builtins,
     builtins::{
         function::{Function, FunctionFlags, NativeFunction},
-        object::{GcObject, Object, ObjectData, PROTOTYPE},
-        property::PropertyKey,
+        object::{Class, ClassBuilder, GcObject, Object, ObjectData, PROTOTYPE},
+        property::{Property, PropertyKey},
         value::{PreferredType, RcString, RcSymbol, Type, Value},
         Console, Symbol,
     },
@@ -107,7 +107,7 @@ impl Interpreter {
 
     /// Retrieves the global object of the `Realm` of this executor.
     #[inline]
-    pub(crate) fn global(&self) -> &Value {
+    pub fn global(&self) -> &Value {
         &self.realm.global_obj
     }
 
@@ -355,6 +355,35 @@ impl Interpreter {
     pub fn construct_object(&self) -> GcObject {
         let object_prototype = self.global().get_field("Object").get_field(PROTOTYPE);
         GcObject::new(Object::create(object_prototype))
+    }
+
+    /// Register a global class of type `T`, where `T` implemets `Class`.
+    ///
+    /// # Example
+    /// ```ignore
+    /// #[derive(Debug, Trace, Finalize)]
+    /// struct MyClass;
+    ///
+    /// impl Class for MyClass {
+    ///    // ...    
+    /// }
+    ///
+    /// context.register_global_class::<MyClass>();
+    /// ```
+    pub fn register_global_class<T>(&mut self) -> Result<()>
+    where
+        T: Class,
+    {
+        let mut class_builder = ClassBuilder::new::<T>(self);
+        T::init(&mut class_builder)?;
+
+        let class = class_builder.build();
+        let property = Property::data_descriptor(class.into(), T::ATTRIBUTE);
+        self.global()
+            .as_object_mut()
+            .unwrap()
+            .insert_property(T::NAME, property);
+        Ok(())
     }
 }
 

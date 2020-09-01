@@ -72,7 +72,7 @@ impl Property {
     #[inline]
     pub fn empty() -> Self {
         Self {
-            attribute: Attribute::NONE,
+            attribute: Attribute::empty(),
             value: None,
             get: None,
             set: None,
