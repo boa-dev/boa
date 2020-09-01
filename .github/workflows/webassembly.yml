@@ -41,6 +41,7 @@ jobs:
             target
             boa_wasm/pkg
           key: ${{ runner.os }}-yarn-build-target-${{ hashFiles('**/yarn.lock') }}
+      - run: wasm-pack && which wasm-pack
       - uses: Borales/actions-yarn@v2.3.0
         with:
           cmd: install
