@@ -107,6 +107,8 @@
 <span id="107">107</span>
 <span id="108">108</span>
 <span id="109">109</span>
+<span id="110">110</span>
+<span id="111">111</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This is an experimental Javascript lexer, parser and compiler written in Rust. Currently, it has support for some of the language.</span>
 
@@ -162,6 +164,8 @@
     },
 };
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">result</span>::<span class="prelude-ty">Result</span> <span class="kw">as</span> <span class="ident">StdResult</span>;
+
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">gc</span>::{<span class="ident">custom_trace</span>, <span class="ident">unsafe_empty_trace</span>, <span class="ident">Finalize</span>, <span class="ident">Trace</span>};
 
 <span class="doccomment">/// The result of a Javascript expression is represented like this so it can succeed (`Ok`) or fail (`Err`)</span>
 <span class="attribute">#[<span class="ident">must_use</span>]</span>

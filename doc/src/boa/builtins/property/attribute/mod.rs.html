@@ -141,8 +141,6 @@
 <span id="141">141</span>
 <span id="142">142</span>
 <span id="143">143</span>
-<span id="144">144</span>
-<span id="145">145</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements the `Attribute` struct which contains the attibutes for property descriptors.</span>
 
@@ -163,9 +161,6 @@
     <span class="doccomment">/// Additionaly there are flags for when the flags are defined.</span>
     <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Finalize</span>)]</span>
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Attribute</span>: <span class="ident">u8</span> {
-        <span class="doccomment">/// None of the flags are present.</span>
-        <span class="kw">const</span> <span class="ident">NONE</span> <span class="op">=</span> <span class="number">0b0000_0000</span>;
-
         <span class="doccomment">/// The `Writable` attribute decides whether the value associated with the property can be changed or not, from its initial value.</span>
         <span class="kw">const</span> <span class="ident">WRITABLE</span> <span class="op">=</span> <span class="number">0b0000_0011</span>;
 
@@ -192,6 +187,7 @@
 
         <span class="doccomment">/// Is the `Configurable` flag defined.</span>
         <span class="kw">const</span> <span class="ident">HAS_CONFIGURABLE</span> <span class="op">=</span> <span class="number">0b0010_0000</span>;
+
     }
 }
 
