@@ -6,7 +6,7 @@
 //! This is the entrypoint to lexical environments.
 
 use crate::{
-    builtins::{object::GcObject, value::Value},
+    builtins::object::GcObject,
     environment::{
         declarative_environment_record::DeclarativeEnvironmentRecord,
         environment_record_trait::EnvironmentRecordTrait,
@@ -14,7 +14,7 @@ use crate::{
         global_environment_record::GlobalEnvironmentRecord,
         object_environment_record::ObjectEnvironmentRecord,
     },
-    BoaProfiler,
+    BoaProfiler, Value,
 };
 use gc::{Gc, GcCell};
 use rustc_hash::{FxHashMap, FxHashSet};

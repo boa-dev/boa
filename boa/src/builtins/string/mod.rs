@@ -17,10 +17,10 @@ use crate::{
     builtins::{
         object::{Object, ObjectData},
         property::Property,
-        value::{RcString, Value},
         RegExp,
     },
     exec::Interpreter,
+    value::{RcString, Value},
     BoaProfiler, Result,
 };
 use regex::Regex;

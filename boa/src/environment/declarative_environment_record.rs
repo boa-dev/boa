@@ -6,11 +6,11 @@
 //! More info:  [ECMA-262 sec-declarative-environment-records](https://tc39.es/ecma262/#sec-declarative-environment-records)
 
 use crate::{
-    builtins::value::Value,
     environment::{
         environment_record_trait::EnvironmentRecordTrait,
         lexical_environment::{Environment, EnvironmentType},
     },
+    Value,
 };
 use gc::{Finalize, Trace};
 use rustc_hash::FxHashMap;

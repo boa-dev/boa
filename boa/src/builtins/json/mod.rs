@@ -17,10 +17,9 @@ use crate::{
     builtins::{
         function::make_builtin_fn,
         property::{Property, PropertyKey},
-        value::Value,
     },
     exec::Interpreter,
-    BoaProfiler, Result,
+    BoaProfiler, Result, Value,
 };
 use serde_json::{self, Value as JSONValue};
 

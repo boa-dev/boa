@@ -5,10 +5,9 @@ use crate::{
     builtins::{
         object::{ObjectData, PROTOTYPE},
         property::{Attribute, Property},
-        value::Value,
     },
     exec::Interpreter,
-    BoaProfiler, Result,
+    BoaProfiler, Result, Value,
 };
 use ordered_map::OrderedMap;
 

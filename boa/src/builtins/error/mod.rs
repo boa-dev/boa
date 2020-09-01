@@ -14,11 +14,10 @@ use crate::{
     builtins::{
         function::{make_builtin_fn, make_constructor_fn},
         object::ObjectData,
-        value::Value,
     },
     exec::Interpreter,
     profiler::BoaProfiler,
-    Result,
+    Result, Value,
 };
 
 pub(crate) mod range;

@@ -2,8 +2,8 @@
 
 use super::{Executable, Interpreter, InterpreterState};
 use crate::{
-    builtins::value::Value, environment::lexical_environment::new_declarative_environment,
-    syntax::ast::node::Block, BoaProfiler, Result,
+    environment::lexical_environment::new_declarative_environment, syntax::ast::node::Block,
+    BoaProfiler, Result, Value,
 };
 
 impl Executable for Block {

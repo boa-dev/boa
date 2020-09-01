@@ -1,5 +1,5 @@
 use super::{Executable, Interpreter};
-use crate::{builtins::value::Value, syntax::ast::node::Spread, Result};
+use crate::{syntax::ast::node::Spread, Result, Value};
 
 impl Executable for Spread {
     fn run(&self, interpreter: &mut Interpreter) -> Result<Value> {

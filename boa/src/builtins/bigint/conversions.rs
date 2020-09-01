@@ -1,9 +1,6 @@
 use super::BigInt;
 
-use crate::{
-    builtins::{Number, Value},
-    exec::Interpreter,
-};
+use crate::{builtins::Number, exec::Interpreter, Value};
 use num_traits::cast::{FromPrimitive, ToPrimitive};
 
 use std::convert::TryFrom;

@@ -16,9 +16,8 @@
 use super::{
     function::{make_builtin_fn, make_constructor_fn},
     object::ObjectData,
-    value::AbstractRelation,
 };
-use crate::{builtins::value::Value, exec::Interpreter, BoaProfiler, Result};
+use crate::{exec::Interpreter, value::AbstractRelation, BoaProfiler, Result, Value};
 use num_traits::float::FloatCore;
 
 mod conversions;

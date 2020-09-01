@@ -5,8 +5,8 @@
 #[cfg(test)]
 mod tests;
 
-use super::number::{f64_to_int32, f64_to_uint32};
 use crate::builtins::{
+    number::{f64_to_int32, f64_to_uint32},
     object::{GcObject, Object, ObjectData, PROTOTYPE},
     property::{Attribute, Property, PropertyKey},
     BigInt, Number,
@@ -641,7 +641,7 @@ impl Value {
     /// # Examples
     ///
     /// ```
-    /// use boa::builtins::value::Value;
+    /// use boa::Value;
     ///
     /// let value = Value::number(3);
     ///

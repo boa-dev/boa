@@ -11,11 +11,7 @@
 //! [spec]: https://tc39.es/ecma262/#sec-math-object
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math
 
-use crate::{
-    builtins::{function::make_builtin_fn, value::Value},
-    exec::Interpreter,
-    BoaProfiler, Result,
-};
+use crate::{builtins::function::make_builtin_fn, exec::Interpreter, BoaProfiler, Result, Value};
 use std::f64;
 
 #[cfg(test)]

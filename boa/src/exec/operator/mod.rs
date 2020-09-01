@@ -4,13 +4,12 @@ mod tests;
 
 use super::{Executable, Interpreter};
 use crate::{
-    builtins::value::Value,
     environment::lexical_environment::VariableScope,
     syntax::ast::{
         node::{Assign, BinOp, Node, UnaryOp},
         op::{self, AssignOp, BitOp, CompOp, LogOp, NumOp},
     },
-    BoaProfiler, Result,
+    BoaProfiler, Result, Value,
 };
 
 impl Executable for Assign {

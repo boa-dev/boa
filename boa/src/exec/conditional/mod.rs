@@ -1,8 +1,7 @@
 use super::{Executable, Interpreter};
 use crate::{
-    builtins::Value,
     syntax::ast::node::{ConditionalOp, If},
-    Result,
+    Result, Value,
 };
 use std::borrow::Borrow;
 

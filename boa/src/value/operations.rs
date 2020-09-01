@@ -1,8 +1,5 @@
 use super::*;
-use crate::builtins::{
-    number::{f64_to_int32, f64_to_uint32, Number},
-    value::PreferredType,
-};
+use crate::builtins::number::{f64_to_int32, f64_to_uint32, Number};
 
 impl Value {
     #[inline]

@@ -9,15 +9,15 @@
 //! There are 5 Environment record kinds. They all have methods in common, these are implemented as a the `EnvironmentRecordTrait`
 //!
 use crate::{
-    builtins::value::Value,
     environment::lexical_environment::{Environment, EnvironmentType},
+    Value,
 };
 use gc::{Finalize, Trace};
 use std::fmt::Debug;
 
 /// <https://tc39.es/ecma262/#sec-environment-records>
 ///
-/// In the ECMAScript specification Environment Records are hierachical and have a base class with abstract methods.   
+/// In the ECMAScript specification Environment Records are hierachical and have a base class with abstract methods.
 /// In this implementation we have a trait which represents the behaviour of all `EnvironmentRecord` types.
 pub trait EnvironmentRecordTrait: Debug + Trace + Finalize {
     /// Determine if an Environment Record has a binding for the String value N. Return true if it does and false if it does not.

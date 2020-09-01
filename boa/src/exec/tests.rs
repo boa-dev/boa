@@ -1,10 +1,4 @@
-use crate::{
-    builtins::{Number, Value},
-    exec,
-    exec::Interpreter,
-    forward, forward_val,
-    realm::Realm,
-};
+use crate::{builtins::Number, exec, exec::Interpreter, forward, forward_val, realm::Realm, Value};
 
 #[test]
 fn function_declaration_returns_undefined() {
@@ -1163,7 +1157,7 @@ fn array_creation_benchmark() {
             for (let a = 0; a <= 500; a++) {
                 testArr[a] = ('p' + a);
             }
-        
+
             return testArr;
         })();
         "#;
@@ -1193,11 +1187,11 @@ fn array_pop_benchmark() {
                          23, 56, 32, 56, 67, 77, 32, 45, 93, 17, 28, 83, 62, 99,
                          36, 28, 93, 27, 29, 2828, 234, 23, 56, 32, 56, 67, 77, 32,
                          45, 93, 17, 28, 83, 62, 99, 36, 28];
-    
+
         while (testArray.length > 0) {
             testArray.pop();
         }
-    
+
         return testArray;
     })();
     "#;

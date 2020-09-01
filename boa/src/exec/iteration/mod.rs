@@ -2,10 +2,9 @@
 
 use super::{Executable, Interpreter, InterpreterState};
 use crate::{
-    builtins::value::Value,
     environment::lexical_environment::new_declarative_environment,
     syntax::ast::node::{DoWhileLoop, ForLoop, WhileLoop},
-    BoaProfiler, Result,
+    BoaProfiler, Result, Value,
 };
 use std::borrow::Borrow;
 

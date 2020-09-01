@@ -1,5 +1,5 @@
 use super::{Executable, Interpreter, InterpreterState};
-use crate::{builtins::value::Value, syntax::ast::node::Return, Result};
+use crate::{syntax::ast::node::Return, Result, Value};
 
 impl Executable for Return {
     fn run(&self, interpreter: &mut Interpreter) -> Result<Value> {

@@ -12,12 +12,10 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/SyntaxError
 
 use crate::{
-    builtins::{
-        function::make_builtin_fn, function::make_constructor_fn, object::ObjectData, value::Value,
-    },
+    builtins::{function::make_builtin_fn, function::make_constructor_fn, object::ObjectData},
     exec::Interpreter,
     profiler::BoaProfiler,
-    Result,
+    Result, Value,
 };
 
 /// JavaScript `SyntaxError` impleentation.

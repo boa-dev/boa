@@ -20,7 +20,6 @@ pub mod regexp;
 pub mod string;
 pub mod symbol;
 pub mod undefined;
-pub mod value;
 
 pub(crate) use self::{
     array::Array,
@@ -40,9 +39,8 @@ pub(crate) use self::{
     string::String,
     symbol::Symbol,
     undefined::Undefined,
-    value::Value,
 };
-use crate::Interpreter;
+use crate::{Interpreter, Value};
 
 /// Initializes builtin objects and functions
 #[inline]

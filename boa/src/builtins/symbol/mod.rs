@@ -20,11 +20,9 @@ mod tests;
 
 use super::function::{make_builtin_fn, make_constructor_fn};
 use crate::{
-    builtins::{
-        property::{Attribute, Property},
-        value::{RcString, RcSymbol, Value},
-    },
+    builtins::property::{Attribute, Property},
     exec::Interpreter,
+    value::{RcString, RcSymbol, Value},
     BoaProfiler, Result,
 };
 use gc::{Finalize, Trace};

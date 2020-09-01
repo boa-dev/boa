@@ -41,8 +41,9 @@ pub mod exec;
 pub mod profiler;
 pub mod realm;
 pub mod syntax;
+pub mod value;
 
-use crate::{builtins::value::Value, syntax::ast::node::StatementList};
+use crate::syntax::ast::node::StatementList;
 pub use crate::{
     exec::{Executable, Interpreter},
     profiler::BoaProfiler,
@@ -51,6 +52,7 @@ pub use crate::{
         lexer::Lexer,
         parser::{ParseError, Parser},
     },
+    value::Value,
 };
 use std::result::Result as StdResult;
 
