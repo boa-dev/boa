@@ -523,10 +523,11 @@ impl String {
                                     let units = third.to_digit(10).unwrap() as usize;
                                     let nn = 10 * tens + units;
                                     if nn == 0 || nn > m {
-                                        [Some(first), Some(second), chars.next()]
-                                            .iter()
-                                            .flatten()
-                                            .for_each(|ch: &char| result.push(*ch));
+                                        result.push(first);
+                                        result.push(second);
+                                        if let Some(ch) = chars.next() {
+                                            result.push(ch);
+                                        }
                                     } else {
                                         let group = match caps.get(nn) {
                                             Some(text) => text.as_str(),
@@ -558,7 +559,9 @@ impl String {
                                     // $?, ? is none of the above
                                     // we can consume second because it isn't $
                                     result.push(first);
-                                    second.iter().for_each(|ch: &char| result.push(*ch));
+                                    if let Some(second) = second {
+                                        result.push(second);
+                                    }
                                 }
                             }
                         } else {
