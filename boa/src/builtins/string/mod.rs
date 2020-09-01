@@ -468,7 +468,10 @@ impl String {
 
         let regex_body = Self::get_regex_string(args.get(0).expect("Value needed"));
         let re = Regex::new(&regex_body).expect("unable to convert regex to regex object");
-        let mat = re.find(&primitive_val).expect("unable to find value");
+        let mat = match re.find(&primitive_val) {
+            Some(mat) => mat,
+            None => return Ok(Value::from(primitive_val)),
+        };
         let caps = re
             .captures(&primitive_val)
             .expect("unable to get capture groups from text");
@@ -479,39 +482,91 @@ impl String {
             match replace_object {
                 Value::String(val) => {
                     // https://tc39.es/ecma262/#table-45
-                    let mut result = val.to_string();
-                    let re = Regex::new(r"\$(\d)").unwrap();
+                    let mut result = StdString::new();
+                    let mut chars = val.chars().peekable();
 
-                    if val.find("$$").is_some() {
-                        result = val.replace("$$", "$")
-                    }
+                    let m = caps.len();
 
-                    if val.find("$`").is_some() {
-                        let start_of_match = mat.start();
-                        let slice = &primitive_val[..start_of_match];
-                        result = val.replace("$`", slice);
-                    }
+                    while let Some(first) = chars.next() {
+                        if first == '$' {
+                            let second = chars.next();
+                            let second_is_digit = second.map_or(false, |ch| ch.is_digit(10));
+                            // we use peek so that it is still in the iterator if not used
+                            let third = if second_is_digit { chars.peek() } else { None };
+                            let third_is_digit = third.map_or(false, |ch| ch.is_digit(10));
 
-                    if val.find("$'").is_some() {
-                        let end_of_match = mat.end();
-                        let slice = &primitive_val[end_of_match..];
-                        result = val.replace("$'", slice);
-                    }
-
-                    if val.find("$&").is_some() {
-                        // get matched value
-                        let matched = caps.get(0).expect("cannot get matched value");
-                        result = val.replace("$&", matched.as_str());
-                    }
-
-                    // Capture $1, $2, $3 etc
-                    if re.is_match(&result) {
-                        let mat_caps = re.captures(&result).unwrap();
-                        let group_str = mat_caps.get(1).unwrap().as_str();
-                        let group_int = group_str.parse::<usize>().unwrap();
-                        result = re
-                            .replace(result.as_str(), caps.get(group_int).unwrap().as_str())
-                            .to_string()
+                            match (second, third) {
+                                (Some('$'), _) => {
+                                    // $$
+                                    result.push('$');
+                                }
+                                (Some('&'), _) => {
+                                    // $&
+                                    let matched = caps.get(0).expect("cannot get matched value");
+                                    result.push_str(matched.as_str());
+                                }
+                                (Some('`'), _) => {
+                                    // $`
+                                    let start_of_match = mat.start();
+                                    result.push_str(&primitive_val[..start_of_match]);
+                                }
+                                (Some('\''), _) => {
+                                    // $'
+                                    let end_of_match = mat.end();
+                                    result.push_str(&primitive_val[end_of_match..]);
+                                }
+                                (Some(second), Some(third))
+                                    if second_is_digit && third_is_digit =>
+                                {
+                                    // $nn
+                                    let tens = second.to_digit(10).unwrap() as usize;
+                                    let units = third.to_digit(10).unwrap() as usize;
+                                    let nn = 10 * tens + units;
+                                    if nn == 0 || nn > m {
+                                        result.push(first);
+                                        result.push(second);
+                                        if let Some(ch) = chars.next() {
+                                            result.push(ch);
+                                        }
+                                    } else {
+                                        let group = match caps.get(nn) {
+                                            Some(text) => text.as_str(),
+                                            None => "",
+                                        };
+                                        result.push_str(group);
+                                        chars.next(); // consume third
+                                    }
+                                }
+                                (Some(second), _) if second_is_digit => {
+                                    // $n
+                                    let n = second.to_digit(10).unwrap() as usize;
+                                    if n == 0 || n > m {
+                                        result.push(first);
+                                        result.push(second);
+                                    } else {
+                                        let group = match caps.get(n) {
+                                            Some(text) => text.as_str(),
+                                            None => "",
+                                        };
+                                        result.push_str(group);
+                                    }
+                                }
+                                (Some('<'), _) => {
+                                    // $<
+                                    todo!("named capture groups")
+                                }
+                                _ => {
+                                    // $?, ? is none of the above
+                                    // we can consume second because it isn't $
+                                    result.push(first);
+                                    if let Some(second) = second {
+                                        result.push(second);
+                                    }
+                                }
+                            }
+                        } else {
+                            result.push(first);
+                        }
                     }
 
                     result
