@@ -490,10 +490,10 @@ impl String {
                     while let Some(first) = chars.next() {
                         if first == '$' {
                             let second = chars.next();
-                            let second_is_digit = second.map(|ch| ch.is_digit(10)).unwrap_or(false);
+                            let second_is_digit = second.map_or(false, |ch| ch.is_digit(10));
                             // we use peek so that it is still in the iterator if not used
                             let third = if second_is_digit { chars.peek() } else { None };
-                            let third_is_digit = third.map(|ch| ch.is_digit(10)).unwrap_or(false);
+                            let third_is_digit = third.map_or(false, |ch| ch.is_digit(10));
 
                             match (second, third) {
                                 (Some('$'), _) => {
@@ -508,22 +508,22 @@ impl String {
                                 (Some('`'), _) => {
                                     // $`
                                     let start_of_match = mat.start();
-                                    let slice = &primitive_val[..start_of_match];
-                                    result.push_str(slice);
+                                    result.push_str(&primitive_val[..start_of_match]);
                                 }
                                 (Some('\''), _) => {
                                     // $'
                                     let end_of_match = mat.end();
-                                    let slice = &primitive_val[end_of_match..];
-                                    result.push_str(slice);
+                                    result.push_str(&primitive_val[end_of_match..]);
                                 }
-                                (_, _) if second_is_digit && third_is_digit => {
+                                (Some(second), Some(third))
+                                    if second_is_digit && third_is_digit =>
+                                {
                                     // $nn
-                                    let tens = second.unwrap().to_digit(10).unwrap() as usize;
-                                    let units = third.unwrap().to_digit(10).unwrap() as usize;
+                                    let tens = second.to_digit(10).unwrap() as usize;
+                                    let units = third.to_digit(10).unwrap() as usize;
                                     let nn = 10 * tens + units;
                                     if nn == 0 || nn > m {
-                                        [Some(first), second, chars.next()]
+                                        [Some(first), Some(second), chars.next()]
                                             .iter()
                                             .flatten()
                                             .for_each(|ch: &char| result.push(*ch));
@@ -536,14 +536,12 @@ impl String {
                                         chars.next(); // consume third
                                     }
                                 }
-                                (_, _) if second_is_digit => {
+                                (Some(second), _) if second_is_digit => {
                                     // $n
-                                    let n = second.unwrap().to_digit(10).unwrap() as usize;
+                                    let n = second.to_digit(10).unwrap() as usize;
                                     if n == 0 || n > m {
-                                        [Some(first), second]
-                                            .iter()
-                                            .flatten()
-                                            .for_each(|ch: &char| result.push(*ch));
+                                        result.push(first);
+                                        result.push(second);
                                     } else {
                                         let group = match caps.get(n) {
                                             Some(text) => text.as_str(),
