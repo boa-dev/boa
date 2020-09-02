@@ -476,7 +476,7 @@
     <span class="ident">realm</span>::<span class="ident">Realm</span>,
     <span class="ident">syntax</span>::<span class="ident">ast</span>::{
         <span class="ident">constant</span>::<span class="ident">Const</span>,
-        <span class="ident">node</span>::{<span class="ident">FormalParameter</span>, <span class="ident">Node</span>, <span class="ident">StatementList</span>},
+        <span class="ident">node</span>::{<span class="ident">FormalParameter</span>, <span class="ident">Node</span>, <span class="ident">RcStatementList</span>, <span class="ident">StatementList</span>},
     },
     <span class="ident">BoaProfiler</span>, <span class="prelude-ty">Result</span>,
 };
@@ -583,7 +583,7 @@
         <span class="kw">let</span> <span class="ident">params_len</span> <span class="op">=</span> <span class="ident">params</span>.<span class="ident">len</span>();
         <span class="kw">let</span> <span class="ident">func</span> <span class="op">=</span> <span class="ident">Function</span>::<span class="ident">Ordinary</span> {
             <span class="ident">flags</span>,
-            <span class="ident">body</span>: <span class="ident">body</span>.<span class="ident">into</span>(),
+            <span class="ident">body</span>: <span class="ident">RcStatementList</span>::<span class="ident">from</span>(<span class="ident">body</span>.<span class="ident">into</span>()),
             <span class="ident">params</span>,
             <span class="ident">environment</span>: <span class="self">self</span>.<span class="ident">realm</span>.<span class="ident">environment</span>.<span class="ident">get_current_environment</span>().<span class="ident">clone</span>(),
         };
