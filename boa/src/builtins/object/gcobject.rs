@@ -5,12 +5,13 @@
 use super::{Object, PROTOTYPE};
 use crate::{
     builtins::{
-        function::{create_unmapped_arguments_object, BuiltInFunction, Function},
+        function::{create_unmapped_arguments_object, BuiltInFunction, Function, NativeFunction},
         Value,
     },
     environment::{
         function_environment_record::BindingStatus, lexical_environment::new_function_environment,
     },
+    syntax::ast::node::statement_list::RcStatementList,
     Executable, Interpreter, Result,
 };
 use gc::{Finalize, Gc, GcCell, GcCellRef, GcCellRefMut, Trace};
@@ -31,6 +32,13 @@ pub type RefMut<'object> = GcCellRefMut<'object, Object>;
 /// Garbage collected `Object`.
 #[derive(Trace, Finalize, Clone)]
 pub struct GcObject(Gc<GcCell<Object>>);
+
+// This is needed for the call method since we cannot mutate the function itself since we
+// already borrow it so we get the function body clone it then drop the borrow and run the body
+enum FunctionBody {
+    BuiltIn(NativeFunction),
+    Ordinary(RcStatementList),
+}
 
 impl GcObject {
     /// Create a new `GcObject` from a `Object`.
@@ -99,11 +107,12 @@ impl GcObject {
     // <https://tc39.es/ecma262/#sec-ecmascript-function-objects-call-thisargument-argumentslist>
     pub fn call(&self, this: &Value, args: &[Value], ctx: &mut Interpreter) -> Result<Value> {
         let this_function_object = self.clone();
-        let object = self.borrow();
-        if let Some(function) = object.as_function() {
+        let f_body = if let Some(function) = self.borrow().as_function() {
             if function.is_callable() {
                 match function {
-                    Function::BuiltIn(BuiltInFunction(function), _) => function(this, args, ctx),
+                    Function::BuiltIn(BuiltInFunction(function), _) => {
+                        FunctionBody::BuiltIn(*function)
+                    }
                     Function::Ordinary {
                         body,
                         params,
@@ -151,19 +160,24 @@ impl GcObject {
 
                         ctx.realm.environment.push(local_env);
 
-                        // Call body should be set before reaching here
-                        let result = body.run(ctx);
-
-                        // local_env gets dropped here, its no longer needed
-                        ctx.realm.environment.pop();
-                        result
+                        FunctionBody::Ordinary(body.clone())
                     }
                 }
             } else {
-                ctx.throw_type_error("function object is not callable")
+                return ctx.throw_type_error("function object is not callable");
             }
         } else {
-            ctx.throw_type_error("not a function")
+            return ctx.throw_type_error("not a function");
+        };
+
+        match f_body {
+            FunctionBody::BuiltIn(func) => func(this, args, ctx),
+            FunctionBody::Ordinary(body) => {
+                let result = body.run(ctx);
+                ctx.realm.environment.pop();
+
+                result
+            }
         }
     }
 

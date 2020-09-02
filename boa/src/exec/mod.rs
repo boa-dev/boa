@@ -34,7 +34,7 @@ use crate::{
     realm::Realm,
     syntax::ast::{
         constant::Const,
-        node::{FormalParameter, Node, StatementList},
+        node::{FormalParameter, Node, RcStatementList, StatementList},
     },
     BoaProfiler, Result,
 };
@@ -141,7 +141,7 @@ impl Interpreter {
         let params_len = params.len();
         let func = Function::Ordinary {
             flags,
-            body: body.into(),
+            body: RcStatementList::from(body.into()),
             params,
             environment: self.realm.environment.get_current_environment().clone(),
         };
