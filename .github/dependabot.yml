@@ -5,6 +5,10 @@ updates:
           directory: "/"
           schedule:
                   interval: "daily"
+        - package-ecosystem: "github-action"
+          directory: "/"
+          schedule:
+                  interval: "daily"
         - package-ecosystem: "cargo"
           directory: "/"
           schedule:
