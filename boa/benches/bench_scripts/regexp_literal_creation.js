@@ -1,5 +1,5 @@
 (function () {
-    let regExp = /hello/i;
+  let regExp = /hello/i;
 
-    return regExp;
+  return regExp;
 })();

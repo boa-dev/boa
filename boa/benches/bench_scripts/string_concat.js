@@ -1,6 +1,6 @@
-(function(){
-    var a = "hello";
-    var b = "world";
+(function () {
+  var a = "hello";
+  var b = "world";
 
-    var c = a + b;
+  var c = a + b;
 })();

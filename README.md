@@ -19,7 +19,6 @@ Currently, it has support for some of the language.
 [build_badge]: https://img.shields.io/endpoint.svg?url=https%3A%2F%2Factions-badge.atrox.dev%2Fboa-dev%2Fboa%2Fbadge&style=flat
 [build_link]: https://actions-badge.atrox.dev/boa-dev/boa/goto
 
-
 ## Live Demo (WASM)
 
 <https://boa-dev.github.io/boa/>

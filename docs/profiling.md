@@ -57,7 +57,6 @@ This is the same as above except instead of calling `$ crox my_trace` you call `
 +---------------------------------------+-----------+-----------------+----------+------------+
 ```
 
-
 ## More Info
 
 - https://blog.rust-lang.org/inside-rust/2020/02/25/intro-rustc-self-profile.html
