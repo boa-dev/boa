@@ -152,8 +152,8 @@ pub fn main() -> Result<(), std::io::Error> {
             }
         } else {
             match forward_val(&mut engine, &buffer) {
-                Ok(v) => print!("{}", v.display()),
-                Err(v) => eprint!("{}", v.display()),
+                Ok(v) => println!("{}", v.display()),
+                Err(v) => eprintln!("Uncaught {}", v.display()),
             }
         }
     }
