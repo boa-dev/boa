@@ -26,11 +26,12 @@ use crate::{
     builtins,
     builtins::{
         function::{Function, FunctionFlags, NativeFunction},
-        object::{Class, ClassBuilder, GcObject, Object, ObjectData, PROTOTYPE},
+        object::{GcObject, Object, ObjectData, PROTOTYPE},
         property::{Property, PropertyKey},
         value::{PreferredType, RcString, RcSymbol, Type, Value},
         Console, Symbol,
     },
+    class::{Class, ClassBuilder},
     realm::Realm,
     syntax::ast::{
         constant::Const,
@@ -365,7 +366,7 @@ impl Interpreter {
     /// struct MyClass;
     ///
     /// impl Class for MyClass {
-    ///    // ...    
+    ///    // ...
     /// }
     ///
     /// context.register_global_class::<MyClass>();
