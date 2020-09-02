@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/syn-1.0.38/src/lit.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lit.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../syn/index.html'><div class='logo-container'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/syn-1.0.39/src/lit.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lit.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../syn/index.html'><div class='logo-container'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
 <span id="3">   3</span>
 <span id="4">   4</span>
@@ -1499,28 +1499,6 @@
 <span id="1499">1499</span>
 <span id="1500">1500</span>
 <span id="1501">1501</span>
-<span id="1502">1502</span>
-<span id="1503">1503</span>
-<span id="1504">1504</span>
-<span id="1505">1505</span>
-<span id="1506">1506</span>
-<span id="1507">1507</span>
-<span id="1508">1508</span>
-<span id="1509">1509</span>
-<span id="1510">1510</span>
-<span id="1511">1511</span>
-<span id="1512">1512</span>
-<span id="1513">1513</span>
-<span id="1514">1514</span>
-<span id="1515">1515</span>
-<span id="1516">1516</span>
-<span id="1517">1517</span>
-<span id="1518">1518</span>
-<span id="1519">1519</span>
-<span id="1520">1520</span>
-<span id="1521">1521</span>
-<span id="1522">1522</span>
-<span id="1523">1523</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">proc_macro2</span>::{<span class="ident">Literal</span>, <span class="ident">Span</span>};
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">fmt</span>::{<span class="self">self</span>, <span class="ident">Display</span>};
@@ -1554,7 +1532,7 @@
     <span class="comment">//</span>
     <span class="comment">// TODO: change syntax-tree-enum link to an intra rustdoc link, currently</span>
     <span class="comment">// blocked on https://github.com/rust-lang/rust/issues/62833</span>
-    <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Lit</span> #<span class="ident">manual_extra_traits</span> {
+    <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Lit</span> {
         <span class="doccomment">/// A UTF-8 string literal: `&quot;foo&quot;`.</span>
         <span class="ident">Str</span>(<span class="ident">LitStr</span>),
 
@@ -1585,33 +1563,32 @@
 
 <span class="macro">ast_struct</span><span class="macro">!</span> {
     <span class="doccomment">/// A UTF-8 string literal: `&quot;foo&quot;`.</span>
-    <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">LitStr</span> #<span class="ident">manual_extra_traits_debug</span> {
+    <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">LitStr</span> {
         <span class="ident">repr</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">LitRepr</span><span class="op">&gt;</span>,
     }
 }
 
 <span class="macro">ast_struct</span><span class="macro">!</span> {
     <span class="doccomment">/// A byte string literal: `b&quot;foo&quot;`.</span>
-    <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">LitByteStr</span> #<span class="ident">manual_extra_traits_debug</span> {
+    <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">LitByteStr</span> {
         <span class="ident">repr</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">LitRepr</span><span class="op">&gt;</span>,
     }
 }
 
 <span class="macro">ast_struct</span><span class="macro">!</span> {
     <span class="doccomment">/// A byte literal: `b&#39;f&#39;`.</span>
-    <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">LitByte</span> #<span class="ident">manual_extra_traits_debug</span> {
+    <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">LitByte</span> {
         <span class="ident">repr</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">LitRepr</span><span class="op">&gt;</span>,
     }
 }
 
 <span class="macro">ast_struct</span><span class="macro">!</span> {
     <span class="doccomment">/// A character literal: `&#39;a&#39;`.</span>
-    <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">LitChar</span> #<span class="ident">manual_extra_traits_debug</span> {
+    <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">LitChar</span> {
         <span class="ident">repr</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">LitRepr</span><span class="op">&gt;</span>,
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>, <span class="ident">derive</span>(<span class="ident">Clone</span>))]</span>
 <span class="kw">struct</span> <span class="ident">LitRepr</span> {
     <span class="ident">token</span>: <span class="ident">Literal</span>,
     <span class="ident">suffix</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span>,
@@ -1619,12 +1596,11 @@
 
 <span class="macro">ast_struct</span><span class="macro">!</span> {
     <span class="doccomment">/// An integer literal: `1` or `1u16`.</span>
-    <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">LitInt</span> #<span class="ident">manual_extra_traits_debug</span> {
+    <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">LitInt</span> {
         <span class="ident">repr</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">LitIntRepr</span><span class="op">&gt;</span>,
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>, <span class="ident">derive</span>(<span class="ident">Clone</span>))]</span>
 <span class="kw">struct</span> <span class="ident">LitIntRepr</span> {
     <span class="ident">token</span>: <span class="ident">Literal</span>,
     <span class="ident">digits</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span>,
@@ -1635,12 +1611,11 @@
     <span class="doccomment">/// A floating point literal: `1f64` or `1.0e10f64`.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Must be finite. May not be infinte or NaN.</span>
-    <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">LitFloat</span> #<span class="ident">manual_extra_traits_debug</span> {
+    <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">LitFloat</span> {
         <span class="ident">repr</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">LitFloatRepr</span><span class="op">&gt;</span>,
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>, <span class="ident">derive</span>(<span class="ident">Clone</span>))]</span>
 <span class="kw">struct</span> <span class="ident">LitFloatRepr</span> {
     <span class="ident">token</span>: <span class="ident">Literal</span>,
     <span class="ident">digits</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span>,
@@ -1649,72 +1624,9 @@
 
 <span class="macro">ast_struct</span><span class="macro">!</span> {
     <span class="doccomment">/// A boolean literal: `true` or `false`.</span>
-    <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">LitBool</span> #<span class="ident">manual_extra_traits_debug</span> {
+    <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">LitBool</span> {
         <span class="kw">pub</span> <span class="ident">value</span>: <span class="ident">bool</span>,
         <span class="kw">pub</span> <span class="ident">span</span>: <span class="ident">Span</span>,
-    }
-}
-
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)]</span>
-<span class="kw">impl</span> <span class="ident">Eq</span> <span class="kw">for</span> <span class="ident">Lit</span> {}
-
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)]</span>
-<span class="kw">impl</span> <span class="ident">PartialEq</span> <span class="kw">for</span> <span class="ident">Lit</span> {
-    <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="kw">match</span> (<span class="self">self</span>, <span class="ident">other</span>) {
-            (<span class="ident">Lit</span>::<span class="ident">Str</span>(<span class="ident">this</span>), <span class="ident">Lit</span>::<span class="ident">Str</span>(<span class="ident">other</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">this</span> <span class="op">=</span><span class="op">=</span> <span class="ident">other</span>,
-            (<span class="ident">Lit</span>::<span class="ident">ByteStr</span>(<span class="ident">this</span>), <span class="ident">Lit</span>::<span class="ident">ByteStr</span>(<span class="ident">other</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">this</span> <span class="op">=</span><span class="op">=</span> <span class="ident">other</span>,
-            (<span class="ident">Lit</span>::<span class="ident">Byte</span>(<span class="ident">this</span>), <span class="ident">Lit</span>::<span class="ident">Byte</span>(<span class="ident">other</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">this</span> <span class="op">=</span><span class="op">=</span> <span class="ident">other</span>,
-            (<span class="ident">Lit</span>::<span class="ident">Char</span>(<span class="ident">this</span>), <span class="ident">Lit</span>::<span class="ident">Char</span>(<span class="ident">other</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">this</span> <span class="op">=</span><span class="op">=</span> <span class="ident">other</span>,
-            (<span class="ident">Lit</span>::<span class="ident">Int</span>(<span class="ident">this</span>), <span class="ident">Lit</span>::<span class="ident">Int</span>(<span class="ident">other</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">this</span> <span class="op">=</span><span class="op">=</span> <span class="ident">other</span>,
-            (<span class="ident">Lit</span>::<span class="ident">Float</span>(<span class="ident">this</span>), <span class="ident">Lit</span>::<span class="ident">Float</span>(<span class="ident">other</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">this</span> <span class="op">=</span><span class="op">=</span> <span class="ident">other</span>,
-            (<span class="ident">Lit</span>::<span class="ident">Bool</span>(<span class="ident">this</span>), <span class="ident">Lit</span>::<span class="ident">Bool</span>(<span class="ident">other</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">this</span> <span class="op">=</span><span class="op">=</span> <span class="ident">other</span>,
-            (<span class="ident">Lit</span>::<span class="ident">Verbatim</span>(<span class="ident">this</span>), <span class="ident">Lit</span>::<span class="ident">Verbatim</span>(<span class="ident">other</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">this</span>.<span class="ident">to_string</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">other</span>.<span class="ident">to_string</span>(),
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
-        }
-    }
-}
-
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)]</span>
-<span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">Lit</span> {
-    <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">hash</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
-    <span class="kw">where</span>
-        <span class="ident">H</span>: <span class="ident">Hasher</span>,
-    {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Lit</span>::<span class="ident">Str</span>(<span class="ident">lit</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="ident">hash</span>.<span class="ident">write_u8</span>(<span class="number">0</span>);
-                <span class="ident">lit</span>.<span class="ident">hash</span>(<span class="ident">hash</span>);
-            }
-            <span class="ident">Lit</span>::<span class="ident">ByteStr</span>(<span class="ident">lit</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="ident">hash</span>.<span class="ident">write_u8</span>(<span class="number">1</span>);
-                <span class="ident">lit</span>.<span class="ident">hash</span>(<span class="ident">hash</span>);
-            }
-            <span class="ident">Lit</span>::<span class="ident">Byte</span>(<span class="ident">lit</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="ident">hash</span>.<span class="ident">write_u8</span>(<span class="number">2</span>);
-                <span class="ident">lit</span>.<span class="ident">hash</span>(<span class="ident">hash</span>);
-            }
-            <span class="ident">Lit</span>::<span class="ident">Char</span>(<span class="ident">lit</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="ident">hash</span>.<span class="ident">write_u8</span>(<span class="number">3</span>);
-                <span class="ident">lit</span>.<span class="ident">hash</span>(<span class="ident">hash</span>);
-            }
-            <span class="ident">Lit</span>::<span class="ident">Int</span>(<span class="ident">lit</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="ident">hash</span>.<span class="ident">write_u8</span>(<span class="number">4</span>);
-                <span class="ident">lit</span>.<span class="ident">hash</span>(<span class="ident">hash</span>);
-            }
-            <span class="ident">Lit</span>::<span class="ident">Float</span>(<span class="ident">lit</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="ident">hash</span>.<span class="ident">write_u8</span>(<span class="number">5</span>);
-                <span class="ident">lit</span>.<span class="ident">hash</span>(<span class="ident">hash</span>);
-            }
-            <span class="ident">Lit</span>::<span class="ident">Bool</span>(<span class="ident">lit</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="ident">hash</span>.<span class="ident">write_u8</span>(<span class="number">6</span>);
-                <span class="ident">lit</span>.<span class="ident">hash</span>(<span class="ident">hash</span>);
-            }
-            <span class="ident">Lit</span>::<span class="ident">Verbatim</span>(<span class="ident">lit</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="ident">hash</span>.<span class="ident">write_u8</span>(<span class="number">7</span>);
-                <span class="ident">lit</span>.<span class="ident">to_string</span>().<span class="ident">hash</span>(<span class="ident">hash</span>);
-            }
-        }
     }
 }
 
@@ -2170,15 +2082,53 @@
     }
 }
 
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)]</span>
+<span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">LitRepr</span> {
+    <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <span class="ident">LitRepr</span> {
+            <span class="ident">token</span>: <span class="self">self</span>.<span class="ident">token</span>.<span class="ident">clone</span>(),
+            <span class="ident">suffix</span>: <span class="self">self</span>.<span class="ident">suffix</span>.<span class="ident">clone</span>(),
+        }
+    }
+}
+
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)]</span>
+<span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">LitIntRepr</span> {
+    <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <span class="ident">LitIntRepr</span> {
+            <span class="ident">token</span>: <span class="self">self</span>.<span class="ident">token</span>.<span class="ident">clone</span>(),
+            <span class="ident">digits</span>: <span class="self">self</span>.<span class="ident">digits</span>.<span class="ident">clone</span>(),
+            <span class="ident">suffix</span>: <span class="self">self</span>.<span class="ident">suffix</span>.<span class="ident">clone</span>(),
+        }
+    }
+}
+
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)]</span>
+<span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">LitFloatRepr</span> {
+    <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <span class="ident">LitFloatRepr</span> {
+            <span class="ident">token</span>: <span class="self">self</span>.<span class="ident">token</span>.<span class="ident">clone</span>(),
+            <span class="ident">digits</span>: <span class="self">self</span>.<span class="ident">digits</span>.<span class="ident">clone</span>(),
+            <span class="ident">suffix</span>: <span class="self">self</span>.<span class="ident">suffix</span>.<span class="ident">clone</span>(),
+        }
+    }
+}
+
 <span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">lit_extra_traits</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span>:<span class="ident">ident</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">field</span>:<span class="ident">ident</span>).<span class="op">+</span>) <span class="op">=</span><span class="op">&gt;</span> {
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)]</span>
-        <span class="kw">impl</span> <span class="ident">Eq</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span> {}
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span>:<span class="ident">ident</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)]</span>
+        <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span> {
+            <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+                <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span> {
+                    <span class="ident">repr</span>: <span class="self">self</span>.<span class="ident">repr</span>.<span class="ident">clone</span>(),
+                }
+            }
+        }
 
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)]</span>
         <span class="kw">impl</span> <span class="ident">PartialEq</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span> {
             <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-                <span class="self">self</span>.$(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">field</span>).<span class="op">+</span>.<span class="ident">to_string</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">other</span>.$(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">field</span>).<span class="op">+</span>.<span class="ident">to_string</span>()
+                <span class="self">self</span>.<span class="ident">repr</span>.<span class="ident">token</span>.<span class="ident">to_string</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">other</span>.<span class="ident">repr</span>.<span class="ident">token</span>.<span class="ident">to_string</span>()
             }
         }
 
@@ -2188,7 +2138,7 @@
             <span class="kw">where</span>
                 <span class="ident">H</span>: <span class="ident">Hasher</span>,
             {
-                <span class="self">self</span>.$(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">field</span>).<span class="op">+</span>.<span class="ident">to_string</span>().<span class="ident">hash</span>(<span class="ident">state</span>);
+                <span class="self">self</span>.<span class="ident">repr</span>.<span class="ident">token</span>.<span class="ident">to_string</span>().<span class="ident">hash</span>(<span class="ident">state</span>);
             }
         }
 
@@ -2201,13 +2151,19 @@
     };
 }
 
-<span class="macro">lit_extra_traits</span><span class="macro">!</span>(<span class="ident">LitStr</span>, <span class="ident">repr</span>.<span class="ident">token</span>);
-<span class="macro">lit_extra_traits</span><span class="macro">!</span>(<span class="ident">LitByteStr</span>, <span class="ident">repr</span>.<span class="ident">token</span>);
-<span class="macro">lit_extra_traits</span><span class="macro">!</span>(<span class="ident">LitByte</span>, <span class="ident">repr</span>.<span class="ident">token</span>);
-<span class="macro">lit_extra_traits</span><span class="macro">!</span>(<span class="ident">LitChar</span>, <span class="ident">repr</span>.<span class="ident">token</span>);
-<span class="macro">lit_extra_traits</span><span class="macro">!</span>(<span class="ident">LitInt</span>, <span class="ident">repr</span>.<span class="ident">token</span>);
-<span class="macro">lit_extra_traits</span><span class="macro">!</span>(<span class="ident">LitFloat</span>, <span class="ident">repr</span>.<span class="ident">token</span>);
-<span class="macro">lit_extra_traits</span><span class="macro">!</span>(<span class="ident">LitBool</span>, <span class="ident">value</span>);
+<span class="macro">lit_extra_traits</span><span class="macro">!</span>(<span class="ident">LitStr</span>);
+<span class="macro">lit_extra_traits</span><span class="macro">!</span>(<span class="ident">LitByteStr</span>);
+<span class="macro">lit_extra_traits</span><span class="macro">!</span>(<span class="ident">LitByte</span>);
+<span class="macro">lit_extra_traits</span><span class="macro">!</span>(<span class="ident">LitChar</span>);
+<span class="macro">lit_extra_traits</span><span class="macro">!</span>(<span class="ident">LitInt</span>);
+<span class="macro">lit_extra_traits</span><span class="macro">!</span>(<span class="ident">LitFloat</span>);
+
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;parsing&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
+<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">non_snake_case</span>)]</span>
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">LitBool</span>(<span class="ident">marker</span>: <span class="ident">lookahead</span>::<span class="ident">TokenMarker</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LitBool</span> {
+    <span class="kw">match</span> <span class="ident">marker</span> {}
+}
 
 <span class="macro">ast_enum</span><span class="macro">!</span> {
     <span class="doccomment">/// The style of a string literal, either plain quoted or a raw string like</span>
