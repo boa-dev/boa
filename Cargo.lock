@@ -110,6 +110,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "boa_tester"
+version = "0.9.0"
+dependencies = [
+ "Boa",
+ "bitflags",
+ "colored",
+ "fxhash",
+ "once_cell",
+ "regex",
+ "serde",
+ "serde_json",
+ "serde_yaml",
+ "structopt",
+]
+
+[[package]]
 name = "boa_wasm"
 version = "0.9.0"
 dependencies = [
@@ -1031,22 +1047,6 @@ dependencies = [
  "quote",
  "syn",
  "unicode-xid",
-]
-
-[[package]]
-name = "tester"
-version = "0.1.0"
-dependencies = [
- "Boa",
- "bitflags",
- "colored",
- "fxhash",
- "once_cell",
- "regex",
- "serde",
- "serde_json",
- "serde_yaml",
- "structopt",
 ]
 
 [[package]]
