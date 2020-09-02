@@ -59,22 +59,33 @@ pub use gc::{custom_trace, unsafe_empty_trace, Finalize, Trace};
 #[must_use]
 pub type Result<T> = StdResult<T, Value>;
 
-fn parser_expr(src: &str) -> StdResult<StatementList, String> {
-    Parser::new(src.as_bytes())
-        .parse_all()
-        .map_err(|e| e.to_string())
+/// Parses the given source code.
+///
+/// It will return either the statement list AST node for the code, or a parsing error if something
+/// goes wrong.
+#[inline]
+pub fn parse(src: &str) -> StdResult<StatementList, ParseError> {
+    Parser::new(src.as_bytes()).parse_all()
 }
 
 /// Execute the code using an existing Interpreter
 /// The str is consumed and the state of the Interpreter is changed
 pub fn forward(engine: &mut Interpreter, src: &str) -> String {
     // Setup executor
-    let expr = match parser_expr(src) {
+    let expr = match parse(src) {
         Ok(res) => res,
-        Err(e) => return e,
+        Err(e) => {
+            return format!(
+                "Uncaught {}",
+                engine
+                    .throw_syntax_error(e.to_string())
+                    .expect_err("interpreter.throw_syntax_error() did not return an error")
+                    .display()
+            );
+        }
     };
     expr.run(engine).map_or_else(
-        |e| format!("Error: {}", e.display()),
+        |e| format!("Uncaught {}", e.display()),
         |v| v.display().to_string(),
     )
 }
@@ -87,13 +98,13 @@ pub fn forward(engine: &mut Interpreter, src: &str) -> String {
 pub fn forward_val(engine: &mut Interpreter, src: &str) -> Result<Value> {
     let main_timer = BoaProfiler::global().start_event("Main", "Main");
     // Setup executor
-    let result = match parser_expr(src) {
-        Ok(expr) => expr.run(engine),
-        Err(e) => {
-            eprintln!("{}", e);
-            panic!();
-        }
-    };
+    let result = parse(src)
+        .map_err(|e| {
+            engine
+                .throw_syntax_error(e.to_string())
+                .expect_err("interpreter.throw_syntax_error() did not return an error")
+        })
+        .and_then(|expr| expr.run(engine));
 
     // The main_timer needs to be dropped before the BoaProfiler is.
     drop(main_timer);

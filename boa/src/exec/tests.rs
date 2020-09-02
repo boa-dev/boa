@@ -1303,7 +1303,7 @@ fn assignment_to_non_assignable() {
     for case in test_cases.iter() {
         let string = forward(&mut engine, case);
 
-        assert!(string.starts_with("Syntax Error: "));
+        assert!(string.starts_with("Uncaught \"SyntaxError\": "));
         assert!(string.contains("1:3"));
     }
 }
@@ -1318,9 +1318,9 @@ fn multicharacter_assignment_to_non_assignable() {
     let test_cases = ["3 **= 5", "3 <<= 5", "3 >>= 5"];
 
     for case in test_cases.iter() {
-        let string = forward(&mut engine, case);
+        let string = dbg!(forward(&mut engine, case));
 
-        assert!(string.starts_with("Syntax Error: "));
+        assert!(string.starts_with("Uncaught \"SyntaxError\": "));
         assert!(string.contains("1:3"));
     }
 }
@@ -1335,9 +1335,9 @@ fn multicharacter_bitwise_assignment_to_non_assignable() {
     let test_cases = ["3 >>>= 5", "3 &&= 5", "3 ||= 5", "3 ??= 5"];
 
     for case in test_cases.iter() {
-        let string = forward(&mut engine, case);
+        let string = dbg!(forward(&mut engine, case));
 
-        assert!(string.starts_with("Syntax Error: "));
+        assert!(string.starts_with("Uncaught \"SyntaxError\": "));
         assert!(string.contains("1:3"));
     }
 }
@@ -1347,10 +1347,10 @@ fn assign_to_array_decl() {
     let realm = Realm::create();
     let mut engine = Interpreter::new(realm);
 
-    assert!(forward(&mut engine, "[1] = [2]").starts_with("Syntax Error: "));
-    assert!(forward(&mut engine, "[3, 5] = [7, 8]").starts_with("Syntax Error: "));
-    assert!(forward(&mut engine, "[6, 8] = [2]").starts_with("Syntax Error: "));
-    assert!(forward(&mut engine, "[6] = [2, 9]").starts_with("Syntax Error: "));
+    assert!(forward(&mut engine, "[1] = [2]").starts_with("Uncaught \"SyntaxError\": "));
+    assert!(forward(&mut engine, "[3, 5] = [7, 8]").starts_with("Uncaught \"SyntaxError\": "));
+    assert!(forward(&mut engine, "[6, 8] = [2]").starts_with("Uncaught \"SyntaxError\": "));
+    assert!(forward(&mut engine, "[6] = [2, 9]").starts_with("Uncaught \"SyntaxError\": "));
 }
 
 #[test]
@@ -1359,7 +1359,7 @@ fn assign_to_object_decl() {
     let mut engine = Interpreter::new(realm);
 
     const ERR_MSG: &str =
-        "expected token \';\', got \':\' in expression statement at line 1, col 3";
+        "Uncaught \"SyntaxError\": \"expected token \';\', got \':\' in expression statement at line 1, col 3\"";
 
     assert_eq!(forward(&mut engine, "{a: 3} = {a: 5};"), ERR_MSG);
 }

@@ -3,9 +3,7 @@ use crate::syntax::lexer::{Token, TokenKind};
 
 #[test]
 fn peek_skip_accending() {
-    let buf: &[u8] = "a b c d e f g h i".as_bytes();
-
-    let mut cur = BufferedLexer::from(buf);
+    let mut cur = BufferedLexer::from(&b"a b c d e f g h i"[..]);
 
     assert_eq!(
         *cur.peek(0, false)
@@ -53,9 +51,7 @@ fn peek_skip_accending() {
 
 #[test]
 fn peek_skip_next() {
-    let buf: &[u8] = "a b c d e f g h i".as_bytes();
-
-    let mut cur = BufferedLexer::from(buf);
+    let mut cur = BufferedLexer::from(&b"a b c d e f g h i"[..]);
 
     assert_eq!(
         *cur.peek(0, false)
@@ -138,9 +134,7 @@ fn peek_skip_next() {
 
 #[test]
 fn peek_skip_next_alternating() {
-    let buf: &[u8] = "a b c d e f g h i".as_bytes();
-
-    let mut cur = BufferedLexer::from(buf);
+    let mut cur = BufferedLexer::from(&b"a b c d e f g h i"[..]);
 
     assert_eq!(
         *cur.peek(0, false)
@@ -195,9 +189,7 @@ fn peek_skip_next_alternating() {
 
 #[test]
 fn peek_next_till_end() {
-    let buf: &[u8] = "a b c d e f g h i".as_bytes();
-
-    let mut cur = BufferedLexer::from(buf);
+    let mut cur = BufferedLexer::from(&b"a b c d e f g h i"[..]);
 
     loop {
         let peek = cur.peek(0, false).unwrap().cloned();
@@ -213,18 +205,18 @@ fn peek_next_till_end() {
 
 #[test]
 fn peek_skip_next_till_end() {
-    let mut cur = BufferedLexer::from("a b c d e f g h i".as_bytes());
+    let mut cur = BufferedLexer::from(&b"a b c d e f g h i"[..]);
 
     let mut peeked: [Option<Token>; super::MAX_PEEK_SKIP + 1] =
         [None::<Token>, None::<Token>, None::<Token>];
 
     loop {
-        for i in 0..super::MAX_PEEK_SKIP {
-            peeked[i] = cur.peek(i, false).unwrap().cloned();
+        for (i, peek) in peeked.iter_mut().enumerate() {
+            *peek = cur.peek(i, false).unwrap().cloned();
         }
 
-        for i in 0..super::MAX_PEEK_SKIP {
-            assert_eq!(cur.next(false).unwrap(), peeked[i]);
+        for peek in &peeked {
+            assert_eq!(&cur.next(false).unwrap(), peek);
         }
 
         if peeked[super::MAX_PEEK_SKIP - 1].is_none() {
@@ -235,7 +227,7 @@ fn peek_skip_next_till_end() {
 
 #[test]
 fn skip_peeked_terminators() {
-    let mut cur = BufferedLexer::from("A \n B".as_bytes());
+    let mut cur = BufferedLexer::from(&b"A \n B"[..]);
     assert_eq!(
         *cur.peek(0, false)
             .unwrap()

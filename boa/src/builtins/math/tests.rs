@@ -721,7 +721,7 @@ fn tan() {
     assert!(float_cmp::approx_eq!(
         f64,
         a.to_number(&mut engine).unwrap(),
-        f64::from(1.964_759_657_248_652_5)
+        1.964_759_657_248_652_5
     ));
 }
 

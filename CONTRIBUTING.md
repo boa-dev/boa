@@ -65,6 +65,25 @@ There are some pre-defined tasks in [tasks.json](.vscode/tasks.json)
 If you don't want to install everything on your machine, you can use the Dockerfile.
 Start VSCode in container mode (you may need the docker container plugin) and use the Dockerfile.
 
+## Testing
+
+Boa provides its own test suite, and can also run the official ECMAScript test suite. To run the Boa test
+suite, you can just run the normal `cargo test`, and to run the full ECMAScript test suite, you can run it
+with this command:
+
+```
+cargo run --release --bin tester -- -v 2> error.log
+```
+
+Note that this requires the `test262` submodule to be checked out, so you will need to run the following first:
+
+```
+git submodule init && git submodule update
+```
+
+This will run the test suite in verbose mode (you can remove the `-- -v` part to run it in non-verbose mode),
+and output nice colorings in the terminal. It will also output any panic information into the `error.log` file.
+
 ## Communication
 
 We have a Discord server, feel free to ask questions here:
