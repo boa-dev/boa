@@ -16,10 +16,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
       - name: Check code formatting
-        uses: creyD/prettier_action@v3.0
-        with:
-          dry: true
-          prettier_options: --check .
+        run: npx prettier --check .
 
   build:
     name: Build webassembly demo
@@ -34,7 +31,7 @@ jobs:
           override: true
           profile: minimal
       - name: Install wasm-pack
-        run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh 
+        run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
       - name: Cache yarn build
         uses: actions/cache@v2
         with:
