@@ -39,7 +39,7 @@ jobs:
         with:
           path: target
           key: ${{ runner.os }}-cargo-build-target-${{ hashFiles('**/Cargo.lock') }}
-      
+
       # Run the test suite and upload the results
       - name: Checkout GitHub pages
         if: github.event_name == 'push'
