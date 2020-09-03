@@ -50,7 +50,7 @@ jobs:
       - run: mkdir -p gh-pages/test262
 
       - name: Run the test262 test suite
-        run: cargo run --release --bin tester -- -o gh-pages/test262
+        run: cargo run --release --bin boa_tester -- -o gh-pages/test262
 
       - name: Commit files
         if: github.event_name == 'push'

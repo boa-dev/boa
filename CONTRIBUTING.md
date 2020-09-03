@@ -72,7 +72,7 @@ suite, you can just run the normal `cargo test`, and to run the full ECMAScript 
 with this command:
 
 ```
-cargo run --release --bin tester -- -v 2> error.log
+cargo run --release --bin boa_tester -- -v 2> error.log
 ```
 
 Note that this requires the `test262` submodule to be checked out, so you will need to run the following first:
