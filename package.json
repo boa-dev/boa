@@ -10,7 +10,7 @@
     "copy-webpack-plugin": "^6.0.3",
     "css-loader": "^4.2.2",
     "file-loader": "^6.1.0",
-    "html-webpack-plugin": "^4.3.0",
+    "html-webpack-plugin": "^4.4.1",
     "prettier": "2.1.1",
     "style-loader": "^1.2.1",
     "text-encoding": "^0.7.0",
