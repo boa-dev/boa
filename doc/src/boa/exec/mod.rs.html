@@ -439,6 +439,7 @@
 <span id="439">439</span>
 <span id="440">440</span>
 <span id="441">441</span>
+<span id="442">442</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Execution of the AST, this is where the interpreter actually runs</span>
 
@@ -468,11 +469,12 @@
     <span class="ident">builtins</span>,
     <span class="ident">builtins</span>::{
         <span class="ident">function</span>::{<span class="ident">Function</span>, <span class="ident">FunctionFlags</span>, <span class="ident">NativeFunction</span>},
-        <span class="ident">object</span>::{<span class="ident">Class</span>, <span class="ident">ClassBuilder</span>, <span class="ident">GcObject</span>, <span class="ident">Object</span>, <span class="ident">ObjectData</span>, <span class="ident">PROTOTYPE</span>},
+        <span class="ident">object</span>::{<span class="ident">GcObject</span>, <span class="ident">Object</span>, <span class="ident">ObjectData</span>, <span class="ident">PROTOTYPE</span>},
         <span class="ident">property</span>::{<span class="ident">Property</span>, <span class="ident">PropertyKey</span>},
         <span class="ident">value</span>::{<span class="ident">PreferredType</span>, <span class="ident">RcString</span>, <span class="ident">RcSymbol</span>, <span class="ident">Type</span>, <span class="ident">Value</span>},
         <span class="ident">Console</span>, <span class="ident">Symbol</span>,
     },
+    <span class="ident">class</span>::{<span class="ident">Class</span>, <span class="ident">ClassBuilder</span>},
     <span class="ident">realm</span>::<span class="ident">Realm</span>,
     <span class="ident">syntax</span>::<span class="ident">ast</span>::{
         <span class="ident">constant</span>::<span class="ident">Const</span>,
@@ -807,7 +809,7 @@
     <span class="doccomment">/// struct MyClass;</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// impl Class for MyClass {</span>
-    <span class="doccomment">///    // ...    </span>
+    <span class="doccomment">///    // ...</span>
     <span class="doccomment">/// }</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// context.register_global_class::&lt;MyClass&gt;();</span>
