@@ -15,7 +15,6 @@ pub mod math;
 pub mod nan;
 pub mod number;
 pub mod object;
-pub mod property;
 pub mod regexp;
 pub mod string;
 pub mod symbol;

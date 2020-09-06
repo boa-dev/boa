@@ -19,7 +19,8 @@ use gc::{Finalize, Trace};
 use std::convert::TryFrom;
 use std::fmt;
 
-pub mod attribute;
+mod attribute;
+
 pub use attribute::Attribute;
 
 /// This represents a Javascript Property AKA The Property Descriptor.

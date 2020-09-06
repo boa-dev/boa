@@ -3,7 +3,7 @@
 //! Native classes are implemented through the [`Class`][class-trait] trait.
 //! ```
 //!# use boa::{
-//!#    builtins::property::Attribute,
+//!#    property::Attribute,
 //!#    class::{Class, ClassBuilder},
 //!#    exec::Interpreter,
 //!#    forward_val,
@@ -66,8 +66,8 @@ use crate::{
     builtins::{
         function::{BuiltInFunction, Function, FunctionFlags, NativeFunction},
         object::{GcObject, NativeObject, Object, ObjectData, PROTOTYPE},
-        property::{Attribute, Property, PropertyKey},
     },
+    property::{Attribute, Property, PropertyKey},
     Interpreter, Result, Value,
 };
 use std::fmt::Debug;

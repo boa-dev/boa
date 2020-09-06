@@ -14,11 +14,11 @@
 use crate::{
     builtins::{
         object::{Object, ObjectData, PROTOTYPE},
-        property::{Attribute, Property},
         Array,
     },
     environment::lexical_environment::Environment,
     exec::Interpreter,
+    property::{Attribute, Property},
     syntax::ast::node::{statement_list::RcStatementList, FormalParameter},
     BoaProfiler, Result, Value,
 };

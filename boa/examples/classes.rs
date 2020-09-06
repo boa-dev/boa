@@ -1,8 +1,8 @@
 use boa::{
-    builtins::property::Attribute,
     class::{Class, ClassBuilder},
     exec::Interpreter,
     forward_val,
+    property::Attribute,
     realm::Realm,
     Finalize, Result, Trace, Value,
 };
