@@ -1,0 +1,1 @@
+initSidebarItems({"fn":[["write","Write float to an `io::Write`."]],"trait":[["Floating","An floating point number that can be formatted by `dtoa::write`."]]});

@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["IntoIter","Iterator over `serde_yaml::Mapping` by value."],["Iter","Iterator over `&serde_yaml::Mapping`."],["IterMut","Iterator over `&mut serde_yaml::Mapping`."],["Mapping","A YAML mapping in which the keys and values are both `serde_yaml::Value`."]]});

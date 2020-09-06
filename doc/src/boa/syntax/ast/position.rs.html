@@ -292,6 +292,8 @@
 <span id="292">292</span>
 <span id="293">293</span>
 <span id="294">294</span>
+<span id="295">295</span>
+<span id="296">296</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements the `Pos` structure, which represents a position in the source code.</span>
 
@@ -321,6 +323,7 @@
 <span class="kw">impl</span> <span class="ident">Position</span> {
     <span class="doccomment">/// Creates a new `Position`.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="attribute">#[<span class="ident">track_caller</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">line_number</span>: <span class="ident">u32</span>, <span class="ident">column_number</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="self">Self</span> {
             <span class="ident">line_number</span>: <span class="ident">NonZeroU32</span>::<span class="ident">new</span>(<span class="ident">line_number</span>).<span class="ident">expect</span>(<span class="string">&quot;line number cannot be 0&quot;</span>),
@@ -360,6 +363,7 @@
 <span class="kw">impl</span> <span class="ident">Span</span> {
     <span class="doccomment">/// Creates a new `Span`.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="attribute">#[<span class="ident">track_caller</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">start</span>: <span class="ident">Position</span>, <span class="ident">end</span>: <span class="ident">Position</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">start</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">end</span>, <span class="string">&quot;a span cannot start after its end&quot;</span>);
 

@@ -1196,6 +1196,9 @@
 <span id="1196">1196</span>
 <span id="1197">1197</span>
 <span id="1198">1198</span>
+<span id="1199">1199</span>
+<span id="1200">1200</span>
+<span id="1201">1201</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements the global `Array` object.</span>
 <span class="doccomment">//!</span>
@@ -1854,7 +1857,10 @@
         }
 
         <span class="kw">let</span> <span class="ident">search_element</span> <span class="op">=</span> <span class="ident">args</span>[<span class="number">0</span>].<span class="ident">clone</span>();
-        <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="string">&quot;length&quot;</span>).<span class="ident">as_number</span>().<span class="ident">unwrap</span>() <span class="kw">as</span> <span class="ident">i32</span>;
+        <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">this</span>
+            .<span class="ident">get_field</span>(<span class="string">&quot;length&quot;</span>)
+            .<span class="ident">as_number</span>()
+            .<span class="ident">expect</span>(<span class="string">&quot;length was not a number&quot;</span>) <span class="kw">as</span> <span class="ident">i32</span>;
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">idx</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">1</span>) {
             <span class="prelude-val">Some</span>(<span class="ident">from_idx_ptr</span>) <span class="op">=</span><span class="op">&gt;</span> {
