@@ -23,7 +23,7 @@ use crate::{
     exec::Interpreter,
     BoaProfiler, Result,
 };
-use regex::Regex;
+use regress::Regex;
 use std::string::String as StdString;
 use std::{
     cmp::{max, min},
@@ -507,12 +507,12 @@ impl String {
                                 }
                                 (Some('`'), _) => {
                                     // $`
-                                    let start_of_match = mat.start();
+                                    let start_of_match = mat.group(1).unwrap().start;
                                     result.push_str(&primitive_val[..start_of_match]);
                                 }
                                 (Some('\''), _) => {
                                     // $'
-                                    let end_of_match = mat.end();
+                                    let end_of_match = mat.group(1).unwrap().end;
                                     result.push_str(&primitive_val[end_of_match..]);
                                 }
                                 (Some(second), Some(third))
@@ -598,7 +598,7 @@ impl String {
         };
 
         Ok(Value::from(primitive_val.replacen(
-            &mat.as_str(),
+            &primitive_val[mat.group(1).unwrap()],
             &replace_value,
             1,
         )))
