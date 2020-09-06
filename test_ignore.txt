@@ -1,0 +1,28 @@
+// This does not break the tester but it does iterate from 0 to u32::MAX,
+// because of incorect implementation of `Array.prototype.indexOf`.
+// TODO: Fix it do iterate on the elements in the array **in insertion order**, not from
+// 0 to u32::MAX untill it reaches the element.
+15.4.4.14-5-13
+
+// New errors:
+// Stack overflows:
+tco-non-eval-function
+tco-non-eval-global
+value-tojson-array-circular
+value-array-circular
+value-tojson-object-circular
+value-object-circular
+
+// This does not stack overflow, but freezes the computer:
+arg-length-exceeding-integer-limit
+
+// These seem to run forever:
+15.4.4.22-9-b-9
+15.4.4.22-7-11
+15.4.4.22-9-5
+15.4.4.22-8-b-iii-1-30
+15.4.4.22-10-3
+15.4.4.19-8-c-ii-1
+fill-string-empty
+S15.4.4.10_A3_T2
+S15.4.4.10_A3_T1

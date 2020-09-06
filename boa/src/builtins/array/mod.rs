@@ -655,7 +655,10 @@ impl Array {
         }
 
         let search_element = args[0].clone();
-        let len = this.get_field("length").as_number().unwrap() as i32;
+        let len = this
+            .get_field("length")
+            .as_number()
+            .expect("length was not a number") as i32;
 
         let mut idx = match args.get(1) {
             Some(from_idx_ptr) => {

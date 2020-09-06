@@ -312,7 +312,7 @@ fn check_line_numbers() {
 #[test]
 fn check_decrement_advances_lexer_2_places() {
     // Here we want an example of decrementing an integer
-    let mut lexer = Lexer::new(&b"let a = b--;"[0..]);
+    let mut lexer = Lexer::new(&b"let a = b--;"[..]);
 
     for _ in 0..4 {
         lexer.next().unwrap();
@@ -333,7 +333,7 @@ fn check_decrement_advances_lexer_2_places() {
 
 #[test]
 fn single_int() {
-    let mut lexer = Lexer::new(&b"52"[0..]);
+    let mut lexer = Lexer::new(&b"52"[..]);
 
     let expected = [TokenKind::numeric_literal(52)];
 
@@ -375,7 +375,7 @@ fn numbers() {
 
 #[test]
 fn big_exp_numbers() {
-    let mut lexer = Lexer::new(&b"1.0e25 1.0e36 9.0e50"[0..]);
+    let mut lexer = Lexer::new(&b"1.0e25 1.0e36 9.0e50"[..]);
 
     let expected = [
         TokenKind::numeric_literal(10000000000000000000000000.0),
@@ -389,7 +389,7 @@ fn big_exp_numbers() {
 #[test]
 #[ignore]
 fn big_literal_numbers() {
-    let mut lexer = Lexer::new(&b"10000000000000000000000000"[0..]);
+    let mut lexer = Lexer::new(&b"10000000000000000000000000"[..]);
 
     let expected = [TokenKind::numeric_literal(10000000000000000000000000.0)];
 
@@ -398,7 +398,7 @@ fn big_literal_numbers() {
 
 #[test]
 fn implicit_octal_edge_case() {
-    let mut lexer = Lexer::new(&b"044.5 094.5"[0..]);
+    let mut lexer = Lexer::new(&b"044.5 094.5"[..]);
 
     let expected = [
         TokenKind::numeric_literal(36),
@@ -412,7 +412,7 @@ fn implicit_octal_edge_case() {
 
 #[test]
 fn hexadecimal_edge_case() {
-    let mut lexer = Lexer::new(&b"0xffff.ff 0xffffff"[0..]);
+    let mut lexer = Lexer::new(&b"0xffff.ff 0xffffff"[..]);
 
     let expected = [
         TokenKind::numeric_literal(0xffff),
@@ -426,7 +426,7 @@ fn hexadecimal_edge_case() {
 
 #[test]
 fn single_number_without_semicolon() {
-    let mut lexer = Lexer::new(&b"1"[0..]);
+    let mut lexer = Lexer::new(&b"1"[..]);
     if let Some(x) = lexer.next().unwrap() {
         assert_eq!(x.kind(), &TokenKind::numeric_literal(Numeric::Integer(1)));
     } else {
@@ -436,7 +436,7 @@ fn single_number_without_semicolon() {
 
 #[test]
 fn number_followed_by_dot() {
-    let mut lexer = Lexer::new(&b"1.."[0..]);
+    let mut lexer = Lexer::new(&b"1.."[..]);
 
     let expected = [
         TokenKind::numeric_literal(1),
@@ -448,7 +448,7 @@ fn number_followed_by_dot() {
 
 #[test]
 fn regex_literal() {
-    let mut lexer = Lexer::new(&b"/(?:)/"[0..]);
+    let mut lexer = Lexer::new(&b"/(?:)/"[..]);
 
     let expected = [TokenKind::regular_expression_literal(
         "(?:)",
@@ -460,7 +460,7 @@ fn regex_literal() {
 
 #[test]
 fn regex_literal_flags() {
-    let mut lexer = Lexer::new(&br"/\/[^\/]*\/*/gmi"[0..]);
+    let mut lexer = Lexer::new(&br"/\/[^\/]*\/*/gmi"[..]);
 
     let mut flags = RegExpFlags::default();
     flags.insert(RegExpFlags::GLOBAL);
@@ -477,7 +477,7 @@ fn regex_literal_flags() {
 
 #[test]
 fn addition_no_spaces() {
-    let mut lexer = Lexer::new(&b"1+1"[0..]);
+    let mut lexer = Lexer::new(&b"1+1"[..]);
 
     let expected = [
         TokenKind::numeric_literal(1),
@@ -490,7 +490,7 @@ fn addition_no_spaces() {
 
 #[test]
 fn addition_no_spaces_left_side() {
-    let mut lexer = Lexer::new(&b"1+ 1"[0..]);
+    let mut lexer = Lexer::new(&b"1+ 1"[..]);
 
     let expected = [
         TokenKind::numeric_literal(1),
@@ -503,7 +503,7 @@ fn addition_no_spaces_left_side() {
 
 #[test]
 fn addition_no_spaces_right_side() {
-    let mut lexer = Lexer::new(&b"1 +1"[0..]);
+    let mut lexer = Lexer::new(&b"1 +1"[..]);
 
     let expected = [
         TokenKind::numeric_literal(1),
@@ -516,7 +516,7 @@ fn addition_no_spaces_right_side() {
 
 #[test]
 fn addition_no_spaces_e_number_left_side() {
-    let mut lexer = Lexer::new(&b"1e2+ 1"[0..]);
+    let mut lexer = Lexer::new(&b"1e2+ 1"[..]);
 
     let expected = [
         TokenKind::numeric_literal(100),
@@ -529,7 +529,7 @@ fn addition_no_spaces_e_number_left_side() {
 
 #[test]
 fn addition_no_spaces_e_number_right_side() {
-    let mut lexer = Lexer::new(&b"1 +1e3"[0..]);
+    let mut lexer = Lexer::new(&b"1 +1e3"[..]);
 
     let expected = [
         TokenKind::numeric_literal(1),
@@ -542,7 +542,7 @@ fn addition_no_spaces_e_number_right_side() {
 
 #[test]
 fn addition_no_spaces_e_number() {
-    let mut lexer = Lexer::new(&b"1e3+1e11"[0..]);
+    let mut lexer = Lexer::new(&b"1e3+1e11"[..]);
 
     let expected = [
         TokenKind::numeric_literal(1000),
@@ -555,7 +555,7 @@ fn addition_no_spaces_e_number() {
 
 #[test]
 fn take_while_pred_simple() {
-    let mut cur = Cursor::new(&b"abcdefghijk"[0..]);
+    let mut cur = Cursor::new(&b"abcdefghijk"[..]);
 
     let mut buf: String = String::new();
 
@@ -567,7 +567,7 @@ fn take_while_pred_simple() {
 
 #[test]
 fn take_while_pred_immediate_stop() {
-    let mut cur = Cursor::new(&b"abcdefghijk"[0..]);
+    let mut cur = Cursor::new(&b"abcdefghijk"[..]);
 
     let mut buf: String = String::new();
 
@@ -578,7 +578,7 @@ fn take_while_pred_immediate_stop() {
 
 #[test]
 fn take_while_pred_entire_str() {
-    let mut cur = Cursor::new(&b"abcdefghijk"[0..]);
+    let mut cur = Cursor::new(&b"abcdefghijk"[..]);
 
     let mut buf: String = String::new();
 
@@ -594,7 +594,7 @@ fn illegal_following_numeric_literal() {
     // be immediately followed by an IdentifierStart or DecimalDigit.
 
     // Decimal Digit
-    let mut lexer = Lexer::new(&b"11.6n3"[0..]);
+    let mut lexer = Lexer::new(&b"11.6n3"[..]);
     let err = lexer
         .next()
         .expect_err("DecimalDigit following NumericLiteral not rejected as expected");
@@ -605,28 +605,30 @@ fn illegal_following_numeric_literal() {
     }
 
     // Identifier Start
-    let mut lexer = Lexer::new(&b"17.4$"[0..]);
-    match lexer.next() {
-        Err(Error::Syntax(_, pos)) => assert_eq!(pos, Position::new(1, 5)),
-        _ => assert!(
-            false,
-            "IdentifierStart '$' following NumericLiteral not rejected as expected"
-        ),
+    let mut lexer = Lexer::new(&b"17.4$"[..]);
+    if let Error::Syntax(_, pos) = lexer
+        .next()
+        .expect_err("IdentifierStart '$' following NumericLiteral not rejected as expected")
+    {
+        assert_eq!(pos, Position::new(1, 5));
+    } else {
+        panic!("invalid error type");
     }
 
-    let mut lexer = Lexer::new(&b"17.4_"[0..]);
-    match lexer.next() {
-        Err(Error::Syntax(_, pos)) => assert_eq!(pos, Position::new(1, 5)),
-        _ => assert!(
-            false,
-            "IdentifierStart '_' following NumericLiteral not rejected as expected"
-        ),
+    let mut lexer = Lexer::new(&b"17.4_"[..]);
+    if let Error::Syntax(_, pos) = lexer
+        .next()
+        .expect_err("IdentifierStart '_' following NumericLiteral not rejected as expected")
+    {
+        assert_eq!(pos, Position::new(1, 5));
+    } else {
+        panic!("invalid error type");
     }
 }
 
 #[test]
 fn codepoint_with_no_braces() {
-    let mut lexer = Lexer::new(r#""test\uD83Dtest""#.as_bytes());
+    let mut lexer = Lexer::new(&br#""test\uD83Dtest""#[..]);
     assert!(lexer.next().is_ok());
 }
 
@@ -635,7 +637,7 @@ fn codepoint_with_no_braces() {
 fn illegal_code_point_following_numeric_literal() {
     // Checks as per https://tc39.es/ecma262/#sec-literals-numeric-literals that a NumericLiteral cannot
     // be immediately followed by an IdentifierStart where the IdentifierStart
-    let mut lexer = Lexer::new(r#"17.4\u{{2764}}"#.as_bytes());
+    let mut lexer = Lexer::new(&br#"17.4\u{{2764}}"#[..]);
     assert!(
         lexer.next().is_err(),
         "IdentifierStart \\u{{2764}} following NumericLiteral not rejected as expected"

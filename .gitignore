@@ -23,4 +23,7 @@ tests/js/test.js
 *.string_data
 *.string_index
 *.events
-chrome_profiler.json 
+chrome_profiler.json
+
+# Logs
+*.log
