@@ -24,3 +24,7 @@ updates:
     directory: "/boa_wasm/"
     schedule:
       interval: "daily"
+  - package-ecosystem: "cargo"
+    directory: "/boa_tester/"
+    schedule:
+      interval: "daily"
