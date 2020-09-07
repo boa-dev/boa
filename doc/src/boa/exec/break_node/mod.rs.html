@@ -22,8 +22,12 @@
 <span id="22">22</span>
 <span id="23">23</span>
 <span id="24">24</span>
+<span id="25">25</span>
+<span id="26">26</span>
+<span id="27">27</span>
+<span id="28">28</span>
 </pre><div class="example-wrap"><pre class="rust ">
-<span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">Executable</span>, <span class="ident">Interpreter</span>, <span class="ident">InterpreterState</span>};
+<span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">Context</span>, <span class="ident">Executable</span>, <span class="ident">InterpreterState</span>};
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">syntax</span>::<span class="ident">ast</span>::<span class="ident">node</span>::{<span class="ident">Break</span>, <span class="ident">Continue</span>},
     <span class="prelude-ty">Result</span>, <span class="ident">Value</span>,
@@ -33,16 +37,20 @@
 <span class="kw">mod</span> <span class="ident">tests</span>;
 
 <span class="kw">impl</span> <span class="ident">Executable</span> <span class="kw">for</span> <span class="ident">Break</span> {
-    <span class="kw">fn</span> <span class="ident">run</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">interpreter</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
-        <span class="ident">interpreter</span>.<span class="ident">set_current_state</span>(<span class="ident">InterpreterState</span>::<span class="ident">Break</span>(<span class="self">self</span>.<span class="ident">label</span>().<span class="ident">map</span>(<span class="ident">String</span>::<span class="ident">from</span>)));
+    <span class="kw">fn</span> <span class="ident">run</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">interpreter</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
+        <span class="ident">interpreter</span>
+            .<span class="ident">executor</span>()
+            .<span class="ident">set_current_state</span>(<span class="ident">InterpreterState</span>::<span class="ident">Break</span>(<span class="self">self</span>.<span class="ident">label</span>().<span class="ident">map</span>(<span class="ident">String</span>::<span class="ident">from</span>)));
 
         <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">undefined</span>())
     }
 }
 
 <span class="kw">impl</span> <span class="ident">Executable</span> <span class="kw">for</span> <span class="ident">Continue</span> {
-    <span class="kw">fn</span> <span class="ident">run</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">interpreter</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
-        <span class="ident">interpreter</span>.<span class="ident">set_current_state</span>(<span class="ident">InterpreterState</span>::<span class="ident">Continue</span>(<span class="self">self</span>.<span class="ident">label</span>().<span class="ident">map</span>(<span class="ident">String</span>::<span class="ident">from</span>)));
+    <span class="kw">fn</span> <span class="ident">run</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">interpreter</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
+        <span class="ident">interpreter</span>
+            .<span class="ident">executor</span>()
+            .<span class="ident">set_current_state</span>(<span class="ident">InterpreterState</span>::<span class="ident">Continue</span>(<span class="self">self</span>.<span class="ident">label</span>().<span class="ident">map</span>(<span class="ident">String</span>::<span class="ident">from</span>)));
 
         <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">undefined</span>())
     }

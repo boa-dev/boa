@@ -41,23 +41,27 @@
 <span id="41">41</span>
 <span id="42">42</span>
 <span id="43">43</span>
+<span id="44">44</span>
+<span id="45">45</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Statement list execution.</span>
 
-<span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">Executable</span>, <span class="ident">Interpreter</span>, <span class="ident">InterpreterState</span>};
+<span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">Context</span>, <span class="ident">Executable</span>, <span class="ident">InterpreterState</span>};
 <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">syntax</span>::<span class="ident">ast</span>::<span class="ident">node</span>::<span class="ident">StatementList</span>, <span class="ident">BoaProfiler</span>, <span class="prelude-ty">Result</span>, <span class="ident">Value</span>};
 
 <span class="kw">impl</span> <span class="ident">Executable</span> <span class="kw">for</span> <span class="ident">StatementList</span> {
-    <span class="kw">fn</span> <span class="ident">run</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">interpreter</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">run</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">interpreter</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">BoaProfiler</span>::<span class="ident">global</span>().<span class="ident">start_event</span>(<span class="string">&quot;StatementList&quot;</span>, <span class="string">&quot;exec&quot;</span>);
 
         <span class="comment">// https://tc39.es/ecma262/#sec-block-runtime-semantics-evaluation</span>
         <span class="comment">// The return value is uninitialized, which means it defaults to Value::Undefined</span>
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">Value</span>::<span class="ident">default</span>();
-        <span class="ident">interpreter</span>.<span class="ident">set_current_state</span>(<span class="ident">InterpreterState</span>::<span class="ident">Executing</span>);
+        <span class="ident">interpreter</span>
+            .<span class="ident">executor</span>()
+            .<span class="ident">set_current_state</span>(<span class="ident">InterpreterState</span>::<span class="ident">Executing</span>);
         <span class="kw">for</span> (<span class="ident">i</span>, <span class="ident">item</span>) <span class="kw">in</span> <span class="self">self</span>.<span class="ident">statements</span>().<span class="ident">iter</span>().<span class="ident">enumerate</span>() {
             <span class="kw">let</span> <span class="ident">val</span> <span class="op">=</span> <span class="ident">item</span>.<span class="ident">run</span>(<span class="ident">interpreter</span>)<span class="question-mark">?</span>;
-            <span class="kw">match</span> <span class="ident">interpreter</span>.<span class="ident">get_current_state</span>() {
+            <span class="kw">match</span> <span class="ident">interpreter</span>.<span class="ident">executor</span>().<span class="ident">get_current_state</span>() {
                 <span class="ident">InterpreterState</span>::<span class="ident">Return</span> <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="comment">// Early return.</span>
                     <span class="ident">obj</span> <span class="op">=</span> <span class="ident">val</span>;

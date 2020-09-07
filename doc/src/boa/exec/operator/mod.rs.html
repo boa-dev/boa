@@ -243,17 +243,12 @@
 <span id="243">243</span>
 <span id="244">244</span>
 <span id="245">245</span>
-<span id="246">246</span>
-<span id="247">247</span>
-<span id="248">248</span>
-<span id="249">249</span>
-<span id="250">250</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Operator execution.</span>
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">tests</span>;
 
-<span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">Executable</span>, <span class="ident">Interpreter</span>};
+<span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">Context</span>, <span class="ident">Executable</span>};
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">environment</span>::<span class="ident">lexical_environment</span>::<span class="ident">VariableScope</span>,
     <span class="ident">syntax</span>::<span class="ident">ast</span>::{
@@ -264,7 +259,7 @@
 };
 
 <span class="kw">impl</span> <span class="ident">Executable</span> <span class="kw">for</span> <span class="ident">Assign</span> {
-    <span class="kw">fn</span> <span class="ident">run</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">interpreter</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">run</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">interpreter</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">BoaProfiler</span>::<span class="ident">global</span>().<span class="ident">start_event</span>(<span class="string">&quot;Assign&quot;</span>, <span class="string">&quot;exec&quot;</span>);
         <span class="kw">let</span> <span class="ident">val</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">rhs</span>().<span class="ident">run</span>(<span class="ident">interpreter</span>)<span class="question-mark">?</span>;
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">lhs</span>() {
@@ -300,7 +295,7 @@
 }
 
 <span class="kw">impl</span> <span class="ident">Executable</span> <span class="kw">for</span> <span class="ident">BinOp</span> {
-    <span class="kw">fn</span> <span class="ident">run</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">interpreter</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">run</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">interpreter</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">op</span>() {
             <span class="ident">op</span>::<span class="ident">BinOp</span>::<span class="ident">Num</span>(<span class="ident">op</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">let</span> <span class="ident">x</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">lhs</span>().<span class="ident">run</span>(<span class="ident">interpreter</span>)<span class="question-mark">?</span>;
@@ -384,7 +379,7 @@
                         .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">interpreter</span>.<span class="ident">construct_reference_error</span>(<span class="ident">name</span>.<span class="ident">as_ref</span>()))<span class="question-mark">?</span>;
                     <span class="kw">let</span> <span class="ident">v_b</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">rhs</span>().<span class="ident">run</span>(<span class="ident">interpreter</span>)<span class="question-mark">?</span>;
                     <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="self">Self</span>::<span class="ident">run_assign</span>(<span class="ident">op</span>, <span class="ident">v_a</span>, <span class="ident">v_b</span>, <span class="ident">interpreter</span>)<span class="question-mark">?</span>;
-                    <span class="ident">interpreter</span>.<span class="ident">realm</span>.<span class="ident">environment</span>.<span class="ident">set_mutable_binding</span>(
+                    <span class="ident">interpreter</span>.<span class="ident">realm_mut</span>().<span class="ident">environment</span>.<span class="ident">set_mutable_binding</span>(
                         <span class="ident">name</span>.<span class="ident">as_ref</span>(),
                         <span class="ident">value</span>.<span class="ident">clone</span>(),
                         <span class="bool-val">true</span>,
@@ -411,12 +406,7 @@
 
 <span class="kw">impl</span> <span class="ident">BinOp</span> {
     <span class="doccomment">/// Runs the assignment operators.</span>
-    <span class="kw">fn</span> <span class="ident">run_assign</span>(
-        <span class="ident">op</span>: <span class="ident">AssignOp</span>,
-        <span class="ident">x</span>: <span class="ident">Value</span>,
-        <span class="ident">y</span>: <span class="ident">Value</span>,
-        <span class="ident">interpreter</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">run_assign</span>(<span class="ident">op</span>: <span class="ident">AssignOp</span>, <span class="ident">x</span>: <span class="ident">Value</span>, <span class="ident">y</span>: <span class="ident">Value</span>, <span class="ident">interpreter</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="ident">op</span> {
             <span class="ident">AssignOp</span>::<span class="ident">Add</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">x</span>.<span class="ident">add</span>(<span class="kw-2">&amp;</span><span class="ident">y</span>, <span class="ident">interpreter</span>),
             <span class="ident">AssignOp</span>::<span class="ident">Sub</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">x</span>.<span class="ident">sub</span>(<span class="kw-2">&amp;</span><span class="ident">y</span>, <span class="ident">interpreter</span>),
@@ -434,7 +424,7 @@
 }
 
 <span class="kw">impl</span> <span class="ident">Executable</span> <span class="kw">for</span> <span class="ident">UnaryOp</span> {
-    <span class="kw">fn</span> <span class="ident">run</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">interpreter</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">run</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">interpreter</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">x</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">target</span>().<span class="ident">run</span>(<span class="ident">interpreter</span>)<span class="question-mark">?</span>;
 
         <span class="prelude-val">Ok</span>(<span class="kw">match</span> <span class="self">self</span>.<span class="ident">op</span>() {

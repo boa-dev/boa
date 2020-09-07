@@ -75,19 +75,27 @@
 <span id="75">75</span>
 <span id="76">76</span>
 <span id="77">77</span>
+<span id="78">78</span>
+<span id="79">79</span>
+<span id="80">80</span>
+<span id="81">81</span>
+<span id="82">82</span>
+<span id="83">83</span>
 </pre><div class="example-wrap"><pre class="rust ">
-<span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">Executable</span>, <span class="ident">Interpreter</span>, <span class="ident">InterpreterState</span>};
+<span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">Context</span>, <span class="ident">Executable</span>, <span class="ident">InterpreterState</span>};
 <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">syntax</span>::<span class="ident">ast</span>::<span class="ident">node</span>::<span class="ident">Switch</span>, <span class="prelude-ty">Result</span>, <span class="ident">Value</span>};
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">tests</span>;
 
 <span class="kw">impl</span> <span class="ident">Executable</span> <span class="kw">for</span> <span class="ident">Switch</span> {
-    <span class="kw">fn</span> <span class="ident">run</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">interpreter</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">run</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">interpreter</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">val</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">val</span>().<span class="ident">run</span>(<span class="ident">interpreter</span>)<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">Value</span>::<span class="ident">null</span>();
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">matched</span> <span class="op">=</span> <span class="bool-val">false</span>;
-        <span class="ident">interpreter</span>.<span class="ident">set_current_state</span>(<span class="ident">InterpreterState</span>::<span class="ident">Executing</span>);
+        <span class="ident">interpreter</span>
+            .<span class="ident">executor</span>()
+            .<span class="ident">set_current_state</span>(<span class="ident">InterpreterState</span>::<span class="ident">Executing</span>);
 
         <span class="comment">// If a case block does not end with a break statement then subsequent cases will be run without</span>
         <span class="comment">// checking their conditions until a break is encountered.</span>
@@ -99,7 +107,7 @@
             <span class="kw">if</span> <span class="ident">fall_through</span> <span class="op">|</span><span class="op">|</span> <span class="ident">val</span>.<span class="ident">strict_equals</span>(<span class="kw-2">&amp;</span><span class="ident">cond</span>.<span class="ident">run</span>(<span class="ident">interpreter</span>)<span class="question-mark">?</span>) {
                 <span class="ident">matched</span> <span class="op">=</span> <span class="bool-val">true</span>;
                 <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">block</span>.<span class="ident">run</span>(<span class="ident">interpreter</span>)<span class="question-mark">?</span>;
-                <span class="kw">match</span> <span class="ident">interpreter</span>.<span class="ident">get_current_state</span>() {
+                <span class="kw">match</span> <span class="ident">interpreter</span>.<span class="ident">executor</span>().<span class="ident">get_current_state</span>() {
                     <span class="ident">InterpreterState</span>::<span class="ident">Return</span> <span class="op">=</span><span class="op">&gt;</span> {
                         <span class="comment">// Early return.</span>
                         <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">result</span>);
@@ -107,7 +115,9 @@
                     <span class="ident">InterpreterState</span>::<span class="ident">Break</span>(<span class="ident">_label</span>) <span class="op">=</span><span class="op">&gt;</span> {
                         <span class="comment">// TODO, break to a label.</span>
                         <span class="comment">// Break statement encountered so therefore end switch statement.</span>
-                        <span class="ident">interpreter</span>.<span class="ident">set_current_state</span>(<span class="ident">InterpreterState</span>::<span class="ident">Executing</span>);
+                        <span class="ident">interpreter</span>
+                            .<span class="ident">executor</span>()
+                            .<span class="ident">set_current_state</span>(<span class="ident">InterpreterState</span>::<span class="ident">Executing</span>);
                         <span class="kw">break</span>;
                     }
                     <span class="ident">InterpreterState</span>::<span class="ident">Continue</span>(<span class="ident">_label</span>) <span class="op">=</span><span class="op">&gt;</span> {
@@ -124,10 +134,12 @@
 
         <span class="kw">if</span> <span class="op">!</span><span class="ident">matched</span> {
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">default</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">default</span>() {
-                <span class="ident">interpreter</span>.<span class="ident">set_current_state</span>(<span class="ident">InterpreterState</span>::<span class="ident">Executing</span>);
+                <span class="ident">interpreter</span>
+                    .<span class="ident">executor</span>()
+                    .<span class="ident">set_current_state</span>(<span class="ident">InterpreterState</span>::<span class="ident">Executing</span>);
                 <span class="kw">for</span> (<span class="ident">i</span>, <span class="ident">item</span>) <span class="kw">in</span> <span class="ident">default</span>.<span class="ident">iter</span>().<span class="ident">enumerate</span>() {
                     <span class="kw">let</span> <span class="ident">val</span> <span class="op">=</span> <span class="ident">item</span>.<span class="ident">run</span>(<span class="ident">interpreter</span>)<span class="question-mark">?</span>;
-                    <span class="kw">match</span> <span class="ident">interpreter</span>.<span class="ident">get_current_state</span>() {
+                    <span class="kw">match</span> <span class="ident">interpreter</span>.<span class="ident">executor</span>().<span class="ident">get_current_state</span>() {
                         <span class="ident">InterpreterState</span>::<span class="ident">Return</span> <span class="op">=</span><span class="op">&gt;</span> {
                             <span class="comment">// Early return.</span>
                             <span class="ident">result</span> <span class="op">=</span> <span class="ident">val</span>;

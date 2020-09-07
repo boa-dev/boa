@@ -263,9 +263,6 @@
 <span id="263">263</span>
 <span id="264">264</span>
 <span id="265">265</span>
-<span id="266">266</span>
-<span id="267">267</span>
-<span id="268">268</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Traits and structs for implementing native classes.</span>
 <span class="doccomment">//!</span>
@@ -274,10 +271,7 @@
 <span class="doccomment">//!# use boa::{</span>
 <span class="doccomment">//!#    property::Attribute,</span>
 <span class="doccomment">//!#    class::{Class, ClassBuilder},</span>
-<span class="doccomment">//!#    exec::Interpreter,</span>
-<span class="doccomment">//!#    forward_val,</span>
-<span class="doccomment">//!#    realm::Realm,</span>
-<span class="doccomment">//!#    Finalize, Value, Result, Trace,</span>
+<span class="doccomment">//!#    Context, Finalize, Result, Trace, Value,</span>
 <span class="doccomment">//!# };</span>
 <span class="doccomment">//!#</span>
 <span class="doccomment">//! // This does not have to be an enum it can also be a struct.</span>
@@ -296,7 +290,7 @@
 <span class="doccomment">//!     const LENGTH: usize = 1;</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//!     // This is what is called when we do `new Animal()`</span>
-<span class="doccomment">//!     fn constructor(_this: &amp;Value, args: &amp;[Value], ctx: &amp;mut Interpreter) -&gt; Result&lt;Self&gt; {</span>
+<span class="doccomment">//!     fn constructor(_this: &amp;Value, args: &amp;[Value], ctx: &amp;mut Context) -&gt; Result&lt;Self&gt; {</span>
 <span class="doccomment">//!         // This is equivalent to `String(arg)`.</span>
 <span class="doccomment">//!         let kind = args.get(0).cloned().unwrap_or_default().to_string(ctx)?;</span>
 <span class="doccomment">//!</span>
@@ -337,7 +331,7 @@
         <span class="ident">object</span>::{<span class="ident">GcObject</span>, <span class="ident">NativeObject</span>, <span class="ident">Object</span>, <span class="ident">ObjectData</span>, <span class="ident">PROTOTYPE</span>},
     },
     <span class="ident">property</span>::{<span class="ident">Attribute</span>, <span class="ident">Property</span>, <span class="ident">PropertyKey</span>},
-    <span class="ident">Interpreter</span>, <span class="prelude-ty">Result</span>, <span class="ident">Value</span>,
+    <span class="ident">Context</span>, <span class="prelude-ty">Result</span>, <span class="ident">Value</span>,
 };
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">fmt</span>::<span class="ident">Debug</span>;
 
@@ -351,7 +345,7 @@
     <span class="kw">const</span> <span class="ident">ATTRIBUTE</span>: <span class="ident">Attribute</span> <span class="op">=</span> <span class="ident">Attribute</span>::<span class="ident">all</span>();
 
     <span class="doccomment">/// The constructor of the class.</span>
-    <span class="kw">fn</span> <span class="ident">constructor</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>;
+    <span class="kw">fn</span> <span class="ident">constructor</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>;
 
     <span class="doccomment">/// Initializes the internals and the methods of the class.</span>
     <span class="kw">fn</span> <span class="ident">init</span>(<span class="ident">class</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ClassBuilder</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span>;
@@ -362,13 +356,13 @@
 <span class="doccomment">/// This is automatically implemented, when a type implements `Class`.</span>
 <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">ClassConstructor</span>: <span class="ident">Class</span> {
     <span class="doccomment">/// The raw constructor that mathces the `NativeFunction` signature.</span>
-    <span class="kw">fn</span> <span class="ident">raw_constructor</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span>
+    <span class="kw">fn</span> <span class="ident">raw_constructor</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="self">Self</span>: <span class="ident">Sized</span>;
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Class</span><span class="op">&gt;</span> <span class="ident">ClassConstructor</span> <span class="kw">for</span> <span class="ident">T</span> {
-    <span class="kw">fn</span> <span class="ident">raw_constructor</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span>
+    <span class="kw">fn</span> <span class="ident">raw_constructor</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="self">Self</span>: <span class="ident">Sized</span>,
     {
@@ -382,7 +376,7 @@
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ClassBuilder</span><span class="op">&lt;</span><span class="lifetime">&#39;context</span><span class="op">&gt;</span> {
     <span class="doccomment">/// The current context.</span>
-    <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;context</span> <span class="kw-2">mut</span> <span class="ident">Interpreter</span>,
+    <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;context</span> <span class="kw-2">mut</span> <span class="ident">Context</span>,
 
     <span class="doccomment">/// The constructor object.</span>
     <span class="ident">object</span>: <span class="ident">GcObject</span>,
@@ -392,11 +386,11 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;context</span><span class="op">&gt;</span> <span class="ident">ClassBuilder</span><span class="op">&lt;</span><span class="lifetime">&#39;context</span><span class="op">&gt;</span> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;context</span> <span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;context</span> <span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>
     <span class="kw">where</span>
         <span class="ident">T</span>: <span class="ident">ClassConstructor</span>,
     {
-        <span class="kw">let</span> <span class="ident">global</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">global</span>();
+        <span class="kw">let</span> <span class="ident">global</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">global_object</span>();
 
         <span class="kw">let</span> <span class="ident">prototype</span> <span class="op">=</span> {
             <span class="kw">let</span> <span class="ident">object_prototype</span> <span class="op">=</span> <span class="ident">global</span>.<span class="ident">get_field</span>(<span class="string">&quot;Object&quot;</span>).<span class="ident">get_field</span>(<span class="ident">PROTOTYPE</span>);
@@ -459,7 +453,7 @@
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">function</span> <span class="op">=</span> <span class="ident">Object</span>::<span class="ident">function</span>(
             <span class="ident">Function</span>::<span class="ident">BuiltIn</span>(<span class="ident">function</span>.<span class="ident">into</span>(), <span class="ident">FunctionFlags</span>::<span class="ident">CALLABLE</span>),
             <span class="self">self</span>.<span class="ident">context</span>
-                .<span class="ident">global</span>()
+                .<span class="ident">global_object</span>()
                 .<span class="ident">get_field</span>(<span class="string">&quot;Function&quot;</span>)
                 .<span class="ident">get_field</span>(<span class="string">&quot;prototype&quot;</span>),
         );
@@ -483,7 +477,7 @@
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">function</span> <span class="op">=</span> <span class="ident">Object</span>::<span class="ident">function</span>(
             <span class="ident">Function</span>::<span class="ident">BuiltIn</span>(<span class="ident">function</span>.<span class="ident">into</span>(), <span class="ident">FunctionFlags</span>::<span class="ident">CALLABLE</span>),
             <span class="self">self</span>.<span class="ident">context</span>
-                .<span class="ident">global</span>()
+                .<span class="ident">global_object</span>()
                 .<span class="ident">get_field</span>(<span class="string">&quot;Function&quot;</span>)
                 .<span class="ident">get_field</span>(<span class="string">&quot;prototype&quot;</span>),
         );
@@ -531,7 +525,7 @@
     }
 
     <span class="doccomment">/// Return the current context.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">context</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;_</span> <span class="kw-2">mut</span> <span class="ident">Interpreter</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">context</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;_</span> <span class="kw-2">mut</span> <span class="ident">Context</span> {
         <span class="self">self</span>.<span class="ident">context</span>
     }
 }

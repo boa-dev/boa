@@ -11,11 +11,11 @@
 <span id="11">11</span>
 <span id="12">12</span>
 </pre><div class="example-wrap"><pre class="rust ">
-<span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">Executable</span>, <span class="ident">Interpreter</span>};
+<span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">Context</span>, <span class="ident">Executable</span>};
 <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">syntax</span>::<span class="ident">ast</span>::<span class="ident">node</span>::<span class="ident">identifier</span>::<span class="ident">Identifier</span>, <span class="prelude-ty">Result</span>, <span class="ident">Value</span>};
 
 <span class="kw">impl</span> <span class="ident">Executable</span> <span class="kw">for</span> <span class="ident">Identifier</span> {
-    <span class="kw">fn</span> <span class="ident">run</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">interpreter</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interpreter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">run</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">interpreter</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
         <span class="ident">interpreter</span>
             .<span class="ident">realm</span>()
             .<span class="ident">environment</span>
