@@ -249,6 +249,7 @@
 <span id="249">249</span>
 <span id="250">250</span>
 <span id="251">251</span>
+<span id="252">252</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! # Function Environment Records</span>
 <span class="doccomment">//!</span>
@@ -261,12 +262,13 @@
 <span class="doccomment">//! More info: &lt;https://tc39.es/ecma262/#sec-function-environment-records&gt;</span>
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">builtins</span>::{<span class="ident">object</span>::<span class="ident">GcObject</span>, <span class="ident">value</span>::<span class="ident">Value</span>},
+    <span class="ident">builtins</span>::<span class="ident">object</span>::<span class="ident">GcObject</span>,
     <span class="ident">environment</span>::{
         <span class="ident">declarative_environment_record</span>::<span class="ident">DeclarativeEnvironmentRecordBinding</span>,
         <span class="ident">environment_record_trait</span>::<span class="ident">EnvironmentRecordTrait</span>,
         <span class="ident">lexical_environment</span>::{<span class="ident">Environment</span>, <span class="ident">EnvironmentType</span>},
     },
+    <span class="ident">Value</span>,
 };
 <span class="kw">use</span> <span class="ident">gc</span>::{<span class="ident">unsafe_empty_trace</span>, <span class="ident">Finalize</span>, <span class="ident">Trace</span>};
 <span class="kw">use</span> <span class="ident">rustc_hash</span>::<span class="ident">FxHashMap</span>;

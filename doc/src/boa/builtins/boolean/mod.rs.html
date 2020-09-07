@@ -115,10 +115,6 @@
 <span id="115">115</span>
 <span id="116">116</span>
 <span id="117">117</span>
-<span id="118">118</span>
-<span id="119">119</span>
-<span id="120">120</span>
-<span id="121">121</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements the global `Boolean` object.</span>
 <span class="doccomment">//!</span>
@@ -135,11 +131,7 @@
 <span class="kw">mod</span> <span class="ident">tests</span>;
 
 <span class="kw">use</span> <span class="kw">super</span>::<span class="ident">function</span>::{<span class="ident">make_builtin_fn</span>, <span class="ident">make_constructor_fn</span>};
-<span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">builtins</span>::{<span class="ident">object</span>::<span class="ident">ObjectData</span>, <span class="ident">value</span>::<span class="ident">Value</span>},
-    <span class="ident">exec</span>::<span class="ident">Interpreter</span>,
-    <span class="ident">BoaProfiler</span>, <span class="prelude-ty">Result</span>,
-};
+<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">builtins</span>::<span class="ident">object</span>::<span class="ident">ObjectData</span>, <span class="ident">exec</span>::<span class="ident">Interpreter</span>, <span class="ident">BoaProfiler</span>, <span class="prelude-ty">Result</span>, <span class="ident">Value</span>};
 
 <span class="doccomment">/// Boolean implementation.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>

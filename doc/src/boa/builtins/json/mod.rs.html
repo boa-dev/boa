@@ -192,7 +192,6 @@
 <span id="192">192</span>
 <span id="193">193</span>
 <span id="194">194</span>
-<span id="195">195</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements the global `JSON` object.</span>
 <span class="doccomment">//!</span>
@@ -213,10 +212,9 @@
     <span class="ident">builtins</span>::{
         <span class="ident">function</span>::<span class="ident">make_builtin_fn</span>,
         <span class="ident">property</span>::{<span class="ident">Property</span>, <span class="ident">PropertyKey</span>},
-        <span class="ident">value</span>::<span class="ident">Value</span>,
     },
     <span class="ident">exec</span>::<span class="ident">Interpreter</span>,
-    <span class="ident">BoaProfiler</span>, <span class="prelude-ty">Result</span>,
+    <span class="ident">BoaProfiler</span>, <span class="prelude-ty">Result</span>, <span class="ident">Value</span>,
 };
 <span class="kw">use</span> <span class="ident">serde_json</span>::{<span class="self">self</span>, <span class="ident">Value</span> <span class="kw">as</span> <span class="ident">JSONValue</span>};
 

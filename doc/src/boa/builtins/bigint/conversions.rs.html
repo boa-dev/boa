@@ -91,16 +91,10 @@
 <span id="91">91</span>
 <span id="92">92</span>
 <span id="93">93</span>
-<span id="94">94</span>
-<span id="95">95</span>
-<span id="96">96</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">super</span>::<span class="ident">BigInt</span>;
 
-<span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">builtins</span>::{<span class="ident">Number</span>, <span class="ident">Value</span>},
-    <span class="ident">exec</span>::<span class="ident">Interpreter</span>,
-};
+<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">builtins</span>::<span class="ident">Number</span>, <span class="ident">exec</span>::<span class="ident">Interpreter</span>, <span class="ident">Value</span>};
 <span class="kw">use</span> <span class="ident">num_traits</span>::<span class="ident">cast</span>::{<span class="ident">FromPrimitive</span>, <span class="ident">ToPrimitive</span>};
 
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">convert</span>::<span class="ident">TryFrom</span>;

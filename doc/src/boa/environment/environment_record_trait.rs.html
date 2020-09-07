@@ -95,15 +95,15 @@
 <span class="doccomment">//! There are 5 Environment record kinds. They all have methods in common, these are implemented as a the `EnvironmentRecordTrait`</span>
 <span class="doccomment">//!</span>
 <span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">builtins</span>::<span class="ident">value</span>::<span class="ident">Value</span>,
     <span class="ident">environment</span>::<span class="ident">lexical_environment</span>::{<span class="ident">Environment</span>, <span class="ident">EnvironmentType</span>},
+    <span class="ident">Value</span>,
 };
 <span class="kw">use</span> <span class="ident">gc</span>::{<span class="ident">Finalize</span>, <span class="ident">Trace</span>};
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">fmt</span>::<span class="ident">Debug</span>;
 
 <span class="doccomment">/// &lt;https://tc39.es/ecma262/#sec-environment-records&gt;</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// In the ECMAScript specification Environment Records are hierachical and have a base class with abstract methods.   </span>
+<span class="doccomment">/// In the ECMAScript specification Environment Records are hierachical and have a base class with abstract methods.</span>
 <span class="doccomment">/// In this implementation we have a trait which represents the behaviour of all `EnvironmentRecord` types.</span>
 <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">EnvironmentRecordTrait</span>: <span class="ident">Debug</span> <span class="op">+</span> <span class="ident">Trace</span> <span class="op">+</span> <span class="ident">Finalize</span> {
     <span class="doccomment">/// Determine if an Environment Record has a binding for the String value N. Return true if it does and false if it does not.</span>

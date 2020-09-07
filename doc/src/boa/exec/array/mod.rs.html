@@ -31,9 +31,9 @@
 
 <span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">Executable</span>, <span class="ident">Interpreter</span>};
 <span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">builtins</span>::{<span class="ident">Array</span>, <span class="ident">Value</span>},
+    <span class="ident">builtins</span>::<span class="ident">Array</span>,
     <span class="ident">syntax</span>::<span class="ident">ast</span>::<span class="ident">node</span>::{<span class="ident">ArrayDecl</span>, <span class="ident">Node</span>},
-    <span class="ident">BoaProfiler</span>, <span class="prelude-ty">Result</span>,
+    <span class="ident">BoaProfiler</span>, <span class="prelude-ty">Result</span>, <span class="ident">Value</span>,
 };
 
 <span class="kw">impl</span> <span class="ident">Executable</span> <span class="kw">for</span> <span class="ident">ArrayDecl</span> {

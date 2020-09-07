@@ -121,6 +121,8 @@
 <span id="121">121</span>
 <span id="122">122</span>
 <span id="123">123</span>
+<span id="124">124</span>
+<span id="125">125</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This is an experimental Javascript lexer, parser and compiler written in Rust. Currently, it has support for some of the language.</span>
 
@@ -165,8 +167,9 @@
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">profiler</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">realm</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">syntax</span>;
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">value</span>;
 
-<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">builtins</span>::<span class="ident">value</span>::<span class="ident">Value</span>, <span class="ident">syntax</span>::<span class="ident">ast</span>::<span class="ident">node</span>::<span class="ident">StatementList</span>};
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">syntax</span>::<span class="ident">ast</span>::<span class="ident">node</span>::<span class="ident">StatementList</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">exec</span>::{<span class="ident">Executable</span>, <span class="ident">Interpreter</span>},
     <span class="ident">profiler</span>::<span class="ident">BoaProfiler</span>,
@@ -175,6 +178,7 @@
         <span class="ident">lexer</span>::<span class="ident">Lexer</span>,
         <span class="ident">parser</span>::{<span class="ident">ParseError</span>, <span class="ident">Parser</span>},
     },
+    <span class="ident">value</span>::<span class="ident">Value</span>,
 };
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">result</span>::<span class="prelude-ty">Result</span> <span class="kw">as</span> <span class="ident">StdResult</span>;
 

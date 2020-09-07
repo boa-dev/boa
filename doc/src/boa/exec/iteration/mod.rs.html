@@ -147,16 +147,14 @@
 <span id="147">147</span>
 <span id="148">148</span>
 <span id="149">149</span>
-<span id="150">150</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Iteration node execution.</span>
 
 <span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">Executable</span>, <span class="ident">Interpreter</span>, <span class="ident">InterpreterState</span>};
 <span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">builtins</span>::<span class="ident">value</span>::<span class="ident">Value</span>,
     <span class="ident">environment</span>::<span class="ident">lexical_environment</span>::<span class="ident">new_declarative_environment</span>,
     <span class="ident">syntax</span>::<span class="ident">ast</span>::<span class="ident">node</span>::{<span class="ident">DoWhileLoop</span>, <span class="ident">ForLoop</span>, <span class="ident">WhileLoop</span>},
-    <span class="ident">BoaProfiler</span>, <span class="prelude-ty">Result</span>,
+    <span class="ident">BoaProfiler</span>, <span class="prelude-ty">Result</span>, <span class="ident">Value</span>,
 };
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">borrow</span>::<span class="ident">Borrow</span>;
 

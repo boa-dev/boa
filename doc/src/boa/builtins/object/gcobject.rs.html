@@ -364,7 +364,6 @@
 <span id="364">364</span>
 <span id="365">365</span>
 <span id="366">366</span>
-<span id="367">367</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements the `GcObject` structure.</span>
 <span class="doccomment">//!</span>
@@ -372,15 +371,14 @@
 
 <span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">Object</span>, <span class="ident">PROTOTYPE</span>};
 <span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">builtins</span>::{
-        <span class="ident">function</span>::{<span class="ident">create_unmapped_arguments_object</span>, <span class="ident">BuiltInFunction</span>, <span class="ident">Function</span>, <span class="ident">NativeFunction</span>},
-        <span class="ident">Value</span>,
+    <span class="ident">builtins</span>::<span class="ident">function</span>::{
+        <span class="ident">create_unmapped_arguments_object</span>, <span class="ident">BuiltInFunction</span>, <span class="ident">Function</span>, <span class="ident">NativeFunction</span>,
     },
     <span class="ident">environment</span>::{
         <span class="ident">function_environment_record</span>::<span class="ident">BindingStatus</span>, <span class="ident">lexical_environment</span>::<span class="ident">new_function_environment</span>,
     },
-    <span class="ident">syntax</span>::<span class="ident">ast</span>::<span class="ident">node</span>::<span class="ident">statement_list</span>::<span class="ident">RcStatementList</span>,
-    <span class="ident">Executable</span>, <span class="ident">Interpreter</span>, <span class="prelude-ty">Result</span>,
+    <span class="ident">syntax</span>::<span class="ident">ast</span>::<span class="ident">node</span>::<span class="ident">RcStatementList</span>,
+    <span class="ident">Executable</span>, <span class="ident">Interpreter</span>, <span class="prelude-ty">Result</span>, <span class="ident">Value</span>,
 };
 <span class="kw">use</span> <span class="ident">gc</span>::{<span class="ident">Finalize</span>, <span class="ident">Gc</span>, <span class="ident">GcCell</span>, <span class="ident">GcCellRef</span>, <span class="ident">GcCellRefMut</span>, <span class="ident">Trace</span>};
 <span class="kw">use</span> <span class="ident">std</span>::{

@@ -698,10 +698,6 @@
 <span id="698">698</span>
 <span id="699">699</span>
 <span id="700">700</span>
-<span id="701">701</span>
-<span id="702">702</span>
-<span id="703">703</span>
-<span id="704">704</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements the global `Math` object.</span>
 <span class="doccomment">//!</span>
@@ -716,11 +712,7 @@
 <span class="doccomment">//! [spec]: https://tc39.es/ecma262/#sec-math-object</span>
 <span class="doccomment">//! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math</span>
 
-<span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">builtins</span>::{<span class="ident">function</span>::<span class="ident">make_builtin_fn</span>, <span class="ident">value</span>::<span class="ident">Value</span>},
-    <span class="ident">exec</span>::<span class="ident">Interpreter</span>,
-    <span class="ident">BoaProfiler</span>, <span class="prelude-ty">Result</span>,
-};
+<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">builtins</span>::<span class="ident">function</span>::<span class="ident">make_builtin_fn</span>, <span class="ident">exec</span>::<span class="ident">Interpreter</span>, <span class="ident">BoaProfiler</span>, <span class="prelude-ty">Result</span>, <span class="ident">Value</span>};
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">f64</span>;
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>

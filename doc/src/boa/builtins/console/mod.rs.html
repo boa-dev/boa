@@ -528,8 +528,6 @@
 <span id="528">528</span>
 <span id="529">529</span>
 <span id="530">530</span>
-<span id="531">531</span>
-<span id="532">532</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements the global `console` object.</span>
 <span class="doccomment">//!</span>
@@ -550,11 +548,9 @@
 <span class="kw">mod</span> <span class="ident">tests</span>;
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">builtins</span>::{
-        <span class="ident">function</span>::<span class="ident">make_builtin_fn</span>,
-        <span class="ident">value</span>::{<span class="ident">display_obj</span>, <span class="ident">RcString</span>, <span class="ident">Value</span>},
-    },
+    <span class="ident">builtins</span>::<span class="ident">function</span>::<span class="ident">make_builtin_fn</span>,
     <span class="ident">exec</span>::<span class="ident">Interpreter</span>,
+    <span class="ident">value</span>::{<span class="ident">display_obj</span>, <span class="ident">RcString</span>, <span class="ident">Value</span>},
     <span class="ident">BoaProfiler</span>, <span class="prelude-ty">Result</span>,
 };
 <span class="kw">use</span> <span class="ident">rustc_hash</span>::<span class="ident">FxHashMap</span>;

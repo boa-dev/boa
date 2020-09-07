@@ -908,7 +908,6 @@
 <span id="908">908</span>
 <span id="909">909</span>
 <span id="910">910</span>
-<span id="911">911</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements the global `Number` object.</span>
 <span class="doccomment">//!</span>
@@ -928,9 +927,8 @@
 <span class="kw">use</span> <span class="kw">super</span>::{
     <span class="ident">function</span>::{<span class="ident">make_builtin_fn</span>, <span class="ident">make_constructor_fn</span>},
     <span class="ident">object</span>::<span class="ident">ObjectData</span>,
-    <span class="ident">value</span>::<span class="ident">AbstractRelation</span>,
 };
-<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">builtins</span>::<span class="ident">value</span>::<span class="ident">Value</span>, <span class="ident">exec</span>::<span class="ident">Interpreter</span>, <span class="ident">BoaProfiler</span>, <span class="prelude-ty">Result</span>};
+<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">exec</span>::<span class="ident">Interpreter</span>, <span class="ident">value</span>::<span class="ident">AbstractRelation</span>, <span class="ident">BoaProfiler</span>, <span class="prelude-ty">Result</span>, <span class="ident">Value</span>};
 <span class="kw">use</span> <span class="ident">num_traits</span>::<span class="ident">float</span>::<span class="ident">FloatCore</span>;
 
 <span class="kw">mod</span> <span class="ident">conversions</span>;
