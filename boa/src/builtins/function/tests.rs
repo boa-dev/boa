@@ -1,10 +1,10 @@
-use crate::{exec::Interpreter, forward, forward_val, realm::Realm};
+use crate::{forward, forward_val, Context};
 
 #[allow(clippy::float_cmp)]
 #[test]
 fn check_arguments_object() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
+
     let init = r#"
         function jason(a, b) {
             return arguments[0];
@@ -26,8 +26,7 @@ fn check_arguments_object() {
 
 #[test]
 fn check_self_mutating_func() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
     let func = r#"
         function x() {
 	        x.y = 3;

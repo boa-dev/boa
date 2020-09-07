@@ -17,9 +17,8 @@ use crate::{
         function::{make_builtin_fn, make_constructor_fn},
         object::ObjectData,
     },
-    exec::Interpreter,
     value::{RcBigInt, Value},
-    BoaProfiler, Result,
+    BoaProfiler, Context, Result,
 };
 
 use gc::{unsafe_empty_trace, Finalize, Trace};
@@ -61,7 +60,7 @@ impl BigInt {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-thisbigintvalue
     #[inline]
-    fn this_bigint_value(value: &Value, ctx: &mut Interpreter) -> Result<RcBigInt> {
+    fn this_bigint_value(value: &Value, ctx: &mut Context) -> Result<RcBigInt> {
         match value {
             // 1. If Type(value) is BigInt, return value.
             Value::BigInt(ref bigint) => return Ok(bigint.clone()),
@@ -91,7 +90,7 @@ impl BigInt {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-bigint-objects
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/BigInt/BigInt
-    pub(crate) fn make_bigint(_: &Value, args: &[Value], ctx: &mut Interpreter) -> Result<Value> {
+    pub(crate) fn make_bigint(_: &Value, args: &[Value], ctx: &mut Context) -> Result<Value> {
         let data = match args.get(0) {
             Some(ref value) => value.to_bigint(ctx)?,
             None => RcBigInt::from(Self::from(0)),
@@ -110,7 +109,7 @@ impl BigInt {
     /// [spec]: https://tc39.es/ecma262/#sec-bigint.prototype.tostring
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/BigInt/toString
     #[allow(clippy::wrong_self_convention)]
-    pub(crate) fn to_string(this: &Value, args: &[Value], ctx: &mut Interpreter) -> Result<Value> {
+    pub(crate) fn to_string(this: &Value, args: &[Value], ctx: &mut Context) -> Result<Value> {
         let radix = if !args.is_empty() {
             args[0].to_integer(ctx)? as i32
         } else {
@@ -135,7 +134,7 @@ impl BigInt {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-bigint.prototype.valueof
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/BigInt/valueOf
-    pub(crate) fn value_of(this: &Value, _args: &[Value], ctx: &mut Interpreter) -> Result<Value> {
+    pub(crate) fn value_of(this: &Value, _args: &[Value], ctx: &mut Context) -> Result<Value> {
         Ok(Value::from(Self::this_bigint_value(this, ctx)?))
     }
 
@@ -146,7 +145,7 @@ impl BigInt {
     /// [spec]: https://tc39.es/ecma262/#sec-bigint.asintn
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/BigInt/asIntN
     #[allow(clippy::wrong_self_convention)]
-    pub(crate) fn as_int_n(_this: &Value, args: &[Value], ctx: &mut Interpreter) -> Result<Value> {
+    pub(crate) fn as_int_n(_this: &Value, args: &[Value], ctx: &mut Context) -> Result<Value> {
         let (modulo, bits) = Self::calculate_as_uint_n(args, ctx)?;
 
         if bits > 0 && modulo >= BigInt::from(2).pow(&BigInt::from(bits as i64 - 1)) {
@@ -165,7 +164,7 @@ impl BigInt {
     /// [spec]: https://tc39.es/ecma262/#sec-bigint.asuintn
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/BigInt/asUintN
     #[allow(clippy::wrong_self_convention)]
-    pub(crate) fn as_uint_n(_this: &Value, args: &[Value], ctx: &mut Interpreter) -> Result<Value> {
+    pub(crate) fn as_uint_n(_this: &Value, args: &[Value], ctx: &mut Context) -> Result<Value> {
         let (modulo, _) = Self::calculate_as_uint_n(args, ctx)?;
 
         Ok(Value::from(modulo))
@@ -176,7 +175,7 @@ impl BigInt {
     /// This function expects the same arguments as `as_uint_n` and wraps the value of a `BigInt`.
     /// Additionally to the wrapped unsigned value it returns the converted `bits` argument, so it
     /// can be reused from the `as_int_n` method.
-    fn calculate_as_uint_n(args: &[Value], ctx: &mut Interpreter) -> Result<(BigInt, u32)> {
+    fn calculate_as_uint_n(args: &[Value], ctx: &mut Context) -> Result<(BigInt, u32)> {
         use std::convert::TryFrom;
 
         let undefined_value = Value::undefined();
@@ -200,8 +199,8 @@ impl BigInt {
 
     /// Initialise the `BigInt` object on the global object.
     #[inline]
-    pub fn init(interpreter: &mut Interpreter) -> (&'static str, Value) {
-        let global = interpreter.global();
+    pub fn init(interpreter: &mut Context) -> (&'static str, Value) {
+        let global = interpreter.global_object();
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
         let prototype = Value::new_object(Some(global));

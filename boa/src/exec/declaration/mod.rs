@@ -1,6 +1,6 @@
 //! Declaration execution.
 
-use super::{Executable, Interpreter};
+use super::{Context, Executable};
 use crate::{
     builtins::function::FunctionFlags,
     environment::lexical_environment::VariableScope,
@@ -11,7 +11,7 @@ use crate::{
 };
 
 impl Executable for FunctionDecl {
-    fn run(&self, interpreter: &mut Interpreter) -> Result<Value> {
+    fn run(&self, interpreter: &mut Context) -> Result<Value> {
         let _timer = BoaProfiler::global().start_event("FunctionDecl", "exec");
         let val = interpreter.create_function(
             self.parameters().to_vec(),
@@ -37,7 +37,7 @@ impl Executable for FunctionDecl {
 }
 
 impl Executable for FunctionExpr {
-    fn run(&self, interpreter: &mut Interpreter) -> Result<Value> {
+    fn run(&self, interpreter: &mut Context) -> Result<Value> {
         let val = interpreter.create_function(
             self.parameters().to_vec(),
             self.body().to_vec(),
@@ -53,7 +53,7 @@ impl Executable for FunctionExpr {
 }
 
 impl Executable for VarDeclList {
-    fn run(&self, interpreter: &mut Interpreter) -> Result<Value> {
+    fn run(&self, interpreter: &mut Context) -> Result<Value> {
         for var in self.as_ref() {
             let val = match var.init() {
                 Some(v) => v.run(interpreter)?,
@@ -79,7 +79,7 @@ impl Executable for VarDeclList {
 }
 
 impl Executable for ConstDeclList {
-    fn run(&self, interpreter: &mut Interpreter) -> Result<Value> {
+    fn run(&self, interpreter: &mut Context) -> Result<Value> {
         for decl in self.as_ref() {
             let val = decl.init().run(interpreter)?;
 
@@ -98,7 +98,7 @@ impl Executable for ConstDeclList {
 }
 
 impl Executable for LetDeclList {
-    fn run(&self, interpreter: &mut Interpreter) -> Result<Value> {
+    fn run(&self, interpreter: &mut Context) -> Result<Value> {
         for var in self.as_ref() {
             let val = match var.init() {
                 Some(v) => v.run(interpreter)?,
@@ -119,7 +119,7 @@ impl Executable for LetDeclList {
 }
 
 impl Executable for ArrowFunctionDecl {
-    fn run(&self, interpreter: &mut Interpreter) -> Result<Value> {
+    fn run(&self, interpreter: &mut Context) -> Result<Value> {
         Ok(interpreter.create_function(
             self.params().to_vec(),
             self.body().to_vec(),

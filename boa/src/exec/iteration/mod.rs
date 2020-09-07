@@ -1,18 +1,17 @@
 //! Iteration node execution.
 
-use super::{Executable, Interpreter, InterpreterState};
+use super::{Context, Executable, InterpreterState};
 use crate::{
     environment::lexical_environment::new_declarative_environment,
     syntax::ast::node::{DoWhileLoop, ForLoop, WhileLoop},
     BoaProfiler, Result, Value,
 };
-use std::borrow::Borrow;
 
 #[cfg(test)]
 mod tests;
 
 impl Executable for ForLoop {
-    fn run(&self, interpreter: &mut Interpreter) -> Result<Value> {
+    fn run(&self, interpreter: &mut Context) -> Result<Value> {
         // Create the block environment.
         let _timer = BoaProfiler::global().start_event("ForLoop", "exec");
         {
@@ -34,17 +33,21 @@ impl Executable for ForLoop {
         {
             let result = self.body().run(interpreter)?;
 
-            match interpreter.get_current_state() {
+            match interpreter.executor().get_current_state() {
                 InterpreterState::Break(_label) => {
                     // TODO break to label.
 
                     // Loops 'consume' breaks.
-                    interpreter.set_current_state(InterpreterState::Executing);
+                    interpreter
+                        .executor()
+                        .set_current_state(InterpreterState::Executing);
                     break;
                 }
                 InterpreterState::Continue(_label) => {
                     // TODO continue to label.
-                    interpreter.set_current_state(InterpreterState::Executing);
+                    interpreter
+                        .executor()
+                        .set_current_state(InterpreterState::Executing);
                     // after breaking out of the block, continue execution of the loop
                 }
                 InterpreterState::Return => {
@@ -68,21 +71,25 @@ impl Executable for ForLoop {
 }
 
 impl Executable for WhileLoop {
-    fn run(&self, interpreter: &mut Interpreter) -> Result<Value> {
+    fn run(&self, interpreter: &mut Context) -> Result<Value> {
         let mut result = Value::undefined();
-        while self.cond().run(interpreter)?.borrow().to_boolean() {
+        while self.cond().run(interpreter)?.to_boolean() {
             result = self.expr().run(interpreter)?;
-            match interpreter.get_current_state() {
+            match interpreter.executor().get_current_state() {
                 InterpreterState::Break(_label) => {
                     // TODO break to label.
 
                     // Loops 'consume' breaks.
-                    interpreter.set_current_state(InterpreterState::Executing);
+                    interpreter
+                        .executor()
+                        .set_current_state(InterpreterState::Executing);
                     break;
                 }
                 InterpreterState::Continue(_label) => {
                     // TODO continue to label.
-                    interpreter.set_current_state(InterpreterState::Executing);
+                    interpreter
+                        .executor()
+                        .set_current_state(InterpreterState::Executing);
                     // after breaking out of the block, continue execution of the loop
                 }
                 InterpreterState::Return => {
@@ -98,19 +105,23 @@ impl Executable for WhileLoop {
 }
 
 impl Executable for DoWhileLoop {
-    fn run(&self, interpreter: &mut Interpreter) -> Result<Value> {
+    fn run(&self, interpreter: &mut Context) -> Result<Value> {
         let mut result = self.body().run(interpreter)?;
-        match interpreter.get_current_state() {
+        match interpreter.executor().get_current_state() {
             InterpreterState::Break(_label) => {
                 // TODO break to label.
 
                 // Loops 'consume' breaks.
-                interpreter.set_current_state(InterpreterState::Executing);
+                interpreter
+                    .executor()
+                    .set_current_state(InterpreterState::Executing);
                 return Ok(result);
             }
             InterpreterState::Continue(_label) => {
                 // TODO continue to label;
-                interpreter.set_current_state(InterpreterState::Executing);
+                interpreter
+                    .executor()
+                    .set_current_state(InterpreterState::Executing);
                 // after breaking out of the block, continue execution of the loop
             }
             InterpreterState::Return => {
@@ -121,19 +132,23 @@ impl Executable for DoWhileLoop {
             }
         }
 
-        while self.cond().run(interpreter)?.borrow().to_boolean() {
+        while self.cond().run(interpreter)?.to_boolean() {
             result = self.body().run(interpreter)?;
-            match interpreter.get_current_state() {
+            match interpreter.executor().get_current_state() {
                 InterpreterState::Break(_label) => {
                     // TODO break to label.
 
                     // Loops 'consume' breaks.
-                    interpreter.set_current_state(InterpreterState::Executing);
+                    interpreter
+                        .executor()
+                        .set_current_state(InterpreterState::Executing);
                     break;
                 }
                 InterpreterState::Continue(_label) => {
                     // TODO continue to label.
-                    interpreter.set_current_state(InterpreterState::Executing);
+                    interpreter
+                        .executor()
+                        .set_current_state(InterpreterState::Executing);
                     // after breaking out of the block, continue execution of the loop
                 }
                 InterpreterState::Return => {

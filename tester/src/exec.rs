@@ -1,7 +1,7 @@
 //! Execution module for the test runner.
 
 use super::{Harness, Outcome, Phase, SuiteResult, Test, TestFlags, TestResult, TestSuite, CLI};
-use boa::{forward_val, parse, Interpreter, Realm};
+use boa::{parse, Context};
 use colored::Colorize;
 use fxhash::FxHashSet;
 use once_cell::sync::Lazy;
@@ -94,20 +94,20 @@ impl Test {
 
                         if self.flags.contains(TestFlags::RAW) {
                             let mut engine = self.set_up_env(&harness, false);
-                            let res = forward_val(&mut engine, &self.content);
+                            let res = engine.eval(&self.content);
 
                             passed = res.is_ok()
                         } else {
                             if self.flags.contains(TestFlags::STRICT) {
                                 let mut engine = self.set_up_env(&harness, true);
-                                let res = forward_val(&mut engine, &self.content);
+                                let res = engine.eval(&self.content);
 
                                 passed = res.is_ok()
                             }
 
                             if passed && self.flags.contains(TestFlags::NO_STRICT) {
                                 let mut engine = self.set_up_env(&harness, false);
-                                let res = forward_val(&mut engine, &self.content);
+                                let res = engine.eval(&self.content);
 
                                 passed = res.is_ok()
                             }
@@ -160,24 +160,26 @@ impl Test {
     }
 
     /// Sets the environment up to run the test.
-    fn set_up_env(&self, harness: &Harness, strict: bool) -> Interpreter {
+    fn set_up_env(&self, harness: &Harness, strict: bool) -> Context {
         // Create new Realm
         // TODO: in parallel.
-        let realm = Realm::create();
-        let mut engine = Interpreter::new(realm);
+        let mut engine = Context::new();
 
         // TODO: set up the environment.
 
         if strict {
-            forward_val(&mut engine, r#""use strict";"#).expect("could not set strict mode");
+            engine
+                .eval(r#""use strict";"#)
+                .expect("could not set strict mode");
         }
 
-        forward_val(&mut engine, &harness.assert).expect("could not run assert.js");
-        forward_val(&mut engine, &harness.sta).expect("could not run sta.js");
+        engine
+            .eval(&harness.assert)
+            .expect("could not run assert.js");
+        engine.eval(&harness.sta).expect("could not run sta.js");
 
         self.includes.iter().for_each(|include| {
-            let res = forward_val(
-                &mut engine,
+            let res = engine.eval(
                 &harness
                     .includes
                     .get(include)

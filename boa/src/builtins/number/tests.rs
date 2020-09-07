@@ -1,11 +1,10 @@
 #![allow(clippy::float_cmp)]
 
-use crate::{builtins::Number, exec::Interpreter, forward, forward_val, realm::Realm};
+use crate::{builtins::Number, forward, forward_val, Context};
 
 #[test]
 fn integer_number_primitive_to_number_object() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
 
     let scenario = r#"
         (100).toString() === "100"
@@ -16,8 +15,7 @@ fn integer_number_primitive_to_number_object() {
 
 #[test]
 fn call_number() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
     let init = r#"
         var default_zero = Number();
         var int_one = Number(1);
@@ -51,8 +49,7 @@ fn call_number() {
 
 #[test]
 fn to_exponential() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
     let init = r#"
         var default_exp = Number().toExponential();
         var int_exp = Number(5).toExponential();
@@ -80,8 +77,7 @@ fn to_exponential() {
 
 #[test]
 fn to_fixed() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
     let init = r#"
         var default_fixed = Number().toFixed();
         var pos_fixed = Number("3.456e+4").toFixed();
@@ -106,8 +102,7 @@ fn to_fixed() {
 
 #[test]
 fn to_locale_string() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
     let init = r#"
         var default_locale = Number().toLocaleString();
         var small_locale = Number(5).toLocaleString();
@@ -133,8 +128,7 @@ fn to_locale_string() {
 #[test]
 #[ignore]
 fn to_precision() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
     let init = r#"
         var default_precision = Number().toPrecision();
         var low_precision = Number(123456789).toPrecision(1);
@@ -165,8 +159,7 @@ fn to_precision() {
 
 #[test]
 fn to_string() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
 
     assert_eq!("\"NaN\"", &forward(&mut engine, "Number(NaN).toString()"));
     assert_eq!(
@@ -338,8 +331,7 @@ fn to_string() {
 
 #[test]
 fn num_to_string_exponential() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
 
     assert_eq!("\"0\"", forward(&mut engine, "(0).toString()"));
     assert_eq!("\"0\"", forward(&mut engine, "(-0).toString()"));
@@ -377,8 +369,7 @@ fn num_to_string_exponential() {
 
 #[test]
 fn value_of() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
     // TODO: In addition to parsing numbers from strings, parse them bare As of October 2019
     // the parser does not understand scientific e.g., Xe+Y or -Xe-Y notation.
     let init = r#"
@@ -436,8 +427,7 @@ fn same_value_zero() {
 
 #[test]
 fn from_bigint() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
 
     assert_eq!(&forward(&mut engine, "Number(0n)"), "0",);
     assert_eq!(&forward(&mut engine, "Number(100000n)"), "100000",);
@@ -447,8 +437,7 @@ fn from_bigint() {
 
 #[test]
 fn number_constants() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
 
     assert!(!forward_val(&mut engine, "Number.EPSILON")
         .unwrap()
@@ -475,48 +464,42 @@ fn number_constants() {
 
 #[test]
 fn parse_int_simple() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
 
     assert_eq!(&forward(&mut engine, "parseInt(\"6\")"), "6");
 }
 
 #[test]
 fn parse_int_negative() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
 
     assert_eq!(&forward(&mut engine, "parseInt(\"-9\")"), "-9");
 }
 
 #[test]
 fn parse_int_already_int() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
 
     assert_eq!(&forward(&mut engine, "parseInt(100)"), "100");
 }
 
 #[test]
 fn parse_int_float() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
 
     assert_eq!(&forward(&mut engine, "parseInt(100.5)"), "100");
 }
 
 #[test]
 fn parse_int_float_str() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
 
     assert_eq!(&forward(&mut engine, "parseInt(\"100.5\")"), "NaN");
 }
 
 #[test]
 fn parse_int_inferred_hex() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
 
     assert_eq!(&forward(&mut engine, "parseInt(\"0xA\")"), "10");
 }
@@ -525,16 +508,14 @@ fn parse_int_inferred_hex() {
 /// a radix 10 if no radix is specified. Some alternative implementations default to a radix of 8.
 #[test]
 fn parse_int_zero_start() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
 
     assert_eq!(&forward(&mut engine, "parseInt(\"018\")"), "18");
 }
 
 #[test]
 fn parse_int_varying_radix() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
 
     let base_str = "1000";
 
@@ -553,8 +534,7 @@ fn parse_int_varying_radix() {
 
 #[test]
 fn parse_int_negative_varying_radix() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
 
     let base_str = "-1000";
 
@@ -573,16 +553,14 @@ fn parse_int_negative_varying_radix() {
 
 #[test]
 fn parse_int_malformed_str() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
 
     assert_eq!(&forward(&mut engine, "parseInt(\"hello\")"), "NaN");
 }
 
 #[test]
 fn parse_int_undefined() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
 
     assert_eq!(&forward(&mut engine, "parseInt(undefined)"), "NaN");
 }
@@ -591,8 +569,7 @@ fn parse_int_undefined() {
 /// passed as the first argument.
 #[test]
 fn parse_int_no_args() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
 
     assert_eq!(&forward(&mut engine, "parseInt()"), "NaN");
 }
@@ -600,64 +577,56 @@ fn parse_int_no_args() {
 /// Shows that extra arguments to parseInt are ignored.
 #[test]
 fn parse_int_too_many_args() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
 
     assert_eq!(&forward(&mut engine, "parseInt(\"100\", 10, 10)"), "100");
 }
 
 #[test]
 fn parse_float_simple() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
 
     assert_eq!(&forward(&mut engine, "parseFloat(\"6.5\")"), "6.5");
 }
 
 #[test]
 fn parse_float_int() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
 
     assert_eq!(&forward(&mut engine, "parseFloat(10)"), "10");
 }
 
 #[test]
 fn parse_float_int_str() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
 
     assert_eq!(&forward(&mut engine, "parseFloat(\"8\")"), "8");
 }
 
 #[test]
 fn parse_float_already_float() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
 
     assert_eq!(&forward(&mut engine, "parseFloat(17.5)"), "17.5");
 }
 
 #[test]
 fn parse_float_negative() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
 
     assert_eq!(&forward(&mut engine, "parseFloat(\"-99.7\")"), "-99.7");
 }
 
 #[test]
 fn parse_float_malformed_str() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
 
     assert_eq!(&forward(&mut engine, "parseFloat(\"hello\")"), "NaN");
 }
 
 #[test]
 fn parse_float_undefined() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
 
     assert_eq!(&forward(&mut engine, "parseFloat(undefined)"), "NaN");
 }
@@ -665,8 +634,7 @@ fn parse_float_undefined() {
 /// No arguments to parseFloat is treated the same as passing undefined as the first argument.
 #[test]
 fn parse_float_no_args() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
 
     assert_eq!(&forward(&mut engine, "parseFloat()"), "NaN");
 }
@@ -674,16 +642,14 @@ fn parse_float_no_args() {
 /// Shows that the parseFloat function ignores extra arguments.
 #[test]
 fn parse_float_too_many_args() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
 
     assert_eq!(&forward(&mut engine, "parseFloat(\"100.5\", 10)"), "100.5");
 }
 
 #[test]
 fn global_is_finite() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
 
     assert_eq!("false", &forward(&mut engine, "isFinite(Infinity)"));
     assert_eq!("false", &forward(&mut engine, "isFinite(NaN)"));
@@ -698,8 +664,7 @@ fn global_is_finite() {
 
 #[test]
 fn global_is_nan() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
 
     assert_eq!("true", &forward(&mut engine, "isNaN(NaN)"));
     assert_eq!("true", &forward(&mut engine, "isNaN('NaN')"));
@@ -720,8 +685,7 @@ fn global_is_nan() {
 
 #[test]
 fn number_is_finite() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
 
     assert_eq!("false", &forward(&mut engine, "Number.isFinite(Infinity)"));
     assert_eq!("false", &forward(&mut engine, "Number.isFinite(NaN)"));
@@ -747,8 +711,7 @@ fn number_is_finite() {
 
 #[test]
 fn number_is_integer() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
 
     assert_eq!("true", &forward(&mut engine, "Number.isInteger(0)"));
     assert_eq!("true", &forward(&mut engine, "Number.isInteger(1)"));
@@ -795,8 +758,7 @@ fn number_is_integer() {
 
 #[test]
 fn number_is_nan() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
 
     assert_eq!("true", &forward(&mut engine, "Number.isNaN(NaN)"));
     assert_eq!("true", &forward(&mut engine, "Number.isNaN(Number.NaN)"));
@@ -829,8 +791,7 @@ fn number_is_nan() {
 
 #[test]
 fn number_is_safe_integer() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
 
     assert_eq!("true", &forward(&mut engine, "Number.isSafeInteger(3)"));
     assert_eq!(

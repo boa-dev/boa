@@ -1,10 +1,7 @@
 use boa::{
     class::{Class, ClassBuilder},
-    exec::Interpreter,
-    forward_val,
     property::Attribute,
-    realm::Realm,
-    Finalize, Result, Trace, Value,
+    Context, Finalize, Result, Trace, Value,
 };
 
 // We create a new struct that is going to represent a person.
@@ -28,7 +25,7 @@ struct Person {
 // or any function that matches that signature.
 impl Person {
     /// This function says hello
-    fn say_hello(this: &Value, _: &[Value], ctx: &mut Interpreter) -> Result<Value> {
+    fn say_hello(this: &Value, _: &[Value], ctx: &mut Context) -> Result<Value> {
         // We check if this is an object.
         if let Some(object) = this.as_object() {
             // If it is we downcast the type to type `Person`.
@@ -59,7 +56,7 @@ impl Class for Person {
     const LENGTH: usize = 2;
 
     // This is what is called when we do `new Person()`
-    fn constructor(_this: &Value, args: &[Value], ctx: &mut Interpreter) -> Result<Self> {
+    fn constructor(_this: &Value, args: &[Value], ctx: &mut Context) -> Result<Self> {
         // we get the first arguemnt of undefined if the first one is unavalable and call `to_string`.
         //
         // This is equivalent to `String(arg)`.
@@ -117,15 +114,14 @@ impl Class for Person {
 }
 
 fn main() {
-    let realm = Realm::create();
-    let mut context = Interpreter::new(realm);
+    let mut context = Context::new();
 
     // we register the global class `Person`.
     context.register_global_class::<Person>().unwrap();
 
-    forward_val(
-        &mut context,
-        r"
+    context
+        .eval(
+            r"
 		let person = new Person('John', 19);
 		person.sayHello();
 
@@ -140,6 +136,6 @@ fn main() {
         console.log(person.inheritedProperty);
 	    console.log(Person.prototype.inheritedProperty === person.inheritedProperty);
     ",
-    )
-    .unwrap();
+        )
+        .unwrap();
 }

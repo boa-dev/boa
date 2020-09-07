@@ -1,6 +1,6 @@
 use super::BigInt;
 
-use crate::{builtins::Number, exec::Interpreter, Value};
+use crate::{builtins::Number, Context, Value};
 use num_traits::cast::{FromPrimitive, ToPrimitive};
 
 use std::convert::TryFrom;
@@ -14,7 +14,7 @@ impl BigInt {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-stringtobigint
     #[inline]
-    pub(crate) fn from_string(string: &str, _ctx: &mut Interpreter) -> Result<Self, Value> {
+    pub(crate) fn from_string(string: &str, _ctx: &mut Context) -> Result<Self, Value> {
         if string.is_empty() {
             return Ok(BigInt::from(0));
         }

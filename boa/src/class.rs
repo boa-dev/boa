@@ -5,10 +5,7 @@
 //!# use boa::{
 //!#    property::Attribute,
 //!#    class::{Class, ClassBuilder},
-//!#    exec::Interpreter,
-//!#    forward_val,
-//!#    realm::Realm,
-//!#    Finalize, Value, Result, Trace,
+//!#    Context, Finalize, Result, Trace, Value,
 //!# };
 //!#
 //! // This does not have to be an enum it can also be a struct.
@@ -27,7 +24,7 @@
 //!     const LENGTH: usize = 1;
 //!
 //!     // This is what is called when we do `new Animal()`
-//!     fn constructor(_this: &Value, args: &[Value], ctx: &mut Interpreter) -> Result<Self> {
+//!     fn constructor(_this: &Value, args: &[Value], ctx: &mut Context) -> Result<Self> {
 //!         // This is equivalent to `String(arg)`.
 //!         let kind = args.get(0).cloned().unwrap_or_default().to_string(ctx)?;
 //!
@@ -68,7 +65,7 @@ use crate::{
         object::{GcObject, NativeObject, Object, ObjectData, PROTOTYPE},
     },
     property::{Attribute, Property, PropertyKey},
-    Interpreter, Result, Value,
+    Context, Result, Value,
 };
 use std::fmt::Debug;
 
@@ -82,7 +79,7 @@ pub trait Class: NativeObject + Sized {
     const ATTRIBUTE: Attribute = Attribute::all();
 
     /// The constructor of the class.
-    fn constructor(this: &Value, args: &[Value], ctx: &mut Interpreter) -> Result<Self>;
+    fn constructor(this: &Value, args: &[Value], ctx: &mut Context) -> Result<Self>;
 
     /// Initializes the internals and the methods of the class.
     fn init(class: &mut ClassBuilder<'_>) -> Result<()>;
@@ -93,13 +90,13 @@ pub trait Class: NativeObject + Sized {
 /// This is automatically implemented, when a type implements `Class`.
 pub trait ClassConstructor: Class {
     /// The raw constructor that mathces the `NativeFunction` signature.
-    fn raw_constructor(this: &Value, args: &[Value], ctx: &mut Interpreter) -> Result<Value>
+    fn raw_constructor(this: &Value, args: &[Value], ctx: &mut Context) -> Result<Value>
     where
         Self: Sized;
 }
 
 impl<T: Class> ClassConstructor for T {
-    fn raw_constructor(this: &Value, args: &[Value], ctx: &mut Interpreter) -> Result<Value>
+    fn raw_constructor(this: &Value, args: &[Value], ctx: &mut Context) -> Result<Value>
     where
         Self: Sized,
     {
@@ -113,7 +110,7 @@ impl<T: Class> ClassConstructor for T {
 #[derive(Debug)]
 pub struct ClassBuilder<'context> {
     /// The current context.
-    context: &'context mut Interpreter,
+    context: &'context mut Context,
 
     /// The constructor object.
     object: GcObject,
@@ -123,11 +120,11 @@ pub struct ClassBuilder<'context> {
 }
 
 impl<'context> ClassBuilder<'context> {
-    pub(crate) fn new<T>(context: &'context mut Interpreter) -> Self
+    pub(crate) fn new<T>(context: &'context mut Context) -> Self
     where
         T: ClassConstructor,
     {
-        let global = context.global();
+        let global = context.global_object();
 
         let prototype = {
             let object_prototype = global.get_field("Object").get_field(PROTOTYPE);
@@ -190,7 +187,7 @@ impl<'context> ClassBuilder<'context> {
         let mut function = Object::function(
             Function::BuiltIn(function.into(), FunctionFlags::CALLABLE),
             self.context
-                .global()
+                .global_object()
                 .get_field("Function")
                 .get_field("prototype"),
         );
@@ -214,7 +211,7 @@ impl<'context> ClassBuilder<'context> {
         let mut function = Object::function(
             Function::BuiltIn(function.into(), FunctionFlags::CALLABLE),
             self.context
-                .global()
+                .global_object()
                 .get_field("Function")
                 .get_field("prototype"),
         );
@@ -262,7 +259,7 @@ impl<'context> ClassBuilder<'context> {
     }
 
     /// Return the current context.
-    pub fn context(&mut self) -> &'_ mut Interpreter {
+    pub fn context(&mut self) -> &'_ mut Context {
         self.context
     }
 }

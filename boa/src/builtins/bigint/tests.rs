@@ -1,9 +1,8 @@
-use crate::{forward, Interpreter, Realm};
+use crate::{forward, Context};
 
 #[test]
 fn equality() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
 
     assert_eq!(forward(&mut engine, "0n == 0n"), "true");
     assert_eq!(forward(&mut engine, "1n == 0n"), "false");
@@ -56,8 +55,7 @@ fn equality() {
 
 #[test]
 fn bigint_function_conversion_from_integer() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
 
     assert_eq!(forward(&mut engine, "BigInt(1000)"), "1000n");
     assert_eq!(
@@ -72,8 +70,7 @@ fn bigint_function_conversion_from_integer() {
 
 #[test]
 fn bigint_function_conversion_from_rational() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
 
     assert_eq!(forward(&mut engine, "BigInt(0.0)"), "0n");
     assert_eq!(forward(&mut engine, "BigInt(1.0)"), "1n");
@@ -82,8 +79,7 @@ fn bigint_function_conversion_from_rational() {
 
 #[test]
 fn bigint_function_conversion_from_rational_with_fractional_part() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
 
     let scenario = r#"
         try {
@@ -100,8 +96,7 @@ fn bigint_function_conversion_from_rational_with_fractional_part() {
 
 #[test]
 fn bigint_function_conversion_from_null() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
 
     let scenario = r#"
         try {
@@ -118,8 +113,7 @@ fn bigint_function_conversion_from_null() {
 
 #[test]
 fn bigint_function_conversion_from_undefined() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
 
     let scenario = r#"
         try {
@@ -136,8 +130,7 @@ fn bigint_function_conversion_from_undefined() {
 
 #[test]
 fn bigint_function_conversion_from_string() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
 
     assert_eq!(forward(&mut engine, "BigInt('')"), "0n");
     assert_eq!(
@@ -152,24 +145,21 @@ fn bigint_function_conversion_from_string() {
 
 #[test]
 fn add() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
 
     assert_eq!(forward(&mut engine, "10000n + 1000n"), "11000n");
 }
 
 #[test]
 fn sub() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
 
     assert_eq!(forward(&mut engine, "10000n - 1000n"), "9000n");
 }
 
 #[test]
 fn mul() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
 
     assert_eq!(
         forward(&mut engine, "123456789n * 102030n"),
@@ -179,32 +169,28 @@ fn mul() {
 
 #[test]
 fn div() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
 
     assert_eq!(forward(&mut engine, "15000n / 50n"), "300n");
 }
 
 #[test]
 fn div_with_truncation() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
 
     assert_eq!(forward(&mut engine, "15001n / 50n"), "300n");
 }
 
 #[test]
 fn r#mod() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
 
     assert_eq!(forward(&mut engine, "15007n % 10n"), "7n");
 }
 
 #[test]
 fn pow() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
 
     assert_eq!(
         forward(&mut engine, "100n ** 10n"),
@@ -214,8 +200,7 @@ fn pow() {
 
 #[test]
 fn to_string() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
 
     assert_eq!(forward(&mut engine, "1000n.toString()"), "\"1000\"");
     assert_eq!(forward(&mut engine, "1000n.toString(2)"), "\"1111101000\"");
@@ -225,8 +210,7 @@ fn to_string() {
 
 #[test]
 fn as_int_n() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
 
     assert_eq!(forward(&mut engine, "BigInt.asIntN(0, 1n)"), "0n");
     assert_eq!(forward(&mut engine, "BigInt.asIntN(1, 1n)"), "-1n");
@@ -286,8 +270,7 @@ fn as_int_n() {
 
 #[test]
 fn as_int_n_errors() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
 
     assert_throws(&mut engine, "BigInt.asIntN(-1, 0n)", "RangeError");
     assert_throws(&mut engine, "BigInt.asIntN(-2.5, 0n)", "RangeError");
@@ -301,8 +284,7 @@ fn as_int_n_errors() {
 
 #[test]
 fn as_uint_n() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
 
     assert_eq!(forward(&mut engine, "BigInt.asUintN(0, -2n)"), "0n");
     assert_eq!(forward(&mut engine, "BigInt.asUintN(0, -1n)"), "0n");
@@ -353,8 +335,7 @@ fn as_uint_n() {
 
 #[test]
 fn as_uint_n_errors() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
 
     assert_throws(&mut engine, "BigInt.asUintN(-1, 0n)", "RangeError");
     assert_throws(&mut engine, "BigInt.asUintN(-2.5, 0n)", "RangeError");
@@ -366,7 +347,7 @@ fn as_uint_n_errors() {
     assert_throws(&mut engine, "BigInt.asUintN(0n, 0n)", "TypeError");
 }
 
-fn assert_throws(engine: &mut Interpreter, src: &str, error_type: &str) {
+fn assert_throws(engine: &mut Context, src: &str, error_type: &str) {
     let result = forward(engine, src);
     assert!(result.contains(error_type));
 }

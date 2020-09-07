@@ -1,9 +1,8 @@
-use crate::{exec::Interpreter, forward, realm::Realm};
+use crate::{forward, Context};
 
 #[test]
 fn object_create_with_regular_object() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
 
     let init = r#"
         const foo = { a: 5 };
@@ -18,8 +17,7 @@ fn object_create_with_regular_object() {
 
 #[test]
 fn object_create_with_undefined() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
 
     let init = r#"
         try {
@@ -38,8 +36,7 @@ fn object_create_with_undefined() {
 
 #[test]
 fn object_create_with_number() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
 
     let init = r#"
         try {
@@ -60,8 +57,7 @@ fn object_create_with_number() {
 #[ignore]
 // to test on __proto__ somehow. __proto__ getter is not working as expected currently
 fn object_create_with_function() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
 
     let init = r#"
         const x = function (){};
@@ -75,8 +71,7 @@ fn object_create_with_function() {
 
 #[test]
 fn object_is() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
 
     let init = r#"
         var foo = { a: 1};
@@ -96,13 +91,12 @@ fn object_is() {
     assert_eq!(forward(&mut engine, "Object.is(NaN, 0/0)"), "true");
     assert_eq!(forward(&mut engine, "Object.is()"), "true");
     assert_eq!(forward(&mut engine, "Object.is(undefined)"), "true");
-    assert!(engine.realm.global_obj.is_global());
-    assert!(!engine.realm.global_obj.get_field("Object").is_global());
+    assert!(engine.global_object().is_global());
+    assert!(!engine.global_object().get_field("Object").is_global());
 }
 #[test]
 fn object_has_own_property() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
     let init = r#"
         let x = { someProp: 1, undefinedProp: undefined, nullProp: null };
     "#;
@@ -122,8 +116,7 @@ fn object_has_own_property() {
 
 #[test]
 fn object_property_is_enumerable() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
     let init = r#"
         let x = { enumerableProp: 'yes' };
     "#;
