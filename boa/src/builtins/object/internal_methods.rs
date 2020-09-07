@@ -6,10 +6,8 @@
 //! [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots
 
 use crate::{
-    builtins::{
-        object::Object,
-        property::{Attribute, Property, PropertyKey},
-    },
+    builtins::object::Object,
+    property::{Attribute, Property, PropertyKey},
     value::{same_value, Value},
     BoaProfiler,
 };

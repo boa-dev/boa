@@ -2,11 +2,9 @@
 
 use super::function::{make_builtin_fn, make_constructor_fn};
 use crate::{
-    builtins::{
-        object::{ObjectData, PROTOTYPE},
-        property::{Attribute, Property},
-    },
+    builtins::object::{ObjectData, PROTOTYPE},
     exec::Interpreter,
+    property::{Attribute, Property},
     BoaProfiler, Result, Value,
 };
 use ordered_map::OrderedMap;

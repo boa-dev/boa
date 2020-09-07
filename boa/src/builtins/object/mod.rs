@@ -17,10 +17,10 @@ use crate::{
     builtins::{
         function::{make_builtin_fn, make_constructor_fn, Function},
         map::ordered_map::OrderedMap,
-        property::{Property, PropertyKey},
         BigInt, Date, RegExp,
     },
     exec::Interpreter,
+    property::{Property, PropertyKey},
     value::{same_value, RcBigInt, RcString, RcSymbol, Value},
     BoaProfiler, Result,
 };

@@ -39,6 +39,7 @@ pub mod class;
 pub mod environment;
 pub mod exec;
 pub mod profiler;
+pub mod property;
 pub mod realm;
 pub mod syntax;
 pub mod value;

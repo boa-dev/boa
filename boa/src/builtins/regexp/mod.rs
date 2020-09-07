@@ -13,8 +13,9 @@ use regex::Regex;
 
 use super::function::{make_builtin_fn, make_constructor_fn};
 use crate::{
-    builtins::{object::ObjectData, property::Property},
+    builtins::object::ObjectData,
     exec::Interpreter,
+    property::Property,
     value::{RcString, Value},
     BoaProfiler, Result,
 };

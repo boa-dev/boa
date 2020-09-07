@@ -27,10 +27,10 @@ use crate::{
     builtins::{
         function::{Function, FunctionFlags, NativeFunction},
         object::{GcObject, Object, ObjectData, PROTOTYPE},
-        property::{Property, PropertyKey},
         Console, Symbol,
     },
     class::{Class, ClassBuilder},
+    property::{Property, PropertyKey},
     realm::Realm,
     syntax::ast::{
         constant::Const,

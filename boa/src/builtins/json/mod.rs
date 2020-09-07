@@ -14,11 +14,9 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON
 
 use crate::{
-    builtins::{
-        function::make_builtin_fn,
-        property::{Property, PropertyKey},
-    },
+    builtins::function::make_builtin_fn,
     exec::Interpreter,
+    property::{Property, PropertyKey},
     BoaProfiler, Result, Value,
 };
 use serde_json::{self, Value as JSONValue};
