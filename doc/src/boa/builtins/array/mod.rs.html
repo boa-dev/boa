@@ -1197,8 +1197,6 @@
 <span id="1197">1197</span>
 <span id="1198">1198</span>
 <span id="1199">1199</span>
-<span id="1200">1200</span>
-<span id="1201">1201</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements the global `Array` object.</span>
 <span class="doccomment">//!</span>
@@ -1216,11 +1214,9 @@
 
 <span class="kw">use</span> <span class="kw">super</span>::<span class="ident">function</span>::{<span class="ident">make_builtin_fn</span>, <span class="ident">make_constructor_fn</span>};
 <span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">builtins</span>::{
-        <span class="ident">object</span>::{<span class="ident">ObjectData</span>, <span class="ident">PROTOTYPE</span>},
-        <span class="ident">property</span>::{<span class="ident">Attribute</span>, <span class="ident">Property</span>},
-    },
+    <span class="ident">builtins</span>::<span class="ident">object</span>::{<span class="ident">ObjectData</span>, <span class="ident">PROTOTYPE</span>},
     <span class="ident">exec</span>::<span class="ident">Interpreter</span>,
+    <span class="ident">property</span>::{<span class="ident">Attribute</span>, <span class="ident">Property</span>},
     <span class="ident">value</span>::{<span class="ident">same_value_zero</span>, <span class="ident">Value</span>},
     <span class="ident">BoaProfiler</span>, <span class="prelude-ty">Result</span>,
 };

@@ -515,6 +515,7 @@
 <span id="515">515</span>
 <span id="516">516</span>
 <span id="517">517</span>
+<span id="518">518</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements the global `RegExp` object.</span>
 <span class="doccomment">//!</span>
@@ -531,8 +532,9 @@
 
 <span class="kw">use</span> <span class="kw">super</span>::<span class="ident">function</span>::{<span class="ident">make_builtin_fn</span>, <span class="ident">make_constructor_fn</span>};
 <span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">builtins</span>::{<span class="ident">object</span>::<span class="ident">ObjectData</span>, <span class="ident">property</span>::<span class="ident">Property</span>},
+    <span class="ident">builtins</span>::<span class="ident">object</span>::<span class="ident">ObjectData</span>,
     <span class="ident">exec</span>::<span class="ident">Interpreter</span>,
+    <span class="ident">property</span>::<span class="ident">Property</span>,
     <span class="ident">value</span>::{<span class="ident">RcString</span>, <span class="ident">Value</span>},
     <span class="ident">BoaProfiler</span>, <span class="prelude-ty">Result</span>,
 };

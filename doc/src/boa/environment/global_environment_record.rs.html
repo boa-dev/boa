@@ -204,13 +204,13 @@
 <span class="doccomment">//! More info:  &lt;https://tc39.es/ecma262/#sec-global-environment-records&gt;</span>
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">builtins</span>::<span class="ident">property</span>::{<span class="ident">Attribute</span>, <span class="ident">Property</span>},
     <span class="ident">environment</span>::{
         <span class="ident">declarative_environment_record</span>::<span class="ident">DeclarativeEnvironmentRecord</span>,
         <span class="ident">environment_record_trait</span>::<span class="ident">EnvironmentRecordTrait</span>,
         <span class="ident">lexical_environment</span>::{<span class="ident">Environment</span>, <span class="ident">EnvironmentType</span>},
         <span class="ident">object_environment_record</span>::<span class="ident">ObjectEnvironmentRecord</span>,
     },
+    <span class="ident">property</span>::{<span class="ident">Attribute</span>, <span class="ident">Property</span>},
     <span class="ident">Value</span>,
 };
 <span class="kw">use</span> <span class="ident">gc</span>::{<span class="ident">Finalize</span>, <span class="ident">Trace</span>};

@@ -378,8 +378,6 @@
 <span id="378">378</span>
 <span id="379">379</span>
 <span id="380">380</span>
-<span id="381">381</span>
-<span id="382">382</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module defines the object internal methods.</span>
 <span class="doccomment">//!</span>
@@ -389,10 +387,8 @@
 <span class="doccomment">//! [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots</span>
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">builtins</span>::{
-        <span class="ident">object</span>::<span class="ident">Object</span>,
-        <span class="ident">property</span>::{<span class="ident">Attribute</span>, <span class="ident">Property</span>, <span class="ident">PropertyKey</span>},
-    },
+    <span class="ident">builtins</span>::<span class="ident">object</span>::<span class="ident">Object</span>,
+    <span class="ident">property</span>::{<span class="ident">Attribute</span>, <span class="ident">Property</span>, <span class="ident">PropertyKey</span>},
     <span class="ident">value</span>::{<span class="ident">same_value</span>, <span class="ident">Value</span>},
     <span class="ident">BoaProfiler</span>,
 };
