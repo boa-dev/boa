@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/hashbrown-0.8.2/src/set.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>set.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../hashbrown/index.html'><div class='logo-container'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/hashbrown-0.9.0/src/set.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>set.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../hashbrown/index.html'><div class='logo-container'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
 <span id="3">   3</span>
 <span id="4">   4</span>
@@ -2084,6 +2084,39 @@
 <span id="2084">2084</span>
 <span id="2085">2085</span>
 <span id="2086">2086</span>
+<span id="2087">2087</span>
+<span id="2088">2088</span>
+<span id="2089">2089</span>
+<span id="2090">2090</span>
+<span id="2091">2091</span>
+<span id="2092">2092</span>
+<span id="2093">2093</span>
+<span id="2094">2094</span>
+<span id="2095">2095</span>
+<span id="2096">2096</span>
+<span id="2097">2097</span>
+<span id="2098">2098</span>
+<span id="2099">2099</span>
+<span id="2100">2100</span>
+<span id="2101">2101</span>
+<span id="2102">2102</span>
+<span id="2103">2103</span>
+<span id="2104">2104</span>
+<span id="2105">2105</span>
+<span id="2106">2106</span>
+<span id="2107">2107</span>
+<span id="2108">2108</span>
+<span id="2109">2109</span>
+<span id="2110">2110</span>
+<span id="2111">2111</span>
+<span id="2112">2112</span>
+<span id="2113">2113</span>
+<span id="2114">2114</span>
+<span id="2115">2115</span>
+<span id="2116">2116</span>
+<span id="2117">2117</span>
+<span id="2118">2118</span>
+<span id="2119">2119</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">TryReserveError</span>;
 <span class="kw">use</span> <span class="ident">alloc</span>::<span class="ident">borrow</span>::<span class="ident">ToOwned</span>;
@@ -2187,11 +2220,9 @@
 <span class="doccomment">/// ```</span>
 <span class="doccomment">/// use hashbrown::HashSet;</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// fn main() {</span>
 <span class="doccomment">/// let viking_names: HashSet&lt;&amp;&#39;static str&gt; =</span>
 <span class="doccomment">///     [ &quot;Einar&quot;, &quot;Olaf&quot;, &quot;Harald&quot; ].iter().cloned().collect();</span>
 <span class="doccomment">/// // use the values stored in the set</span>
-<span class="doccomment">/// }</span>
 <span class="doccomment">/// ```</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// [`Cell`]: https://doc.rust-lang.org/std/cell/struct.Cell.html</span>
@@ -2217,7 +2248,7 @@
 }
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;ahash&quot;</span>)]</span>
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Hash</span> <span class="op">+</span> <span class="ident">Eq</span><span class="op">&gt;</span> <span class="ident">HashSet</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">DefaultHashBuilder</span><span class="op">&gt;</span> {
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">HashSet</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">DefaultHashBuilder</span><span class="op">&gt;</span> {
     <span class="doccomment">/// Creates an empty `HashSet`.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// The hash set is initially created with a capacity of 0, so it will not allocate until it</span>
@@ -2257,6 +2288,72 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">S</span><span class="op">&gt;</span> <span class="ident">HashSet</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">S</span><span class="op">&gt;</span> {
+    <span class="doccomment">/// Creates a new empty hash set which will use the given hasher to hash</span>
+    <span class="doccomment">/// keys.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// The hash set is also created with the default initial capacity.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Warning: `hasher` is normally randomly generated, and</span>
+    <span class="doccomment">/// is designed to allow `HashSet`s to be resistant to attacks that</span>
+    <span class="doccomment">/// cause many collisions and very poor performance. Setting it</span>
+    <span class="doccomment">/// manually using this function can expose a DoS attack vector.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// The `hash_builder` passed should implement the [`BuildHasher`] trait for</span>
+    <span class="doccomment">/// the HashMap to be useful, see its documentation for details.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// # Examples</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// ```</span>
+    <span class="doccomment">/// use hashbrown::HashSet;</span>
+    <span class="doccomment">/// use hashbrown::hash_map::DefaultHashBuilder;</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// let s = DefaultHashBuilder::default();</span>
+    <span class="doccomment">/// let mut set = HashSet::with_hasher(s);</span>
+    <span class="doccomment">/// set.insert(2);</span>
+    <span class="doccomment">/// ```</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// [`BuildHasher`]: ../../std/hash/trait.BuildHasher.html</span>
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;inline-more&quot;</span>, <span class="ident">inline</span>)]</span>
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">with_hasher</span>(<span class="ident">hasher</span>: <span class="ident">S</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <span class="self">Self</span> {
+            <span class="ident">map</span>: <span class="ident">HashMap</span>::<span class="ident">with_hasher</span>(<span class="ident">hasher</span>),
+        }
+    }
+
+    <span class="doccomment">/// Creates an empty `HashSet` with the specified capacity, using</span>
+    <span class="doccomment">/// `hasher` to hash the keys.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// The hash set will be able to hold at least `capacity` elements without</span>
+    <span class="doccomment">/// reallocating. If `capacity` is 0, the hash set will not allocate.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Warning: `hasher` is normally randomly generated, and</span>
+    <span class="doccomment">/// is designed to allow `HashSet`s to be resistant to attacks that</span>
+    <span class="doccomment">/// cause many collisions and very poor performance. Setting it</span>
+    <span class="doccomment">/// manually using this function can expose a DoS attack vector.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// The `hash_builder` passed should implement the [`BuildHasher`] trait for</span>
+    <span class="doccomment">/// the HashMap to be useful, see its documentation for details.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// # Examples</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// ```</span>
+    <span class="doccomment">/// use hashbrown::HashSet;</span>
+    <span class="doccomment">/// use hashbrown::hash_map::DefaultHashBuilder;</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// let s = DefaultHashBuilder::default();</span>
+    <span class="doccomment">/// let mut set = HashSet::with_capacity_and_hasher(10, s);</span>
+    <span class="doccomment">/// set.insert(1);</span>
+    <span class="doccomment">/// ```</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// [`BuildHasher`]: ../../std/hash/trait.BuildHasher.html</span>
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;inline-more&quot;</span>, <span class="ident">inline</span>)]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">with_capacity_and_hasher</span>(<span class="ident">capacity</span>: <span class="ident">usize</span>, <span class="ident">hasher</span>: <span class="ident">S</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <span class="self">Self</span> {
+            <span class="ident">map</span>: <span class="ident">HashMap</span>::<span class="ident">with_capacity_and_hasher</span>(<span class="ident">capacity</span>, <span class="ident">hasher</span>),
+        }
+    }
+
     <span class="doccomment">/// Returns the number of elements the set can hold without reallocating.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// # Examples</span>
@@ -2373,13 +2470,13 @@
         <span class="self">self</span>.<span class="ident">map</span>.<span class="ident">retain</span>(<span class="op">|</span><span class="ident">k</span>, <span class="kw">_</span><span class="op">|</span> <span class="ident">f</span>(<span class="ident">k</span>));
     }
 
-    <span class="doccomment">/// Drains elements which are false under the given predicate,</span>
+    <span class="doccomment">/// Drains elements which are true under the given predicate,</span>
     <span class="doccomment">/// and returns an iterator over the removed items.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// In other words, move all elements `e` such that `f(&amp;e)` returns `false` out</span>
+    <span class="doccomment">/// In other words, move all elements `e` such that `f(&amp;e)` returns `true` out</span>
     <span class="doccomment">/// into another iterator.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// When the returned DrainedFilter is dropped, the elements that don&#39;t satisfy</span>
+    <span class="doccomment">/// When the returned DrainedFilter is dropped, any remaining elements that satisfy</span>
     <span class="doccomment">/// the predicate are dropped from the set.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// # Examples</span>
@@ -2388,9 +2485,15 @@
     <span class="doccomment">/// use hashbrown::HashSet;</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// let mut set: HashSet&lt;i32&gt; = (0..8).collect();</span>
-    <span class="doccomment">/// let drained = set.drain_filter(|&amp;k| k % 2 == 0);</span>
-    <span class="doccomment">/// assert_eq!(drained.count(), 4);</span>
-    <span class="doccomment">/// assert_eq!(set.len(), 4);</span>
+    <span class="doccomment">/// let drained: HashSet&lt;i32&gt; = set.drain_filter(|v| v % 2 == 0).collect();</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// let mut evens = drained.into_iter().collect::&lt;Vec&lt;_&gt;&gt;();</span>
+    <span class="doccomment">/// let mut odds = set.into_iter().collect::&lt;Vec&lt;_&gt;&gt;();</span>
+    <span class="doccomment">/// evens.sort();</span>
+    <span class="doccomment">/// odds.sort();</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// assert_eq!(evens, vec![0, 2, 4, 6]);</span>
+    <span class="doccomment">/// assert_eq!(odds, vec![1, 3, 5, 7]);</span>
     <span class="doccomment">/// ```</span>
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;inline-more&quot;</span>, <span class="ident">inline</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">drain_filter</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">f</span>: <span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">DrainFilter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">T</span>, <span class="ident">F</span><span class="op">&gt;</span>
@@ -2422,78 +2525,6 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">clear</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
         <span class="self">self</span>.<span class="ident">map</span>.<span class="ident">clear</span>()
     }
-}
-
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">S</span><span class="op">&gt;</span> <span class="ident">HashSet</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">S</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">T</span>: <span class="ident">Eq</span> <span class="op">+</span> <span class="ident">Hash</span>,
-    <span class="ident">S</span>: <span class="ident">BuildHasher</span>,
-{
-    <span class="doccomment">/// Creates a new empty hash set which will use the given hasher to hash</span>
-    <span class="doccomment">/// keys.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The hash set is also created with the default initial capacity.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Warning: `hasher` is normally randomly generated, and</span>
-    <span class="doccomment">/// is designed to allow `HashSet`s to be resistant to attacks that</span>
-    <span class="doccomment">/// cause many collisions and very poor performance. Setting it</span>
-    <span class="doccomment">/// manually using this function can expose a DoS attack vector.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The `hash_builder` passed should implement the [`BuildHasher`] trait for</span>
-    <span class="doccomment">/// the HashMap to be useful, see its documentation for details.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use hashbrown::HashSet;</span>
-    <span class="doccomment">/// use hashbrown::hash_map::DefaultHashBuilder;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let s = DefaultHashBuilder::default();</span>
-    <span class="doccomment">/// let mut set = HashSet::with_hasher(s);</span>
-    <span class="doccomment">/// set.insert(2);</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`BuildHasher`]: ../../std/hash/trait.BuildHasher.html</span>
-    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;inline-more&quot;</span>, <span class="ident">inline</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">with_hasher</span>(<span class="ident">hasher</span>: <span class="ident">S</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="self">Self</span> {
-            <span class="ident">map</span>: <span class="ident">HashMap</span>::<span class="ident">with_hasher</span>(<span class="ident">hasher</span>),
-        }
-    }
-
-    <span class="doccomment">/// Creates an empty `HashSet` with the specified capacity, using</span>
-    <span class="doccomment">/// `hasher` to hash the keys.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The hash set will be able to hold at least `capacity` elements without</span>
-    <span class="doccomment">/// reallocating. If `capacity` is 0, the hash set will not allocate.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Warning: `hasher` is normally randomly generated, and</span>
-    <span class="doccomment">/// is designed to allow `HashSet`s to be resistant to attacks that</span>
-    <span class="doccomment">/// cause many collisions and very poor performance. Setting it</span>
-    <span class="doccomment">/// manually using this function can expose a DoS attack vector.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The `hash_builder` passed should implement the [`BuildHasher`] trait for</span>
-    <span class="doccomment">/// the HashMap to be useful, see its documentation for details.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use hashbrown::HashSet;</span>
-    <span class="doccomment">/// use hashbrown::hash_map::DefaultHashBuilder;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let s = DefaultHashBuilder::default();</span>
-    <span class="doccomment">/// let mut set = HashSet::with_capacity_and_hasher(10, s);</span>
-    <span class="doccomment">/// set.insert(1);</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`BuildHasher`]: ../../std/hash/trait.BuildHasher.html</span>
-    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;inline-more&quot;</span>, <span class="ident">inline</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">with_capacity_and_hasher</span>(<span class="ident">capacity</span>: <span class="ident">usize</span>, <span class="ident">hasher</span>: <span class="ident">S</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="self">Self</span> {
-            <span class="ident">map</span>: <span class="ident">HashMap</span>::<span class="ident">with_capacity_and_hasher</span>(<span class="ident">capacity</span>, <span class="ident">hasher</span>),
-        }
-    }
 
     <span class="doccomment">/// Returns a reference to the set&#39;s [`BuildHasher`].</span>
     <span class="doccomment">///</span>
@@ -2513,7 +2544,13 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">hasher</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">S</span> {
         <span class="self">self</span>.<span class="ident">map</span>.<span class="ident">hasher</span>()
     }
+}
 
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">S</span><span class="op">&gt;</span> <span class="ident">HashSet</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">S</span><span class="op">&gt;</span>
+<span class="kw">where</span>
+    <span class="ident">T</span>: <span class="ident">Eq</span> <span class="op">+</span> <span class="ident">Hash</span>,
+    <span class="ident">S</span>: <span class="ident">BuildHasher</span>,
+{
     <span class="doccomment">/// Reserves capacity for at least `additional` more elements to be inserted</span>
     <span class="doccomment">/// in the `HashSet`. The collection may reserve more space to avoid</span>
     <span class="doccomment">/// frequent reallocations.</span>
@@ -3543,7 +3580,14 @@
         <span class="kw">let</span> (<span class="ident">k</span>, <span class="kw">_</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="op">|</span><span class="ident">k</span>, <span class="kw">_</span><span class="op">|</span> <span class="ident">f</span>(<span class="ident">k</span>))<span class="question-mark">?</span>;
         <span class="prelude-val">Some</span>(<span class="ident">k</span>)
     }
+
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">fn</span> <span class="ident">size_hint</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="ident">usize</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>) {
+        (<span class="number">0</span>, <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">iter</span>.<span class="ident">size_hint</span>().<span class="number">1</span>)
+    }
 }
+
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">F</span><span class="op">&gt;</span> <span class="ident">FusedIterator</span> <span class="kw">for</span> <span class="ident">DrainFilter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">K</span>, <span class="ident">F</span><span class="op">&gt;</span> <span class="kw">where</span> <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><span class="ident">K</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {}
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">S</span><span class="op">&gt;</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">Intersection</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">T</span>, <span class="ident">S</span><span class="op">&gt;</span> {
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;inline-more&quot;</span>, <span class="ident">inline</span>)]</span>
@@ -4161,7 +4205,7 @@
             <span class="kw">let</span> <span class="ident">drained</span> <span class="op">=</span> <span class="ident">set</span>.<span class="ident">drain_filter</span>(<span class="op">|</span><span class="kw-2">&amp;</span><span class="ident">k</span><span class="op">|</span> <span class="ident">k</span> <span class="op">%</span> <span class="number">2</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span>);
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">out</span> <span class="op">=</span> <span class="ident">drained</span>.<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>();
             <span class="ident">out</span>.<span class="ident">sort_unstable</span>();
-            <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="macro">vec</span><span class="macro">!</span>[<span class="number">1</span>, <span class="number">3</span>, <span class="number">5</span>, <span class="number">7</span>], <span class="ident">out</span>);
+            <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="macro">vec</span><span class="macro">!</span>[<span class="number">0</span>, <span class="number">2</span>, <span class="number">4</span>, <span class="number">6</span>], <span class="ident">out</span>);
             <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">set</span>.<span class="ident">len</span>(), <span class="number">4</span>);
         }
         {
@@ -4169,6 +4213,28 @@
             <span class="ident">drop</span>(<span class="ident">set</span>.<span class="ident">drain_filter</span>(<span class="op">|</span><span class="kw-2">&amp;</span><span class="ident">k</span><span class="op">|</span> <span class="ident">k</span> <span class="op">%</span> <span class="number">2</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span>));
             <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">set</span>.<span class="ident">len</span>(), <span class="number">4</span>, <span class="string">&quot;Removes non-matching items on drop&quot;</span>);
         }
+    }
+
+    <span class="attribute">#[<span class="ident">test</span>]</span>
+    <span class="kw">fn</span> <span class="ident">test_const_with_hasher</span>() {
+        <span class="kw">use</span> <span class="ident">core</span>::<span class="ident">hash</span>::<span class="ident">BuildHasher</span>;
+        <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">collections</span>::<span class="ident">hash_map</span>::<span class="ident">DefaultHasher</span>;
+
+        <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>)]</span>
+        <span class="kw">struct</span> <span class="ident">MyHasher</span>;
+        <span class="kw">impl</span> <span class="ident">BuildHasher</span> <span class="kw">for</span> <span class="ident">MyHasher</span> {
+            <span class="kw">type</span> <span class="ident">Hasher</span> <span class="op">=</span> <span class="ident">DefaultHasher</span>;
+
+            <span class="kw">fn</span> <span class="ident">build_hasher</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">DefaultHasher</span> {
+                <span class="ident">DefaultHasher</span>::<span class="ident">new</span>()
+            }
+        }
+
+        <span class="kw">const</span> <span class="ident">EMPTY_SET</span>: <span class="ident">HashSet</span><span class="op">&lt;</span><span class="ident">u32</span>, <span class="ident">MyHasher</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">HashSet</span>::<span class="ident">with_hasher</span>(<span class="ident">MyHasher</span>);
+
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">set</span> <span class="op">=</span> <span class="ident">EMPTY_SET</span>.<span class="ident">clone</span>();
+        <span class="ident">set</span>.<span class="ident">insert</span>(<span class="number">19</span>);
+        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">set</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="number">19</span>));
     }
 }
 </pre></div>
