@@ -12,11 +12,9 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function
 
 use crate::{
-    builtins::{
-        object::{Object, ObjectData, PROTOTYPE},
-        Array,
-    },
+    builtins::Array,
     environment::lexical_environment::Environment,
+    object::{Object, ObjectData, PROTOTYPE},
     property::{Attribute, Property},
     syntax::ast::node::{FormalParameter, RcStatementList},
     BoaProfiler, Context, Result, Value,

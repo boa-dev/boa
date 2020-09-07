@@ -38,6 +38,7 @@ pub mod builtins;
 pub mod class;
 pub mod environment;
 pub mod exec;
+pub mod object;
 pub mod profiler;
 pub mod property;
 pub mod realm;

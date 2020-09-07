@@ -13,10 +13,8 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/BigInt
 
 use crate::{
-    builtins::{
-        function::{make_builtin_fn, make_constructor_fn},
-        object::ObjectData,
-    },
+    builtins::function::{make_builtin_fn, make_constructor_fn},
+    object::ObjectData,
     value::{RcBigInt, Value},
     BoaProfiler, Context, Result,
 };

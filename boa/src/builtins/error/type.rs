@@ -16,7 +16,8 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypeError
 
 use crate::{
-    builtins::{function::make_builtin_fn, function::make_constructor_fn, object::ObjectData},
+    builtins::{function::make_builtin_fn, function::make_constructor_fn},
+    object::ObjectData,
     BoaProfiler, Context, Result, Value,
 };
 

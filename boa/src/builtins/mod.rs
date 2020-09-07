@@ -34,6 +34,7 @@ pub(crate) use self::{
     math::Math,
     nan::NaN,
     number::Number,
+    object::Object,
     regexp::RegExp,
     string::String,
     symbol::Symbol,
@@ -47,7 +48,7 @@ pub fn init(interpreter: &mut Context) {
     let globals = [
         // The `Function` global must be initialized before other types.
         function::init,
-        object::init,
+        Object::init,
         Array::init,
         BigInt::init,
         Boolean::init,

@@ -34,7 +34,7 @@ impl Realm {
         let global = Value::new_object(None);
 
         // Allow identification of the global object easily
-        global.set_data(crate::builtins::object::ObjectData::Global);
+        global.set_data(crate::object::ObjectData::Global);
 
         // We need to clone the global here because its referenced from separate places (only pointer is cloned)
         let global_env = new_global_environment(global.clone(), global.clone());

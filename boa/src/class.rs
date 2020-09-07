@@ -60,10 +60,8 @@
 //! [class-trait]: ./trait.Class.html
 
 use crate::{
-    builtins::{
-        function::{BuiltInFunction, Function, FunctionFlags, NativeFunction},
-        object::{GcObject, NativeObject, Object, ObjectData, PROTOTYPE},
-    },
+    builtins::function::{BuiltInFunction, Function, FunctionFlags, NativeFunction},
+    object::{GcObject, NativeObject, Object, ObjectData, PROTOTYPE},
     property::{Attribute, Property, PropertyKey},
     Context, Result, Value,
 };

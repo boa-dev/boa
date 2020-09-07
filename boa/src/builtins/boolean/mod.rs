@@ -13,7 +13,7 @@
 mod tests;
 
 use super::function::{make_builtin_fn, make_constructor_fn};
-use crate::{builtins::object::ObjectData, BoaProfiler, Context, Result, Value};
+use crate::{object::ObjectData, BoaProfiler, Context, Result, Value};
 
 /// Boolean implementation.
 #[derive(Debug, Clone, Copy)]
