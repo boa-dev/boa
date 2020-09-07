@@ -3,12 +3,12 @@
 //! Native classes are implemented through the [`Class`][class-trait] trait.
 //! ```
 //!# use boa::{
-//!#    builtins::{property::Attribute, value::Value},
+//!#    builtins::property::Attribute,
 //!#    class::{Class, ClassBuilder},
 //!#    exec::Interpreter,
 //!#    forward_val,
 //!#    realm::Realm,
-//!#    Finalize, Result, Trace,
+//!#    Finalize, Value, Result, Trace,
 //!# };
 //!#
 //! // This does not have to be an enum it can also be a struct.
@@ -67,9 +67,8 @@ use crate::{
         function::{BuiltInFunction, Function, FunctionFlags, NativeFunction},
         object::{GcObject, NativeObject, Object, ObjectData, PROTOTYPE},
         property::{Attribute, Property, PropertyKey},
-        Value,
     },
-    Interpreter, Result,
+    Interpreter, Result, Value,
 };
 use std::fmt::Debug;
 

@@ -1,10 +1,10 @@
 use boa::{
-    builtins::{property::Attribute, value::Value},
+    builtins::property::Attribute,
     class::{Class, ClassBuilder},
     exec::Interpreter,
     forward_val,
     realm::Realm,
-    Finalize, Result, Trace,
+    Finalize, Result, Trace, Value,
 };
 
 // We create a new struct that is going to represent a person.

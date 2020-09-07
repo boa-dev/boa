@@ -1,5 +1,5 @@
 use super::{Executable, Interpreter};
-use crate::{builtins::value::Value, syntax::ast::node::Throw, Result};
+use crate::{syntax::ast::node::Throw, Result, Value};
 
 impl Executable for Throw {
     #[inline]

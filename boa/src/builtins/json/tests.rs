@@ -1,8 +1,6 @@
 use crate::{
-    builtins::{object::PROTOTYPE, value::same_value},
-    exec::Interpreter,
-    forward, forward_val,
-    realm::Realm,
+    builtins::object::PROTOTYPE, exec::Interpreter, forward, forward_val, realm::Realm,
+    value::same_value,
 };
 
 #[test]

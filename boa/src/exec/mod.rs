@@ -28,7 +28,6 @@ use crate::{
         function::{Function, FunctionFlags, NativeFunction},
         object::{GcObject, Object, ObjectData, PROTOTYPE},
         property::{Property, PropertyKey},
-        value::{PreferredType, RcString, RcSymbol, Type, Value},
         Console, Symbol,
     },
     class::{Class, ClassBuilder},
@@ -37,6 +36,7 @@ use crate::{
         constant::Const,
         node::{FormalParameter, Node, RcStatementList, StatementList},
     },
+    value::{PreferredType, RcString, RcSymbol, Type, Value},
     BoaProfiler, Result,
 };
 use std::result::Result as StdResult;

@@ -1,8 +1,4 @@
-use crate::{
-    builtins::{console::formatter, value::Value},
-    exec::Interpreter,
-    realm::Realm,
-};
+use crate::{builtins::console::formatter, exec::Interpreter, realm::Realm, Value};
 
 #[test]
 fn formatter_no_args_is_empty_string() {

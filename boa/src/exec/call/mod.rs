@@ -1,7 +1,7 @@
 use super::{Executable, Interpreter, InterpreterState};
 use crate::{
-    builtins::value::{Type, Value},
     syntax::ast::node::{Call, Node},
+    value::{Type, Value},
     BoaProfiler, Result,
 };
 

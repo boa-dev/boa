@@ -12,7 +12,7 @@
 #[cfg(test)]
 mod tests;
 
-use crate::{builtins::value::Value, BoaProfiler, Interpreter};
+use crate::{BoaProfiler, Interpreter, Value};
 
 /// JavaScript global `Infinity` property.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]

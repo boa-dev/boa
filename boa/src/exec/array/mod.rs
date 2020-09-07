@@ -2,9 +2,9 @@
 
 use super::{Executable, Interpreter};
 use crate::{
-    builtins::{Array, Value},
+    builtins::Array,
     syntax::ast::node::{ArrayDecl, Node},
-    BoaProfiler, Result,
+    BoaProfiler, Result, Value,
 };
 
 impl Executable for ArrayDecl {

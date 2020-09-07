@@ -9,12 +9,13 @@
 //! More info: <https://tc39.es/ecma262/#sec-function-environment-records>
 
 use crate::{
-    builtins::{object::GcObject, value::Value},
+    builtins::object::GcObject,
     environment::{
         declarative_environment_record::DeclarativeEnvironmentRecordBinding,
         environment_record_trait::EnvironmentRecordTrait,
         lexical_environment::{Environment, EnvironmentType},
     },
+    Value,
 };
 use gc::{unsafe_empty_trace, Finalize, Trace};
 use rustc_hash::FxHashMap;

@@ -1,7 +1,7 @@
 use super::{Executable, Interpreter};
 use crate::{
-    builtins::value::{Type, Value},
     syntax::ast::node::{GetConstField, GetField},
+    value::{Type, Value},
     Result,
 };
 

@@ -1,7 +1,7 @@
 //! Statement list execution.
 
 use super::{Executable, Interpreter, InterpreterState};
-use crate::{builtins::value::Value, syntax::ast::node::StatementList, BoaProfiler, Result};
+use crate::{syntax::ast::node::StatementList, BoaProfiler, Result, Value};
 
 impl Executable for StatementList {
     fn run(&self, interpreter: &mut Interpreter) -> Result<Value> {

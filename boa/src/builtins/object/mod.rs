@@ -15,22 +15,19 @@
 
 use crate::{
     builtins::{
-        function::Function,
+        function::{make_builtin_fn, make_constructor_fn, Function},
         map::ordered_map::OrderedMap,
         property::{Property, PropertyKey},
-        value::{RcBigInt, RcString, RcSymbol, Value},
         BigInt, Date, RegExp,
     },
     exec::Interpreter,
+    value::{same_value, RcBigInt, RcString, RcSymbol, Value},
     BoaProfiler, Result,
 };
 use gc::{Finalize, Trace};
 use rustc_hash::FxHashMap;
 use std::fmt::{Debug, Display, Error, Formatter};
 use std::{any::Any, result::Result as StdResult};
-
-use super::function::{make_builtin_fn, make_constructor_fn};
-use crate::builtins::value::same_value;
 
 mod gcobject;
 mod internal_methods;

@@ -16,9 +16,9 @@ use crate::{
     builtins::{
         function::{make_builtin_fn, make_constructor_fn},
         object::ObjectData,
-        value::{RcBigInt, Value},
     },
     exec::Interpreter,
+    value::{RcBigInt, Value},
     BoaProfiler, Result,
 };
 

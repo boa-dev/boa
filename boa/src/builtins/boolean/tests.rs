@@ -1,4 +1,4 @@
-use crate::{builtins::value::same_value, exec::Interpreter, forward, forward_val, realm::Realm};
+use crate::{exec::Interpreter, forward, forward_val, realm::Realm, value::same_value};
 
 /// Test the correct type is returned from call and construct
 #[allow(clippy::unwrap_used)]

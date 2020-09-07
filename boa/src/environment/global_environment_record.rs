@@ -8,16 +8,14 @@
 //! More info:  <https://tc39.es/ecma262/#sec-global-environment-records>
 
 use crate::{
-    builtins::{
-        property::{Attribute, Property},
-        Value,
-    },
+    builtins::property::{Attribute, Property},
     environment::{
         declarative_environment_record::DeclarativeEnvironmentRecord,
         environment_record_trait::EnvironmentRecordTrait,
         lexical_environment::{Environment, EnvironmentType},
         object_environment_record::ObjectEnvironmentRecord,
     },
+    Value,
 };
 use gc::{Finalize, Trace};
 use rustc_hash::FxHashSet;

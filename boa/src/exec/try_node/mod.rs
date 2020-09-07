@@ -2,10 +2,9 @@
 
 use super::{Executable, Interpreter};
 use crate::{
-    builtins::value::Value,
     environment::lexical_environment::{new_declarative_environment, VariableScope},
     syntax::ast::node::Try,
-    BoaProfiler, Result,
+    BoaProfiler, Result, Value,
 };
 
 #[cfg(test)]

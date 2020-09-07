@@ -14,9 +14,7 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/defineProperty
 //! [section]: https://tc39.es/ecma262/#sec-property-attributes
 
-use crate::builtins::value::RcString;
-use crate::builtins::value::RcSymbol;
-use crate::builtins::Value;
+use crate::value::{RcString, RcSymbol, Value};
 use gc::{Finalize, Trace};
 use std::convert::TryFrom;
 use std::fmt;

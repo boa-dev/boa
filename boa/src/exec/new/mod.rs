@@ -1,5 +1,5 @@
 use super::{Executable, Interpreter};
-use crate::{builtins::Value, syntax::ast::node::New, BoaProfiler, Result};
+use crate::{syntax::ast::node::New, BoaProfiler, Result, Value};
 
 impl Executable for New {
     fn run(&self, interpreter: &mut Interpreter) -> Result<Value> {

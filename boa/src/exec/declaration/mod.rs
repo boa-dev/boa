@@ -2,12 +2,12 @@
 
 use super::{Executable, Interpreter};
 use crate::{
-    builtins::{function::FunctionFlags, Value},
+    builtins::function::FunctionFlags,
     environment::lexical_environment::VariableScope,
     syntax::ast::node::{
         ArrowFunctionDecl, ConstDeclList, FunctionDecl, FunctionExpr, LetDeclList, VarDeclList,
     },
-    BoaProfiler, Result,
+    BoaProfiler, Result, Value,
 };
 
 impl Executable for FunctionDecl {

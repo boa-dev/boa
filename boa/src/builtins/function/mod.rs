@@ -15,13 +15,12 @@ use crate::{
     builtins::{
         object::{Object, ObjectData, PROTOTYPE},
         property::{Attribute, Property},
-        value::Value,
         Array,
     },
     environment::lexical_environment::Environment,
     exec::Interpreter,
-    syntax::ast::node::{FormalParameter, RcStatementList},
-    BoaProfiler, Result,
+    syntax::ast::node::{statement_list::RcStatementList, FormalParameter},
+    BoaProfiler, Result, Value,
 };
 use bitflags::bitflags;
 use gc::{unsafe_empty_trace, Finalize, Trace};

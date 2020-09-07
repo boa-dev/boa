@@ -17,11 +17,9 @@
 mod tests;
 
 use crate::{
-    builtins::{
-        function::make_builtin_fn,
-        value::{display_obj, RcString, Value},
-    },
+    builtins::function::make_builtin_fn,
     exec::Interpreter,
+    value::{display_obj, RcString, Value},
     BoaProfiler, Result,
 };
 use rustc_hash::FxHashMap;

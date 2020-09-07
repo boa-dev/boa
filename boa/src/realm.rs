@@ -5,14 +5,13 @@
 //! A realm is represented in this implementation as a Realm struct with the fields specified from the spec.
 
 use crate::{
-    builtins::value::Value,
     environment::{
         declarative_environment_record::DeclarativeEnvironmentRecord,
         global_environment_record::GlobalEnvironmentRecord,
         lexical_environment::LexicalEnvironment,
         object_environment_record::ObjectEnvironmentRecord,
     },
-    BoaProfiler,
+    BoaProfiler, Value,
 };
 use gc::{Gc, GcCell};
 use rustc_hash::{FxHashMap, FxHashSet};

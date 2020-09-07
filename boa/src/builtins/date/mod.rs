@@ -5,10 +5,9 @@ use crate::{
     builtins::{
         function::{make_builtin_fn, make_constructor_fn},
         object::ObjectData,
-        value::PreferredType,
-        Value,
     },
-    BoaProfiler, Interpreter, Result,
+    value::PreferredType,
+    BoaProfiler, Interpreter, Result, Value,
 };
 use chrono::{prelude::*, Duration, LocalResult};
 use gc::{unsafe_empty_trace, Finalize, Trace};

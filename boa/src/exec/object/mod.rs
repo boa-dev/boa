@@ -2,10 +2,9 @@
 
 use super::{Executable, Interpreter};
 use crate::{
-    builtins::value::Value,
     syntax::ast::node::MethodDefinitionKind,
     syntax::ast::node::{Object, PropertyDefinition},
-    Result,
+    Result, Value,
 };
 
 use std::borrow::Borrow;

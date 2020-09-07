@@ -17,9 +17,9 @@ use crate::{
     builtins::{
         object::{ObjectData, PROTOTYPE},
         property::{Attribute, Property},
-        value::{same_value_zero, Value},
     },
     exec::Interpreter,
+    value::{same_value_zero, Value},
     BoaProfiler, Result,
 };
 use std::{

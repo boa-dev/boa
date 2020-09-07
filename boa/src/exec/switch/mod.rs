@@ -1,5 +1,5 @@
 use super::{Executable, Interpreter, InterpreterState};
-use crate::{builtins::value::Value, syntax::ast::node::Switch, Result};
+use crate::{syntax::ast::node::Switch, Result, Value};
 
 #[cfg(test)]
 mod tests;
