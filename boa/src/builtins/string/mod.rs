@@ -458,8 +458,9 @@ impl String {
             None => return Ok(Value::from(primitive_val)),
         };
         let caps = re
-            .captures(&primitive_val)
-            .expect("unable to get capture groups from text");
+            .find(&primitive_val)
+            .expect("unable to get capture groups from text")
+            .captures;
 
         let replace_value = if args.len() > 1 {
             // replace_object could be a string or function or not exist at all
@@ -488,7 +489,7 @@ impl String {
                                 (Some('&'), _) => {
                                     // $&
                                     let matched = caps.get(0).expect("cannot get matched value");
-                                    result.push_str(matched.as_str());
+                                    result.push_str(&primitive_val[matched.unwrap()]);
                                 }
                                 (Some('`'), _) => {
                                     // $`
@@ -515,7 +516,7 @@ impl String {
                                         }
                                     } else {
                                         let group = match caps.get(nn) {
-                                            Some(text) => text.as_str(),
+                                            Some(text) => &primitive_val[text.unwrap()],
                                             None => "",
                                         };
                                         result.push_str(group);
@@ -530,7 +531,7 @@ impl String {
                                         result.push(second);
                                     } else {
                                         let group = match caps.get(n) {
-                                            Some(text) => text.as_str(),
+                                            Some(text) => &primitive_val[text.unwrap()],
                                             None => "",
                                         };
                                         result.push_str(group);
@@ -560,14 +561,15 @@ impl String {
                     // This will return the matched substring first, then captured parenthesized groups later
                     let mut results: Vec<Value> = caps
                         .iter()
-                        .map(|capture| Value::from(capture.unwrap().as_str()))
+                        .map(|capture| Value::from(&primitive_val[capture.unwrap()]))
                         .collect();
 
                     // Returns the starting byte offset of the match
                     let start = caps
                         .get(0)
                         .expect("Unable to get Byte offset from string for match")
-                        .start();
+                        .unwrap()
+                        .start;
                     results.push(Value::from(start));
                     // Push the whole string being examined
                     results.push(Value::from(primitive_val.to_string()));
