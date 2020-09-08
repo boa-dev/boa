@@ -84,6 +84,7 @@
 <span id="84">84</span>
 <span id="85">85</span>
 <span id="86">86</span>
+<span id="87">87</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Builtins live here, such as Object, String, Math, etc.</span>
 
@@ -121,6 +122,7 @@
     <span class="ident">math</span>::<span class="ident">Math</span>,
     <span class="ident">nan</span>::<span class="ident">NaN</span>,
     <span class="ident">number</span>::<span class="ident">Number</span>,
+    <span class="ident">object</span>::<span class="ident">Object</span>,
     <span class="ident">regexp</span>::<span class="ident">RegExp</span>,
     <span class="ident">string</span>::<span class="ident">String</span>,
     <span class="ident">symbol</span>::<span class="ident">Symbol</span>,
@@ -134,7 +136,7 @@
     <span class="kw">let</span> <span class="ident">globals</span> <span class="op">=</span> [
         <span class="comment">// The `Function` global must be initialized before other types.</span>
         <span class="ident">function</span>::<span class="ident">init</span>,
-        <span class="ident">object</span>::<span class="ident">init</span>,
+        <span class="ident">Object</span>::<span class="ident">init</span>,
         <span class="ident">Array</span>::<span class="ident">init</span>,
         <span class="ident">BigInt</span>::<span class="ident">init</span>,
         <span class="ident">Boolean</span>::<span class="ident">init</span>,

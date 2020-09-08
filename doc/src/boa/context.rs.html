@@ -493,7 +493,6 @@
 <span id="493">493</span>
 <span id="494">494</span>
 <span id="495">495</span>
-<span id="496">496</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Javascript context.</span>
 
@@ -501,12 +500,11 @@
     <span class="ident">builtins</span>::{
         <span class="self">self</span>,
         <span class="ident">function</span>::{<span class="ident">Function</span>, <span class="ident">FunctionFlags</span>, <span class="ident">NativeFunction</span>},
-        <span class="ident">object</span>::<span class="ident">ObjectData</span>,
-        <span class="ident">object</span>::{<span class="ident">GcObject</span>, <span class="ident">Object</span>, <span class="ident">PROTOTYPE</span>},
         <span class="ident">Console</span>, <span class="ident">Symbol</span>,
     },
     <span class="ident">class</span>::{<span class="ident">Class</span>, <span class="ident">ClassBuilder</span>},
     <span class="ident">exec</span>::<span class="ident">Interpreter</span>,
+    <span class="ident">object</span>::{<span class="ident">GcObject</span>, <span class="ident">Object</span>, <span class="ident">ObjectData</span>, <span class="ident">PROTOTYPE</span>},
     <span class="ident">property</span>::{<span class="ident">Property</span>, <span class="ident">PropertyKey</span>},
     <span class="ident">realm</span>::<span class="ident">Realm</span>,
     <span class="ident">syntax</span>::{

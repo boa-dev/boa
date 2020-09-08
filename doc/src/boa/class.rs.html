@@ -261,8 +261,6 @@
 <span id="261">261</span>
 <span id="262">262</span>
 <span id="263">263</span>
-<span id="264">264</span>
-<span id="265">265</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Traits and structs for implementing native classes.</span>
 <span class="doccomment">//!</span>
@@ -326,10 +324,8 @@
 <span class="doccomment">//! [class-trait]: ./trait.Class.html</span>
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">builtins</span>::{
-        <span class="ident">function</span>::{<span class="ident">BuiltInFunction</span>, <span class="ident">Function</span>, <span class="ident">FunctionFlags</span>, <span class="ident">NativeFunction</span>},
-        <span class="ident">object</span>::{<span class="ident">GcObject</span>, <span class="ident">NativeObject</span>, <span class="ident">Object</span>, <span class="ident">ObjectData</span>, <span class="ident">PROTOTYPE</span>},
-    },
+    <span class="ident">builtins</span>::<span class="ident">function</span>::{<span class="ident">BuiltInFunction</span>, <span class="ident">Function</span>, <span class="ident">FunctionFlags</span>, <span class="ident">NativeFunction</span>},
+    <span class="ident">object</span>::{<span class="ident">GcObject</span>, <span class="ident">NativeObject</span>, <span class="ident">Object</span>, <span class="ident">ObjectData</span>, <span class="ident">PROTOTYPE</span>},
     <span class="ident">property</span>::{<span class="ident">Attribute</span>, <span class="ident">Property</span>, <span class="ident">PropertyKey</span>},
     <span class="ident">Context</span>, <span class="prelude-ty">Result</span>, <span class="ident">Value</span>,
 };

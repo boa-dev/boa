@@ -1131,8 +1131,6 @@
 <span id="1131">1131</span>
 <span id="1132">1132</span>
 <span id="1133">1133</span>
-<span id="1134">1134</span>
-<span id="1135">1135</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements the global `String` object.</span>
 <span class="doccomment">//!</span>
@@ -1150,10 +1148,8 @@
 
 <span class="kw">use</span> <span class="kw">super</span>::<span class="ident">function</span>::{<span class="ident">make_builtin_fn</span>, <span class="ident">make_constructor_fn</span>};
 <span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">builtins</span>::{
-        <span class="ident">object</span>::{<span class="ident">Object</span>, <span class="ident">ObjectData</span>},
-        <span class="ident">RegExp</span>,
-    },
+    <span class="ident">builtins</span>::<span class="ident">RegExp</span>,
+    <span class="ident">object</span>::{<span class="ident">Object</span>, <span class="ident">ObjectData</span>},
     <span class="ident">property</span>::<span class="ident">Property</span>,
     <span class="ident">value</span>::{<span class="ident">RcString</span>, <span class="ident">Value</span>},
     <span class="ident">BoaProfiler</span>, <span class="ident">Context</span>, <span class="prelude-ty">Result</span>,

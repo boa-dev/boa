@@ -109,7 +109,7 @@
         <span class="kw">let</span> <span class="ident">global</span> <span class="op">=</span> <span class="ident">Value</span>::<span class="ident">new_object</span>(<span class="prelude-val">None</span>);
 
         <span class="comment">// Allow identification of the global object easily</span>
-        <span class="ident">global</span>.<span class="ident">set_data</span>(<span class="kw">crate</span>::<span class="ident">builtins</span>::<span class="ident">object</span>::<span class="ident">ObjectData</span>::<span class="ident">Global</span>);
+        <span class="ident">global</span>.<span class="ident">set_data</span>(<span class="kw">crate</span>::<span class="ident">object</span>::<span class="ident">ObjectData</span>::<span class="ident">Global</span>);
 
         <span class="comment">// We need to clone the global here because its referenced from separate places (only pointer is cloned)</span>
         <span class="kw">let</span> <span class="ident">global_env</span> <span class="op">=</span> <span class="ident">new_global_environment</span>(<span class="ident">global</span>.<span class="ident">clone</span>(), <span class="ident">global</span>.<span class="ident">clone</span>());

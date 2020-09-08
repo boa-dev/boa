@@ -889,8 +889,6 @@
 <span id="889">889</span>
 <span id="890">890</span>
 <span id="891">891</span>
-<span id="892">892</span>
-<span id="893">893</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements the global `Number` object.</span>
 <span class="doccomment">//!</span>
@@ -907,11 +905,9 @@
 <span class="doccomment">//! [spec]: https://tc39.es/ecma262/#sec-number-object</span>
 <span class="doccomment">//! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number</span>
 
-<span class="kw">use</span> <span class="kw">super</span>::{
-    <span class="ident">function</span>::{<span class="ident">make_builtin_fn</span>, <span class="ident">make_constructor_fn</span>},
-    <span class="ident">object</span>::<span class="ident">ObjectData</span>,
-};
+<span class="kw">use</span> <span class="kw">super</span>::<span class="ident">function</span>::{<span class="ident">make_builtin_fn</span>, <span class="ident">make_constructor_fn</span>};
 <span class="kw">use</span> <span class="kw">crate</span>::{
+    <span class="ident">object</span>::<span class="ident">ObjectData</span>,
     <span class="ident">value</span>::{<span class="ident">AbstractRelation</span>, <span class="ident">Value</span>},
     <span class="ident">BoaProfiler</span>, <span class="ident">Context</span>, <span class="prelude-ty">Result</span>,
 };

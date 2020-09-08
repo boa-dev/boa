@@ -79,6 +79,7 @@
 <span id="79">79</span>
 <span id="80">80</span>
 <span id="81">81</span>
+<span id="82">82</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements the global `ReferenceError` object.</span>
 <span class="doccomment">//!</span>
@@ -92,7 +93,8 @@
 <span class="doccomment">//! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ReferenceError</span>
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">builtins</span>::{<span class="ident">function</span>::<span class="ident">make_builtin_fn</span>, <span class="ident">function</span>::<span class="ident">make_constructor_fn</span>, <span class="ident">object</span>::<span class="ident">ObjectData</span>},
+    <span class="ident">builtins</span>::{<span class="ident">function</span>::<span class="ident">make_builtin_fn</span>, <span class="ident">function</span>::<span class="ident">make_constructor_fn</span>},
+    <span class="ident">object</span>::<span class="ident">ObjectData</span>,
     <span class="ident">profiler</span>::<span class="ident">BoaProfiler</span>,
     <span class="ident">Context</span>, <span class="prelude-ty">Result</span>, <span class="ident">Value</span>,
 };

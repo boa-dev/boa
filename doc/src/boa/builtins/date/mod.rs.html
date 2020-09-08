@@ -1586,17 +1586,13 @@
 <span id="1586">1586</span>
 <span id="1587">1587</span>
 <span id="1588">1588</span>
-<span id="1589">1589</span>
-<span id="1590">1590</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">tests</span>;
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">builtins</span>::{
-        <span class="ident">function</span>::{<span class="ident">make_builtin_fn</span>, <span class="ident">make_constructor_fn</span>},
-        <span class="ident">object</span>::<span class="ident">ObjectData</span>,
-    },
+    <span class="ident">builtins</span>::<span class="ident">function</span>::{<span class="ident">make_builtin_fn</span>, <span class="ident">make_constructor_fn</span>},
+    <span class="ident">object</span>::<span class="ident">ObjectData</span>,
     <span class="ident">value</span>::{<span class="ident">PreferredType</span>, <span class="ident">Value</span>},
     <span class="ident">BoaProfiler</span>, <span class="ident">Context</span>, <span class="prelude-ty">Result</span>,
 };
