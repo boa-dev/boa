@@ -8,9 +8,9 @@ mod tests;
 use crate::{
     builtins::{
         number::{f64_to_int32, f64_to_uint32},
-        object::{GcObject, Object, ObjectData, PROTOTYPE},
         BigInt, Number,
     },
+    object::{GcObject, Object, ObjectData, PROTOTYPE},
     property::{Attribute, Property, PropertyKey},
     BoaProfiler, Context, Result,
 };

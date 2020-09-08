@@ -13,11 +13,9 @@
 //! [spec]: https://tc39.es/ecma262/#sec-number-object
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number
 
-use super::{
-    function::{make_builtin_fn, make_constructor_fn},
-    object::ObjectData,
-};
+use super::function::{make_builtin_fn, make_constructor_fn};
 use crate::{
+    object::ObjectData,
     value::{AbstractRelation, Value},
     BoaProfiler, Context, Result,
 };

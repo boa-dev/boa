@@ -1,4 +1,4 @@
-use crate::{builtins::object::PROTOTYPE, forward, forward_val, value::same_value, Context};
+use crate::{forward, forward_val, object::PROTOTYPE, value::same_value, Context};
 
 #[test]
 fn json_sanity() {

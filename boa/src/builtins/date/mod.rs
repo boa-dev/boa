@@ -2,10 +2,8 @@
 mod tests;
 
 use crate::{
-    builtins::{
-        function::{make_builtin_fn, make_constructor_fn},
-        object::ObjectData,
-    },
+    builtins::function::{make_builtin_fn, make_constructor_fn},
+    object::ObjectData,
     value::{PreferredType, Value},
     BoaProfiler, Context, Result,
 };

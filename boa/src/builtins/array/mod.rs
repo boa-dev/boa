@@ -14,7 +14,7 @@ mod tests;
 
 use super::function::{make_builtin_fn, make_constructor_fn};
 use crate::{
-    builtins::object::{ObjectData, PROTOTYPE},
+    object::{ObjectData, PROTOTYPE},
     property::{Attribute, Property},
     value::{same_value_zero, Value},
     BoaProfiler, Context, Result,
