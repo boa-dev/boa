@@ -294,17 +294,18 @@ impl RegExp {
         let mut last_index = this.get_field("lastIndex").to_index(ctx)?;
         let result = if let Some(object) = this.as_object() {
             let regex = object.as_regexp().unwrap();
-            let result = if let Some(m) = regex.matcher.find_from(arg_str.as_str(), last_index) {
-                if regex.use_last_index {
-                    last_index = m.end();
-                }
-                true
-            } else {
-                if regex.use_last_index {
-                    last_index = 0;
-                }
-                false
-            };
+            let result =
+                if let Some(m) = regex.matcher.find_from(arg_str.as_str(), last_index).next() {
+                    if regex.use_last_index {
+                        last_index = m.total().end;
+                    }
+                    true
+                } else {
+                    if regex.use_last_index {
+                        last_index = 0;
+                    }
+                    false
+                };
             Ok(Value::boolean(result))
         } else {
             panic!("object is not a regexp")
@@ -333,35 +334,35 @@ impl RegExp {
         let mut last_index = this.get_field("lastIndex").to_index(ctx)?;
         let result = if let Some(object) = this.as_object() {
             let regex = object.as_regexp().unwrap();
-            let mut locations = regex.matcher.capture_locations();
-            let result = if let Some(m) =
-                regex
-                    .matcher
-                    .captures_read_at(&mut locations, arg_str.as_str(), last_index)
-            {
-                if regex.use_last_index {
-                    last_index = m.end();
-                }
-                let mut result = Vec::with_capacity(locations.len());
-                for i in 0..locations.len() {
-                    if let Some((start, end)) = locations.get(i) {
-                        result.push(Value::from(
-                            arg_str.get(start..end).expect("Could not get slice"),
-                        ));
-                    } else {
-                        result.push(Value::undefined());
+            let result = {
+                if let Some(m) = regex.matcher.find_from(arg_str.as_str(), last_index).next() {
+                    if regex.use_last_index {
+                        last_index = m.total().end;
                     }
-                }
+                    let mut result = Vec::with_capacity(m.captures.len());
+                    for i in 0..m.captures.len() {
+                        if let Some(range) = m.group(i) {
+                            result.push(Value::from(
+                                arg_str.get(range).expect("Could not get slice"),
+                            ));
+                        } else {
+                            result.push(Value::undefined());
+                        }
+                    }
 
-                let result = Value::from(result);
-                result.set_property("index", Property::default().value(Value::from(m.start())));
-                result.set_property("input", Property::default().value(Value::from(arg_str)));
-                result
-            } else {
-                if regex.use_last_index {
-                    last_index = 0;
+                    let result = Value::from(result);
+                    result.set_property(
+                        "index",
+                        Property::default().value(Value::from(m.total().start)),
+                    );
+                    result.set_property("input", Property::default().value(Value::from(arg_str)));
+                    result
+                } else {
+                    if regex.use_last_index {
+                        last_index = 0;
+                    }
+                    Value::null()
                 }
-                Value::null()
             };
             Ok(result)
         } else {
