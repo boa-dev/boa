@@ -440,19 +440,22 @@ impl RegExp {
             let mut matches = Vec::new();
 
             for m in regex.matcher.find_iter(&arg_str) {
-                if let Some(caps) = regex.matcher.captures(&arg_str[m.group(1).unwrap()]) {
+                if let Some(caps) = regex.matcher.find(&arg_str[m.group(1).unwrap()]) {
                     let match_vec = caps
+                        .captures
                         .iter()
                         .map(|group| match group {
-                            Some(g) => Value::from(g.as_str()),
+                            Some(g) => Value::from(&arg_str[g.start..g.end]),
                             None => Value::undefined(),
                         })
                         .collect::<Vec<Value>>();
 
                     let match_val = Value::from(match_vec);
 
-                    match_val
-                        .set_property("index", Property::default().value(Value::from(m.group(1).unwrap().start)));
+                    match_val.set_property(
+                        "index",
+                        Property::default().value(Value::from(m.group(1).unwrap().start)),
+                    );
                     match_val.set_property(
                         "input",
                         Property::default().value(Value::from(arg_str.clone())),
