@@ -503,22 +503,16 @@ impl String {
                                 }
                                 (Some('&'), _) => {
                                     // $&
-                                    let matched = caps
-                                        .get(0)
-                                        .expect("cannot get matched value's Option")
-                                        .as_ref()
-                                        .expect("cannot get matched value's Range")
-                                        .clone();
-                                    result.push_str(&primitive_val[matched]);
+                                    result.push_str(&primitive_val[mat.total()]);
                                 }
                                 (Some('`'), _) => {
                                     // $`
-                                    let start_of_match = mat.group(1).unwrap().start;
+                                    let start_of_match = mat.total().start;
                                     result.push_str(&primitive_val[..start_of_match]);
                                 }
                                 (Some('\''), _) => {
                                     // $'
-                                    let end_of_match = mat.group(1).unwrap().end;
+                                    let end_of_match = mat.total().end;
                                     result.push_str(&primitive_val[end_of_match..]);
                                 }
                                 (Some(second), Some(third))
@@ -535,8 +529,8 @@ impl String {
                                             result.push(ch);
                                         }
                                     } else {
-                                        let group = match caps.get(nn) {
-                                            Some(Some(range)) => &primitive_val[range.clone()],
+                                        let group = match mat.group(nn) {
+                                            Some(range) => &primitive_val[range.clone()],
                                             _ => "",
                                         };
                                         result.push_str(group);
@@ -550,8 +544,8 @@ impl String {
                                         result.push(first);
                                         result.push(second);
                                     } else {
-                                        let group = match caps.get(n) {
-                                            Some(Some(range)) => &primitive_val[range.clone()],
+                                        let group = match mat.group(n) {
+                                            Some(range) => &primitive_val[range.clone()],
                                             _ => "",
                                         };
                                         result.push_str(group);
@@ -579,25 +573,21 @@ impl String {
                 }
                 Value::Object(_) => {
                     // This will return the matched substring first, then captured parenthesized groups later
-                    let mut results: Vec<Value> = caps
-                        .iter()
-                        .map(|option| {
-                            if let Some(range) = option {
-                                Value::from(&primitive_val[range.clone()])
-                            } else {
-                                Value::undefined()
-                            }
-                        })
-                        .collect();
+
+                    // TODO(RageKnify) regress could have a groups method that returns an iterator,
+                    // removing the need to do this in 3 statements (ridiculousfish/regress#7)
+                    let mut results: Vec<Value> = Vec::with_capacity(caps.len() + 1);
+                    results.push(Value::from(&primitive_val[mat.total()]));
+                    results.extend(caps.iter().map(|option| {
+                        if let Some(range) = option {
+                            Value::from(&primitive_val[range.clone()])
+                        } else {
+                            Value::undefined()
+                        }
+                    }));
 
                     // Returns the starting byte offset of the match
-                    let start = caps
-                        .get(0)
-                        .expect("cannot get matched value's Option")
-                        .as_ref()
-                        .expect("cannot get matched value's Range")
-                        .clone()
-                        .start;
+                    let start = mat.total().start;
                     results.push(Value::from(start));
                     // Push the whole string being examined
                     results.push(Value::from(primitive_val.to_string()));
@@ -613,7 +603,7 @@ impl String {
         };
 
         Ok(Value::from(primitive_val.replacen(
-            &primitive_val[mat.group(1).unwrap()],
+            &primitive_val[mat.total()],
             &replace_value,
             1,
         )))

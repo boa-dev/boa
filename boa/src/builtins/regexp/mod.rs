@@ -9,7 +9,7 @@
 //! [spec]: https://tc39.es/ecma262/#sec-regexp-constructor
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp
 
-use regress::Regex;
+use regress::{Flags, Regex};
 
 use super::function::{make_builtin_fn, make_constructor_fn};
 use crate::{
@@ -98,7 +98,6 @@ impl RegExp {
 
         // parse flags
         let mut sorted_flags = String::new();
-        let mut pattern = String::new();
         let mut dot_all = false;
         let mut global = false;
         let mut ignore_case = false;
@@ -112,34 +111,26 @@ impl RegExp {
         if regex_flags.contains('i') {
             ignore_case = true;
             sorted_flags.push('i');
-            pattern.push('i');
         }
         if regex_flags.contains('m') {
             multiline = true;
             sorted_flags.push('m');
-            pattern.push('m');
         }
         if regex_flags.contains('s') {
             dot_all = true;
             sorted_flags.push('s');
-            pattern.push('s');
         }
         if regex_flags.contains('u') {
             unicode = true;
             sorted_flags.push('u');
-            //pattern.push('s'); // rust uses utf-8 anyway
         }
         if regex_flags.contains('y') {
             sticky = true;
             sorted_flags.push('y');
         }
-        // the `regex` crate uses '(?{flags})` inside the pattern to enable flags
-        if !pattern.is_empty() {
-            pattern = format!("(?{})", pattern);
-        }
-        pattern.push_str(regex_body.as_str());
 
-        let matcher = Regex::new(pattern.as_str()).expect("failed to create matcher");
+        let matcher = Regex::newf(regex_body.as_str(), Flags::from(sorted_flags.as_str()))
+            .expect("failed to create matcher");
         let regexp = RegExp {
             matcher,
             use_last_index: global || sticky,
@@ -339,8 +330,9 @@ impl RegExp {
                     if regex.use_last_index {
                         last_index = m.total().end;
                     }
-                    let mut result = Vec::with_capacity(m.captures.len());
-                    for i in 0..m.captures.len() {
+                    let groups = m.captures.len() + 1;
+                    let mut result = Vec::with_capacity(groups);
+                    for i in 0..groups {
                         if let Some(range) = m.group(i) {
                             result.push(Value::from(
                                 arg_str.get(range).expect("Could not get slice"),
@@ -392,7 +384,7 @@ impl RegExp {
         if flags.contains('g') {
             let mut matches = Vec::new();
             for mat in matcher.find_iter(&arg) {
-                matches.push(Value::from(&arg[mat.group(1).unwrap()]));
+                matches.push(Value::from(&arg[mat.total()]));
             }
             if matches.is_empty() {
                 return Ok(Value::null());
@@ -440,32 +432,33 @@ impl RegExp {
             let regex = object.as_regexp().unwrap();
             let mut matches = Vec::new();
 
-            for m in regex.matcher.find_iter(&arg_str) {
-                if let Some(caps) = regex.matcher.find(&arg_str[m.group(1).unwrap()]) {
-                    let match_vec = caps
-                        .captures
-                        .iter()
-                        .map(|group| match group {
-                            Some(g) => Value::from(&arg_str[g.start..g.end]),
-                            None => Value::undefined(),
-                        })
-                        .collect::<Vec<Value>>();
-
-                    let match_val = Value::from(match_vec);
-
-                    match_val.set_property(
-                        "index",
-                        Property::default().value(Value::from(m.group(1).unwrap().start)),
-                    );
-                    match_val.set_property(
-                        "input",
-                        Property::default().value(Value::from(arg_str.clone())),
-                    );
-                    matches.push(match_val);
-
-                    if !regex.flags.contains('g') {
-                        break;
+            for mat in regex.matcher.find_iter(&arg_str) {
+                // TODO(RageKnify) regress could have a groups method that returns an iterator,
+                // removing the need to do this in 3 statements (ridiculousfish/regress#7)
+                let mut match_vec: Vec<Value> = Vec::with_capacity(mat.captures.len() + 1);
+                match_vec.push(Value::from(&arg_str[mat.total()]));
+                match_vec.extend(mat.captures.iter().map(|option| {
+                    if let Some(range) = option {
+                        Value::from(&arg_str[range.clone()])
+                    } else {
+                        Value::undefined()
                     }
+                }));
+
+                let match_val = Value::from(match_vec);
+
+                match_val.set_property(
+                    "index",
+                    Property::default().value(Value::from(mat.total().start)),
+                );
+                match_val.set_property(
+                    "input",
+                    Property::default().value(Value::from(arg_str.clone())),
+                );
+                matches.push(match_val);
+
+                if !regex.flags.contains('g') {
+                    break;
                 }
             }
 

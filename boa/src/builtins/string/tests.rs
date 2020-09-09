@@ -11,7 +11,7 @@ fn length() {
     const a = new String(' ');
     const b = new String('\ud834\udf06');
     const c = new String(' \b ');
-    cosnt d = new String('中文长度')
+    const d = new String('中文长度')
     "#;
     eprintln!("{}", forward(&mut engine, init));
     let a = forward(&mut engine, "a.length");
@@ -292,11 +292,12 @@ fn replace_with_function() {
     let mut engine = Interpreter::new(realm);
     let init = r#"
         var a = "ecmascript is cool";
-        var p1, p2, p3;
-        var replacer = (match, cap1, cap2, cap3) => {
+        var p1, p2, p3, length;
+        var replacer = (match, cap1, cap2, cap3, len) => {
             p1 = cap1;
             p2 = cap2;
             p3 = cap3;
+            length = len;
             return "awesome!";
         };
 
@@ -311,6 +312,7 @@ fn replace_with_function() {
     assert_eq!(forward(&mut engine, "p1"), "\"o\"");
     assert_eq!(forward(&mut engine, "p2"), "\"o\"");
     assert_eq!(forward(&mut engine, "p3"), "\"l\"");
+    assert_eq!(forward(&mut engine, "length"), "14");
 }
 
 #[test]
