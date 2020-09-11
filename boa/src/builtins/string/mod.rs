@@ -558,18 +558,13 @@ impl String {
                 }
                 Value::Object(_) => {
                     // This will return the matched substring first, then captured parenthesized groups later
-
-                    // TODO(RageKnify) regress could have a groups method that returns an iterator,
-                    // removing the need to do this in 3 statements (ridiculousfish/regress#7)
-                    let mut results: Vec<Value> = Vec::with_capacity(caps.len() + 1);
-                    results.push(Value::from(&primitive_val[mat.total()]));
-                    results.extend(caps.iter().map(|option| {
-                        if let Some(range) = option {
-                            Value::from(&primitive_val[range.clone()])
-                        } else {
-                            Value::undefined()
-                        }
-                    }));
+                    let mut results: Vec<Value> = mat
+                        .groups()
+                        .map(|group| match group {
+                            Some(range) => Value::from(&primitive_val[range]),
+                            None => Value::undefined(),
+                        })
+                        .collect();
 
                     // Returns the starting byte offset of the match
                     let start = mat.total().start;

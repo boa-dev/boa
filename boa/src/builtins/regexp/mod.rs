@@ -430,17 +430,13 @@ impl RegExp {
             let mut matches = Vec::new();
 
             for mat in regex.matcher.find_iter(&arg_str) {
-                // TODO(RageKnify) regress could have a groups method that returns an iterator,
-                // removing the need to do this in 3 statements (ridiculousfish/regress#7)
-                let mut match_vec: Vec<Value> = Vec::with_capacity(mat.captures.len() + 1);
-                match_vec.push(Value::from(&arg_str[mat.total()]));
-                match_vec.extend(mat.captures.iter().map(|option| {
-                    if let Some(range) = option {
-                        Value::from(&arg_str[range.clone()])
-                    } else {
-                        Value::undefined()
-                    }
-                }));
+                let match_vec: Vec<Value> = mat
+                    .groups()
+                    .map(|group| match group {
+                        Some(range) => Value::from(&arg_str[range]),
+                        None => Value::undefined(),
+                    })
+                    .collect();
 
                 let match_val = Value::from(match_vec);
 
