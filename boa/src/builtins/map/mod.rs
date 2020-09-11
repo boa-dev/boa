@@ -232,7 +232,7 @@ impl Map {
 
         this.as_object_mut()
             .expect("this is array object")
-            .set_prototype(prototype);
+            .set_prototype_instance(prototype);
         // This value is used by console.log and other routines to match Object type
         // to its Javascript Identifier (global constructor method name)
 

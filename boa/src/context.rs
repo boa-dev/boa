@@ -333,13 +333,16 @@ impl Context {
                                 .expect("Could not get global object"),
                         ));
                         array.set_data(ObjectData::Array);
-                        array.as_object_mut().expect("object").set_prototype(
-                            self.realm()
-                                .environment
-                                .get_binding_value("Array")
-                                .expect("Array was not initialized")
-                                .get_field(PROTOTYPE),
-                        );
+                        array
+                            .as_object_mut()
+                            .expect("object")
+                            .set_prototype_instance(
+                                self.realm()
+                                    .environment
+                                    .get_binding_value("Array")
+                                    .expect("Array was not initialized")
+                                    .get_field(PROTOTYPE),
+                            );
                         array.set_field("0", key);
                         array.set_field("1", value);
                         array.set_field("length", Value::from(2));

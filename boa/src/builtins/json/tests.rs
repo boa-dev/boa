@@ -270,13 +270,13 @@ fn json_parse_sets_prototypes() {
         .unwrap()
         .as_object()
         .unwrap()
-        .prototype()
+        .prototype_instance()
         .clone();
     let array_prototype = forward_val(&mut engine, r#"jsonObj.arr"#)
         .unwrap()
         .as_object()
         .unwrap()
-        .prototype()
+        .prototype_instance()
         .clone();
     let global_object_prototype = engine
         .global_object()

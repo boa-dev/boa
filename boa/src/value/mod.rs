@@ -168,7 +168,7 @@ impl Value {
     pub fn new_object_from_prototype(proto: Value, data: ObjectData) -> Self {
         let mut object = Object::default();
         object.data = data;
-        object.set_prototype(proto);
+        object.set_prototype_instance(proto);
         Self::object(object)
     }
 
@@ -472,7 +472,7 @@ impl Value {
                     return Some(property);
                 }
 
-                object.prototype().get_property(key)
+                object.prototype_instance().get_property(key)
             }
             _ => None,
         }
