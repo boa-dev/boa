@@ -1,7 +1,8 @@
 use boa::{
     class::{Class, ClassBuilder},
+    gc::{Finalize, Trace},
     property::Attribute,
-    Context, Finalize, Result, Trace, Value,
+    Context, Result, Value,
 };
 
 // We create a new struct that is going to represent a person.

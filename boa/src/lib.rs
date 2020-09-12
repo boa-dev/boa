@@ -38,6 +38,7 @@ pub mod builtins;
 pub mod class;
 pub mod environment;
 pub mod exec;
+pub mod gc;
 pub mod object;
 pub mod profiler;
 pub mod property;
@@ -50,7 +51,6 @@ mod context;
 use std::result::Result as StdResult;
 
 pub(crate) use crate::{exec::Executable, profiler::BoaProfiler};
-pub use gc::{custom_trace, unsafe_empty_trace, Finalize, Trace};
 
 // Export things to root level
 pub use crate::{context::Context, value::Value};

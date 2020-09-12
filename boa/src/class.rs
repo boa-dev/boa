@@ -5,7 +5,8 @@
 //!# use boa::{
 //!#    property::Attribute,
 //!#    class::{Class, ClassBuilder},
-//!#    Context, Finalize, Result, Trace, Value,
+//!#    gc::{Finalize, Trace},
+//!#    Context, Result, Value,
 //!# };
 //!#
 //! // This does not have to be an enum it can also be a struct.
