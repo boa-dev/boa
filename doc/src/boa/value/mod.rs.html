@@ -1199,7 +1199,7 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_object_from_prototype</span>(<span class="ident">proto</span>: <span class="ident">Value</span>, <span class="ident">data</span>: <span class="ident">ObjectData</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">object</span> <span class="op">=</span> <span class="ident">Object</span>::<span class="ident">default</span>();
         <span class="ident">object</span>.<span class="ident">data</span> <span class="op">=</span> <span class="ident">data</span>;
-        <span class="ident">object</span>.<span class="ident">set_prototype</span>(<span class="ident">proto</span>);
+        <span class="ident">object</span>.<span class="ident">set_prototype_instance</span>(<span class="ident">proto</span>);
         <span class="self">Self</span>::<span class="ident">object</span>(<span class="ident">object</span>)
     }
 
@@ -1503,7 +1503,7 @@
                     <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="ident">property</span>);
                 }
 
-                <span class="ident">object</span>.<span class="ident">prototype</span>().<span class="ident">get_property</span>(<span class="ident">key</span>)
+                <span class="ident">object</span>.<span class="ident">prototype_instance</span>().<span class="ident">get_property</span>(<span class="ident">key</span>)
             }
             <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
         }

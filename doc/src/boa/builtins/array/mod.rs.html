@@ -1151,6 +1151,9 @@
 <span id="1151">1151</span>
 <span id="1152">1152</span>
 <span id="1153">1153</span>
+<span id="1154">1154</span>
+<span id="1155">1155</span>
+<span id="1156">1156</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements the global `Array` object.</span>
 <span class="doccomment">//!</span>
@@ -1196,14 +1199,17 @@
                 .<span class="ident">expect</span>(<span class="string">&quot;Could not get global object&quot;</span>),
         ));
         <span class="ident">array</span>.<span class="ident">set_data</span>(<span class="ident">ObjectData</span>::<span class="ident">Array</span>);
-        <span class="ident">array</span>.<span class="ident">as_object_mut</span>().<span class="ident">expect</span>(<span class="string">&quot;array object&quot;</span>).<span class="ident">set_prototype</span>(
-            <span class="ident">interpreter</span>
-                .<span class="ident">realm</span>()
-                .<span class="ident">environment</span>
-                .<span class="ident">get_binding_value</span>(<span class="string">&quot;Array&quot;</span>)
-                .<span class="ident">expect</span>(<span class="string">&quot;Array was not initialized&quot;</span>)
-                .<span class="ident">get_field</span>(<span class="ident">PROTOTYPE</span>),
-        );
+        <span class="ident">array</span>
+            .<span class="ident">as_object_mut</span>()
+            .<span class="ident">expect</span>(<span class="string">&quot;array object&quot;</span>)
+            .<span class="ident">set_prototype_instance</span>(
+                <span class="ident">interpreter</span>
+                    .<span class="ident">realm</span>()
+                    .<span class="ident">environment</span>
+                    .<span class="ident">get_binding_value</span>(<span class="string">&quot;Array&quot;</span>)
+                    .<span class="ident">expect</span>(<span class="string">&quot;Array was not initialized&quot;</span>)
+                    .<span class="ident">get_field</span>(<span class="ident">PROTOTYPE</span>),
+            );
         <span class="ident">array</span>.<span class="ident">set_field</span>(<span class="string">&quot;length&quot;</span>, <span class="ident">Value</span>::<span class="ident">from</span>(<span class="number">0</span>));
         <span class="prelude-val">Ok</span>(<span class="ident">array</span>)
     }
@@ -1262,7 +1268,7 @@
 
         <span class="ident">this</span>.<span class="ident">as_object_mut</span>()
             .<span class="ident">expect</span>(<span class="string">&quot;this should be an array object&quot;</span>)
-            .<span class="ident">set_prototype</span>(<span class="ident">prototype</span>);
+            .<span class="ident">set_prototype_instance</span>(<span class="ident">prototype</span>);
         <span class="comment">// This value is used by console.log and other routines to match Object type</span>
         <span class="comment">// to its Javascript Identifier (global constructor method name)</span>
         <span class="ident">this</span>.<span class="ident">set_data</span>(<span class="ident">ObjectData</span>::<span class="ident">Array</span>);
