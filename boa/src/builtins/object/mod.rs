@@ -82,16 +82,16 @@ impl Object {
     /// Get the `prototype` of an object.
     pub fn get_prototype_of(_: &Value, args: &[Value], _: &mut Context) -> Result<Value> {
         let obj = args.get(0).expect("Cannot get object");
-        Ok(obj
-            .as_object()
-            .map_or_else(Value::undefined, |object| object.prototype().clone()))
+        Ok(obj.as_object().map_or_else(Value::undefined, |object| {
+            object.prototype_instance().clone()
+        }))
     }
 
     /// Set the `prototype` of an object.
     pub fn set_prototype_of(_: &Value, args: &[Value], _: &mut Context) -> Result<Value> {
         let obj = args.get(0).expect("Cannot get object").clone();
         let proto = args.get(1).expect("Cannot get object").clone();
-        obj.as_object_mut().unwrap().set_prototype(proto);
+        obj.as_object_mut().unwrap().set_prototype_instance(proto);
         Ok(obj)
     }
 

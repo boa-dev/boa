@@ -392,11 +392,11 @@ impl Object {
         matches!(self.data, ObjectData::Ordinary)
     }
 
-    pub fn prototype(&self) -> &Value {
+    pub fn prototype_instance(&self) -> &Value {
         &self.prototype
     }
 
-    pub fn set_prototype(&mut self, prototype: Value) {
+    pub fn set_prototype_instance(&mut self, prototype: Value) {
         assert!(prototype.is_null() || prototype.is_object());
         self.prototype = prototype
     }

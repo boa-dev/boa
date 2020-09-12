@@ -759,7 +759,7 @@ mod in_operator {
         let bar_obj = bar_val.as_object().unwrap();
         let foo_val = forward_val(&mut engine, "Foo").unwrap();
         assert!(bar_obj
-            .prototype()
+            .prototype_instance()
             .strict_equals(&foo_val.get_field("prototype")));
     }
 }

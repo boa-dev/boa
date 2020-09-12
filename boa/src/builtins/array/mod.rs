@@ -42,14 +42,17 @@ impl Array {
                 .expect("Could not get global object"),
         ));
         array.set_data(ObjectData::Array);
-        array.as_object_mut().expect("array object").set_prototype(
-            interpreter
-                .realm()
-                .environment
-                .get_binding_value("Array")
-                .expect("Array was not initialized")
-                .get_field(PROTOTYPE),
-        );
+        array
+            .as_object_mut()
+            .expect("array object")
+            .set_prototype_instance(
+                interpreter
+                    .realm()
+                    .environment
+                    .get_binding_value("Array")
+                    .expect("Array was not initialized")
+                    .get_field(PROTOTYPE),
+            );
         array.set_field("length", Value::from(0));
         Ok(array)
     }
@@ -108,7 +111,7 @@ impl Array {
 
         this.as_object_mut()
             .expect("this should be an array object")
-            .set_prototype(prototype);
+            .set_prototype_instance(prototype);
         // This value is used by console.log and other routines to match Object type
         // to its Javascript Identifier (global constructor method name)
         this.set_data(ObjectData::Array);
