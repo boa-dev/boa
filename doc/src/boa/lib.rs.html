@@ -169,6 +169,7 @@
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">class</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">environment</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">exec</span>;
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">gc</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">object</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">profiler</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">property</span>;
@@ -181,7 +182,6 @@
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">result</span>::<span class="prelude-ty">Result</span> <span class="kw">as</span> <span class="ident">StdResult</span>;
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">exec</span>::<span class="ident">Executable</span>, <span class="ident">profiler</span>::<span class="ident">BoaProfiler</span>};
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">gc</span>::{<span class="ident">custom_trace</span>, <span class="ident">unsafe_empty_trace</span>, <span class="ident">Finalize</span>, <span class="ident">Trace</span>};
 
 <span class="comment">// Export things to root level</span>
 <span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">context</span>::<span class="ident">Context</span>, <span class="ident">value</span>::<span class="ident">Value</span>};
