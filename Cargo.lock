@@ -914,9 +914,9 @@ checksum = "71d301d4193d031abdd79ff7e3dd721168a9572ef3fe51a1517aba235bd8f86e"
 
 [[package]]
 name = "ryu-js"
-version = "0.2.0"
+version = "0.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1010bb9c1f68556b130d631f92fa5e78a2f15a7befcbfbbba51bdb35088149e9"
+checksum = "e26864181681b29144524f5856471a3c8dbe1a02f4fdd6f6f74d5e2528d96f42"
 
 [[package]]
 name = "same-file"
