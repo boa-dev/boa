@@ -59,6 +59,7 @@ jobs:
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           git pull
+          git add test262
           git commit -m "Add new test262 results" -a
           cd ..
       - name: Upload results
