@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/syn-1.0.39/src/parse_macro_input.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>parse_macro_input.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../syn/index.html'><div class='logo-container'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/syn-1.0.41/src/parse_macro_input.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>parse_macro_input.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../syn/index.html'><div class='logo-container'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -132,6 +132,50 @@
 <span id="132">132</span>
 <span id="133">133</span>
 <span id="134">134</span>
+<span id="135">135</span>
+<span id="136">136</span>
+<span id="137">137</span>
+<span id="138">138</span>
+<span id="139">139</span>
+<span id="140">140</span>
+<span id="141">141</span>
+<span id="142">142</span>
+<span id="143">143</span>
+<span id="144">144</span>
+<span id="145">145</span>
+<span id="146">146</span>
+<span id="147">147</span>
+<span id="148">148</span>
+<span id="149">149</span>
+<span id="150">150</span>
+<span id="151">151</span>
+<span id="152">152</span>
+<span id="153">153</span>
+<span id="154">154</span>
+<span id="155">155</span>
+<span id="156">156</span>
+<span id="157">157</span>
+<span id="158">158</span>
+<span id="159">159</span>
+<span id="160">160</span>
+<span id="161">161</span>
+<span id="162">162</span>
+<span id="163">163</span>
+<span id="164">164</span>
+<span id="165">165</span>
+<span id="166">166</span>
+<span id="167">167</span>
+<span id="168">168</span>
+<span id="169">169</span>
+<span id="170">170</span>
+<span id="171">171</span>
+<span id="172">172</span>
+<span id="173">173</span>
+<span id="174">174</span>
+<span id="175">175</span>
+<span id="176">176</span>
+<span id="177">177</span>
+<span id="178">178</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">/// Parse the input TokenStream of a macro, triggering a compile error if the</span>
 <span class="doccomment">/// tokens fail to parse.</span>
@@ -181,6 +225,42 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// &lt;br&gt;</span>
 <span class="doccomment">///</span>
+<span class="doccomment">/// # Usage with Parser</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// This macro can also be used with the [`Parser` trait] for types that have</span>
+<span class="doccomment">/// multiple ways that they can be parsed.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// [`Parser` trait]: crate::rustdoc_workaround::parse_module::Parser</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// ```</span>
+<span class="doccomment">/// # extern crate proc_macro;</span>
+<span class="doccomment">/// #</span>
+<span class="doccomment">/// # use proc_macro::TokenStream;</span>
+<span class="doccomment">/// # use syn::{parse_macro_input, Result};</span>
+<span class="doccomment">/// # use syn::parse::ParseStream;</span>
+<span class="doccomment">/// #</span>
+<span class="doccomment">/// # struct MyMacroInput {}</span>
+<span class="doccomment">/// #</span>
+<span class="doccomment">/// impl MyMacroInput {</span>
+<span class="doccomment">///     fn parse_alternate(input: ParseStream) -&gt; Result&lt;Self&gt; {</span>
+<span class="doccomment">///         /* ... */</span>
+<span class="doccomment">/// #       Ok(MyMacroInput {})</span>
+<span class="doccomment">///     }</span>
+<span class="doccomment">/// }</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// # const IGNORE: &amp;str = stringify! {</span>
+<span class="doccomment">/// #[proc_macro]</span>
+<span class="doccomment">/// # };</span>
+<span class="doccomment">/// pub fn my_macro(tokens: TokenStream) -&gt; TokenStream {</span>
+<span class="doccomment">///     let input = parse_macro_input!(tokens with MyMacroInput::parse_alternate);</span>
+<span class="doccomment">///</span>
+<span class="doccomment">///     /* ... */</span>
+<span class="doccomment">/// #   &quot;&quot;.parse().unwrap()</span>
+<span class="doccomment">/// }</span>
+<span class="doccomment">/// ```</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// &lt;br&gt;</span>
+<span class="doccomment">///</span>
 <span class="doccomment">/// # Expansion</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// `parse_macro_input!($variable as $Type)` expands to something like:</span>
@@ -206,6 +286,14 @@
 <span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">parse_macro_input</span> {
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokenstream</span>:<span class="ident">ident</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span>:<span class="ident">ty</span>) <span class="op">=</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">parse_macro_input</span>::<span class="ident">parse</span>::<span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span><span class="op">&gt;</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokenstream</span>) {
+            <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">export</span>::<span class="prelude-val">Ok</span>(<span class="ident">data</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">data</span>,
+            <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">export</span>::<span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="kw">return</span> <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">export</span>::<span class="ident">TokenStream</span>::<span class="ident">from</span>(<span class="ident">err</span>.<span class="ident">to_compile_error</span>());
+            }
+        }
+    };
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokenstream</span>:<span class="ident">ident</span> <span class="ident">with</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">parser</span>:<span class="ident">path</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="kw">match</span> <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">parse</span>::<span class="ident">Parser</span>::<span class="ident">parse</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">parser</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">tokenstream</span>) {
             <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">export</span>::<span class="prelude-val">Ok</span>(<span class="ident">data</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">data</span>,
             <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">export</span>::<span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">return</span> <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">export</span>::<span class="ident">TokenStream</span>::<span class="ident">from</span>(<span class="ident">err</span>.<span class="ident">to_compile_error</span>());

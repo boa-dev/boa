@@ -4,7 +4,7 @@
 }</pre></div>
 </div><div class='docblock'><p>Quasi-quotation macro that accepts input like the <a href="https://docs.rs/quote/1.0/quote/index.html"><code>quote!</code></a> macro but uses
 type inference to figure out a return type for those tokens.</p>
-<p>The return type can be any syntax tree node that implements the <a href="parse::Parse"><code>Parse</code></a>
+<p>The return type can be any syntax tree node that implements the <a href="crate::parse::Parse"><code>Parse</code></a>
 trait.</p>
 
 <div class="example-wrap"><pre class="rust rust-example-rendered">
@@ -46,7 +46,7 @@ though they do not implement the <code>Parse</code> trait.</p>
 <ul>
 <li>[<code>Attribute</code>] — parses one attribute, allowing either outer like <code>#[...]</code>
 or inner like <code>#![...]</code></li>
-<li><a href="punctuated::Punctuated"><code>Punctuated&lt;T, P&gt;</code></a> — parses zero or more <code>T</code> separated by punctuation
+<li><a href="crate::punctuated::Punctuated"><code>Punctuated&lt;T, P&gt;</code></a> — parses zero or more <code>T</code> separated by punctuation
 <code>P</code> with optional trailing punctuation</li>
 <li><a href="Block::parse_within"><code>Vec&lt;Stmt&gt;</code></a> — parses the same as <code>Block::parse_within</code></li>
 </ul>
