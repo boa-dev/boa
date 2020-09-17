@@ -30,7 +30,7 @@ pub use self::{
     expression::{Call, New},
     field::{GetConstField, GetField},
     identifier::Identifier,
-    iteration::{Continue, DoWhileLoop, ForLoop, WhileLoop},
+    iteration::{Continue, DoWhileLoop, ForLoop, ForOfLoop, WhileLoop},
     object::Object,
     operator::{Assign, BinOp, UnaryOp},
     return_smt::Return,
@@ -112,6 +112,9 @@ pub enum Node {
 
     /// A `for` statement. [More information](./iteration/struct.ForLoop.html).
     ForLoop(ForLoop),
+
+    /// A `for...of` statement. [More information](./iteration/struct.ForOf.html).
+    ForOfLoop(ForOfLoop),
 
     /// An 'if' statement. [More information](./conditional/struct.If.html).
     If(If),
@@ -208,6 +211,7 @@ impl Node {
             Self::Const(ref c) => write!(f, "{}", c),
             Self::ConditionalOp(ref cond_op) => Display::fmt(cond_op, f),
             Self::ForLoop(ref for_loop) => for_loop.display(f, indentation),
+            Self::ForOfLoop(ref for_of) => for_of.display(f, indentation),
             Self::This => write!(f, "this"),
             Self::Try(ref try_catch) => try_catch.display(f, indentation),
             Self::Break(ref break_smt) => Display::fmt(break_smt, f),

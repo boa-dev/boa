@@ -3,7 +3,7 @@
 use super::{Context, Executable, InterpreterState};
 use crate::{
     environment::lexical_environment::new_declarative_environment,
-    syntax::ast::node::{DoWhileLoop, ForLoop, WhileLoop},
+    syntax::ast::node::{DoWhileLoop, ForLoop, ForOfLoop, WhileLoop},
     BoaProfiler, Result, Value,
 };
 
@@ -159,6 +159,83 @@ impl Executable for DoWhileLoop {
                 }
             }
         }
+        Ok(result)
+    }
+}
+
+impl Executable for ForOfLoop {
+    fn run(&self, interpreter: &mut Context) -> Result<Value> {
+        let _timer = BoaProfiler::global().start_event("ForOf", "exec");
+        let iterable = self.iterable().run(interpreter)?;
+        let iterator_function = iterable
+            .get_property(
+                interpreter
+                    .get_well_known_symbol("iterator")
+                    .ok_or_else(|| interpreter.construct_type_error("Not an iterable"))?,
+            )
+            .and_then(|mut p| p.value.take())
+            .ok_or_else(|| interpreter.construct_type_error("Not an iterable"))?;
+        let iterator_object = interpreter.call(&iterator_function, &iterable, &[])?;
+        {
+            let env = &mut interpreter.realm_mut().environment;
+            env.push(new_declarative_environment(Some(
+                env.get_current_environment_ref().clone(),
+            )));
+        }
+        //let variable = self.variable().run(interpreter)?;
+        let next_function = iterator_object
+            .get_property("next")
+            .and_then(|mut p| p.value.take())
+            .ok_or_else(|| interpreter.construct_type_error("Could not find property `next`"))?;
+        let mut result = Value::undefined();
+
+        self.variable().run(interpreter)?;
+        loop {
+            let next = interpreter.call(&next_function, &iterator_object, &[])?;
+            let done = next
+                .get_property("done")
+                .and_then(|mut p| p.value.take())
+                .and_then(|v| v.as_boolean())
+                .ok_or_else(|| {
+                    interpreter.construct_type_error("Could not find property `done`")
+                })?;
+            if done {
+                break;
+            }
+            let next_result = next
+                .get_property("value")
+                .and_then(|mut p| p.value.take())
+                .ok_or_else(|| {
+                    interpreter.construct_type_error("Could not find property `value`")
+                })?;
+            interpreter.set_value(self.variable(), next_result)?;
+            result = self.body().run(interpreter)?;
+            match interpreter.executor().get_current_state() {
+                InterpreterState::Break(_label) => {
+                    // TODO break to label.
+
+                    // Loops 'consume' breaks.
+                    interpreter
+                        .executor()
+                        .set_current_state(InterpreterState::Executing);
+                    break;
+                }
+                InterpreterState::Continue(_label) => {
+                    // TODO continue to label.
+                    interpreter
+                        .executor()
+                        .set_current_state(InterpreterState::Executing);
+                    // after breaking out of the block, continue execution of the loop
+                }
+                InterpreterState::Return => {
+                    return interpreter.throw_syntax_error("return not in function")
+                }
+                InterpreterState::Executing => {
+                    // Continue execution.
+                }
+            }
+        }
+        let _ = interpreter.realm_mut().environment.pop();
         Ok(result)
     }
 }

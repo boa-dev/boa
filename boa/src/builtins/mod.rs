@@ -49,6 +49,7 @@ pub fn init(interpreter: &mut Context) {
         // The `Function` global must be initialized before other types.
         function::init,
         Object::init,
+        Symbol::init,
         Array::init,
         BigInt::init,
         Boolean::init,
@@ -59,7 +60,6 @@ pub fn init(interpreter: &mut Context) {
         Number::init,
         RegExp::init,
         String::init,
-        Symbol::init,
         Console::init,
         // Global error types.
         Error::init,
