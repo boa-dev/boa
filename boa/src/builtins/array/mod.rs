@@ -9,10 +9,12 @@
 //! [spec]: https://tc39.es/ecma262/#sec-array-objects
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array
 
+pub mod array_iterator;
 #[cfg(test)]
 mod tests;
 
 use super::function::{make_builtin_fn, make_constructor_fn};
+use crate::builtins::array::array_iterator::{ArrayIterationKind, ArrayIterator};
 use crate::{
     object::{ObjectData, PROTOTYPE},
     property::{Attribute, Property},
@@ -1091,6 +1093,14 @@ impl Array {
         Ok(accumulator)
     }
 
+    pub(crate) fn values(
+        this: &Value,
+        _args: &[Value],
+        interpreter: &mut Context,
+    ) -> Result<Value> {
+        ArrayIterator::new_array_iterator(interpreter, this.clone(), ArrayIterationKind::Value)
+    }
+
     /// Initialise the `Array` object on the global object.
     #[inline]
     pub(crate) fn init(interpreter: &mut Context) -> (&'static str, Value) {
@@ -1136,6 +1146,15 @@ impl Array {
             &prototype,
             2,
             interpreter,
+        );
+        make_builtin_fn(Self::values, "values", &prototype, 0, interpreter);
+
+        let symbol_iterator = interpreter
+            .get_well_known_symbol("iterator")
+            .expect("Symbol.iterator not initialised");
+        prototype.set_property(
+            symbol_iterator,
+            Property::default().value(prototype.get_field("values")),
         );
 
         let array = make_constructor_fn(

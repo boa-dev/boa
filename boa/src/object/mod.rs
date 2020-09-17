@@ -15,6 +15,7 @@ mod gcobject;
 mod internal_methods;
 mod iter;
 
+use crate::builtins::array::array_iterator::ArrayIterator;
 pub use gcobject::{GcObject, Ref, RefMut};
 pub use iter::*;
 
@@ -62,6 +63,7 @@ pub struct Object {
 #[derive(Debug, Trace, Finalize)]
 pub enum ObjectData {
     Array,
+    ArrayIterator(ArrayIterator),
     Map(OrderedMap<Value, Value>),
     RegExp(Box<RegExp>),
     BigInt(RcBigInt),
@@ -84,6 +86,7 @@ impl Display for ObjectData {
             "{}",
             match self {
                 Self::Array => "Array",
+                Self::ArrayIterator(_) => "ArrayIterator",
                 Self::Function(_) => "Function",
                 Self::RegExp(_) => "RegExp",
                 Self::Map(_) => "Map",
@@ -248,6 +251,28 @@ impl Object {
     pub fn as_array(&self) -> Option<()> {
         match self.data {
             ObjectData::Array => Some(()),
+            _ => None,
+        }
+    }
+
+    /// Checks if it is an `ArrayIterator` object.
+    #[inline]
+    pub fn is_array_iterator(&self) -> bool {
+        matches!(self.data, ObjectData::ArrayIterator(_))
+    }
+
+    #[inline]
+    pub fn as_array_iterator(&self) -> Option<&ArrayIterator> {
+        match self.data {
+            ObjectData::ArrayIterator(ref iter) => Some(iter),
+            _ => None,
+        }
+    }
+
+    #[inline]
+    pub fn as_array_iterator_mut(&mut self) -> Option<&mut ArrayIterator> {
+        match &mut self.data {
+            ObjectData::ArrayIterator(iter) => Some(iter),
             _ => None,
         }
     }
@@ -453,5 +478,9 @@ impl Object {
             }
             _ => None,
         }
+    }
+
+    pub fn get_string_property(&self, key: &str) -> Option<&Property> {
+        self.string_properties.get(key)
     }
 }

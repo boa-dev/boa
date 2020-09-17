@@ -317,6 +317,13 @@ impl Value {
         matches!(self, Self::Symbol(_))
     }
 
+    pub fn as_symbol(&self) -> Option<RcSymbol> {
+        match self {
+            Self::Symbol(symbol) => Some(symbol.clone()),
+            _ => None,
+        }
+    }
+
     /// Returns true if the value is a function
     #[inline]
     pub fn is_function(&self) -> bool {
@@ -396,6 +403,14 @@ impl Value {
     #[inline]
     pub fn is_boolean(&self) -> bool {
         matches!(self, Self::Boolean(_))
+    }
+
+    #[inline]
+    pub fn as_boolean(&self) -> Option<bool> {
+        match self {
+            Self::Boolean(boolean) => Some(*boolean),
+            _ => None,
+        }
     }
 
     /// Returns true if the value is a bigint.
