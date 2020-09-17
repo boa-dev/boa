@@ -309,3 +309,56 @@ impl From<Continue> for Node {
         Self::Continue(cont)
     }
 }
+
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[derive(Clone, Debug, Trace, Finalize, PartialEq)]
+pub struct ForOfLoop {
+    variable: Box<Node>,
+    iterable: Box<Node>,
+    body: Box<Node>,
+}
+
+impl ForOfLoop {
+    pub fn new<V, I, B>(variable: V, iterable: I, body: B) -> Self
+    where
+        V: Into<Node>,
+        I: Into<Node>,
+        B: Into<Node>,
+    {
+        Self {
+            variable: Box::new(variable.into()),
+            iterable: Box::new(iterable.into()),
+            body: Box::new(body.into()),
+        }
+    }
+
+    pub fn variable(&self) -> &Node {
+        &self.variable
+    }
+
+    pub fn iterable(&self) -> &Node {
+        &self.iterable
+    }
+
+    pub fn body(&self) -> &Node {
+        &self.body
+    }
+
+    pub(super) fn display(&self, f: &mut fmt::Formatter<'_>, indentation: usize) -> fmt::Result {
+        write!(f, "for ({} of {}) {{", self.variable, self.iterable)?;
+        self.body().display(f, indentation + 1)?;
+        f.write_str("}")
+    }
+}
+
+impl fmt::Display for ForOfLoop {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        self.display(f, 0)
+    }
+}
+
+impl From<ForOfLoop> for Node {
+    fn from(for_of: ForOfLoop) -> Node {
+        Self::ForOfLoop(for_of)
+    }
+}

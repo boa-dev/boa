@@ -495,4 +495,17 @@ impl Context {
 
         result
     }
+
+    pub fn get_well_known_symbol<K>(&self, name: K) -> Option<RcSymbol>
+    where
+        K: Into<PropertyKey>,
+    {
+        let global_object = self.global_object();
+        let symbol = global_object.get_field("Symbol");
+        let symbol_iterator: Value = (&symbol.get_property(name)?).into();
+        let symbol_iterator = symbol_iterator.as_object()?;
+        let symbol_iterator = symbol_iterator.get_string_property("value")?;
+        let symbol_iterator = symbol_iterator.value.as_ref()?.as_symbol()?;
+        Some(symbol_iterator)
+    }
 }
