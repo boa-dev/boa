@@ -1,8 +1,6 @@
 //! Iteration node execution.
 
 use super::{Context, Executable, InterpreterState};
-use crate::environment::lexical_environment::VariableScope;
-use crate::syntax::ast::Node;
 use crate::{
     builtins::iterable::get_iterator,
     environment::lexical_environment::{new_declarative_environment, VariableScope},
@@ -469,7 +467,7 @@ impl Executable for ForOfLoop {
                     // after breaking out of the block, continue execution of the loop
                 }
                 InterpreterState::Return => {
-                    return interpreter.throw_syntax_error("return not in function")
+                    return Ok(result);
                 }
                 InterpreterState::Executing => {
                     // Continue execution.
