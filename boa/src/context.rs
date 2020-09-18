@@ -502,6 +502,16 @@ impl Context {
         result
     }
 
+    /// Returns a structure that contains the JavaScript well known symbols.
+    ///
+    /// # Examples
+    /// ```
+    /// let mut context = Context::new();
+    ///
+    /// let iterator = context.well_known_symbols().iterator_symbol();
+    /// ```
+    /// This is equivalent to `let iterator = Symbol.iterator` in JavaScript.
+    #[inline]
     pub fn well_known_symbols(&self) -> &WellKnownSymbols {
         &self.well_known_symbols
     }
