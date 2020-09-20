@@ -34,7 +34,7 @@ use std::io::Read;
 ///
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/for
 /// [spec]: https://tc39.es/ecma262/#sec-for-statement
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy)]
 pub(in crate::syntax::parser::statement) struct ForStatement {
     allow_yield: AllowYield,
     allow_await: AllowAwait,
