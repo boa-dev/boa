@@ -506,9 +506,11 @@ impl Context {
     ///
     /// # Examples
     /// ```
+    ///# use boa::Context;
     /// let mut context = Context::new();
     ///
     /// let iterator = context.well_known_symbols().iterator_symbol();
+    /// assert_eq!(iterator.description(), Some("Symbol.iterator"));
     /// ```
     /// This is equivalent to `let iterator = Symbol.iterator` in JavaScript.
     #[inline]
