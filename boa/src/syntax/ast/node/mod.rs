@@ -9,7 +9,6 @@ pub mod expression;
 pub mod field;
 pub mod identifier;
 pub mod iteration;
-pub mod labelled_smt;
 pub mod object;
 pub mod operator;
 pub mod return_smt;
@@ -32,7 +31,6 @@ pub use self::{
     field::{GetConstField, GetField},
     identifier::Identifier,
     iteration::{Continue, DoWhileLoop, ForLoop, WhileLoop},
-    labelled_smt::Label,
     object::Object,
     operator::{Assign, BinOp, UnaryOp},
     return_smt::Return,
@@ -117,9 +115,6 @@ pub enum Node {
 
     /// An 'if' statement. [More information](./conditional/struct.If.html).
     If(If),
-
-    /// A labelled Statement.
-    Label(Label),
 
     /// A `let` declaration list. [More information](./declaration/struct.LetDeclList.html).
     LetDeclList(LetDeclList),
@@ -227,7 +222,6 @@ impl Node {
             Self::WhileLoop(ref while_loop) => while_loop.display(f, indentation),
             Self::DoWhileLoop(ref do_while) => do_while.display(f, indentation),
             Self::If(ref if_smt) => if_smt.display(f, indentation),
-            Self::Label(ref label) => label.display(f),
             Self::Switch(ref switch) => switch.display(f, indentation),
             Self::Object(ref obj) => obj.display(f, indentation),
             Self::ArrayDecl(ref arr) => Display::fmt(arr, f),

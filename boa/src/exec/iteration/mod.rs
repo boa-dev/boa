@@ -39,8 +39,11 @@ impl Executable for ForLoop {
                     if let Some(stmt_label) = &self.label {
                         if let Some(brk_label) = label {
                             // We have a label, but not for the current statement
-                            // break without resetting to executing
-                            if stmt_label != brk_label {
+                            // break without resetting to executings
+                            if stmt_label.to_string() != *brk_label {
+                                break;
+                            } else {
+                                interpreter.set_current_state(InterpreterState::Executing);
                                 break;
                             }
                         }
@@ -55,9 +58,8 @@ impl Executable for ForLoop {
                     //     }
                     // }
 
-                    // // Loops 'consume' breaks.
-                    // interpreter.set_current_state(InterpreterState::Executing);
-                    // break;
+                    interpreter.set_current_state(InterpreterState::Executing);
+                    break;
                 }
                 InterpreterState::Continue(_label) => {
                     // TODO continue to label.

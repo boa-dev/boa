@@ -21,7 +21,7 @@ use serde::{Deserialize, Serialize};
 pub struct ForLoop {
     #[cfg_attr(feature = "serde", serde(flatten))]
     inner: Box<InnerForLoop>,
-    label: Option<Box<str>>,
+    pub(crate) label: Option<Box<str>>,
 }
 
 impl ForLoop {

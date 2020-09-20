@@ -1,7 +1,8 @@
 use super::{LabelIdentifier, Statement};
 use crate::{
+    syntax::ast::Node,
     syntax::{
-        ast::{node::Label, Punctuator},
+        ast::Punctuator,
         parser::{
             cursor::Cursor, error::ParseError, AllowAwait, AllowReturn, AllowYield, TokenParser,
         },
@@ -39,7 +40,7 @@ impl LabelledStatement {
 }
 
 impl TokenParser for LabelledStatement {
-    type Output = Label;
+    type Output = Node;
 
     fn parse(self, cursor: &mut Cursor<'_>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("Label", "Parsing");
@@ -47,7 +48,14 @@ impl TokenParser for LabelledStatement {
         cursor.expect(Punctuator::Colon, "Labelled Statement")?;
         let mut stmt =
             Statement::new(self.allow_yield, self.allow_await, self.allow_return).parse(cursor)?;
-        stmt.set_label(name);
-        Ok(Label::new(stmt))
+
+        set_label_for_node(&mut stmt, name);
+        Ok(stmt)
+    }
+}
+
+fn set_label_for_node(stmt: &mut Node, name: Box<str>) {
+    if let Node::ForLoop(ref mut for_loop) = stmt {
+        for_loop.set_label(name)
     }
 }

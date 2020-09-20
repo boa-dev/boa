@@ -9,7 +9,6 @@ mod declaration;
 mod field;
 mod identifier;
 mod iteration;
-mod labelled_stm;
 mod new;
 mod object;
 mod operator;
