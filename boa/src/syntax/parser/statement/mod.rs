@@ -105,7 +105,7 @@ where
     fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("Statement", "Parsing");
         // TODO: add BreakableStatement and divide Whiles, fors and so on to another place.
-        let tok = cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?;
+        let tok = cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?.to_owned();
 
         match tok.kind() {
             TokenKind::Keyword(Keyword::If) => {
@@ -176,11 +176,8 @@ where
             // if not fall back to ExpressionStatement
             TokenKind::Identifier(_)
                 if matches!(
-                    cursor.peek(1),
-                    Some(Token {
-                        kind: TokenKind::Punctuator(Punctuator::Colon),
-                        ..
-                    })
+                    cursor.peek(1)?.ok_or(ParseError::AbruptEnd)?.kind(),
+                    TokenKind::Punctuator(Punctuator::Colon)
                 ) =>
             {
                 LabelledStatement::new(self.allow_yield, self.allow_await, self.allow_return)
@@ -188,7 +185,6 @@ where
                     .map(Node::from)
             }
 
-            // TODO: https://tc39.es/ecma262/#prod-LabelledStatement
             _ => ExpressionStatement::new(self.allow_yield, self.allow_await).parse(cursor),
         }
     }

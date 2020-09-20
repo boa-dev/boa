@@ -43,7 +43,9 @@ impl Executable for ForLoop {
                             if stmt_label.to_string() != *brk_label {
                                 break;
                             } else {
-                                interpreter.set_current_state(InterpreterState::Executing);
+                                interpreter
+                                    .executor()
+                                    .set_current_state(InterpreterState::Executing);
                                 break;
                             }
                         }
@@ -53,12 +55,6 @@ impl Executable for ForLoop {
                     interpreter
                         .executor()
                         .set_current_state(InterpreterState::Executing);
-                    break;
-                    //         }
-                    //     }
-                    // }
-
-                    interpreter.set_current_state(InterpreterState::Executing);
                     break;
                 }
                 InterpreterState::Continue(_label) => {

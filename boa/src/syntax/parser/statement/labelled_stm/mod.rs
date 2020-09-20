@@ -1,3 +1,5 @@
+use std::io::Read;
+
 use super::{LabelIdentifier, Statement};
 use crate::{
     syntax::ast::Node,
@@ -39,10 +41,13 @@ impl LabelledStatement {
     }
 }
 
-impl TokenParser for LabelledStatement {
+impl<R> TokenParser<R> for LabelledStatement
+where
+    R: Read,
+{
     type Output = Node;
 
-    fn parse(self, cursor: &mut Cursor<'_>) -> Result<Self::Output, ParseError> {
+    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("Label", "Parsing");
         let name = LabelIdentifier::new(self.allow_yield, self.allow_await).parse(cursor)?;
         cursor.expect(Punctuator::Colon, "Labelled Statement")?;
