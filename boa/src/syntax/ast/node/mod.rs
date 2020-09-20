@@ -238,14 +238,6 @@ impl Node {
             Self::ConstDeclList(ref decl) => Display::fmt(decl, f),
         }
     }
-
-    // https://tc39.es/ecma262/#sec-labelled-statements
-    // Labels can be set on any statement
-    pub fn set_label(&mut self, label: Box<str>) {
-        if let Self::ForLoop(ref mut for_loop) = *self {
-            for_loop.set_label(label);
-        }
-    }
 }
 
 /// Utility to join multiple Nodes into a single string.
