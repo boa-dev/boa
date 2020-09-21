@@ -1269,15 +1269,15 @@
             <span class="self">Self</span>::<span class="ident">Boolean</span>(<span class="ident">b</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">JSONValue</span>::<span class="ident">Bool</span>(<span class="ident">b</span>)),
             <span class="self">Self</span>::<span class="ident">Object</span>(<span class="kw-2">ref</span> <span class="ident">obj</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">if</span> <span class="ident">obj</span>.<span class="ident">borrow</span>().<span class="ident">is_array</span>() {
-                    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">arr</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">JSONValue</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Vec</span>::<span class="ident">new</span>();
-                    <span class="kw">for</span> <span class="ident">k</span> <span class="kw">in</span> <span class="ident">obj</span>.<span class="ident">borrow</span>().<span class="ident">keys</span>() {
-                        <span class="kw">if</span> <span class="ident">k</span> <span class="op">!</span><span class="op">=</span> <span class="string">&quot;length&quot;</span> {
-                            <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_field</span>(<span class="ident">k</span>.<span class="ident">to_string</span>());
-                            <span class="kw">if</span> <span class="ident">value</span>.<span class="ident">is_undefined</span>() <span class="op">|</span><span class="op">|</span> <span class="ident">value</span>.<span class="ident">is_function</span>() <span class="op">|</span><span class="op">|</span> <span class="ident">value</span>.<span class="ident">is_symbol</span>() {
-                                <span class="ident">arr</span>.<span class="ident">push</span>(<span class="ident">JSONValue</span>::<span class="ident">Null</span>);
-                            } <span class="kw">else</span> {
-                                <span class="ident">arr</span>.<span class="ident">push</span>(<span class="self">self</span>.<span class="ident">get_field</span>(<span class="ident">k</span>.<span class="ident">to_string</span>()).<span class="ident">to_json</span>(<span class="ident">interpreter</span>)<span class="question-mark">?</span>);
-                            }
+                    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">keys</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">obj</span>.<span class="ident">borrow</span>().<span class="ident">index_property_keys</span>().<span class="ident">cloned</span>().<span class="ident">collect</span>();
+                    <span class="ident">keys</span>.<span class="ident">sort</span>();
+                    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">arr</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">JSONValue</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Vec</span>::<span class="ident">with_capacity</span>(<span class="ident">keys</span>.<span class="ident">len</span>());
+                    <span class="kw">for</span> <span class="ident">key</span> <span class="kw">in</span> <span class="ident">keys</span> {
+                        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_field</span>(<span class="ident">key</span>);
+                        <span class="kw">if</span> <span class="ident">value</span>.<span class="ident">is_undefined</span>() <span class="op">|</span><span class="op">|</span> <span class="ident">value</span>.<span class="ident">is_function</span>() <span class="op">|</span><span class="op">|</span> <span class="ident">value</span>.<span class="ident">is_symbol</span>() {
+                            <span class="ident">arr</span>.<span class="ident">push</span>(<span class="ident">JSONValue</span>::<span class="ident">Null</span>);
+                        } <span class="kw">else</span> {
+                            <span class="ident">arr</span>.<span class="ident">push</span>(<span class="ident">value</span>.<span class="ident">to_json</span>(<span class="ident">interpreter</span>)<span class="question-mark">?</span>);
                         }
                     }
                     <span class="prelude-val">Ok</span>(<span class="ident">JSONValue</span>::<span class="ident">Array</span>(<span class="ident">arr</span>))
