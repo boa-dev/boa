@@ -206,7 +206,7 @@ fn for_loop_break_label() {
             }
             str = str + i;
         }
-        str;
+        str
     "#;
     assert_eq!(&exec(scenario), "\"01\"")
 }

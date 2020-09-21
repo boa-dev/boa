@@ -38,7 +38,7 @@ use self::{
 
 use super::{AllowAwait, AllowReturn, AllowYield, Cursor, ParseError, TokenParser};
 
-use crate::syntax::lexer::TokenKind;
+use crate::syntax::lexer::{InputElement, TokenKind};
 use crate::{
     syntax::ast::{node, Keyword, Node, Punctuator},
     BoaProfiler,
@@ -105,7 +105,7 @@ where
     fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("Statement", "Parsing");
         // TODO: add BreakableStatement and divide Whiles, fors and so on to another place.
-        let tok = cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?.to_owned();
+        let tok = cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?;
 
         match tok.kind() {
             TokenKind::Keyword(Keyword::If) => {
@@ -172,21 +172,27 @@ where
                     .parse(cursor)
                     .map(Node::from)
             }
-            // Create guard to check if the next token is a `:` then we know we're sitting on a label
-            // if not fall back to ExpressionStatement
-            TokenKind::Identifier(_)
-                if cursor.peek_expect_no_lineterminator(1).is_ok()
+            _ => {
+                // Before falling to expression check for a label
+                cursor.set_goal(InputElement::Div);
+                let tok = cursor.peek(1)?;
+                if tok.is_some()
                     && matches!(
-                        cursor.peek_expect_no_lineterminator(1)?.kind(),
+                        tok.unwrap().kind(),
                         TokenKind::Punctuator(Punctuator::Colon)
-                    ) =>
-            {
-                LabelledStatement::new(self.allow_yield, self.allow_await, self.allow_return)
+                    )
+                {
+                    return LabelledStatement::new(
+                        self.allow_yield,
+                        self.allow_await,
+                        self.allow_return,
+                    )
                     .parse(cursor)
-                    .map(Node::from)
-            }
+                    .map(Node::from);
+                }
 
-            _ => ExpressionStatement::new(self.allow_yield, self.allow_await).parse(cursor),
+                ExpressionStatement::new(self.allow_yield, self.allow_await).parse(cursor)
+            }
         }
     }
 }
