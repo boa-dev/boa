@@ -238,15 +238,15 @@ impl Value {
             Self::Boolean(b) => Ok(JSONValue::Bool(b)),
             Self::Object(ref obj) => {
                 if obj.borrow().is_array() {
-                    let mut arr: Vec<JSONValue> = Vec::new();
-                    for k in obj.borrow().keys() {
-                        if k != "length" {
-                            let value = self.get_field(k.to_string());
-                            if value.is_undefined() || value.is_function() || value.is_symbol() {
-                                arr.push(JSONValue::Null);
-                            } else {
-                                arr.push(self.get_field(k.to_string()).to_json(interpreter)?);
-                            }
+                    let mut keys: Vec<u32> = obj.borrow().index_property_keys().cloned().collect();
+                    keys.sort();
+                    let mut arr: Vec<JSONValue> = Vec::with_capacity(keys.len());
+                    for key in keys {
+                        let value = self.get_field(key);
+                        if value.is_undefined() || value.is_function() || value.is_symbol() {
+                            arr.push(JSONValue::Null);
+                        } else {
+                            arr.push(value.to_json(interpreter)?);
                         }
                     }
                     Ok(JSONValue::Array(arr))
