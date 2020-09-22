@@ -190,16 +190,14 @@ impl GcObject {
     // <https://tc39.es/ecma262/#sec-ecmascript-function-objects-construct-argumentslist-newtarget>
     #[track_caller]
     pub fn construct(&self, args: &[Value], ctx: &mut Context) -> Result<Value> {
-        let this = Object::create(self.borrow().get(&PROTOTYPE.into())).into();
+        let this: Value = Object::create(self.borrow().get(&PROTOTYPE.into())).into();
 
         let this_function_object = self.clone();
-        let object = self.borrow();
-        if let Some(function) = object.as_function() {
+        let body = if let Some(function) = self.borrow().as_function() {
             if function.is_constructable() {
                 match function {
                     Function::BuiltIn(BuiltInFunction(function), _) => {
-                        function(&this, args, ctx)?;
-                        Ok(this)
+                        FunctionBody::BuiltIn(*function)
                     }
                     Function::Ordinary {
                         body,
@@ -211,7 +209,7 @@ impl GcObject {
                         // <https://tc39.es/ecma262/#sec-prepareforordinarycall>
                         let local_env = new_function_environment(
                             this_function_object,
-                            Some(this),
+                            Some(this.clone()),
                             Some(environment.clone()),
                             // Arrow functions do not have a this binding https://tc39.es/ecma262/#sec-function-environment-records
                             if flags.is_lexical_this_mode() {
@@ -244,20 +242,29 @@ impl GcObject {
 
                         ctx.realm_mut().environment.push(local_env);
 
-                        // Call body should be set before reaching here
-                        let _ = body.run(ctx);
-
-                        // local_env gets dropped here, its no longer needed
-                        let binding = ctx.realm_mut().environment.get_this_binding();
-                        Ok(binding)
+                        FunctionBody::Ordinary(body.clone())
                     }
                 }
             } else {
                 let name = this.get_field("name").display().to_string();
-                ctx.throw_type_error(format!("{} is not a constructor", name))
+                return ctx.throw_type_error(format!("{} is not a constructor", name));
             }
         } else {
-            ctx.throw_type_error("not a function")
+            return ctx.throw_type_error("not a function");
+        };
+
+        match body {
+            FunctionBody::BuiltIn(function) => {
+                function(&this, args, ctx)?;
+                Ok(this)
+            }
+            FunctionBody::Ordinary(body) => {
+                let _ = body.run(ctx);
+
+                // local_env gets dropped here, its no longer needed
+                let binding = ctx.realm_mut().environment.get_this_binding();
+                Ok(binding)
+            }
         }
     }
 }
