@@ -4,7 +4,8 @@ use crate::{
     builtins::{
         self,
         function::{Function, FunctionFlags, NativeFunction},
-        Console, Symbol,
+        symbol::{Symbol, WellKnownSymbols},
+        Console,
     },
     class::{Class, ClassBuilder},
     exec::Interpreter,
@@ -46,17 +47,22 @@ pub struct Context {
 
     /// console object state.
     console: Console,
+
+    /// Cached well known symbols
+    well_known_symbols: WellKnownSymbols,
 }
 
 impl Default for Context {
     fn default() -> Self {
         let realm = Realm::create();
         let executor = Interpreter::new();
+        let (well_known_symbols, symbol_count) = WellKnownSymbols::new();
         let mut context = Self {
             realm,
             executor,
-            symbol_count: 0,
+            symbol_count,
             console: Console::default(),
+            well_known_symbols,
         };
 
         // Add new builtIns to Context Realm
@@ -494,5 +500,21 @@ impl Context {
         BoaProfiler::global().drop();
 
         result
+    }
+
+    /// Returns a structure that contains the JavaScript well known symbols.
+    ///
+    /// # Examples
+    /// ```
+    ///# use boa::Context;
+    /// let mut context = Context::new();
+    ///
+    /// let iterator = context.well_known_symbols().iterator_symbol();
+    /// assert_eq!(iterator.description(), Some("Symbol.iterator"));
+    /// ```
+    /// This is equivalent to `let iterator = Symbol.iterator` in JavaScript.
+    #[inline]
+    pub fn well_known_symbols(&self) -> &WellKnownSymbols {
+        &self.well_known_symbols
     }
 }
