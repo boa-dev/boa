@@ -2,7 +2,7 @@ use crate::{forward, forward_val, Context};
 
 #[allow(clippy::float_cmp)]
 #[test]
-fn check_arguments_object() {
+fn arguments_object() {
     let mut engine = Context::new();
 
     let init = r#"
@@ -25,13 +25,32 @@ fn check_arguments_object() {
 }
 
 #[test]
-fn check_self_mutating_func() {
+fn self_mutating_function_when_calling() {
     let mut engine = Context::new();
     let func = r#"
         function x() {
 	        x.y = 3;
         }
         x();
+        "#;
+    eprintln!("{}", forward(&mut engine, func));
+    let y = forward_val(&mut engine, "x.y").expect("value expected");
+    assert_eq!(y.is_integer(), true);
+    assert_eq!(
+        y.to_i32(&mut engine)
+            .expect("Could not convert value to i32"),
+        3
+    );
+}
+
+#[test]
+fn self_mutating_function_when_constructing() {
+    let mut engine = Context::new();
+    let func = r#"
+        function x() {
+            x.y = 3;
+        }
+        new x();
         "#;
     eprintln!("{}", forward(&mut engine, func));
     let y = forward_val(&mut engine, "x.y").expect("value expected");
