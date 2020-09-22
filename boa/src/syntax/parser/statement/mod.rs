@@ -172,8 +172,8 @@ where
                     .parse(cursor)
                     .map(Node::from)
             }
-            _ => {
-                // Before falling to expression check for a label
+            TokenKind::Identifier(_) => {
+                // Labelled Statement check
                 cursor.set_goal(InputElement::Div);
                 let tok = cursor.peek(1)?;
                 if tok.is_some()
@@ -193,6 +193,8 @@ where
 
                 ExpressionStatement::new(self.allow_yield, self.allow_await).parse(cursor)
             }
+
+            _ => ExpressionStatement::new(self.allow_yield, self.allow_await).parse(cursor),
         }
     }
 }

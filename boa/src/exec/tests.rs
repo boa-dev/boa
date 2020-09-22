@@ -1330,7 +1330,7 @@ fn assign_to_object_decl() {
     let mut engine = Context::new();
 
     const ERR_MSG: &str =
-        "Uncaught \"SyntaxError\": \"expected token \';\', got \':\' in expression statement at line 1, col 3\"";
+        "Uncaught \"SyntaxError\": \"unexpected token '=', primary expression at line 1, col 8\"";
 
     assert_eq!(forward(&mut engine, "{a: 3} = {a: 5};"), ERR_MSG);
 }
