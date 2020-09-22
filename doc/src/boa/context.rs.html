@@ -496,6 +496,28 @@
 <span id="496">496</span>
 <span id="497">497</span>
 <span id="498">498</span>
+<span id="499">499</span>
+<span id="500">500</span>
+<span id="501">501</span>
+<span id="502">502</span>
+<span id="503">503</span>
+<span id="504">504</span>
+<span id="505">505</span>
+<span id="506">506</span>
+<span id="507">507</span>
+<span id="508">508</span>
+<span id="509">509</span>
+<span id="510">510</span>
+<span id="511">511</span>
+<span id="512">512</span>
+<span id="513">513</span>
+<span id="514">514</span>
+<span id="515">515</span>
+<span id="516">516</span>
+<span id="517">517</span>
+<span id="518">518</span>
+<span id="519">519</span>
+<span id="520">520</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Javascript context.</span>
 
@@ -503,7 +525,8 @@
     <span class="ident">builtins</span>::{
         <span class="self">self</span>,
         <span class="ident">function</span>::{<span class="ident">Function</span>, <span class="ident">FunctionFlags</span>, <span class="ident">NativeFunction</span>},
-        <span class="ident">Console</span>, <span class="ident">Symbol</span>,
+        <span class="ident">symbol</span>::{<span class="ident">Symbol</span>, <span class="ident">WellKnownSymbols</span>},
+        <span class="ident">Console</span>,
     },
     <span class="ident">class</span>::{<span class="ident">Class</span>, <span class="ident">ClassBuilder</span>},
     <span class="ident">exec</span>::<span class="ident">Interpreter</span>,
@@ -545,17 +568,22 @@
 
     <span class="doccomment">/// console object state.</span>
     <span class="ident">console</span>: <span class="ident">Console</span>,
+
+    <span class="doccomment">/// Cached well known symbols</span>
+    <span class="ident">well_known_symbols</span>: <span class="ident">WellKnownSymbols</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">Context</span> {
     <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="kw">let</span> <span class="ident">realm</span> <span class="op">=</span> <span class="ident">Realm</span>::<span class="ident">create</span>();
         <span class="kw">let</span> <span class="ident">executor</span> <span class="op">=</span> <span class="ident">Interpreter</span>::<span class="ident">new</span>();
+        <span class="kw">let</span> (<span class="ident">well_known_symbols</span>, <span class="ident">symbol_count</span>) <span class="op">=</span> <span class="ident">WellKnownSymbols</span>::<span class="ident">new</span>();
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">context</span> <span class="op">=</span> <span class="self">Self</span> {
             <span class="ident">realm</span>,
             <span class="ident">executor</span>,
-            <span class="ident">symbol_count</span>: <span class="number">0</span>,
+            <span class="ident">symbol_count</span>,
             <span class="ident">console</span>: <span class="ident">Console</span>::<span class="ident">default</span>(),
+            <span class="ident">well_known_symbols</span>,
         };
 
         <span class="comment">// Add new builtIns to Context Realm</span>
@@ -993,6 +1021,22 @@
         <span class="ident">BoaProfiler</span>::<span class="ident">global</span>().<span class="ident">drop</span>();
 
         <span class="ident">result</span>
+    }
+
+    <span class="doccomment">/// Returns a structure that contains the JavaScript well known symbols.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// # Examples</span>
+    <span class="doccomment">/// ```</span>
+    <span class="doccomment">///# use boa::Context;</span>
+    <span class="doccomment">/// let mut context = Context::new();</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// let iterator = context.well_known_symbols().iterator_symbol();</span>
+    <span class="doccomment">/// assert_eq!(iterator.description(), Some(&quot;Symbol.iterator&quot;));</span>
+    <span class="doccomment">/// ```</span>
+    <span class="doccomment">/// This is equivalent to `let iterator = Symbol.iterator` in JavaScript.</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">well_known_symbols</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">WellKnownSymbols</span> {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">well_known_symbols</span>
     }
 }
 </pre></div>
