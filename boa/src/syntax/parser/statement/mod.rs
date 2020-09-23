@@ -43,7 +43,7 @@ use crate::{
         lexer::{InputElement, TokenKind},
         ast::{node, Keyword, Node, Punctuator}
     },
-    BoaProfiler
+    BoaProfiler,
 };
 use labelled_stm::LabelledStatement;
 

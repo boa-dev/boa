@@ -1,7 +1,10 @@
 //! This module implements the Rust representation of a JavaScript object.
 
 use crate::{
-    builtins::{function::Function, map::ordered_map::OrderedMap, BigInt, Date, RegExp},
+    builtins::{
+        array::array_iterator::ArrayIterator, function::Function, map::ordered_map::OrderedMap,
+        BigInt, Date, RegExp,
+    },
     property::{Property, PropertyKey},
     value::{RcBigInt, RcString, RcSymbol, Value},
     BoaProfiler,
@@ -15,7 +18,6 @@ mod gcobject;
 mod internal_methods;
 mod iter;
 
-use crate::builtins::array::array_iterator::ArrayIterator;
 pub use gcobject::{GcObject, Ref, RefMut};
 pub use iter::*;
 
