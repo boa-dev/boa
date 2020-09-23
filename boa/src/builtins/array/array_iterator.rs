@@ -1,3 +1,5 @@
+use crate::builtins::function::{BuiltInFunction, Function, FunctionFlags};
+use crate::object::Object;
 use crate::{
     builtins::{function::make_builtin_fn, Array, Value},
     object::{ObjectData, PROTOTYPE},
@@ -6,8 +8,6 @@ use crate::{
 };
 use gc::{Finalize, Trace};
 use std::borrow::Borrow;
-use crate::object::Object;
-use crate::builtins::function::{Function, FunctionFlags, BuiltInFunction};
 
 #[derive(Debug, Clone, Finalize, Trace)]
 pub enum ArrayIterationKind {
@@ -57,21 +57,18 @@ impl ArrayIterator {
             );
         make_builtin_fn(Self::next, "next", &array_iterator, 0, ctx);
         let mut function = Object::function(
-            Function::BuiltIn(BuiltInFunction(|v, _, _| Ok(v.clone())), FunctionFlags::CALLABLE),
-            ctx
-                .global_object()
+            Function::BuiltIn(
+                BuiltInFunction(|v, _, _| Ok(v.clone())),
+                FunctionFlags::CALLABLE,
+            ),
+            ctx.global_object()
                 .get_field("Function")
                 .get_field("prototype"),
         );
         function.insert_field("length", Value::from(0));
 
-        let symbol_iterator = ctx
-            .get_well_known_symbol("iterator")
-            .expect("Symbol.iterator not initialised");
-        array_iterator.set_field(
-            symbol_iterator,
-            Value::from(function),
-        );
+        let symbol_iterator = ctx.well_known_symbols().iterator_symbol();
+        array_iterator.set_field(symbol_iterator, Value::from(function));
         Ok(array_iterator)
     }
 
