@@ -38,10 +38,12 @@ use self::{
 
 use super::{AllowAwait, AllowReturn, AllowYield, Cursor, ParseError, TokenParser};
 
-use crate::syntax::lexer::{InputElement, TokenKind};
 use crate::{
-    syntax::ast::{node, Keyword, Node, Punctuator},
-    BoaProfiler,
+    syntax::{
+        lexer::{InputElement, TokenKind},
+        ast::{node, Keyword, Node, Punctuator}
+    },
+    BoaProfiler
 };
 use labelled_stm::LabelledStatement;
 

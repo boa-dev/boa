@@ -1,8 +1,9 @@
-use crate::builtins::function::{BuiltInFunction, Function, FunctionFlags};
-use crate::object::Object;
 use crate::{
-    builtins::{function::make_builtin_fn, Array, Value},
-    object::{ObjectData, PROTOTYPE},
+    builtins::{
+        function::{make_builtin_fn, BuiltInFunction, Function, FunctionFlags},
+        Array, Value,
+    },
+    object::{Object, ObjectData, PROTOTYPE},
     property::Property,
     Context, Result,
 };

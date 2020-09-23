@@ -14,8 +14,8 @@ pub mod array_iterator;
 mod tests;
 
 use super::function::{make_builtin_fn, make_constructor_fn};
-use crate::builtins::array::array_iterator::{ArrayIterationKind, ArrayIterator};
 use crate::{
+    builtins::array::array_iterator::{ArrayIterationKind, ArrayIterator},
     object::{ObjectData, PROTOTYPE},
     property::{Attribute, Property},
     value::{same_value_zero, Value},
