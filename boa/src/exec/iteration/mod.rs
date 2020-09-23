@@ -1,6 +1,8 @@
 //! Iteration node execution.
 
 use super::{Context, Executable, InterpreterState};
+use crate::environment::lexical_environment::VariableScope;
+use crate::syntax::ast::Node;
 use crate::{
     environment::lexical_environment::new_declarative_environment,
     syntax::ast::node::{DoWhileLoop, ForLoop, ForOfLoop, WhileLoop},
@@ -175,17 +177,11 @@ impl Executable for ForOfLoop {
             .get_property(
                 interpreter
                     .get_well_known_symbol("iterator")
-                    .ok_or_else(|| interpreter.construct_type_error("Not an iterable"))?,
+                    .ok_or_else(|| interpreter.construct_type_error("Symbol.iterator not initialised"))?,
             )
             .and_then(|mut p| p.value.take())
             .ok_or_else(|| interpreter.construct_type_error("Not an iterable"))?;
         let iterator_object = interpreter.call(&iterator_function, &iterable, &[])?;
-        {
-            let env = &mut interpreter.realm_mut().environment;
-            env.push(new_declarative_environment(Some(
-                env.get_current_environment_ref().clone(),
-            )));
-        }
         //let variable = self.variable().run(interpreter)?;
         let next_function = iterator_object
             .get_property("next")
@@ -193,8 +189,13 @@ impl Executable for ForOfLoop {
             .ok_or_else(|| interpreter.construct_type_error("Could not find property `next`"))?;
         let mut result = Value::undefined();
 
-        self.variable().run(interpreter)?;
         loop {
+            {
+                let env = &mut interpreter.realm_mut().environment;
+                env.push(new_declarative_environment(Some(
+                    env.get_current_environment_ref().clone(),
+                )));
+            }
             let next = interpreter.call(&next_function, &iterator_object, &[])?;
             let done = next
                 .get_property("done")
@@ -212,7 +213,101 @@ impl Executable for ForOfLoop {
                 .ok_or_else(|| {
                     interpreter.construct_type_error("Could not find property `value`")
                 })?;
-            interpreter.set_value(self.variable(), next_result)?;
+
+            match self.variable() {
+                Node::Identifier(ref name) => {
+                    let environment = &mut interpreter.realm_mut().environment;
+
+                    if environment.has_binding(name.as_ref()) {
+                        // Binding already exists
+                        environment.set_mutable_binding(name.as_ref(), next_result.clone(), true);
+                    } else {
+                        environment.create_mutable_binding(
+                            name.as_ref().to_owned(),
+                            true,
+                            VariableScope::Function,
+                        );
+                        environment.initialize_binding(name.as_ref(), next_result.clone());
+                    }
+                }
+                Node::VarDeclList(ref list) => match list.as_ref() {
+                    [var] => {
+                        let environment = &mut interpreter.realm_mut().environment;
+
+                        if var.init().is_some() {
+                            return interpreter.throw_syntax_error("a declaration in the head of a for-of loop can't have an initializer");
+                        }
+
+                        if environment.has_binding(var.name()) {
+                            environment.set_mutable_binding(var.name(), next_result, true);
+                        } else {
+                            environment.create_mutable_binding(
+                                var.name().to_owned(),
+                                false,
+                                VariableScope::Function,
+                            );
+                            environment.initialize_binding(var.name(), next_result);
+                        }
+                    }
+                    _ => {
+                        return interpreter.throw_syntax_error(
+                            "only one variable can be declared in the head of a for-of loop",
+                        )
+                    }
+                },
+                Node::LetDeclList(ref list) => match list.as_ref() {
+                    [var] => {
+                        let environment = &mut interpreter.realm_mut().environment;
+
+                        if var.init().is_some() {
+                            return interpreter.throw_syntax_error("a declaration in the head of a for-of loop can't have an initializer");
+                        }
+
+                        environment.create_mutable_binding(
+                            var.name().to_owned(),
+                            false,
+                            VariableScope::Block,
+                        );
+                        environment.initialize_binding(var.name(), next_result);
+                    }
+                    _ => {
+                        return interpreter.throw_syntax_error(
+                            "only one variable can be declared in the head of a for-of loop",
+                        )
+                    }
+                },
+                Node::ConstDeclList(ref list) => match list.as_ref() {
+                    [var] => {
+                        let environment = &mut interpreter.realm_mut().environment;
+
+                        if var.init().is_some() {
+                            return interpreter.throw_syntax_error("a declaration in the head of a for-of loop can't have an initializer");
+                        }
+
+                        environment.create_immutable_binding(
+                            var.name().to_owned(),
+                            false,
+                            VariableScope::Block,
+                        );
+                        environment.initialize_binding(var.name(), next_result);
+                    }
+                    _ => {
+                        return interpreter.throw_syntax_error(
+                            "only one variable can be declared in the head of a for-of loop",
+                        )
+                    }
+                },
+                Node::Assign(_) => {
+                    return interpreter.throw_syntax_error(
+                        "a declaration in the head of a for-of loop can't have an initializer",
+                    );
+                }
+                _ => {
+                    return interpreter
+                        .throw_syntax_error("unknown left hand side in head of for-of loop")
+                }
+            }
+
             result = self.body().run(interpreter)?;
             match interpreter.executor().get_current_state() {
                 InterpreterState::Break(_label) => {
@@ -238,8 +333,8 @@ impl Executable for ForOfLoop {
                     // Continue execution.
                 }
             }
+            let _ = interpreter.realm_mut().environment.pop();
         }
-        let _ = interpreter.realm_mut().environment.pop();
         Ok(result)
     }
 }
