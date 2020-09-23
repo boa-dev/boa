@@ -18,7 +18,6 @@ mod gcobject;
 mod internal_methods;
 mod iter;
 
-use crate::builtins::array::array_iterator::ArrayIterator;
 pub use gcobject::{GcObject, Ref, RefMut};
 pub use iter::*;
 
