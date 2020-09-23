@@ -1149,9 +1149,7 @@ impl Array {
         );
         make_builtin_fn(Self::values, "values", &prototype, 0, interpreter);
 
-        let symbol_iterator = interpreter
-            .get_well_known_symbol("iterator")
-            .expect("Symbol.iterator not initialised");
+        let symbol_iterator = interpreter.well_known_symbols().iterator_symbol();
         prototype.set_property(
             symbol_iterator,
             Property::default().value(prototype.get_field("values")),

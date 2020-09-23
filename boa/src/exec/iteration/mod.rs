@@ -174,15 +174,10 @@ impl Executable for ForOfLoop {
         let _timer = BoaProfiler::global().start_event("ForOf", "exec");
         let iterable = self.iterable().run(interpreter)?;
         let iterator_function = iterable
-            .get_property(
-                interpreter
-                    .get_well_known_symbol("iterator")
-                    .ok_or_else(|| interpreter.construct_type_error("Symbol.iterator not initialised"))?,
-            )
+            .get_property(interpreter.well_known_symbols().iterator_symbol())
             .and_then(|mut p| p.value.take())
             .ok_or_else(|| interpreter.construct_type_error("Not an iterable"))?;
         let iterator_object = interpreter.call(&iterator_function, &iterable, &[])?;
-        //let variable = self.variable().run(interpreter)?;
         let next_function = iterator_object
             .get_property("next")
             .and_then(|mut p| p.value.take())
