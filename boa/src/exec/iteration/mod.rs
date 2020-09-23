@@ -1,11 +1,12 @@
 //! Iteration node execution.
 
 use super::{Context, Executable, InterpreterState};
-use crate::environment::lexical_environment::VariableScope;
-use crate::syntax::ast::Node;
 use crate::{
-    environment::lexical_environment::new_declarative_environment,
-    syntax::ast::node::{DoWhileLoop, ForLoop, ForOfLoop, WhileLoop},
+    environment::lexical_environment::{new_declarative_environment, VariableScope},
+    syntax::ast::{
+        node::{DoWhileLoop, ForLoop, ForOfLoop, WhileLoop},
+        Node,
+    },
     BoaProfiler, Result, Value,
 };
 

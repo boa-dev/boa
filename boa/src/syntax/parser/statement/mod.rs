@@ -37,10 +37,12 @@ use self::{
 
 use super::{AllowAwait, AllowReturn, AllowYield, Cursor, ParseError, TokenParser};
 
-use crate::syntax::lexer::TokenKind;
 use crate::{
-    syntax::ast::{node, Keyword, Node, Punctuator},
-    BoaProfiler,
+    syntax::{
+        lexer::TokenKind,
+        ast::{node, Keyword, Node, Punctuator}
+    },
+    BoaProfiler
 };
 
 use std::io::Read;
