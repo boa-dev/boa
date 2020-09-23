@@ -39,10 +39,10 @@ use super::{AllowAwait, AllowReturn, AllowYield, Cursor, ParseError, TokenParser
 
 use crate::{
     syntax::{
+        ast::{node, Keyword, Node, Punctuator},
         lexer::TokenKind,
-        ast::{node, Keyword, Node, Punctuator}
     },
-    BoaProfiler
+    BoaProfiler,
 };
 
 use std::io::Read;
