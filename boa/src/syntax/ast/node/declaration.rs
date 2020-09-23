@@ -410,25 +410,29 @@ impl From<ConstDeclList> for Node {
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub struct ConstDecl {
     name: Identifier,
-    init: Node,
+    init: Option<Node>,
 }
 
 impl fmt::Display for ConstDecl {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{} = {}", self.name, self.init)
+        fmt::Display::fmt(&self.name, f)?;
+        if let Some(ref init) = self.init {
+            write!(f, " = {}", init)?;
+        }
+        Ok(())
     }
 }
 
 impl ConstDecl {
     /// Creates a new variable declaration.
-    pub(in crate::syntax) fn new<N, I>(name: N, init: I) -> Self
+    pub(in crate::syntax) fn new<N, I>(name: N, init: Option<I>) -> Self
     where
         N: Into<Identifier>,
         I: Into<Node>,
     {
         Self {
             name: name.into(),
-            init: init.into(),
+            init: init.map(|n| n.into()),
         }
     }
 
@@ -438,7 +442,7 @@ impl ConstDecl {
     }
 
     /// Gets the initialization node for the variable, if any.
-    pub fn init(&self) -> &Node {
+    pub fn init(&self) -> &Option<Node> {
         &self.init
     }
 }

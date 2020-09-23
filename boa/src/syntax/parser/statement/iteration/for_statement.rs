@@ -82,7 +82,7 @@ where
                 )
             }
             TokenKind::Keyword(Keyword::Let) | TokenKind::Keyword(Keyword::Const) => {
-                Some(Declaration::new(self.allow_yield, self.allow_await).parse(cursor)?)
+                Some(Declaration::new(self.allow_yield, self.allow_await, false).parse(cursor)?)
             }
             TokenKind::Punctuator(Punctuator::Semicolon) => None,
             _ => Some(Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?),

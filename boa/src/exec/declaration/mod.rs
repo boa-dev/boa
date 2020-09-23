@@ -81,7 +81,11 @@ impl Executable for VarDeclList {
 impl Executable for ConstDeclList {
     fn run(&self, interpreter: &mut Context) -> Result<Value> {
         for decl in self.as_ref() {
-            let val = decl.init().run(interpreter)?;
+            let val = if let Some(init) = decl.init() {
+                init.run(interpreter)?
+            } else {
+                return interpreter.throw_syntax_error("missing = in const declaration");
+            };
 
             interpreter
                 .realm_mut()
