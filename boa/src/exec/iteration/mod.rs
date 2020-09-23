@@ -322,9 +322,7 @@ impl Executable for ForOfLoop {
                         .set_current_state(InterpreterState::Executing);
                     // after breaking out of the block, continue execution of the loop
                 }
-                InterpreterState::Return => {
-                    return interpreter.throw_syntax_error("return not in function")
-                }
+                InterpreterState::Return => return Ok(result),
                 InterpreterState::Executing => {
                     // Continue execution.
                 }
