@@ -12,7 +12,7 @@ impl Executable for Call {
             Node::GetConstField(ref get_const_field) => {
                 let mut obj = get_const_field.obj().run(interpreter)?;
                 if obj.get_type() != Type::Object {
-                    obj = obj.to_object(interpreter)?;
+                    obj = Value::Object(obj.to_object(interpreter)?);
                 }
                 (obj.clone(), obj.get_field(get_const_field.field()))
             }
