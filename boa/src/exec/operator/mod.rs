@@ -173,6 +173,7 @@ impl BinOp {
             AssignOp::Xor => x.bitxor(&y, interpreter),
             AssignOp::Shl => x.shl(&y, interpreter),
             AssignOp::Shr => x.shr(&y, interpreter),
+            AssignOp::Ushr => x.ushr(&y, interpreter),
         }
     }
 }

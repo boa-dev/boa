@@ -145,6 +145,7 @@ impl Punctuator {
             Self::AssignPow => Some(BinOp::Assign(AssignOp::Exp)),
             Self::AssignRightSh => Some(BinOp::Assign(AssignOp::Shr)),
             Self::AssignSub => Some(BinOp::Assign(AssignOp::Sub)),
+            Self::AssignURightSh => Some(BinOp::Assign(AssignOp::Ushr)),
             Self::AssignXor => Some(BinOp::Assign(AssignOp::Xor)),
             Self::Add => Some(BinOp::Num(NumOp::Add)),
             Self::Sub => Some(BinOp::Num(NumOp::Sub)),
