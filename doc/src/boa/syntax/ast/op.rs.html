@@ -966,6 +966,18 @@
 <span id="966">966</span>
 <span id="967">967</span>
 <span id="968">968</span>
+<span id="969">969</span>
+<span id="970">970</span>
+<span id="971">971</span>
+<span id="972">972</span>
+<span id="973">973</span>
+<span id="974">974</span>
+<span id="975">975</span>
+<span id="976">976</span>
+<span id="977">977</span>
+<span id="978">978</span>
+<span id="979">979</span>
+<span id="980">980</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements various structure for logic handling.</span>
 
@@ -1907,7 +1919,18 @@
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#prod-AssignmentOperator</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Assignment_Operators#Right_shift_assignment</span>
     <span class="ident">Shr</span>,
-    <span class="comment">// TODO: Add UShl (unsigned shift left).</span>
+
+    <span class="doccomment">/// The unsigned right shift assignment operator moves the specified amount of bits to the right and assigns the result to the variable.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Syntax: `x &gt;&gt;&gt;= y`</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// More information:</span>
+    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
+    <span class="doccomment">///  - [MDN documentation][mdn]</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#prod-AssignmentOperator</span>
+    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Unsigned_right_shift_assignment</span>
+    <span class="ident">Ushr</span>,
 }
 
 <span class="kw">unsafe</span> <span class="kw">impl</span> <span class="ident">Trace</span> <span class="kw">for</span> <span class="ident">AssignOp</span> {
@@ -1931,6 +1954,7 @@
                 <span class="self">Self</span>::<span class="ident">Xor</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;^=&quot;</span>,
                 <span class="self">Self</span>::<span class="ident">Shl</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;&lt;&lt;=&quot;</span>,
                 <span class="self">Self</span>::<span class="ident">Shr</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;&gt;&gt;=&quot;</span>,
+                <span class="self">Self</span>::<span class="ident">Ushr</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;&gt;&gt;&gt;=&quot;</span>,
             }
         )
     }

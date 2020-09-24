@@ -243,6 +243,7 @@
 <span id="243">243</span>
 <span id="244">244</span>
 <span id="245">245</span>
+<span id="246">246</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Operator execution.</span>
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
@@ -419,6 +420,7 @@
             <span class="ident">AssignOp</span>::<span class="ident">Xor</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">x</span>.<span class="ident">bitxor</span>(<span class="kw-2">&amp;</span><span class="ident">y</span>, <span class="ident">interpreter</span>),
             <span class="ident">AssignOp</span>::<span class="ident">Shl</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">x</span>.<span class="ident">shl</span>(<span class="kw-2">&amp;</span><span class="ident">y</span>, <span class="ident">interpreter</span>),
             <span class="ident">AssignOp</span>::<span class="ident">Shr</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">x</span>.<span class="ident">shr</span>(<span class="kw-2">&amp;</span><span class="ident">y</span>, <span class="ident">interpreter</span>),
+            <span class="ident">AssignOp</span>::<span class="ident">Ushr</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">x</span>.<span class="ident">ushr</span>(<span class="kw-2">&amp;</span><span class="ident">y</span>, <span class="ident">interpreter</span>),
         }
     }
 }
