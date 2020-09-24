@@ -7,12 +7,7 @@
       "type": "process",
       "label": "Cargo Run",
       "command": "cargo",
-      "args": [
-        "run",
-        "--bin",
-        "boa",
-        "./tests/js/test.js"
-      ],
+      "args": ["run", "--bin", "boa", "./tests/js/test.js"],
       "group": {
         "kind": "build",
         "isDefault": true
@@ -30,12 +25,7 @@
       "type": "process",
       "label": "Cargo Run (Profiler)",
       "command": "cargo",
-      "args": [
-        "run",
-        "--features",
-        "Boa/profiler",
-        "../tests/js/test.js"
-      ],
+      "args": ["run", "--features", "Boa/profiler", "../tests/js/test.js"],
       "group": "build",
       "options": {
         "env": {
@@ -52,14 +42,7 @@
       "type": "process",
       "label": "Get Tokens",
       "command": "cargo",
-      "args": [
-        "run",
-        "--bin",
-        "boa",
-        "--",
-        "-t=Debug",
-        "./tests/js/test.js"
-      ],
+      "args": ["run", "--bin", "boa", "--", "-t=Debug", "./tests/js/test.js"],
       "group": "build",
       "presentation": {
         "clear": true
@@ -70,14 +53,7 @@
       "type": "process",
       "label": "Get AST",
       "command": "cargo",
-      "args": [
-        "run",
-        "--bin",
-        "boa",
-        "--",
-        "-a=Debug",
-        "./tests/js/test.js"
-      ],
+      "args": ["run", "--bin", "boa", "--", "-a=Debug", "./tests/js/test.js"],
       "group": "build",
       "presentation": {
         "clear": true
@@ -88,9 +64,7 @@
       "type": "process",
       "label": "Cargo Test",
       "command": "cargo",
-      "args": [
-        "test"
-      ],
+      "args": ["test"],
       "group": {
         "kind": "test",
         "isDefault": true
@@ -103,10 +77,7 @@
       "type": "process",
       "label": "Cargo Test Build",
       "command": "cargo",
-      "args": [
-        "test",
-        "--no-run"
-      ],
+      "args": ["test", "--no-run"],
       "group": "build"
     }
   ]
