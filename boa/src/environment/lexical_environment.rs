@@ -16,6 +16,7 @@ use crate::{
     object::GcObject,
     BoaProfiler, Value,
 };
+use ahash::RandomState;
 use gc::{Gc, GcCell};
 use std::collections::{HashMap, HashSet};
 use std::{collections::VecDeque, error, fmt};
@@ -218,7 +219,7 @@ impl LexicalEnvironment {
 pub fn new_declarative_environment(env: Option<Environment>) -> Environment {
     let _timer = BoaProfiler::global().start_event("new_declarative_environment", "env");
     let boxed_env = Box::new(DeclarativeEnvironmentRecord {
-        env_rec: HashMap::new(),
+        env_rec: HashMap::with_hasher(RandomState::new()),
         outer_env: env,
     });
 
@@ -232,7 +233,7 @@ pub fn new_function_environment(
     binding_status: BindingStatus,
 ) -> Environment {
     let mut func_env = FunctionEnvironmentRecord {
-        env_rec: HashMap::new(),
+        env_rec: HashMap::with_hasher(RandomState::new()),
         function: f,
         this_binding_status: binding_status,
         home_object: Value::undefined(),
@@ -273,7 +274,7 @@ pub fn new_global_environment(global: Value, this_value: Value) -> Environment {
     };
 
     let dcl_rec = DeclarativeEnvironmentRecord {
-        env_rec: HashMap::new(),
+        env_rec: HashMap::with_hasher(RandomState::new()),
         outer_env: None,
     };
 
@@ -281,7 +282,7 @@ pub fn new_global_environment(global: Value, this_value: Value) -> Environment {
         object_record: obj_rec,
         global_this_binding: this_value,
         declarative_record: dcl_rec,
-        var_names: HashSet::new(),
+        var_names: HashSet::with_hasher(RandomState::new()),
     })))
 }
 

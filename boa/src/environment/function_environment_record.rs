@@ -39,7 +39,7 @@ unsafe impl Trace for BindingStatus {
 /// <https://tc39.es/ecma262/#table-16>
 #[derive(Debug, Trace, Finalize, Clone)]
 pub struct FunctionEnvironmentRecord {
-    pub env_rec: HashMap<String, DeclarativeEnvironmentRecordBinding>,
+    pub env_rec: HashMap<String, DeclarativeEnvironmentRecordBinding, ahash::RandomState>,
     /// This is the this value used for this invocation of the function.
     pub this_value: Value,
     /// If the value is "lexical", this is an ArrowFunction and does not have a local this value.

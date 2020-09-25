@@ -32,7 +32,7 @@ pub struct DeclarativeEnvironmentRecordBinding {
 /// declarations contained within its scope.
 #[derive(Debug, Trace, Finalize, Clone)]
 pub struct DeclarativeEnvironmentRecord {
-    pub env_rec: HashMap<String, DeclarativeEnvironmentRecordBinding>,
+    pub env_rec: HashMap<String, DeclarativeEnvironmentRecordBinding, ahash::RandomState>,
     pub outer_env: Option<Environment>,
 }
 

@@ -13,6 +13,7 @@ use crate::{
     },
     BoaProfiler, Value,
 };
+use ahash::RandomState;
 use gc::{Gc, GcCell};
 use std::collections::{HashMap, HashSet};
 
@@ -61,7 +62,7 @@ fn new_global_environment(global: Value, this_value: Value) -> Gc<GcCell<GlobalE
     };
 
     let dcl_rec = DeclarativeEnvironmentRecord {
-        env_rec: HashMap::new(),
+        env_rec: HashMap::with_hasher(RandomState::new()),
         outer_env: None,
     };
 
@@ -69,6 +70,6 @@ fn new_global_environment(global: Value, this_value: Value) -> Gc<GcCell<GlobalE
         object_record: obj_rec,
         global_this_binding: this_value,
         declarative_record: dcl_rec,
-        var_names: HashSet::new(),
+        var_names: HashSet::with_hasher(RandomState::new()),
     }))
 }

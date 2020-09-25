@@ -131,8 +131,8 @@ pub fn formatter(data: &[Value], ctx: &mut Context) -> Result<String> {
 /// This is the internal console object state.
 #[derive(Debug, Default)]
 pub(crate) struct Console {
-    count_map: HashMap<RcString, u32>,
-    timer_map: HashMap<RcString, u128>,
+    count_map: HashMap<RcString, u32, ahash::RandomState>,
+    timer_map: HashMap<RcString, u128, ahash::RandomState>,
     groups: Vec<String>,
 }
 

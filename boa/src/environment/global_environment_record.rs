@@ -25,7 +25,7 @@ pub struct GlobalEnvironmentRecord {
     pub object_record: ObjectEnvironmentRecord,
     pub global_this_binding: Value,
     pub declarative_record: DeclarativeEnvironmentRecord,
-    pub var_names: HashSet<String>,
+    pub var_names: HashSet<String, ahash::RandomState>,
 }
 
 impl GlobalEnvironmentRecord {
