@@ -1131,6 +1131,7 @@
 <span id="1131">1131</span>
 <span id="1132">1132</span>
 <span id="1133">1133</span>
+<span id="1134">1134</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements the global `String` object.</span>
 <span class="doccomment">//!</span>
@@ -1922,15 +1923,16 @@
         <span class="comment">// `\u{0085}&#39; (next line)</span>
         <span class="comment">// And does not include:</span>
         <span class="comment">// &#39;\u{FEFF}&#39; (zero width non-breaking space)</span>
-        <span class="kw">match</span> <span class="ident">c</span> {
-    <span class="comment">// Explicit whitespace: https://tc39.es/ecma262/#sec-white-space</span>
-        <span class="string">&#39;\u{0009}&#39;</span> <span class="op">|</span> <span class="string">&#39;\u{000B}&#39;</span> <span class="op">|</span> <span class="string">&#39;\u{000C}&#39;</span> <span class="op">|</span> <span class="string">&#39;\u{0020}&#39;</span> <span class="op">|</span> <span class="string">&#39;\u{00A0}&#39;</span> <span class="op">|</span> <span class="string">&#39;\u{FEFF}&#39;</span> <span class="op">|</span>
-    <span class="comment">// Unicode Space_Seperator category</span>
-        <span class="string">&#39;\u{1680}&#39;</span> <span class="op">|</span> <span class="string">&#39;\u{2000}&#39;</span>..<span class="op">=</span><span class="string">&#39;\u{200A}&#39;</span> <span class="op">|</span> <span class="string">&#39;\u{202F}&#39;</span> <span class="op">|</span> <span class="string">&#39;\u{205F}&#39;</span> <span class="op">|</span> <span class="string">&#39;\u{3000}&#39;</span> <span class="op">|</span>
-    <span class="comment">// Line terminators: https://tc39.es/ecma262/#sec-line-terminators</span>
-        <span class="string">&#39;\u{000A}&#39;</span> <span class="op">|</span> <span class="string">&#39;\u{000D}&#39;</span> <span class="op">|</span> <span class="string">&#39;\u{2028}&#39;</span> <span class="op">|</span> <span class="string">&#39;\u{2029}&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
-        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
-    }
+        <span class="comment">// Explicit whitespace: https://tc39.es/ecma262/#sec-white-space</span>
+        <span class="macro">matches</span><span class="macro">!</span>(
+            <span class="ident">c</span>,
+            <span class="string">&#39;\u{0009}&#39;</span> <span class="op">|</span> <span class="string">&#39;\u{000B}&#39;</span> <span class="op">|</span> <span class="string">&#39;\u{000C}&#39;</span> <span class="op">|</span> <span class="string">&#39;\u{0020}&#39;</span> <span class="op">|</span> <span class="string">&#39;\u{00A0}&#39;</span> <span class="op">|</span> <span class="string">&#39;\u{FEFF}&#39;</span> <span class="op">|</span>
+        <span class="comment">// Unicode Space_Seperator category</span>
+        <span class="string">&#39;\u{1680}&#39;</span> <span class="op">|</span> <span class="string">&#39;\u{2000}&#39;</span>
+                ..<span class="op">=</span><span class="string">&#39;\u{200A}&#39;</span> <span class="op">|</span> <span class="string">&#39;\u{202F}&#39;</span> <span class="op">|</span> <span class="string">&#39;\u{205F}&#39;</span> <span class="op">|</span> <span class="string">&#39;\u{3000}&#39;</span> <span class="op">|</span>
+        <span class="comment">// Line terminators: https://tc39.es/ecma262/#sec-line-terminators</span>
+        <span class="string">&#39;\u{000A}&#39;</span> <span class="op">|</span> <span class="string">&#39;\u{000D}&#39;</span> <span class="op">|</span> <span class="string">&#39;\u{2028}&#39;</span> <span class="op">|</span> <span class="string">&#39;\u{2029}&#39;</span>
+        )
     }
 
     <span class="doccomment">/// String.prototype.trim()</span>

@@ -1025,9 +1025,6 @@
 <span id="1025">1025</span>
 <span id="1026">1026</span>
 <span id="1027">1027</span>
-<span id="1028">1028</span>
-<span id="1029">1029</span>
-<span id="1030">1030</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements the JavaScript Value.</span>
 <span class="doccomment">//!</span>
@@ -1323,10 +1320,7 @@
     <span class="doccomment">/// Returns true if the value the global for a Realm</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_global</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Value</span>::<span class="ident">Object</span>(<span class="ident">object</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">object</span>.<span class="ident">borrow</span>().<span class="ident">data</span> {
-                <span class="ident">ObjectData</span>::<span class="ident">Global</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
-                <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
-            },
+            <span class="ident">Value</span>::<span class="ident">Object</span>(<span class="ident">object</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">matches</span><span class="macro">!</span>(<span class="ident">object</span>.<span class="ident">borrow</span>().<span class="ident">data</span>, <span class="ident">ObjectData</span>::<span class="ident">Global</span>),
             <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
         }
     }

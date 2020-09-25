@@ -350,12 +350,12 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [More information](https://tc39.es/ecma262/#table-32)</span>
     <span class="kw">fn</span> <span class="ident">is_whitespace</span>(<span class="ident">ch</span>: <span class="ident">char</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="kw">match</span> <span class="ident">ch</span> {
+        <span class="macro">matches</span><span class="macro">!</span>(
+            <span class="ident">ch</span>,
             <span class="string">&#39;\u{0020}&#39;</span> <span class="op">|</span> <span class="string">&#39;\u{0009}&#39;</span> <span class="op">|</span> <span class="string">&#39;\u{000B}&#39;</span> <span class="op">|</span> <span class="string">&#39;\u{000C}&#39;</span> <span class="op">|</span> <span class="string">&#39;\u{00A0}&#39;</span> <span class="op">|</span> <span class="string">&#39;\u{FEFF}&#39;</span> <span class="op">|</span>
             <span class="comment">// Unicode Space_Seperator category (minus \u{0020} and \u{00A0} which are allready stated above)</span>
-            <span class="string">&#39;\u{1680}&#39;</span> <span class="op">|</span> <span class="string">&#39;\u{2000}&#39;</span>..<span class="op">=</span><span class="string">&#39;\u{200A}&#39;</span> <span class="op">|</span> <span class="string">&#39;\u{202F}&#39;</span> <span class="op">|</span> <span class="string">&#39;\u{205F}&#39;</span> <span class="op">|</span> <span class="string">&#39;\u{3000}&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
-        }
+            <span class="string">&#39;\u{1680}&#39;</span> <span class="op">|</span> <span class="string">&#39;\u{2000}&#39;</span>..<span class="op">=</span><span class="string">&#39;\u{200A}&#39;</span> <span class="op">|</span> <span class="string">&#39;\u{202F}&#39;</span> <span class="op">|</span> <span class="string">&#39;\u{205F}&#39;</span> <span class="op">|</span> <span class="string">&#39;\u{3000}&#39;</span>
+        )
     }
 
     <span class="doccomment">/// Sets the goal symbol for the lexer.</span>
