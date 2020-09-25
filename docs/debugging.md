@@ -23,14 +23,17 @@ To print the tokens to stdout, you can use the `boa_cli` command-line flag
 `--dump-tokens` or `-t`, which can optionally take a format type. Supports
 these formats: `Debug`, `Json`, `JsonPretty`. By default it is the `Debug`
 format.
+
 ```bash
 cargo run -- test.js --dump-tokens # token dump format is Debug by default.
 ```
 
 or with interactive mode (REPL):
+
 ```bash
 cargo run -- --dump-tokens # token dump format is Debug by default.
 ```
+
 Seeing the order of tokens can be a big help to understanding what the parser
 is working with.
 
@@ -45,11 +48,13 @@ format type. Supports these formats: `Debug`, `Json`, `JsonPretty`. By default
 it is the `Debug` format.
 
 Dumping the AST of a file:
+
 ```bash
 cargo run -- test.js --dump-ast # AST dump format is Debug by default.
 ```
 
 or with interactive mode (REPL):
+
 ```bash
 cargo run -- --dump-ast # AST dump format is Debug by default.
 ```

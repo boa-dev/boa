@@ -7,14 +7,12 @@
 //! More info:  [Object Records](https://tc39.es/ecma262/#sec-object-environment-records)
 
 use crate::{
-    builtins::{
-        property::{Attribute, Property},
-        value::Value,
-    },
     environment::{
         environment_record_trait::EnvironmentRecordTrait,
         lexical_environment::{Environment, EnvironmentType},
     },
+    property::{Attribute, Property},
+    Value,
 };
 use gc::{Finalize, Trace};
 

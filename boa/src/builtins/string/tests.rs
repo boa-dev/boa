@@ -1,12 +1,11 @@
-use crate::{exec::Interpreter, forward, forward_val, realm::Realm};
+use crate::{forward, forward_val, Context};
 
 ///TODO: re-enable when getProperty() is finished;
 #[test]
 #[ignore]
 fn length() {
     //TEST262: https://github.com/tc39/test262/blob/master/test/built-ins/String/length.js
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
     let init = r#"
     const a = new String(' ');
     const b = new String('\ud834\udf06');
@@ -30,8 +29,7 @@ fn length() {
 
 #[test]
 fn new_string_has_length() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
     let init = r#"
         let a = new String("1234");
         a
@@ -43,8 +41,7 @@ fn new_string_has_length() {
 
 #[test]
 fn new_utf8_string_has_length() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
     let init = r#"
         let a = new String("中文");
         a
@@ -56,8 +53,7 @@ fn new_utf8_string_has_length() {
 
 #[test]
 fn concat() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
     let init = r#"
         var hello = new String('Hello, ');
         var world = new String('world! ');
@@ -74,8 +70,7 @@ fn concat() {
 
 #[test]
 fn generic_concat() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
     let init = r#"
         Number.prototype.concat = String.prototype.concat;
         let number = new Number(100);
@@ -90,8 +85,7 @@ fn generic_concat() {
 #[test]
 /// Test the correct type is returned from call and construct
 fn construct_and_call() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
     let init = r#"
         var hello = new String('Hello');
         var world = String('world');
@@ -108,8 +102,7 @@ fn construct_and_call() {
 
 #[test]
 fn repeat() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
     let init = r#"
         var empty = new String('');
         var en = new String('english');
@@ -130,8 +123,7 @@ fn repeat() {
 
 #[test]
 fn repeat_throws_when_count_is_negative() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
 
     assert_eq!(
         forward(
@@ -150,8 +142,7 @@ fn repeat_throws_when_count_is_negative() {
 
 #[test]
 fn repeat_throws_when_count_is_infinity() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
 
     assert_eq!(
         forward(
@@ -170,8 +161,7 @@ fn repeat_throws_when_count_is_infinity() {
 
 #[test]
 fn repeat_throws_when_count_overflows_max_length() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
 
     assert_eq!(
         forward(
@@ -190,8 +180,7 @@ fn repeat_throws_when_count_overflows_max_length() {
 
 #[test]
 fn repeat_generic() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
     let init = "Number.prototype.repeat = String.prototype.repeat;";
 
     forward(&mut engine, init);
@@ -205,8 +194,7 @@ fn repeat_generic() {
 
 #[test]
 fn replace() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
     let init = r#"
         var a = "abc";
         a = a.replace("a", "2");
@@ -219,9 +207,72 @@ fn replace() {
 }
 
 #[test]
+fn replace_no_match() {
+    let mut engine = Context::new();
+    let init = r#"
+        var a = "abc";
+        a = a.replace(/d/, "$&$&");
+        "#;
+
+    forward(&mut engine, init);
+
+    assert_eq!(forward(&mut engine, "a"), "\"abc\"");
+}
+
+#[test]
+fn replace_with_capture_groups() {
+    let mut engine = Context::new();
+    let init = r#"
+        var re = /(\w+)\s(\w+)/;
+        var a = "John Smith";
+        a = a.replace(re, '$2, $1');
+        a
+        "#;
+
+    forward(&mut engine, init);
+
+    assert_eq!(forward(&mut engine, "a"), "\"Smith, John\"");
+}
+
+#[test]
+fn replace_with_tenth_capture_group() {
+    let mut engine = Context::new();
+    let init = r#"
+        var re = /(\d)(\d)(\d)(\d)(\d)(\d)(\d)(\d)(\d)(\d)/;
+        var a = "0123456789";
+        let res = a.replace(re, '$10');
+        "#;
+
+    forward(&mut engine, init);
+
+    assert_eq!(forward(&mut engine, "res"), "\"9\"");
+}
+
+#[test]
+fn replace_substitutions() {
+    let mut engine = Context::new();
+    let init = r#"
+        var re = / two /;
+        var a = "one two three";
+        var dollar = a.replace(re, " $$ ");
+        var matched = a.replace(re, "$&$&");
+        var start = a.replace(re, " $` ");
+        var end = a.replace(re, " $' ");
+        var no_sub = a.replace(re, " $_ ");
+        "#;
+
+    forward(&mut engine, init);
+
+    assert_eq!(forward(&mut engine, "dollar"), "\"one $ three\"");
+    assert_eq!(forward(&mut engine, "matched"), "\"one two  two three\"");
+    assert_eq!(forward(&mut engine, "start"), "\"one one three\"");
+    assert_eq!(forward(&mut engine, "end"), "\"one three three\"");
+    assert_eq!(forward(&mut engine, "no_sub"), "\"one $_ three\"");
+}
+
+#[test]
 fn replace_with_function() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
     let init = r#"
         var a = "ecmascript is cool";
         var p1, p2, p3;
@@ -247,8 +298,7 @@ fn replace_with_function() {
 
 #[test]
 fn starts_with() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
     let init = r#"
         var empty = new String('');
         var en = new String('english');
@@ -272,8 +322,7 @@ fn starts_with() {
 
 #[test]
 fn ends_with() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
     let init = r#"
         var empty = new String('');
         var en = new String('english');
@@ -297,8 +346,7 @@ fn ends_with() {
 
 #[test]
 fn match_all() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
 
     assert_eq!(forward(&mut engine, "'aa'.matchAll(null).length"), "0");
     assert_eq!(forward(&mut engine, "'aa'.matchAll(/b/).length"), "0");
@@ -340,8 +388,7 @@ fn match_all() {
 
 #[test]
 fn test_match() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
     let init = r#"
         var str = new String('The Quick Brown Fox Jumps Over The Lazy Dog');
         var result1 = str.match(/quick\s(brown).+?(jumps)/i);
@@ -385,8 +432,7 @@ fn test_match() {
 
 #[test]
 fn trim() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
     assert_eq!(forward(&mut engine, "'Hello'.trim()"), "\"Hello\"");
     assert_eq!(forward(&mut engine, "' \nHello'.trim()"), "\"Hello\"");
     assert_eq!(forward(&mut engine, "'Hello \n\r'.trim()"), "\"Hello\"");
@@ -395,8 +441,7 @@ fn trim() {
 
 #[test]
 fn trim_start() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
     assert_eq!(forward(&mut engine, "'Hello'.trimStart()"), "\"Hello\"");
     assert_eq!(forward(&mut engine, "' \nHello'.trimStart()"), "\"Hello\"");
     assert_eq!(
@@ -408,8 +453,7 @@ fn trim_start() {
 
 #[test]
 fn trim_end() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
     assert_eq!(forward(&mut engine, "'Hello'.trimEnd()"), "\"Hello\"");
     assert_eq!(forward(&mut engine, "' \nHello'.trimEnd()"), "\" \nHello\"");
     assert_eq!(forward(&mut engine, "'Hello \n'.trimEnd()"), "\"Hello\"");
@@ -418,8 +462,7 @@ fn trim_end() {
 
 #[test]
 fn index_of_with_no_arguments() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
     assert_eq!(forward(&mut engine, "''.indexOf()"), "-1");
     assert_eq!(forward(&mut engine, "'undefined'.indexOf()"), "0");
     assert_eq!(forward(&mut engine, "'a1undefined'.indexOf()"), "2");
@@ -430,8 +473,7 @@ fn index_of_with_no_arguments() {
 
 #[test]
 fn index_of_with_string_search_string_argument() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
     assert_eq!(forward(&mut engine, "''.indexOf('hello')"), "-1");
     assert_eq!(
         forward(&mut engine, "'undefined'.indexOf('undefined')"),
@@ -457,8 +499,7 @@ fn index_of_with_string_search_string_argument() {
 
 #[test]
 fn index_of_with_non_string_search_string_argument() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
     assert_eq!(forward(&mut engine, "''.indexOf(1)"), "-1");
     assert_eq!(forward(&mut engine, "'1'.indexOf(1)"), "0");
     assert_eq!(forward(&mut engine, "'true'.indexOf(true)"), "0");
@@ -469,8 +510,7 @@ fn index_of_with_non_string_search_string_argument() {
 
 #[test]
 fn index_of_with_from_index_argument() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
     assert_eq!(forward(&mut engine, "''.indexOf('x', 2)"), "-1");
     assert_eq!(forward(&mut engine, "'x'.indexOf('x', 2)"), "-1");
     assert_eq!(forward(&mut engine, "'abcx'.indexOf('x', 2)"), "3");
@@ -485,8 +525,7 @@ fn index_of_with_from_index_argument() {
 
 #[test]
 fn generic_index_of() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
     forward_val(
         &mut engine,
         "Number.prototype.indexOf = String.prototype.indexOf",
@@ -500,8 +539,7 @@ fn generic_index_of() {
 
 #[test]
 fn index_of_empty_search_string() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
 
     assert_eq!(forward(&mut engine, "''.indexOf('')"), "0");
     assert_eq!(forward(&mut engine, "''.indexOf('', 10)"), "0");
@@ -512,8 +550,7 @@ fn index_of_empty_search_string() {
 
 #[test]
 fn last_index_of_with_no_arguments() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
     assert_eq!(forward(&mut engine, "''.lastIndexOf()"), "-1");
     assert_eq!(forward(&mut engine, "'undefined'.lastIndexOf()"), "0");
     assert_eq!(forward(&mut engine, "'a1undefined'.lastIndexOf()"), "2");
@@ -533,8 +570,7 @@ fn last_index_of_with_no_arguments() {
 
 #[test]
 fn last_index_of_with_string_search_string_argument() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
     assert_eq!(forward(&mut engine, "''.lastIndexOf('hello')"), "-1");
     assert_eq!(
         forward(&mut engine, "'undefined'.lastIndexOf('undefined')"),
@@ -569,8 +605,7 @@ fn last_index_of_with_string_search_string_argument() {
 
 #[test]
 fn last_index_of_with_non_string_search_string_argument() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
     assert_eq!(forward(&mut engine, "''.lastIndexOf(1)"), "-1");
     assert_eq!(forward(&mut engine, "'1'.lastIndexOf(1)"), "0");
     assert_eq!(forward(&mut engine, "'11'.lastIndexOf(1)"), "1");
@@ -585,8 +620,7 @@ fn last_index_of_with_non_string_search_string_argument() {
 
 #[test]
 fn last_index_of_with_from_index_argument() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
     assert_eq!(forward(&mut engine, "''.lastIndexOf('x', 2)"), "-1");
     assert_eq!(forward(&mut engine, "'x'.lastIndexOf('x', 2)"), "-1");
     assert_eq!(forward(&mut engine, "'abcxx'.lastIndexOf('x', 2)"), "4");
@@ -601,8 +635,7 @@ fn last_index_of_with_from_index_argument() {
 
 #[test]
 fn last_index_with_empty_search_string() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
     assert_eq!(forward(&mut engine, "''.lastIndexOf('')"), "0");
     assert_eq!(forward(&mut engine, "'x'.lastIndexOf('', 2)"), "1");
     assert_eq!(forward(&mut engine, "'abcxx'.lastIndexOf('', 4)"), "4");
@@ -613,8 +646,7 @@ fn last_index_with_empty_search_string() {
 
 #[test]
 fn generic_last_index_of() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
     forward_val(
         &mut engine,
         "Number.prototype.lastIndexOf = String.prototype.lastIndexOf",
@@ -628,8 +660,7 @@ fn generic_last_index_of() {
 
 #[test]
 fn last_index_non_integer_position_argument() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
     assert_eq!(
         forward(&mut engine, "''.lastIndexOf('x', new Number(4))"),
         "-1"

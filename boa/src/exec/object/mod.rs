@@ -1,17 +1,14 @@
 //! Object execution.
 
-use super::{Executable, Interpreter};
+use super::{Context, Executable};
 use crate::{
-    builtins::value::Value,
     syntax::ast::node::MethodDefinitionKind,
     syntax::ast::node::{Object, PropertyDefinition},
-    Result,
+    Result, Value,
 };
 
-use std::borrow::Borrow;
-
 impl Executable for Object {
-    fn run(&self, interpreter: &mut Interpreter) -> Result<Value> {
+    fn run(&self, interpreter: &mut Context) -> Result<Value> {
         let global_val = &interpreter
             .realm()
             .environment
@@ -23,11 +20,11 @@ impl Executable for Object {
         for property in self.properties().iter() {
             match property {
                 PropertyDefinition::Property(key, value) => {
-                    obj.borrow().set_field(key.clone(), value.run(interpreter)?);
+                    obj.set_field(key.clone(), value.run(interpreter)?);
                 }
                 PropertyDefinition::MethodDefinition(kind, name, func) => {
                     if let MethodDefinitionKind::Ordinary = kind {
-                        obj.borrow().set_field(name.clone(), func.run(interpreter)?);
+                        obj.set_field(name.clone(), func.run(interpreter)?);
                     } else {
                         // TODO: Implement other types of MethodDefinitionKinds.
                         unimplemented!("other types of property method definitions.");

@@ -179,6 +179,10 @@ fn check_assign_operations() {
         vec![BinOp::new(AssignOp::Shr, Identifier::from("a"), Identifier::from("b")).into()],
     );
     check_parser(
+        "a >>>= b",
+        vec![BinOp::new(AssignOp::Ushr, Identifier::from("a"), Identifier::from("b")).into()],
+    );
+    check_parser(
         "a %= 10 / 2",
         vec![BinOp::new(
             AssignOp::Mod,

@@ -5,14 +5,15 @@
 #[cfg(test)]
 mod tests;
 
-use super::number::{f64_to_int32, f64_to_uint32};
-use crate::builtins::{
+use crate::{
+    builtins::{
+        number::{f64_to_int32, f64_to_uint32},
+        BigInt, Number,
+    },
     object::{GcObject, Object, ObjectData, PROTOTYPE},
     property::{Attribute, Property, PropertyKey},
-    BigInt, Number,
+    BoaProfiler, Context, Result,
 };
-use crate::exec::Interpreter;
-use crate::{BoaProfiler, Result};
 use gc::{Finalize, GcCellRef, GcCellRefMut, Trace};
 use serde_json::{map::Map, Number as JSONNumber, Value as JSONValue};
 use std::{
@@ -167,12 +168,12 @@ impl Value {
     pub fn new_object_from_prototype(proto: Value, data: ObjectData) -> Self {
         let mut object = Object::default();
         object.data = data;
-        object.set_prototype(proto);
+        object.set_prototype_instance(proto);
         Self::object(object)
     }
 
     /// Convert from a JSON value to a JS value
-    pub fn from_json(json: JSONValue, interpreter: &mut Interpreter) -> Self {
+    pub fn from_json(json: JSONValue, interpreter: &mut Context) -> Self {
         match json {
             JSONValue::Number(v) => {
                 if let Some(Ok(integer_32)) = v.as_i64().map(i32::try_from) {
@@ -185,8 +186,7 @@ impl Value {
             JSONValue::Bool(v) => Self::boolean(v),
             JSONValue::Array(vs) => {
                 let global_array_prototype = interpreter
-                    .realm
-                    .global_obj
+                    .global_object()
                     .get_field("Array")
                     .get_field(PROTOTYPE);
                 let new_obj =
@@ -208,7 +208,7 @@ impl Value {
                 new_obj
             }
             JSONValue::Object(obj) => {
-                let new_obj = Value::new_object(Some(interpreter.global()));
+                let new_obj = Value::new_object(Some(interpreter.global_object()));
                 for (key, json) in obj.into_iter() {
                     let value = Self::from_json(json, interpreter);
                     new_obj.set_property(
@@ -226,7 +226,7 @@ impl Value {
     }
 
     /// Converts the `Value` to `JSON`.
-    pub fn to_json(&self, interpreter: &mut Interpreter) -> Result<JSONValue> {
+    pub fn to_json(&self, interpreter: &mut Context) -> Result<JSONValue> {
         let to_json = self.get_field("toJSON");
         if to_json.is_function() {
             let json_value = interpreter.call(&to_json, self, &[])?;
@@ -238,15 +238,15 @@ impl Value {
             Self::Boolean(b) => Ok(JSONValue::Bool(b)),
             Self::Object(ref obj) => {
                 if obj.borrow().is_array() {
-                    let mut arr: Vec<JSONValue> = Vec::new();
-                    for k in obj.borrow().keys() {
-                        if k != "length" {
-                            let value = self.get_field(k.to_string());
-                            if value.is_undefined() || value.is_function() || value.is_symbol() {
-                                arr.push(JSONValue::Null);
-                            } else {
-                                arr.push(self.get_field(k.to_string()).to_json(interpreter)?);
-                            }
+                    let mut keys: Vec<u32> = obj.borrow().index_property_keys().cloned().collect();
+                    keys.sort();
+                    let mut arr: Vec<JSONValue> = Vec::with_capacity(keys.len());
+                    for key in keys {
+                        let value = self.get_field(key);
+                        if value.is_undefined() || value.is_function() || value.is_symbol() {
+                            arr.push(JSONValue::Null);
+                        } else {
+                            arr.push(value.to_json(interpreter)?);
                         }
                     }
                     Ok(JSONValue::Array(arr))
@@ -469,7 +469,7 @@ impl Value {
                     return Some(property);
                 }
 
-                object.prototype().get_property(key)
+                object.prototype_instance().get_property(key)
             }
             _ => None,
         }
@@ -577,11 +577,7 @@ impl Value {
     /// The abstract operation ToPrimitive takes an input argument and an optional argument PreferredType.
     ///
     /// <https://tc39.es/ecma262/#sec-toprimitive>
-    pub fn to_primitive(
-        &self,
-        ctx: &mut Interpreter,
-        preferred_type: PreferredType,
-    ) -> Result<Value> {
+    pub fn to_primitive(&self, ctx: &mut Context, preferred_type: PreferredType) -> Result<Value> {
         // 1. Assert: input is an ECMAScript language value. (always a value not need to check)
         // 2. If Type(input) is Object, then
         if let Value::Object(_) = self {
@@ -605,7 +601,7 @@ impl Value {
     /// Converts the value to a `BigInt`.
     ///
     /// This function is equivelent to `BigInt(value)` in JavaScript.
-    pub fn to_bigint(&self, ctx: &mut Interpreter) -> Result<RcBigInt> {
+    pub fn to_bigint(&self, ctx: &mut Context) -> Result<RcBigInt> {
         match self {
             Value::Null => Err(ctx.construct_type_error("cannot convert null to a BigInt")),
             Value::Undefined => {
@@ -638,7 +634,7 @@ impl Value {
     /// # Examples
     ///
     /// ```
-    /// use boa::builtins::value::Value;
+    /// use boa::Value;
     ///
     /// let value = Value::number(3);
     ///
@@ -652,7 +648,7 @@ impl Value {
     /// Converts the value to a string.
     ///
     /// This function is equivalent to `String(value)` in JavaScript.
-    pub fn to_string(&self, ctx: &mut Interpreter) -> Result<RcString> {
+    pub fn to_string(&self, ctx: &mut Context) -> Result<RcString> {
         match self {
             Value::Null => Ok("null".into()),
             Value::Undefined => Ok("undefined".into()),
@@ -674,14 +670,14 @@ impl Value {
     /// This function is equivalent to `Object(value)` in JavaScript
     ///
     /// See: <https://tc39.es/ecma262/#sec-toobject>
-    pub fn to_object(&self, ctx: &mut Interpreter) -> Result<Value> {
+    pub fn to_object(&self, ctx: &mut Context) -> Result<Value> {
         match self {
             Value::Undefined | Value::Null => {
                 ctx.throw_type_error("cannot convert 'null' or 'undefined' to object")
             }
             Value::Boolean(boolean) => {
                 let proto = ctx
-                    .realm
+                    .realm()
                     .environment
                     .get_binding_value("Boolean")
                     .expect("Boolean was not initialized")
@@ -694,7 +690,7 @@ impl Value {
             }
             Value::Integer(integer) => {
                 let proto = ctx
-                    .realm
+                    .realm()
                     .environment
                     .get_binding_value("Number")
                     .expect("Number was not initialized")
@@ -706,7 +702,7 @@ impl Value {
             }
             Value::Rational(rational) => {
                 let proto = ctx
-                    .realm
+                    .realm()
                     .environment
                     .get_binding_value("Number")
                     .expect("Number was not initialized")
@@ -719,7 +715,7 @@ impl Value {
             }
             Value::String(ref string) => {
                 let proto = ctx
-                    .realm
+                    .realm()
                     .environment
                     .get_binding_value("String")
                     .expect("String was not initialized")
@@ -732,7 +728,7 @@ impl Value {
             }
             Value::Symbol(ref symbol) => {
                 let proto = ctx
-                    .realm
+                    .realm()
                     .environment
                     .get_binding_value("Symbol")
                     .expect("Symbol was not initialized")
@@ -745,7 +741,7 @@ impl Value {
             }
             Value::BigInt(ref bigint) => {
                 let proto = ctx
-                    .realm
+                    .realm()
                     .environment
                     .get_binding_value("BigInt")
                     .expect("BigInt was not initialized")
@@ -761,7 +757,7 @@ impl Value {
     /// Converts the value to a `PropertyKey`, that can be used as a key for properties.
     ///
     /// See <https://tc39.es/ecma262/#sec-topropertykey>
-    pub fn to_property_key(&self, ctx: &mut Interpreter) -> Result<PropertyKey> {
+    pub fn to_property_key(&self, ctx: &mut Context) -> Result<PropertyKey> {
         Ok(match self {
             // Fast path:
             Value::String(string) => string.clone().into(),
@@ -778,7 +774,7 @@ impl Value {
     /// It returns value converted to a numeric value of type `Number` or `BigInt`.
     ///
     /// See: <https://tc39.es/ecma262/#sec-tonumeric>
-    pub fn to_numeric(&self, ctx: &mut Interpreter) -> Result<Numeric> {
+    pub fn to_numeric(&self, ctx: &mut Context) -> Result<Numeric> {
         let primitive = self.to_primitive(ctx, PreferredType::Number)?;
         if let Some(bigint) = primitive.as_bigint() {
             return Ok(bigint.clone().into());
@@ -791,7 +787,7 @@ impl Value {
     /// This function is equivalent to `value | 0` in JavaScript
     ///
     /// See: <https://tc39.es/ecma262/#sec-toint32>
-    pub fn to_u32(&self, ctx: &mut Interpreter) -> Result<u32> {
+    pub fn to_u32(&self, ctx: &mut Context) -> Result<u32> {
         // This is the fast path, if the value is Integer we can just return it.
         if let Value::Integer(number) = *self {
             return Ok(number as u32);
@@ -804,7 +800,7 @@ impl Value {
     /// Converts a value to an integral 32 bit signed integer.
     ///
     /// See: <https://tc39.es/ecma262/#sec-toint32>
-    pub fn to_i32(&self, ctx: &mut Interpreter) -> Result<i32> {
+    pub fn to_i32(&self, ctx: &mut Context) -> Result<i32> {
         // This is the fast path, if the value is Integer we can just return it.
         if let Value::Integer(number) = *self {
             return Ok(number);
@@ -817,7 +813,7 @@ impl Value {
     /// Converts a value to a non-negative integer if it is a valid integer index value.
     ///
     /// See: <https://tc39.es/ecma262/#sec-toindex>
-    pub fn to_index(&self, ctx: &mut Interpreter) -> Result<usize> {
+    pub fn to_index(&self, ctx: &mut Context) -> Result<usize> {
         if self.is_undefined() {
             return Ok(0);
         }
@@ -838,7 +834,7 @@ impl Value {
     /// Converts argument to an integer suitable for use as the length of an array-like object.
     ///
     /// See: <https://tc39.es/ecma262/#sec-tolength>
-    pub fn to_length(&self, ctx: &mut Interpreter) -> Result<usize> {
+    pub fn to_length(&self, ctx: &mut Context) -> Result<usize> {
         // 1. Let len be ? ToInteger(argument).
         let len = self.to_integer(ctx)?;
 
@@ -854,7 +850,7 @@ impl Value {
     /// Converts a value to an integral Number value.
     ///
     /// See: <https://tc39.es/ecma262/#sec-tointeger>
-    pub fn to_integer(&self, ctx: &mut Interpreter) -> Result<f64> {
+    pub fn to_integer(&self, ctx: &mut Context) -> Result<f64> {
         // 1. Let number be ? ToNumber(argument).
         let number = self.to_number(ctx)?;
 
@@ -878,7 +874,7 @@ impl Value {
     /// This function is equivalent to the unary `+` operator (`+value`) in JavaScript
     ///
     /// See: https://tc39.es/ecma262/#sec-tonumber
-    pub fn to_number(&self, ctx: &mut Interpreter) -> Result<f64> {
+    pub fn to_number(&self, ctx: &mut Context) -> Result<f64> {
         match *self {
             Value::Null => Ok(0.0),
             Value::Undefined => Ok(f64::NAN),
@@ -906,7 +902,7 @@ impl Value {
     /// This function is equivalent to `Number(value)` in JavaScript
     ///
     /// See: <https://tc39.es/ecma262/#sec-tonumeric>
-    pub fn to_numeric_number(&self, ctx: &mut Interpreter) -> Result<f64> {
+    pub fn to_numeric_number(&self, ctx: &mut Context) -> Result<f64> {
         let primitive = self.to_primitive(ctx, PreferredType::Number)?;
         if let Some(ref bigint) = primitive.as_bigint() {
             return Ok(bigint.to_f64());
@@ -926,7 +922,7 @@ impl Value {
     /// [table]: https://tc39.es/ecma262/#table-14
     /// [spec]: https://tc39.es/ecma262/#sec-requireobjectcoercible
     #[inline]
-    pub fn require_object_coercible<'a>(&'a self, ctx: &mut Interpreter) -> Result<&'a Value> {
+    pub fn require_object_coercible<'a>(&'a self, ctx: &mut Context) -> Result<&'a Value> {
         if self.is_null_or_undefined() {
             Err(ctx.construct_type_error("cannot convert null or undefined to Object"))
         } else {

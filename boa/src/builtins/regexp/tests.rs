@@ -1,9 +1,8 @@
-use crate::{exec::Interpreter, forward, realm::Realm};
+use crate::{forward, Context};
 
 #[test]
 fn constructors() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
     let init = r#"
         var constructed = new RegExp("[0-9]+(\\.[0-9]+)?");
         var literal = /[0-9]+(\.[0-9]+)?/;
@@ -20,7 +19,7 @@ fn constructors() {
 
 //    #[test]
 //    fn flags() {
-//        let mut engine = Interpreter::new();
+//        let mut engine = Context::new();
 //        let init = r#"
 //                var re_gi = /test/gi;
 //                var re_sm = /test/sm;
@@ -46,8 +45,7 @@ fn constructors() {
 
 #[test]
 fn last_index() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
     let init = r#"
         var regex = /[0-9]+(\.[0-9]+)?/g;
         "#;
@@ -62,8 +60,7 @@ fn last_index() {
 
 #[test]
 fn exec() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
     let init = r#"
         var re = /quick\s(brown).+?(jumps)/ig;
         var result = re.exec('The Quick Brown Fox Jumps Over The Lazy Dog');
@@ -85,8 +82,7 @@ fn exec() {
 
 #[test]
 fn to_string() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
 
     assert_eq!(
         forward(&mut engine, "(new RegExp('a+b+c')).toString()"),

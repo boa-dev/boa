@@ -1,14 +1,12 @@
-use super::{Executable, Interpreter};
+use super::{Context, Executable};
 use crate::{
-    builtins::Value,
     syntax::ast::node::{ConditionalOp, If},
-    Result,
+    Result, Value,
 };
-use std::borrow::Borrow;
 
 impl Executable for If {
-    fn run(&self, interpreter: &mut Interpreter) -> Result<Value> {
-        Ok(if self.cond().run(interpreter)?.borrow().to_boolean() {
+    fn run(&self, interpreter: &mut Context) -> Result<Value> {
+        Ok(if self.cond().run(interpreter)?.to_boolean() {
             self.body().run(interpreter)?
         } else if let Some(ref else_e) = self.else_node() {
             else_e.run(interpreter)?
@@ -19,8 +17,8 @@ impl Executable for If {
 }
 
 impl Executable for ConditionalOp {
-    fn run(&self, interpreter: &mut Interpreter) -> Result<Value> {
-        Ok(if self.cond().run(interpreter)?.borrow().to_boolean() {
+    fn run(&self, interpreter: &mut Context) -> Result<Value> {
+        Ok(if self.cond().run(interpreter)?.to_boolean() {
             self.if_true().run(interpreter)?
         } else {
             self.if_false().run(interpreter)?

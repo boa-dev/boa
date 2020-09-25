@@ -4,14 +4,14 @@
 
 use super::{Object, PROTOTYPE};
 use crate::{
-    builtins::{
-        function::{create_unmapped_arguments_object, BuiltInFunction, Function},
-        Value,
+    builtins::function::{
+        create_unmapped_arguments_object, BuiltInFunction, Function, NativeFunction,
     },
     environment::{
         function_environment_record::BindingStatus, lexical_environment::new_function_environment,
     },
-    Executable, Interpreter, Result,
+    syntax::ast::node::RcStatementList,
+    Context, Executable, Result, Value,
 };
 use gc::{Finalize, Gc, GcCell, GcCellRef, GcCellRefMut, Trace};
 use std::{
@@ -32,6 +32,13 @@ pub type RefMut<'object> = GcCellRefMut<'object, Object>;
 #[derive(Trace, Finalize, Clone)]
 pub struct GcObject(Gc<GcCell<Object>>);
 
+// This is needed for the call method since we cannot mutate the function itself since we
+// already borrow it so we get the function body clone it then drop the borrow and run the body
+enum FunctionBody {
+    BuiltIn(NativeFunction),
+    Ordinary(RcStatementList),
+}
+
 impl GcObject {
     /// Create a new `GcObject` from a `Object`.
     #[inline]
@@ -47,6 +54,7 @@ impl GcObject {
     ///# Panics
     /// Panics if the object is currently mutably borrowed.
     #[inline]
+    #[track_caller]
     pub fn borrow(&self) -> Ref<'_> {
         self.try_borrow().expect("Object already mutably borrowed")
     }
@@ -59,6 +67,7 @@ impl GcObject {
     ///# Panics
     /// Panics if the object is currently borrowed.
     #[inline]
+    #[track_caller]
     pub fn borrow_mut(&self) -> RefMut<'_> {
         self.try_borrow_mut().expect("Object already borrowed")
     }
@@ -97,13 +106,15 @@ impl GcObject {
     /// Panics if the object is currently mutably borrowed.
     // <https://tc39.es/ecma262/#sec-prepareforordinarycall>
     // <https://tc39.es/ecma262/#sec-ecmascript-function-objects-call-thisargument-argumentslist>
-    pub fn call(&self, this: &Value, args: &[Value], ctx: &mut Interpreter) -> Result<Value> {
+    #[track_caller]
+    pub fn call(&self, this: &Value, args: &[Value], ctx: &mut Context) -> Result<Value> {
         let this_function_object = self.clone();
-        let object = self.borrow();
-        if let Some(function) = object.as_function() {
+        let f_body = if let Some(function) = self.borrow().as_function() {
             if function.is_callable() {
                 match function {
-                    Function::BuiltIn(BuiltInFunction(function), _) => function(this, args, ctx),
+                    Function::BuiltIn(BuiltInFunction(function), _) => {
+                        FunctionBody::BuiltIn(*function)
+                    }
                     Function::Ordinary {
                         body,
                         params,
@@ -149,21 +160,26 @@ impl GcObject {
                             .borrow_mut()
                             .initialize_binding("arguments", arguments_obj);
 
-                        ctx.realm.environment.push(local_env);
+                        ctx.realm_mut().environment.push(local_env);
 
-                        // Call body should be set before reaching here
-                        let result = body.run(ctx);
-
-                        // local_env gets dropped here, its no longer needed
-                        ctx.realm.environment.pop();
-                        result
+                        FunctionBody::Ordinary(body.clone())
                     }
                 }
             } else {
-                ctx.throw_type_error("function object is not callable")
+                return ctx.throw_type_error("function object is not callable");
             }
         } else {
-            ctx.throw_type_error("not a function")
+            return ctx.throw_type_error("not a function");
+        };
+
+        match f_body {
+            FunctionBody::BuiltIn(func) => func(this, args, ctx),
+            FunctionBody::Ordinary(body) => {
+                let result = body.run(ctx);
+                ctx.realm_mut().environment.pop();
+
+                result
+            }
         }
     }
 
@@ -172,17 +188,16 @@ impl GcObject {
     ///# Panics
     /// Panics if the object is currently mutably borrowed.
     // <https://tc39.es/ecma262/#sec-ecmascript-function-objects-construct-argumentslist-newtarget>
-    pub fn construct(&self, args: &[Value], ctx: &mut Interpreter) -> Result<Value> {
-        let this = Object::create(self.borrow().get(&PROTOTYPE.into())).into();
+    #[track_caller]
+    pub fn construct(&self, args: &[Value], ctx: &mut Context) -> Result<Value> {
+        let this: Value = Object::create(self.borrow().get(&PROTOTYPE.into())).into();
 
         let this_function_object = self.clone();
-        let object = self.borrow();
-        if let Some(function) = object.as_function() {
+        let body = if let Some(function) = self.borrow().as_function() {
             if function.is_constructable() {
                 match function {
                     Function::BuiltIn(BuiltInFunction(function), _) => {
-                        function(&this, args, ctx)?;
-                        Ok(this)
+                        FunctionBody::BuiltIn(*function)
                     }
                     Function::Ordinary {
                         body,
@@ -194,7 +209,7 @@ impl GcObject {
                         // <https://tc39.es/ecma262/#sec-prepareforordinarycall>
                         let local_env = new_function_environment(
                             this_function_object,
-                            Some(this),
+                            Some(this.clone()),
                             Some(environment.clone()),
                             // Arrow functions do not have a this binding https://tc39.es/ecma262/#sec-function-environment-records
                             if flags.is_lexical_this_mode() {
@@ -225,22 +240,31 @@ impl GcObject {
                             .borrow_mut()
                             .initialize_binding("arguments", arguments_obj);
 
-                        ctx.realm.environment.push(local_env);
+                        ctx.realm_mut().environment.push(local_env);
 
-                        // Call body should be set before reaching here
-                        let _ = body.run(ctx);
-
-                        // local_env gets dropped here, its no longer needed
-                        let binding = ctx.realm.environment.get_this_binding();
-                        Ok(binding)
+                        FunctionBody::Ordinary(body.clone())
                     }
                 }
             } else {
                 let name = this.get_field("name").display().to_string();
-                ctx.throw_type_error(format!("{} is not a constructor", name))
+                return ctx.throw_type_error(format!("{} is not a constructor", name));
             }
         } else {
-            ctx.throw_type_error("not a function")
+            return ctx.throw_type_error("not a function");
+        };
+
+        match body {
+            FunctionBody::BuiltIn(function) => {
+                function(&this, args, ctx)?;
+                Ok(this)
+            }
+            FunctionBody::Ordinary(body) => {
+                let _ = body.run(ctx);
+
+                // local_env gets dropped here, its no longer needed
+                let binding = ctx.realm_mut().environment.get_this_binding();
+                Ok(binding)
+            }
         }
     }
 }

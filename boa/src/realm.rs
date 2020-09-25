@@ -5,14 +5,13 @@
 //! A realm is represented in this implementation as a Realm struct with the fields specified from the spec.
 
 use crate::{
-    builtins::value::Value,
     environment::{
         declarative_environment_record::DeclarativeEnvironmentRecord,
         global_environment_record::GlobalEnvironmentRecord,
         lexical_environment::LexicalEnvironment,
         object_environment_record::ObjectEnvironmentRecord,
     },
-    BoaProfiler,
+    BoaProfiler, Value,
 };
 use gc::{Gc, GcCell};
 use rustc_hash::{FxHashMap, FxHashSet};
@@ -35,7 +34,7 @@ impl Realm {
         let global = Value::new_object(None);
 
         // Allow identification of the global object easily
-        global.set_data(crate::builtins::object::ObjectData::Global);
+        global.set_data(crate::object::ObjectData::Global);
 
         // We need to clone the global here because its referenced from separate places (only pointer is cloned)
         let global_env = new_global_environment(global.clone(), global.clone());

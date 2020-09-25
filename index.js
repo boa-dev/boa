@@ -63,6 +63,6 @@ function inputHandler(evt) {
     p.textContent = `> ${result}`;
   } catch (err) {
     console.error(err);
-    p.innerHTML = `<span style="color:red">${err}</span>`
+    p.innerHTML = `<span style="color:red">${err}</span>`;
   }
 }

@@ -1,10 +1,9 @@
 ---
 name: "\U0001F41B Bug report"
 about: Create a report to help us improve
-title: ''
+title: ""
 labels: bug
-assignees: ''
-
+assignees: ""
 ---
 
 <!--
@@ -39,10 +38,11 @@ Running this code, `a` should be set to `10` and printed, but `a` is instead set
 -->
 
 **Build environment (please complete the following information):**
- - OS: [e.g. Fedora Linux]
- - Version: [e.g. 32]
- - Target triple: [e.g. x86_64-unknown-linux-gnu]
- - Rustc version: [e.g. rustc 1.43.0 (4fb7144ed 2020-04-20), running `rustc -V`]
+
+- OS: [e.g. Fedora Linux]
+- Version: [e.g. 32]
+- Target triple: [e.g. x86_64-unknown-linux-gnu]
+- Rustc version: [e.g. rustc 1.43.0 (4fb7144ed 2020-04-20), running `rustc -V`]
 
 **Additional context**
 Add any other context about the problem here.

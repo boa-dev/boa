@@ -1,18 +1,17 @@
 //! Try..catch node execution.
 
-use super::{Executable, Interpreter};
+use super::{Context, Executable};
 use crate::{
-    builtins::value::Value,
     environment::lexical_environment::{new_declarative_environment, VariableScope},
     syntax::ast::node::Try,
-    BoaProfiler, Result,
+    BoaProfiler, Result, Value,
 };
 
 #[cfg(test)]
 mod tests;
 
 impl Executable for Try {
-    fn run(&self, interpreter: &mut Interpreter) -> Result<Value> {
+    fn run(&self, interpreter: &mut Context) -> Result<Value> {
         let _timer = BoaProfiler::global().start_event("Try", "exec");
         let res = self.block().run(interpreter).map_or_else(
             |err| {

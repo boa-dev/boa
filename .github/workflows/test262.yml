@@ -1,0 +1,70 @@
+name: EcmaScript official test suite (test262)
+on:
+  push:
+    branches:
+      - master
+    tags:
+      - v*
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  run_test262:
+    name: Run the test262 test suite
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout the repository
+        uses: actions/checkout@v2
+        with:
+          submodules: true
+      - name: Install the Rust toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+          profile: minimal
+      - name: Cache cargo registry
+        uses: actions/cache@v1
+        with:
+          path: ~/.cargo/registry
+          key: ${{ runner.os }}-cargo-registry-${{ hashFiles('**/Cargo.lock') }}
+      - name: Cache cargo index
+        uses: actions/cache@v1
+        with:
+          path: ~/.cargo/git
+          key: ${{ runner.os }}-cargo-index-${{ hashFiles('**/Cargo.lock') }}
+      - name: Cache cargo build
+        uses: actions/cache@v1
+        with:
+          path: target
+          key: ${{ runner.os }}-cargo-build-target-${{ hashFiles('**/Cargo.lock') }}
+
+      # Run the test suite and upload the results
+      - name: Checkout GitHub pages
+        if: github.event_name == 'push'
+        uses: actions/checkout@v2
+        with:
+          ref: gh-pages
+          path: gh-pages
+      - run: mkdir -p gh-pages/test262
+
+      - name: Run the test262 test suite
+        run: cargo run --release --bin boa_tester -- -o gh-pages/test262
+
+      - name: Commit files
+        if: github.event_name == 'push'
+        run: |
+          cd gh-pages
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git pull
+          git add test262
+          git commit -m "Add new test262 results" -a
+          cd ..
+      - name: Upload results
+        if: github.event_name == 'push'
+        uses: ad-m/github-push-action@v0.6.0
+        with:
+          directory: gh-pages
+          github_token: ${{ secrets.GITHUB_TOKEN }}

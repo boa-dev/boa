@@ -13,7 +13,7 @@ use crate::syntax::ast::{
 
 /// Checks that the given JavaScript string gives the expected expression.
 #[allow(clippy::unwrap_used)]
-// TODO: #[track_caller]: https://github.com/rust-lang/rust/issues/47809
+#[track_caller]
 pub(super) fn check_parser<L>(js: &str, expr: L)
 where
     L: Into<Box<[Node]>>,
@@ -27,7 +27,7 @@ where
 }
 
 /// Checks that the given javascript string creates a parse error.
-// TODO: #[track_caller]: https://github.com/rust-lang/rust/issues/47809
+#[track_caller]
 pub(super) fn check_invalid(js: &str) {
     assert!(Parser::new(js.as_bytes()).parse_all().is_err());
 }
@@ -144,14 +144,12 @@ fn comment_semi_colon_insertion() {
             LetDeclList::from(vec![LetDecl::new::<&str, Option<Node>>(
                 "a",
                 Some(Const::Int(10).into()),
-            )
-            .into()])
+            )])
             .into(),
             LetDeclList::from(vec![LetDecl::new::<&str, Option<Node>>(
                 "b",
                 Some(Const::Int(20).into()),
-            )
-            .into()])
+            )])
             .into(),
         ],
     );
@@ -172,14 +170,12 @@ fn multiline_comment_semi_colon_insertion() {
             LetDeclList::from(vec![LetDecl::new::<&str, Option<Node>>(
                 "a",
                 Some(Const::Int(10).into()),
-            )
-            .into()])
+            )])
             .into(),
             LetDeclList::from(vec![LetDecl::new::<&str, Option<Node>>(
                 "b",
                 Some(Const::Int(20).into()),
-            )
-            .into()])
+            )])
             .into(),
         ],
     );
@@ -197,14 +193,12 @@ fn multiline_comment_no_lineterminator() {
             LetDeclList::from(vec![LetDecl::new::<&str, Option<Node>>(
                 "a",
                 Some(Const::Int(10).into()),
-            )
-            .into()])
+            )])
             .into(),
             LetDeclList::from(vec![LetDecl::new::<&str, Option<Node>>(
                 "b",
                 Some(Const::Int(20).into()),
-            )
-            .into()])
+            )])
             .into(),
         ],
     );
@@ -225,8 +219,7 @@ fn assignment_line_terminator() {
             LetDeclList::from(vec![LetDecl::new::<&str, Option<Node>>(
                 "a",
                 Some(Const::Int(3).into()),
-            )
-            .into()])
+            )])
             .into(),
             Assign::new(Identifier::from("a"), Const::from(5)).into(),
         ],
@@ -239,18 +232,9 @@ fn assignment_multiline_terminator() {
     let a = 3;
 
 
-
-
-
     a = 
 
 
-
-
-
-
-
-    
     5;
     "#;
 
@@ -260,8 +244,7 @@ fn assignment_multiline_terminator() {
             LetDeclList::from(vec![LetDecl::new::<&str, Option<Node>>(
                 "a",
                 Some(Const::Int(3).into()),
-            )
-            .into()])
+            )])
             .into(),
             Assign::new(Identifier::from("a"), Const::from(5)).into(),
         ],

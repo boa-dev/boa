@@ -1,4 +1,4 @@
-(function(){
-    var a = "hello";
-    var b = a;
+(function () {
+  var a = "hello";
+  var b = a;
 })();

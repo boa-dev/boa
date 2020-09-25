@@ -12,20 +12,14 @@
         "program": "${workspaceFolder}/target/debug/boa.exe"
       },
       "program": "${workspaceFolder}/target/debug/boa",
-      "args": [
-        "${workspaceFolder}/tests/js/test.js"
-      ],
-      "sourceLanguages": [
-        "rust"
-      ]
+      "args": ["${workspaceFolder}/tests/js/test.js"],
+      "sourceLanguages": ["rust"]
     },
     {
       "name": "(Windows) Launch",
       "type": "cppvsdbg",
       "request": "launch",
-      "args": [
-        "${workspaceFolder}/tests/js/test.js"
-      ],
+      "args": ["${workspaceFolder}/tests/js/test.js"],
       "program": "${workspaceFolder}/target/debug/boa.exe",
       "cwd": "${workspaceFolder}",
       "sourceFileMap": {
@@ -45,6 +39,6 @@
       "cwd": "${workspaceRoot}",
       "environment": [],
       "externalConsole": true
-    },
+    }
   ]
 }

@@ -1,15 +1,17 @@
-use super::{Executable, Interpreter, InterpreterState};
-use crate::{builtins::value::Value, syntax::ast::node::Switch, Result};
+use super::{Context, Executable, InterpreterState};
+use crate::{syntax::ast::node::Switch, Result, Value};
 
 #[cfg(test)]
 mod tests;
 
 impl Executable for Switch {
-    fn run(&self, interpreter: &mut Interpreter) -> Result<Value> {
+    fn run(&self, interpreter: &mut Context) -> Result<Value> {
         let val = self.val().run(interpreter)?;
         let mut result = Value::null();
         let mut matched = false;
-        interpreter.set_current_state(InterpreterState::Executing);
+        interpreter
+            .executor()
+            .set_current_state(InterpreterState::Executing);
 
         // If a case block does not end with a break statement then subsequent cases will be run without
         // checking their conditions until a break is encountered.
@@ -21,7 +23,7 @@ impl Executable for Switch {
             if fall_through || val.strict_equals(&cond.run(interpreter)?) {
                 matched = true;
                 let result = block.run(interpreter)?;
-                match interpreter.get_current_state() {
+                match interpreter.executor().get_current_state() {
                     InterpreterState::Return => {
                         // Early return.
                         return Ok(result);
@@ -29,7 +31,9 @@ impl Executable for Switch {
                     InterpreterState::Break(_label) => {
                         // TODO, break to a label.
                         // Break statement encountered so therefore end switch statement.
-                        interpreter.set_current_state(InterpreterState::Executing);
+                        interpreter
+                            .executor()
+                            .set_current_state(InterpreterState::Executing);
                         break;
                     }
                     InterpreterState::Continue(_label) => {
@@ -46,10 +50,12 @@ impl Executable for Switch {
 
         if !matched {
             if let Some(default) = self.default() {
-                interpreter.set_current_state(InterpreterState::Executing);
+                interpreter
+                    .executor()
+                    .set_current_state(InterpreterState::Executing);
                 for (i, item) in default.iter().enumerate() {
                     let val = item.run(interpreter)?;
-                    match interpreter.get_current_state() {
+                    match interpreter.executor().get_current_state() {
                         InterpreterState::Return => {
                             // Early return.
                             result = val;

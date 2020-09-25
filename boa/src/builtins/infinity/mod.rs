@@ -12,7 +12,7 @@
 #[cfg(test)]
 mod tests;
 
-use crate::{builtins::value::Value, BoaProfiler, Interpreter};
+use crate::{BoaProfiler, Context, Value};
 
 /// JavaScript global `Infinity` property.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
@@ -24,7 +24,7 @@ impl Infinity {
 
     /// Initialize the `Infinity` property on the global object.
     #[inline]
-    pub(crate) fn init(_interpreter: &mut Interpreter) -> (&'static str, Value) {
+    pub(crate) fn init(_interpreter: &mut Context) -> (&'static str, Value) {
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
         (Self::NAME, Value::from(f64::INFINITY))

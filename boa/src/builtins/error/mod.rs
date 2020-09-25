@@ -11,14 +11,10 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error
 
 use crate::{
-    builtins::{
-        function::{make_builtin_fn, make_constructor_fn},
-        object::ObjectData,
-        value::Value,
-    },
-    exec::Interpreter,
+    builtins::function::{make_builtin_fn, make_constructor_fn},
+    object::ObjectData,
     profiler::BoaProfiler,
-    Result,
+    Context, Result, Value,
 };
 
 pub(crate) mod range;
@@ -47,7 +43,7 @@ impl Error {
     pub(crate) const LENGTH: usize = 1;
 
     /// Create a new error object.
-    pub(crate) fn make_error(this: &Value, args: &[Value], ctx: &mut Interpreter) -> Result<Value> {
+    pub(crate) fn make_error(this: &Value, args: &[Value], ctx: &mut Context) -> Result<Value> {
         if let Some(message) = args.get(0) {
             this.set_field("message", message.to_string(ctx)?);
         }
@@ -69,7 +65,7 @@ impl Error {
     /// [spec]: https://tc39.es/ecma262/#sec-error.prototype.tostring
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error/toString
     #[allow(clippy::wrong_self_convention)]
-    pub(crate) fn to_string(this: &Value, _: &[Value], _: &mut Interpreter) -> Result<Value> {
+    pub(crate) fn to_string(this: &Value, _: &[Value], _: &mut Context) -> Result<Value> {
         let name = this.get_field("name");
         let message = this.get_field("message");
         Ok(Value::from(format!(
@@ -81,8 +77,8 @@ impl Error {
 
     /// Initialise the global object with the `Error` object.
     #[inline]
-    pub(crate) fn init(interpreter: &mut Interpreter) -> (&'static str, Value) {
-        let global = interpreter.global();
+    pub(crate) fn init(interpreter: &mut Context) -> (&'static str, Value) {
+        let global = interpreter.global_object();
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
         let prototype = Value::new_object(Some(global));

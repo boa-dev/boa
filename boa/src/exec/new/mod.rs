@@ -1,8 +1,8 @@
-use super::{Executable, Interpreter};
-use crate::{builtins::Value, syntax::ast::node::New, BoaProfiler, Result};
+use super::{Context, Executable};
+use crate::{syntax::ast::node::New, BoaProfiler, Result, Value};
 
 impl Executable for New {
-    fn run(&self, interpreter: &mut Interpreter) -> Result<Value> {
+    fn run(&self, interpreter: &mut Context) -> Result<Value> {
         let _timer = BoaProfiler::global().start_event("New", "exec");
 
         let func_object = self.expr().run(interpreter)?;

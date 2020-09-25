@@ -12,23 +12,22 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function
 
 use crate::{
-    builtins::{
-        object::{Object, ObjectData, PROTOTYPE},
-        property::{Attribute, Property},
-        value::Value,
-        Array,
-    },
+    builtins::Array,
     environment::lexical_environment::Environment,
-    exec::Interpreter,
-    syntax::ast::node::{FormalParameter, StatementList},
-    BoaProfiler, Result,
+    object::{Object, ObjectData, PROTOTYPE},
+    property::{Attribute, Property},
+    syntax::ast::node::{FormalParameter, RcStatementList},
+    BoaProfiler, Context, Result, Value,
 };
 use bitflags::bitflags;
 use gc::{unsafe_empty_trace, Finalize, Trace};
 use std::fmt::{self, Debug};
 
-/// _fn(this, arguments, ctx) -> Result<Value>_ - The signature of a built-in function
-pub type NativeFunction = fn(&Value, &[Value], &mut Interpreter) -> Result<Value>;
+#[cfg(test)]
+mod tests;
+
+/// _fn(this, arguments, ctx) -> ResultValue_ - The signature of a built-in function
+pub type NativeFunction = fn(&Value, &[Value], &mut Context) -> Result<Value>;
 
 #[derive(Clone, Copy, Finalize)]
 pub struct BuiltInFunction(pub(crate) NativeFunction);
@@ -59,7 +58,7 @@ bitflags! {
 }
 
 impl FunctionFlags {
-    fn from_parameters(callable: bool, constructable: bool) -> Self {
+    pub(crate) fn from_parameters(callable: bool, constructable: bool) -> Self {
         let mut flags = Self::default();
 
         if callable {
@@ -102,7 +101,7 @@ pub enum Function {
     BuiltIn(BuiltInFunction, FunctionFlags),
     Ordinary {
         flags: FunctionFlags,
-        body: StatementList,
+        body: RcStatementList,
         params: Box<[FormalParameter]>,
         environment: Environment,
     },
@@ -115,7 +114,7 @@ impl Function {
         param: &FormalParameter,
         index: usize,
         args_list: &[Value],
-        interpreter: &mut Interpreter,
+        interpreter: &mut Context,
         local_env: &Environment,
     ) {
         // Create array of values
@@ -199,7 +198,7 @@ pub fn create_unmapped_arguments_object(arguments_list: &[Value]) -> Value {
 /// Create new function `[[Construct]]`
 ///
 // This gets called when a new Function() is created.
-pub fn make_function(this: &Value, _: &[Value], _: &mut Interpreter) -> Result<Value> {
+pub fn make_function(this: &Value, _: &[Value], _: &mut Context) -> Result<Value> {
     this.set_data(ObjectData::Function(Function::BuiltIn(
         BuiltInFunction(|_, _, _| Ok(Value::undefined())),
         FunctionFlags::CALLABLE | FunctionFlags::CONSTRUCTABLE,
@@ -284,7 +283,7 @@ pub fn make_builtin_fn<N>(
     name: N,
     parent: &Value,
     length: usize,
-    interpreter: &Interpreter,
+    interpreter: &Context,
 ) where
     N: Into<String>,
 {
@@ -294,7 +293,7 @@ pub fn make_builtin_fn<N>(
     let mut function = Object::function(
         Function::BuiltIn(function.into(), FunctionFlags::CALLABLE),
         interpreter
-            .global()
+            .global_object()
             .get_field("Function")
             .get_field("prototype"),
     );
@@ -308,8 +307,8 @@ pub fn make_builtin_fn<N>(
 
 /// Initialise the `Function` object on the global object.
 #[inline]
-pub fn init(interpreter: &mut Interpreter) -> (&'static str, Value) {
-    let global = interpreter.global();
+pub fn init(interpreter: &mut Context) -> (&'static str, Value) {
+    let global = interpreter.global_object();
     let _timer = BoaProfiler::global().start_event("function", "init");
     let prototype = Value::new_object(Some(global));
 

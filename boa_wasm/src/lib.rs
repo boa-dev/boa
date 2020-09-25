@@ -1,18 +1,25 @@
-use boa::{Executable, Interpreter, Parser, Realm};
+use boa::{exec::Executable, parse, Context};
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]
 pub fn evaluate(src: &str) -> Result<String, JsValue> {
-    let expr = Parser::new(src.as_bytes())
-        .parse_all()
-        .map_err(|e| JsValue::from(format!("Parsing Error: {}", e)))?;
-
     // Setup executor
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
 
-    // Setup executor
+    let expr = match parse(src) {
+        Ok(res) => res,
+        Err(e) => {
+            return Err(format!(
+                "Uncaught {}",
+                engine
+                    .throw_syntax_error(e.to_string())
+                    .expect_err("interpreter.throw_syntax_error() did not return an error")
+                    .display()
+            )
+            .into());
+        }
+    };
     expr.run(&mut engine)
-        .map_err(|e| JsValue::from(format!("Error: {}", e.display())))
+        .map_err(|e| JsValue::from(format!("Uncaught {}", e.display())))
         .map(|v| v.display().to_string())
 }

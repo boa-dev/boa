@@ -1,5 +1,5 @@
 use super::*;
-use crate::{forward, forward_val, Interpreter, Realm};
+use crate::{forward, forward_val, Context};
 
 use std::collections::hash_map::DefaultHasher;
 use std::hash::{Hash, Hasher};
@@ -54,8 +54,7 @@ fn number_is_true() {
 // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Equality_comparisons_and_sameness
 #[test]
 fn abstract_equality_comparison() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
 
     assert_eq!(forward(&mut engine, "undefined == undefined"), "true");
     assert_eq!(forward(&mut engine, "null == null"), "true");
@@ -159,8 +158,7 @@ fn hash_object() {
 
 #[test]
 fn get_types() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
 
     assert_eq!(
         forward_val(&mut engine, "undefined").unwrap().get_type(),
@@ -250,8 +248,7 @@ fn to_string() {
 
 #[test]
 fn add_number_and_number() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
 
     let value = forward_val(&mut engine, "1 + 2").unwrap();
     let value = value.to_i32(&mut engine).unwrap();
@@ -260,8 +257,7 @@ fn add_number_and_number() {
 
 #[test]
 fn add_number_and_string() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
 
     let value = forward_val(&mut engine, "1 + \" + 2 = 3\"").unwrap();
     let value = value.to_string(&mut engine).unwrap();
@@ -270,8 +266,7 @@ fn add_number_and_string() {
 
 #[test]
 fn add_string_and_string() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
 
     let value = forward_val(&mut engine, "\"Hello\" + \", world\"").unwrap();
     let value = value.to_string(&mut engine).unwrap();
@@ -280,8 +275,7 @@ fn add_string_and_string() {
 
 #[test]
 fn add_number_object_and_number() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
 
     let value = forward_val(&mut engine, "new Number(10) + 6").unwrap();
     let value = value.to_i32(&mut engine).unwrap();
@@ -290,8 +284,7 @@ fn add_number_object_and_number() {
 
 #[test]
 fn add_number_object_and_string_object() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
 
     let value = forward_val(&mut engine, "new Number(10) + new String(\"0\")").unwrap();
     let value = value.to_string(&mut engine).unwrap();
@@ -300,8 +293,7 @@ fn add_number_object_and_string_object() {
 
 #[test]
 fn sub_number_and_number() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
 
     let value = forward_val(&mut engine, "1 - 999").unwrap();
     let value = value.to_i32(&mut engine).unwrap();
@@ -310,8 +302,7 @@ fn sub_number_and_number() {
 
 #[test]
 fn sub_number_object_and_number_object() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
 
     let value = forward_val(&mut engine, "new Number(1) - new Number(999)").unwrap();
     let value = value.to_i32(&mut engine).unwrap();
@@ -320,8 +311,7 @@ fn sub_number_object_and_number_object() {
 
 #[test]
 fn sub_string_and_number_object() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
 
     let value = forward_val(&mut engine, "'Hello' - new Number(999)").unwrap();
     let value = value.to_number(&mut engine).unwrap();
@@ -330,8 +320,7 @@ fn sub_string_and_number_object() {
 
 #[test]
 fn bitand_integer_and_integer() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
 
     let value = forward_val(&mut engine, "0xFFFF & 0xFF").unwrap();
     let value = value.to_i32(&mut engine).unwrap();
@@ -340,8 +329,7 @@ fn bitand_integer_and_integer() {
 
 #[test]
 fn bitand_integer_and_rational() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
 
     let value = forward_val(&mut engine, "0xFFFF & 255.5").unwrap();
     let value = value.to_i32(&mut engine).unwrap();
@@ -350,8 +338,7 @@ fn bitand_integer_and_rational() {
 
 #[test]
 fn bitand_rational_and_rational() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
 
     let value = forward_val(&mut engine, "255.772 & 255.5").unwrap();
     let value = value.to_i32(&mut engine).unwrap();
@@ -361,8 +348,7 @@ fn bitand_rational_and_rational() {
 #[test]
 #[allow(clippy::float_cmp)]
 fn pow_number_and_number() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
 
     let value = forward_val(&mut engine, "3 ** 3").unwrap();
     let value = value.to_number(&mut engine).unwrap();
@@ -371,8 +357,7 @@ fn pow_number_and_number() {
 
 #[test]
 fn pow_number_and_string() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
 
     let value = forward_val(&mut engine, "3 ** 'Hello'").unwrap();
     let value = value.to_number(&mut engine).unwrap();
@@ -381,8 +366,7 @@ fn pow_number_and_string() {
 
 #[test]
 fn assign_pow_number_and_string() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
 
     let value = forward_val(
         &mut engine,
@@ -406,8 +390,7 @@ fn display_string() {
 
 #[test]
 fn display_array_string() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
 
     let value = forward_val(&mut engine, "[\"Hello\"]").unwrap();
     assert_eq!(value.display().to_string(), "[ \"Hello\" ]");
@@ -415,8 +398,7 @@ fn display_array_string() {
 
 #[test]
 fn display_boolean_object() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
     let d_obj = r#"
         let bool = new Boolean(0);
         bool
@@ -427,8 +409,7 @@ fn display_boolean_object() {
 
 #[test]
 fn display_number_object() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
     let d_obj = r#"
         let num = new Number(3.14);
         num
@@ -439,8 +420,7 @@ fn display_number_object() {
 
 #[test]
 fn display_negative_zero_object() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
     let d_obj = r#"
         let num = new Number(-0);
         num
@@ -451,8 +431,7 @@ fn display_negative_zero_object() {
 
 #[test]
 fn debug_object() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
     let value = forward_val(&mut engine, "new Array([new Date()])").unwrap();
 
     // We don't care about the contents of the debug display (it is *debug* after all). In the commit that this test was
@@ -466,8 +445,7 @@ fn debug_object() {
 #[test]
 #[ignore] // TODO: Once objects are printed in a simpler way this test can be simplified and used
 fn display_object() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
     let d_obj = r#"
         let o = {a: 'a'};
         o
@@ -531,8 +509,7 @@ mod abstract_relational_comparison {
 
     #[test]
     fn number_less_than_number() {
-        let realm = Realm::create();
-        let mut engine = Interpreter::new(realm);
+        let mut engine = Context::new();
         check_comparison!(engine, "1 < 2" => true);
         check_comparison!(engine, "2 < 2" => false);
         check_comparison!(engine, "3 < 2" => false);
@@ -542,8 +519,7 @@ mod abstract_relational_comparison {
 
     #[test]
     fn string_less_than_number() {
-        let realm = Realm::create();
-        let mut engine = Interpreter::new(realm);
+        let mut engine = Context::new();
         check_comparison!(engine, "'1' < 2" => true);
         check_comparison!(engine, "'2' < 2" => false);
         check_comparison!(engine, "'3' < 2" => false);
@@ -553,8 +529,7 @@ mod abstract_relational_comparison {
 
     #[test]
     fn number_less_than_string() {
-        let realm = Realm::create();
-        let mut engine = Interpreter::new(realm);
+        let mut engine = Context::new();
         check_comparison!(engine, "1 < '2'" => true);
         check_comparison!(engine, "2 < '2'" => false);
         check_comparison!(engine, "3 < '2'" => false);
@@ -564,8 +539,7 @@ mod abstract_relational_comparison {
 
     #[test]
     fn number_object_less_than_number() {
-        let realm = Realm::create();
-        let mut engine = Interpreter::new(realm);
+        let mut engine = Context::new();
         check_comparison!(engine, "new Number(1) < '2'" => true);
         check_comparison!(engine, "new Number(2) < '2'" => false);
         check_comparison!(engine, "new Number(3) < '2'" => false);
@@ -575,8 +549,7 @@ mod abstract_relational_comparison {
 
     #[test]
     fn number_object_less_than_number_object() {
-        let realm = Realm::create();
-        let mut engine = Interpreter::new(realm);
+        let mut engine = Context::new();
         check_comparison!(engine, "new Number(1) < new Number(2)" => true);
         check_comparison!(engine, "new Number(2) < new Number(2)" => false);
         check_comparison!(engine, "new Number(3) < new Number(2)" => false);
@@ -586,8 +559,7 @@ mod abstract_relational_comparison {
 
     #[test]
     fn string_less_than_string() {
-        let realm = Realm::create();
-        let mut engine = Interpreter::new(realm);
+        let mut engine = Context::new();
         check_comparison!(engine, "'hello' < 'hello'" => false);
         check_comparison!(engine, "'hell' < 'hello'" => true);
         check_comparison!(engine, "'hello, world' < 'world'" => true);
@@ -596,8 +568,7 @@ mod abstract_relational_comparison {
 
     #[test]
     fn string_object_less_than_string() {
-        let realm = Realm::create();
-        let mut engine = Interpreter::new(realm);
+        let mut engine = Context::new();
         check_comparison!(engine, "new String('hello') < 'hello'" => false);
         check_comparison!(engine, "new String('hell') < 'hello'" => true);
         check_comparison!(engine, "new String('hello, world') < 'world'" => true);
@@ -606,8 +577,7 @@ mod abstract_relational_comparison {
 
     #[test]
     fn string_object_less_than_string_object() {
-        let realm = Realm::create();
-        let mut engine = Interpreter::new(realm);
+        let mut engine = Context::new();
         check_comparison!(engine, "new String('hello') < new String('hello')" => false);
         check_comparison!(engine, "new String('hell') < new String('hello')" => true);
         check_comparison!(engine, "new String('hello, world') < new String('world')" => true);
@@ -616,8 +586,7 @@ mod abstract_relational_comparison {
 
     #[test]
     fn bigint_less_than_number() {
-        let realm = Realm::create();
-        let mut engine = Interpreter::new(realm);
+        let mut engine = Context::new();
         check_comparison!(engine, "1n < 10" => true);
         check_comparison!(engine, "10n < 10" => false);
         check_comparison!(engine, "100n < 10" => false);
@@ -626,8 +595,7 @@ mod abstract_relational_comparison {
 
     #[test]
     fn number_less_than_bigint() {
-        let realm = Realm::create();
-        let mut engine = Interpreter::new(realm);
+        let mut engine = Context::new();
         check_comparison!(engine, "10 < 1n" => false);
         check_comparison!(engine, "1 < 1n" => false);
         check_comparison!(engine, "-1 < -1n" => false);
@@ -636,40 +604,35 @@ mod abstract_relational_comparison {
 
     #[test]
     fn negative_infnity_less_than_bigint() {
-        let realm = Realm::create();
-        let mut engine = Interpreter::new(realm);
+        let mut engine = Context::new();
         check_comparison!(engine, "-Infinity < -10000000000n" => true);
         check_comparison!(engine, "-Infinity < (-1n << 100n)" => true);
     }
 
     #[test]
     fn bigint_less_than_infinity() {
-        let realm = Realm::create();
-        let mut engine = Interpreter::new(realm);
+        let mut engine = Context::new();
         check_comparison!(engine, "1000n < NaN" => false);
         check_comparison!(engine, "(1n << 100n) < NaN" => false);
     }
 
     #[test]
     fn nan_less_than_bigint() {
-        let realm = Realm::create();
-        let mut engine = Interpreter::new(realm);
+        let mut engine = Context::new();
         check_comparison!(engine, "NaN < -10000000000n" => false);
         check_comparison!(engine, "NaN < (-1n << 100n)" => false);
     }
 
     #[test]
     fn bigint_less_than_nan() {
-        let realm = Realm::create();
-        let mut engine = Interpreter::new(realm);
+        let mut engine = Context::new();
         check_comparison!(engine, "1000n < Infinity" => true);
         check_comparison!(engine, "(1n << 100n) < Infinity" => true);
     }
 
     #[test]
     fn bigint_less_than_string() {
-        let realm = Realm::create();
-        let mut engine = Interpreter::new(realm);
+        let mut engine = Context::new();
         check_comparison!(engine, "1000n < '1000'" => false);
         check_comparison!(engine, "1000n < '2000'" => true);
         check_comparison!(engine, "1n < '-1'" => false);
@@ -679,8 +642,7 @@ mod abstract_relational_comparison {
 
     #[test]
     fn string_less_than_bigint() {
-        let realm = Realm::create();
-        let mut engine = Interpreter::new(realm);
+        let mut engine = Context::new();
         check_comparison!(engine, "'1000' < 1000n" => false);
         check_comparison!(engine, "'2000' < 1000n" => false);
         check_comparison!(engine, "'500' < 1000n" => true);
@@ -693,8 +655,7 @@ mod abstract_relational_comparison {
 
     #[test]
     fn number_less_than_or_equal_number() {
-        let realm = Realm::create();
-        let mut engine = Interpreter::new(realm);
+        let mut engine = Context::new();
         check_comparison!(engine, "1 <= 2" => true);
         check_comparison!(engine, "2 <= 2" => true);
         check_comparison!(engine, "3 <= 2" => false);
@@ -704,8 +665,7 @@ mod abstract_relational_comparison {
 
     #[test]
     fn string_less_than_or_equal_number() {
-        let realm = Realm::create();
-        let mut engine = Interpreter::new(realm);
+        let mut engine = Context::new();
         check_comparison!(engine, "'1' <= 2" => true);
         check_comparison!(engine, "'2' <= 2" => true);
         check_comparison!(engine, "'3' <= 2" => false);
@@ -715,8 +675,7 @@ mod abstract_relational_comparison {
 
     #[test]
     fn number_less_than_or_equal_string() {
-        let realm = Realm::create();
-        let mut engine = Interpreter::new(realm);
+        let mut engine = Context::new();
         check_comparison!(engine, "1 <= '2'" => true);
         check_comparison!(engine, "2 <= '2'" => true);
         check_comparison!(engine, "3 <= '2'" => false);
@@ -726,8 +685,7 @@ mod abstract_relational_comparison {
 
     #[test]
     fn number_object_less_than_or_equal_number() {
-        let realm = Realm::create();
-        let mut engine = Interpreter::new(realm);
+        let mut engine = Context::new();
         check_comparison!(engine, "new Number(1) <= '2'" => true);
         check_comparison!(engine, "new Number(2) <= '2'" => true);
         check_comparison!(engine, "new Number(3) <= '2'" => false);
@@ -737,8 +695,7 @@ mod abstract_relational_comparison {
 
     #[test]
     fn number_object_less_than_number_or_equal_object() {
-        let realm = Realm::create();
-        let mut engine = Interpreter::new(realm);
+        let mut engine = Context::new();
         check_comparison!(engine, "new Number(1) <= new Number(2)" => true);
         check_comparison!(engine, "new Number(2) <= new Number(2)" => true);
         check_comparison!(engine, "new Number(3) <= new Number(2)" => false);
@@ -748,8 +705,7 @@ mod abstract_relational_comparison {
 
     #[test]
     fn string_less_than_or_equal_string() {
-        let realm = Realm::create();
-        let mut engine = Interpreter::new(realm);
+        let mut engine = Context::new();
         check_comparison!(engine, "'hello' <= 'hello'" => true);
         check_comparison!(engine, "'hell' <= 'hello'" => true);
         check_comparison!(engine, "'hello, world' <= 'world'" => true);
@@ -758,8 +714,7 @@ mod abstract_relational_comparison {
 
     #[test]
     fn string_object_less_than_or_equal_string() {
-        let realm = Realm::create();
-        let mut engine = Interpreter::new(realm);
+        let mut engine = Context::new();
         check_comparison!(engine, "new String('hello') <= 'hello'" => true);
         check_comparison!(engine, "new String('hell') <= 'hello'" => true);
         check_comparison!(engine, "new String('hello, world') <= 'world'" => true);
@@ -768,8 +723,7 @@ mod abstract_relational_comparison {
 
     #[test]
     fn string_object_less_than_string_or_equal_object() {
-        let realm = Realm::create();
-        let mut engine = Interpreter::new(realm);
+        let mut engine = Context::new();
         check_comparison!(engine, "new String('hello') <= new String('hello')" => true);
         check_comparison!(engine, "new String('hell') <= new String('hello')" => true);
         check_comparison!(engine, "new String('hello, world') <= new String('world')" => true);
@@ -778,8 +732,7 @@ mod abstract_relational_comparison {
 
     #[test]
     fn bigint_less_than_or_equal_number() {
-        let realm = Realm::create();
-        let mut engine = Interpreter::new(realm);
+        let mut engine = Context::new();
         check_comparison!(engine, "1n <= 10" => true);
         check_comparison!(engine, "10n <= 10" => true);
         check_comparison!(engine, "100n <= 10" => false);
@@ -788,8 +741,7 @@ mod abstract_relational_comparison {
 
     #[test]
     fn number_less_than_or_equal_bigint() {
-        let realm = Realm::create();
-        let mut engine = Interpreter::new(realm);
+        let mut engine = Context::new();
         check_comparison!(engine, "10 <= 1n" => false);
         check_comparison!(engine, "1 <= 1n" => true);
         check_comparison!(engine, "-1 <= -1n" => true);
@@ -798,40 +750,35 @@ mod abstract_relational_comparison {
 
     #[test]
     fn negative_infnity_less_than_or_equal_bigint() {
-        let realm = Realm::create();
-        let mut engine = Interpreter::new(realm);
+        let mut engine = Context::new();
         check_comparison!(engine, "-Infinity <= -10000000000n" => true);
         check_comparison!(engine, "-Infinity <= (-1n << 100n)" => true);
     }
 
     #[test]
     fn bigint_less_than_or_equal_infinity() {
-        let realm = Realm::create();
-        let mut engine = Interpreter::new(realm);
+        let mut engine = Context::new();
         check_comparison!(engine, "1000n <= NaN" => false);
         check_comparison!(engine, "(1n << 100n) <= NaN" => false);
     }
 
     #[test]
     fn nan_less_than_or_equal_bigint() {
-        let realm = Realm::create();
-        let mut engine = Interpreter::new(realm);
+        let mut engine = Context::new();
         check_comparison!(engine, "NaN <= -10000000000n" => false);
         check_comparison!(engine, "NaN <= (-1n << 100n)" => false);
     }
 
     #[test]
     fn bigint_less_than_or_equal_nan() {
-        let realm = Realm::create();
-        let mut engine = Interpreter::new(realm);
+        let mut engine = Context::new();
         check_comparison!(engine, "1000n <= Infinity" => true);
         check_comparison!(engine, "(1n << 100n) <= Infinity" => true);
     }
 
     #[test]
     fn bigint_less_than_or_equal_string() {
-        let realm = Realm::create();
-        let mut engine = Interpreter::new(realm);
+        let mut engine = Context::new();
         check_comparison!(engine, "1000n <= '1000'" => true);
         check_comparison!(engine, "1000n <= '2000'" => true);
         check_comparison!(engine, "1n <= '-1'" => false);
@@ -841,8 +788,7 @@ mod abstract_relational_comparison {
 
     #[test]
     fn string_less_than_or_equal_bigint() {
-        let realm = Realm::create();
-        let mut engine = Interpreter::new(realm);
+        let mut engine = Context::new();
         check_comparison!(engine, "'1000' <= 1000n" => true);
         check_comparison!(engine, "'2000' <= 1000n" => false);
         check_comparison!(engine, "'500' <= 1000n" => true);
@@ -855,8 +801,7 @@ mod abstract_relational_comparison {
 
     #[test]
     fn number_greater_than_number() {
-        let realm = Realm::create();
-        let mut engine = Interpreter::new(realm);
+        let mut engine = Context::new();
         check_comparison!(engine, "1 > 2" => false);
         check_comparison!(engine, "2 > 2" => false);
         check_comparison!(engine, "3 > 2" => true);
@@ -866,8 +811,7 @@ mod abstract_relational_comparison {
 
     #[test]
     fn string_greater_than_number() {
-        let realm = Realm::create();
-        let mut engine = Interpreter::new(realm);
+        let mut engine = Context::new();
         check_comparison!(engine, "'1' > 2" => false);
         check_comparison!(engine, "'2' > 2" => false);
         check_comparison!(engine, "'3' > 2" => true);
@@ -877,8 +821,7 @@ mod abstract_relational_comparison {
 
     #[test]
     fn number_less_greater_string() {
-        let realm = Realm::create();
-        let mut engine = Interpreter::new(realm);
+        let mut engine = Context::new();
         check_comparison!(engine, "1 > '2'" => false);
         check_comparison!(engine, "2 > '2'" => false);
         check_comparison!(engine, "3 > '2'" => true);
@@ -888,8 +831,7 @@ mod abstract_relational_comparison {
 
     #[test]
     fn number_object_greater_than_number() {
-        let realm = Realm::create();
-        let mut engine = Interpreter::new(realm);
+        let mut engine = Context::new();
         check_comparison!(engine, "new Number(1) > '2'" => false);
         check_comparison!(engine, "new Number(2) > '2'" => false);
         check_comparison!(engine, "new Number(3) > '2'" => true);
@@ -899,8 +841,7 @@ mod abstract_relational_comparison {
 
     #[test]
     fn number_object_greater_than_number_object() {
-        let realm = Realm::create();
-        let mut engine = Interpreter::new(realm);
+        let mut engine = Context::new();
         check_comparison!(engine, "new Number(1) > new Number(2)" => false);
         check_comparison!(engine, "new Number(2) > new Number(2)" => false);
         check_comparison!(engine, "new Number(3) > new Number(2)" => true);
@@ -910,8 +851,7 @@ mod abstract_relational_comparison {
 
     #[test]
     fn string_greater_than_string() {
-        let realm = Realm::create();
-        let mut engine = Interpreter::new(realm);
+        let mut engine = Context::new();
         check_comparison!(engine, "'hello' > 'hello'" => false);
         check_comparison!(engine, "'hell' > 'hello'" => false);
         check_comparison!(engine, "'hello, world' > 'world'" => false);
@@ -921,8 +861,7 @@ mod abstract_relational_comparison {
 
     #[test]
     fn string_object_greater_than_string() {
-        let realm = Realm::create();
-        let mut engine = Interpreter::new(realm);
+        let mut engine = Context::new();
         check_comparison!(engine, "new String('hello') > 'hello'" => false);
         check_comparison!(engine, "new String('hell') > 'hello'" => false);
         check_comparison!(engine, "new String('hello, world') > 'world'" => false);
@@ -932,8 +871,7 @@ mod abstract_relational_comparison {
 
     #[test]
     fn string_object_greater_than_string_object() {
-        let realm = Realm::create();
-        let mut engine = Interpreter::new(realm);
+        let mut engine = Context::new();
         check_comparison!(engine, "new String('hello') > new String('hello')" => false);
         check_comparison!(engine, "new String('hell') > new String('hello')" => false);
         check_comparison!(engine, "new String('hello, world') > new String('world')" => false);
@@ -943,8 +881,7 @@ mod abstract_relational_comparison {
 
     #[test]
     fn bigint_greater_than_number() {
-        let realm = Realm::create();
-        let mut engine = Interpreter::new(realm);
+        let mut engine = Context::new();
         check_comparison!(engine, "1n > 10" => false);
         check_comparison!(engine, "10n > 10" => false);
         check_comparison!(engine, "100n > 10" => true);
@@ -953,8 +890,7 @@ mod abstract_relational_comparison {
 
     #[test]
     fn number_greater_than_bigint() {
-        let realm = Realm::create();
-        let mut engine = Interpreter::new(realm);
+        let mut engine = Context::new();
         check_comparison!(engine, "10 > 1n" => true);
         check_comparison!(engine, "1 > 1n" => false);
         check_comparison!(engine, "-1 > -1n" => false);
@@ -963,40 +899,35 @@ mod abstract_relational_comparison {
 
     #[test]
     fn negative_infnity_greater_than_bigint() {
-        let realm = Realm::create();
-        let mut engine = Interpreter::new(realm);
+        let mut engine = Context::new();
         check_comparison!(engine, "-Infinity > -10000000000n" => false);
         check_comparison!(engine, "-Infinity > (-1n << 100n)" => false);
     }
 
     #[test]
     fn bigint_greater_than_infinity() {
-        let realm = Realm::create();
-        let mut engine = Interpreter::new(realm);
+        let mut engine = Context::new();
         check_comparison!(engine, "1000n > NaN" => false);
         check_comparison!(engine, "(1n << 100n) > NaN" => false);
     }
 
     #[test]
     fn nan_greater_than_bigint() {
-        let realm = Realm::create();
-        let mut engine = Interpreter::new(realm);
+        let mut engine = Context::new();
         check_comparison!(engine, "NaN > -10000000000n" => false);
         check_comparison!(engine, "NaN > (-1n << 100n)" => false);
     }
 
     #[test]
     fn bigint_greater_than_nan() {
-        let realm = Realm::create();
-        let mut engine = Interpreter::new(realm);
+        let mut engine = Context::new();
         check_comparison!(engine, "1000n > Infinity" => false);
         check_comparison!(engine, "(1n << 100n) > Infinity" => false);
     }
 
     #[test]
     fn bigint_greater_than_string() {
-        let realm = Realm::create();
-        let mut engine = Interpreter::new(realm);
+        let mut engine = Context::new();
         check_comparison!(engine, "1000n > '1000'" => false);
         check_comparison!(engine, "1000n > '2000'" => false);
         check_comparison!(engine, "1n > '-1'" => true);
@@ -1006,8 +937,7 @@ mod abstract_relational_comparison {
 
     #[test]
     fn string_greater_than_bigint() {
-        let realm = Realm::create();
-        let mut engine = Interpreter::new(realm);
+        let mut engine = Context::new();
         check_comparison!(engine, "'1000' > 1000n" => false);
         check_comparison!(engine, "'2000' > 1000n" => true);
         check_comparison!(engine, "'500' > 1000n" => false);
@@ -1020,8 +950,7 @@ mod abstract_relational_comparison {
 
     #[test]
     fn number_greater_than_or_equal_number() {
-        let realm = Realm::create();
-        let mut engine = Interpreter::new(realm);
+        let mut engine = Context::new();
         check_comparison!(engine, "1 >= 2" => false);
         check_comparison!(engine, "2 >= 2" => true);
         check_comparison!(engine, "3 >= 2" => true);
@@ -1031,8 +960,7 @@ mod abstract_relational_comparison {
 
     #[test]
     fn string_greater_than_or_equal_number() {
-        let realm = Realm::create();
-        let mut engine = Interpreter::new(realm);
+        let mut engine = Context::new();
         check_comparison!(engine, "'1' >= 2" => false);
         check_comparison!(engine, "'2' >= 2" => true);
         check_comparison!(engine, "'3' >= 2" => true);
@@ -1042,8 +970,7 @@ mod abstract_relational_comparison {
 
     #[test]
     fn number_less_greater_or_equal_string() {
-        let realm = Realm::create();
-        let mut engine = Interpreter::new(realm);
+        let mut engine = Context::new();
         check_comparison!(engine, "1 >= '2'" => false);
         check_comparison!(engine, "2 >= '2'" => true);
         check_comparison!(engine, "3 >= '2'" => true);
@@ -1053,8 +980,7 @@ mod abstract_relational_comparison {
 
     #[test]
     fn number_object_greater_than_or_equal_number() {
-        let realm = Realm::create();
-        let mut engine = Interpreter::new(realm);
+        let mut engine = Context::new();
         check_comparison!(engine, "new Number(1) >= '2'" => false);
         check_comparison!(engine, "new Number(2) >= '2'" => true);
         check_comparison!(engine, "new Number(3) >= '2'" => true);
@@ -1064,8 +990,7 @@ mod abstract_relational_comparison {
 
     #[test]
     fn number_object_greater_than_or_equal_number_object() {
-        let realm = Realm::create();
-        let mut engine = Interpreter::new(realm);
+        let mut engine = Context::new();
         check_comparison!(engine, "new Number(1) >= new Number(2)" => false);
         check_comparison!(engine, "new Number(2) >= new Number(2)" => true);
         check_comparison!(engine, "new Number(3) >= new Number(2)" => true);
@@ -1075,8 +1000,7 @@ mod abstract_relational_comparison {
 
     #[test]
     fn string_greater_than_or_equal_string() {
-        let realm = Realm::create();
-        let mut engine = Interpreter::new(realm);
+        let mut engine = Context::new();
         check_comparison!(engine, "'hello' >= 'hello'" => true);
         check_comparison!(engine, "'hell' >= 'hello'" => false);
         check_comparison!(engine, "'hello, world' >= 'world'" => false);
@@ -1086,8 +1010,7 @@ mod abstract_relational_comparison {
 
     #[test]
     fn string_object_greater_or_equal_than_string() {
-        let realm = Realm::create();
-        let mut engine = Interpreter::new(realm);
+        let mut engine = Context::new();
         check_comparison!(engine, "new String('hello') >= 'hello'" => true);
         check_comparison!(engine, "new String('hell') >= 'hello'" => false);
         check_comparison!(engine, "new String('hello, world') >= 'world'" => false);
@@ -1097,8 +1020,7 @@ mod abstract_relational_comparison {
 
     #[test]
     fn string_object_greater_than_or_equal_string_object() {
-        let realm = Realm::create();
-        let mut engine = Interpreter::new(realm);
+        let mut engine = Context::new();
         check_comparison!(engine, "new String('hello') >= new String('hello')" => true);
         check_comparison!(engine, "new String('hell') >= new String('hello')" => false);
         check_comparison!(engine, "new String('hello, world') >= new String('world')" => false);
@@ -1108,8 +1030,7 @@ mod abstract_relational_comparison {
 
     #[test]
     fn bigint_greater_than_or_equal_number() {
-        let realm = Realm::create();
-        let mut engine = Interpreter::new(realm);
+        let mut engine = Context::new();
         check_comparison!(engine, "1n >= 10" => false);
         check_comparison!(engine, "10n >= 10" => true);
         check_comparison!(engine, "100n >= 10" => true);
@@ -1118,8 +1039,7 @@ mod abstract_relational_comparison {
 
     #[test]
     fn number_greater_than_or_equal_bigint() {
-        let realm = Realm::create();
-        let mut engine = Interpreter::new(realm);
+        let mut engine = Context::new();
         check_comparison!(engine, "10 >= 1n" => true);
         check_comparison!(engine, "1 >= 1n" => true);
         check_comparison!(engine, "-1 >= -1n" => true);
@@ -1128,40 +1048,35 @@ mod abstract_relational_comparison {
 
     #[test]
     fn negative_infnity_greater_or_equal_than_bigint() {
-        let realm = Realm::create();
-        let mut engine = Interpreter::new(realm);
+        let mut engine = Context::new();
         check_comparison!(engine, "-Infinity >= -10000000000n" => false);
         check_comparison!(engine, "-Infinity >= (-1n << 100n)" => false);
     }
 
     #[test]
     fn bigint_greater_than_or_equal_infinity() {
-        let realm = Realm::create();
-        let mut engine = Interpreter::new(realm);
+        let mut engine = Context::new();
         check_comparison!(engine, "1000n >= NaN" => false);
         check_comparison!(engine, "(1n << 100n) >= NaN" => false);
     }
 
     #[test]
     fn nan_greater_than_or_equal_bigint() {
-        let realm = Realm::create();
-        let mut engine = Interpreter::new(realm);
+        let mut engine = Context::new();
         check_comparison!(engine, "NaN >= -10000000000n" => false);
         check_comparison!(engine, "NaN >= (-1n << 100n)" => false);
     }
 
     #[test]
     fn bigint_greater_than_or_equal_nan() {
-        let realm = Realm::create();
-        let mut engine = Interpreter::new(realm);
+        let mut engine = Context::new();
         check_comparison!(engine, "1000n >= Infinity" => false);
         check_comparison!(engine, "(1n << 100n) >= Infinity" => false);
     }
 
     #[test]
     fn bigint_greater_than_or_equal_string() {
-        let realm = Realm::create();
-        let mut engine = Interpreter::new(realm);
+        let mut engine = Context::new();
         check_comparison!(engine, "1000n >= '1000'" => true);
         check_comparison!(engine, "1000n >= '2000'" => false);
         check_comparison!(engine, "1n >= '-1'" => true);
@@ -1171,8 +1086,7 @@ mod abstract_relational_comparison {
 
     #[test]
     fn string_greater_than_or_equal_bigint() {
-        let realm = Realm::create();
-        let mut engine = Interpreter::new(realm);
+        let mut engine = Context::new();
         check_comparison!(engine, "'1000' >= 1000n" => true);
         check_comparison!(engine, "'2000' >= 1000n" => true);
         check_comparison!(engine, "'500' >= 1000n" => false);

@@ -35,7 +35,7 @@ pub use self::{
     operator::{Assign, BinOp, UnaryOp},
     return_smt::Return,
     spread::Spread,
-    statement_list::StatementList,
+    statement_list::{RcStatementList, StatementList},
     switch::{Case, Switch},
     throw::Throw,
     try_node::{Catch, Finally, Try},

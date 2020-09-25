@@ -15,12 +15,10 @@ pub mod math;
 pub mod nan;
 pub mod number;
 pub mod object;
-pub mod property;
 pub mod regexp;
 pub mod string;
 pub mod symbol;
 pub mod undefined;
-pub mod value;
 
 pub(crate) use self::{
     array::Array,
@@ -36,21 +34,21 @@ pub(crate) use self::{
     math::Math,
     nan::NaN,
     number::Number,
+    object::Object,
     regexp::RegExp,
     string::String,
     symbol::Symbol,
     undefined::Undefined,
-    value::Value,
 };
-use crate::Interpreter;
+use crate::{Context, Value};
 
 /// Initializes builtin objects and functions
 #[inline]
-pub fn init(interpreter: &mut Interpreter) {
+pub fn init(interpreter: &mut Context) {
     let globals = [
         // The `Function` global must be initialized before other types.
         function::init,
-        object::init,
+        Object::init,
         Array::init,
         BigInt::init,
         Boolean::init,
@@ -78,7 +76,7 @@ pub fn init(interpreter: &mut Interpreter) {
 
     for init in &globals {
         let (name, value) = init(interpreter);
-        let global = interpreter.global();
+        let global = interpreter.global_object();
         match global {
             Value::Object(ref global_object) => {
                 global_object.borrow_mut().insert_field(name, value);

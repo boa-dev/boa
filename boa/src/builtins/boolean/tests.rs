@@ -1,11 +1,10 @@
-use crate::{builtins::value::same_value, exec::Interpreter, forward, forward_val, realm::Realm};
+use crate::{forward, forward_val, value::same_value, Context};
 
 /// Test the correct type is returned from call and construct
 #[allow(clippy::unwrap_used)]
 #[test]
 fn construct_and_call() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
     let init = r#"
         var one = new Boolean(1);
         var zero = Boolean(0);
@@ -20,8 +19,7 @@ fn construct_and_call() {
 
 #[test]
 fn constructor_gives_true_instance() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
     let init = r#"
         var trueVal = new Boolean(true);
         var trueNum = new Boolean(1);
@@ -50,8 +48,7 @@ fn constructor_gives_true_instance() {
 
 #[test]
 fn instances_have_correct_proto_set() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
     let init = r#"
         var boolInstance = new Boolean(true);
         var boolProto = Boolean.prototype;
@@ -62,7 +59,11 @@ fn instances_have_correct_proto_set() {
     let bool_prototype = forward_val(&mut engine, "boolProto").expect("value expected");
 
     assert!(same_value(
-        &bool_instance.as_object().unwrap().prototype().clone(),
+        &bool_instance
+            .as_object()
+            .unwrap()
+            .prototype_instance()
+            .clone(),
         &bool_prototype
     ));
 }

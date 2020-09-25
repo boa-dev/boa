@@ -1,0 +1,10 @@
+# Ignore artifacts:
+*.rs
+target
+node_modules
+boa/benches/bench_scripts/mini_js.js
+boa/benches/bench_scripts/clean_js.js
+boa_wasm/pkg
+dist
+test262
+tests/js/test.js

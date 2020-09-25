@@ -1,13 +1,13 @@
 //! Block statement execution.
 
-use super::{Executable, Interpreter, InterpreterState};
+use super::{Context, Executable, InterpreterState};
 use crate::{
-    builtins::value::Value, environment::lexical_environment::new_declarative_environment,
-    syntax::ast::node::Block, BoaProfiler, Result,
+    environment::lexical_environment::new_declarative_environment, syntax::ast::node::Block,
+    BoaProfiler, Result, Value,
 };
 
 impl Executable for Block {
-    fn run(&self, interpreter: &mut Interpreter) -> Result<Value> {
+    fn run(&self, interpreter: &mut Context) -> Result<Value> {
         let _timer = BoaProfiler::global().start_event("Block", "exec");
         {
             let env = &mut interpreter.realm_mut().environment;
@@ -22,7 +22,7 @@ impl Executable for Block {
         for statement in self.statements() {
             obj = statement.run(interpreter)?;
 
-            match interpreter.get_current_state() {
+            match interpreter.executor().get_current_state() {
                 InterpreterState::Return => {
                     // Early return.
                     break;

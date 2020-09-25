@@ -1,0 +1,48 @@
+on:
+  pull_request:
+    branches:
+      - master
+  push:
+    branches:
+      - master
+
+name: Webassembly demo
+
+jobs:
+  check_style:
+    name: Check webassembly demo style
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Check code formatting
+        run: npx prettier --check .
+
+  build:
+    name: Build webassembly demo
+    runs-on: ubuntu-latest
+    env:
+      WASM_PACK_PATH: ~/.cargo/bin/wasm-pack
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+          profile: minimal
+      - name: Install wasm-pack
+        run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
+      - name: Cache yarn build
+        uses: actions/cache@v2
+        with:
+          path: |
+            node_modules
+            target
+            boa_wasm/pkg
+          key: ${{ runner.os }}-yarn-build-target-${{ hashFiles('**/yarn.lock') }}
+      - uses: Borales/actions-yarn@v2.3.0
+        with:
+          cmd: install
+      - uses: Borales/actions-yarn@v2.3.0
+        with:
+          cmd: build

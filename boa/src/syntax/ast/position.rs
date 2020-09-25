@@ -26,6 +26,7 @@ pub struct Position {
 impl Position {
     /// Creates a new `Position`.
     #[inline]
+    #[track_caller]
     pub fn new(line_number: u32, column_number: u32) -> Self {
         Self {
             line_number: NonZeroU32::new(line_number).expect("line number cannot be 0"),
@@ -65,6 +66,7 @@ pub struct Span {
 impl Span {
     /// Creates a new `Span`.
     #[inline]
+    #[track_caller]
     pub fn new(start: Position, end: Position) -> Self {
         assert!(start <= end, "a span cannot start after its end");
 

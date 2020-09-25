@@ -1,14 +1,8 @@
-use crate::{
-    builtins::{object::PROTOTYPE, value::same_value},
-    exec::Interpreter,
-    forward, forward_val,
-    realm::Realm,
-};
+use crate::{forward, forward_val, object::PROTOTYPE, value::same_value, Context};
 
 #[test]
 fn json_sanity() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
     assert_eq!(
         forward(&mut engine, r#"JSON.parse('{"aaa":"bbb"}').aaa == 'bbb'"#),
         "true"
@@ -24,8 +18,7 @@ fn json_sanity() {
 
 #[test]
 fn json_stringify_remove_undefined_values_from_objects() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
 
     let actual = forward(
         &mut engine,
@@ -38,8 +31,7 @@ fn json_stringify_remove_undefined_values_from_objects() {
 
 #[test]
 fn json_stringify_remove_function_values_from_objects() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
 
     let actual = forward(
         &mut engine,
@@ -52,8 +44,7 @@ fn json_stringify_remove_function_values_from_objects() {
 
 #[test]
 fn json_stringify_remove_symbols_from_objects() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
 
     let actual = forward(
         &mut engine,
@@ -66,8 +57,7 @@ fn json_stringify_remove_symbols_from_objects() {
 
 #[test]
 fn json_stringify_replacer_array_strings() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
     let actual = forward(
         &mut engine,
         r#"JSON.stringify({aaa: 'bbb', bbb: 'ccc', ccc: 'ddd'}, ['aaa', 'bbb'])"#,
@@ -78,8 +68,7 @@ fn json_stringify_replacer_array_strings() {
 
 #[test]
 fn json_stringify_replacer_array_numbers() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
     let actual = forward(
         &mut engine,
         r#"JSON.stringify({ 0: 'aaa', 1: 'bbb', 2: 'ccc'}, [1, 2])"#,
@@ -90,8 +79,7 @@ fn json_stringify_replacer_array_numbers() {
 
 #[test]
 fn json_stringify_replacer_function() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
     let actual = forward(
         &mut engine,
         r#"JSON.stringify({ aaa: 1, bbb: 2}, (key, value) => {
@@ -108,8 +96,7 @@ fn json_stringify_replacer_function() {
 
 #[test]
 fn json_stringify_arrays() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
     let actual = forward(&mut engine, r#"JSON.stringify(['a', 'b'])"#);
     let expected = forward(&mut engine, r#"'["a","b"]'"#);
 
@@ -118,8 +105,7 @@ fn json_stringify_arrays() {
 
 #[test]
 fn json_stringify_object_array() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
     let actual = forward(&mut engine, r#"JSON.stringify([{a: 'b'}, {b: 'c'}])"#);
     let expected = forward(&mut engine, r#"'[{"a":"b"},{"b":"c"}]'"#);
 
@@ -128,8 +114,7 @@ fn json_stringify_object_array() {
 
 #[test]
 fn json_stringify_array_converts_undefined_to_null() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
     let actual = forward(&mut engine, r#"JSON.stringify([undefined])"#);
     let expected = forward(&mut engine, r#"'[null]'"#);
 
@@ -138,8 +123,7 @@ fn json_stringify_array_converts_undefined_to_null() {
 
 #[test]
 fn json_stringify_array_converts_function_to_null() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
     let actual = forward(&mut engine, r#"JSON.stringify([() => {}])"#);
     let expected = forward(&mut engine, r#"'[null]'"#);
 
@@ -148,8 +132,7 @@ fn json_stringify_array_converts_function_to_null() {
 
 #[test]
 fn json_stringify_array_converts_symbol_to_null() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
     let actual = forward(&mut engine, r#"JSON.stringify([Symbol()])"#);
     let expected = forward(&mut engine, r#"'[null]'"#);
 
@@ -157,8 +140,7 @@ fn json_stringify_array_converts_symbol_to_null() {
 }
 #[test]
 fn json_stringify_function_replacer_propogate_error() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
 
     let actual = forward(
         &mut engine,
@@ -179,8 +161,7 @@ fn json_stringify_function_replacer_propogate_error() {
 
 #[test]
 fn json_stringify_function() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
 
     let actual_function = forward(&mut engine, r#"JSON.stringify(() => {})"#);
     let expected = forward(&mut engine, r#"undefined"#);
@@ -190,8 +171,7 @@ fn json_stringify_function() {
 
 #[test]
 fn json_stringify_undefined() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
     let actual_undefined = forward(&mut engine, r#"JSON.stringify(undefined)"#);
     let expected = forward(&mut engine, r#"undefined"#);
 
@@ -200,8 +180,7 @@ fn json_stringify_undefined() {
 
 #[test]
 fn json_stringify_symbol() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
 
     let actual_symbol = forward(&mut engine, r#"JSON.stringify(Symbol())"#);
     let expected = forward(&mut engine, r#"undefined"#);
@@ -211,8 +190,7 @@ fn json_stringify_symbol() {
 
 #[test]
 fn json_stringify_no_args() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
 
     let actual_no_args = forward(&mut engine, r#"JSON.stringify()"#);
     let expected = forward(&mut engine, r#"undefined"#);
@@ -222,8 +200,7 @@ fn json_stringify_no_args() {
 
 #[test]
 fn json_parse_array_with_reviver() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
     let result = forward_val(
         &mut engine,
         r#"JSON.parse('[1,2,3,4]', function(k, v){
@@ -254,8 +231,7 @@ fn json_parse_array_with_reviver() {
 
 #[test]
 fn json_parse_object_with_reviver() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
     let result = forward(
         &mut engine,
         r#"
@@ -281,8 +257,7 @@ fn json_parse_object_with_reviver() {
 
 #[test]
 fn json_parse_sets_prototypes() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
     let init = r#"
         const jsonString = "{
             \"ob\":{\"ject\":1},
@@ -295,22 +270,20 @@ fn json_parse_sets_prototypes() {
         .unwrap()
         .as_object()
         .unwrap()
-        .prototype()
+        .prototype_instance()
         .clone();
     let array_prototype = forward_val(&mut engine, r#"jsonObj.arr"#)
         .unwrap()
         .as_object()
         .unwrap()
-        .prototype()
+        .prototype_instance()
         .clone();
     let global_object_prototype = engine
-        .realm
-        .global_obj
+        .global_object()
         .get_field("Object")
         .get_field(PROTOTYPE);
     let global_array_prototype = engine
-        .realm
-        .global_obj
+        .global_object()
         .get_field("Array")
         .get_field(PROTOTYPE);
     assert_eq!(
@@ -322,8 +295,7 @@ fn json_parse_sets_prototypes() {
 
 #[test]
 fn json_fields_should_be_enumerable() {
-    let realm = Realm::create();
-    let mut engine = Interpreter::new(realm);
+    let mut engine = Context::new();
     let actual_object = forward(
         &mut engine,
         r#"

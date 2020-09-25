@@ -1,4 +1,5 @@
-use super::{Object, Property, PropertyKey, RcString, RcSymbol};
+use super::{Object, Property, PropertyKey};
+use crate::value::{RcString, RcSymbol};
 use std::{collections::hash_map, iter::FusedIterator};
 
 impl Object {
