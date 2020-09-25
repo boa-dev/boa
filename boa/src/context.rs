@@ -1,5 +1,6 @@
 //! Javascript context.
 
+use crate::builtins::iterable::IteratorPrototypes;
 use crate::{
     builtins::{
         self,
@@ -50,6 +51,8 @@ pub struct Context {
 
     /// Cached well known symbols
     well_known_symbols: WellKnownSymbols,
+
+    iterator_prototypes: IteratorPrototypes,
 }
 
 impl Default for Context {
@@ -63,13 +66,14 @@ impl Default for Context {
             symbol_count,
             console: Console::default(),
             well_known_symbols,
+            iterator_prototypes: IteratorPrototypes::default(),
         };
 
         // Add new builtIns to Context Realm
         // At a later date this can be removed from here and called explicitly,
         // but for now we almost always want these default builtins
         context.create_intrinsics();
-
+        context.iterator_prototypes = IteratorPrototypes::init(&mut context);
         context
     }
 }
@@ -516,5 +520,10 @@ impl Context {
     #[inline]
     pub fn well_known_symbols(&self) -> &WellKnownSymbols {
         &self.well_known_symbols
+    }
+
+    #[inline]
+    pub fn iterator_prototypes(&self) -> &IteratorPrototypes {
+        &self.iterator_prototypes
     }
 }
