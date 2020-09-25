@@ -9,6 +9,7 @@ pub mod error;
 pub mod function;
 pub mod global_this;
 pub mod infinity;
+pub mod iterable;
 pub mod json;
 pub mod map;
 pub mod math;
@@ -21,7 +22,7 @@ pub mod symbol;
 pub mod undefined;
 
 pub(crate) use self::{
-    array::Array,
+    array::{array_iterator::ArrayIterator, Array},
     bigint::BigInt,
     boolean::Boolean,
     console::Console,

@@ -1,14 +1,10 @@
 use crate::{
-    builtins::{
-        function::{make_builtin_fn, BuiltInFunction, Function, FunctionFlags},
-        Array, Value,
-    },
-    object::{Object, ObjectData, PROTOTYPE},
-    property::Property,
-    Context, Result,
+    builtins::{function::make_builtin_fn, iterable::create_iter_result_object, Array, Value},
+    object::ObjectData,
+    property::{Attribute, Property},
+    BoaProfiler, Context, Result,
 };
 use gc::{Finalize, Trace};
-use std::borrow::Borrow;
 
 #[derive(Debug, Clone, Finalize, Trace)]
 pub enum ArrayIterationKind {
@@ -17,6 +13,12 @@ pub enum ArrayIterationKind {
     KeyAndValue,
 }
 
+/// The Array Iterator object represents an iteration over an array. It implements the iterator protocol.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-array-iterator-objects
 #[derive(Debug, Clone, Finalize, Trace)]
 pub struct ArrayIterator {
     array: Value,
@@ -25,6 +27,8 @@ pub struct ArrayIterator {
 }
 
 impl ArrayIterator {
+    pub(crate) const NAME: &'static str = "ArrayIterator";
+
     fn new(array: Value, kind: ArrayIterationKind) -> Self {
         ArrayIterator {
             array,
@@ -33,7 +37,15 @@ impl ArrayIterator {
         }
     }
 
-    pub(crate) fn new_array_iterator(
+    /// CreateArrayIterator( array, kind )
+    ///
+    /// Creates a new iterator over the given array.
+    ///
+    /// More information:
+    ///  - [ECMA reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-createarrayiterator
+    pub(crate) fn create_array_iterator(
         ctx: &Context,
         array: Value,
         kind: ArrayIterationKind,
@@ -48,42 +60,25 @@ impl ArrayIterator {
         array_iterator
             .as_object_mut()
             .expect("array iterator object")
-            .set_prototype_instance(
-                ctx.realm()
-                    .environment
-                    .get_binding_value("Object")
-                    .expect("Object was not initialized")
-                    .borrow()
-                    .get_field(PROTOTYPE),
-            );
-        make_builtin_fn(Self::next, "next", &array_iterator, 0, ctx);
-        let mut function = Object::function(
-            Function::BuiltIn(
-                BuiltInFunction(|v, _, _| Ok(v.clone())),
-                FunctionFlags::CALLABLE,
-            ),
-            ctx.global_object()
-                .get_field("Function")
-                .get_field("prototype"),
-        );
-        function.insert_field("length", Value::from(0));
-
-        let symbol_iterator = ctx.well_known_symbols().iterator_symbol();
-        array_iterator.set_field(symbol_iterator, Value::from(function));
+            .set_prototype_instance(ctx.iterator_prototypes().array_iterator());
         Ok(array_iterator)
     }
 
+    /// %ArrayIteratorPrototype%.next( )
+    ///
+    /// Gets the next result in the array.
+    ///
+    /// More information:
+    ///  - [ECMA reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-%arrayiteratorprototype%.next
     pub(crate) fn next(this: &Value, _args: &[Value], ctx: &mut Context) -> Result<Value> {
         if let Value::Object(ref object) = this {
             let mut object = object.borrow_mut();
             if let Some(array_iterator) = object.as_array_iterator_mut() {
                 let index = array_iterator.next_index;
                 if array_iterator.array.is_undefined() {
-                    return Ok(Self::create_iter_result_object(
-                        ctx,
-                        Value::undefined(),
-                        true,
-                    ));
+                    return Ok(create_iter_result_object(ctx, Value::undefined(), true));
                 }
                 let len = array_iterator
                     .array
@@ -93,22 +88,16 @@ impl ArrayIterator {
                     as i32;
                 if array_iterator.next_index >= len {
                     array_iterator.array = Value::undefined();
-                    return Ok(Self::create_iter_result_object(
-                        ctx,
-                        Value::undefined(),
-                        true,
-                    ));
+                    return Ok(create_iter_result_object(ctx, Value::undefined(), true));
                 }
                 array_iterator.next_index = index + 1;
                 match array_iterator.kind {
-                    ArrayIterationKind::Key => Ok(Self::create_iter_result_object(
-                        ctx,
-                        Value::integer(index),
-                        false,
-                    )),
+                    ArrayIterationKind::Key => {
+                        Ok(create_iter_result_object(ctx, Value::integer(index), false))
+                    }
                     ArrayIterationKind::Value => {
                         let element_value = array_iterator.array.get_field(index);
-                        Ok(Self::create_iter_result_object(ctx, element_value, false))
+                        Ok(create_iter_result_object(ctx, element_value, false))
                     }
                     ArrayIterationKind::KeyAndValue => {
                         let element_value = array_iterator.array.get_field(index);
@@ -122,7 +111,7 @@ impl ArrayIterator {
                             &[Value::integer(index), element_value],
                             ctx,
                         )?;
-                        Ok(result)
+                        Ok(create_iter_result_object(ctx, result, false))
                     }
                 }
             } else {
@@ -133,17 +122,28 @@ impl ArrayIterator {
         }
     }
 
-    fn create_iter_result_object(ctx: &mut Context, value: Value, done: bool) -> Value {
-        let object = Value::new_object(Some(
-            &ctx.realm()
-                .environment
-                .get_global_object()
-                .expect("Could not get global object"),
-        ));
-        let value_property = Property::default().value(value);
-        let done_property = Property::default().value(Value::boolean(done));
-        object.set_property("value", value_property);
-        object.set_property("done", done_property);
-        object
+    /// Create the %ArrayIteratorPrototype% object
+    ///
+    /// More information:
+    ///  - [ECMA reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-%arrayiteratorprototype%-object
+    pub(crate) fn create_prototype(ctx: &mut Context, iterator_prototype: Value) -> Value {
+        let global = ctx.global_object();
+        let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
+
+        // Create prototype
+        let array_iterator = Value::new_object(Some(global));
+        make_builtin_fn(Self::next, "next", &array_iterator, 0, ctx);
+        array_iterator
+            .as_object_mut()
+            .expect("array iterator prototype object")
+            .set_prototype_instance(iterator_prototype);
+
+        let to_string_tag = ctx.well_known_symbols().to_string_tag_symbol();
+        let to_string_tag_property =
+            Property::data_descriptor(Value::string("Array Iterator"), Attribute::CONFIGURABLE);
+        array_iterator.set_property(to_string_tag, to_string_tag_property);
+        array_iterator
     }
 }

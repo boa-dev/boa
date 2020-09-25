@@ -2,6 +2,7 @@
 
 use super::{Context, Executable, InterpreterState};
 use crate::{
+    builtins::iterable::get_iterator,
     environment::lexical_environment::{new_declarative_environment, VariableScope},
     syntax::ast::{
         node::{DoWhileLoop, ForLoop, ForOfLoop, WhileLoop},
@@ -174,15 +175,7 @@ impl Executable for ForOfLoop {
     fn run(&self, interpreter: &mut Context) -> Result<Value> {
         let _timer = BoaProfiler::global().start_event("ForOf", "exec");
         let iterable = self.iterable().run(interpreter)?;
-        let iterator_function = iterable
-            .get_property(interpreter.well_known_symbols().iterator_symbol())
-            .and_then(|mut p| p.value.take())
-            .ok_or_else(|| interpreter.construct_type_error("Not an iterable"))?;
-        let iterator_object = interpreter.call(&iterator_function, &iterable, &[])?;
-        let next_function = iterator_object
-            .get_property("next")
-            .and_then(|mut p| p.value.take())
-            .ok_or_else(|| interpreter.construct_type_error("Could not find property `next`"))?;
+        let iterator = get_iterator(interpreter, iterable)?;
         let mut result = Value::undefined();
 
         loop {
@@ -192,23 +185,11 @@ impl Executable for ForOfLoop {
                     env.get_current_environment_ref().clone(),
                 )));
             }
-            let next = interpreter.call(&next_function, &iterator_object, &[])?;
-            let done = next
-                .get_property("done")
-                .and_then(|mut p| p.value.take())
-                .and_then(|v| v.as_boolean())
-                .ok_or_else(|| {
-                    interpreter.construct_type_error("Could not find property `done`")
-                })?;
-            if done {
+            let iterator_result = iterator.next(interpreter)?;
+            if iterator_result.is_done() {
                 break;
             }
-            let next_result = next
-                .get_property("value")
-                .and_then(|mut p| p.value.take())
-                .ok_or_else(|| {
-                    interpreter.construct_type_error("Could not find property `value`")
-                })?;
+            let next_result = iterator_result.value();
 
             match self.variable() {
                 Node::Identifier(ref name) => {
