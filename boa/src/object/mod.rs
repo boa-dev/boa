@@ -402,11 +402,12 @@ impl Object {
     }
 
     /// Similar to `Value::new_object`, but you can pass a prototype to create from, plus a kind
-    pub fn new_object_from_prototype(proto: Value, data: ObjectData) -> GcObject {
+    #[inline]
+    pub fn with_prototype(proto: Value, data: ObjectData) -> Object {
         let mut object = Object::default();
         object.data = data;
         object.set_prototype_instance(proto);
-        GcObject::new(object)
+        object
     }
 
     /// Returns `true` if it holds an Rust type that implements `NativeObject`.

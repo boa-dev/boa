@@ -33,7 +33,7 @@ impl Object {
     pub fn make_object(_: &Value, args: &[Value], ctx: &mut Context) -> Result<Value> {
         if let Some(arg) = args.get(0) {
             if !arg.is_null_or_undefined() {
-                return Ok(Value::Object(arg.to_object(ctx)?));
+                return Ok(arg.to_object(ctx)?.into());
             }
         }
         let global = ctx.global_object();
@@ -60,9 +60,10 @@ impl Object {
         }
 
         match prototype {
-            Value::Object(_) | Value::Null => Ok(Value::Object(
-                BuiltinObject::new_object_from_prototype(prototype, ObjectData::Ordinary),
-            )),
+            Value::Object(_) | Value::Null => Ok(Value::object(BuiltinObject::with_prototype(
+                prototype,
+                ObjectData::Ordinary,
+            ))),
             _ => interpreter.throw_type_error(format!(
                 "Object prototype may only be an Object or null: {}",
                 prototype.display()
