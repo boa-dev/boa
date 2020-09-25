@@ -13,7 +13,7 @@ use crate::{
     Value,
 };
 use gc::{Finalize, Trace};
-use rustc_hash::FxHashMap;
+use std::collections::HashMap;
 
 /// Declarative Bindings have a few properties for book keeping purposes, such as mutability (const vs let).
 /// Can it be deleted? and strict mode.
@@ -32,7 +32,7 @@ pub struct DeclarativeEnvironmentRecordBinding {
 /// declarations contained within its scope.
 #[derive(Debug, Trace, Finalize, Clone)]
 pub struct DeclarativeEnvironmentRecord {
-    pub env_rec: FxHashMap<String, DeclarativeEnvironmentRecordBinding>,
+    pub env_rec: HashMap<String, DeclarativeEnvironmentRecordBinding>,
     pub outer_env: Option<Environment>,
 }
 

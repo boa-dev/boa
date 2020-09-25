@@ -21,7 +21,7 @@ use crate::{
     value::{display_obj, RcString, Value},
     BoaProfiler, Context, Result,
 };
-use rustc_hash::FxHashMap;
+use std::collections::HashMap;
 use std::time::SystemTime;
 
 /// This represents the different types of log messages.
@@ -131,8 +131,8 @@ pub fn formatter(data: &[Value], ctx: &mut Context) -> Result<String> {
 /// This is the internal console object state.
 #[derive(Debug, Default)]
 pub(crate) struct Console {
-    count_map: FxHashMap<RcString, u32>,
-    timer_map: FxHashMap<RcString, u128>,
+    count_map: HashMap<RcString, u32>,
+    timer_map: HashMap<RcString, u128>,
     groups: Vec<String>,
 }
 

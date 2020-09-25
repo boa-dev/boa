@@ -7,7 +7,7 @@ use crate::{
     BoaProfiler,
 };
 use gc::{Finalize, Trace};
-use rustc_hash::FxHashMap;
+use std::collections::HashMap;
 use std::fmt::{Debug, Display, Error, Formatter};
 use std::{any::Any, result::Result as StdResult};
 
@@ -47,11 +47,11 @@ impl<T: Any + Debug + Trace> NativeObject for T {
 pub struct Object {
     /// The type of the object.
     pub data: ObjectData,
-    indexed_properties: FxHashMap<u32, Property>,
+    indexed_properties: HashMap<u32, Property>,
     /// Properties
-    string_properties: FxHashMap<RcString, Property>,
+    string_properties: HashMap<RcString, Property>,
     /// Symbol Properties
-    symbol_properties: FxHashMap<RcSymbol, Property>,
+    symbol_properties: HashMap<RcSymbol, Property>,
     /// Instance prototype `__proto__`.
     prototype: Value,
     /// Whether it can have new properties added to it.
@@ -108,9 +108,9 @@ impl Default for Object {
     fn default() -> Self {
         Self {
             data: ObjectData::Ordinary,
-            indexed_properties: FxHashMap::default(),
-            string_properties: FxHashMap::default(),
-            symbol_properties: FxHashMap::default(),
+            indexed_properties: HashMap::new(),
+            string_properties: HashMap::new(),
+            symbol_properties: HashMap::new(),
             prototype: Value::null(),
             extensible: true,
         }
@@ -129,9 +129,9 @@ impl Object {
 
         Self {
             data: ObjectData::Function(function),
-            indexed_properties: FxHashMap::default(),
-            string_properties: FxHashMap::default(),
-            symbol_properties: FxHashMap::default(),
+            indexed_properties: HashMap::new(),
+            string_properties: HashMap::new(),
+            symbol_properties: HashMap::new(),
             prototype,
             extensible: true,
         }
@@ -154,9 +154,9 @@ impl Object {
     pub fn boolean(value: bool) -> Self {
         Self {
             data: ObjectData::Boolean(value),
-            indexed_properties: FxHashMap::default(),
-            string_properties: FxHashMap::default(),
-            symbol_properties: FxHashMap::default(),
+            indexed_properties: HashMap::new(),
+            string_properties: HashMap::new(),
+            symbol_properties: HashMap::new(),
             prototype: Value::null(),
             extensible: true,
         }
@@ -166,9 +166,9 @@ impl Object {
     pub fn number(value: f64) -> Self {
         Self {
             data: ObjectData::Number(value),
-            indexed_properties: FxHashMap::default(),
-            string_properties: FxHashMap::default(),
-            symbol_properties: FxHashMap::default(),
+            indexed_properties: HashMap::new(),
+            string_properties: HashMap::new(),
+            symbol_properties: HashMap::new(),
             prototype: Value::null(),
             extensible: true,
         }
@@ -181,9 +181,9 @@ impl Object {
     {
         Self {
             data: ObjectData::String(value.into()),
-            indexed_properties: FxHashMap::default(),
-            string_properties: FxHashMap::default(),
-            symbol_properties: FxHashMap::default(),
+            indexed_properties: HashMap::new(),
+            string_properties: HashMap::new(),
+            symbol_properties: HashMap::new(),
             prototype: Value::null(),
             extensible: true,
         }
@@ -193,9 +193,9 @@ impl Object {
     pub fn bigint(value: RcBigInt) -> Self {
         Self {
             data: ObjectData::BigInt(value),
-            indexed_properties: FxHashMap::default(),
-            string_properties: FxHashMap::default(),
-            symbol_properties: FxHashMap::default(),
+            indexed_properties: HashMap::new(),
+            string_properties: HashMap::new(),
+            symbol_properties: HashMap::new(),
             prototype: Value::null(),
             extensible: true,
         }
@@ -208,9 +208,9 @@ impl Object {
     {
         Self {
             data: ObjectData::NativeObject(Box::new(value)),
-            indexed_properties: FxHashMap::default(),
-            string_properties: FxHashMap::default(),
-            symbol_properties: FxHashMap::default(),
+            indexed_properties: HashMap::new(),
+            string_properties: HashMap::new(),
+            symbol_properties: HashMap::new(),
             prototype: Value::null(),
             extensible: true,
         }

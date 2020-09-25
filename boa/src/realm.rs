@@ -14,7 +14,7 @@ use crate::{
     BoaProfiler, Value,
 };
 use gc::{Gc, GcCell};
-use rustc_hash::{FxHashMap, FxHashSet};
+use std::collections::{HashMap, HashSet};
 
 /// Representation of a Realm.
 ///
@@ -61,7 +61,7 @@ fn new_global_environment(global: Value, this_value: Value) -> Gc<GcCell<GlobalE
     };
 
     let dcl_rec = DeclarativeEnvironmentRecord {
-        env_rec: FxHashMap::default(),
+        env_rec: HashMap::new(),
         outer_env: None,
     };
 
@@ -69,6 +69,6 @@ fn new_global_environment(global: Value, this_value: Value) -> Gc<GcCell<GlobalE
         object_record: obj_rec,
         global_this_binding: this_value,
         declarative_record: dcl_rec,
-        var_names: FxHashSet::default(),
+        var_names: HashSet::new(),
     }))
 }
