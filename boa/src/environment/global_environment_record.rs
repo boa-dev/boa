@@ -17,6 +17,7 @@ use crate::{
     property::{Attribute, Property},
     Value,
 };
+use ahash::RandomState;
 use gc::{Finalize, Trace};
 use std::collections::HashSet;
 
@@ -25,7 +26,7 @@ pub struct GlobalEnvironmentRecord {
     pub object_record: ObjectEnvironmentRecord,
     pub global_this_binding: Value,
     pub declarative_record: DeclarativeEnvironmentRecord,
-    pub var_names: HashSet<String, ahash::RandomState>,
+    pub var_names: HashSet<String, RandomState>,
 }
 
 impl GlobalEnvironmentRecord {

@@ -12,6 +12,7 @@ use crate::{
     },
     Value,
 };
+use ahash::RandomState;
 use gc::{Finalize, Trace};
 use std::collections::HashMap;
 
@@ -32,7 +33,7 @@ pub struct DeclarativeEnvironmentRecordBinding {
 /// declarations contained within its scope.
 #[derive(Debug, Trace, Finalize, Clone)]
 pub struct DeclarativeEnvironmentRecord {
-    pub env_rec: HashMap<String, DeclarativeEnvironmentRecordBinding, ahash::RandomState>,
+    pub env_rec: HashMap<String, DeclarativeEnvironmentRecordBinding, RandomState>,
     pub outer_env: Option<Environment>,
 }
 

@@ -21,6 +21,7 @@ use crate::{
     value::{display_obj, RcString, Value},
     BoaProfiler, Context, Result,
 };
+use ahash::RandomState;
 use std::collections::HashMap;
 use std::time::SystemTime;
 
@@ -131,8 +132,8 @@ pub fn formatter(data: &[Value], ctx: &mut Context) -> Result<String> {
 /// This is the internal console object state.
 #[derive(Debug, Default)]
 pub(crate) struct Console {
-    count_map: HashMap<RcString, u32, ahash::RandomState>,
-    timer_map: HashMap<RcString, u128, ahash::RandomState>,
+    count_map: HashMap<RcString, u32, RandomState>,
+    timer_map: HashMap<RcString, u128, RandomState>,
     groups: Vec<String>,
 }
 
