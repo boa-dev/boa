@@ -130,9 +130,11 @@ impl LexicalEnvironment {
                 // Find the first function or global environment (from the top of the stack)
                 let env = self
                     .environments()
-                    .find(|env| match env.borrow().get_environment_type() {
-                        EnvironmentType::Function | EnvironmentType::Global => true,
-                        _ => false,
+                    .find(|env| {
+                        matches!(
+                            env.borrow().get_environment_type(),
+                            EnvironmentType::Function | EnvironmentType::Global
+                        )
                     })
                     .expect("No function or global environment");
 
@@ -156,9 +158,11 @@ impl LexicalEnvironment {
                 // Find the first function or global environment (from the top of the stack)
                 let env = self
                     .environments()
-                    .find(|env| match env.borrow().get_environment_type() {
-                        EnvironmentType::Function | EnvironmentType::Global => true,
-                        _ => false,
+                    .find(|env| {
+                        matches!(
+                            env.borrow().get_environment_type(),
+                            EnvironmentType::Function | EnvironmentType::Global
+                        )
                     })
                     .expect("No function or global environment");
 

@@ -217,9 +217,5 @@ where
 /// [spec]: https://tc39.es/ecma262/#sec-assignment-operators-static-semantics-early-errors
 #[inline]
 pub(crate) fn is_assignable(node: &Node) -> bool {
-    if let Node::Const(_) | Node::ArrayDecl(_) = node {
-        false
-    } else {
-        true
-    }
+    !matches!(node, Node::Const(_) | Node::ArrayDecl(_))
 }
