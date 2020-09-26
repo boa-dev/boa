@@ -79,7 +79,9 @@ where
     pub(super) fn lex_regex(&mut self, start: Position) -> Result<Token, ParseError> {
         let _timer = BoaProfiler::global().start_event("cursor::lex_regex()", "Parsing");
         self.set_goal(InputElement::RegExp);
-        self.lexer.lex_slash_token(start).map_err(|e| e.into())
+
+        let strict_mode: bool = false; // TODO enable setting strict mode on/off.
+        self.lexer.lex_slash_token(start, strict_mode).map_err(|e| e.into())
     }
 
     /// Fills the peeking buffer with the next token.

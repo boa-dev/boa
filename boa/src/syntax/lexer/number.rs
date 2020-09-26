@@ -23,14 +23,13 @@ use std::{io::Read, str::FromStr};
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type
 #[derive(Debug, Clone, Copy)]
 pub(super) struct NumberLiteral {
-    init: char,
-    strict_mode: bool,
+    init: char
 }
 
 impl NumberLiteral {
     /// Creates a new string literal lexer.
-    pub(super) fn new(init: char, strict_mode: bool) -> Self {
-        Self { init, strict_mode }
+    pub(super) fn new(init: char) -> Self {
+        Self { init }
     }
 }
 
@@ -135,7 +134,7 @@ where
 }
 
 impl<R> Tokenizer<R> for NumberLiteral {
-    fn lex(&mut self, cursor: &mut Cursor<R>, start_pos: Position) -> Result<Token, Error>
+    fn lex(&mut self, cursor: &mut Cursor<R>, start_pos: Position, strict_mode: bool) -> Result<Token, Error>
     where
         R: Read,
     {
@@ -187,7 +186,7 @@ impl<R> Tokenizer<R> for NumberLiteral {
                     ch => {
                         if ch.is_digit(8) {
                             // LegacyOctalIntegerLiteral
-                            if self.strict_mode {
+                            if strict_mode {
                                 // LegacyOctalIntegerLiteral is forbidden with strict mode true.
                                 return Err(Error::syntax(
                                     "implicit octal literals are not allowed in strict mode",
@@ -205,7 +204,7 @@ impl<R> Tokenizer<R> for NumberLiteral {
                             // Indicates a numerical digit comes after then 0 but it isn't an octal digit
                             // so therefore this must be a number with an unneeded leading 0. This is
                             // forbidden in strict mode.
-                            if self.strict_mode {
+                            if strict_mode {
                                 return Err(Error::syntax(
                                     "leading 0's are not allowed in strict mode",
                                     start_pos,

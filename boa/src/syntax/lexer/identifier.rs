@@ -31,7 +31,7 @@ impl Identifier {
 }
 
 impl<R> Tokenizer<R> for Identifier {
-    fn lex(&mut self, cursor: &mut Cursor<R>, start_pos: Position) -> Result<Token, Error>
+    fn lex(&mut self, cursor: &mut Cursor<R>, start_pos: Position, strict_mode: bool) -> Result<Token, Error>
     where
         R: Read,
     {

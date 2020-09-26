@@ -33,7 +33,7 @@ use serde::{Deserialize, Deserializer, Serialize, Serializer};
 pub(super) struct RegexLiteral;
 
 impl<R> Tokenizer<R> for RegexLiteral {
-    fn lex(&mut self, cursor: &mut Cursor<R>, start_pos: Position) -> Result<Token, Error>
+    fn lex(&mut self, cursor: &mut Cursor<R>, start_pos: Position, strict_mode: bool) -> Result<Token, Error>
     where
         R: Read,
     {
