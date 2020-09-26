@@ -197,10 +197,10 @@ fn for_loop_break_label() {
     let scenario = r#"
         var str = "";
 
-        loop1: for (let i = 0; i < 5; i++) {
-            loop2: for (let b = 0; b < 5; b++) {
+        outer: for (let i = 0; i < 5; i++) {
+            inner: for (let b = 0; b < 5; b++) {
                 if (b === 2) {
-                break loop1;
+                break outer;
                 }
                 str = str + b;
             }
