@@ -210,3 +210,19 @@ fn for_loop_break_label() {
     "#;
     assert_eq!(&exec(scenario), "\"01\"")
 }
+
+#[test]
+fn for_loop_continue_label() {
+    let scenario = r#"
+    var count = 0;
+    label: for (let x = 0; x < 10;) {
+        while (true) {
+            x++;
+            count++;
+            continue label;
+        }
+    }
+    count
+    "#;
+    assert_eq!(&exec(scenario), "10");
+}
