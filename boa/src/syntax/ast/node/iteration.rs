@@ -21,7 +21,7 @@ use serde::{Deserialize, Serialize};
 pub struct ForLoop {
     #[cfg_attr(feature = "serde", serde(flatten))]
     inner: Box<InnerForLoop>,
-    pub(crate) label: Option<Box<str>>,
+    label: Option<Box<str>>,
 }
 
 impl ForLoop {
@@ -77,6 +77,10 @@ impl ForLoop {
         self.inner.body().display(f, indentation + 1)?;
 
         write!(f, "}}")
+    }
+
+    pub fn label(&self) -> Option<&str> {
+        self.label.as_ref().map(Box::as_ref)
     }
 
     pub fn set_label(&mut self, label: Box<str>) {
@@ -160,6 +164,7 @@ impl InnerForLoop {
 pub struct WhileLoop {
     cond: Box<Node>,
     expr: Box<Node>,
+    label: Option<Box<str>>,
 }
 
 impl WhileLoop {
@@ -171,6 +176,10 @@ impl WhileLoop {
         &self.expr
     }
 
+    pub fn label(&self) -> Option<&str> {
+        self.label.as_ref().map(Box::as_ref)
+    }
+
     /// Creates a `WhileLoop` AST node.
     pub fn new<C, B>(condition: C, body: B) -> Self
     where
@@ -180,6 +189,7 @@ impl WhileLoop {
         Self {
             cond: Box::new(condition.into()),
             expr: Box::new(body.into()),
+            label: None,
         }
     }
 
@@ -218,6 +228,7 @@ impl From<WhileLoop> for Node {
 pub struct DoWhileLoop {
     body: Box<Node>,
     cond: Box<Node>,
+    label: Option<Box<str>>,
 }
 
 impl DoWhileLoop {
@@ -229,6 +240,10 @@ impl DoWhileLoop {
         &self.cond
     }
 
+    pub fn label(&self) -> Option<&str> {
+        self.label.as_ref().map(Box::as_ref)
+    }
+
     /// Creates a `DoWhileLoop` AST node.
     pub fn new<B, C>(body: B, condition: C) -> Self
     where
@@ -238,6 +253,7 @@ impl DoWhileLoop {
         Self {
             body: Box::new(body.into()),
             cond: Box::new(condition.into()),
+            label: None,
         }
     }
 

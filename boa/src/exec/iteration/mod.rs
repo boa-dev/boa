@@ -10,6 +10,27 @@ use crate::{
 #[cfg(test)]
 mod tests;
 
+// Checking labels for break and continue is the same operation for `ForLoop`, `While` and `DoWhile`
+macro_rules! handle_state_with_labels {
+    ($self:ident, $label:ident, $interpreter:ident, $state:tt) => {{
+        if let Some(brk_label) = $label {
+            if let Some(stmt_label) = $self.label() {
+                // Break from where we are, keeping "continue" set as the state
+                if stmt_label != brk_label.as_ref() {
+                    break;
+                }
+            } else {
+                // if a label is set but the current block has no label, break
+                break;
+            }
+        }
+
+        $interpreter
+            .executor()
+            .set_current_state(InterpreterState::Executing);
+    }};
+}
+
 impl Executable for ForLoop {
     fn run(&self, interpreter: &mut Context) -> Result<Value> {
         // Create the block environment.
@@ -35,35 +56,13 @@ impl Executable for ForLoop {
 
             match interpreter.executor().get_current_state() {
                 InterpreterState::Break(label) => {
-                    // If a label is set we want to break the current block and still keep state as Break if the label is a block above
-                    if let Some(stmt_label) = &self.label {
-                        if let Some(brk_label) = label {
-                            // We have a label, but not for the current statement
-                            // break without resetting to executings
-                            if stmt_label.to_string() != *brk_label {
-                                break;
-                            } else {
-                                interpreter
-                                    .executor()
-                                    .set_current_state(InterpreterState::Executing);
-                                break;
-                            }
-                        }
-                    }
-
-                    // Loops 'consume' breaks.
-                    interpreter
-                        .executor()
-                        .set_current_state(InterpreterState::Executing);
+                    handle_state_with_labels!(self, label, interpreter, break);
                     break;
                 }
-                InterpreterState::Continue(_label) => {
-                    // TODO continue to label.
-                    interpreter
-                        .executor()
-                        .set_current_state(InterpreterState::Executing);
-                    // after breaking out of the block, continue execution of the loop
+                InterpreterState::Continue(label) => {
+                    handle_state_with_labels!(self, label, interpreter, continue);
                 }
+
                 InterpreterState::Return => {
                     return Ok(result);
                 }
@@ -90,21 +89,12 @@ impl Executable for WhileLoop {
         while self.cond().run(interpreter)?.to_boolean() {
             result = self.expr().run(interpreter)?;
             match interpreter.executor().get_current_state() {
-                InterpreterState::Break(_label) => {
-                    // TODO break to label.
-
-                    // Loops 'consume' breaks.
-                    interpreter
-                        .executor()
-                        .set_current_state(InterpreterState::Executing);
+                InterpreterState::Break(label) => {
+                    handle_state_with_labels!(self, label, interpreter, break);
                     break;
                 }
-                InterpreterState::Continue(_label) => {
-                    // TODO continue to label.
-                    interpreter
-                        .executor()
-                        .set_current_state(InterpreterState::Executing);
-                    // after breaking out of the block, continue execution of the loop
+                InterpreterState::Continue(label) => {
+                    handle_state_with_labels!(self, label, interpreter, continue)
                 }
                 InterpreterState::Return => {
                     return Ok(result);

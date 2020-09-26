@@ -36,8 +36,8 @@ pub trait Executable {
 pub(crate) enum InterpreterState {
     Executing,
     Return,
-    Break(Option<String>),
-    Continue(Option<String>),
+    Break(Option<Box<str>>),
+    Continue(Option<Box<str>>),
 }
 
 /// A Javascript intepreter
