@@ -48,7 +48,12 @@ pub use token::{Token, TokenKind};
 
 trait Tokenizer<R> {
     /// Lexes the next token.
-    fn lex(&mut self, cursor: &mut Cursor<R>, start_pos: Position, strict_mode: bool) -> Result<Token, Error>
+    fn lex(
+        &mut self,
+        cursor: &mut Cursor<R>,
+        start_pos: Position,
+        strict_mode: bool,
+    ) -> Result<Token, Error>
     where
         R: Read;
 }
@@ -109,7 +114,11 @@ impl<R> Lexer<R> {
     // that means it could be multiple different tokens depending on the input token.
     //
     // As per https://tc39.es/ecma262/#sec-ecmascript-language-lexical-grammar
-    pub(crate) fn lex_slash_token(&mut self, start: Position, strict_mode: bool) -> Result<Token, Error>
+    pub(crate) fn lex_slash_token(
+        &mut self,
+        start: Position,
+        strict_mode: bool,
+    ) -> Result<Token, Error>
     where
         R: Read,
     {

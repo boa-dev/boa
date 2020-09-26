@@ -81,7 +81,9 @@ where
         self.set_goal(InputElement::RegExp);
 
         let strict_mode: bool = false; // TODO enable setting strict mode on/off.
-        self.lexer.lex_slash_token(start, strict_mode).map_err(|e| e.into())
+        self.lexer
+            .lex_slash_token(start, strict_mode)
+            .map_err(|e| e.into())
     }
 
     /// Fills the peeking buffer with the next token.

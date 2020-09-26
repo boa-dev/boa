@@ -10,6 +10,20 @@ use crate::{
 };
 use std::io::Read;
 
+const STRICT_FORBIDDEN_IDENTIFIERS: [&str; 11] = [
+    "eval",
+    "arguments",
+    "implements",
+    "interface",
+    "let",
+    "package",
+    "private",
+    "protected",
+    "public",
+    "static",
+    "yield",
+];
+
 /// Identifier lexing.
 ///
 /// More information:
@@ -31,7 +45,12 @@ impl Identifier {
 }
 
 impl<R> Tokenizer<R> for Identifier {
-    fn lex(&mut self, cursor: &mut Cursor<R>, start_pos: Position, strict_mode: bool) -> Result<Token, Error>
+    fn lex(
+        &mut self,
+        cursor: &mut Cursor<R>,
+        start_pos: Position,
+        strict_mode: bool,
+    ) -> Result<Token, Error>
     where
         R: Read,
     {
@@ -51,6 +70,16 @@ impl<R> Tokenizer<R> for Identifier {
                 if let Ok(keyword) = slice.parse() {
                     TokenKind::Keyword(keyword)
                 } else {
+                    if strict_mode && STRICT_FORBIDDEN_IDENTIFIERS.contains(&slice) {
+                        return Err(Error::Syntax(
+                            format!(
+                                "using future reserved keyword '{}' not allowed in strict mode",
+                                slice
+                            )
+                            .into(),
+                            start_pos,
+                        ));
+                    }
                     TokenKind::identifier(slice)
                 }
             }

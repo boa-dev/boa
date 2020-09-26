@@ -24,7 +24,12 @@ use std::io::{self, ErrorKind, Read};
 pub(super) struct TemplateLiteral;
 
 impl<R> Tokenizer<R> for TemplateLiteral {
-    fn lex(&mut self, cursor: &mut Cursor<R>, start_pos: Position, strict_mode: bool) -> Result<Token, Error>
+    fn lex(
+        &mut self,
+        cursor: &mut Cursor<R>,
+        start_pos: Position,
+        strict_mode: bool,
+    ) -> Result<Token, Error>
     where
         R: Read,
     {

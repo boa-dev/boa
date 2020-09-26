@@ -23,7 +23,7 @@ use std::{io::Read, str::FromStr};
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type
 #[derive(Debug, Clone, Copy)]
 pub(super) struct NumberLiteral {
-    init: char
+    init: char,
 }
 
 impl NumberLiteral {
@@ -134,7 +134,12 @@ where
 }
 
 impl<R> Tokenizer<R> for NumberLiteral {
-    fn lex(&mut self, cursor: &mut Cursor<R>, start_pos: Position, strict_mode: bool) -> Result<Token, Error>
+    fn lex(
+        &mut self,
+        cursor: &mut Cursor<R>,
+        start_pos: Position,
+        strict_mode: bool,
+    ) -> Result<Token, Error>
     where
         R: Read,
     {
