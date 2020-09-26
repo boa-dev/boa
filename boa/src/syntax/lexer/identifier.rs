@@ -4,7 +4,7 @@ use super::{Cursor, Error, Tokenizer};
 use crate::{
     profiler::BoaProfiler,
     syntax::{
-        ast::{Position, Span},
+        ast::{Keyword, Position, Span},
         lexer::{Token, TokenKind},
     },
 };
@@ -68,6 +68,12 @@ impl<R> Tokenizer<R> for Identifier {
             "null" => TokenKind::NullLiteral,
             slice => {
                 if let Ok(keyword) = slice.parse() {
+                    if strict_mode && keyword == Keyword::With {
+                        return Err(Error::Syntax(
+                            "using 'with' statement not allowed in strict mode".into(),
+                            start_pos,
+                        ));
+                    }
                     TokenKind::Keyword(keyword)
                 } else {
                     if strict_mode && STRICT_FORBIDDEN_IDENTIFIERS.contains(&slice) {
