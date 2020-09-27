@@ -446,6 +446,15 @@
 <span id="446">446</span>
 <span id="447">447</span>
 <span id="448">448</span>
+<span id="449">449</span>
+<span id="450">450</span>
+<span id="451">451</span>
+<span id="452">452</span>
+<span id="453">453</span>
+<span id="454">454</span>
+<span id="455">455</span>
+<span id="456">456</span>
+<span id="457">457</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements the Rust representation of a JavaScript object.</span>
 
@@ -848,6 +857,15 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_prototype_instance</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">prototype</span>: <span class="ident">Value</span>) {
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">prototype</span>.<span class="ident">is_null</span>() <span class="op">|</span><span class="op">|</span> <span class="ident">prototype</span>.<span class="ident">is_object</span>());
         <span class="self">self</span>.<span class="ident">prototype</span> <span class="op">=</span> <span class="ident">prototype</span>
+    }
+
+    <span class="doccomment">/// Similar to `Value::new_object`, but you can pass a prototype to create from, plus a kind</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">with_prototype</span>(<span class="ident">proto</span>: <span class="ident">Value</span>, <span class="ident">data</span>: <span class="ident">ObjectData</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Object</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">object</span> <span class="op">=</span> <span class="ident">Object</span>::<span class="ident">default</span>();
+        <span class="ident">object</span>.<span class="ident">data</span> <span class="op">=</span> <span class="ident">data</span>;
+        <span class="ident">object</span>.<span class="ident">set_prototype_instance</span>(<span class="ident">proto</span>);
+        <span class="ident">object</span>
     }
 
     <span class="doccomment">/// Returns `true` if it holds an Rust type that implements `NativeObject`.</span>

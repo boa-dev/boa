@@ -1019,12 +1019,6 @@
 <span id="1019">1019</span>
 <span id="1020">1020</span>
 <span id="1021">1021</span>
-<span id="1022">1022</span>
-<span id="1023">1023</span>
-<span id="1024">1024</span>
-<span id="1025">1025</span>
-<span id="1026">1026</span>
-<span id="1027">1027</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements the JavaScript Value.</span>
 <span class="doccomment">//!</span>
@@ -1192,14 +1186,6 @@
         }
     }
 
-    <span class="doccomment">/// Similar to `new_object`, but you can pass a prototype to create from, plus a kind</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_object_from_prototype</span>(<span class="ident">proto</span>: <span class="ident">Value</span>, <span class="ident">data</span>: <span class="ident">ObjectData</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">object</span> <span class="op">=</span> <span class="ident">Object</span>::<span class="ident">default</span>();
-        <span class="ident">object</span>.<span class="ident">data</span> <span class="op">=</span> <span class="ident">data</span>;
-        <span class="ident">object</span>.<span class="ident">set_prototype_instance</span>(<span class="ident">proto</span>);
-        <span class="self">Self</span>::<span class="ident">object</span>(<span class="ident">object</span>)
-    }
-
     <span class="doccomment">/// Convert from a JSON value to a JS value</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_json</span>(<span class="ident">json</span>: <span class="ident">JSONValue</span>, <span class="ident">interpreter</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="kw">match</span> <span class="ident">json</span> {
@@ -1217,8 +1203,8 @@
                     .<span class="ident">global_object</span>()
                     .<span class="ident">get_field</span>(<span class="string">&quot;Array&quot;</span>)
                     .<span class="ident">get_field</span>(<span class="ident">PROTOTYPE</span>);
-                <span class="kw">let</span> <span class="ident">new_obj</span> <span class="op">=</span>
-                    <span class="ident">Value</span>::<span class="ident">new_object_from_prototype</span>(<span class="ident">global_array_prototype</span>, <span class="ident">ObjectData</span>::<span class="ident">Array</span>);
+                <span class="kw">let</span> <span class="ident">new_obj_obj</span> <span class="op">=</span> <span class="ident">Object</span>::<span class="ident">with_prototype</span>(<span class="ident">global_array_prototype</span>, <span class="ident">ObjectData</span>::<span class="ident">Array</span>);
+                <span class="kw">let</span> <span class="ident">new_obj</span> <span class="op">=</span> <span class="ident">Value</span>::<span class="ident">object</span>(<span class="ident">new_obj_obj</span>);
                 <span class="kw">let</span> <span class="ident">length</span> <span class="op">=</span> <span class="ident">vs</span>.<span class="ident">len</span>();
                 <span class="kw">for</span> (<span class="ident">idx</span>, <span class="ident">json</span>) <span class="kw">in</span> <span class="ident">vs</span>.<span class="ident">into_iter</span>().<span class="ident">enumerate</span>() {
                     <span class="ident">new_obj</span>.<span class="ident">set_property</span>(
@@ -1693,15 +1679,15 @@
         }
     }
 
-    <span class="doccomment">/// Converts th value to a value of type Object.</span>
+    <span class="doccomment">/// Converts the value to an Object.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// This function is equivalent to `Object(value)` in JavaScript</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// See: &lt;https://tc39.es/ecma262/#sec-toobject&gt;</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_object</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_object</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">GcObject</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="self">self</span> {
             <span class="ident">Value</span>::<span class="ident">Undefined</span> <span class="op">|</span> <span class="ident">Value</span>::<span class="ident">Null</span> <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="ident">ctx</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;cannot convert &#39;null&#39; or &#39;undefined&#39; to object&quot;</span>)
+                <span class="prelude-val">Err</span>(<span class="ident">ctx</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;cannot convert &#39;null&#39; or &#39;undefined&#39; to object&quot;</span>))
             }
             <span class="ident">Value</span>::<span class="ident">Boolean</span>(<span class="ident">boolean</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">let</span> <span class="ident">proto</span> <span class="op">=</span> <span class="ident">ctx</span>
@@ -1711,10 +1697,10 @@
                     .<span class="ident">expect</span>(<span class="string">&quot;Boolean was not initialized&quot;</span>)
                     .<span class="ident">get_field</span>(<span class="ident">PROTOTYPE</span>);
 
-                <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">new_object_from_prototype</span>(
+                <span class="prelude-val">Ok</span>(<span class="ident">GcObject</span>::<span class="ident">new</span>(<span class="ident">Object</span>::<span class="ident">with_prototype</span>(
                     <span class="ident">proto</span>,
                     <span class="ident">ObjectData</span>::<span class="ident">Boolean</span>(<span class="kw-2">*</span><span class="ident">boolean</span>),
-                ))
+                )))
             }
             <span class="ident">Value</span>::<span class="ident">Integer</span>(<span class="ident">integer</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">let</span> <span class="ident">proto</span> <span class="op">=</span> <span class="ident">ctx</span>
@@ -1723,10 +1709,10 @@
                     .<span class="ident">get_binding_value</span>(<span class="string">&quot;Number&quot;</span>)
                     .<span class="ident">expect</span>(<span class="string">&quot;Number was not initialized&quot;</span>)
                     .<span class="ident">get_field</span>(<span class="ident">PROTOTYPE</span>);
-                <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">new_object_from_prototype</span>(
+                <span class="prelude-val">Ok</span>(<span class="ident">GcObject</span>::<span class="ident">new</span>(<span class="ident">Object</span>::<span class="ident">with_prototype</span>(
                     <span class="ident">proto</span>,
                     <span class="ident">ObjectData</span>::<span class="ident">Number</span>(<span class="ident">f64</span>::<span class="ident">from</span>(<span class="kw-2">*</span><span class="ident">integer</span>)),
-                ))
+                )))
             }
             <span class="ident">Value</span>::<span class="ident">Rational</span>(<span class="ident">rational</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">let</span> <span class="ident">proto</span> <span class="op">=</span> <span class="ident">ctx</span>
@@ -1736,10 +1722,10 @@
                     .<span class="ident">expect</span>(<span class="string">&quot;Number was not initialized&quot;</span>)
                     .<span class="ident">get_field</span>(<span class="ident">PROTOTYPE</span>);
 
-                <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">new_object_from_prototype</span>(
+                <span class="prelude-val">Ok</span>(<span class="ident">GcObject</span>::<span class="ident">new</span>(<span class="ident">Object</span>::<span class="ident">with_prototype</span>(
                     <span class="ident">proto</span>,
                     <span class="ident">ObjectData</span>::<span class="ident">Number</span>(<span class="kw-2">*</span><span class="ident">rational</span>),
-                ))
+                )))
             }
             <span class="ident">Value</span>::<span class="ident">String</span>(<span class="kw-2">ref</span> <span class="ident">string</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">let</span> <span class="ident">proto</span> <span class="op">=</span> <span class="ident">ctx</span>
@@ -1749,10 +1735,10 @@
                     .<span class="ident">expect</span>(<span class="string">&quot;String was not initialized&quot;</span>)
                     .<span class="ident">get_field</span>(<span class="ident">PROTOTYPE</span>);
 
-                <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">new_object_from_prototype</span>(
+                <span class="prelude-val">Ok</span>(<span class="ident">GcObject</span>::<span class="ident">new</span>(<span class="ident">Object</span>::<span class="ident">with_prototype</span>(
                     <span class="ident">proto</span>,
                     <span class="ident">ObjectData</span>::<span class="ident">String</span>(<span class="ident">string</span>.<span class="ident">clone</span>()),
-                ))
+                )))
             }
             <span class="ident">Value</span>::<span class="ident">Symbol</span>(<span class="kw-2">ref</span> <span class="ident">symbol</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">let</span> <span class="ident">proto</span> <span class="op">=</span> <span class="ident">ctx</span>
@@ -1762,10 +1748,10 @@
                     .<span class="ident">expect</span>(<span class="string">&quot;Symbol was not initialized&quot;</span>)
                     .<span class="ident">get_field</span>(<span class="ident">PROTOTYPE</span>);
 
-                <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">new_object_from_prototype</span>(
+                <span class="prelude-val">Ok</span>(<span class="ident">GcObject</span>::<span class="ident">new</span>(<span class="ident">Object</span>::<span class="ident">with_prototype</span>(
                     <span class="ident">proto</span>,
                     <span class="ident">ObjectData</span>::<span class="ident">Symbol</span>(<span class="ident">symbol</span>.<span class="ident">clone</span>()),
-                ))
+                )))
             }
             <span class="ident">Value</span>::<span class="ident">BigInt</span>(<span class="kw-2">ref</span> <span class="ident">bigint</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">let</span> <span class="ident">proto</span> <span class="op">=</span> <span class="ident">ctx</span>
@@ -1774,11 +1760,13 @@
                     .<span class="ident">get_binding_value</span>(<span class="string">&quot;BigInt&quot;</span>)
                     .<span class="ident">expect</span>(<span class="string">&quot;BigInt was not initialized&quot;</span>)
                     .<span class="ident">get_field</span>(<span class="ident">PROTOTYPE</span>);
-                <span class="kw">let</span> <span class="ident">bigint_obj</span> <span class="op">=</span>
-                    <span class="ident">Value</span>::<span class="ident">new_object_from_prototype</span>(<span class="ident">proto</span>, <span class="ident">ObjectData</span>::<span class="ident">BigInt</span>(<span class="ident">bigint</span>.<span class="ident">clone</span>()));
+                <span class="kw">let</span> <span class="ident">bigint_obj</span> <span class="op">=</span> <span class="ident">GcObject</span>::<span class="ident">new</span>(<span class="ident">Object</span>::<span class="ident">with_prototype</span>(
+                    <span class="ident">proto</span>,
+                    <span class="ident">ObjectData</span>::<span class="ident">BigInt</span>(<span class="ident">bigint</span>.<span class="ident">clone</span>()),
+                ));
                 <span class="prelude-val">Ok</span>(<span class="ident">bigint_obj</span>)
             }
-            <span class="ident">Value</span>::<span class="ident">Object</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="self">self</span>.<span class="ident">clone</span>()),
+            <span class="ident">Value</span>::<span class="ident">Object</span>(<span class="ident">gcobject</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">gcobject</span>.<span class="ident">clone</span>()),
         }
     }
 
