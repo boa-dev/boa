@@ -83,6 +83,7 @@ impl Test {
     /// Runs the test.
     pub(crate) fn run(&self, harness: &Harness) -> TestResult {
         // println!("Starting `{}`", self.name);
+        dbg!(&self.content);
 
         let passed = if !self.flags.intersects(TestFlags::ASYNC | TestFlags::MODULE)
             && !IGNORED.contains(&self.name)
