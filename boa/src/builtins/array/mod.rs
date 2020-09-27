@@ -960,7 +960,7 @@ impl Array {
     /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.reduce
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/reduce
     pub(crate) fn reduce(this: &Value, args: &[Value], interpreter: &mut Context) -> Result<Value> {
-        let this = this.to_object(interpreter)?;
+        let this: Value = this.to_object(interpreter)?.into();
         let callback = match args.get(0) {
             Some(value) if value.is_function() => value,
             _ => return interpreter.throw_type_error("Reduce was called without a callback"),
@@ -1022,7 +1022,7 @@ impl Array {
         args: &[Value],
         interpreter: &mut Context,
     ) -> Result<Value> {
-        let this = this.to_object(interpreter)?;
+        let this: Value = this.to_object(interpreter)?.into();
         let callback = match args.get(0) {
             Some(value) if value.is_function() => value,
             _ => return interpreter.throw_type_error("reduceRight was called without a callback"),

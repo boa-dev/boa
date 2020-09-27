@@ -15,7 +15,7 @@
 
 use crate::{
     builtins::function::{make_builtin_fn, make_constructor_fn},
-    object::ObjectData,
+    object::{Object as BuiltinObject, ObjectData},
     property::Property,
     value::{same_value, Value},
     BoaProfiler, Context, Result,
@@ -33,7 +33,7 @@ impl Object {
     pub fn make_object(_: &Value, args: &[Value], ctx: &mut Context) -> Result<Value> {
         if let Some(arg) = args.get(0) {
             if !arg.is_null_or_undefined() {
-                return arg.to_object(ctx);
+                return Ok(arg.to_object(ctx)?.into());
             }
         }
         let global = ctx.global_object();
@@ -60,10 +60,10 @@ impl Object {
         }
 
         match prototype {
-            Value::Object(_) | Value::Null => Ok(Value::new_object_from_prototype(
+            Value::Object(_) | Value::Null => Ok(Value::object(BuiltinObject::with_prototype(
                 prototype,
                 ObjectData::Ordinary,
-            )),
+            ))),
             _ => interpreter.throw_type_error(format!(
                 "Object prototype may only be an Object or null: {}",
                 prototype.display()
@@ -160,11 +160,9 @@ impl Object {
         };
 
         let key = key.to_property_key(ctx)?;
-        let own_property = this.to_object(ctx).map(|obj| {
-            obj.as_object()
-                .expect("Unable to deref object")
-                .get_own_property(&key)
-        });
+        let own_property = this
+            .to_object(ctx)
+            .map(|obj| obj.borrow().get_own_property(&key));
 
         Ok(own_property.map_or(Value::from(false), |own_prop| {
             Value::from(own_prop.enumerable_or(false))

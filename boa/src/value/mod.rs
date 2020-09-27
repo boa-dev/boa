@@ -164,14 +164,6 @@ impl Value {
         }
     }
 
-    /// Similar to `new_object`, but you can pass a prototype to create from, plus a kind
-    pub fn new_object_from_prototype(proto: Value, data: ObjectData) -> Self {
-        let mut object = Object::default();
-        object.data = data;
-        object.set_prototype_instance(proto);
-        Self::object(object)
-    }
-
     /// Convert from a JSON value to a JS value
     pub fn from_json(json: JSONValue, interpreter: &mut Context) -> Self {
         match json {
@@ -189,8 +181,8 @@ impl Value {
                     .global_object()
                     .get_field("Array")
                     .get_field(PROTOTYPE);
-                let new_obj =
-                    Value::new_object_from_prototype(global_array_prototype, ObjectData::Array);
+                let new_obj_obj = Object::with_prototype(global_array_prototype, ObjectData::Array);
+                let new_obj = Value::object(new_obj_obj);
                 let length = vs.len();
                 for (idx, json) in vs.into_iter().enumerate() {
                     new_obj.set_property(
@@ -665,15 +657,15 @@ impl Value {
         }
     }
 
-    /// Converts th value to a value of type Object.
+    /// Converts the value to an Object.
     ///
     /// This function is equivalent to `Object(value)` in JavaScript
     ///
     /// See: <https://tc39.es/ecma262/#sec-toobject>
-    pub fn to_object(&self, ctx: &mut Context) -> Result<Value> {
+    pub fn to_object(&self, ctx: &mut Context) -> Result<GcObject> {
         match self {
             Value::Undefined | Value::Null => {
-                ctx.throw_type_error("cannot convert 'null' or 'undefined' to object")
+                Err(ctx.construct_type_error("cannot convert 'null' or 'undefined' to object"))
             }
             Value::Boolean(boolean) => {
                 let proto = ctx
@@ -683,10 +675,10 @@ impl Value {
                     .expect("Boolean was not initialized")
                     .get_field(PROTOTYPE);
 
-                Ok(Value::new_object_from_prototype(
+                Ok(GcObject::new(Object::with_prototype(
                     proto,
                     ObjectData::Boolean(*boolean),
-                ))
+                )))
             }
             Value::Integer(integer) => {
                 let proto = ctx
@@ -695,10 +687,10 @@ impl Value {
                     .get_binding_value("Number")
                     .expect("Number was not initialized")
                     .get_field(PROTOTYPE);
-                Ok(Value::new_object_from_prototype(
+                Ok(GcObject::new(Object::with_prototype(
                     proto,
                     ObjectData::Number(f64::from(*integer)),
-                ))
+                )))
             }
             Value::Rational(rational) => {
                 let proto = ctx
@@ -708,10 +700,10 @@ impl Value {
                     .expect("Number was not initialized")
                     .get_field(PROTOTYPE);
 
-                Ok(Value::new_object_from_prototype(
+                Ok(GcObject::new(Object::with_prototype(
                     proto,
                     ObjectData::Number(*rational),
-                ))
+                )))
             }
             Value::String(ref string) => {
                 let proto = ctx
@@ -721,10 +713,10 @@ impl Value {
                     .expect("String was not initialized")
                     .get_field(PROTOTYPE);
 
-                Ok(Value::new_object_from_prototype(
+                Ok(GcObject::new(Object::with_prototype(
                     proto,
                     ObjectData::String(string.clone()),
-                ))
+                )))
             }
             Value::Symbol(ref symbol) => {
                 let proto = ctx
@@ -734,10 +726,10 @@ impl Value {
                     .expect("Symbol was not initialized")
                     .get_field(PROTOTYPE);
 
-                Ok(Value::new_object_from_prototype(
+                Ok(GcObject::new(Object::with_prototype(
                     proto,
                     ObjectData::Symbol(symbol.clone()),
-                ))
+                )))
             }
             Value::BigInt(ref bigint) => {
                 let proto = ctx
@@ -746,11 +738,13 @@ impl Value {
                     .get_binding_value("BigInt")
                     .expect("BigInt was not initialized")
                     .get_field(PROTOTYPE);
-                let bigint_obj =
-                    Value::new_object_from_prototype(proto, ObjectData::BigInt(bigint.clone()));
+                let bigint_obj = GcObject::new(Object::with_prototype(
+                    proto,
+                    ObjectData::BigInt(bigint.clone()),
+                ));
                 Ok(bigint_obj)
             }
-            Value::Object(_) => Ok(self.clone()),
+            Value::Object(gcobject) => Ok(gcobject.clone()),
         }
     }
 
