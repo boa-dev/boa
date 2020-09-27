@@ -168,7 +168,7 @@ impl Object {
                 return false;
             }
 
-            self.insert_property(key, desc);
+            self.insert(key, desc);
             return true;
         }
         // If every field is absent we don't need to set anything
@@ -207,7 +207,7 @@ impl Object {
                 current.set = None;
             }
 
-            self.insert_property(key, current);
+            self.insert(key, current);
             return true;
         // 7
         } else if current.is_data_descriptor() && desc.is_data_descriptor() {
@@ -247,7 +247,7 @@ impl Object {
             return true;
         }
         // 9
-        self.insert_property(key, desc);
+        self.insert(key, desc);
         true
     }
 
@@ -336,7 +336,7 @@ impl Object {
 
     /// Helper function for property insertion.
     #[inline]
-    pub(crate) fn insert_property<K>(&mut self, key: K, property: Property) -> Option<Property>
+    pub(crate) fn insert<K>(&mut self, key: K, property: Property) -> Option<Property>
     where
         K: Into<PropertyKey>,
     {
@@ -366,15 +366,24 @@ impl Object {
     /// If a field was already in the object with the same name that a `Some` is returned
     /// with that field, otherwise None is retuned.
     #[inline]
-    pub(crate) fn insert_field<K>(&mut self, key: K, value: Value) -> Option<Property>
+    pub(crate) fn insert_property<K, V>(
+        &mut self,
+        key: K,
+        value: V,
+        attribute: Attribute,
+    ) -> Option<Property>
     where
         K: Into<PropertyKey>,
+        V: Into<Value>,
     {
-        self.insert_property(
+        self.insert(
             key.into(),
             Property::data_descriptor(
-                value,
-                Attribute::WRITABLE | Attribute::ENUMERABLE | Attribute::CONFIGURABLE,
+                value.into(),
+                attribute
+                    | Attribute::HAS_WRITABLE
+                    | Attribute::HAS_ENUMERABLE
+                    | Attribute::HAS_CONFIGURABLE,
             ),
         )
     }

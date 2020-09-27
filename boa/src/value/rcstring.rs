@@ -33,24 +33,28 @@ impl Display for RcString {
 }
 
 impl PartialEq<str> for RcString {
+    #[inline]
     fn eq(&self, other: &str) -> bool {
         self.as_str() == other
     }
 }
 
 impl PartialEq<RcString> for str {
+    #[inline]
     fn eq(&self, other: &RcString) -> bool {
         self == other.as_str()
     }
 }
 
 impl PartialEq<&str> for RcString {
+    #[inline]
     fn eq(&self, other: &&str) -> bool {
         self.as_str() == *other
     }
 }
 
 impl PartialEq<RcString> for &str {
+    #[inline]
     fn eq(&self, other: &RcString) -> bool {
         *self == other.as_str()
     }
@@ -69,6 +73,13 @@ impl Borrow<str> for RcString {
     #[inline]
     fn borrow(&self) -> &str {
         self.0.borrow()
+    }
+}
+
+impl AsRef<str> for RcString {
+    #[inline]
+    fn as_ref(&self) -> &str {
+        self.as_str()
     }
 }
 

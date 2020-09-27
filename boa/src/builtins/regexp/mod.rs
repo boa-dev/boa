@@ -9,16 +9,15 @@
 //! [spec]: https://tc39.es/ecma262/#sec-regexp-constructor
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp
 
-use regex::Regex;
-
-use super::function::{make_builtin_fn, make_constructor_fn};
 use crate::{
-    object::ObjectData,
-    property::Property,
+    builtins::BuiltIn,
+    gc::{empty_trace, Finalize, Trace},
+    object::{ConstructorBuilder, ObjectData},
+    property::{Attribute, Property},
     value::{RcString, Value},
     BoaProfiler, Context, Result,
 };
-use gc::{unsafe_empty_trace, Finalize, Trace};
+use regex::Regex;
 
 #[cfg(test)]
 mod tests;
@@ -58,7 +57,36 @@ pub struct RegExp {
 }
 
 unsafe impl Trace for RegExp {
-    unsafe_empty_trace!();
+    empty_trace!();
+}
+
+impl BuiltIn for RegExp {
+    const NAME: &'static str = "RegExp";
+
+    fn attribute() -> Attribute {
+        Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE
+    }
+
+    fn init(context: &mut Context) -> (&'static str, Value, Attribute) {
+        let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
+
+        let regexp_object = ConstructorBuilder::with_standard_object(
+            context,
+            Self::constructor,
+            context.standard_objects().regexp_object().clone(),
+        )
+        .name(Self::NAME)
+        .length(Self::LENGTH)
+        .property("lastIndex", 0, Attribute::all())
+        .method(Self::test, "test", 1)
+        .method(Self::exec, "exec", 1)
+        .method(Self::to_string, "toString", 0)
+        .build();
+
+        // TODO: add them RegExp accessor properties
+
+        (Self::NAME, regexp_object.into(), Self::attribute())
+    }
 }
 
 impl RegExp {
@@ -69,7 +97,7 @@ impl RegExp {
     pub(crate) const LENGTH: usize = 2;
 
     /// Create a new `RegExp`
-    pub(crate) fn make_regexp(this: &Value, args: &[Value], _: &mut Context) -> Result<Value> {
+    pub(crate) fn constructor(this: &Value, args: &[Value], _: &mut Context) -> Result<Value> {
         let arg = args.get(0).ok_or_else(Value::undefined)?;
         let mut regex_body = String::new();
         let mut regex_flags = String::new();
@@ -473,45 +501,5 @@ impl RegExp {
         result.set_data(ObjectData::Array);
 
         Ok(result)
-    }
-
-    /// Initialise the `RegExp` object on the global object.
-    #[inline]
-    pub(crate) fn init(interpreter: &mut Context) -> (&'static str, Value) {
-        let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
-        let global = interpreter.global_object();
-
-        // Create prototype
-        let prototype = Value::new_object(Some(global));
-        prototype
-            .as_object_mut()
-            .unwrap()
-            .insert_field("lastIndex", Value::from(0));
-
-        make_builtin_fn(Self::test, "test", &prototype, 1, interpreter);
-        make_builtin_fn(Self::exec, "exec", &prototype, 1, interpreter);
-        make_builtin_fn(Self::to_string, "toString", &prototype, 0, interpreter);
-
-        // TODO: make them accessor properties, not methods.
-        // make_builtin_fn(Self::get_dot_all, "dotAll", &prototype, 0);
-        // make_builtin_fn(Self::get_flags, "flags", &prototype, 0);
-        // make_builtin_fn(Self::get_global, "global", &prototype, 0);
-        // make_builtin_fn(Self::get_ignore_case, "ignoreCase", &prototype, 0);
-        // make_builtin_fn(Self::get_multiline, "multiline", &prototype, 0);
-        // make_builtin_fn(Self::get_source, "source", &prototype, 0);
-        // make_builtin_fn(Self::get_sticky, "sticky", &prototype, 0);
-        // make_builtin_fn(Self::get_unicode, "unicode", &prototype, 0);
-
-        let regexp = make_constructor_fn(
-            Self::NAME,
-            Self::LENGTH,
-            Self::make_regexp,
-            global,
-            prototype,
-            true,
-            true,
-        );
-
-        (Self::NAME, regexp)
     }
 }

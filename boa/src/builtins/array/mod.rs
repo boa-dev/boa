@@ -13,10 +13,10 @@ pub mod array_iterator;
 #[cfg(test)]
 mod tests;
 
-use super::function::{make_builtin_fn, make_constructor_fn};
 use crate::{
     builtins::array::array_iterator::{ArrayIterationKind, ArrayIterator},
-    object::{ObjectData, PROTOTYPE},
+    builtins::BuiltIn,
+    object::{ConstructorBuilder, FunctionBuilder, ObjectData, PROTOTYPE},
     property::{Attribute, Property},
     value::{same_value_zero, Value},
     BoaProfiler, Context, Result,
@@ -27,17 +27,122 @@ use std::cmp::{max, min};
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct Array;
 
-impl Array {
-    /// The name of the object.
-    pub(crate) const NAME: &'static str = "Array";
+impl BuiltIn for Array {
+    const NAME: &'static str = "Array";
 
-    /// The amount of arguments this function object takes.
-    pub(crate) const LENGTH: usize = 1;
+    fn attribute() -> Attribute {
+        Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE
+    }
+
+    fn init(context: &mut Context) -> (&'static str, Value, Attribute) {
+        let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
+
+        let symbol_iterator = context.well_known_symbols().iterator_symbol();
+        let values_function = FunctionBuilder::new(context, Self::values)
+            .name("values")
+            .length(0)
+            .callable(true)
+            .constructable(false)
+            .build();
+        let array = ConstructorBuilder::with_standard_object(
+            context,
+            Self::constructor,
+            context.standard_objects().array_object().clone(),
+        )
+        .name(Self::NAME)
+        .length(Self::LENGTH)
+        .property("length", 0, Attribute::all())
+        .property(
+            "values",
+            values_function.clone(),
+            Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+        )
+        .property(
+            symbol_iterator,
+            values_function,
+            Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+        )
+        .method(Self::concat, "concat", 1)
+        .method(Self::push, "push", 1)
+        .method(Self::index_of, "indexOf", 1)
+        .method(Self::last_index_of, "lastIndexOf", 1)
+        .method(Self::includes_value, "includes", 1)
+        .method(Self::map, "map", 1)
+        .method(Self::fill, "fill", 1)
+        .method(Self::for_each, "forEach", 1)
+        .method(Self::filter, "filter", 1)
+        .method(Self::pop, "pop", 0)
+        .method(Self::join, "join", 1)
+        .method(Self::to_string, "toString", 0)
+        .method(Self::reverse, "reverse", 0)
+        .method(Self::shift, "shift", 0)
+        .method(Self::unshift, "unshift", 1)
+        .method(Self::every, "every", 1)
+        .method(Self::find, "find", 1)
+        .method(Self::find_index, "findIndex", 1)
+        .method(Self::slice, "slice", 2)
+        .method(Self::some, "some", 2)
+        .method(Self::reduce, "reduce", 2)
+        .method(Self::reduce_right, "reduceRight", 2)
+        .method(Self::keys, "keys", 0)
+        .method(Self::entries, "entries", 0)
+        // Static Methods
+        .static_method(Self::is_array, "isArray", 1)
+        .build();
+
+        (Self::NAME, array.into(), Self::attribute())
+    }
+}
+
+impl Array {
+    const LENGTH: usize = 1;
+
+    fn constructor(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+        // Set Prototype
+        let prototype = context.standard_objects().array_object().prototype();
+
+        this.as_object_mut()
+            .expect("this should be an array object")
+            .set_prototype_instance(prototype.into());
+        // This value is used by console.log and other routines to match Object type
+        // to its Javascript Identifier (global constructor method name)
+        this.set_data(ObjectData::Array);
+
+        // add our arguments in
+        let mut length = args.len() as i32;
+        match args.len() {
+            1 if args[0].is_integer() => {
+                length = args[0].as_number().unwrap() as i32;
+                // TODO: It should not create an array of undefineds, but an empty array ("holy" array in V8) with length `n`.
+                for n in 0..length {
+                    this.set_field(n, Value::undefined());
+                }
+            }
+            1 if args[0].is_double() => {
+                return context.throw_range_error("invalid array length");
+            }
+            _ => {
+                for (n, value) in args.iter().enumerate() {
+                    this.set_field(n, value.clone());
+                }
+            }
+        }
+
+        // finally create length property
+        let length = Property::data_descriptor(
+            length.into(),
+            Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::PERMANENT,
+        );
+
+        this.set_property("length".to_string(), length);
+
+        Ok(this.clone())
+    }
 
     /// Creates a new `Array` instance.
-    pub(crate) fn new_array(interpreter: &Context) -> Result<Value> {
+    pub(crate) fn new_array(context: &Context) -> Result<Value> {
         let array = Value::new_object(Some(
-            &interpreter
+            &context
                 .realm()
                 .environment
                 .get_global_object()
@@ -47,14 +152,7 @@ impl Array {
         array
             .as_object_mut()
             .expect("array object")
-            .set_prototype_instance(
-                interpreter
-                    .realm()
-                    .environment
-                    .get_binding_value("Array")
-                    .expect("Array was not initialized")
-                    .get_field(PROTOTYPE),
-            );
+            .set_prototype_instance(context.standard_objects().array_object().prototype().into());
         array.set_field("length", Value::from(0));
         Ok(array)
     }
@@ -101,52 +199,6 @@ impl Array {
         );
 
         Ok(array_ptr.clone())
-    }
-
-    /// Create a new array
-    pub(crate) fn make_array(this: &Value, args: &[Value], ctx: &mut Context) -> Result<Value> {
-        // Make a new Object which will internally represent the Array (mapping
-        // between indices and values): this creates an Object with no prototype
-
-        // Set Prototype
-        let prototype = ctx.global_object().get_field("Array").get_field(PROTOTYPE);
-
-        this.as_object_mut()
-            .expect("this should be an array object")
-            .set_prototype_instance(prototype);
-        // This value is used by console.log and other routines to match Object type
-        // to its Javascript Identifier (global constructor method name)
-        this.set_data(ObjectData::Array);
-
-        // add our arguments in
-        let mut length = args.len() as i32;
-        match args.len() {
-            1 if args[0].is_integer() => {
-                length = args[0].as_number().unwrap() as i32;
-                // TODO: It should not create an array of undefineds, but an empty array ("holy" array in V8) with length `n`.
-                for n in 0..length {
-                    this.set_field(n, Value::undefined());
-                }
-            }
-            1 if args[0].is_double() => {
-                return ctx.throw_range_error("invalid array length");
-            }
-            _ => {
-                for (n, value) in args.iter().enumerate() {
-                    this.set_field(n, value.clone());
-                }
-            }
-        }
-
-        // finally create length property
-        let length = Property::data_descriptor(
-            length.into(),
-            Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::PERMANENT,
-        );
-
-        this.set_property("length".to_string(), length);
-
-        Ok(this.clone())
     }
 
     /// `Array.isArray( arg )`
@@ -1103,12 +1155,8 @@ impl Array {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.values
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/values
-    pub(crate) fn values(
-        this: &Value,
-        _args: &[Value],
-        interpreter: &mut Context,
-    ) -> Result<Value> {
-        ArrayIterator::create_array_iterator(interpreter, this.clone(), ArrayIterationKind::Value)
+    pub(crate) fn values(this: &Value, _: &[Value], ctx: &mut Context) -> Result<Value> {
+        ArrayIterator::create_array_iterator(ctx, this.clone(), ArrayIterationKind::Value)
     }
 
     /// `Array.prototype.keys( )`
@@ -1121,8 +1169,8 @@ impl Array {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.values
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/values
-    pub(crate) fn keys(this: &Value, _args: &[Value], interpreter: &mut Context) -> Result<Value> {
-        ArrayIterator::create_array_iterator(interpreter, this.clone(), ArrayIterationKind::Key)
+    pub(crate) fn keys(this: &Value, _: &[Value], ctx: &mut Context) -> Result<Value> {
+        ArrayIterator::create_array_iterator(ctx, this.clone(), ArrayIterationKind::Key)
     }
 
     /// `Array.prototype.entries( )`
@@ -1135,87 +1183,7 @@ impl Array {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.values
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/values
-    pub(crate) fn entries(
-        this: &Value,
-        _args: &[Value],
-        interpreter: &mut Context,
-    ) -> Result<Value> {
-        ArrayIterator::create_array_iterator(
-            interpreter,
-            this.clone(),
-            ArrayIterationKind::KeyAndValue,
-        )
-    }
-
-    /// Initialise the `Array` object on the global object.
-    #[inline]
-    pub(crate) fn init(interpreter: &mut Context) -> (&'static str, Value) {
-        let global = interpreter.global_object();
-        let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
-
-        // Create prototype
-        let prototype = Value::new_object(Some(global));
-        let length = Property::default().value(Value::from(0));
-
-        prototype.set_property("length", length);
-
-        make_builtin_fn(Self::concat, "concat", &prototype, 1, interpreter);
-        make_builtin_fn(Self::push, "push", &prototype, 1, interpreter);
-        make_builtin_fn(Self::index_of, "indexOf", &prototype, 1, interpreter);
-        make_builtin_fn(
-            Self::last_index_of,
-            "lastIndexOf",
-            &prototype,
-            1,
-            interpreter,
-        );
-        make_builtin_fn(Self::includes_value, "includes", &prototype, 1, interpreter);
-        make_builtin_fn(Self::map, "map", &prototype, 1, interpreter);
-        make_builtin_fn(Self::fill, "fill", &prototype, 1, interpreter);
-        make_builtin_fn(Self::for_each, "forEach", &prototype, 1, interpreter);
-        make_builtin_fn(Self::filter, "filter", &prototype, 1, interpreter);
-        make_builtin_fn(Self::pop, "pop", &prototype, 0, interpreter);
-        make_builtin_fn(Self::join, "join", &prototype, 1, interpreter);
-        make_builtin_fn(Self::to_string, "toString", &prototype, 0, interpreter);
-        make_builtin_fn(Self::reverse, "reverse", &prototype, 0, interpreter);
-        make_builtin_fn(Self::shift, "shift", &prototype, 0, interpreter);
-        make_builtin_fn(Self::unshift, "unshift", &prototype, 1, interpreter);
-        make_builtin_fn(Self::every, "every", &prototype, 1, interpreter);
-        make_builtin_fn(Self::find, "find", &prototype, 1, interpreter);
-        make_builtin_fn(Self::find_index, "findIndex", &prototype, 1, interpreter);
-        make_builtin_fn(Self::slice, "slice", &prototype, 2, interpreter);
-        make_builtin_fn(Self::some, "some", &prototype, 2, interpreter);
-        make_builtin_fn(Self::reduce, "reduce", &prototype, 2, interpreter);
-        make_builtin_fn(
-            Self::reduce_right,
-            "reduceRight",
-            &prototype,
-            2,
-            interpreter,
-        );
-        make_builtin_fn(Self::values, "values", &prototype, 0, interpreter);
-        make_builtin_fn(Self::keys, "keys", &prototype, 0, interpreter);
-        make_builtin_fn(Self::entries, "entries", &prototype, 0, interpreter);
-
-        let symbol_iterator = interpreter.well_known_symbols().iterator_symbol();
-        prototype.set_property(
-            symbol_iterator,
-            Property::default().value(prototype.get_field("values")),
-        );
-
-        let array = make_constructor_fn(
-            Self::NAME,
-            Self::LENGTH,
-            Self::make_array,
-            global,
-            prototype,
-            true,
-            true,
-        );
-
-        // Static Methods
-        make_builtin_fn(Self::is_array, "isArray", &array, 1, interpreter);
-
-        (Self::NAME, array)
+    pub(crate) fn entries(this: &Value, _: &[Value], ctx: &mut Context) -> Result<Value> {
+        ArrayIterator::create_array_iterator(ctx, this.clone(), ArrayIterationKind::KeyAndValue)
     }
 }

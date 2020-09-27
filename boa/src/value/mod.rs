@@ -165,7 +165,7 @@ impl Value {
     }
 
     /// Convert from a JSON value to a JS value
-    pub fn from_json(json: JSONValue, interpreter: &mut Context) -> Self {
+    pub fn from_json(json: JSONValue, context: &mut Context) -> Self {
         match json {
             JSONValue::Number(v) => {
                 if let Some(Ok(integer_32)) = v.as_i64().map(i32::try_from) {
@@ -177,18 +177,15 @@ impl Value {
             JSONValue::String(v) => Self::string(v),
             JSONValue::Bool(v) => Self::boolean(v),
             JSONValue::Array(vs) => {
-                let global_array_prototype = interpreter
-                    .global_object()
-                    .get_field("Array")
-                    .get_field(PROTOTYPE);
-                let new_obj_obj = Object::with_prototype(global_array_prototype, ObjectData::Array);
-                let new_obj = Value::object(new_obj_obj);
+                let array_prototype = context.standard_objects().array_object().prototype();
+                let new_obj: Value =
+                    Object::with_prototype(array_prototype.into(), ObjectData::Array).into();
                 let length = vs.len();
                 for (idx, json) in vs.into_iter().enumerate() {
                     new_obj.set_property(
                         idx.to_string(),
                         Property::data_descriptor(
-                            Self::from_json(json, interpreter),
+                            Self::from_json(json, context),
                             Attribute::WRITABLE | Attribute::ENUMERABLE | Attribute::CONFIGURABLE,
                         ),
                     );
@@ -200,9 +197,9 @@ impl Value {
                 new_obj
             }
             JSONValue::Object(obj) => {
-                let new_obj = Value::new_object(Some(interpreter.global_object()));
+                let new_obj = Value::new_object(Some(context.global_object()));
                 for (key, json) in obj.into_iter() {
-                    let value = Self::from_json(json, interpreter);
+                    let value = Self::from_json(json, context);
                     new_obj.set_property(
                         key,
                         Property::data_descriptor(
@@ -498,7 +495,7 @@ impl Value {
         let _timer = BoaProfiler::global().start_event("Value::update_property", "value");
 
         if let Some(ref mut object) = self.as_object_mut() {
-            object.insert_property(field, new_property);
+            object.insert(field, new_property);
         }
     }
 
@@ -584,7 +581,7 @@ impl Value {
         K: Into<PropertyKey>,
     {
         if let Some(mut object) = self.as_object_mut() {
-            object.insert_property(key.into(), property.clone());
+            object.insert(key.into(), property.clone());
         }
         property
     }
@@ -691,81 +688,48 @@ impl Value {
                 Err(ctx.construct_type_error("cannot convert 'null' or 'undefined' to object"))
             }
             Value::Boolean(boolean) => {
-                let proto = ctx
-                    .realm()
-                    .environment
-                    .get_binding_value("Boolean")
-                    .expect("Boolean was not initialized")
-                    .get_field(PROTOTYPE);
-
+                let prototype = ctx.standard_objects().boolean_object().prototype();
                 Ok(GcObject::new(Object::with_prototype(
-                    proto,
+                    prototype.into(),
                     ObjectData::Boolean(*boolean),
                 )))
             }
             Value::Integer(integer) => {
-                let proto = ctx
-                    .realm()
-                    .environment
-                    .get_binding_value("Number")
-                    .expect("Number was not initialized")
-                    .get_field(PROTOTYPE);
+                let prototype = ctx.standard_objects().number_object().prototype();
                 Ok(GcObject::new(Object::with_prototype(
-                    proto,
+                    prototype.into(),
                     ObjectData::Number(f64::from(*integer)),
                 )))
             }
             Value::Rational(rational) => {
-                let proto = ctx
-                    .realm()
-                    .environment
-                    .get_binding_value("Number")
-                    .expect("Number was not initialized")
-                    .get_field(PROTOTYPE);
-
+                let prototype = ctx.standard_objects().number_object().prototype();
                 Ok(GcObject::new(Object::with_prototype(
-                    proto,
+                    prototype.into(),
                     ObjectData::Number(*rational),
                 )))
             }
             Value::String(ref string) => {
-                let proto = ctx
-                    .realm()
-                    .environment
-                    .get_binding_value("String")
-                    .expect("String was not initialized")
-                    .get_field(PROTOTYPE);
+                let prototype = ctx.standard_objects().string_object().prototype();
 
-                let mut obj = Object::with_prototype(proto, ObjectData::String(string.clone()));
+                let mut object =
+                    Object::with_prototype(prototype.into(), ObjectData::String(string.clone()));
                 // Make sure the correct length is set on our new string object
-                obj.set("length".into(), string.chars().count().into());
-                Ok(GcObject::new(obj))
+                object.set("length".into(), string.chars().count().into());
+                Ok(GcObject::new(object))
             }
             Value::Symbol(ref symbol) => {
-                let proto = ctx
-                    .realm()
-                    .environment
-                    .get_binding_value("Symbol")
-                    .expect("Symbol was not initialized")
-                    .get_field(PROTOTYPE);
-
+                let prototype = ctx.standard_objects().symbol_object().prototype();
                 Ok(GcObject::new(Object::with_prototype(
-                    proto,
+                    prototype.into(),
                     ObjectData::Symbol(symbol.clone()),
                 )))
             }
             Value::BigInt(ref bigint) => {
-                let proto = ctx
-                    .realm()
-                    .environment
-                    .get_binding_value("BigInt")
-                    .expect("BigInt was not initialized")
-                    .get_field(PROTOTYPE);
-                let bigint_obj = GcObject::new(Object::with_prototype(
-                    proto,
+                let prototype = ctx.standard_objects().bigint_object().prototype();
+                Ok(GcObject::new(Object::with_prototype(
+                    prototype.into(),
                     ObjectData::BigInt(bigint.clone()),
-                ));
-                Ok(bigint_obj)
+                )))
             }
             Value::Object(gcobject) => Ok(gcobject.clone()),
         }
