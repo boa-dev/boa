@@ -2,7 +2,7 @@ use crate::{
     builtins::string::string_iterator::StringIterator,
     builtins::ArrayIterator,
     object::{GcObject, ObjectInitializer},
-    property::Property,
+    property::{Attribute, DataDescriptor},
     BoaProfiler, Context, Result, Value,
 };
 
@@ -47,8 +47,9 @@ impl IteratorPrototypes {
 /// Generates an object supporting the IteratorResult interface.
 pub fn create_iter_result_object(ctx: &mut Context, value: Value, done: bool) -> Value {
     let object = Value::new_object(Some(ctx.global_object()));
-    let value_property = Property::default().value(value);
-    let done_property = Property::default().value(Value::boolean(done));
+    // TODO: Fix attributes of value and done
+    let value_property = DataDescriptor::new(value, Attribute::all());
+    let done_property = DataDescriptor::new(done, Attribute::all());
     object.set_property("value", value_property);
     object.set_property("done", done_property);
     object

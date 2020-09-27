@@ -10,7 +10,7 @@ use crate::{
     class::{Class, ClassBuilder},
     exec::Interpreter,
     object::{GcObject, Object, ObjectData, PROTOTYPE},
-    property::{Property, PropertyKey},
+    property::{DataDescriptor, PropertyKey},
     realm::Realm,
     syntax::{
         ast::{
@@ -608,7 +608,7 @@ impl Context {
         T::init(&mut class_builder)?;
 
         let class = class_builder.build();
-        let property = Property::data_descriptor(class.into(), T::ATTRIBUTE);
+        let property = DataDescriptor::new(class, T::ATTRIBUTE);
         self.global_object()
             .as_object_mut()
             .unwrap()

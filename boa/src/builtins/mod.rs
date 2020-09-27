@@ -43,7 +43,7 @@ pub(crate) use self::{
     undefined::Undefined,
 };
 use crate::{
-    property::{Attribute, Property},
+    property::{Attribute, DataDescriptor},
     Context, Value,
 };
 
@@ -96,7 +96,7 @@ pub fn init(context: &mut Context) {
 
     for init in &globals {
         let (name, value, attribute) = init(context);
-        let property = Property::data_descriptor(value, attribute);
+        let property = DataDescriptor::new(value, attribute);
         global_object.borrow_mut().insert(name, property);
     }
 }

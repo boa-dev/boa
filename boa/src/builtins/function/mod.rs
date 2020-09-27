@@ -15,7 +15,7 @@ use crate::{
     builtins::{Array, BuiltIn},
     environment::lexical_environment::Environment,
     object::{ConstructorBuilder, FunctionBuilder, Object, ObjectData, PROTOTYPE},
-    property::{Attribute, Property},
+    property::{Attribute, DataDescriptor},
     syntax::ast::node::{FormalParameter, RcStatementList},
     BoaProfiler, Context, Result, Value,
 };
@@ -174,16 +174,16 @@ pub fn create_unmapped_arguments_object(arguments_list: &[Value]) -> Value {
     let len = arguments_list.len();
     let mut obj = Object::default();
     // Set length
-    let length = Property::data_descriptor(
-        len.into(),
+    let length = DataDescriptor::new(
+        len,
         Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::PERMANENT,
     );
     // Define length as a property
-    obj.define_own_property("length", length);
+    obj.define_own_property("length", length.into());
     let mut index: usize = 0;
     while index < len {
         let val = arguments_list.get(index).expect("Could not get argument");
-        let prop = Property::data_descriptor(
+        let prop = DataDescriptor::new(
             val.clone(),
             Attribute::WRITABLE | Attribute::ENUMERABLE | Attribute::CONFIGURABLE,
         );
@@ -222,14 +222,14 @@ pub fn make_constructor_fn(
     let mut constructor =
         Object::function(function, global.get_field("Function").get_field(PROTOTYPE));
 
-    let length = Property::data_descriptor(
-        length.into(),
+    let length = DataDescriptor::new(
+        length,
         Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT,
     );
     constructor.insert("length", length);
 
-    let name = Property::data_descriptor(
-        name.into(),
+    let name = DataDescriptor::new(
+        name,
         Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT,
     );
     constructor.insert("name", name);

@@ -16,7 +16,7 @@
 use crate::{
     builtins::BuiltIn,
     object::ObjectInitializer,
-    property::{Attribute, Property, PropertyKey},
+    property::{Attribute, DataDescriptor, PropertyKey},
     BoaProfiler, Context, Result, Value,
 };
 use serde_json::{self, Value as JSONValue};
@@ -160,11 +160,14 @@ impl Json {
                         let this_arg = object.clone();
                         object_to_return.set_property(
                             key.to_owned(),
-                            Property::default().value(ctx.call(
-                                replacer,
-                                &this_arg,
-                                &[Value::from(key.clone()), val.clone()],
-                            )?),
+                            DataDescriptor::new(
+                                ctx.call(
+                                    replacer,
+                                    &this_arg,
+                                    &[Value::from(key.clone()), val.clone()],
+                                )?,
+                                Attribute::all(),
+                            ),
                         );
                     }
                     Ok(Value::from(object_to_return.to_json(ctx)?.to_string()))

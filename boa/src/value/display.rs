@@ -94,6 +94,8 @@ pub(crate) fn log_string_from(x: &Value, print_internals: bool, print_children: 
                     let len = v
                         .borrow()
                         .get_own_property(&PropertyKey::from("length"))
+                        // TODO: do this in a better way `unwrap`
+                        .unwrap()
                         .value
                         .clone()
                         .expect("Could not borrow value")
@@ -112,6 +114,8 @@ pub(crate) fn log_string_from(x: &Value, print_internals: bool, print_children: 
                                 log_string_from(
                                     &v.borrow()
                                         .get_own_property(&i.into())
+                                        // TODO: do this in a better way "unwrap"
+                                        .unwrap()
                                         .value
                                         .clone()
                                         .expect("Could not borrow value"),
@@ -131,6 +135,8 @@ pub(crate) fn log_string_from(x: &Value, print_internals: bool, print_children: 
                     let size = v
                         .borrow()
                         .get_own_property(&PropertyKey::from("size"))
+                        // TODO: do this in a better way "unwrap"
+                        .unwrap()
                         .value
                         .clone()
                         .expect("Could not borrow value")

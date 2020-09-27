@@ -11,7 +11,7 @@ use crate::{
         environment_record_trait::EnvironmentRecordTrait,
         lexical_environment::{Environment, EnvironmentType},
     },
-    property::{Attribute, Property},
+    property::{Attribute, DataDescriptor},
     Value,
 };
 use gc::{Finalize, Trace};
@@ -39,7 +39,7 @@ impl EnvironmentRecordTrait for ObjectEnvironmentRecord {
         // TODO: could save time here and not bother generating a new undefined object,
         // only for it to be replace with the real value later. We could just add the name to a Vector instead
         let bindings = &mut self.bindings;
-        let mut prop = Property::data_descriptor(
+        let mut prop = DataDescriptor::new(
             Value::undefined(),
             Attribute::WRITABLE | Attribute::ENUMERABLE,
         );
@@ -63,7 +63,7 @@ impl EnvironmentRecordTrait for ObjectEnvironmentRecord {
     fn set_mutable_binding(&mut self, name: &str, value: Value, strict: bool) {
         debug_assert!(value.is_object() || value.is_function());
 
-        let mut property = Property::data_descriptor(value, Attribute::ENUMERABLE);
+        let mut property = DataDescriptor::new(value, Attribute::ENUMERABLE);
         property.set_configurable(strict);
         self.bindings.update_property(name, property);
     }

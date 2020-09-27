@@ -14,7 +14,7 @@ use crate::{
         lexical_environment::{Environment, EnvironmentType},
         object_environment_record::ObjectEnvironmentRecord,
     },
-    property::{Attribute, Property},
+    property::{Attribute, DataDescriptor},
     Value,
 };
 use gc::{Finalize, Trace};
@@ -71,16 +71,16 @@ impl GlobalEnvironmentRecord {
         let global_object = &mut self.object_record.bindings;
         let existing_prop = global_object.get_property(name);
         if let Some(prop) = existing_prop {
-            if prop.value.is_none() || prop.configurable_or(false) {
+            if prop.value.is_none() || prop.configurable() {
                 let mut property =
-                    Property::data_descriptor(value, Attribute::WRITABLE | Attribute::ENUMERABLE);
+                    DataDescriptor::new(value, Attribute::WRITABLE | Attribute::ENUMERABLE);
                 property.set_configurable(deletion);
 
                 global_object.update_property(name, property);
             }
         } else {
             let mut property =
-                Property::data_descriptor(value, Attribute::WRITABLE | Attribute::ENUMERABLE);
+                DataDescriptor::new(value, Attribute::WRITABLE | Attribute::ENUMERABLE);
             property.set_configurable(deletion);
 
             global_object.update_property(name, property);

@@ -1,7 +1,7 @@
 use crate::{
     builtins::{function::make_builtin_fn, iterable::create_iter_result_object, Array, Value},
     object::ObjectData,
-    property::{Attribute, Property},
+    property::{Attribute, DataDescriptor},
     BoaProfiler, Context, Result,
 };
 use gc::{Finalize, Trace};
@@ -131,8 +131,7 @@ impl ArrayIterator {
             .set_prototype_instance(iterator_prototype);
 
         let to_string_tag = ctx.well_known_symbols().to_string_tag_symbol();
-        let to_string_tag_property =
-            Property::data_descriptor(Value::string("Array Iterator"), Attribute::CONFIGURABLE);
+        let to_string_tag_property = DataDescriptor::new("Array Iterator", Attribute::CONFIGURABLE);
         array_iterator.set_property(to_string_tag, to_string_tag_property);
         array_iterator
     }
