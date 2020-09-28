@@ -1735,10 +1735,10 @@
                     .<span class="ident">expect</span>(<span class="string">&quot;String was not initialized&quot;</span>)
                     .<span class="ident">get_field</span>(<span class="ident">PROTOTYPE</span>);
 
-                <span class="prelude-val">Ok</span>(<span class="ident">GcObject</span>::<span class="ident">new</span>(<span class="ident">Object</span>::<span class="ident">with_prototype</span>(
-                    <span class="ident">proto</span>,
-                    <span class="ident">ObjectData</span>::<span class="ident">String</span>(<span class="ident">string</span>.<span class="ident">clone</span>()),
-                )))
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">Object</span>::<span class="ident">with_prototype</span>(<span class="ident">proto</span>, <span class="ident">ObjectData</span>::<span class="ident">String</span>(<span class="ident">string</span>.<span class="ident">clone</span>()));
+                <span class="comment">// Make sure the correct length is set on our new string object</span>
+                <span class="ident">obj</span>.<span class="ident">set</span>(<span class="string">&quot;length&quot;</span>.<span class="ident">into</span>(), <span class="ident">string</span>.<span class="ident">chars</span>().<span class="ident">count</span>().<span class="ident">into</span>());
+                <span class="prelude-val">Ok</span>(<span class="ident">GcObject</span>::<span class="ident">new</span>(<span class="ident">obj</span>))
             }
             <span class="ident">Value</span>::<span class="ident">Symbol</span>(<span class="kw-2">ref</span> <span class="ident">symbol</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">let</span> <span class="ident">proto</span> <span class="op">=</span> <span class="ident">ctx</span>
