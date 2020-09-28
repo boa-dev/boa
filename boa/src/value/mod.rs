@@ -715,7 +715,7 @@ impl Value {
 
                 let mut obj = Object::with_prototype(proto, ObjectData::String(string.clone()));
                 // Make sure the correct length is set on our new string object
-                obj.set(PropertyKey::from("length"), string.len().into());
+                obj.set(PropertyKey::from("length"), string.chars().count().into());
                 Ok(GcObject::new(obj))
             }
             Value::Symbol(ref symbol) => {
