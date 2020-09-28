@@ -14,6 +14,7 @@ mod declaration;
 mod expression;
 mod if_stm;
 mod iteration;
+mod labelled_stm;
 mod return_stm;
 mod switch;
 mod throw;
@@ -37,11 +38,12 @@ use self::{
 
 use super::{AllowAwait, AllowReturn, AllowYield, Cursor, ParseError, TokenParser};
 
-use crate::syntax::lexer::TokenKind;
+use crate::syntax::lexer::{InputElement, TokenKind};
 use crate::{
     syntax::ast::{node, Keyword, Node, Punctuator},
     BoaProfiler,
 };
+use labelled_stm::LabelledStatement;
 
 use std::io::Read;
 
@@ -170,7 +172,28 @@ where
                     .parse(cursor)
                     .map(Node::from)
             }
-            // TODO: https://tc39.es/ecma262/#prod-LabelledStatement
+            TokenKind::Identifier(_) => {
+                // Labelled Statement check
+                cursor.set_goal(InputElement::Div);
+                let tok = cursor.peek(1)?;
+                if tok.is_some()
+                    && matches!(
+                        tok.unwrap().kind(),
+                        TokenKind::Punctuator(Punctuator::Colon)
+                    )
+                {
+                    return LabelledStatement::new(
+                        self.allow_yield,
+                        self.allow_await,
+                        self.allow_return,
+                    )
+                    .parse(cursor)
+                    .map(Node::from);
+                }
+
+                ExpressionStatement::new(self.allow_yield, self.allow_await).parse(cursor)
+            }
+
             _ => ExpressionStatement::new(self.allow_yield, self.allow_await).parse(cursor),
         }
     }
@@ -367,7 +390,7 @@ where
 ///  - [ECMAScript specification][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-LabelIdentifier
-type LabelIdentifier = BindingIdentifier;
+pub(super) type LabelIdentifier = BindingIdentifier;
 
 /// Binding identifier parsing.
 ///

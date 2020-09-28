@@ -11,6 +11,6 @@ fn check_post_state() {
 
     assert_eq!(
         engine.executor().get_current_state(),
-        &InterpreterState::Break(Some("label".to_string()))
+        &InterpreterState::Break(Some("label".into()))
     );
 }

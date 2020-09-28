@@ -59,7 +59,7 @@ fn for_loop_return() {
             }
         }
     }
-      
+
     foo();
     "#;
 
@@ -190,4 +190,39 @@ fn do_while_loop_continue() {
         [a, b]
     "#;
     assert_eq!(&exec(scenario), "[ 1, 2 ]");
+}
+
+#[test]
+fn for_loop_break_label() {
+    let scenario = r#"
+        var str = "";
+
+        outer: for (let i = 0; i < 5; i++) {
+            inner: for (let b = 0; b < 5; b++) {
+                if (b === 2) {
+                break outer;
+                }
+                str = str + b;
+            }
+            str = str + i;
+        }
+        str
+    "#;
+    assert_eq!(&exec(scenario), "\"01\"")
+}
+
+#[test]
+fn for_loop_continue_label() {
+    let scenario = r#"
+    var count = 0;
+    label: for (let x = 0; x < 10;) {
+        while (true) {
+            x++;
+            count++;
+            continue label;
+        }
+    }
+    count
+    "#;
+    assert_eq!(&exec(scenario), "10");
 }

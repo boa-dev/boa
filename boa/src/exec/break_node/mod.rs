@@ -11,7 +11,7 @@ impl Executable for Break {
     fn run(&self, interpreter: &mut Context) -> Result<Value> {
         interpreter
             .executor()
-            .set_current_state(InterpreterState::Break(self.label().map(String::from)));
+            .set_current_state(InterpreterState::Break(self.label().map(Box::from)));
 
         Ok(Value::undefined())
     }
@@ -21,7 +21,7 @@ impl Executable for Continue {
     fn run(&self, interpreter: &mut Context) -> Result<Value> {
         interpreter
             .executor()
-            .set_current_state(InterpreterState::Continue(self.label().map(String::from)));
+            .set_current_state(InterpreterState::Continue(self.label().map(Box::from)));
 
         Ok(Value::undefined())
     }
