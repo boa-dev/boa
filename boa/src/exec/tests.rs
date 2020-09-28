@@ -34,6 +34,15 @@ fn property_accessor_member_expression_bracket_notation_on_string_literal() {
 }
 
 #[test]
+fn length_correct_value_on_string_literal() {
+    let scenario = r#"
+    'hello'.length;
+    "#;
+
+    assert_eq!(&exec(scenario), "5");
+}
+
+#[test]
 fn property_accessor_member_expression_dot_notation_on_function() {
     let scenario = r#"
         function asd () {};

@@ -713,10 +713,10 @@ impl Value {
                     .expect("String was not initialized")
                     .get_field(PROTOTYPE);
 
-                Ok(GcObject::new(Object::with_prototype(
-                    proto,
-                    ObjectData::String(string.clone()),
-                )))
+                let mut obj = Object::with_prototype(proto, ObjectData::String(string.clone()));
+                // Make sure the correct length is set on our new string object
+                obj.set(PropertyKey::from("length"), string.len().into());
+                Ok(GcObject::new(obj))
             }
             Value::Symbol(ref symbol) => {
                 let proto = ctx
