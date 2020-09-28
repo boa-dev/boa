@@ -162,6 +162,10 @@
 <span id="162">162</span>
 <span id="163">163</span>
 <span id="164">164</span>
+<span id="165">165</span>
+<span id="166">166</span>
+<span id="167">167</span>
+<span id="168">168</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Iteration node execution.</span>
 
@@ -174,6 +178,27 @@
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">tests</span>;
+
+<span class="comment">// Checking labels for break and continue is the same operation for `ForLoop`, `While` and `DoWhile`</span>
+<span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">handle_state_with_labels</span> {
+    (<span class="macro-nonterminal">$</span><span class="self">self</span>:<span class="macro-nonterminal">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">label</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">interpreter</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">state</span>:<span class="ident">tt</span>) <span class="op">=</span><span class="op">&gt;</span> {{
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">brk_label</span>) <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">label</span> {
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">stmt_label</span>) <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="self">self</span>.<span class="macro-nonterminal">label</span>() {
+                <span class="comment">// Break from where we are, keeping &quot;continue&quot; set as the state</span>
+                <span class="kw">if</span> <span class="ident">stmt_label</span> <span class="op">!</span><span class="op">=</span> <span class="ident">brk_label</span>.<span class="ident">as_ref</span>() {
+                    <span class="kw">break</span>;
+                }
+            } <span class="kw">else</span> {
+                <span class="comment">// if a label is set but the current block has no label, break</span>
+                <span class="kw">break</span>;
+            }
+        }
+
+        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">interpreter</span>
+            .<span class="ident">executor</span>()
+            .<span class="ident">set_current_state</span>(<span class="ident">InterpreterState</span>::<span class="ident">Executing</span>);
+    }};
+}
 
 <span class="kw">impl</span> <span class="ident">Executable</span> <span class="kw">for</span> <span class="ident">ForLoop</span> {
     <span class="kw">fn</span> <span class="ident">run</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">interpreter</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
@@ -199,22 +224,14 @@
             <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">body</span>().<span class="ident">run</span>(<span class="ident">interpreter</span>)<span class="question-mark">?</span>;
 
             <span class="kw">match</span> <span class="ident">interpreter</span>.<span class="ident">executor</span>().<span class="ident">get_current_state</span>() {
-                <span class="ident">InterpreterState</span>::<span class="ident">Break</span>(<span class="ident">_label</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                    <span class="comment">// TODO break to label.</span>
-
-                    <span class="comment">// Loops &#39;consume&#39; breaks.</span>
-                    <span class="ident">interpreter</span>
-                        .<span class="ident">executor</span>()
-                        .<span class="ident">set_current_state</span>(<span class="ident">InterpreterState</span>::<span class="ident">Executing</span>);
+                <span class="ident">InterpreterState</span>::<span class="ident">Break</span>(<span class="ident">label</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="macro">handle_state_with_labels</span><span class="macro">!</span>(<span class="self">self</span>, <span class="ident">label</span>, <span class="ident">interpreter</span>, <span class="kw">break</span>);
                     <span class="kw">break</span>;
                 }
-                <span class="ident">InterpreterState</span>::<span class="ident">Continue</span>(<span class="ident">_label</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                    <span class="comment">// TODO continue to label.</span>
-                    <span class="ident">interpreter</span>
-                        .<span class="ident">executor</span>()
-                        .<span class="ident">set_current_state</span>(<span class="ident">InterpreterState</span>::<span class="ident">Executing</span>);
-                    <span class="comment">// after breaking out of the block, continue execution of the loop</span>
+                <span class="ident">InterpreterState</span>::<span class="ident">Continue</span>(<span class="ident">label</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="macro">handle_state_with_labels</span><span class="macro">!</span>(<span class="self">self</span>, <span class="ident">label</span>, <span class="ident">interpreter</span>, <span class="kw">continue</span>);
                 }
+
                 <span class="ident">InterpreterState</span>::<span class="ident">Return</span> <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">result</span>);
                 }
@@ -241,21 +258,12 @@
         <span class="kw">while</span> <span class="self">self</span>.<span class="ident">cond</span>().<span class="ident">run</span>(<span class="ident">interpreter</span>)<span class="question-mark">?</span>.<span class="ident">to_boolean</span>() {
             <span class="ident">result</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">expr</span>().<span class="ident">run</span>(<span class="ident">interpreter</span>)<span class="question-mark">?</span>;
             <span class="kw">match</span> <span class="ident">interpreter</span>.<span class="ident">executor</span>().<span class="ident">get_current_state</span>() {
-                <span class="ident">InterpreterState</span>::<span class="ident">Break</span>(<span class="ident">_label</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                    <span class="comment">// TODO break to label.</span>
-
-                    <span class="comment">// Loops &#39;consume&#39; breaks.</span>
-                    <span class="ident">interpreter</span>
-                        .<span class="ident">executor</span>()
-                        .<span class="ident">set_current_state</span>(<span class="ident">InterpreterState</span>::<span class="ident">Executing</span>);
+                <span class="ident">InterpreterState</span>::<span class="ident">Break</span>(<span class="ident">label</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="macro">handle_state_with_labels</span><span class="macro">!</span>(<span class="self">self</span>, <span class="ident">label</span>, <span class="ident">interpreter</span>, <span class="kw">break</span>);
                     <span class="kw">break</span>;
                 }
-                <span class="ident">InterpreterState</span>::<span class="ident">Continue</span>(<span class="ident">_label</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                    <span class="comment">// TODO continue to label.</span>
-                    <span class="ident">interpreter</span>
-                        .<span class="ident">executor</span>()
-                        .<span class="ident">set_current_state</span>(<span class="ident">InterpreterState</span>::<span class="ident">Executing</span>);
-                    <span class="comment">// after breaking out of the block, continue execution of the loop</span>
+                <span class="ident">InterpreterState</span>::<span class="ident">Continue</span>(<span class="ident">label</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="macro">handle_state_with_labels</span><span class="macro">!</span>(<span class="self">self</span>, <span class="ident">label</span>, <span class="ident">interpreter</span>, <span class="kw">continue</span>)
                 }
                 <span class="ident">InterpreterState</span>::<span class="ident">Return</span> <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">result</span>);

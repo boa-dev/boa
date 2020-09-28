@@ -309,6 +309,28 @@
 <span id="309">309</span>
 <span id="310">310</span>
 <span id="311">311</span>
+<span id="312">312</span>
+<span id="313">313</span>
+<span id="314">314</span>
+<span id="315">315</span>
+<span id="316">316</span>
+<span id="317">317</span>
+<span id="318">318</span>
+<span id="319">319</span>
+<span id="320">320</span>
+<span id="321">321</span>
+<span id="322">322</span>
+<span id="323">323</span>
+<span id="324">324</span>
+<span id="325">325</span>
+<span id="326">326</span>
+<span id="327">327</span>
+<span id="328">328</span>
+<span id="329">329</span>
+<span id="330">330</span>
+<span id="331">331</span>
+<span id="332">332</span>
+<span id="333">333</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">super</span>::<span class="ident">Node</span>;
 <span class="kw">use</span> <span class="ident">gc</span>::{<span class="ident">Finalize</span>, <span class="ident">Trace</span>};
@@ -333,6 +355,7 @@
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ForLoop</span> {
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde&quot;</span>, <span class="ident">serde</span>(<span class="ident">flatten</span>))]</span>
     <span class="ident">inner</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">InnerForLoop</span><span class="op">&gt;</span>,
+    <span class="ident">label</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">ForLoop</span> {
@@ -346,6 +369,7 @@
     {
         <span class="self">Self</span> {
             <span class="ident">inner</span>: <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">InnerForLoop</span>::<span class="ident">new</span>(<span class="ident">init</span>, <span class="ident">condition</span>, <span class="ident">final_expr</span>, <span class="ident">body</span>)),
+            <span class="ident">label</span>: <span class="prelude-val">None</span>,
         }
     }
 
@@ -387,6 +411,14 @@
         <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">body</span>().<span class="ident">display</span>(<span class="ident">f</span>, <span class="ident">indentation</span> <span class="op">+</span> <span class="number">1</span>)<span class="question-mark">?</span>;
 
         <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;}}&quot;</span>)
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">label</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span> {
+        <span class="self">self</span>.<span class="ident">label</span>.<span class="ident">as_ref</span>().<span class="ident">map</span>(<span class="ident">Box</span>::<span class="ident">as_ref</span>)
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_label</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">label</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span>) {
+        <span class="self">self</span>.<span class="ident">label</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">label</span>);
     }
 }
 
@@ -466,6 +498,7 @@
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">WhileLoop</span> {
     <span class="ident">cond</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&gt;</span>,
     <span class="ident">expr</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&gt;</span>,
+    <span class="ident">label</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">WhileLoop</span> {
@@ -477,6 +510,10 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">expr</span>
     }
 
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">label</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span> {
+        <span class="self">self</span>.<span class="ident">label</span>.<span class="ident">as_ref</span>().<span class="ident">map</span>(<span class="ident">Box</span>::<span class="ident">as_ref</span>)
+    }
+
     <span class="doccomment">/// Creates a `WhileLoop` AST node.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">C</span>, <span class="ident">B</span><span class="op">&gt;</span>(<span class="ident">condition</span>: <span class="ident">C</span>, <span class="ident">body</span>: <span class="ident">B</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>
     <span class="kw">where</span>
@@ -486,6 +523,7 @@
         <span class="self">Self</span> {
             <span class="ident">cond</span>: <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">condition</span>.<span class="ident">into</span>()),
             <span class="ident">expr</span>: <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">body</span>.<span class="ident">into</span>()),
+            <span class="ident">label</span>: <span class="prelude-val">None</span>,
         }
     }
 
@@ -524,6 +562,7 @@
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">DoWhileLoop</span> {
     <span class="ident">body</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&gt;</span>,
     <span class="ident">cond</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&gt;</span>,
+    <span class="ident">label</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">DoWhileLoop</span> {
@@ -535,6 +574,10 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">cond</span>
     }
 
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">label</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span> {
+        <span class="self">self</span>.<span class="ident">label</span>.<span class="ident">as_ref</span>().<span class="ident">map</span>(<span class="ident">Box</span>::<span class="ident">as_ref</span>)
+    }
+
     <span class="doccomment">/// Creates a `DoWhileLoop` AST node.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">B</span>, <span class="ident">C</span><span class="op">&gt;</span>(<span class="ident">body</span>: <span class="ident">B</span>, <span class="ident">condition</span>: <span class="ident">C</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>
     <span class="kw">where</span>
@@ -544,6 +587,7 @@
         <span class="self">Self</span> {
             <span class="ident">body</span>: <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">body</span>.<span class="ident">into</span>()),
             <span class="ident">cond</span>: <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">condition</span>.<span class="ident">into</span>()),
+            <span class="ident">label</span>: <span class="prelude-val">None</span>,
         }
     }
 
