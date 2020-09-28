@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/chrono-0.4.15/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../chrono/index.html'><div class='logo-container'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/chrono-0.4.18/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../chrono/index.html'><div class='logo-container'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
 <span id="3">   3</span>
 <span id="4">   4</span>
@@ -1516,6 +1516,23 @@
 <span id="1516">1516</span>
 <span id="1517">1517</span>
 <span id="1518">1518</span>
+<span id="1519">1519</span>
+<span id="1520">1520</span>
+<span id="1521">1521</span>
+<span id="1522">1522</span>
+<span id="1523">1523</span>
+<span id="1524">1524</span>
+<span id="1525">1525</span>
+<span id="1526">1526</span>
+<span id="1527">1527</span>
+<span id="1528">1528</span>
+<span id="1529">1529</span>
+<span id="1530">1530</span>
+<span id="1531">1531</span>
+<span id="1532">1532</span>
+<span id="1533">1533</span>
+<span id="1534">1534</span>
+<span id="1535">1535</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// This is a part of Chrono.</span>
 <span class="comment">// See README.md and LICENSE.txt for details.</span>
@@ -1583,14 +1600,21 @@
 <span class="doccomment">//!</span>
 <span class="doccomment">//! ### Duration</span>
 <span class="doccomment">//!</span>
-<span class="doccomment">//! Chrono currently uses</span>
-<span class="doccomment">//! the [`time::Duration`](https://docs.rs/time/0.1.40/time/struct.Duration.html) type</span>
-<span class="doccomment">//! from the `time` crate to represent the magnitude of a time span.</span>
-<span class="doccomment">//! Since this has the same name as the newer, standard type for duration,</span>
-<span class="doccomment">//! the reference will refer this type as `OldDuration`.</span>
+<span class="doccomment">//! Chrono currently uses its own [`Duration`] type to represent the magnitude</span>
+<span class="doccomment">//! of a time span. Since this has the same name as the newer, standard type for</span>
+<span class="doccomment">//! duration, the reference will refer this type as `OldDuration`.</span>
+<span class="doccomment">//!</span>
 <span class="doccomment">//! Note that this is an &quot;accurate&quot; duration represented as seconds and</span>
 <span class="doccomment">//! nanoseconds and does not represent &quot;nominal&quot; components such as days or</span>
 <span class="doccomment">//! months.</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! When the `oldtime` feature is enabled, [`Duration`] is an alias for the</span>
+<span class="doccomment">//! [`time::Duration`](https://docs.rs/time/0.1.40/time/struct.Duration.html)</span>
+<span class="doccomment">//! type from v0.1 of the time crate. time v0.1 is deprecated, so new code</span>
+<span class="doccomment">//! should disable the `oldtime` feature and use the `chrono::Duration` type</span>
+<span class="doccomment">//! instead. The `oldtime` feature is enabled by default for backwards</span>
+<span class="doccomment">//! compatibility, but future versions of Chrono are likely to remove the</span>
+<span class="doccomment">//! feature entirely.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! Chrono does not yet natively support</span>
 <span class="doccomment">//! the standard [`Duration`](https://doc.rust-lang.org/std/time/struct.Duration.html) type,</span>
@@ -1686,11 +1710,10 @@
 <span class="doccomment">//!</span>
 <span class="doccomment">//! ```rust</span>
 <span class="doccomment">//! # extern crate chrono;</span>
-<span class="doccomment">//! extern crate time;</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! # fn main() {</span>
 <span class="doccomment">//! use chrono::prelude::*;</span>
-<span class="doccomment">//! use time::Duration;</span>
+<span class="doccomment">//! use chrono::Duration;</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! // assume this returned `2014-11-28T21:45:59.324310806+09:00`:</span>
 <span class="doccomment">//! let dt = FixedOffset::east(9*3600).ymd(2014, 11, 28).and_hms_nano(21, 45, 59, 324310806);</span>
@@ -1957,10 +1980,21 @@
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>, <span class="ident">test</span>))]</span>
 <span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">std</span> <span class="kw">as</span> <span class="ident">core</span>;
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clock&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;oldtime&quot;</span>)]</span>
 <span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">time</span> <span class="kw">as</span> <span class="ident">oldtime</span>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clock&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;oldtime&quot;</span>))]</span>
 <span class="kw">mod</span> <span class="ident">oldtime</span>;
+
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clock&quot;</span>)]</span>
+<span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">libc</span>;
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clock&quot;</span>, <span class="ident">windows</span>))]</span>
+<span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">winapi</span>;
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(
+    <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clock&quot;</span>,
+    <span class="ident">not</span>(<span class="ident">all</span>(<span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;wasm32&quot;</span>, <span class="ident">not</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;wasi&quot;</span>), <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;wasmbind&quot;</span>))
+))]</span>
+<span class="kw">mod</span> <span class="ident">sys</span>;
+
 <span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">num_integer</span>;
 <span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">num_traits</span>;
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;rustc-serialize&quot;</span>)]</span>

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/chrono-0.4.15/src/naive/datetime.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>datetime.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css"><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script src="../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="shortcut icon" href="../../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../chrono/index.html'><div class='logo-container'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/chrono-0.4.18/src/naive/datetime.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>datetime.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css"><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script src="../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="shortcut icon" href="../../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../chrono/index.html'><div class='logo-container'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
 <span id="3">   3</span>
 <span id="4">   4</span>
@@ -2505,20 +2505,6 @@
 <span id="2505">2505</span>
 <span id="2506">2506</span>
 <span id="2507">2507</span>
-<span id="2508">2508</span>
-<span id="2509">2509</span>
-<span id="2510">2510</span>
-<span id="2511">2511</span>
-<span id="2512">2512</span>
-<span id="2513">2513</span>
-<span id="2514">2514</span>
-<span id="2515">2515</span>
-<span id="2516">2516</span>
-<span id="2517">2517</span>
-<span id="2518">2518</span>
-<span id="2519">2519</span>
-<span id="2520">2520</span>
-<span id="2521">2521</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// This is a part of Chrono.</span>
 <span class="comment">// See README.md and LICENSE.txt for details.</span>
@@ -2949,9 +2935,8 @@
     <span class="doccomment">/// # Example</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// ~~~~</span>
-    <span class="doccomment">/// # extern crate chrono; extern crate time; fn main() {</span>
-    <span class="doccomment">/// use chrono::NaiveDate;</span>
-    <span class="doccomment">/// use time::Duration;</span>
+    <span class="doccomment">/// # extern crate chrono; fn main() {</span>
+    <span class="doccomment">/// use chrono::{Duration, NaiveDate};</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// let from_ymd = NaiveDate::from_ymd;</span>
     <span class="doccomment">///</span>
@@ -2977,9 +2962,8 @@
     <span class="doccomment">/// Overflow returns `None`.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// ~~~~</span>
-    <span class="doccomment">/// # extern crate chrono; extern crate time; fn main() {</span>
-    <span class="doccomment">/// # use chrono::NaiveDate;</span>
-    <span class="doccomment">/// # use time::Duration;</span>
+    <span class="doccomment">/// # extern crate chrono; fn main() {</span>
+    <span class="doccomment">/// # use chrono::{Duration, NaiveDate};</span>
     <span class="doccomment">/// # let hms = |h, m, s| NaiveDate::from_ymd(2016, 7, 8).and_hms(h, m, s);</span>
     <span class="doccomment">/// assert_eq!(hms(3, 5, 7).checked_add_signed(Duration::days(1_000_000_000)), None);</span>
     <span class="doccomment">/// # }</span>
@@ -2989,9 +2973,8 @@
     <span class="doccomment">/// but the addition assumes that it is the only leap second happened.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// ~~~~</span>
-    <span class="doccomment">/// # extern crate chrono; extern crate time; fn main() {</span>
-    <span class="doccomment">/// # use chrono::NaiveDate;</span>
-    <span class="doccomment">/// # use time::Duration;</span>
+    <span class="doccomment">/// # extern crate chrono; fn main() {</span>
+    <span class="doccomment">/// # use chrono::{Duration, NaiveDate};</span>
     <span class="doccomment">/// # let from_ymd = NaiveDate::from_ymd;</span>
     <span class="doccomment">/// # let hmsm = |h, m, s, milli| from_ymd(2016, 7, 8).and_hms_milli(h, m, s, milli);</span>
     <span class="doccomment">/// let leap = hmsm(3, 5, 59, 1_300);</span>
@@ -3035,9 +3018,8 @@
     <span class="doccomment">/// # Example</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// ~~~~</span>
-    <span class="doccomment">/// # extern crate chrono; extern crate time; fn main() {</span>
-    <span class="doccomment">/// use chrono::NaiveDate;</span>
-    <span class="doccomment">/// use time::Duration;</span>
+    <span class="doccomment">/// # extern crate chrono; fn main() {</span>
+    <span class="doccomment">/// use chrono::{Duration, NaiveDate};</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// let from_ymd = NaiveDate::from_ymd;</span>
     <span class="doccomment">///</span>
@@ -3063,9 +3045,8 @@
     <span class="doccomment">/// Overflow returns `None`.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// ~~~~</span>
-    <span class="doccomment">/// # extern crate chrono; extern crate time; fn main() {</span>
-    <span class="doccomment">/// # use chrono::NaiveDate;</span>
-    <span class="doccomment">/// # use time::Duration;</span>
+    <span class="doccomment">/// # extern crate chrono; fn main() {</span>
+    <span class="doccomment">/// # use chrono::{Duration, NaiveDate};</span>
     <span class="doccomment">/// # let hms = |h, m, s| NaiveDate::from_ymd(2016, 7, 8).and_hms(h, m, s);</span>
     <span class="doccomment">/// assert_eq!(hms(3, 5, 7).checked_sub_signed(Duration::days(1_000_000_000)), None);</span>
     <span class="doccomment">/// # }</span>
@@ -3075,9 +3056,8 @@
     <span class="doccomment">/// but the subtraction assumes that it is the only leap second happened.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// ~~~~</span>
-    <span class="doccomment">/// # extern crate chrono; extern crate time; fn main() {</span>
-    <span class="doccomment">/// # use chrono::NaiveDate;</span>
-    <span class="doccomment">/// # use time::Duration;</span>
+    <span class="doccomment">/// # extern crate chrono; fn main() {</span>
+    <span class="doccomment">/// # use chrono::{Duration, NaiveDate};</span>
     <span class="doccomment">/// # let from_ymd = NaiveDate::from_ymd;</span>
     <span class="doccomment">/// # let hmsm = |h, m, s, milli| from_ymd(2016, 7, 8).and_hms_milli(h, m, s, milli);</span>
     <span class="doccomment">/// let leap = hmsm(3, 5, 59, 1_300);</span>
@@ -3117,9 +3097,8 @@
     <span class="doccomment">/// # Example</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// ~~~~</span>
-    <span class="doccomment">/// # extern crate chrono; extern crate time; fn main() {</span>
-    <span class="doccomment">/// use chrono::NaiveDate;</span>
-    <span class="doccomment">/// use time::Duration;</span>
+    <span class="doccomment">/// # extern crate chrono; fn main() {</span>
+    <span class="doccomment">/// use chrono::{Duration, NaiveDate};</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// let from_ymd = NaiveDate::from_ymd;</span>
     <span class="doccomment">///</span>
@@ -3138,9 +3117,8 @@
     <span class="doccomment">/// there were no other leap seconds happened.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// ~~~~</span>
-    <span class="doccomment">/// # extern crate chrono; extern crate time; fn main() {</span>
-    <span class="doccomment">/// # use chrono::NaiveDate;</span>
-    <span class="doccomment">/// # use time::Duration;</span>
+    <span class="doccomment">/// # extern crate chrono; fn main() {</span>
+    <span class="doccomment">/// # use chrono::{Duration, NaiveDate};</span>
     <span class="doccomment">/// # let from_ymd = NaiveDate::from_ymd;</span>
     <span class="doccomment">/// let leap = from_ymd(2015, 6, 30).and_hms_milli(23, 59, 59, 1_500);</span>
     <span class="doccomment">/// assert_eq!(leap.signed_duration_since(from_ymd(2015, 6, 30).and_hms(23, 0, 0)),</span>
@@ -3739,9 +3717,8 @@
 <span class="doccomment">/// # Example</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// ~~~~</span>
-<span class="doccomment">/// # extern crate chrono; extern crate time; fn main() {</span>
-<span class="doccomment">/// use chrono::NaiveDate;</span>
-<span class="doccomment">/// use time::Duration;</span>
+<span class="doccomment">/// # extern crate chrono; fn main() {</span>
+<span class="doccomment">/// use chrono::{Duration, NaiveDate};</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// let from_ymd = NaiveDate::from_ymd;</span>
 <span class="doccomment">///</span>
@@ -3765,9 +3742,8 @@
 <span class="doccomment">/// but the addition assumes that it is the only leap second happened.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// ~~~~</span>
-<span class="doccomment">/// # extern crate chrono; extern crate time; fn main() {</span>
-<span class="doccomment">/// # use chrono::NaiveDate;</span>
-<span class="doccomment">/// # use time::Duration;</span>
+<span class="doccomment">/// # extern crate chrono; fn main() {</span>
+<span class="doccomment">/// # use chrono::{Duration, NaiveDate};</span>
 <span class="doccomment">/// # let from_ymd = NaiveDate::from_ymd;</span>
 <span class="doccomment">/// # let hmsm = |h, m, s, milli| from_ymd(2016, 7, 8).and_hms_milli(h, m, s, milli);</span>
 <span class="doccomment">/// let leap = hmsm(3, 5, 59, 1_300);</span>
@@ -3811,9 +3787,8 @@
 <span class="doccomment">/// # Example</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// ~~~~</span>
-<span class="doccomment">/// # extern crate chrono; extern crate time; fn main() {</span>
-<span class="doccomment">/// use chrono::NaiveDate;</span>
-<span class="doccomment">/// use time::Duration;</span>
+<span class="doccomment">/// # extern crate chrono; fn main() {</span>
+<span class="doccomment">/// use chrono::{Duration, NaiveDate};</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// let from_ymd = NaiveDate::from_ymd;</span>
 <span class="doccomment">///</span>
@@ -3837,9 +3812,8 @@
 <span class="doccomment">/// but the subtraction assumes that it is the only leap second happened.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// ~~~~</span>
-<span class="doccomment">/// # extern crate chrono; extern crate time; fn main() {</span>
-<span class="doccomment">/// # use chrono::NaiveDate;</span>
-<span class="doccomment">/// # use time::Duration;</span>
+<span class="doccomment">/// # extern crate chrono; fn main() {</span>
+<span class="doccomment">/// # use chrono::{Duration, NaiveDate};</span>
 <span class="doccomment">/// # let from_ymd = NaiveDate::from_ymd;</span>
 <span class="doccomment">/// # let hmsm = |h, m, s, milli| from_ymd(2016, 7, 8).and_hms_milli(h, m, s, milli);</span>
 <span class="doccomment">/// let leap = hmsm(3, 5, 59, 1_300);</span>
@@ -3882,9 +3856,8 @@
 <span class="doccomment">/// # Example</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// ~~~~</span>
-<span class="doccomment">/// # extern crate chrono; extern crate time; fn main() {</span>
-<span class="doccomment">/// use chrono::NaiveDate;</span>
-<span class="doccomment">/// use time::Duration;</span>
+<span class="doccomment">/// # extern crate chrono; fn main() {</span>
+<span class="doccomment">/// use chrono::{Duration, NaiveDate};</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// let from_ymd = NaiveDate::from_ymd;</span>
 <span class="doccomment">///</span>
@@ -3902,9 +3875,8 @@
 <span class="doccomment">/// there were no other leap seconds happened.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// ~~~~</span>
-<span class="doccomment">/// # extern crate chrono; extern crate time; fn main() {</span>
-<span class="doccomment">/// # use chrono::NaiveDate;</span>
-<span class="doccomment">/// # use time::Duration;</span>
+<span class="doccomment">/// # extern crate chrono; fn main() {</span>
+<span class="doccomment">/// # use chrono::{Duration, NaiveDate};</span>
 <span class="doccomment">/// # let from_ymd = NaiveDate::from_ymd;</span>
 <span class="doccomment">/// let leap = from_ymd(2015, 6, 30).and_hms_milli(23, 59, 59, 1_500);</span>
 <span class="doccomment">/// assert_eq!(leap - from_ymd(2015, 6, 30).and_hms(23, 0, 0),</span>
