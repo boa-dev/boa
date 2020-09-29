@@ -2,7 +2,7 @@
 # It is not intended for manual editing.
 [[package]]
 name = "Boa"
-version = "0.9.0"
+version = "0.10.0"
 dependencies = [
  "bitflags",
  "chrono",
@@ -96,7 +96,7 @@ dependencies = [
 
 [[package]]
 name = "boa_cli"
-version = "0.9.0"
+version = "0.10.0"
 dependencies = [
  "Boa",
  "colored",
@@ -111,7 +111,7 @@ dependencies = [
 
 [[package]]
 name = "boa_tester"
-version = "0.9.0"
+version = "0.10.0"
 dependencies = [
  "Boa",
  "bitflags",
@@ -127,7 +127,7 @@ dependencies = [
 
 [[package]]
 name = "boa_wasm"
-version = "0.9.0"
+version = "0.10.0"
 dependencies = [
  "Boa",
  "wasm-bindgen",

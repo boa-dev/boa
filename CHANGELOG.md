@@ -1,5 +1,112 @@
 # CHANGELOG
 
+# 0.10.0 (2020-09-29) - New Lexer & Test 262 Harness
+
+Feature Enhancements:
+
+- [FEATURE #559](https://github.com/boa-dev/boa/pull/559):
+  New Lexer (@Lan2u @HalidOdat @Razican)
+- [FEATURE #567](https://github.com/boa-dev/boa/pull/567):
+  Add ECMAScript test suite (test262) (@Razican)
+- [FEATURE #524](https://github.com/boa-dev/boa/issues/524):
+  Implement remaining `Math` methods (@mr-rodgers)
+- [FEATURE #562](https://github.com/boa-dev/boa/pull/562):
+  Implement remaining `Number` methods (@joshwd36)
+- [FEATURE #536](https://github.com/boa-dev/boa/pull/536):
+  Implement `SyntaxError` (@HalidOdat)
+- [FEATURE #543](https://github.com/boa-dev/boa/pull/543):
+  Implements Object.create builtin method (@croraf)
+- [FEATURE #492](https://github.com/boa-dev/boa/pull/492):
+  Switch to [rustyline](https://github.com/kkawakam/rustyline) for the CLI (@IovoslavIovchev & @Razican)
+- [FEATURE #555](https://github.com/boa-dev/boa/pull/555):
+  Implement Array.prototype.reduce (@benjaminflin)
+- [FEATURE #550](https://github.com/boa-dev/boa/pull/550):
+  Initial implementation of Map() (@HalidOdat)
+- [FEATURE #579](https://github.com/boa-dev/boa/pull/579):
+  Implement Array.prototype.reduceRight (@benjaminflin)
+- [FEATURE #585](https://github.com/boa-dev/boa/issues/585):
+  Implement Well-Known Symbols (@joshwd36)
+- [FEATURE #589](https://github.com/boa-dev/boa/pull/589):
+  Implement the comma operator (@KashParty)
+- [FEATURE #341](https://github.com/boa-dev/boa/issues/341):
+  Ability to create multiline blocks in boa shell (@HalidOdat)
+- [FEATURE #252](https://github.com/boa-dev/boa/issues/252):
+  Implement `Date` (@jcdickinson)
+- [FEATURE #711](https://github.com/boa-dev/boa/pull/711):
+  Add support for >>>= (@arpit-saxena)
+- [FEATURE #549](https://github.com/boa-dev/boa/pull/549):
+  Implement label statements (@jasonwilliams)
+
+Bug Fixes:
+
+- [BUG #405](https://github.com/boa-dev/boa/issues/405):
+  Fix json.stringify symbol handling (@n14little)
+- [BUG #520](https://github.com/boa-dev/boa/pull/520):
+  Fix all `Value` operations and add unsigned shift right (@HalidOdat)
+- [BUG #529](https://github.com/boa-dev/boa/pull/529):
+  Refactor exec/expression into exec/call and exec/new (@croraf)
+- [BUG #510](https://github.com/boa-dev/boa/issues/510):
+  [[Call]] calling an undefined method does not throw (@joshwd36)
+- [BUG #493](https://github.com/boa-dev/boa/pull/493):
+  Use correct exponential representation for rational values (@Tropid)
+- [BUG #572](https://github.com/boa-dev/boa/pull/572):
+  Spec Compliant `Number.prototype.toString()`, better `Number` object formating and `-0` (@HalidOdat)
+- [BUG #599](https://github.com/boa-dev/boa/pull/599):
+  Fixed `String.prototype.indexOf()` bug, when the search string is empty (@HalidOdat)
+- [BUG #615](https://github.com/boa-dev/boa/issues/615):
+  Fix abstract relational comparison operators
+- [BUG #608](https://github.com/boa-dev/boa/issues/608):
+  `Debug::fmt` Causes Causes a Stack Overflow (@jcdickinson)
+- [BUG #532](https://github.com/boa-dev/boa/issues/532)
+  [builtins - Object] Object.getPrototypeOf returning incorrectly (@54k1)
+- [BUG #533](https://github.com/boa-dev/boa/issues/533)
+  [exec - function] function.prototype doesn't have own constructor property pointing to this function (@54k1)
+- [BUG #641](https://github.com/boa-dev/boa/issues/641)
+  Test new_instance_should_point_to_prototype is not checked correctly (@54k1)
+- [BUG #644](https://github.com/boa-dev/boa/issues/644)
+  `undefined` constants panic on execution (@jcdickinson)
+- [BUG #631](https://github.com/boa-dev/boa/issues/631):
+  Unexpected result when applying typeof to undefined value (@jcdickinson)
+- [BUG #610](https://github.com/boa-dev/boa/issues/610):
+  Fix: String.prototype.replace substitutions (@RageKnify)
+- [BUG #667](https://github.com/boa-dev/boa/pull/667):
+  Fix panic when calling function that mutates itself (@dvtkrlbs)
+- [BUG #668](https://github.com/boa-dev/boa/pull/668):
+  Fix clippy on Nightly (@dvtkrlbs)
+
+Internal Improvements:
+
+- [INTERNAL #541](https://github.com/boa-dev/boa/pull/541):
+  Made all `Math` methods spec compliant (@HalidOdat)
+- [INTERNAL #544](https://github.com/boa-dev/boa/pull/544):
+  Removed `console`s dependency of `InternalState` (@HalidOdat)
+- [INTERNAL #556](https://github.com/boa-dev/boa/pull/556):
+  Added benchmark for goal symbol switching (@Razican)
+- [INTERNAL #578](https://github.com/boa-dev/boa/issues/578):
+  Extract `prototype` from internal slots (@HalidOdat)
+- [INTERNAL #553](https://github.com/boa-dev/boa/pull/553):
+  Refactor Property Descriptor flags (@HalidOdat)
+- [INTERNAL #582](https://github.com/boa-dev/boa/pull/582):
+  Make `String.prototype.repeat()` ECMAScript specification compliant (@HalidOdat)
+- [INTERNAL #373](https://github.com/boa-dev/boa/pull/373):
+  Introduce PropertyKey for field acces (@RageKnify)
+- [INTERNAL #592](https://github.com/boa-dev/boa/pull/592):
+  `RegExp` specialization (@HalidOdat)
+- [INTERNAL #597](https://github.com/boa-dev/boa/pull/597):
+  Made `String.prototype.indexOf` spec compliant. (@HalidOdat)
+- [INTERNAL #598](https://github.com/boa-dev/boa/pull/598):
+  Made `String.prototype.lastIndexOf()` spec compliant (@HalidOdat)
+- [INTERNAL #626](https://github.com/boa-dev/boa/pull/626):
+  Refactor `Function` (@HalidOdat @Razican)
+- [INTERNAL #564](https://github.com/boa-dev/boa/issues/564):
+  Add benchmarks for "uglified" JS (@neeldug)
+- [INTERNAL #627](https://github.com/boa-dev/boa/pull/627):
+  Feature native class objects (`NativeObject` and `Class` traits) (@HalidOdat)
+- [INTERNAL #706](https://github.com/boa-dev/boa/pull/706):
+  Cache well known symbols (@HalidOdat)
+- [INTERNAL #723](https://github.com/boa-dev/boa/pull/723):
+  Add fast path for string concatenation (@RageKnify)
+
 # [# 0.9.0 (2020-07-03) - Move to Organisation, 78% faster execution time](https://github.com/boa-dev/boa/compare/v0.8.0...v0.9.0)
 
 Feature Enhancements:
