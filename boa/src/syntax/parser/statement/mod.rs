@@ -40,8 +40,8 @@ use super::{AllowAwait, AllowReturn, AllowYield, Cursor, ParseError, TokenParser
 
 use crate::{
     syntax::{
+        ast::{node, Keyword, Node, Punctuator},
         lexer::{InputElement, TokenKind},
-        ast::{node, Keyword, Node, Punctuator}
     },
     BoaProfiler,
 };
