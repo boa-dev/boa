@@ -3,7 +3,7 @@
 use crate::{
     builtins::{
         array::array_iterator::ArrayIterator, function::Function, map::ordered_map::OrderedMap,
-        BigInt, Date, RegExp,
+        string::string_iterator::StringIterator, BigInt, Date, RegExp,
     },
     property::{Property, PropertyKey},
     value::{RcBigInt, RcString, RcSymbol, Value},
@@ -72,6 +72,7 @@ pub enum ObjectData {
     Boolean(bool),
     Function(Function),
     String(RcString),
+    StringIterator(StringIterator),
     Number(f64),
     Symbol(RcSymbol),
     Error,
@@ -93,6 +94,7 @@ impl Display for ObjectData {
                 Self::RegExp(_) => "RegExp",
                 Self::Map(_) => "Map",
                 Self::String(_) => "String",
+                Self::StringIterator(_) => "StringIterator",
                 Self::Symbol(_) => "Symbol",
                 Self::Error => "Error",
                 Self::Ordinary => "Ordinary",
@@ -275,6 +277,14 @@ impl Object {
     pub fn as_array_iterator_mut(&mut self) -> Option<&mut ArrayIterator> {
         match &mut self.data {
             ObjectData::ArrayIterator(iter) => Some(iter),
+            _ => None,
+        }
+    }
+
+    #[inline]
+    pub fn as_string_iterator_mut(&mut self) -> Option<&mut StringIterator> {
+        match &mut self.data {
+            ObjectData::StringIterator(iter) => Some(iter),
             _ => None,
         }
     }
@@ -480,9 +490,5 @@ impl Object {
             }
             _ => None,
         }
-    }
-
-    pub fn get_string_property(&self, key: &str) -> Option<&Property> {
-        self.string_properties.get(key)
     }
 }

@@ -1,30 +1,48 @@
-use crate::builtins::function::{BuiltInFunction, Function, FunctionFlags};
-use crate::builtins::ArrayIterator;
-use crate::object::{Object, PROTOTYPE};
-use crate::BoaProfiler;
-use crate::{property::Property, Context, Value};
+use crate::builtins::string::string_iterator::StringIterator;
+use crate::object::GcObject;
+use crate::{
+    builtins::{
+        function::{BuiltInFunction, Function, FunctionFlags},
+        ArrayIterator,
+    },
+    object::{Object, PROTOTYPE},
+    property::Property,
+    BoaProfiler, Context, Value,
+};
 
 #[derive(Debug, Default)]
 pub struct IteratorPrototypes {
-    iterator_prototype: Value,
-    array_iterator: Value,
+    iterator_prototype: GcObject,
+    array_iterator: GcObject,
+    string_iterator: GcObject,
 }
 
 impl IteratorPrototypes {
     pub fn init(ctx: &mut Context) -> Self {
         let iterator_prototype = create_iterator_prototype(ctx);
         Self {
-            iterator_prototype: iterator_prototype.clone(),
-            array_iterator: ArrayIterator::create_prototype(ctx, iterator_prototype),
+            iterator_prototype: iterator_prototype
+                .as_gc_object()
+                .expect("Iterator prototype is not an object"),
+            array_iterator: ArrayIterator::create_prototype(ctx, iterator_prototype.clone())
+                .as_gc_object()
+                .expect("Array Iterator Prototype is not an object"),
+            string_iterator: StringIterator::create_prototype(ctx, iterator_prototype)
+                .as_gc_object()
+                .expect("String Iterator Prototype is not an object"),
         }
     }
 
-    pub fn array_iterator(&self) -> Value {
+    pub fn array_iterator(&self) -> GcObject {
         self.array_iterator.clone()
     }
 
-    pub fn iterator_prototype(&self) -> Value {
+    pub fn iterator_prototype(&self) -> GcObject {
         self.iterator_prototype.clone()
+    }
+
+    pub fn string_iterator(&self) -> GcObject {
+        self.string_iterator.clone()
     }
 }
 

@@ -304,6 +304,14 @@ impl Value {
     }
 
     #[inline]
+    pub fn as_gc_object(&self) -> Option<GcObject> {
+        match self {
+            Self::Object(o) => Some(o.clone()),
+            _ => None,
+        }
+    }
+
+    #[inline]
     pub fn as_object_mut(&self) -> Option<GcCellRefMut<'_, Object>> {
         match *self {
             Self::Object(ref o) => Some(o.borrow_mut()),
@@ -931,7 +939,7 @@ impl Value {
     /// [table]: https://tc39.es/ecma262/#table-14
     /// [spec]: https://tc39.es/ecma262/#sec-requireobjectcoercible
     #[inline]
-    pub fn require_object_coercible<'a>(&'a self, ctx: &mut Context) -> Result<&'a Value> {
+    pub fn require_object_coercible(&self, ctx: &mut Context) -> Result<&Value> {
         if self.is_null_or_undefined() {
             Err(ctx.construct_type_error("cannot convert null or undefined to Object"))
         } else {

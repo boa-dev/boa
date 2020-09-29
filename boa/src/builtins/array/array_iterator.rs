@@ -60,7 +60,7 @@ impl ArrayIterator {
         array_iterator
             .as_object_mut()
             .expect("array iterator object")
-            .set_prototype_instance(ctx.iterator_prototypes().array_iterator());
+            .set_prototype_instance(ctx.iterator_prototypes().array_iterator().into());
         Ok(array_iterator)
     }
 
@@ -102,12 +102,7 @@ impl ArrayIterator {
                     ArrayIterationKind::KeyAndValue => {
                         let element_value = array_iterator.array.get_field(index);
                         let result = Array::make_array(
-                            &Value::new_object(Some(
-                                &ctx.realm()
-                                    .environment
-                                    .get_global_object()
-                                    .expect("Could not get global object"),
-                            )),
+                            &Value::new_object(Some(ctx.global_object())),
                             &[Value::integer(index), element_value],
                             ctx,
                         )?;
