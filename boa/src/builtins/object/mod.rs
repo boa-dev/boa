@@ -115,9 +115,9 @@ impl Object {
     /// [spec]: https://tc39.es/ecma262/#sec-object.prototype.tostring
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/toString
     #[allow(clippy::wrong_self_convention)]
-    pub fn to_string(this: &Value, _: &[Value], _: &mut Context) -> Result<Value> {
+    pub fn to_string(_: &Value, _: &[Value], _: &mut Context) -> Result<Value> {
         // FIXME: it should not display the object.
-        Ok(this.display().to_string().into())
+        Ok("[object Object]".into())
     }
 
     /// `Object.prototype.hasOwnPrototype( property )`
