@@ -21,7 +21,7 @@ Feature Enhancements:
 - [FEATURE #555](https://github.com/boa-dev/boa/pull/555):
   Implement Array.prototype.reduce (@benjaminflin)
 - [FEATURE #550](https://github.com/boa-dev/boa/pull/550):
-  Initial implementation of Map() (@HalidOdat)
+  Initial implementation of Map() (@joshwd36 & @HalidOdat)
 - [FEATURE #579](https://github.com/boa-dev/boa/pull/579):
   Implement Array.prototype.reduceRight (@benjaminflin)
 - [FEATURE #585](https://github.com/boa-dev/boa/pull/587):
