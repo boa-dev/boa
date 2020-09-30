@@ -18,6 +18,7 @@ jobs:
         uses: actions/checkout@v2
         with:
           submodules: true
+          path: boa
       - name: Install the Rust toolchain
         uses: actions-rs/toolchain@v1
         with:
@@ -37,7 +38,7 @@ jobs:
       - name: Cache cargo build
         uses: actions/cache@v1
         with:
-          path: target
+          path: boa/target
           key: ${{ runner.os }}-cargo-build-target-${{ hashFiles('**/Cargo.lock') }}
 
       # Run the test suite and upload the results
@@ -47,10 +48,12 @@ jobs:
         with:
           ref: gh-pages
           path: gh-pages
-      - run: mkdir -p gh-pages/test262
 
       - name: Run the test262 test suite
-        run: cargo run --release --bin boa_tester -- -o gh-pages/test262
+        run: |
+          cd boa
+          cargo run --release --bin boa_tester -- -o ../gh-pages/test262
+          cd ..
 
       - name: Commit files
         if: github.event_name == 'push'
