@@ -115,9 +115,33 @@ impl Object {
     /// [spec]: https://tc39.es/ecma262/#sec-object.prototype.tostring
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/toString
     #[allow(clippy::wrong_self_convention)]
-    pub fn to_string(_: &Value, _: &[Value], _: &mut Context) -> Result<Value> {
-        // FIXME: it should not display the object.
-        Ok("[object Object]".into())
+    pub fn to_string(this: &Value, _: &[Value], ctx: &mut Context) -> Result<Value> {
+        if this.is_undefined() {
+            Ok("[object Undefined]".into())
+        } else if this.is_null() {
+            Ok("[object Null]".into())
+        } else {
+            let gc_o = this.to_object(ctx)?;
+            let o = gc_o.borrow();
+            let builtin_tag = match &o.data {
+                ObjectData::Array => "Array",
+                // TODO: Arguments Exotic Objects are currently not supported
+                ObjectData::Function(_) => "Function",
+                ObjectData::Error => "Error",
+                ObjectData::Boolean(_) => "Boolean",
+                ObjectData::Number(_) => "Number",
+                ObjectData::String(_) => "String",
+                ObjectData::Date(_) => "Date",
+                ObjectData::RegExp(_) => "RegExp",
+                _ => "Object",
+            };
+
+            let tag = o.get(&ctx.well_known_symbols().to_string_tag_symbol().into());
+
+            let tag_str = tag.as_string().map(|s| s.as_str()).unwrap_or(builtin_tag);
+
+            Ok(format!("[object {}]", tag_str).into())
+        }
     }
 
     /// `Object.prototype.hasOwnPrototype( property )`
