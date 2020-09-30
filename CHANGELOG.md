@@ -98,7 +98,7 @@ Internal Improvements:
   Made `String.prototype.lastIndexOf()` spec compliant (@HalidOdat)
 - [INTERNAL #626](https://github.com/boa-dev/boa/pull/626):
   Refactor `Function` (@HalidOdat @Razican)
-- [INTERNAL #564](https://github.com/boa-dev/boa/issues/564):
+- [INTERNAL #564](https://github.com/boa-dev/boa/pull/581):
   Add benchmarks for "uglified" JS (@neeldug)
 - [INTERNAL #627](https://github.com/boa-dev/boa/pull/627):
   Feature native class objects (`NativeObject` and `Class` traits) (@HalidOdat)
