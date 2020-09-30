@@ -8,7 +8,7 @@ Feature Enhancements:
   New Lexer (@Lan2u @HalidOdat @Razican)
 - [FEATURE #567](https://github.com/boa-dev/boa/pull/567):
   Add ECMAScript test suite (test262) (@Razican)
-- [FEATURE #524](https://github.com/boa-dev/boa/issues/524):
+- [FEATURE #524](https://github.com/boa-dev/boa/pull/525):
   Implement remaining `Math` methods (@mr-rodgers)
 - [FEATURE #562](https://github.com/boa-dev/boa/pull/562):
   Implement remaining `Number` methods (@joshwd36)
