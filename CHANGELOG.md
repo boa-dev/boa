@@ -63,7 +63,7 @@ Bug Fixes:
   [exec - function] function.prototype doesn't have own constructor property pointing to this function (@54k1)
 - [BUG #641](https://github.com/boa-dev/boa/issues/641)
   Test new_instance_should_point_to_prototype is not checked correctly (@54k1)
-- [BUG #644](https://github.com/boa-dev/boa/issues/644)
+- [BUG #644](https://github.com/boa-dev/boa/pull/645)
   `undefined` constants panic on execution (@jcdickinson)
 - [BUG #631](https://github.com/boa-dev/boa/issues/631):
   Unexpected result when applying typeof to undefined value (@jcdickinson)
