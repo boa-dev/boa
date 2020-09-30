@@ -65,7 +65,7 @@ Bug Fixes:
   Test new_instance_should_point_to_prototype is not checked correctly (@54k1)
 - [BUG #644](https://github.com/boa-dev/boa/pull/645)
   `undefined` constants panic on execution (@jcdickinson)
-- [BUG #631](https://github.com/boa-dev/boa/issues/631):
+- [BUG #631](https://github.com/boa-dev/boa/pull/645):
   Unexpected result when applying typeof to undefined value (@jcdickinson)
 - [BUG #610](https://github.com/boa-dev/boa/pull/629):
   Fix: String.prototype.replace substitutions (@RageKnify)
