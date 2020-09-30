@@ -61,7 +61,7 @@ jobs:
           cd gh-pages
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          git pull --rebase
+          git pull --ff-only
           git add test262
           git commit -m "Add new test262 results" -a
           cd ..
