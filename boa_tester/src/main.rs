@@ -117,15 +117,13 @@ fn main() {
     let results = global_suite.run(&harness);
     println!();
 
-    if CLI.verbose() {
-        println!("Results:");
-        println!("Total tests: {}", results.total);
-        println!("Passed tests: {}", results.passed);
-        println!(
-            "Conformance: {:.2}%",
-            (results.passed as f64 / results.total as f64) * 100.0
-        )
-    }
+    println!("Results:");
+    println!("Total tests: {}", results.total);
+    println!("Passed tests: {}", results.passed);
+    println!(
+        "Conformance: {:.2}%",
+        (results.passed as f64 / results.total as f64) * 100.0
+    );
 
     write_json(results).expect("could not write the results to the output JSON file");
 }
