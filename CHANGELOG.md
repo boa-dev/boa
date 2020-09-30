@@ -24,7 +24,7 @@ Feature Enhancements:
   Initial implementation of Map() (@HalidOdat)
 - [FEATURE #579](https://github.com/boa-dev/boa/pull/579):
   Implement Array.prototype.reduceRight (@benjaminflin)
-- [FEATURE #585](https://github.com/boa-dev/boa/issues/585):
+- [FEATURE #585](https://github.com/boa-dev/boa/pull/587):
   Implement Well-Known Symbols (@joshwd36)
 - [FEATURE #589](https://github.com/boa-dev/boa/pull/589):
   Implement the comma operator (@KashParty)
