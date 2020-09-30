@@ -30,7 +30,7 @@ Feature Enhancements:
   Implement the comma operator (@KashParty)
 - [FEATURE #341](https://github.com/boa-dev/boa/pull/590):
   Ability to create multiline blocks in boa shell (@HalidOdat)
-- [FEATURE #252](https://github.com/boa-dev/boa/issues/252):
+- [FEATURE #252](https://github.com/boa-dev/boa/pull/596):
   Implement `Date` (@jcdickinson)
 - [FEATURE #711](https://github.com/boa-dev/boa/pull/711):
   Add support for >>>= (@arpit-saxena)
