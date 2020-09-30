@@ -82,7 +82,7 @@ Internal Improvements:
   Removed `console`s dependency of `InternalState` (@HalidOdat)
 - [INTERNAL #556](https://github.com/boa-dev/boa/pull/556):
   Added benchmark for goal symbol switching (@Razican)
-- [INTERNAL #578](https://github.com/boa-dev/boa/issues/578):
+- [INTERNAL #578](https://github.com/boa-dev/boa/pull/580):
   Extract `prototype` from internal slots (@HalidOdat)
 - [INTERNAL #553](https://github.com/boa-dev/boa/pull/553):
   Refactor Property Descriptor flags (@HalidOdat)
