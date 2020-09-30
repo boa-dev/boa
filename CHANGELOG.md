@@ -28,7 +28,7 @@ Feature Enhancements:
   Implement Well-Known Symbols (@joshwd36)
 - [FEATURE #589](https://github.com/boa-dev/boa/pull/589):
   Implement the comma operator (@KashParty)
-- [FEATURE #341](https://github.com/boa-dev/boa/issues/341):
+- [FEATURE #341](https://github.com/boa-dev/boa/pull/590):
   Ability to create multiline blocks in boa shell (@HalidOdat)
 - [FEATURE #252](https://github.com/boa-dev/boa/issues/252):
   Implement `Date` (@jcdickinson)
