@@ -67,7 +67,7 @@ Bug Fixes:
   `undefined` constants panic on execution (@jcdickinson)
 - [BUG #631](https://github.com/boa-dev/boa/issues/631):
   Unexpected result when applying typeof to undefined value (@jcdickinson)
-- [BUG #610](https://github.com/boa-dev/boa/issues/610):
+- [BUG #610](https://github.com/boa-dev/boa/pull/629):
   Fix: String.prototype.replace substitutions (@RageKnify)
 - [BUG #667](https://github.com/boa-dev/boa/pull/667):
   Fix panic when calling function that mutates itself (@dvtkrlbs)
