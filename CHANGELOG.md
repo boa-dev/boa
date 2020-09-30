@@ -4,10 +4,6 @@
 
 Feature Enhancements:
 
-- [FEATURE #559](https://github.com/boa-dev/boa/pull/559):
-  New Lexer (@Lan2u @HalidOdat @Razican)
-- [FEATURE #567](https://github.com/boa-dev/boa/pull/567):
-  Add ECMAScript test suite (test262) (@Razican)
 - [FEATURE #524](https://github.com/boa-dev/boa/pull/525):
   Implement remaining `Math` methods (@mr-rodgers)
 - [FEATURE #562](https://github.com/boa-dev/boa/pull/562):
@@ -73,11 +69,21 @@ Bug Fixes:
   Fix panic when calling function that mutates itself (@dvtkrlbs)
 - [BUG #668](https://github.com/boa-dev/boa/pull/668):
   Fix clippy on Nightly (@dvtkrlbs)
+- [BUG #582](https://github.com/boa-dev/boa/pull/582):
+  Make `String.prototype.repeat()` ECMAScript specification compliant (@HalidOdat)
+- [BUG #541](https://github.com/boa-dev/boa/pull/541):
+  Made all `Math` methods spec compliant (@HalidOdat)
+- [BUG #597](https://github.com/boa-dev/boa/pull/597):
+  Made `String.prototype.indexOf` spec compliant. (@HalidOdat)
+- [BUG #598](https://github.com/boa-dev/boa/pull/598):
+  Made `String.prototype.lastIndexOf()` spec compliant (@HalidOdat)
 
 Internal Improvements:
 
-- [INTERNAL #541](https://github.com/boa-dev/boa/pull/541):
-  Made all `Math` methods spec compliant (@HalidOdat)
+- [INTERNAL #567](https://github.com/boa-dev/boa/pull/567):
+  Add ECMAScript test suite (test262) (@Razican)
+- [INTERNAL #559](https://github.com/boa-dev/boa/pull/559):
+  New Lexer (@Lan2u @HalidOdat @Razican)
 - [INTERNAL #544](https://github.com/boa-dev/boa/pull/544):
   Removed `console`s dependency of `InternalState` (@HalidOdat)
 - [INTERNAL #556](https://github.com/boa-dev/boa/pull/556):
@@ -86,16 +92,10 @@ Internal Improvements:
   Extract `prototype` from internal slots (@HalidOdat)
 - [INTERNAL #553](https://github.com/boa-dev/boa/pull/553):
   Refactor Property Descriptor flags (@HalidOdat)
-- [INTERNAL #582](https://github.com/boa-dev/boa/pull/582):
-  Make `String.prototype.repeat()` ECMAScript specification compliant (@HalidOdat)
 - [INTERNAL #373](https://github.com/boa-dev/boa/pull/373):
   Introduce PropertyKey for field acces (@RageKnify)
 - [INTERNAL #592](https://github.com/boa-dev/boa/pull/592):
   `RegExp` specialization (@HalidOdat)
-- [INTERNAL #597](https://github.com/boa-dev/boa/pull/597):
-  Made `String.prototype.indexOf` spec compliant. (@HalidOdat)
-- [INTERNAL #598](https://github.com/boa-dev/boa/pull/598):
-  Made `String.prototype.lastIndexOf()` spec compliant (@HalidOdat)
 - [INTERNAL #626](https://github.com/boa-dev/boa/pull/626):
   Refactor `Function` (@HalidOdat @Razican)
 - [INTERNAL #564](https://github.com/boa-dev/boa/pull/581):
