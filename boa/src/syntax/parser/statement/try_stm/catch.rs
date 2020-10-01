@@ -51,12 +51,12 @@ where
 {
     type Output = node::Catch;
 
-    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
+    fn parse(self, cursor: &mut Cursor<R>, strict_mode: bool) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("Catch", "Parsing");
         cursor.expect(Keyword::Catch, "try statement")?;
         let catch_param = if cursor.next_if(Punctuator::OpenParen)?.is_some() {
-            let catch_param =
-                CatchParameter::new(self.allow_yield, self.allow_await).parse(cursor)?;
+            let catch_param = CatchParameter::new(self.allow_yield, self.allow_await)
+                .parse(cursor, strict_mode)?;
             cursor.expect(Punctuator::CloseParen, "catch in try statement")?;
             Some(catch_param)
         } else {
@@ -66,7 +66,8 @@ where
         // Catch block
         Ok(node::Catch::new::<_, Identifier, _>(
             catch_param,
-            Block::new(self.allow_yield, self.allow_await, self.allow_return).parse(cursor)?,
+            Block::new(self.allow_yield, self.allow_await, self.allow_return)
+                .parse(cursor, strict_mode)?,
         ))
     }
 }
@@ -105,10 +106,10 @@ where
 {
     type Output = Identifier;
 
-    fn parse(self, cursor: &mut Cursor<R>) -> Result<Identifier, ParseError> {
+    fn parse(self, cursor: &mut Cursor<R>, strict_mode: bool) -> Result<Identifier, ParseError> {
         // TODO: should accept BindingPattern
         BindingIdentifier::new(self.allow_yield, self.allow_await)
-            .parse(cursor)
+            .parse(cursor, strict_mode)
             .map(Identifier::from)
     }
 }

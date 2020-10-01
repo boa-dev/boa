@@ -61,18 +61,18 @@ where
 {
     type Output = Node;
 
-    fn parse(self, cursor: &mut Cursor<R>) -> ParseResult {
+    fn parse(self, cursor: &mut Cursor<R>, strict_mode: bool) -> ParseResult {
         let _timer = BoaProfiler::global().start_event("LexicalDeclaration", "Parsing");
         let tok = cursor.next()?.ok_or(ParseError::AbruptEnd)?;
 
         match tok.kind() {
             TokenKind::Keyword(Keyword::Const) => {
                 BindingList::new(self.allow_in, self.allow_yield, self.allow_await, true)
-                    .parse(cursor)
+                    .parse(cursor, strict_mode)
             }
             TokenKind::Keyword(Keyword::Let) => {
                 BindingList::new(self.allow_in, self.allow_yield, self.allow_await, false)
-                    .parse(cursor)
+                    .parse(cursor, strict_mode)
             }
             _ => unreachable!("unknown token found: {:?}", tok),
         }
@@ -119,7 +119,7 @@ where
 {
     type Output = Node;
 
-    fn parse(self, cursor: &mut Cursor<R>) -> ParseResult {
+    fn parse(self, cursor: &mut Cursor<R>, strict_mode: bool) -> ParseResult {
         let _timer = BoaProfiler::global().start_event("BindingList", "Parsing");
 
         // Create vectors to store the variable declarations
@@ -130,7 +130,7 @@ where
         loop {
             let (ident, init) =
                 LexicalBinding::new(self.allow_in, self.allow_yield, self.allow_await)
-                    .parse(cursor)?;
+                    .parse(cursor, strict_mode)?;
 
             if self.is_const {
                 if let Some(init) = init {
@@ -209,16 +209,17 @@ where
 {
     type Output = (Box<str>, Option<Node>);
 
-    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
+    fn parse(self, cursor: &mut Cursor<R>, strict_mode: bool) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("LexicalBinding", "Parsing");
 
-        let ident = BindingIdentifier::new(self.allow_yield, self.allow_await).parse(cursor)?;
+        let ident = BindingIdentifier::new(self.allow_yield, self.allow_await)
+            .parse(cursor, strict_mode)?;
 
         let init = if let Some(t) = cursor.peek(0)? {
             if *t.kind() == TokenKind::Punctuator(Punctuator::Assign) {
                 Some(
                     Initializer::new(self.allow_in, self.allow_yield, self.allow_await)
-                        .parse(cursor)?,
+                        .parse(cursor, strict_mode)?,
                 )
             } else {
                 None

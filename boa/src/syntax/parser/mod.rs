@@ -28,7 +28,7 @@ where
     /// Parses the token stream using the current parser.
     ///
     /// This method needs to be provided by the implementor type.
-    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError>;
+    fn parse(self, cursor: &mut Cursor<R>, strict_mode: bool) -> Result<Self::Output, ParseError>;
 }
 
 /// Boolean representing if the parser should allow a `yield` keyword.
@@ -101,7 +101,7 @@ impl<R> Parser<R> {
     where
         R: Read,
     {
-        Script.parse(&mut self.cursor)
+        Script.parse(&mut self.cursor, false)
     }
 }
 
@@ -120,9 +120,10 @@ where
 {
     type Output = StatementList;
 
-    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
+    fn parse(self, cursor: &mut Cursor<R>, strict_mode: bool) -> Result<Self::Output, ParseError> {
         if cursor.peek(0)?.is_some() {
-            ScriptBody.parse(cursor)
+            // TODO - Setting global strict mode directive.
+            ScriptBody.parse(cursor, strict_mode)
         } else {
             Ok(StatementList::from(Vec::new()))
         }
@@ -144,7 +145,7 @@ where
 {
     type Output = StatementList;
 
-    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
-        self::statement::StatementList::new(false, false, false, false).parse(cursor)
+    fn parse(self, cursor: &mut Cursor<R>, strict_mode: bool) -> Result<Self::Output, ParseError> {
+        self::statement::StatementList::new(false, false, false, false).parse(cursor, strict_mode)
     }
 }

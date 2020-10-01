@@ -62,24 +62,24 @@ where
 {
     type Output = Node;
 
-    fn parse(self, cursor: &mut Cursor<R>) -> ParseResult {
+    fn parse(self, cursor: &mut Cursor<R>, strict_mode: bool) -> ParseResult {
         let _timer = BoaProfiler::global().start_event("ConditionalExpression", "Parsing");
 
         // TODO: coalesce expression
         let lhs = LogicalORExpression::new(self.allow_in, self.allow_yield, self.allow_await)
-            .parse(cursor)?;
+            .parse(cursor, strict_mode)?;
 
         if let Some(tok) = cursor.peek(0)? {
             if tok.kind() == &TokenKind::Punctuator(Punctuator::Question) {
                 cursor.next()?.expect("? character vanished"); // Consume the token.
                 let then_clause =
                     AssignmentExpression::new(self.allow_in, self.allow_yield, self.allow_await)
-                        .parse(cursor)?;
+                        .parse(cursor, strict_mode)?;
                 cursor.expect(Punctuator::Colon, "conditional expression")?;
 
                 let else_clause =
                     AssignmentExpression::new(self.allow_in, self.allow_yield, self.allow_await)
-                        .parse(cursor)?;
+                        .parse(cursor, strict_mode)?;
                 return Ok(ConditionalOp::new(lhs, then_clause, else_clause).into());
             }
         }

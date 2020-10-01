@@ -60,7 +60,7 @@ where
 {
     type Output = ArrayDecl;
 
-    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
+    fn parse(self, cursor: &mut Cursor<R>, strict_mode: bool) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("ArrayLiteral", "Parsing");
         let mut elements = Vec::new();
 
@@ -78,12 +78,12 @@ where
 
             if cursor.next_if(Punctuator::Spread)?.is_some() {
                 let node = AssignmentExpression::new(true, self.allow_yield, self.allow_await)
-                    .parse(cursor)?;
+                    .parse(cursor, strict_mode)?;
                 elements.push(Spread::new(node).into());
             } else {
                 elements.push(
                     AssignmentExpression::new(true, self.allow_yield, self.allow_await)
-                        .parse(cursor)?,
+                        .parse(cursor, strict_mode)?,
                 );
             }
             cursor.next_if(Punctuator::Comma)?;

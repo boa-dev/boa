@@ -61,14 +61,14 @@ macro_rules! expression { ($name:ident, $lower:ident, [$( $op:path ),*], [$( $lo
     {
         type Output = Node;
 
-        fn parse(self, cursor: &mut Cursor<R>) -> ParseResult {
+        fn parse(self, cursor: &mut Cursor<R>, strict_mode: bool)-> ParseResult {
             let _timer = BoaProfiler::global().start_event($profile, "Parsing");
 
             if $goal.is_some() {
                 cursor.set_goal($goal.unwrap());
             }
 
-            let mut lhs = $lower::new($( self.$low_param ),*).parse(cursor)?;
+            let mut lhs = $lower::new($( self.$low_param ),*).parse(cursor, strict_mode)?;
             while let Some(tok) = cursor.peek(0)? {
                 match *tok.kind() {
                     TokenKind::Punctuator(op) if $( op == $op )||* => {
@@ -76,7 +76,7 @@ macro_rules! expression { ($name:ident, $lower:ident, [$( $op:path ),*], [$( $lo
                         lhs = BinOp::new(
                             op.as_binop().expect("Could not get binary operation."),
                             lhs,
-                            $lower::new($( self.$low_param ),*).parse(cursor)?
+                            $lower::new($( self.$low_param ),*).parse(cursor, strict_mode)?
                         ).into();
                     }
                     TokenKind::Keyword(op) if $( op == $op )||* => {
@@ -84,7 +84,7 @@ macro_rules! expression { ($name:ident, $lower:ident, [$( $op:path ),*], [$( $lo
                         lhs = BinOp::new(
                             op.as_binop().expect("Could not get binary operation."),
                             lhs,
-                            $lower::new($( self.$low_param ),*).parse(cursor)?
+                            $lower::new($( self.$low_param ),*).parse(cursor, strict_mode)?
                         ).into();
                     }
                     _ => break

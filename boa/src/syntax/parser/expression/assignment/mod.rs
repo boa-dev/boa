@@ -78,7 +78,7 @@ where
 {
     type Output = Node;
 
-    fn parse(self, cursor: &mut Cursor<R>) -> ParseResult {
+    fn parse(self, cursor: &mut Cursor<R>, strict_mode: bool) -> ParseResult {
         let _timer = BoaProfiler::global().start_event("AssignmentExpression", "Parsing");
         cursor.set_goal(InputElement::Div);
 
@@ -95,7 +95,7 @@ where
                             self.allow_yield,
                             self.allow_await,
                         )
-                        .parse(cursor)
+                        .parse(cursor, strict_mode)
                         .map(Node::ArrowFunctionDecl);
                     }
                 }
@@ -115,7 +115,7 @@ where
                                         self.allow_yield,
                                         self.allow_await,
                                     )
-                                    .parse(cursor)
+                                    .parse(cursor, strict_mode)
                                     .map(Node::ArrowFunctionDecl);
                                 }
                             }
@@ -126,7 +126,7 @@ where
                                 self.allow_yield,
                                 self.allow_await,
                             )
-                            .parse(cursor)
+                            .parse(cursor, strict_mode)
                             .map(Node::ArrowFunctionDecl);
                         }
                         TokenKind::Identifier(_) => {
@@ -139,7 +139,7 @@ where
                                             self.allow_yield,
                                             self.allow_await,
                                         )
-                                        .parse(cursor)
+                                        .parse(cursor, strict_mode)
                                         .map(Node::ArrowFunctionDecl);
                                     }
                                     TokenKind::Punctuator(Punctuator::CloseParen) => {
@@ -153,7 +153,7 @@ where
                                                     self.allow_yield,
                                                     self.allow_await,
                                                 )
-                                                .parse(cursor)
+                                                .parse(cursor, strict_mode)
                                                 .map(Node::ArrowFunctionDecl);
                                             }
                                         }
@@ -173,7 +173,7 @@ where
         cursor.set_goal(InputElement::Div);
 
         let mut lhs = ConditionalExpression::new(self.allow_in, self.allow_yield, self.allow_await)
-            .parse(cursor)?;
+            .parse(cursor, strict_mode)?;
 
         // Review if we are trying to assign to an invalid left hand side expression.
         // TODO: can we avoid cloning?
@@ -182,7 +182,7 @@ where
                 TokenKind::Punctuator(Punctuator::Assign) => {
                     cursor.next()?.expect("= token vanished"); // Consume the token.
                     if is_assignable(&lhs) {
-                        lhs = Assign::new(lhs, self.parse(cursor)?).into();
+                        lhs = Assign::new(lhs, self.parse(cursor, strict_mode)?).into();
                     } else {
                         return Err(ParseError::lex(LexError::Syntax(
                             "Invalid left-hand side in assignment".into(),
@@ -194,7 +194,7 @@ where
                     cursor.next()?.expect("token vanished"); // Consume the token.
                     if is_assignable(&lhs) {
                         let binop = p.as_binop().expect("binop disappeared");
-                        let expr = self.parse(cursor)?;
+                        let expr = self.parse(cursor, strict_mode)?;
 
                         lhs = BinOp::new(binop, lhs, expr).into();
                     } else {

@@ -67,7 +67,7 @@ where
 {
     type Output = ForLoop;
 
-    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
+    fn parse(self, cursor: &mut Cursor<R>, strict_mode: bool) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("ForStatement", "Parsing");
         cursor.expect(Keyword::For, "for statement")?;
         cursor.expect(Punctuator::OpenParen, "for statement")?;
@@ -77,15 +77,18 @@ where
                 let _ = cursor.next()?;
                 Some(
                     VariableDeclarationList::new(false, self.allow_yield, self.allow_await)
-                        .parse(cursor)
+                        .parse(cursor, strict_mode)
                         .map(Node::from)?,
                 )
             }
-            TokenKind::Keyword(Keyword::Let) | TokenKind::Keyword(Keyword::Const) => {
-                Some(Declaration::new(self.allow_yield, self.allow_await).parse(cursor)?)
-            }
+            TokenKind::Keyword(Keyword::Let) | TokenKind::Keyword(Keyword::Const) => Some(
+                Declaration::new(self.allow_yield, self.allow_await).parse(cursor, strict_mode)?,
+            ),
             TokenKind::Punctuator(Punctuator::Semicolon) => None,
-            _ => Some(Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?),
+            _ => Some(
+                Expression::new(true, self.allow_yield, self.allow_await)
+                    .parse(cursor, strict_mode)?,
+            ),
         };
 
         // TODO: for..in, for..of
@@ -104,7 +107,8 @@ where
         let cond = if cursor.next_if(Punctuator::Semicolon)?.is_some() {
             Const::from(true).into()
         } else {
-            let step = Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?;
+            let step = Expression::new(true, self.allow_yield, self.allow_await)
+                .parse(cursor, strict_mode)?;
             cursor.expect(Punctuator::Semicolon, "for statement")?;
             step
         };
@@ -112,7 +116,8 @@ where
         let step = if cursor.next_if(Punctuator::CloseParen)?.is_some() {
             None
         } else {
-            let step = Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?;
+            let step = Expression::new(true, self.allow_yield, self.allow_await)
+                .parse(cursor, strict_mode)?;
             cursor.expect(
                 TokenKind::Punctuator(Punctuator::CloseParen),
                 "for statement",
@@ -120,8 +125,8 @@ where
             Some(step)
         };
 
-        let body =
-            Statement::new(self.allow_yield, self.allow_await, self.allow_return).parse(cursor)?;
+        let body = Statement::new(self.allow_yield, self.allow_await, self.allow_return)
+            .parse(cursor, strict_mode)?;
 
         // TODO: do not encapsulate the `for` in a block just to have an inner scope.
         Ok(ForLoop::new(init, cond, step, body))

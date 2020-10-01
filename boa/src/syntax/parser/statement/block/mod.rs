@@ -68,7 +68,7 @@ where
 {
     type Output = node::Block;
 
-    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
+    fn parse(self, cursor: &mut Cursor<R>, strict_mode: bool) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("Block", "Parsing");
         cursor.expect(Punctuator::OpenBlock, "block")?;
         if let Some(tk) = cursor.peek(0)? {
@@ -80,7 +80,7 @@ where
 
         let statement_list =
             StatementList::new(self.allow_yield, self.allow_await, self.allow_return, true)
-                .parse(cursor)
+                .parse(cursor, strict_mode)
                 .map(node::Block::from)?;
         cursor.expect(Punctuator::CloseBlock, "block")?;
 

@@ -68,7 +68,7 @@ where
 {
     type Output = ArrowFunctionDecl;
 
-    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
+    fn parse(self, cursor: &mut Cursor<R>, strict_mode: bool) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("ArrowFunction", "Parsing");
 
         let next_token = cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?;
@@ -76,12 +76,13 @@ where
             // CoverParenthesizedExpressionAndArrowParameterList
             cursor.expect(Punctuator::OpenParen, "arrow function")?;
 
-            let params = FormalParameters::new(self.allow_yield, self.allow_await).parse(cursor)?;
+            let params = FormalParameters::new(self.allow_yield, self.allow_await)
+                .parse(cursor, strict_mode)?;
             cursor.expect(Punctuator::CloseParen, "arrow function")?;
             params
         } else {
             let param = BindingIdentifier::new(self.allow_yield, self.allow_await)
-                .parse(cursor)
+                .parse(cursor, strict_mode)
                 .context("arrow function")?;
             Box::new([FormalParameter::new(param, None, false)])
         };
@@ -89,7 +90,7 @@ where
         cursor.peek_expect_no_lineterminator(0)?;
 
         cursor.expect(TokenKind::Punctuator(Punctuator::Arrow), "arrow function")?;
-        let body = ConciseBody::new(self.allow_in).parse(cursor)?;
+        let body = ConciseBody::new(self.allow_in).parse(cursor, strict_mode)?;
         Ok(ArrowFunctionDecl::new(params, body))
     }
 }
@@ -118,16 +119,16 @@ where
 {
     type Output = StatementList;
 
-    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
+    fn parse(self, cursor: &mut Cursor<R>, strict_mode: bool) -> Result<Self::Output, ParseError> {
         match cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?.kind() {
             TokenKind::Punctuator(Punctuator::OpenBlock) => {
                 let _ = cursor.next();
-                let body = FunctionBody::new(false, false).parse(cursor)?;
+                let body = FunctionBody::new(false, false).parse(cursor, strict_mode)?;
                 cursor.expect(Punctuator::CloseBlock, "arrow function")?;
                 Ok(body)
             }
             _ => Ok(StatementList::from(vec![Return::new(
-                ExpressionBody::new(self.allow_in, false).parse(cursor)?,
+                ExpressionBody::new(self.allow_in, false).parse(cursor, strict_mode)?,
                 None,
             )
             .into()])),
@@ -162,7 +163,7 @@ where
 {
     type Output = Node;
 
-    fn parse(self, cursor: &mut Cursor<R>) -> ParseResult {
-        AssignmentExpression::new(self.allow_in, false, self.allow_await).parse(cursor)
+    fn parse(self, cursor: &mut Cursor<R>, strict_mode: bool) -> ParseResult {
+        AssignmentExpression::new(self.allow_in, false, self.allow_await).parse(cursor, strict_mode)
     }
 }

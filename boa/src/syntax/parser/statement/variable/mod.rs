@@ -54,12 +54,12 @@ where
 {
     type Output = VarDeclList;
 
-    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
+    fn parse(self, cursor: &mut Cursor<R>, strict_mode: bool) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("VariableStatement", "Parsing");
         cursor.expect(Keyword::Var, "variable statement")?;
 
-        let decl_list =
-            VariableDeclarationList::new(true, self.allow_yield, self.allow_await).parse(cursor)?;
+        let decl_list = VariableDeclarationList::new(true, self.allow_yield, self.allow_await)
+            .parse(cursor, strict_mode)?;
 
         cursor.expect_semicolon("variable statement")?;
 
@@ -108,13 +108,13 @@ where
 {
     type Output = VarDeclList;
 
-    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
+    fn parse(self, cursor: &mut Cursor<R>, strict_mode: bool) -> Result<Self::Output, ParseError> {
         let mut list = Vec::new();
 
         loop {
             list.push(
                 VariableDeclaration::new(self.allow_in, self.allow_yield, self.allow_await)
-                    .parse(cursor)?,
+                    .parse(cursor, strict_mode)?,
             );
 
             match cursor.peek_semicolon()? {
@@ -166,14 +166,18 @@ where
 {
     type Output = VarDecl;
 
-    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
+    fn parse(self, cursor: &mut Cursor<R>, strict_mode: bool) -> Result<Self::Output, ParseError> {
         // TODO: BindingPattern
 
-        let name = BindingIdentifier::new(self.allow_yield, self.allow_await).parse(cursor)?;
+        let name = BindingIdentifier::new(self.allow_yield, self.allow_await)
+            .parse(cursor, strict_mode)?;
 
         let init = if let Some(t) = cursor.peek(0)? {
             if *t.kind() == TokenKind::Punctuator(Punctuator::Assign) {
-                Some(Initializer::new(true, self.allow_yield, self.allow_await).parse(cursor)?)
+                Some(
+                    Initializer::new(true, self.allow_yield, self.allow_await)
+                        .parse(cursor, strict_mode)?,
+                )
             } else {
                 None
             }

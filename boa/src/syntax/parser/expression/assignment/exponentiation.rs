@@ -81,18 +81,20 @@ where
 {
     type Output = Node;
 
-    fn parse(self, cursor: &mut Cursor<R>) -> ParseResult {
+    fn parse(self, cursor: &mut Cursor<R>, strict_mode: bool) -> ParseResult {
         let _timer = BoaProfiler::global().start_event("ExponentiationExpression", "Parsing");
 
         if is_unary_expression(cursor)? {
-            return UnaryExpression::new(self.allow_yield, self.allow_await).parse(cursor);
+            return UnaryExpression::new(self.allow_yield, self.allow_await)
+                .parse(cursor, strict_mode);
         }
 
-        let lhs = UpdateExpression::new(self.allow_yield, self.allow_await).parse(cursor)?;
+        let lhs =
+            UpdateExpression::new(self.allow_yield, self.allow_await).parse(cursor, strict_mode)?;
         if let Some(tok) = cursor.peek(0)? {
             if let TokenKind::Punctuator(Punctuator::Exp) = tok.kind() {
                 cursor.next()?.expect("** token vanished"); // Consume the token.
-                return Ok(BinOp::new(NumOp::Exp, lhs, self.parse(cursor)?).into());
+                return Ok(BinOp::new(NumOp::Exp, lhs, self.parse(cursor, strict_mode)?).into());
             }
         }
         Ok(lhs)

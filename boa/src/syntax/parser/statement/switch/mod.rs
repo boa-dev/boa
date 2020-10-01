@@ -59,17 +59,19 @@ where
 {
     type Output = Switch;
 
-    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
+    fn parse(self, cursor: &mut Cursor<R>, strict_mode: bool) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("SwitchStatement", "Parsing");
         cursor.expect(Keyword::Switch, "switch statement")?;
         cursor.expect(Punctuator::OpenParen, "switch statement")?;
 
-        let condition = Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?;
+        let condition =
+            Expression::new(true, self.allow_yield, self.allow_await).parse(cursor, strict_mode)?;
 
         cursor.expect(Punctuator::CloseParen, "switch statement")?;
 
         let (cases, default) =
-            CaseBlock::new(self.allow_yield, self.allow_await, self.allow_return).parse(cursor)?;
+            CaseBlock::new(self.allow_yield, self.allow_await, self.allow_return)
+                .parse(cursor, strict_mode)?;
 
         Ok(Switch::new(condition, cases, default))
     }
@@ -110,7 +112,7 @@ where
 {
     type Output = (Box<[node::Case]>, Option<node::StatementList>);
 
-    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
+    fn parse(self, cursor: &mut Cursor<R>, strict_mode: bool) -> Result<Self::Output, ParseError> {
         cursor.expect(Punctuator::OpenBlock, "switch case block")?;
 
         let mut cases = Vec::new();
@@ -120,8 +122,8 @@ where
             match cursor.next()? {
                 Some(token) if token.kind() == &TokenKind::Keyword(Keyword::Case) => {
                     // Case statement.
-                    let cond =
-                        Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?;
+                    let cond = Expression::new(true, self.allow_yield, self.allow_await)
+                        .parse(cursor, strict_mode)?;
 
                     cursor.expect(Punctuator::Colon, "switch case block")?;
 
@@ -131,7 +133,11 @@ where
                         self.allow_return,
                         true,
                     )
-                    .parse_generalised(cursor, &CASE_BREAK_TOKENS)?;
+                    .parse_generalised(
+                        cursor,
+                        &CASE_BREAK_TOKENS,
+                        strict_mode,
+                    )?;
 
                     cases.push(node::Case::new(cond, statement_list));
                 }
@@ -152,7 +158,11 @@ where
                         self.allow_return,
                         true,
                     )
-                    .parse_generalised(cursor, &CASE_BREAK_TOKENS)?;
+                    .parse_generalised(
+                        cursor,
+                        &CASE_BREAK_TOKENS,
+                        strict_mode,
+                    )?;
 
                     default = Some(statement_list);
                 }

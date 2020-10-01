@@ -49,7 +49,7 @@ where
 {
     type Output = Node;
 
-    fn parse(self, cursor: &mut Cursor<R>) -> ParseResult {
+    fn parse(self, cursor: &mut Cursor<R>, strict_mode: bool) -> ParseResult {
         let _timer = BoaProfiler::global().start_event("UpdateExpression", "Parsing");
 
         let tok = cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?;
@@ -59,7 +59,7 @@ where
                 return Ok(node::UnaryOp::new(
                     UnaryOp::IncrementPre,
                     LeftHandSideExpression::new(self.allow_yield, self.allow_await)
-                        .parse(cursor)?,
+                        .parse(cursor, strict_mode)?,
                 )
                 .into());
             }
@@ -68,14 +68,15 @@ where
                 return Ok(node::UnaryOp::new(
                     UnaryOp::DecrementPre,
                     LeftHandSideExpression::new(self.allow_yield, self.allow_await)
-                        .parse(cursor)?,
+                        .parse(cursor, strict_mode)?,
                 )
                 .into());
             }
             _ => {}
         }
 
-        let lhs = LeftHandSideExpression::new(self.allow_yield, self.allow_await).parse(cursor)?;
+        let lhs = LeftHandSideExpression::new(self.allow_yield, self.allow_await)
+            .parse(cursor, strict_mode)?;
         if let Some(tok) = cursor.peek(0)? {
             match tok.kind() {
                 TokenKind::Punctuator(Punctuator::Inc) => {
