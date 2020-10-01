@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Boa EcmaScript conformance</title>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/png" href="../assets/favicon.png" />
+    <link href="../assets/bootstrap.min.css" rel="stylesheet" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <style>
+      body {
+        margin: 1em;
+      }
+
+      .logo {
+        width: 5em;
+      }
+
+      .passed-tests {
+        color: #1fcb4a;
+      }
+
+      .failed-tests {
+        color: #ff4848;
+      }
+
+      .ignored-tests {
+        color: #dfa800;
+      }
+
+      .card:not(.test) {
+        width: 100%;
+      }
+
+      #info {
+        margin-top: 1em;
+      }
+
+      .info-link {
+        text-align: center;
+        font-size: 2em;
+      }
+
+      .info-link span {
+        display: inline-block;
+        background-image: url("/assets/info-square.svg");
+        background-repeat: no-repeat;
+        background-size: 2rem 2rem;
+        width: 0.5em;
+        height: 0.5em;
+      }
+
+      span.exclamation-triangle {
+        display: inline-block;
+        background-image: url("/assets/exclamation-triangle.svg");
+        background-repeat: no-repeat;
+        background-size: 1.6rem 1.6rem;
+        width: 1.6em;
+        height: 1.6em;
+      }
+
+      .card.test {
+        width: 2em;
+        height: 2em;
+        padding: 0.2em;
+        margin: 0.5em;
+        cursor: pointer;
+        display: inline-block;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="container-fluid">
+      <div class="row">
+        <h1>
+          <img class="logo col-md-12" src="../assets/logo.svg" />EcmaScript
+          conformance test results for Boa
+        </h1>
+      </div>
+      <div class="row">
+        <section
+          class="col-md-4"
+          style="display: none"
+          id="version-latest"
+        ></section>
+
+        <section
+          class="col-md-4"
+          style="display: none"
+          id="master-latest"
+        ></section>
+
+        <section
+          class="col-md-4"
+          style="display: none"
+          id="old-versions"
+        ></section>
+      </div>
+      <div class="row accordion col-md-12 collapse" id="info"></div>
+    </div>
+    <script src="/assets/jquery-3.5.1.slim.min.js"></script>
+    <script src="/assets/bootstrap.bundle.min.js"></script>
+    <script src="/test262/results.js"></script>
+  </body>
+</html>

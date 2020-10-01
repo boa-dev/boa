@@ -1,0 +1,15 @@
+# Ignore artifacts:
+*.rs
+assets
+node_modules
+boa_wasm
+test262/refs
+test262/info.json
+app.js
+*.ttf
+*.worker.js
+index.js
+dev/bench/data.js
+[0-9].js
+[0-9][0-9].js
+doc
