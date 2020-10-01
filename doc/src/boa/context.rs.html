@@ -1013,7 +1013,7 @@
 
         <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">Self</span>::<span class="ident">parser_expr</span>(<span class="ident">src</span>) {
             <span class="prelude-val">Ok</span>(<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">expr</span>.<span class="ident">run</span>(<span class="self">self</span>),
-            <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">throw_type_error</span>(<span class="ident">e</span>),
+            <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">throw_syntax_error</span>(<span class="ident">e</span>),
         };
 
         <span class="comment">// The main_timer needs to be dropped before the BoaProfiler is.</span>
