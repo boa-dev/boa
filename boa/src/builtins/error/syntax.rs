@@ -52,11 +52,11 @@ impl SyntaxError {
     /// [spec]: https://tc39.es/ecma262/#sec-error.prototype.tostring
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error/toString
     #[allow(clippy::wrong_self_convention)]
-    pub(crate) fn to_string(this: &Value, _: &[Value], _: &mut Context) -> Result<Value> {
-        let name = this.get_field("name");
-        let message = this.get_field("message");
-        // FIXME: This should not use `.display()`
-        Ok(format!("{}: {}", name.display(), message.display()).into())
+    pub(crate) fn to_string(this: &Value, _: &[Value], ctx: &mut Context) -> Result<Value> {
+        let name = this.get_field("name").to_string(ctx)?;
+        let message = this.get_field("message").to_string(ctx)?;
+
+        Ok(Value::from(format!("{}: {}", name, message)))
     }
 
     /// Initialise the global object with the `SyntaxError` object.
