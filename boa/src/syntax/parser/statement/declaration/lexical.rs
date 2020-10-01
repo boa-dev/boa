@@ -15,10 +15,8 @@ use crate::{
             Keyword, Punctuator,
         },
         parser::{
-            cursor::{Cursor, SemicolonResult},
-            expression::Initializer,
-            statement::BindingIdentifier,
-            AllowAwait, AllowIn, AllowYield, ParseError, ParseResult, TokenParser,
+            cursor::Cursor, expression::Initializer, statement::BindingIdentifier, AllowAwait,
+            AllowIn, AllowYield, ParseError, ParseResult, TokenParser,
         },
     },
     BoaProfiler,
@@ -146,24 +144,12 @@ where
                 let_decls.push(LetDecl::new(ident, init));
             }
 
-            match cursor.peek_semicolon()? {
-                SemicolonResult::Found(_) => break,
-                SemicolonResult::NotFound(tk)
-                    if tk.kind() == &TokenKind::Punctuator(Punctuator::Comma) =>
-                {
-                    // We discard the comma
+            // If we have a comma continue, else we're done here
+            match cursor.peek(0)?.unwrap().kind() {
+                &TokenKind::Punctuator(Punctuator::Comma) => {
                     let _ = cursor.next()?;
                 }
-                _ => {
-                    return Err(ParseError::expected(
-                        vec![
-                            TokenKind::Punctuator(Punctuator::Semicolon),
-                            TokenKind::LineTerminator,
-                        ],
-                        cursor.next()?.ok_or(ParseError::AbruptEnd)?,
-                        "lexical declaration binding list",
-                    ))
-                }
+                _ => break,
             }
         }
 

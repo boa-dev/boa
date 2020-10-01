@@ -7,7 +7,7 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/for
 //! [spec]: https://tc39.es/ecma262/#sec-for-statement
 
-use crate::syntax::lexer::TokenKind;
+use crate::syntax::{ast::node::iteration::ForIn, lexer::TokenKind};
 use crate::{
     syntax::{
         ast::{
@@ -72,7 +72,7 @@ where
         cursor.expect(Keyword::For, "for statement")?;
         cursor.expect(Punctuator::OpenParen, "for statement")?;
 
-        let init = match cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?.kind() {
+        let lhs = match cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?.kind() {
             TokenKind::Keyword(Keyword::Var) => {
                 let _ = cursor.next()?;
                 Some(
@@ -88,9 +88,17 @@ where
             _ => Some(Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?),
         };
 
-        // TODO: for..in, for..of
         match cursor.peek(0)? {
             Some(tok) if tok.kind() == &TokenKind::Keyword(Keyword::In) => {
+                let _ = cursor.next()?;
+                let lhs_node = lhs.expect("LeftHandSide of in is none existent");
+
+                let expr =
+                    Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?;
+                cursor.expect(Punctuator::CloseParen, "for..in statement")?;
+                let body = Statement::new(self.allow_yield, self.allow_await, self.allow_return)
+                    .parse(cursor)?;
+
                 unimplemented!("for...in statement")
             }
             Some(tok) if tok.kind() == &TokenKind::identifier("of") => {
@@ -124,6 +132,6 @@ where
             Statement::new(self.allow_yield, self.allow_await, self.allow_return).parse(cursor)?;
 
         // TODO: do not encapsulate the `for` in a block just to have an inner scope.
-        Ok(ForLoop::new(init, cond, step, body))
+        Ok(ForLoop::new(lhs, cond, step, body))
     }
 }

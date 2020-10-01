@@ -5,6 +5,67 @@ use std::fmt;
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
+/// The `for in` statement creates a loop that consists of 2 expressions
+///
+/// A `for in` loop iterates through the object of the second expression
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///  - [MDN documentation][mdn]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-for-in-and-for-of-statements
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/for...in
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[derive(Clone, Debug, Trace, Finalize, PartialEq)]
+pub struct ForIn {
+    #[cfg_attr(feature = "serde", serde(flatten))]
+    lhs: Box<Node>,
+    expr: Box<Node>,
+    body: Box<Node>,
+    label: Option<Box<str>>,
+}
+
+impl ForIn {
+    /// Creates a new for loop AST node.
+    pub(in crate::syntax) fn new<I, C, B>(lhs: I, expr: C, body: B) -> Self
+    where
+        I: Into<Node>,
+        C: Into<Node>,
+        B: Into<Node>,
+    {
+        Self {
+            lhs: Box::new(lhs.into()),
+            expr: Box::new(expr.into()),
+            body: Box::new(body.into()),
+            label: None,
+        }
+    }
+
+    pub(super) fn display(&self, f: &mut fmt::Formatter<'_>, indentation: usize) -> fmt::Result {
+        f.write_str("for (")?;
+        fmt::Display::fmt(&self.lhs, f)?;
+        f.write_str(" in ")?;
+        fmt::Display::fmt(&self.expr, f)?;
+        writeln!(f, ") {{")?;
+        self.body.display(f, indentation + 1)?;
+        write!(f, "}}")
+    }
+
+    pub fn label(&self) -> Option<&str> {
+        self.label.as_ref().map(Box::as_ref)
+    }
+
+    pub fn set_label(&mut self, label: Box<str>) {
+        self.label = Some(label);
+    }
+}
+
+impl fmt::Display for ForIn {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        self.display(f, 0)
+    }
+}
+
 /// The `for` statement creates a loop that consists of three optional expressions.
 ///
 /// A `for` loop repeats until a specified condition evaluates to `false`.
