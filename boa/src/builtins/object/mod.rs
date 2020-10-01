@@ -53,6 +53,7 @@ impl BuiltIn for Object {
         .static_method(Self::set_prototype_of, "setPrototypeOf", 2)
         .static_method(Self::get_prototype_of, "getPrototypeOf", 1)
         .static_method(Self::define_property, "defineProperty", 3)
+        .static_method(Self::define_properties, "defineProperties", 2)
         .static_method(Self::is, "is", 2)
         .build();
 
@@ -84,24 +85,28 @@ impl Object {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-object.create
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/create
-    pub fn create(_: &Value, args: &[Value], interpreter: &mut Context) -> Result<Value> {
+    pub fn create(this: &Value, args: &[Value], mut ctx: &mut Context) -> Result<Value> {
         let prototype = args.get(0).cloned().unwrap_or_else(Value::undefined);
         let properties = args.get(1).cloned().unwrap_or_else(Value::undefined);
 
-        if properties != Value::Undefined {
-            unimplemented!("propertiesObject argument of Object.create")
-        }
-
-        match prototype {
-            Value::Object(_) | Value::Null => Ok(Value::object(BuiltinObject::with_prototype(
+        let obj = match prototype {
+            Value::Object(_) | Value::Null => Value::object(BuiltinObject::with_prototype(
                 prototype,
                 ObjectData::Ordinary,
-            ))),
-            _ => interpreter.throw_type_error(format!(
-                "Object prototype may only be an Object or null: {}",
-                prototype.display()
             )),
+            _ => {
+                return ctx.throw_type_error(format!(
+                    "Object prototype may only be an Object or null: {}",
+                    prototype.display()
+                ))
+            }
+        };
+
+        if properties != Value::Undefined {
+            return Object::define_properties(this, &[obj, properties], &mut ctx);
         }
+
+        Ok(obj)
     }
 
     /// Uses the SameValue algorithm to check equality of objects
@@ -140,6 +145,21 @@ impl Object {
         Ok(Value::undefined())
     }
 
+    /// Define multiple properties
+    pub fn define_properties(_: &Value, args: &[Value], ctx: &mut Context) -> Result<Value> {
+        let val = args.get(0).expect("Cannot get object");
+        if let Some(mut obj) = val.as_object_mut() {
+            let props = args
+                .get(1)
+                .expect("Cannot get props")
+                .as_object_mut()
+                .unwrap();
+            obj.define_properties(&props);
+            Ok(val.clone())
+        } else {
+            Err(ctx.construct_type_error("Expected an object"))
+        }
+    }
     /// `Object.prototype.toString()`
     ///
     /// This method returns a string representing the object.

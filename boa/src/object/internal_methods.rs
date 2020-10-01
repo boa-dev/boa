@@ -282,6 +282,52 @@ impl Object {
         })
     }
 
+    /// Essential internal method OwnPropertyKeys
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec](https://tc39.es/ecma262/#table-essential-internal-methods)
+    pub fn own_property_keys(&self) -> Vec<PropertyKey> {
+        let size = self.indexed_properties.len()
+            + self.string_properties.len()
+            + self.symbol_properties.len();
+        let mut prop_keys = Vec::with_capacity(size);
+
+        self.index_properties()
+            .for_each(|(p, _)| prop_keys.push(PropertyKey::from(*p)));
+        self.string_properties()
+            .for_each(|(p, _)| prop_keys.push(PropertyKey::from(p.as_str())));
+        self.symbol_properties()
+            .for_each(|(p, _)| prop_keys.push(PropertyKey::from(p.clone())));
+
+        prop_keys
+    }
+
+    /// The abstract operation ObjectDefineProperties
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-object.defineproperties
+    pub fn define_properties(&mut self, props: &Self) {
+        let keys = props.own_property_keys();
+        let mut descriptors: Vec<(PropertyKey, Property)> = Vec::new();
+
+        for next_key in keys {
+            let prop_desc = props.get_own_property(&next_key);
+            if prop_desc.enumerable() {
+                let desc_obj = props.get(&next_key);
+                let desc = Property::from(&desc_obj);
+                descriptors.push((next_key, desc));
+            }
+        }
+
+        descriptors.into_iter().for_each(|(p, d)| {
+            self.define_own_property(p, d);
+        });
+    }
+
     // /// `Object.setPropertyOf(obj, prototype)`
     // ///
     // /// This method sets the prototype (i.e., the internal `[[Prototype]]` property)
