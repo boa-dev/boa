@@ -114,7 +114,7 @@ impl Number {
             _ => {}
         }
 
-        Err(ctx.construct_type_error("'this' is not a number"))
+        Err(ctx.construct_type_error("'this' is not a number")?)
     }
 
     /// Helper function that formats a float as a ES6-style exponential number string.

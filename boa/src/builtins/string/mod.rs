@@ -57,7 +57,7 @@ impl String {
             _ => {}
         }
 
-        Err(ctx.construct_type_error("'this' is not a string"))
+        Err(ctx.construct_type_error("'this' is not a string")?)
     }
 
     /// [[Construct]] - Creates a new instance `this`

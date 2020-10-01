@@ -261,7 +261,7 @@ impl Symbol {
             _ => {}
         }
 
-        Err(ctx.construct_type_error("'this' is not a Symbol"))
+        Err(ctx.construct_type_error("'this' is not a Symbol")?)
     }
 
     /// The `Symbol()` constructor returns a value of type symbol.

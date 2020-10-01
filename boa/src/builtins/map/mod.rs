@@ -53,10 +53,10 @@ impl Map {
                 map.insert(key, value);
                 map.len()
             } else {
-                return Err(ctx.construct_type_error("'this' is not a Map"));
+                return Err(ctx.construct_type_error("'this' is not a Map")?);
             }
         } else {
-            return Err(ctx.construct_type_error("'this' is not a Map"));
+            return Err(ctx.construct_type_error("'this' is not a Map")?);
         };
 
         Self::set_size(this, size);
@@ -86,10 +86,10 @@ impl Map {
                 let deleted = map.remove(key).is_some();
                 (deleted, map.len())
             } else {
-                return Err(ctx.construct_type_error("'this' is not a Map"));
+                return Err(ctx.construct_type_error("'this' is not a Map")?);
             }
         } else {
-            return Err(ctx.construct_type_error("'this' is not a Map"));
+            return Err(ctx.construct_type_error("'this' is not a Map")?);
         };
         Self::set_size(this, size);
         Ok(deleted.into())
@@ -123,7 +123,7 @@ impl Map {
             }
         }
 
-        Err(ctx.construct_type_error("'this' is not a Map"))
+        Err(ctx.construct_type_error("'this' is not a Map")?)
     }
 
     /// `Map.prototype.clear( )`
@@ -168,7 +168,7 @@ impl Map {
             }
         }
 
-        Err(ctx.construct_type_error("'this' is not a Map"))
+        Err(ctx.construct_type_error("'this' is not a Map")?)
     }
 
     /// `Map.prototype.forEach( callbackFn [ , thisArg ] )`
@@ -253,6 +253,7 @@ impl Map {
                                 ctx.construct_type_error(
                                     "iterable for Map should have array-like objects",
                                 )
+                                .expect("&str used as message")
                             })?;
                             map.insert(key, value);
                         }
@@ -260,13 +261,12 @@ impl Map {
                     } else {
                         return Err(ctx.construct_type_error(
                             "iterable for Map should have array-like objects",
-                        ));
+                        )?);
                     }
                 }
                 _ => {
-                    return Err(
-                        ctx.construct_type_error("iterable for Map should have array-like objects")
-                    )
+                    return Err(ctx
+                        .construct_type_error("iterable for Map should have array-like objects")?)
                 }
             },
         };

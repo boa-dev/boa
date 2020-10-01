@@ -36,7 +36,7 @@ impl RangeError {
         // This value is used by console.log and other routines to match Object type
         // to its Javascript Identifier (global constructor method name)
         this.set_data(ObjectData::Error);
-        Err(this.clone())
+        Ok(this.clone())
     }
 
     /// `Error.prototype.toString()`

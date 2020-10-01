@@ -260,7 +260,7 @@ impl Value {
                 .unwrap_or(JSONValue::Null)),
             Self::Integer(val) => Ok(JSONValue::Number(JSONNumber::from(val))),
             Self::BigInt(_) => {
-                Err(interpreter.construct_type_error("BigInt value can't be serialized in JSON"))
+                Err(interpreter.construct_type_error("BigInt value can't be serialized in JSON")?)
             }
             Self::Symbol(_) | Self::Undefined => {
                 unreachable!("Symbols and Undefined JSON Values depend on parent type");
@@ -595,9 +595,9 @@ impl Value {
     /// This function is equivelent to `BigInt(value)` in JavaScript.
     pub fn to_bigint(&self, ctx: &mut Context) -> Result<RcBigInt> {
         match self {
-            Value::Null => Err(ctx.construct_type_error("cannot convert null to a BigInt")),
+            Value::Null => Err(ctx.construct_type_error("cannot convert null to a BigInt")?),
             Value::Undefined => {
-                Err(ctx.construct_type_error("cannot convert undefined to a BigInt"))
+                Err(ctx.construct_type_error("cannot convert undefined to a BigInt")?)
             }
             Value::String(ref string) => Ok(RcBigInt::from(BigInt::from_string(string, ctx)?)),
             Value::Boolean(true) => Ok(RcBigInt::from(BigInt::from(1))),
@@ -610,14 +610,14 @@ impl Value {
                 Err(ctx.construct_type_error(format!(
                     "The number {} cannot be converted to a BigInt because it is not an integer",
                     num
-                )))
+                ))?)
             }
             Value::BigInt(b) => Ok(b.clone()),
             Value::Object(_) => {
                 let primitive = self.to_primitive(ctx, PreferredType::Number)?;
                 primitive.to_bigint(ctx)
             }
-            Value::Symbol(_) => Err(ctx.construct_type_error("cannot convert Symbol to a BigInt")),
+            Value::Symbol(_) => Err(ctx.construct_type_error("cannot convert Symbol to a BigInt")?),
         }
     }
 
@@ -648,7 +648,7 @@ impl Value {
             Value::Rational(rational) => Ok(Number::to_native_string(*rational).into()),
             Value::Integer(integer) => Ok(integer.to_string().into()),
             Value::String(string) => Ok(string.clone()),
-            Value::Symbol(_) => Err(ctx.construct_type_error("can't convert symbol to string")),
+            Value::Symbol(_) => Err(ctx.construct_type_error("can't convert symbol to string")?),
             Value::BigInt(ref bigint) => Ok(bigint.to_string().into()),
             Value::Object(_) => {
                 let primitive = self.to_primitive(ctx, PreferredType::String)?;
@@ -665,7 +665,7 @@ impl Value {
     pub fn to_object(&self, ctx: &mut Context) -> Result<GcObject> {
         match self {
             Value::Undefined | Value::Null => {
-                Err(ctx.construct_type_error("cannot convert 'null' or 'undefined' to object"))
+                Err(ctx.construct_type_error("cannot convert 'null' or 'undefined' to object")?)
             }
             Value::Boolean(boolean) => {
                 let proto = ctx
@@ -815,11 +815,11 @@ impl Value {
         let integer_index = self.to_integer(ctx)?;
 
         if integer_index < 0.0 {
-            return Err(ctx.construct_range_error("Integer index must be >= 0"));
+            return Err(ctx.construct_range_error("Integer index must be >= 0")?);
         }
 
         if integer_index > Number::MAX_SAFE_INTEGER {
-            return Err(ctx.construct_range_error("Integer index must be less than 2**(53) - 1"));
+            return Err(ctx.construct_range_error("Integer index must be less than 2**(53) - 1")?);
         }
 
         Ok(integer_index as usize)
@@ -882,8 +882,8 @@ impl Value {
             }
             Value::Rational(number) => Ok(number),
             Value::Integer(integer) => Ok(f64::from(integer)),
-            Value::Symbol(_) => Err(ctx.construct_type_error("argument must not be a symbol")),
-            Value::BigInt(_) => Err(ctx.construct_type_error("argument must not be a bigint")),
+            Value::Symbol(_) => Err(ctx.construct_type_error("argument must not be a symbol")?),
+            Value::BigInt(_) => Err(ctx.construct_type_error("argument must not be a bigint")?),
             Value::Object(_) => {
                 let primitive = self.to_primitive(ctx, PreferredType::Number)?;
                 primitive.to_number(ctx)
@@ -918,7 +918,7 @@ impl Value {
     #[inline]
     pub fn require_object_coercible<'a>(&'a self, ctx: &mut Context) -> Result<&'a Value> {
         if self.is_null_or_undefined() {
-            Err(ctx.construct_type_error("cannot convert null or undefined to Object"))
+            Err(ctx.construct_type_error("cannot convert null or undefined to Object")?)
         } else {
             Ok(self)
         }

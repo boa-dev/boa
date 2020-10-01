@@ -146,6 +146,8 @@ fn object_to_string() {
         Array.prototype.toString = Object.prototype.toString;
         let f = () => {};
         Function.prototype.toString = Object.prototype.toString;
+        let e = new Error('test');
+        Error.prototype.toString = Object.prototype.toString;
         let b = Boolean();
         Boolean.prototype.toString = Object.prototype.toString;
         let i = Number(42);
@@ -170,6 +172,7 @@ fn object_to_string() {
     // );
     assert_eq!(forward(&mut ctx, "a.toString()"), "\"[object Array]\"");
     assert_eq!(forward(&mut ctx, "f.toString()"), "\"[object Function]\"");
+    assert_eq!(forward(&mut ctx, "e.toString()"), "\"[object Error]\"");
     assert_eq!(forward(&mut ctx, "b.toString()"), "\"[object Boolean]\"");
     assert_eq!(forward(&mut ctx, "i.toString()"), "\"[object Number]\"");
     assert_eq!(forward(&mut ctx, "s.toString()"), "\"[object String]\"");
