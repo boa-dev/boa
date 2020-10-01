@@ -50,10 +50,34 @@ impl ReferenceError {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error/toString
     #[allow(clippy::wrong_self_convention)]
     pub(crate) fn to_string(this: &Value, _: &[Value], ctx: &mut Context) -> Result<Value> {
-        let name = this.get_field("name").to_string(ctx)?;
-        let message = this.get_field("message").to_string(ctx)?;
+        if !this.is_object() {
+            return ctx.throw_type_error("'this' is not an Object");
+        }
+        let name = this.get_field("name");
+        let name_to_string;
+        let name = if name.is_undefined() {
+            "Error"
+        } else {
+            name_to_string = name.to_string(ctx)?;
+            name_to_string.as_str()
+        };
 
-        Ok(Value::from(format!("{}: {}", name, message)))
+        let message = this.get_field("message");
+        let message_to_string;
+        let message = if message.is_undefined() {
+            ""
+        } else {
+            message_to_string = message.to_string(ctx)?;
+            message_to_string.as_str()
+        };
+
+        if name == "" {
+            Ok(Value::from(message))
+        } else if message == "" {
+            Ok(Value::from(name))
+        } else {
+            Ok(Value::from(format!("{}: {}", name, message)))
+        }
     }
 
     /// Initialise the global object with the `ReferenceError` object.
