@@ -61,7 +61,7 @@ jobs:
           cd gh-pages
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          git pull
+          git pull --ff-only
           git add test262
           git commit -m "Add new test262 results" -a
           cd ..
@@ -70,4 +70,5 @@ jobs:
         uses: ad-m/github-push-action@v0.6.0
         with:
           directory: gh-pages
+          branch: gh-pages
           github_token: ${{ secrets.GITHUB_TOKEN }}
