@@ -156,6 +156,7 @@ fn object_to_string() {
         Date.prototype.toString = Object.prototype.toString;
         let re = /boa/;
         RegExp.prototype.toString = Object.prototype.toString;
+        let o = Object();
     "#;
     eprintln!("{}", forward(&mut ctx, init));
     // TODO: need Function.prototype.call to be implemented
@@ -174,4 +175,5 @@ fn object_to_string() {
     assert_eq!(forward(&mut ctx, "s.toString()"), "\"[object String]\"");
     assert_eq!(forward(&mut ctx, "d.toString()"), "\"[object Date]\"");
     assert_eq!(forward(&mut ctx, "re.toString()"), "\"[object RegExp]\"");
+    assert_eq!(forward(&mut ctx, "o.toString()"), "\"[object Object]\"");
 }
