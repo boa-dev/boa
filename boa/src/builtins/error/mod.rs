@@ -24,6 +24,9 @@ pub(crate) mod r#type;
 // pub(crate) mod eval;
 // pub(crate) mod uri;
 
+#[cfg(test)]
+mod tests;
+
 pub(crate) use self::r#type::TypeError;
 pub(crate) use self::range::RangeError;
 pub(crate) use self::reference::ReferenceError;
