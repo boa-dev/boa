@@ -40,9 +40,6 @@
 <span id="40">40</span>
 <span id="41">41</span>
 <span id="42">42</span>
-<span id="43">43</span>
-<span id="44">44</span>
-<span id="45">45</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Statement list execution.</span>
 
@@ -68,13 +65,10 @@
                     <span class="kw">break</span>;
                 }
                 <span class="ident">InterpreterState</span>::<span class="ident">Break</span>(<span class="ident">_label</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                    <span class="comment">// TODO, break to a label.</span>
-
                     <span class="comment">// Early break.</span>
                     <span class="kw">break</span>;
                 }
                 <span class="ident">InterpreterState</span>::<span class="ident">Continue</span>(<span class="ident">_label</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                    <span class="comment">// TODO, continue to a label.</span>
                     <span class="kw">break</span>;
                 }
                 <span class="ident">InterpreterState</span>::<span class="ident">Executing</span> <span class="op">=</span><span class="op">&gt;</span> {
