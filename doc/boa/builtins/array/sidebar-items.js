@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["Array","JavaScript `Array` built-in implementation."]]});
+initSidebarItems({"mod":[["array_iterator",""]],"struct":[["Array","JavaScript `Array` built-in implementation."]]});

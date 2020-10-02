@@ -1154,6 +1154,71 @@
 <span id="1154">1154</span>
 <span id="1155">1155</span>
 <span id="1156">1156</span>
+<span id="1157">1157</span>
+<span id="1158">1158</span>
+<span id="1159">1159</span>
+<span id="1160">1160</span>
+<span id="1161">1161</span>
+<span id="1162">1162</span>
+<span id="1163">1163</span>
+<span id="1164">1164</span>
+<span id="1165">1165</span>
+<span id="1166">1166</span>
+<span id="1167">1167</span>
+<span id="1168">1168</span>
+<span id="1169">1169</span>
+<span id="1170">1170</span>
+<span id="1171">1171</span>
+<span id="1172">1172</span>
+<span id="1173">1173</span>
+<span id="1174">1174</span>
+<span id="1175">1175</span>
+<span id="1176">1176</span>
+<span id="1177">1177</span>
+<span id="1178">1178</span>
+<span id="1179">1179</span>
+<span id="1180">1180</span>
+<span id="1181">1181</span>
+<span id="1182">1182</span>
+<span id="1183">1183</span>
+<span id="1184">1184</span>
+<span id="1185">1185</span>
+<span id="1186">1186</span>
+<span id="1187">1187</span>
+<span id="1188">1188</span>
+<span id="1189">1189</span>
+<span id="1190">1190</span>
+<span id="1191">1191</span>
+<span id="1192">1192</span>
+<span id="1193">1193</span>
+<span id="1194">1194</span>
+<span id="1195">1195</span>
+<span id="1196">1196</span>
+<span id="1197">1197</span>
+<span id="1198">1198</span>
+<span id="1199">1199</span>
+<span id="1200">1200</span>
+<span id="1201">1201</span>
+<span id="1202">1202</span>
+<span id="1203">1203</span>
+<span id="1204">1204</span>
+<span id="1205">1205</span>
+<span id="1206">1206</span>
+<span id="1207">1207</span>
+<span id="1208">1208</span>
+<span id="1209">1209</span>
+<span id="1210">1210</span>
+<span id="1211">1211</span>
+<span id="1212">1212</span>
+<span id="1213">1213</span>
+<span id="1214">1214</span>
+<span id="1215">1215</span>
+<span id="1216">1216</span>
+<span id="1217">1217</span>
+<span id="1218">1218</span>
+<span id="1219">1219</span>
+<span id="1220">1220</span>
+<span id="1221">1221</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements the global `Array` object.</span>
 <span class="doccomment">//!</span>
@@ -1166,11 +1231,13 @@
 <span class="doccomment">//! [spec]: https://tc39.es/ecma262/#sec-array-objects</span>
 <span class="doccomment">//! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array</span>
 
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">array_iterator</span>;
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">tests</span>;
 
 <span class="kw">use</span> <span class="kw">super</span>::<span class="ident">function</span>::{<span class="ident">make_builtin_fn</span>, <span class="ident">make_constructor_fn</span>};
 <span class="kw">use</span> <span class="kw">crate</span>::{
+    <span class="ident">builtins</span>::<span class="ident">array</span>::<span class="ident">array_iterator</span>::{<span class="ident">ArrayIterationKind</span>, <span class="ident">ArrayIterator</span>},
     <span class="ident">object</span>::{<span class="ident">ObjectData</span>, <span class="ident">PROTOTYPE</span>},
     <span class="ident">property</span>::{<span class="ident">Attribute</span>, <span class="ident">Property</span>},
     <span class="ident">value</span>::{<span class="ident">same_value_zero</span>, <span class="ident">Value</span>},
@@ -2248,6 +2315,60 @@
         <span class="prelude-val">Ok</span>(<span class="ident">accumulator</span>)
     }
 
+    <span class="doccomment">/// `Array.prototype.values( )`</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// The values method returns an iterable that iterates over the values in the array.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// More information:</span>
+    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
+    <span class="doccomment">///  - [MDN documentation][mdn]</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-array.prototype.values</span>
+    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/values</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">values</span>(
+        <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>,
+        <span class="ident">_args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>],
+        <span class="ident">interpreter</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
+        <span class="ident">ArrayIterator</span>::<span class="ident">create_array_iterator</span>(<span class="ident">interpreter</span>, <span class="ident">this</span>.<span class="ident">clone</span>(), <span class="ident">ArrayIterationKind</span>::<span class="ident">Value</span>)
+    }
+
+    <span class="doccomment">/// `Array.prototype.keys( )`</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// The keys method returns an iterable that iterates over the indexes in the array.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// More information:</span>
+    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
+    <span class="doccomment">///  - [MDN documentation][mdn]</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-array.prototype.values</span>
+    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/values</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">keys</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">_args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">interpreter</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
+        <span class="ident">ArrayIterator</span>::<span class="ident">create_array_iterator</span>(<span class="ident">interpreter</span>, <span class="ident">this</span>.<span class="ident">clone</span>(), <span class="ident">ArrayIterationKind</span>::<span class="ident">Key</span>)
+    }
+
+    <span class="doccomment">/// `Array.prototype.entries( )`</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// The entries method returns an iterable that iterates over the key-value pairs in the array.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// More information:</span>
+    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
+    <span class="doccomment">///  - [MDN documentation][mdn]</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-array.prototype.values</span>
+    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/values</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">entries</span>(
+        <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>,
+        <span class="ident">_args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>],
+        <span class="ident">interpreter</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
+        <span class="ident">ArrayIterator</span>::<span class="ident">create_array_iterator</span>(
+            <span class="ident">interpreter</span>,
+            <span class="ident">this</span>.<span class="ident">clone</span>(),
+            <span class="ident">ArrayIterationKind</span>::<span class="ident">KeyAndValue</span>,
+        )
+    }
+
     <span class="doccomment">/// Initialise the `Array` object on the global object.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">init</span>(<span class="ident">interpreter</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>, <span class="ident">Value</span>) {
@@ -2293,6 +2414,15 @@
             <span class="kw-2">&amp;</span><span class="ident">prototype</span>,
             <span class="number">2</span>,
             <span class="ident">interpreter</span>,
+        );
+        <span class="ident">make_builtin_fn</span>(<span class="self">Self</span>::<span class="ident">values</span>, <span class="string">&quot;values&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">prototype</span>, <span class="number">0</span>, <span class="ident">interpreter</span>);
+        <span class="ident">make_builtin_fn</span>(<span class="self">Self</span>::<span class="ident">keys</span>, <span class="string">&quot;keys&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">prototype</span>, <span class="number">0</span>, <span class="ident">interpreter</span>);
+        <span class="ident">make_builtin_fn</span>(<span class="self">Self</span>::<span class="ident">entries</span>, <span class="string">&quot;entries&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">prototype</span>, <span class="number">0</span>, <span class="ident">interpreter</span>);
+
+        <span class="kw">let</span> <span class="ident">symbol_iterator</span> <span class="op">=</span> <span class="ident">interpreter</span>.<span class="ident">well_known_symbols</span>().<span class="ident">iterator_symbol</span>();
+        <span class="ident">prototype</span>.<span class="ident">set_property</span>(
+            <span class="ident">symbol_iterator</span>,
+            <span class="ident">Property</span>::<span class="ident">default</span>().<span class="ident">value</span>(<span class="ident">prototype</span>.<span class="ident">get_field</span>(<span class="string">&quot;values&quot;</span>)),
         );
 
         <span class="kw">let</span> <span class="ident">array</span> <span class="op">=</span> <span class="ident">make_constructor_fn</span>(

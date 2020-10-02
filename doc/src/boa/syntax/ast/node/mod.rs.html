@@ -530,6 +530,11 @@
 <span id="530">530</span>
 <span id="531">531</span>
 <span id="532">532</span>
+<span id="533">533</span>
+<span id="534">534</span>
+<span id="535">535</span>
+<span id="536">536</span>
+<span id="537">537</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements the `Node` structure, which composes the AST.</span>
 
@@ -563,7 +568,7 @@
     <span class="ident">expression</span>::{<span class="ident">Call</span>, <span class="ident">New</span>},
     <span class="ident">field</span>::{<span class="ident">GetConstField</span>, <span class="ident">GetField</span>},
     <span class="ident">identifier</span>::<span class="ident">Identifier</span>,
-    <span class="ident">iteration</span>::{<span class="ident">Continue</span>, <span class="ident">DoWhileLoop</span>, <span class="ident">ForLoop</span>, <span class="ident">WhileLoop</span>},
+    <span class="ident">iteration</span>::{<span class="ident">Continue</span>, <span class="ident">DoWhileLoop</span>, <span class="ident">ForLoop</span>, <span class="ident">ForOfLoop</span>, <span class="ident">WhileLoop</span>},
     <span class="ident">object</span>::<span class="ident">Object</span>,
     <span class="ident">operator</span>::{<span class="ident">Assign</span>, <span class="ident">BinOp</span>, <span class="ident">UnaryOp</span>},
     <span class="ident">return_smt</span>::<span class="ident">Return</span>,
@@ -646,6 +651,9 @@
 
     <span class="doccomment">/// A `for` statement. [More information](./iteration/struct.ForLoop.html).</span>
     <span class="ident">ForLoop</span>(<span class="ident">ForLoop</span>),
+
+    <span class="doccomment">/// A `for...of` statement. [More information](./iteration/struct.ForOf.html).</span>
+    <span class="ident">ForOfLoop</span>(<span class="ident">ForOfLoop</span>),
 
     <span class="doccomment">/// An &#39;if&#39; statement. [More information](./conditional/struct.If.html).</span>
     <span class="ident">If</span>(<span class="ident">If</span>),
@@ -742,6 +750,7 @@
             <span class="self">Self</span>::<span class="ident">Const</span>(<span class="kw-2">ref</span> <span class="ident">c</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;{}&quot;</span>, <span class="ident">c</span>),
             <span class="self">Self</span>::<span class="ident">ConditionalOp</span>(<span class="kw-2">ref</span> <span class="ident">cond_op</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Display</span>::<span class="ident">fmt</span>(<span class="ident">cond_op</span>, <span class="ident">f</span>),
             <span class="self">Self</span>::<span class="ident">ForLoop</span>(<span class="kw-2">ref</span> <span class="ident">for_loop</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">for_loop</span>.<span class="ident">display</span>(<span class="ident">f</span>, <span class="ident">indentation</span>),
+            <span class="self">Self</span>::<span class="ident">ForOfLoop</span>(<span class="kw-2">ref</span> <span class="ident">for_of</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">for_of</span>.<span class="ident">display</span>(<span class="ident">f</span>, <span class="ident">indentation</span>),
             <span class="self">Self</span>::<span class="ident">This</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;this&quot;</span>),
             <span class="self">Self</span>::<span class="ident">Try</span>(<span class="kw-2">ref</span> <span class="ident">try_catch</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">try_catch</span>.<span class="ident">display</span>(<span class="ident">f</span>, <span class="ident">indentation</span>),
             <span class="self">Self</span>::<span class="ident">Break</span>(<span class="kw-2">ref</span> <span class="ident">break_smt</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Display</span>::<span class="ident">fmt</span>(<span class="ident">break_smt</span>, <span class="ident">f</span>),
@@ -796,6 +805,7 @@
             <span class="ident">Node</span>::<span class="ident">WhileLoop</span>(<span class="kw-2">ref</span> <span class="ident">while_loop</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">while_loop</span>.<span class="ident">run</span>(<span class="ident">interpreter</span>),
             <span class="ident">Node</span>::<span class="ident">DoWhileLoop</span>(<span class="kw-2">ref</span> <span class="ident">do_while</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">do_while</span>.<span class="ident">run</span>(<span class="ident">interpreter</span>),
             <span class="ident">Node</span>::<span class="ident">ForLoop</span>(<span class="kw-2">ref</span> <span class="ident">for_loop</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">for_loop</span>.<span class="ident">run</span>(<span class="ident">interpreter</span>),
+            <span class="ident">Node</span>::<span class="ident">ForOfLoop</span>(<span class="kw-2">ref</span> <span class="ident">for_of_loop</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">for_of_loop</span>.<span class="ident">run</span>(<span class="ident">interpreter</span>),
             <span class="ident">Node</span>::<span class="ident">If</span>(<span class="kw-2">ref</span> <span class="ident">if_smt</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">if_smt</span>.<span class="ident">run</span>(<span class="ident">interpreter</span>),
             <span class="ident">Node</span>::<span class="ident">ConditionalOp</span>(<span class="kw-2">ref</span> <span class="ident">op</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">op</span>.<span class="ident">run</span>(<span class="ident">interpreter</span>),
             <span class="ident">Node</span>::<span class="ident">Switch</span>(<span class="kw-2">ref</span> <span class="ident">switch</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">switch</span>.<span class="ident">run</span>(<span class="ident">interpreter</span>),

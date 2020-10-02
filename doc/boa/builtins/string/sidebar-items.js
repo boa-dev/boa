@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["String","JavaScript `String` implementation."]]});
+initSidebarItems({"fn":[["code_point_at",""],["is_leading_surrogate",""],["is_trailing_surrogate",""]],"mod":[["string_iterator",""]],"struct":[["String","JavaScript `String` implementation."]]});

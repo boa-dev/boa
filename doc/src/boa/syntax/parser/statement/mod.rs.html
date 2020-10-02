@@ -442,6 +442,8 @@
 <span id="442">442</span>
 <span id="443">443</span>
 <span id="444">444</span>
+<span id="445">445</span>
+<span id="446">446</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Statement and declaration parsing.</span>
 <span class="doccomment">//!</span>
@@ -483,9 +485,11 @@
 
 <span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">AllowAwait</span>, <span class="ident">AllowReturn</span>, <span class="ident">AllowYield</span>, <span class="ident">Cursor</span>, <span class="ident">ParseError</span>, <span class="ident">TokenParser</span>};
 
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">syntax</span>::<span class="ident">lexer</span>::{<span class="ident">InputElement</span>, <span class="ident">TokenKind</span>};
 <span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">syntax</span>::<span class="ident">ast</span>::{<span class="ident">node</span>, <span class="ident">Keyword</span>, <span class="ident">Node</span>, <span class="ident">Punctuator</span>},
+    <span class="ident">syntax</span>::{
+        <span class="ident">ast</span>::{<span class="ident">node</span>, <span class="ident">Keyword</span>, <span class="ident">Node</span>, <span class="ident">Punctuator</span>},
+        <span class="ident">lexer</span>::{<span class="ident">InputElement</span>, <span class="ident">TokenKind</span>},
+    },
     <span class="ident">BoaProfiler</span>,
 };
 <span class="kw">use</span> <span class="ident">labelled_stm</span>::<span class="ident">LabelledStatement</span>;
@@ -818,7 +822,7 @@
             <span class="ident">TokenKind</span>::<span class="ident">Keyword</span>(<span class="ident">Keyword</span>::<span class="ident">Function</span>)
             <span class="op">|</span> <span class="ident">TokenKind</span>::<span class="ident">Keyword</span>(<span class="ident">Keyword</span>::<span class="ident">Const</span>)
             <span class="op">|</span> <span class="ident">TokenKind</span>::<span class="ident">Keyword</span>(<span class="ident">Keyword</span>::<span class="ident">Let</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="ident">Declaration</span>::<span class="ident">new</span>(<span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>).<span class="ident">parse</span>(<span class="ident">cursor</span>)
+                <span class="ident">Declaration</span>::<span class="ident">new</span>(<span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>, <span class="bool-val">true</span>).<span class="ident">parse</span>(<span class="ident">cursor</span>)
             }
             <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="ident">Statement</span>::<span class="ident">new</span>(<span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>, <span class="self">self</span>.<span class="ident">allow_return</span>).<span class="ident">parse</span>(<span class="ident">cursor</span>)

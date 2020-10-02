@@ -1,0 +1,1 @@
+initSidebarItems({"fn":[["create_iter_result_object","CreateIterResultObject( value, done )"],["create_iterator_prototype","Create the %IteratorPrototype% object"],["get_iterator","Get an iterator record"]],"struct":[["IteratorPrototypes",""],["IteratorRecord",""],["IteratorResult",""]]});

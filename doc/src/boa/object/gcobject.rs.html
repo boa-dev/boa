@@ -403,7 +403,7 @@
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">RefMut</span><span class="op">&lt;</span><span class="lifetime">&#39;object</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">GcCellRefMut</span><span class="op">&lt;</span><span class="lifetime">&#39;object</span>, <span class="ident">Object</span><span class="op">&gt;</span>;
 
 <span class="doccomment">/// Garbage collected `Object`.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Trace</span>, <span class="ident">Finalize</span>, <span class="ident">Clone</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Trace</span>, <span class="ident">Finalize</span>, <span class="ident">Clone</span>, <span class="ident">Default</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">GcObject</span>(<span class="ident">Gc</span><span class="op">&lt;</span><span class="ident">GcCell</span><span class="op">&lt;</span><span class="ident">Object</span><span class="op">&gt;</span><span class="op">&gt;</span>);
 
 <span class="comment">// This is needed for the call method since we cannot mutate the function itself since we</span>
