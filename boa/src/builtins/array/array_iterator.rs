@@ -88,7 +88,7 @@ impl ArrayIterator {
                 array_iterator.next_index = index + 1;
                 match array_iterator.kind {
                     ArrayIterationKind::Key => {
-                        Ok(create_iter_result_object(ctx, Value::number(index), false))
+                        Ok(create_iter_result_object(ctx, index.into(), false))
                     }
                     ArrayIterationKind::Value => {
                         let element_value = array_iterator.array.get_field(index);
@@ -98,7 +98,7 @@ impl ArrayIterator {
                         let element_value = array_iterator.array.get_field(index);
                         let result = Array::make_array(
                             &Value::new_object(Some(ctx.global_object())),
-                            &[Value::number(index), element_value],
+                            &[index.into(), element_value],
                             ctx,
                         )?;
                         Ok(create_iter_result_object(ctx, result, false))
