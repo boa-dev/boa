@@ -29,7 +29,7 @@ pub type Ref<'object> = GcCellRef<'object, Object>;
 pub type RefMut<'object> = GcCellRefMut<'object, Object>;
 
 /// Garbage collected `Object`.
-#[derive(Trace, Finalize, Clone)]
+#[derive(Trace, Finalize, Clone, Default)]
 pub struct GcObject(Gc<GcCell<Object>>);
 
 // This is needed for the call method since we cannot mutate the function itself since we
