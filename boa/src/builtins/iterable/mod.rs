@@ -50,12 +50,7 @@ impl IteratorPrototypes {
 ///
 /// Generates an object supporting the IteratorResult interface.
 pub fn create_iter_result_object(ctx: &mut Context, value: Value, done: bool) -> Value {
-    let object = Value::new_object(Some(
-        &ctx.realm()
-            .environment
-            .get_global_object()
-            .expect("Could not get global object"),
-    ));
+    let object = Value::new_object(Some(ctx.global_object()));
     let value_property = Property::default().value(value);
     let done_property = Property::default().value(Value::boolean(done));
     object.set_property("value", value_property);

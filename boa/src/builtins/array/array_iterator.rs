@@ -50,12 +50,7 @@ impl ArrayIterator {
         array: Value,
         kind: ArrayIterationKind,
     ) -> Result<Value> {
-        let array_iterator = Value::new_object(Some(
-            &ctx.realm()
-                .environment
-                .get_global_object()
-                .expect("Could not get global object"),
-        ));
+        let array_iterator = Value::new_object(Some(ctx.global_object()));
         array_iterator.set_data(ObjectData::ArrayIterator(Self::new(array, kind)));
         array_iterator
             .as_object_mut()

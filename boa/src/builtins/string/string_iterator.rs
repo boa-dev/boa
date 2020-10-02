@@ -22,12 +22,7 @@ impl StringIterator {
     }
 
     pub fn create_string_iterator(ctx: &mut Context, string: Value) -> Result<Value> {
-        let string_iterator = Value::new_object(Some(
-            &ctx.realm()
-                .environment
-                .get_global_object()
-                .expect("Could not get global object"),
-        ));
+        let string_iterator = Value::new_object(Some(ctx.global_object()));
         string_iterator.set_data(ObjectData::StringIterator(Self::new(string)));
         string_iterator
             .as_object_mut()
