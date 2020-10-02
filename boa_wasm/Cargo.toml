@@ -1,7 +1,7 @@
 [package]
 name = "boa_wasm"
 version = "0.9.0"
-authors = ["Jason Williams <jase.williams@gmail.com>"]
+authors = ["boa-dev"]
 description = "Boa is a Javascript lexer, parser and Just-in-Time compiler written in Rust. Currently, it has support for some of the language."
 repository = "https://github.com/boa-dev/boa"
 keywords = ["javascript", "compiler", "lexer", "parser", "js"]
