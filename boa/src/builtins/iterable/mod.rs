@@ -1,13 +1,13 @@
-use crate::builtins::string::string_iterator::StringIterator;
-use crate::object::GcObject;
 use crate::{
+    builtins::string::string_iterator::StringIterator,
     builtins::{
         function::{BuiltInFunction, Function, FunctionFlags},
         ArrayIterator,
     },
+    object::GcObject,
     object::{Object, PROTOTYPE},
     property::Property,
-    BoaProfiler, Context, Value,
+    BoaProfiler, Context, Result, Value,
 };
 
 #[derive(Debug, Default)]
@@ -59,7 +59,7 @@ pub fn create_iter_result_object(ctx: &mut Context, value: Value, done: bool) ->
 }
 
 /// Get an iterator record
-pub fn get_iterator(ctx: &mut Context, iterable: Value) -> Result<IteratorRecord, Value> {
+pub fn get_iterator(ctx: &mut Context, iterable: Value) -> Result<IteratorRecord> {
     let iterator_function = iterable
         .get_property(ctx.well_known_symbols().iterator_symbol())
         .and_then(|mut p| p.value.take())
@@ -118,7 +118,7 @@ impl IteratorRecord {
     ///  - [ECMA reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-iteratornext
-    pub(crate) fn next(&self, ctx: &mut Context) -> Result<IteratorResult, Value> {
+    pub(crate) fn next(&self, ctx: &mut Context) -> Result<IteratorResult> {
         let next = ctx.call(&self.next_function, &self.iterator_object, &[])?;
         let done = next
             .get_property("done")
