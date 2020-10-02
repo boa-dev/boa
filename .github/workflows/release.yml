@@ -1,0 +1,18 @@
+name: Publish Release
+on:
+  release:
+    types: [published]
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    env:
+      CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+    steps:
+      - name: Git Checkout
+        uses: actions/checkout@v2
+        with:
+          ref: ${{ github.sha }}
+      - run: cargo login ${CARGO_REGISTRY_TOKEN}
+      - run: cargo publish
+        working-directory: boa
