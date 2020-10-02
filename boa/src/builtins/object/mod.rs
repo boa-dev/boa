@@ -16,7 +16,7 @@
 use crate::{
     builtins::function::{make_builtin_fn, make_constructor_fn},
     object::{Object as BuiltinObject, ObjectData},
-    property::Property,
+    property::{Property, PropertyKey},
     value::{same_value, Value},
     BoaProfiler, Context, Result,
 };
@@ -96,9 +96,9 @@ impl Object {
     }
 
     /// Define a property in an object
-    pub fn define_property(_: &Value, args: &[Value], ctx: &mut Context) -> Result<Value> {
+    pub fn define_property(_: &Value, args: &[Value], _ctx: &mut Context) -> Result<Value> {
         let obj = args.get(0).expect("Cannot get object");
-        let prop = args.get(1).expect("Cannot get object").to_string(ctx)?;
+        let prop = PropertyKey::from(args.get(1).expect("Cannot get object"));
         let desc = Property::from(args.get(2).expect("Cannot get object"));
         obj.set_property(prop, desc);
         Ok(Value::undefined())
