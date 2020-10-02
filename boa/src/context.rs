@@ -1,12 +1,12 @@
 //! Javascript context.
 
-use crate::builtins::iterable::IteratorPrototypes;
 use crate::{
     builtins::{
+        iterable::IteratorPrototypes,
         self,
         function::{Function, FunctionFlags, NativeFunction},
         symbol::{Symbol, WellKnownSymbols},
-        Console,
+        Console
     },
     class::{Class, ClassBuilder},
     exec::Interpreter,
@@ -24,7 +24,9 @@ use crate::{
         Parser,
     },
     value::{PreferredType, RcString, RcSymbol, Type, Value},
-    BoaProfiler, Executable, Result,
+    BoaProfiler,
+    Executable,
+    Result
 };
 use std::result::Result as StdResult;
 
