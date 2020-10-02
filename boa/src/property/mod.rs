@@ -293,17 +293,6 @@ pub enum PropertyKey {
     Index(u32),
 }
 
-impl From<&Value> for PropertyKey {
-    #[inline]
-    fn from(value: &Value) -> PropertyKey {
-        match value {
-            Value::String(ref string) => string.clone().into(),
-            Value::Symbol(ref symbol) => symbol.clone().into(),
-            _ => panic!("Cannot be used as property"),
-        }
-    }
-}
-
 impl From<RcString> for PropertyKey {
     #[inline]
     fn from(string: RcString) -> PropertyKey {
