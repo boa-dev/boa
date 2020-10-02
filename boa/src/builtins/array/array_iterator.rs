@@ -22,7 +22,7 @@ pub enum ArrayIterationKind {
 #[derive(Debug, Clone, Finalize, Trace)]
 pub struct ArrayIterator {
     array: Value,
-    next_index: i32,
+    next_index: u32,
     kind: ArrayIterationKind,
 }
 
@@ -80,7 +80,7 @@ impl ArrayIterator {
                     .get_field("length")
                     .as_number()
                     .ok_or_else(|| ctx.construct_type_error("Not an array"))?
-                    as i32;
+                    as u32;
                 if array_iterator.next_index >= len {
                     array_iterator.array = Value::undefined();
                     return Ok(create_iter_result_object(ctx, Value::undefined(), true));
@@ -88,7 +88,7 @@ impl ArrayIterator {
                 array_iterator.next_index = index + 1;
                 match array_iterator.kind {
                     ArrayIterationKind::Key => {
-                        Ok(create_iter_result_object(ctx, Value::integer(index), false))
+                        Ok(create_iter_result_object(ctx, Value::number(index), false))
                     }
                     ArrayIterationKind::Value => {
                         let element_value = array_iterator.array.get_field(index);
@@ -98,7 +98,7 @@ impl ArrayIterator {
                         let element_value = array_iterator.array.get_field(index);
                         let result = Array::make_array(
                             &Value::new_object(Some(ctx.global_object())),
-                            &[Value::integer(index), element_value],
+                            &[Value::number(index), element_value],
                             ctx,
                         )?;
                         Ok(create_iter_result_object(ctx, result, false))
