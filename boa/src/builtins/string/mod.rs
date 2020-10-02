@@ -203,7 +203,6 @@ impl String {
             .nth(pos as usize)
             .expect("failed to get utf16 value");
         // If there is no element at that index, the result is NaN
-        // TODO: We currently don't have NaN
         Ok(Value::from(f64::from(utf16_val)))
     }
 

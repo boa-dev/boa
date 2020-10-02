@@ -1377,3 +1377,9 @@ fn test_conditional_op() {
     let scenario = "1 === 2 ? 'a' : 'b'";
     assert_eq!(&exec(scenario), "\"b\"");
 }
+
+#[test]
+fn test_identifier_op() {
+    let scenario = "break = 1";
+    assert_eq!(&exec(scenario), "\"SyntaxError\": \"expected token \'identifier\', got \'=\' in binding identifier at line 1, col 7\"");
+}

@@ -496,7 +496,7 @@ impl Context {
 
         let result = match Self::parser_expr(src) {
             Ok(expr) => expr.run(self),
-            Err(e) => self.throw_type_error(e),
+            Err(e) => self.throw_syntax_error(e),
         };
 
         // The main_timer needs to be dropped before the BoaProfiler is.
