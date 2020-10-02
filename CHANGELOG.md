@@ -129,6 +129,10 @@ Bug Fixes:
   Missing `__proto__` field in functions instances (@54k1)
 - [BUG #561](https://github.com/boa-dev/boa/pull/561):
   Throw a `TypeError` when a non-object is called (@joshwd36)
+- [BUG #748](https://github.com/boa-dev/boa/pull/748):
+  Fix parse error throwing a `TypeError`, instead of `SyntaxError` (@iamsaquib8)
+- [BUG #737](https://github.com/boa-dev/boa/pull/737):
+  Make `Object.toString()` spec compliant (@RageKnify)
 
 Internal Improvements:
 
@@ -182,6 +186,10 @@ Internal Improvements:
   Merged `create` into `init` for builtins (@HalidOdat)
 - [INTERNAL #538](https://github.com/boa-dev/boa/pull/538):
   Cleanup and added test for `String.prototype.concat` (@HalidOdat)
+- [INTERNAL #739](https://github.com/boa-dev/boa/pull/739):
+  Add release action (@jasonwilliams)
+- [INTERNAL #744](https://github.com/boa-dev/boa/pull/744):
+  Add MacOS check and test to CI (@neeldug)
 
 # [# 0.9.0 (2020-07-03) - Move to Organisation, 78% faster execution time](https://github.com/boa-dev/boa/compare/v0.8.0...v0.9.0)
 
