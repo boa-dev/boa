@@ -46,12 +46,12 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Run benchmark
-        run: cargo bench -p Boa | tee output.txt
+        run: cargo bench -p Boa -- --output-format bencher | tee output.txt
       - name: Store benchmark result
-        uses: jasonwilliams/github-action-benchmark@v1
+        uses: rhysd/github-action-benchmark@v1.8.1
         with:
           name: Boa Benchmarks
-          tool: "criterion"
+          tool: 'cargo'
           output-file-path: output.txt
           auto-push: true
           github-token: ${{ secrets.GITHUB_TOKEN }}
