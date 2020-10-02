@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["FunctionExpr","The `function` expression defines a function with the specified parameters."]]});

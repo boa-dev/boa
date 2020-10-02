@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["BinOp","Binary operators requires two operands, one before the operator and one after the operator."]]});

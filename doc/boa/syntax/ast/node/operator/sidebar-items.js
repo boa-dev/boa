@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["Assign","An assignment operator assigns a value to its left operand based on the value of its right operand."],["BinOp","Binary operators requires two operands, one before the operator and one after the operator."],["UnaryOp","A unary operation is an operation with only one operand."]]});
+initSidebarItems({"mod":[["assign",""],["bin_op",""],["unary_op",""]]});

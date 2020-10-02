@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["If","The `if` statement executes a statement if a specified condition is [`truthy`][truthy]. If the condition is [`falsy`][falsy], another statement can be executed."]]});

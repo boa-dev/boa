@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["ConditionalOp","The `conditional` (ternary) operator is the only JavaScript operator that takes three operands."],["If","The `if` statement executes a statement if a specified condition is [`truthy`][truthy]. If the condition is [`falsy`][falsy], another statement can be executed."]]});
+initSidebarItems({"mod":[["conditional_op",""],["if_node",""]]});

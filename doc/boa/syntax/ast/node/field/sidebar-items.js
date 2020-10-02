@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["GetConstField","This property accessor provides access to an object's properties by using the [dot notation][mdn]."],["GetField","This property accessor provides access to an object's properties by using the [bracket notation][mdn]."]]});
+initSidebarItems({"mod":[["get_const_field",""],["get_field",""]]});

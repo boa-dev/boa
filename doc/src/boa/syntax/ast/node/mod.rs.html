@@ -476,6 +476,60 @@
 <span id="476">476</span>
 <span id="477">477</span>
 <span id="478">478</span>
+<span id="479">479</span>
+<span id="480">480</span>
+<span id="481">481</span>
+<span id="482">482</span>
+<span id="483">483</span>
+<span id="484">484</span>
+<span id="485">485</span>
+<span id="486">486</span>
+<span id="487">487</span>
+<span id="488">488</span>
+<span id="489">489</span>
+<span id="490">490</span>
+<span id="491">491</span>
+<span id="492">492</span>
+<span id="493">493</span>
+<span id="494">494</span>
+<span id="495">495</span>
+<span id="496">496</span>
+<span id="497">497</span>
+<span id="498">498</span>
+<span id="499">499</span>
+<span id="500">500</span>
+<span id="501">501</span>
+<span id="502">502</span>
+<span id="503">503</span>
+<span id="504">504</span>
+<span id="505">505</span>
+<span id="506">506</span>
+<span id="507">507</span>
+<span id="508">508</span>
+<span id="509">509</span>
+<span id="510">510</span>
+<span id="511">511</span>
+<span id="512">512</span>
+<span id="513">513</span>
+<span id="514">514</span>
+<span id="515">515</span>
+<span id="516">516</span>
+<span id="517">517</span>
+<span id="518">518</span>
+<span id="519">519</span>
+<span id="520">520</span>
+<span id="521">521</span>
+<span id="522">522</span>
+<span id="523">523</span>
+<span id="524">524</span>
+<span id="525">525</span>
+<span id="526">526</span>
+<span id="527">527</span>
+<span id="528">528</span>
+<span id="529">529</span>
+<span id="530">530</span>
+<span id="531">531</span>
+<span id="532">532</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements the `Node` structure, which composes the AST.</span>
 
@@ -520,6 +574,7 @@
     <span class="ident">try_node</span>::{<span class="ident">Catch</span>, <span class="ident">Finally</span>, <span class="ident">Try</span>},
 };
 <span class="kw">use</span> <span class="kw">super</span>::<span class="ident">Const</span>;
+<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">exec</span>::<span class="ident">Executable</span>, <span class="ident">BoaProfiler</span>, <span class="ident">Context</span>, <span class="prelude-ty">Result</span>, <span class="ident">Value</span>};
 <span class="kw">use</span> <span class="ident">gc</span>::{<span class="ident">unsafe_empty_trace</span>, <span class="ident">Finalize</span>, <span class="ident">Trace</span>};
 <span class="kw">use</span> <span class="ident">std</span>::{
     <span class="ident">cmp</span>::<span class="ident">Ordering</span>,
@@ -715,6 +770,59 @@
             <span class="self">Self</span>::<span class="ident">Assign</span>(<span class="kw-2">ref</span> <span class="ident">op</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Display</span>::<span class="ident">fmt</span>(<span class="ident">op</span>, <span class="ident">f</span>),
             <span class="self">Self</span>::<span class="ident">LetDeclList</span>(<span class="kw-2">ref</span> <span class="ident">decl</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Display</span>::<span class="ident">fmt</span>(<span class="ident">decl</span>, <span class="ident">f</span>),
             <span class="self">Self</span>::<span class="ident">ConstDeclList</span>(<span class="kw-2">ref</span> <span class="ident">decl</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Display</span>::<span class="ident">fmt</span>(<span class="ident">decl</span>, <span class="ident">f</span>),
+        }
+    }
+}
+
+<span class="kw">impl</span> <span class="ident">Executable</span> <span class="kw">for</span> <span class="ident">Node</span> {
+    <span class="kw">fn</span> <span class="ident">run</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">interpreter</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">BoaProfiler</span>::<span class="ident">global</span>().<span class="ident">start_event</span>(<span class="string">&quot;Executable&quot;</span>, <span class="string">&quot;exec&quot;</span>);
+        <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
+            <span class="ident">Node</span>::<span class="ident">Const</span>(<span class="ident">Const</span>::<span class="ident">Null</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">null</span>()),
+            <span class="ident">Node</span>::<span class="ident">Const</span>(<span class="ident">Const</span>::<span class="ident">Num</span>(<span class="ident">num</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">rational</span>(<span class="ident">num</span>)),
+            <span class="ident">Node</span>::<span class="ident">Const</span>(<span class="ident">Const</span>::<span class="ident">Int</span>(<span class="ident">num</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">integer</span>(<span class="ident">num</span>)),
+            <span class="ident">Node</span>::<span class="ident">Const</span>(<span class="ident">Const</span>::<span class="ident">BigInt</span>(<span class="kw-2">ref</span> <span class="ident">num</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">num</span>.<span class="ident">clone</span>())),
+            <span class="ident">Node</span>::<span class="ident">Const</span>(<span class="ident">Const</span>::<span class="ident">Undefined</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">Undefined</span>),
+            <span class="comment">// we can&#39;t move String from Const into value, because const is a garbage collected value</span>
+            <span class="comment">// Which means Drop() get&#39;s called on Const, but str will be gone at that point.</span>
+            <span class="comment">// Do Const values need to be garbage collected? We no longer need them once we&#39;ve generated Values</span>
+            <span class="ident">Node</span>::<span class="ident">Const</span>(<span class="ident">Const</span>::<span class="ident">String</span>(<span class="kw-2">ref</span> <span class="ident">value</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">string</span>(<span class="ident">value</span>.<span class="ident">to_string</span>())),
+            <span class="ident">Node</span>::<span class="ident">Const</span>(<span class="ident">Const</span>::<span class="ident">Bool</span>(<span class="ident">value</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">boolean</span>(<span class="ident">value</span>)),
+            <span class="ident">Node</span>::<span class="ident">Block</span>(<span class="kw-2">ref</span> <span class="ident">block</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">block</span>.<span class="ident">run</span>(<span class="ident">interpreter</span>),
+            <span class="ident">Node</span>::<span class="ident">Identifier</span>(<span class="kw-2">ref</span> <span class="ident">identifier</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">identifier</span>.<span class="ident">run</span>(<span class="ident">interpreter</span>),
+            <span class="ident">Node</span>::<span class="ident">GetConstField</span>(<span class="kw-2">ref</span> <span class="ident">get_const_field_node</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">get_const_field_node</span>.<span class="ident">run</span>(<span class="ident">interpreter</span>),
+            <span class="ident">Node</span>::<span class="ident">GetField</span>(<span class="kw-2">ref</span> <span class="ident">get_field</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">get_field</span>.<span class="ident">run</span>(<span class="ident">interpreter</span>),
+            <span class="ident">Node</span>::<span class="ident">Call</span>(<span class="kw-2">ref</span> <span class="ident">call</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">call</span>.<span class="ident">run</span>(<span class="ident">interpreter</span>),
+            <span class="ident">Node</span>::<span class="ident">WhileLoop</span>(<span class="kw-2">ref</span> <span class="ident">while_loop</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">while_loop</span>.<span class="ident">run</span>(<span class="ident">interpreter</span>),
+            <span class="ident">Node</span>::<span class="ident">DoWhileLoop</span>(<span class="kw-2">ref</span> <span class="ident">do_while</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">do_while</span>.<span class="ident">run</span>(<span class="ident">interpreter</span>),
+            <span class="ident">Node</span>::<span class="ident">ForLoop</span>(<span class="kw-2">ref</span> <span class="ident">for_loop</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">for_loop</span>.<span class="ident">run</span>(<span class="ident">interpreter</span>),
+            <span class="ident">Node</span>::<span class="ident">If</span>(<span class="kw-2">ref</span> <span class="ident">if_smt</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">if_smt</span>.<span class="ident">run</span>(<span class="ident">interpreter</span>),
+            <span class="ident">Node</span>::<span class="ident">ConditionalOp</span>(<span class="kw-2">ref</span> <span class="ident">op</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">op</span>.<span class="ident">run</span>(<span class="ident">interpreter</span>),
+            <span class="ident">Node</span>::<span class="ident">Switch</span>(<span class="kw-2">ref</span> <span class="ident">switch</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">switch</span>.<span class="ident">run</span>(<span class="ident">interpreter</span>),
+            <span class="ident">Node</span>::<span class="ident">Object</span>(<span class="kw-2">ref</span> <span class="ident">obj</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">obj</span>.<span class="ident">run</span>(<span class="ident">interpreter</span>),
+            <span class="ident">Node</span>::<span class="ident">ArrayDecl</span>(<span class="kw-2">ref</span> <span class="ident">arr</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">arr</span>.<span class="ident">run</span>(<span class="ident">interpreter</span>),
+            <span class="comment">// &lt;https://tc39.es/ecma262/#sec-createdynamicfunction&gt;</span>
+            <span class="ident">Node</span>::<span class="ident">FunctionDecl</span>(<span class="kw-2">ref</span> <span class="ident">decl</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">decl</span>.<span class="ident">run</span>(<span class="ident">interpreter</span>),
+            <span class="comment">// &lt;https://tc39.es/ecma262/#sec-createdynamicfunction&gt;</span>
+            <span class="ident">Node</span>::<span class="ident">FunctionExpr</span>(<span class="kw-2">ref</span> <span class="ident">function_expr</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">function_expr</span>.<span class="ident">run</span>(<span class="ident">interpreter</span>),
+            <span class="ident">Node</span>::<span class="ident">ArrowFunctionDecl</span>(<span class="kw-2">ref</span> <span class="ident">decl</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">decl</span>.<span class="ident">run</span>(<span class="ident">interpreter</span>),
+            <span class="ident">Node</span>::<span class="ident">BinOp</span>(<span class="kw-2">ref</span> <span class="ident">op</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">op</span>.<span class="ident">run</span>(<span class="ident">interpreter</span>),
+            <span class="ident">Node</span>::<span class="ident">UnaryOp</span>(<span class="kw-2">ref</span> <span class="ident">op</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">op</span>.<span class="ident">run</span>(<span class="ident">interpreter</span>),
+            <span class="ident">Node</span>::<span class="ident">New</span>(<span class="kw-2">ref</span> <span class="ident">call</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">call</span>.<span class="ident">run</span>(<span class="ident">interpreter</span>),
+            <span class="ident">Node</span>::<span class="ident">Return</span>(<span class="kw-2">ref</span> <span class="ident">ret</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ret</span>.<span class="ident">run</span>(<span class="ident">interpreter</span>),
+            <span class="ident">Node</span>::<span class="ident">Throw</span>(<span class="kw-2">ref</span> <span class="ident">throw</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">throw</span>.<span class="ident">run</span>(<span class="ident">interpreter</span>),
+            <span class="ident">Node</span>::<span class="ident">Assign</span>(<span class="kw-2">ref</span> <span class="ident">op</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">op</span>.<span class="ident">run</span>(<span class="ident">interpreter</span>),
+            <span class="ident">Node</span>::<span class="ident">VarDeclList</span>(<span class="kw-2">ref</span> <span class="ident">decl</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">decl</span>.<span class="ident">run</span>(<span class="ident">interpreter</span>),
+            <span class="ident">Node</span>::<span class="ident">LetDeclList</span>(<span class="kw-2">ref</span> <span class="ident">decl</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">decl</span>.<span class="ident">run</span>(<span class="ident">interpreter</span>),
+            <span class="ident">Node</span>::<span class="ident">ConstDeclList</span>(<span class="kw-2">ref</span> <span class="ident">decl</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">decl</span>.<span class="ident">run</span>(<span class="ident">interpreter</span>),
+            <span class="ident">Node</span>::<span class="ident">Spread</span>(<span class="kw-2">ref</span> <span class="ident">spread</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">spread</span>.<span class="ident">run</span>(<span class="ident">interpreter</span>),
+            <span class="ident">Node</span>::<span class="ident">This</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="comment">// Will either return `this` binding or undefined</span>
+                <span class="prelude-val">Ok</span>(<span class="ident">interpreter</span>.<span class="ident">realm</span>().<span class="ident">environment</span>.<span class="ident">get_this_binding</span>())
+            }
+            <span class="ident">Node</span>::<span class="ident">Try</span>(<span class="kw-2">ref</span> <span class="ident">try_node</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">try_node</span>.<span class="ident">run</span>(<span class="ident">interpreter</span>),
+            <span class="ident">Node</span>::<span class="ident">Break</span>(<span class="kw-2">ref</span> <span class="ident">break_node</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">break_node</span>.<span class="ident">run</span>(<span class="ident">interpreter</span>),
+            <span class="ident">Node</span>::<span class="ident">Continue</span>(<span class="kw-2">ref</span> <span class="ident">continue_node</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">continue_node</span>.<span class="ident">run</span>(<span class="ident">interpreter</span>),
         }
     }
 }
