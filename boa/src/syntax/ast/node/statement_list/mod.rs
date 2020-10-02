@@ -75,13 +75,10 @@ impl Executable for StatementList {
                     break;
                 }
                 InterpreterState::Break(_label) => {
-                    // TODO, break to a label.
-
                     // Early break.
                     break;
                 }
                 InterpreterState::Continue(_label) => {
-                    // TODO, continue to a label.
                     break;
                 }
                 InterpreterState::Executing => {
