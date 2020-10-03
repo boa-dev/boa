@@ -1078,3 +1078,135 @@ fn call_array_constructor_with_one_argument() {
     // let result = forward(&mut engine, "one.length");
     // assert_eq!(result, "1");
 }
+
+#[test]
+fn array_values_simple() {
+    let mut engine = Context::new();
+    let init = r#"
+        var iterator = [1, 2, 3].values();
+        var next = iterator.next();
+    "#;
+    forward(&mut engine, init);
+    assert_eq!(forward(&mut engine, "next.value"), "1");
+    assert_eq!(forward(&mut engine, "next.done"), "false");
+    forward(&mut engine, "next = iterator.next()");
+    assert_eq!(forward(&mut engine, "next.value"), "2");
+    assert_eq!(forward(&mut engine, "next.done"), "false");
+    forward(&mut engine, "next = iterator.next()");
+    assert_eq!(forward(&mut engine, "next.value"), "3");
+    assert_eq!(forward(&mut engine, "next.done"), "false");
+    forward(&mut engine, "next = iterator.next()");
+    assert_eq!(forward(&mut engine, "next.value"), "undefined");
+    assert_eq!(forward(&mut engine, "next.done"), "true");
+}
+
+#[test]
+fn array_keys_simple() {
+    let mut engine = Context::new();
+    let init = r#"
+        var iterator = [1, 2, 3].keys();
+        var next = iterator.next();
+    "#;
+    forward(&mut engine, init);
+    assert_eq!(forward(&mut engine, "next.value"), "0");
+    assert_eq!(forward(&mut engine, "next.done"), "false");
+    forward(&mut engine, "next = iterator.next()");
+    assert_eq!(forward(&mut engine, "next.value"), "1");
+    assert_eq!(forward(&mut engine, "next.done"), "false");
+    forward(&mut engine, "next = iterator.next()");
+    assert_eq!(forward(&mut engine, "next.value"), "2");
+    assert_eq!(forward(&mut engine, "next.done"), "false");
+    forward(&mut engine, "next = iterator.next()");
+    assert_eq!(forward(&mut engine, "next.value"), "undefined");
+    assert_eq!(forward(&mut engine, "next.done"), "true");
+}
+
+#[test]
+fn array_entries_simple() {
+    let mut engine = Context::new();
+    let init = r#"
+        var iterator = [1, 2, 3].entries();
+        var next = iterator.next();
+    "#;
+    forward(&mut engine, init);
+    assert_eq!(forward(&mut engine, "next.value"), "[ 0, 1 ]");
+    assert_eq!(forward(&mut engine, "next.done"), "false");
+    forward(&mut engine, "next = iterator.next()");
+    assert_eq!(forward(&mut engine, "next.value"), "[ 1, 2 ]");
+    assert_eq!(forward(&mut engine, "next.done"), "false");
+    forward(&mut engine, "next = iterator.next()");
+    assert_eq!(forward(&mut engine, "next.value"), "[ 2, 3 ]");
+    assert_eq!(forward(&mut engine, "next.done"), "false");
+    forward(&mut engine, "next = iterator.next()");
+    assert_eq!(forward(&mut engine, "next.value"), "undefined");
+    assert_eq!(forward(&mut engine, "next.done"), "true");
+}
+
+#[test]
+fn array_values_empty() {
+    let mut engine = Context::new();
+    let init = r#"
+        var iterator = [].values();
+        var next = iterator.next();
+    "#;
+    forward(&mut engine, init);
+    assert_eq!(forward(&mut engine, "next.value"), "undefined");
+    assert_eq!(forward(&mut engine, "next.done"), "true");
+}
+
+#[test]
+fn array_values_sparse() {
+    let mut engine = Context::new();
+    let init = r#"
+        var array = Array();
+        array[3] = 5;
+        var iterator = array.values();
+        var next = iterator.next();
+    "#;
+    forward(&mut engine, init);
+    assert_eq!(forward(&mut engine, "next.value"), "undefined");
+    assert_eq!(forward(&mut engine, "next.done"), "false");
+    forward(&mut engine, "next = iterator.next()");
+    assert_eq!(forward(&mut engine, "next.value"), "undefined");
+    assert_eq!(forward(&mut engine, "next.done"), "false");
+    forward(&mut engine, "next = iterator.next()");
+    assert_eq!(forward(&mut engine, "next.value"), "undefined");
+    assert_eq!(forward(&mut engine, "next.done"), "false");
+    forward(&mut engine, "next = iterator.next()");
+    assert_eq!(forward(&mut engine, "next.value"), "5");
+    assert_eq!(forward(&mut engine, "next.done"), "false");
+    forward(&mut engine, "next = iterator.next()");
+    assert_eq!(forward(&mut engine, "next.value"), "undefined");
+    assert_eq!(forward(&mut engine, "next.done"), "true");
+}
+
+#[test]
+fn array_symbol_iterator() {
+    let mut engine = Context::new();
+    let init = r#"
+        var iterator = [1, 2, 3][Symbol.iterator]();
+        var next = iterator.next();
+    "#;
+    forward(&mut engine, init);
+    assert_eq!(forward(&mut engine, "next.value"), "1");
+    assert_eq!(forward(&mut engine, "next.done"), "false");
+    forward(&mut engine, "next = iterator.next()");
+    assert_eq!(forward(&mut engine, "next.value"), "2");
+    assert_eq!(forward(&mut engine, "next.done"), "false");
+    forward(&mut engine, "next = iterator.next()");
+    assert_eq!(forward(&mut engine, "next.value"), "3");
+    assert_eq!(forward(&mut engine, "next.done"), "false");
+    forward(&mut engine, "next = iterator.next()");
+    assert_eq!(forward(&mut engine, "next.value"), "undefined");
+    assert_eq!(forward(&mut engine, "next.done"), "true");
+}
+
+#[test]
+fn array_values_symbol_iterator() {
+    let mut engine = Context::new();
+    let init = r#"
+        var iterator = [1, 2, 3].values();
+        iterator === iterator[Symbol.iterator]();
+    "#;
+    assert_eq!(forward(&mut engine, init), "true");
+}

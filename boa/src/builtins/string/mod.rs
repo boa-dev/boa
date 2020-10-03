@@ -9,10 +9,14 @@
 //! [spec]: https://tc39.es/ecma262/#sec-string-object
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String
 
+pub mod string_iterator;
 #[cfg(test)]
 mod tests;
 
 use super::function::{make_builtin_fn, make_constructor_fn};
+use crate::builtins::function::{BuiltInFunction, Function, FunctionFlags};
+use crate::builtins::string::string_iterator::StringIterator;
+use crate::object::PROTOTYPE;
 use crate::{
     builtins::RegExp,
     object::{Object, ObjectData},
@@ -21,11 +25,41 @@ use crate::{
     BoaProfiler, Context, Result,
 };
 use regex::Regex;
-use std::string::String as StdString;
 use std::{
+    char::decode_utf16,
     cmp::{max, min},
     f64::NAN,
+    string::String as StdString,
 };
+
+pub(crate) fn code_point_at(string: RcString, position: i32) -> Option<(u32, u8, bool)> {
+    let size = string.encode_utf16().count() as i32;
+    if position < 0 || position >= size {
+        return None;
+    }
+    let mut encoded = string.encode_utf16();
+    let first = encoded.nth(position as usize)?;
+    if !is_leading_surrogate(first) && !is_trailing_surrogate(first) {
+        return Some((first as u32, 1, false));
+    }
+    if is_trailing_surrogate(first) || position + 1 == size {
+        return Some((first as u32, 1, true));
+    }
+    let second = encoded.next()?;
+    if !is_trailing_surrogate(second) {
+        return Some((first as u32, 1, true));
+    }
+    let cp = (first as u32 - 0xD800) * 0x400 + (second as u32 - 0xDC00) + 0x10000;
+    Some((cp, 2, false))
+}
+
+fn is_leading_surrogate(value: u16) -> bool {
+    value >= 0xD800 && value <= 0xDBFF
+}
+
+fn is_trailing_surrogate(value: u16) -> bool {
+    value >= 0xDC00 && value <= 0xDFFF
+}
 
 /// JavaScript `String` implementation.
 #[derive(Debug, Clone, Copy)]
@@ -72,7 +106,7 @@ impl String {
             None => RcString::default(),
         };
 
-        let length = string.chars().count();
+        let length = string.encode_utf16().count();
 
         this.set_field("length", Value::from(length as i32));
 
@@ -922,7 +956,7 @@ impl String {
                 .expect("failed to get argument for String method")
                 .to_integer(ctx)? as i32
         };
-        let length = primitive_val.chars().count() as i32;
+        let length = primitive_val.encode_utf16().count() as i32;
         // If less than 2 args specified, end is the length of the this object converted to a String
         let end = if args.len() < 2 {
             length
@@ -940,12 +974,14 @@ impl String {
         let to = max(final_start, final_end) as usize;
         // Extract the part of the string contained between the start index and the end index
         // where start is guaranteed to be smaller or equals to end
-        let extracted_string: StdString = primitive_val
-            .chars()
-            .skip(from)
-            .take(to.wrapping_sub(from))
-            .collect();
-        Ok(Value::from(extracted_string))
+        let extracted_string: std::result::Result<StdString, _> = decode_utf16(
+            primitive_val
+                .encode_utf16()
+                .skip(from)
+                .take(to.wrapping_sub(from)),
+        )
+        .collect();
+        Ok(Value::from(extracted_string.expect("Invalid string")))
     }
 
     /// `String.prototype.substr( start[, length] )`
@@ -1062,6 +1098,10 @@ impl String {
         RegExp::match_all(&re, this.to_string(ctx)?.to_string())
     }
 
+    pub(crate) fn iterator(this: &Value, _args: &[Value], ctx: &mut Context) -> Result<Value> {
+        StringIterator::create_string_iterator(ctx, this.clone())
+    }
+
     /// Initialise the `String` object on the global object.
     #[inline]
     pub(crate) fn init(interpreter: &mut Context) -> (&'static str, Value) {
@@ -1117,6 +1157,15 @@ impl String {
         make_builtin_fn(Self::value_of, "valueOf", &prototype, 0, interpreter);
         make_builtin_fn(Self::match_all, "matchAll", &prototype, 1, interpreter);
         make_builtin_fn(Self::replace, "replace", &prototype, 2, interpreter);
+
+        let symbol_iterator = interpreter.well_known_symbols().iterator_symbol();
+        let mut function = Object::function(
+            Function::BuiltIn(BuiltInFunction(Self::iterator), FunctionFlags::CALLABLE),
+            global.get_field("Function").get_field(PROTOTYPE),
+        );
+        function.insert_field("length", Value::from(0));
+        function.insert_field("name", Value::string("[Symbol.iterator]"));
+        prototype.set_field(symbol_iterator, Value::from(function));
 
         let string_object = make_constructor_fn(
             Self::NAME,

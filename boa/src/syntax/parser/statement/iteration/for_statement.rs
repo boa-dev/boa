@@ -11,7 +11,7 @@ use crate::syntax::lexer::TokenKind;
 use crate::{
     syntax::{
         ast::{
-            node::{ForLoop, Node},
+            node::{ForLoop, ForOfLoop, Node},
             Const, Keyword, Punctuator,
         },
         parser::{
@@ -65,7 +65,7 @@ impl<R> TokenParser<R> for ForStatement
 where
     R: Read,
 {
-    type Output = ForLoop;
+    type Output = Node;
 
     fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("ForStatement", "Parsing");
@@ -82,7 +82,7 @@ where
                 )
             }
             TokenKind::Keyword(Keyword::Let) | TokenKind::Keyword(Keyword::Const) => {
-                Some(Declaration::new(self.allow_yield, self.allow_await).parse(cursor)?)
+                Some(Declaration::new(self.allow_yield, self.allow_await, false).parse(cursor)?)
             }
             TokenKind::Punctuator(Punctuator::Semicolon) => None,
             _ => Some(Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?),
@@ -93,8 +93,14 @@ where
             Some(tok) if tok.kind() == &TokenKind::Keyword(Keyword::In) => {
                 unimplemented!("for...in statement")
             }
-            Some(tok) if tok.kind() == &TokenKind::identifier("of") => {
-                unimplemented!("for...of statement")
+            Some(tok) if tok.kind() == &TokenKind::Keyword(Keyword::Of) && init.is_some() => {
+                let _ = cursor.next();
+                let iterable =
+                    Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?;
+                cursor.expect(Punctuator::CloseParen, "for of statement")?;
+                let body = Statement::new(self.allow_yield, self.allow_await, self.allow_return)
+                    .parse(cursor)?;
+                return Ok(ForOfLoop::new(init.unwrap(), iterable, body).into());
             }
             _ => {}
         }
@@ -124,6 +130,6 @@ where
             Statement::new(self.allow_yield, self.allow_await, self.allow_return).parse(cursor)?;
 
         // TODO: do not encapsulate the `for` in a block just to have an inner scope.
-        Ok(ForLoop::new(init, cond, step, body))
+        Ok(ForLoop::new(init, cond, step, body).into())
     }
 }

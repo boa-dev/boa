@@ -1,4 +1,4 @@
-use crate::exec;
+use crate::{exec, forward, Context};
 
 #[test]
 fn while_loop_late_break() {
@@ -190,6 +190,133 @@ fn do_while_loop_continue() {
         [a, b]
     "#;
     assert_eq!(&exec(scenario), "[ 1, 2 ]");
+}
+
+#[test]
+fn for_of_loop_declaration() {
+    let mut engine = Context::new();
+    let scenario = r#"
+        var result = 0;
+        for (i of [1, 2, 3]) {
+            result = i;
+        }
+    "#;
+    engine.eval(scenario).unwrap();
+    assert_eq!(&forward(&mut engine, "result"), "3");
+    assert_eq!(&forward(&mut engine, "i"), "3");
+}
+
+#[test]
+fn for_of_loop_var() {
+    let mut engine = Context::new();
+    let scenario = r#"
+        var result = 0;
+        for (var i of [1, 2, 3]) {
+            result = i;
+        }
+    "#;
+    engine.eval(scenario).unwrap();
+    assert_eq!(&forward(&mut engine, "result"), "3");
+    assert_eq!(&forward(&mut engine, "i"), "3");
+}
+
+#[test]
+fn for_of_loop_let() {
+    let mut engine = Context::new();
+    let scenario = r#"
+        var result = 0;
+        for (let i of [1, 2, 3]) {
+            result = i;
+        }
+    "#;
+    engine.eval(scenario).unwrap();
+    assert_eq!(&forward(&mut engine, "result"), "3");
+    assert_eq!(
+        &forward(
+            &mut engine,
+            r#"
+        try {
+            i
+        } catch(e) {
+            e.toString()
+        }
+    "#
+        ),
+        "\"ReferenceError: i is not defined\""
+    );
+}
+
+#[test]
+fn for_of_loop_const() {
+    let mut engine = Context::new();
+    let scenario = r#"
+        var result = 0;
+        for (let i of [1, 2, 3]) {
+            result = i;
+        }
+    "#;
+    engine.eval(scenario).unwrap();
+    assert_eq!(&forward(&mut engine, "result"), "3");
+    assert_eq!(
+        &forward(
+            &mut engine,
+            r#"
+        try {
+            i
+        } catch(e) {
+            e.toString()
+        }
+    "#
+        ),
+        "\"ReferenceError: i is not defined\""
+    );
+}
+
+#[test]
+fn for_of_loop_break() {
+    let mut engine = Context::new();
+    let scenario = r#"
+        var result = 0;
+        for (var i of [1, 2, 3]) {
+            if (i > 1)
+                break;
+            result = i
+        }
+    "#;
+    engine.eval(scenario).unwrap();
+    assert_eq!(&forward(&mut engine, "result"), "1");
+    assert_eq!(&forward(&mut engine, "i"), "2");
+}
+
+#[test]
+fn for_of_loop_continue() {
+    let mut engine = Context::new();
+    let scenario = r#"
+        var result = 0;
+        for (var i of [1, 2, 3]) {
+            if (i == 3)
+                continue;
+            result = i
+        }
+    "#;
+    engine.eval(scenario).unwrap();
+    assert_eq!(&forward(&mut engine, "result"), "2");
+    assert_eq!(&forward(&mut engine, "i"), "3");
+}
+
+#[test]
+fn for_of_loop_return() {
+    let mut engine = Context::new();
+    let scenario = r#"
+        function foo() {
+            for (i of [1, 2, 3]) {
+                if (i > 1)
+                    return i;
+            }
+        }
+    "#;
+    engine.eval(scenario).unwrap();
+    assert_eq!(&forward(&mut engine, "foo()"), "2");
 }
 
 #[test]

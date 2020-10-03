@@ -4,6 +4,7 @@ use crate::{
     builtins::{
         self,
         function::{Function, FunctionFlags, NativeFunction},
+        iterable::IteratorPrototypes,
         symbol::{Symbol, WellKnownSymbols},
         Console,
     },
@@ -50,6 +51,8 @@ pub struct Context {
 
     /// Cached well known symbols
     well_known_symbols: WellKnownSymbols,
+
+    iterator_prototypes: IteratorPrototypes,
 }
 
 impl Default for Context {
@@ -63,13 +66,14 @@ impl Default for Context {
             symbol_count,
             console: Console::default(),
             well_known_symbols,
+            iterator_prototypes: IteratorPrototypes::default(),
         };
 
         // Add new builtIns to Context Realm
         // At a later date this can be removed from here and called explicitly,
         // but for now we almost always want these default builtins
         context.create_intrinsics();
-
+        context.iterator_prototypes = IteratorPrototypes::init(&mut context);
         context
     }
 }
@@ -397,8 +401,8 @@ impl Context {
         // a recursive structure
         // We can follow v8 & SpiderMonkey's lead and return a default value for the hint in this situation
         // (see https://repl.it/repls/IvoryCircularCertification#index.js)
-        let obj = o.as_gcobject().unwrap(); // UNWRAP: Asserted type above
-        let recursion_limiter = RecursionLimiter::new(obj);
+        let obj = o.as_gc_object().unwrap(); // UNWRAP: Asserted type above
+        let recursion_limiter = RecursionLimiter::new(&obj);
         if recursion_limiter.live {
             // we're in a recursive object, bail
             return Ok(match hint {
@@ -544,5 +548,10 @@ impl Context {
     #[inline]
     pub fn well_known_symbols(&self) -> &WellKnownSymbols {
         &self.well_known_symbols
+    }
+
+    #[inline]
+    pub fn iterator_prototypes(&self) -> &IteratorPrototypes {
+        &self.iterator_prototypes
     }
 }
