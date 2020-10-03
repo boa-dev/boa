@@ -119,7 +119,7 @@ fn get_test262_commit() -> Box<str> {
         .submodules()
         .expect("could not get the list of submodules of the repo")
         .into_iter()
-        .find(|sub| dbg!(sub.path()) == Path::new("test262"))
+        .find(|sub| sub.path() == Path::new("test262"))
         .expect("test262 submodule not found");
 
     submodule
