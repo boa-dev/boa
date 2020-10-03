@@ -12,19 +12,57 @@
 #[cfg(test)]
 mod tests;
 
-use super::function::{make_builtin_fn, make_constructor_fn};
-use crate::{object::ObjectData, BoaProfiler, Context, Result, Value};
+use crate::{
+    builtins::BuiltIn,
+    object::{ConstructorBuilder, ObjectData},
+    property::Attribute,
+    BoaProfiler, Context, Result, Value,
+};
 
 /// Boolean implementation.
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct Boolean;
 
-impl Boolean {
+impl BuiltIn for Boolean {
     /// The name of the object.
-    pub(crate) const NAME: &'static str = "Boolean";
+    const NAME: &'static str = "Boolean";
 
+    fn attribute() -> Attribute {
+        Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE
+    }
+
+    fn init(context: &mut Context) -> (&'static str, Value, Attribute) {
+        let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
+
+        let boolean_object = ConstructorBuilder::with_standard_object(
+            context,
+            Self::constructor,
+            context.standard_objects().boolean_object().clone(),
+        )
+        .name(Self::NAME)
+        .length(Self::LENGTH)
+        .method(Self::to_string, "toString", 0)
+        .method(Self::value_of, "valueOf", 0)
+        .build();
+
+        (Self::NAME, boolean_object.into(), Self::attribute())
+    }
+}
+
+impl Boolean {
     /// The amount of arguments this function object takes.
     pub(crate) const LENGTH: usize = 1;
+
+    /// `[[Construct]]` Create a new boolean object
+    ///
+    /// `[[Call]]` Creates a new boolean primitive
+    pub(crate) fn constructor(this: &Value, args: &[Value], _: &mut Context) -> Result<Value> {
+        // Get the argument, if any
+        let data = args.get(0).map(|x| x.to_boolean()).unwrap_or(false);
+        this.set_data(ObjectData::Boolean(data));
+
+        Ok(Value::from(data))
+    }
 
     /// An Utility function used to get the internal [[BooleanData]].
     ///
@@ -45,21 +83,6 @@ impl Boolean {
         }
 
         Err(ctx.construct_type_error("'this' is not a boolean"))
-    }
-
-    /// `[[Construct]]` Create a new boolean object
-    ///
-    /// `[[Call]]` Creates a new boolean primitive
-    pub(crate) fn construct_boolean(
-        this: &Value,
-        args: &[Value],
-        _: &mut Context,
-    ) -> Result<Value> {
-        // Get the argument, if any
-        let data = args.get(0).map(|x| x.to_boolean()).unwrap_or(false);
-        this.set_data(ObjectData::Boolean(data));
-
-        Ok(Value::from(data))
     }
 
     /// The `toString()` method returns a string representing the specified `Boolean` object.
@@ -87,31 +110,5 @@ impl Boolean {
     #[inline]
     pub(crate) fn value_of(this: &Value, _: &[Value], ctx: &mut Context) -> Result<Value> {
         Ok(Value::from(Self::this_boolean_value(this, ctx)?))
-    }
-
-    /// Initialise the `Boolean` object on the global object.
-    #[inline]
-    pub(crate) fn init(interpreter: &mut Context) -> (&'static str, Value) {
-        let global = interpreter.global_object();
-        let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
-
-        // Create Prototype
-        // https://tc39.es/ecma262/#sec-properties-of-the-boolean-prototype-object
-        let prototype = Value::new_object(Some(global));
-
-        make_builtin_fn(Self::to_string, "toString", &prototype, 0, interpreter);
-        make_builtin_fn(Self::value_of, "valueOf", &prototype, 0, interpreter);
-
-        let boolean_object = make_constructor_fn(
-            Self::NAME,
-            Self::LENGTH,
-            Self::construct_boolean,
-            global,
-            prototype,
-            true,
-            true,
-        );
-
-        (Self::NAME, boolean_object)
     }
 }

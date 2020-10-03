@@ -18,13 +18,14 @@
 #[cfg(test)]
 mod tests;
 
-use super::function::{make_builtin_fn, make_constructor_fn};
 use crate::{
-    property::{Attribute, Property},
+    builtins::BuiltIn,
+    gc::{Finalize, Trace},
+    object::ConstructorBuilder,
+    property::Attribute,
     value::{RcString, RcSymbol, Value},
     BoaProfiler, Context, Result,
 };
-use gc::{Finalize, Trace};
 
 /// A structure that contains the JavaScript well known symbols.
 #[derive(Debug, Clone)]
@@ -232,79 +233,14 @@ impl Symbol {
     }
 }
 
-impl Symbol {
-    /// The name of the object.
-    pub(crate) const NAME: &'static str = "Symbol";
+impl BuiltIn for Symbol {
+    const NAME: &'static str = "Symbol";
 
-    /// The amount of arguments this function object takes.
-    pub(crate) const LENGTH: usize = 0;
-
-    /// Returns the `Symbol`s description.
-    pub fn description(&self) -> Option<&str> {
-        self.description.as_deref()
+    fn attribute() -> Attribute {
+        Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE
     }
 
-    /// Returns the `Symbol`s hash.
-    pub fn hash(&self) -> u32 {
-        self.hash
-    }
-
-    fn this_symbol_value(value: &Value, ctx: &mut Context) -> Result<RcSymbol> {
-        match value {
-            Value::Symbol(ref symbol) => return Ok(symbol.clone()),
-            Value::Object(ref object) => {
-                let object = object.borrow();
-                if let Some(symbol) = object.as_symbol() {
-                    return Ok(symbol);
-                }
-            }
-            _ => {}
-        }
-
-        Err(ctx.construct_type_error("'this' is not a Symbol"))
-    }
-
-    /// The `Symbol()` constructor returns a value of type symbol.
-    ///
-    /// It is incomplete as a constructor because it does not support
-    /// the syntax `new Symbol()` and it is not intended to be subclassed.
-    ///
-    /// More information:
-    /// - [ECMAScript reference][spec]
-    /// - [MDN documentation][mdn]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-symbol-description
-    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol/Symbol
-    pub(crate) fn call(_: &Value, args: &[Value], ctx: &mut Context) -> Result<Value> {
-        let description = match args.get(0) {
-            Some(ref value) if !value.is_undefined() => Some(value.to_string(ctx)?),
-            _ => None,
-        };
-
-        Ok(ctx.construct_symbol(description).into())
-    }
-
-    /// `Symbol.prototype.toString()`
-    ///
-    /// This method returns a string representing the specified `Symbol` object.
-    ///
-    /// /// More information:
-    /// - [MDN documentation][mdn]
-    /// - [ECMAScript reference][spec]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-symbol.prototype.tostring
-    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol/toString
-    #[allow(clippy::wrong_self_convention)]
-    pub(crate) fn to_string(this: &Value, _: &[Value], ctx: &mut Context) -> Result<Value> {
-        let symbol = Self::this_symbol_value(this, ctx)?;
-        let description = symbol.description().unwrap_or("");
-        Ok(Value::from(format!("Symbol({})", description)))
-    }
-
-    /// Initialise the `Symbol` object on the global object.
-    #[inline]
-    pub fn init(context: &mut Context) -> (&'static str, Value) {
-        // Define the Well-Known Symbols
+    fn init(context: &mut Context) -> (&'static str, Value, Attribute) {
         // https://tc39.es/ecma262/#sec-well-known-symbols
         let well_known_symbols = context.well_known_symbols();
 
@@ -322,81 +258,101 @@ impl Symbol {
         let symbol_to_string_tag = well_known_symbols.to_string_tag_symbol();
         let symbol_unscopables = well_known_symbols.unscopables_symbol();
 
-        let global = context.global_object();
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
-        // Create prototype object
-        let prototype = Value::new_object(Some(global));
+        let attribute = Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT;
+        let symbol_object = ConstructorBuilder::with_standard_object(
+            context,
+            Self::constructor,
+            context.standard_objects().symbol_object().clone(),
+        )
+        .name(Self::NAME)
+        .length(Self::LENGTH)
+        .static_property("asyncIterator", symbol_async_iterator, attribute)
+        .static_property("hasInstance", symbol_has_instance, attribute)
+        .static_property("isConcatSpreadable", symbol_is_concat_spreadable, attribute)
+        .static_property("iterator", symbol_iterator, attribute)
+        .static_property("match", symbol_match, attribute)
+        .static_property("matchAll", symbol_match_all, attribute)
+        .static_property("replace", symbol_replace, attribute)
+        .static_property("search", symbol_search, attribute)
+        .static_property("species", symbol_species, attribute)
+        .static_property("split", symbol_split, attribute)
+        .static_property("toPrimitive", symbol_to_primitive, attribute)
+        .static_property("toStringTag", symbol_to_string_tag, attribute)
+        .static_property("unscopables", symbol_unscopables, attribute)
+        .method(Self::to_string, "toString", 0)
+        .callable(true)
+        .constructable(false)
+        .build();
 
-        make_builtin_fn(Self::to_string, "toString", &prototype, 0, context);
+        (Self::NAME, symbol_object.into(), Self::attribute())
+    }
+}
 
-        let symbol_object = make_constructor_fn(
-            Self::NAME,
-            Self::LENGTH,
-            Self::call,
-            global,
-            prototype,
-            false,
-            true,
-        );
+impl Symbol {
+    /// The amount of arguments this function object takes.
+    pub(crate) const LENGTH: usize = 0;
 
-        {
-            let mut symbol_object = symbol_object.as_object_mut().unwrap();
-            let attribute = Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT;
-            symbol_object.insert_property(
-                "asyncIterator",
-                Property::data_descriptor(symbol_async_iterator.into(), attribute),
-            );
-            symbol_object.insert_property(
-                "hasInstance",
-                Property::data_descriptor(symbol_has_instance.into(), attribute),
-            );
-            symbol_object.insert_property(
-                "isConcatSpreadable",
-                Property::data_descriptor(symbol_is_concat_spreadable.into(), attribute),
-            );
-            symbol_object.insert_property(
-                "iterator",
-                Property::data_descriptor(symbol_iterator.into(), attribute),
-            );
-            symbol_object.insert_property(
-                "match",
-                Property::data_descriptor(symbol_match.into(), attribute),
-            );
-            symbol_object.insert_property(
-                "matchAll",
-                Property::data_descriptor(symbol_match_all.into(), attribute),
-            );
-            symbol_object.insert_property(
-                "replace",
-                Property::data_descriptor(symbol_replace.into(), attribute),
-            );
-            symbol_object.insert_property(
-                "search",
-                Property::data_descriptor(symbol_search.into(), attribute),
-            );
-            symbol_object.insert_property(
-                "species",
-                Property::data_descriptor(symbol_species.into(), attribute),
-            );
-            symbol_object.insert_property(
-                "split",
-                Property::data_descriptor(symbol_split.into(), attribute),
-            );
-            symbol_object.insert_property(
-                "toPrimitive",
-                Property::data_descriptor(symbol_to_primitive.into(), attribute),
-            );
-            symbol_object.insert_property(
-                "toStringTag",
-                Property::data_descriptor(symbol_to_string_tag.into(), attribute),
-            );
-            symbol_object.insert_property(
-                "unscopables",
-                Property::data_descriptor(symbol_unscopables.into(), attribute),
-            );
+    /// Returns the `Symbol`s description.
+    pub fn description(&self) -> Option<&str> {
+        self.description.as_deref()
+    }
+
+    /// Returns the `Symbol`s hash.
+    pub fn hash(&self) -> u32 {
+        self.hash
+    }
+
+    /// The `Symbol()` constructor returns a value of type symbol.
+    ///
+    /// It is incomplete as a constructor because it does not support
+    /// the syntax `new Symbol()` and it is not intended to be subclassed.
+    ///
+    /// More information:
+    /// - [ECMAScript reference][spec]
+    /// - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-symbol-description
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol/Symbol
+    pub(crate) fn constructor(_: &Value, args: &[Value], ctx: &mut Context) -> Result<Value> {
+        let description = match args.get(0) {
+            Some(ref value) if !value.is_undefined() => Some(value.to_string(ctx)?),
+            _ => None,
+        };
+
+        Ok(ctx.construct_symbol(description).into())
+    }
+
+    fn this_symbol_value(value: &Value, ctx: &mut Context) -> Result<RcSymbol> {
+        match value {
+            Value::Symbol(ref symbol) => return Ok(symbol.clone()),
+            Value::Object(ref object) => {
+                let object = object.borrow();
+                if let Some(symbol) = object.as_symbol() {
+                    return Ok(symbol);
+                }
+            }
+            _ => {}
         }
 
-        (Self::NAME, symbol_object)
+        Err(ctx.construct_type_error("'this' is not a Symbol"))
+    }
+
+    /// `Symbol.prototype.toString()`
+    ///
+    /// This method returns a string representing the specified `Symbol` object.
+    ///
+    /// /// More information:
+    /// - [MDN documentation][mdn]
+    /// - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-symbol.prototype.tostring
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol/toString
+    #[allow(clippy::wrong_self_convention)]
+    pub(crate) fn to_string(this: &Value, _: &[Value], ctx: &mut Context) -> Result<Value> {
+        let symbol = Self::this_symbol_value(this, ctx)?;
+        let description = symbol.description().unwrap_or("");
+        Ok(Value::from(format!("Symbol({})", description)))
     }
 }

@@ -10,24 +10,50 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ReferenceError
 
 use crate::{
-    builtins::{function::make_builtin_fn, function::make_constructor_fn},
-    object::ObjectData,
+    builtins::BuiltIn,
+    object::{ConstructorBuilder, ObjectData},
     profiler::BoaProfiler,
+    property::Attribute,
     Context, Result, Value,
 };
 
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct ReferenceError;
 
-impl ReferenceError {
-    /// The name of the object.
-    pub(crate) const NAME: &'static str = "ReferenceError";
+impl BuiltIn for ReferenceError {
+    const NAME: &'static str = "ReferenceError";
 
+    fn attribute() -> Attribute {
+        Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE
+    }
+
+    fn init(context: &mut Context) -> (&'static str, Value, Attribute) {
+        let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
+
+        let error_prototype = context.standard_objects().error_object().prototype();
+        let attribute = Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE;
+        let reference_error_object = ConstructorBuilder::with_standard_object(
+            context,
+            Self::constructor,
+            context.standard_objects().reference_error_object().clone(),
+        )
+        .name(Self::NAME)
+        .length(Self::LENGTH)
+        .inherit(error_prototype.into())
+        .property("name", Self::NAME, attribute)
+        .property("message", "", attribute)
+        .build();
+
+        (Self::NAME, reference_error_object.into(), Self::attribute())
+    }
+}
+
+impl ReferenceError {
     /// The amount of arguments this function object takes.
     pub(crate) const LENGTH: usize = 1;
 
     /// Create a new error object.
-    pub(crate) fn make_error(this: &Value, args: &[Value], ctx: &mut Context) -> Result<Value> {
+    pub(crate) fn constructor(this: &Value, args: &[Value], ctx: &mut Context) -> Result<Value> {
         if let Some(message) = args.get(0) {
             this.set_field("message", message.to_string(ctx)?);
         }
@@ -36,47 +62,5 @@ impl ReferenceError {
         // to its Javascript Identifier (global constructor method name)
         this.set_data(ObjectData::Error);
         Err(this.clone())
-    }
-
-    /// `Error.prototype.toString()`
-    ///
-    /// The toString() method returns a string representing the specified Error object.
-    ///
-    /// More information:
-    ///  - [MDN documentation][mdn]
-    ///  - [ECMAScript reference][spec]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-error.prototype.tostring
-    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error/toString
-    #[allow(clippy::wrong_self_convention)]
-    pub(crate) fn to_string(this: &Value, _: &[Value], ctx: &mut Context) -> Result<Value> {
-        let name = this.get_field("name").to_string(ctx)?;
-        let message = this.get_field("message").to_string(ctx)?;
-
-        Ok(Value::from(format!("{}: {}", name, message)))
-    }
-
-    /// Initialise the global object with the `ReferenceError` object.
-    pub(crate) fn init(interpreter: &mut Context) -> (&'static str, Value) {
-        let global = interpreter.global_object();
-        let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
-
-        let prototype = Value::new_object(Some(global));
-        prototype.set_field("name", Self::NAME);
-        prototype.set_field("message", "");
-
-        make_builtin_fn(Self::to_string, "toString", &prototype, 0, interpreter);
-
-        let reference_error_object = make_constructor_fn(
-            Self::NAME,
-            Self::LENGTH,
-            Self::make_error,
-            global,
-            prototype,
-            true,
-            true,
-        );
-
-        (Self::NAME, reference_error_object)
     }
 }
