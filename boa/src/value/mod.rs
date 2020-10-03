@@ -310,6 +310,14 @@ impl Value {
     }
 
     #[inline]
+    pub fn as_gcobject(&self) -> Option<&GcObject> {
+        match *self {
+            Self::Object(ref o) => Some(o),
+            _ => None,
+        }
+    }
+
+    #[inline]
     pub fn as_object_mut(&self) -> Option<GcCellRefMut<'_, Object>> {
         match *self {
             Self::Object(ref o) => Some(o.borrow_mut()),
