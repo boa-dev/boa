@@ -1,11 +1,12 @@
-use crate::builtins::string::code_point_at;
 use crate::{
-    builtins::{function::make_builtin_fn, iterable::create_iter_result_object},
+    builtins::{
+        function::make_builtin_fn, iterable::create_iter_result_object, string::code_point_at,
+    },
+    gc::{Finalize, Trace},
     object::ObjectData,
     property::{Attribute, DataDescriptor},
     BoaProfiler, Context, Result, Value,
 };
-use gc::{Finalize, Trace};
 
 #[derive(Debug, Clone, Finalize, Trace)]
 pub struct StringIterator {

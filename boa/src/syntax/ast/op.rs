@@ -1,6 +1,6 @@
 //! This module implements various structure for logic handling.
 
-use gc::{unsafe_empty_trace, Finalize, Trace};
+use crate::gc::{empty_trace, Finalize, Trace};
 use std::fmt::{Display, Formatter, Result};
 
 #[cfg(feature = "serde")]
@@ -113,7 +113,7 @@ impl Display for NumOp {
 }
 
 unsafe impl Trace for NumOp {
-    unsafe_empty_trace!();
+    empty_trace!();
 }
 
 /// A unary operator is one that takes a single operand/argument and performs an operation.
@@ -329,7 +329,7 @@ impl Display for UnaryOp {
 }
 
 unsafe impl Trace for UnaryOp {
-    unsafe_empty_trace!();
+    empty_trace!();
 }
 
 /// A bitwise operator is an operator used to perform bitwise operations
@@ -444,7 +444,7 @@ impl Display for BitOp {
 }
 
 unsafe impl Trace for BitOp {
-    unsafe_empty_trace!();
+    empty_trace!();
 }
 
 /// A comparison operator compares its operands and returns a logical value based on whether the comparison is true.
@@ -641,7 +641,7 @@ impl Display for CompOp {
 }
 
 unsafe impl Trace for CompOp {
-    unsafe_empty_trace!();
+    empty_trace!();
 }
 
 /// Logical operators are typically used with Boolean (logical) values; when they are, they return a Boolean value.
@@ -699,7 +699,7 @@ impl Display for LogOp {
 }
 
 unsafe impl Trace for LogOp {
-    unsafe_empty_trace!();
+    empty_trace!();
 }
 
 /// This represents a binary operation between two values.
@@ -783,7 +783,7 @@ impl Display for BinOp {
 }
 
 unsafe impl Trace for BinOp {
-    unsafe_empty_trace!();
+    empty_trace!();
 }
 
 /// An assignment operator assigns a value to its left operand based on the value of its right operand.
@@ -953,7 +953,7 @@ pub enum AssignOp {
 }
 
 unsafe impl Trace for AssignOp {
-    unsafe_empty_trace!();
+    empty_trace!();
 }
 
 impl Display for AssignOp {

@@ -2,10 +2,10 @@ use crate::{
     builtins::iterable::get_iterator,
     environment::lexical_environment::{new_declarative_environment, VariableScope},
     exec::{Executable, InterpreterState},
+    gc::{Finalize, Trace},
     syntax::ast::node::Node,
     BoaProfiler, Context, Result, Value,
 };
-use gc::{Finalize, Trace};
 use std::fmt;
 
 #[cfg(feature = "serde")]

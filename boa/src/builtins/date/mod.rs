@@ -3,13 +3,13 @@ mod tests;
 
 use crate::{
     builtins::BuiltIn,
+    gc::{empty_trace, Finalize, Trace},
     object::{ConstructorBuilder, ObjectData},
     property::Attribute,
     value::{PreferredType, Value},
     BoaProfiler, Context, Result,
 };
 use chrono::{prelude::*, Duration, LocalResult};
-use gc::{unsafe_empty_trace, Finalize, Trace};
 use std::fmt::Display;
 
 const NANOS_IN_MS: f64 = 1_000_000f64;
@@ -96,7 +96,7 @@ impl Display for Date {
 unsafe impl Trace for Date {
     // Date is a stack value, it doesn't require tracing.
     // only safe if `chrono` never implements `Trace` for `NaiveDateTime`
-    unsafe_empty_trace!();
+    empty_trace!();
 }
 
 impl Default for Date {

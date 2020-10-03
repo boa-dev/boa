@@ -45,8 +45,11 @@ pub use self::{
     try_node::{Catch, Finally, Try},
 };
 use super::Const;
-use crate::{exec::Executable, BoaProfiler, Context, Result, Value};
-use gc::{unsafe_empty_trace, Finalize, Trace};
+use crate::{
+    exec::Executable,
+    gc::{empty_trace, Finalize, Trace},
+    BoaProfiler, Context, Result, Value,
+};
 use std::{
     cmp::Ordering,
     fmt::{self, Display},
@@ -552,5 +555,5 @@ pub enum MethodDefinitionKind {
 }
 
 unsafe impl Trace for MethodDefinitionKind {
-    unsafe_empty_trace!();
+    empty_trace!();
 }

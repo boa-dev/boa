@@ -1,10 +1,10 @@
 use crate::{
     builtins::{function::make_builtin_fn, iterable::create_iter_result_object, Array, Value},
+    gc::{Finalize, Trace},
     object::ObjectData,
     property::{Attribute, DataDescriptor},
     BoaProfiler, Context, Result,
 };
-use gc::{Finalize, Trace};
 
 #[derive(Debug, Clone, Finalize, Trace)]
 pub enum ArrayIterationKind {

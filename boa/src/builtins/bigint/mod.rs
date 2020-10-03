@@ -14,13 +14,12 @@
 
 use crate::{
     builtins::BuiltIn,
+    gc::{empty_trace, Finalize, Trace},
     object::{ConstructorBuilder, ObjectData},
     property::Attribute,
     value::{RcBigInt, Value},
     BoaProfiler, Context, Result,
 };
-
-use gc::{unsafe_empty_trace, Finalize, Trace};
 
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
@@ -237,5 +236,5 @@ unsafe impl Trace for BigInt {
     // BigInt type implements an empty trace becasue the inner structure
     // `num_bigint::BigInt` does not implement `Trace` trait.
     // If it did this would be unsound.
-    unsafe_empty_trace!();
+    empty_trace!();
 }

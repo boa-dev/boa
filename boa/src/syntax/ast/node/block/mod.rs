@@ -2,10 +2,12 @@
 
 use super::{Node, StatementList};
 use crate::{
-    environment::lexical_environment::new_declarative_environment, exec::Executable,
-    exec::InterpreterState, BoaProfiler, Context, Result, Value,
+    environment::lexical_environment::new_declarative_environment,
+    exec::Executable,
+    exec::InterpreterState,
+    gc::{Finalize, Trace},
+    BoaProfiler, Context, Result, Value,
 };
-use gc::{Finalize, Trace};
 use std::fmt;
 
 #[cfg(feature = "serde")]

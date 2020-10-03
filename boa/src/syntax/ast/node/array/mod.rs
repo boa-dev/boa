@@ -4,9 +4,9 @@ use super::{join_nodes, Node};
 use crate::{
     builtins::{iterable, Array},
     exec::Executable,
+    gc::{Finalize, Trace},
     BoaProfiler, Context, Result, Value,
 };
-use gc::{Finalize, Trace};
 use std::fmt;
 
 #[cfg(feature = "serde")]

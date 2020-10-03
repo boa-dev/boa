@@ -2,10 +2,10 @@
 
 use crate::{
     exec::Executable,
+    gc::{Finalize, Trace},
     syntax::ast::node::{MethodDefinitionKind, Node, PropertyDefinition},
     Context, Result, Value,
 };
-use gc::{Finalize, Trace};
 use std::fmt;
 
 #[cfg(feature = "serde")]

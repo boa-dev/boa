@@ -1,10 +1,10 @@
 use crate::{
     environment::lexical_environment::{new_declarative_environment, VariableScope},
     exec::Executable,
+    gc::{Finalize, Trace},
     syntax::ast::node::{Block, Identifier, Node},
     BoaProfiler, Context, Result, Value,
 };
-use gc::{Finalize, Trace};
 use std::fmt;
 
 #[cfg(feature = "serde")]

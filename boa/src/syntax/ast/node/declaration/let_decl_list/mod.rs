@@ -1,10 +1,10 @@
 use crate::{
     environment::lexical_environment::VariableScope,
     exec::Executable,
+    gc::{Finalize, Trace},
     syntax::ast::node::{join_nodes, Identifier, Node},
     Context, Result, Value,
 };
-use gc::{Finalize, Trace};
 use std::fmt;
 
 #[cfg(feature = "serde")]

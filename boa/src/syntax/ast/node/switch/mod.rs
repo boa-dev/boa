@@ -2,10 +2,10 @@
 //!
 use crate::{
     exec::{Executable, InterpreterState},
+    gc::{Finalize, Trace},
     syntax::ast::node::Node,
     Context, Result, Value,
 };
-use gc::{Finalize, Trace};
 use std::fmt;
 
 use crate::syntax::ast::node::StatementList;

@@ -1,6 +1,10 @@
 use super::Node;
-use crate::{exec::Executable, exec::InterpreterState, Context, Result, Value};
-use gc::{Finalize, Trace};
+use crate::{
+    exec::Executable,
+    exec::InterpreterState,
+    gc::{Finalize, Trace},
+    Context, Result, Value,
+};
 use std::fmt;
 
 #[cfg(feature = "serde")]

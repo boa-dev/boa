@@ -2,13 +2,11 @@
 
 use crate::{
     exec::{Executable, InterpreterState},
+    gc::{empty_trace, Finalize, Trace},
     syntax::ast::node::Node,
     BoaProfiler, Context, Result, Value,
 };
-use gc::{unsafe_empty_trace, Finalize, Trace};
-use std::fmt;
-use std::ops::Deref;
-use std::rc::Rc;
+use std::{fmt, ops::Deref, rc::Rc};
 
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
@@ -133,5 +131,5 @@ impl From<StatementList> for RcStatementList {
 
 // SAFETY: This is safe for types not containing any `Trace` types.
 unsafe impl Trace for RcStatementList {
-    unsafe_empty_trace!();
+    empty_trace!();
 }

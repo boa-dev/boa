@@ -2,10 +2,10 @@ use crate::{
     builtins::function::FunctionFlags,
     environment::lexical_environment::VariableScope,
     exec::Executable,
+    gc::{Finalize, Trace},
     syntax::ast::node::{join_nodes, FormalParameter, Node, StatementList},
     BoaProfiler, Context, Result, Value,
 };
-use gc::{Finalize, Trace};
 use std::fmt;
 
 #[cfg(feature = "serde")]

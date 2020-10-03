@@ -14,10 +14,10 @@ use crate::{
         lexical_environment::{Environment, EnvironmentType},
         object_environment_record::ObjectEnvironmentRecord,
     },
+    gc::{Finalize, Trace},
     property::{Attribute, DataDescriptor},
     Value,
 };
-use gc::{Finalize, Trace};
 use rustc_hash::FxHashSet;
 
 #[derive(Debug, Trace, Finalize, Clone)]

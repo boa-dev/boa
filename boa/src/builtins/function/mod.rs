@@ -14,13 +14,13 @@
 use crate::{
     builtins::{Array, BuiltIn},
     environment::lexical_environment::Environment,
+    gc::{empty_trace, Finalize, Trace},
     object::{ConstructorBuilder, FunctionBuilder, GcObject, Object, ObjectData},
     property::{Attribute, DataDescriptor},
     syntax::ast::node::{FormalParameter, RcStatementList},
     BoaProfiler, Context, Result, Value,
 };
 use bitflags::bitflags;
-use gc::{unsafe_empty_trace, Finalize, Trace};
 use std::fmt::{self, Debug};
 
 #[cfg(test)]
@@ -33,7 +33,7 @@ pub type NativeFunction = fn(&Value, &[Value], &mut Context) -> Result<Value>;
 pub struct BuiltInFunction(pub(crate) NativeFunction);
 
 unsafe impl Trace for BuiltInFunction {
-    unsafe_empty_trace!();
+    empty_trace!();
 }
 
 impl From<NativeFunction> for BuiltInFunction {
@@ -88,7 +88,7 @@ impl FunctionFlags {
 }
 
 unsafe impl Trace for FunctionFlags {
-    unsafe_empty_trace!();
+    empty_trace!();
 }
 
 /// Boa representation of a Function Object.

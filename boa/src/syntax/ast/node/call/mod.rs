@@ -1,11 +1,11 @@
 use crate::{
     exec::Executable,
     exec::InterpreterState,
+    gc::{Finalize, Trace},
     syntax::ast::node::{join_nodes, Node},
     value::{Type, Value},
     BoaProfiler, Context, Result,
 };
-use gc::{Finalize, Trace};
 use std::fmt;
 
 #[cfg(feature = "serde")]
