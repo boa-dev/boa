@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/proc-macro2-1.0.23/src/wrapper.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>wrapper.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../proc_macro2/index.html'><div class='logo-container'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/proc-macro2-1.0.24/src/wrapper.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>wrapper.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../proc_macro2/index.html'><div class='logo-container'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -899,6 +899,18 @@
 <span id="899">899</span>
 <span id="900">900</span>
 <span id="901">901</span>
+<span id="902">902</span>
+<span id="903">903</span>
+<span id="904">904</span>
+<span id="905">905</span>
+<span id="906">906</span>
+<span id="907">907</span>
+<span id="908">908</span>
+<span id="909">909</span>
+<span id="910">910</span>
+<span id="911">911</span>
+<span id="912">912</span>
+<span id="913">913</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">detection</span>::<span class="ident">inside_proc_macro</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">fallback</span>, <span class="ident">Delimiter</span>, <span class="ident">Punct</span>, <span class="ident">Spacing</span>, <span class="ident">TokenTree</span>};
@@ -1052,9 +1064,9 @@
                 <span class="ident">Spacing</span>::<span class="ident">Joint</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">proc_macro</span>::<span class="ident">Spacing</span>::<span class="ident">Joint</span>,
                 <span class="ident">Spacing</span>::<span class="ident">Alone</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">proc_macro</span>::<span class="ident">Spacing</span>::<span class="ident">Alone</span>,
             };
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">op</span> <span class="op">=</span> <span class="ident">proc_macro</span>::<span class="ident">Punct</span>::<span class="ident">new</span>(<span class="ident">tt</span>.<span class="ident">as_char</span>(), <span class="ident">spacing</span>);
-            <span class="ident">op</span>.<span class="ident">set_span</span>(<span class="ident">tt</span>.<span class="ident">span</span>().<span class="ident">inner</span>.<span class="ident">unwrap_nightly</span>());
-            <span class="ident">op</span>.<span class="ident">into</span>()
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">punct</span> <span class="op">=</span> <span class="ident">proc_macro</span>::<span class="ident">Punct</span>::<span class="ident">new</span>(<span class="ident">tt</span>.<span class="ident">as_char</span>(), <span class="ident">spacing</span>);
+            <span class="ident">punct</span>.<span class="ident">set_span</span>(<span class="ident">tt</span>.<span class="ident">span</span>().<span class="ident">inner</span>.<span class="ident">unwrap_nightly</span>());
+            <span class="ident">punct</span>.<span class="ident">into</span>()
         }
         <span class="ident">TokenTree</span>::<span class="ident">Ident</span>(<span class="ident">tt</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">tt</span>.<span class="ident">inner</span>.<span class="ident">unwrap_nightly</span>().<span class="ident">into</span>(),
         <span class="ident">TokenTree</span>::<span class="ident">Literal</span>(<span class="ident">tt</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">tt</span>.<span class="ident">inner</span>.<span class="ident">unwrap_nightly</span>().<span class="ident">into</span>(),
@@ -1162,6 +1174,18 @@
         <span class="kw">match</span> <span class="self">self</span> {
             <span class="ident">LexError</span>::<span class="ident">Compiler</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Debug</span>::<span class="ident">fmt</span>(<span class="ident">e</span>, <span class="ident">f</span>),
             <span class="ident">LexError</span>::<span class="ident">Fallback</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Debug</span>::<span class="ident">fmt</span>(<span class="ident">e</span>, <span class="ident">f</span>),
+        }
+    }
+}
+
+<span class="kw">impl</span> <span class="ident">Display</span> <span class="kw">for</span> <span class="ident">LexError</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
+        <span class="kw">match</span> <span class="self">self</span> {
+            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">lexerror_display</span>)]</span>
+            <span class="ident">LexError</span>::<span class="ident">Compiler</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Display</span>::<span class="ident">fmt</span>(<span class="ident">e</span>, <span class="ident">f</span>),
+            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">lexerror_display</span>))]</span>
+            <span class="ident">LexError</span>::<span class="ident">Compiler</span>(<span class="ident">_e</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Display</span>::<span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="ident">fallback</span>::<span class="ident">LexError</span>, <span class="ident">f</span>),
+            <span class="ident">LexError</span>::<span class="ident">Fallback</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Display</span>::<span class="ident">fmt</span>(<span class="ident">e</span>, <span class="ident">f</span>),
         }
     }
 }

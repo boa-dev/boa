@@ -1,0 +1,33 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="API documentation for the Rust `idna` crate."><meta name="keywords" content="rust, rustlang, rust-lang, idna"><title>idna - Rust</title><link rel="stylesheet" type="text/css" href="../normalize.css"><link rel="stylesheet" type="text/css" href="../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../dark.css"><link rel="stylesheet" type="text/css" href="../light.css" id="themeStyle"><script src="../storage.js"></script><noscript><link rel="stylesheet" href="../noscript.css"></noscript><link rel="shortcut icon" href="../favicon.ico"><style type="text/css">#crate-search{background-image:url("../down-arrow.svg");}</style></head><body class="rustdoc mod"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../idna/index.html'><div class='logo-container'><img src='../rust-logo.png' alt='logo'></div></a><p class='location'>Crate idna</p><div class="sidebar-elems"><a id='all-types' href='all.html'><p>See all idna's items</p></a><div class="block items"><ul><li><a href="#modules">Modules</a></li><li><a href="#structs">Structs</a></li><li><a href="#functions">Functions</a></li></ul></div><p class='location'></p><script>window.sidebarCurrent = {name: 'idna', ty: 'mod', relpath: '../'};</script></div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../settings.html"><img src="../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><h1 class='fqn'><span class='out-of-band'><span id='render-detail'><a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">[<span class='inner'>&#x2212;</span>]</a></span><a class='srclink' href='../src/idna/lib.rs.html#9-75' title='goto source code'>[src]</a></span><span class='in-band'>Crate <a class="mod" href=''>idna</a></span></h1><div class='docblock'><p>This Rust crate implements IDNA
+<a href="https://url.spec.whatwg.org/#idna">per the WHATWG URL Standard</a>.</p>
+<p>It also exposes the underlying algorithms from <a href="http://www.unicode.org/reports/tr46/"><em>Unicode IDNA Compatibility Processing</em>
+(Unicode Technical Standard #46)</a>
+and <a href="https://tools.ietf.org/html/rfc3492">Punycode (RFC 3492)</a>.</p>
+<p>Quoting from <a href="http://www.unicode.org/reports/tr46/#Introduction">UTS #46’s introduction</a>:</p>
+<blockquote>
+<p>Initially, domain names were restricted to ASCII characters.
+A system was introduced in 2003 for internationalized domain names (IDN).
+This system is called Internationalizing Domain Names for Applications,
+or IDNA2003 for short.
+This mechanism supports IDNs by means of a client software transformation
+into a format known as Punycode.
+A revision of IDNA was approved in 2010 (IDNA2008).
+This revision has a number of incompatibilities with IDNA2003.</p>
+<p>The incompatibilities force implementers of client software,
+such as browsers and emailers,
+to face difficult choices during the transition period
+as registries shift from IDNA2003 to IDNA2008.
+This document specifies a mechanism
+that minimizes the impact of this transition for client software,
+allowing client software to access domains that are valid under either system.</p>
+</blockquote>
+</div><h2 id='modules' class='section-header'><a href="#modules">Modules</a></h2>
+<table><tr class='module-item'><td><a class="mod" href="punycode/index.html" title='idna::punycode mod'>punycode</a></td><td class='docblock-short'><p>Punycode (<a href="http://tools.ietf.org/html/rfc3492">RFC 3492</a>) implementation.</p>
+</td></tr></table><h2 id='structs' class='section-header'><a href="#structs">Structs</a></h2>
+<table><tr class='module-item'><td><a class="struct" href="struct.Config.html" title='idna::Config struct'>Config</a></td><td class='docblock-short'></td></tr><tr class='module-item'><td><a class="struct" href="struct.Errors.html" title='idna::Errors struct'>Errors</a></td><td class='docblock-short'><p>Errors recorded during UTS #46 processing.</p>
+</td></tr></table><h2 id='functions' class='section-header'><a href="#functions">Functions</a></h2>
+<table><tr class='module-item'><td><a class="fn" href="fn.domain_to_ascii.html" title='idna::domain_to_ascii fn'>domain_to_ascii</a></td><td class='docblock-short'><p>The <a href="https://url.spec.whatwg.org/#concept-domain-to-ascii">domain to ASCII</a> algorithm.</p>
+</td></tr><tr class='module-item'><td><a class="fn" href="fn.domain_to_ascii_strict.html" title='idna::domain_to_ascii_strict fn'>domain_to_ascii_strict</a></td><td class='docblock-short'><p>The <a href="https://url.spec.whatwg.org/#concept-domain-to-ascii">domain to ASCII</a> algorithm,
+with the <code>beStrict</code> flag set.</p>
+</td></tr><tr class='module-item'><td><a class="fn" href="fn.domain_to_unicode.html" title='idna::domain_to_unicode fn'>domain_to_unicode</a></td><td class='docblock-short'><p>The <a href="https://url.spec.whatwg.org/#concept-domain-to-unicode">domain to Unicode</a> algorithm.</p>
+</td></tr></table></section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../";window.currentCrate = "idna";</script><script src="../main.js"></script><script defer src="../search-index.js"></script></body></html>

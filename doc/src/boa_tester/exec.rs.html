@@ -194,10 +194,31 @@
 <span id="194">194</span>
 <span id="195">195</span>
 <span id="196">196</span>
+<span id="197">197</span>
+<span id="198">198</span>
+<span id="199">199</span>
+<span id="200">200</span>
+<span id="201">201</span>
+<span id="202">202</span>
+<span id="203">203</span>
+<span id="204">204</span>
+<span id="205">205</span>
+<span id="206">206</span>
+<span id="207">207</span>
+<span id="208">208</span>
+<span id="209">209</span>
+<span id="210">210</span>
+<span id="211">211</span>
+<span id="212">212</span>
+<span id="213">213</span>
+<span id="214">214</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Execution module for the test runner.</span>
 
-<span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">Harness</span>, <span class="ident">Outcome</span>, <span class="ident">Phase</span>, <span class="ident">SuiteResult</span>, <span class="ident">Test</span>, <span class="ident">TestFlags</span>, <span class="ident">TestResult</span>, <span class="ident">TestSuite</span>, <span class="ident">CLI</span>};
+<span class="kw">use</span> <span class="kw">super</span>::{
+    <span class="ident">Harness</span>, <span class="ident">Outcome</span>, <span class="ident">Phase</span>, <span class="ident">SuiteResult</span>, <span class="ident">Test</span>, <span class="ident">TestFlags</span>, <span class="ident">TestOutcomeResult</span>, <span class="ident">TestResult</span>,
+    <span class="ident">TestSuite</span>, <span class="ident">CLI</span>,
+};
 <span class="kw">use</span> <span class="ident">boa</span>::{<span class="ident">parse</span>, <span class="ident">Context</span>};
 <span class="kw">use</span> <span class="ident">colored</span>::<span class="ident">Colorize</span>;
 <span class="kw">use</span> <span class="ident">fxhash</span>::<span class="ident">FxHashSet</span>;
@@ -240,10 +261,10 @@
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">passed</span> <span class="op">=</span> <span class="number">0</span>;
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">ignored</span> <span class="op">=</span> <span class="number">0</span>;
         <span class="kw">for</span> <span class="ident">test</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">tests</span> {
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="bool-val">true</span>) <span class="op">=</span> <span class="ident">test</span>.<span class="ident">passed</span> {
-                <span class="ident">passed</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
-            } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">test</span>.<span class="ident">passed</span>.<span class="ident">is_none</span>() {
-                <span class="ident">ignored</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+            <span class="kw">match</span> <span class="ident">test</span>.<span class="ident">result</span> {
+                <span class="ident">TestOutcomeResult</span>::<span class="ident">Passed</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">passed</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>,
+                <span class="ident">TestOutcomeResult</span>::<span class="ident">Ignored</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ignored</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>,
+                <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {}
             }
         }
 
@@ -271,7 +292,7 @@
             <span class="ident">passed</span>,
             <span class="ident">ignored</span>,
             <span class="ident">suites</span>,
-            <span class="ident">tests</span>: <span class="ident">tests</span>.<span class="ident">into_boxed_slice</span>(),
+            <span class="ident">tests</span>,
         }
     }
 }
@@ -281,7 +302,7 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">run</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">harness</span>: <span class="kw-2">&amp;</span><span class="ident">Harness</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TestResult</span> {
         <span class="comment">// println!(&quot;Starting `{}`&quot;, self.name);</span>
 
-        <span class="kw">let</span> <span class="ident">passed</span> <span class="op">=</span> <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">flags</span>.<span class="ident">intersects</span>(<span class="ident">TestFlags</span>::<span class="ident">ASYNC</span> <span class="op">|</span> <span class="ident">TestFlags</span>::<span class="ident">MODULE</span>)
+        <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">flags</span>.<span class="ident">intersects</span>(<span class="ident">TestFlags</span>::<span class="ident">ASYNC</span> <span class="op">|</span> <span class="ident">TestFlags</span>::<span class="ident">MODULE</span>)
             <span class="kw-2">&amp;</span><span class="op">&amp;</span> <span class="op">!</span><span class="ident">IGNORED</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">name</span>)
         {
             <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">panic</span>::<span class="ident">catch_unwind</span>(<span class="op">|</span><span class="op">|</span> {
@@ -335,24 +356,39 @@
                 }
             });
 
-            <span class="kw">let</span> <span class="ident">passed</span> <span class="op">=</span> <span class="ident">res</span>.<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> {
-                <span class="macro">eprintln</span><span class="macro">!</span>(<span class="string">&quot;last panic was on test \&quot;{}\&quot;&quot;</span>, <span class="self">self</span>.<span class="ident">name</span>);
-                <span class="bool-val">false</span>
-            });
+            <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">res</span>
+                .<span class="ident">map</span>(<span class="op">|</span><span class="ident">res</span><span class="op">|</span> {
+                    <span class="kw">if</span> <span class="ident">res</span> {
+                        <span class="ident">TestOutcomeResult</span>::<span class="ident">Passed</span>
+                    } <span class="kw">else</span> {
+                        <span class="ident">TestOutcomeResult</span>::<span class="ident">Failed</span>
+                    }
+                })
+                .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> {
+                    <span class="macro">eprintln</span><span class="macro">!</span>(<span class="string">&quot;last panic was on test \&quot;{}\&quot;&quot;</span>, <span class="self">self</span>.<span class="ident">name</span>);
+                    <span class="ident">TestOutcomeResult</span>::<span class="ident">Panic</span>
+                });
 
-            <span class="macro">print</span><span class="macro">!</span>(<span class="string">&quot;{}&quot;</span>, <span class="kw">if</span> <span class="ident">passed</span> { <span class="string">&quot;.&quot;</span>.<span class="ident">green</span>() } <span class="kw">else</span> { <span class="string">&quot;.&quot;</span>.<span class="ident">red</span>() });
+            <span class="macro">print</span><span class="macro">!</span>(
+                <span class="string">&quot;{}&quot;</span>,
+                <span class="kw">if</span> <span class="kw">let</span> <span class="ident">TestOutcomeResult</span>::<span class="ident">Passed</span> <span class="op">=</span> <span class="ident">result</span> {
+                    <span class="string">&quot;.&quot;</span>.<span class="ident">green</span>()
+                } <span class="kw">else</span> {
+                    <span class="string">&quot;.&quot;</span>.<span class="ident">red</span>()
+                }
+            );
 
-            <span class="prelude-val">Some</span>(<span class="ident">passed</span>)
+            <span class="ident">result</span>
         } <span class="kw">else</span> {
             <span class="comment">// Ignoring async tests for now.</span>
             <span class="comment">// TODO: implement async and add `harness/doneprintHandle.js` to the includes.</span>
             <span class="macro">print</span><span class="macro">!</span>(<span class="string">&quot;{}&quot;</span>, <span class="string">&quot;.&quot;</span>.<span class="ident">yellow</span>());
-            <span class="prelude-val">None</span>
+            <span class="ident">TestOutcomeResult</span>::<span class="ident">Ignored</span>
         };
 
         <span class="ident">TestResult</span> {
             <span class="ident">name</span>: <span class="self">self</span>.<span class="ident">name</span>.<span class="ident">clone</span>(),
-            <span class="ident">passed</span>,
+            <span class="ident">result</span>,
         }
     }
 

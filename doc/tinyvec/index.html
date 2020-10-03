@@ -1,0 +1,65 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="API documentation for the Rust `tinyvec` crate."><meta name="keywords" content="rust, rustlang, rust-lang, tinyvec"><title>tinyvec - Rust</title><link rel="stylesheet" type="text/css" href="../normalize.css"><link rel="stylesheet" type="text/css" href="../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../dark.css"><link rel="stylesheet" type="text/css" href="../light.css" id="themeStyle"><script src="../storage.js"></script><noscript><link rel="stylesheet" href="../noscript.css"></noscript><link rel="shortcut icon" href="../favicon.ico"><style type="text/css">#crate-search{background-image:url("../down-arrow.svg");}</style></head><body class="rustdoc mod"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../tinyvec/index.html'><div class='logo-container'><img src='../rust-logo.png' alt='logo'></div></a><p class='location'>Crate tinyvec</p><div class="sidebar-elems"><a id='all-types' href='all.html'><p>See all tinyvec's items</p></a><div class="block items"><ul><li><a href="#macros">Macros</a></li><li><a href="#structs">Structs</a></li><li><a href="#enums">Enums</a></li><li><a href="#traits">Traits</a></li></ul></div><p class='location'></p><script>window.sidebarCurrent = {name: 'tinyvec', ty: 'mod', relpath: '../'};</script></div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../settings.html"><img src="../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><h1 class='fqn'><span class='out-of-band'><span id='render-detail'><a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">[<span class='inner'>&#x2212;</span>]</a></span><a class='srclink' href='../src/tinyvec/lib.rs.html#1-96' title='goto source code'>[src]</a></span><span class='in-band'>Crate <a class="mod" href=''>tinyvec</a></span></h1><div class='docblock'><p>Programmers can have a little vec, as a treat.</p>
+<h2 id="what-this-is" class="section-header"><a href="#what-this-is">What This Is</a></h2>
+<p>This crate provides 100% safe code alternatives to both
+<a href="https://docs.rs/arrayvec">arrayvec</a> and
+<a href="https://docs.rs/smallvec">smallvec</a>.</p>
+<p>Being 100% safe means that you have to have some sort of compromise compared
+to the versions using <code>unsafe</code>. In this case, the compromise is that the
+element type must implement <code>Default</code> to be usable in these vecs. However,
+that still allows you to use <a href="https://doc.rust-lang.org/std/default/trait.Default.html#implementors">quite a few
+types</a>,
+so I think that you'll find these vecs useful in many cases.</p>
+<ul>
+<li><a href="ArrayVec"><code>ArrayVec</code></a> is an array-backed vec-like structure with a fixed
+capacity. If you try to grow the length past the array's capacity it will
+error or panic (depending on the method used).</li>
+<li>(<code>alloc</code> feature) <a href="TinyVec"><code>TinyVec</code></a> is an enum that's either an
+&quot;Inline&quot; <code>ArrayVec</code> or a &quot;Heap&quot; <code>Vec</code>. If it's Inline and you try to grow
+the <code>ArrayVec</code> beyond its array capacity it will quietly transition into
+Heap mode and then continue the operation.</li>
+</ul>
+<h2 id="crate-goals" class="section-header"><a href="#crate-goals">Crate Goals</a></h2>
+<ol>
+<li>The crate is 100% safe code. Not just a safe API, there are also no
+<code>unsafe</code> internals. <code>#![forbid(unsafe_code)]</code>.</li>
+<li>No required dependencies.
+<ul>
+<li>We might provide optional dependencies for extra functionality (eg:
+<code>serde</code> compatibility).</li>
+</ul>
+</li>
+<li>The intended API is that, <em>as much as possible</em>, these types are
+essentially a &quot;drop-in&quot; replacement for the standard <a href="Vec::%3CT%3E"><code>Vec</code></a>
+type.
+<ul>
+<li>Stable <code>Vec</code> methods that the vecs here also have should be the same
+general signature.</li>
+<li>Unstable <code>Vec</code> methods are sometimes provided via a crate feature, but
+if so they also require a Nightly compiler.</li>
+<li>Some methods are provided that <em>are not</em> part of the <code>Vec</code> type, such
+as additional constructor methods. In this case, the names are rather
+long and whimsical in the hopes that they don't clash with any
+possible future methods of <code>Vec</code>.</li>
+<li>If, in the future, <code>Vec</code> stabilizes a method that clashes with an
+existing extra method here then we'll simply be forced to release a
+2.y.z version. Not the end of the world.</li>
+<li>Some methods of <code>Vec</code> are simply inappropriate and will not be
+implemented here. For example, <code>ArrayVec</code> cannot possibly implement
+<a href="https://doc.rust-lang.org/std/vec/struct.Vec.html#method.from_raw_parts"><code>from_raw_parts</code></a>.</li>
+</ul>
+</li>
+</ol>
+</div><h2 id='macros' class='section-header'><a href="#macros">Macros</a></h2>
+<table><tr class='module-item'><td><a class="macro" href="macro.array_vec.html" title='tinyvec::array_vec macro'>array_vec</a></td><td class='docblock-short'><p>Helper to make an <code>ArrayVec</code>.</p>
+</td></tr><tr class='module-item'><td><a class="macro" href="macro.tiny_vec.html" title='tinyvec::tiny_vec macro'>tiny_vec</a></td><td class='docblock-short'><p>Helper to make a <code>TinyVec</code>.</p>
+</td></tr></table><h2 id='structs' class='section-header'><a href="#structs">Structs</a></h2>
+<table><tr class='module-item'><td><a class="struct" href="struct.ArrayVec.html" title='tinyvec::ArrayVec struct'>ArrayVec</a></td><td class='docblock-short'><p>An array-backed, vector-like data structure.</p>
+</td></tr><tr class='module-item'><td><a class="struct" href="struct.ArrayVecDrain.html" title='tinyvec::ArrayVecDrain struct'>ArrayVecDrain</a></td><td class='docblock-short'><p>Draining iterator for <code>ArrayVecDrain</code></p>
+</td></tr><tr class='module-item'><td><a class="struct" href="struct.ArrayVecIterator.html" title='tinyvec::ArrayVecIterator struct'>ArrayVecIterator</a></td><td class='docblock-short'><p>Iterator for consuming an <code>ArrayVec</code> and returning owned elements.</p>
+</td></tr><tr class='module-item'><td><a class="struct" href="struct.TinyVecDrain.html" title='tinyvec::TinyVecDrain struct'>TinyVecDrain</a></td><td class='docblock-short'><p>Draining iterator for <code>TinyVecDrain</code></p>
+</td></tr></table><h2 id='enums' class='section-header'><a href="#enums">Enums</a></h2>
+<table><tr class='module-item'><td><a class="enum" href="enum.TinyVec.html" title='tinyvec::TinyVec enum'>TinyVec</a></td><td class='docblock-short'><p>A vector that starts inline, but can automatically move to the heap.</p>
+</td></tr><tr class='module-item'><td><a class="enum" href="enum.TinyVecIterator.html" title='tinyvec::TinyVecIterator enum'>TinyVecIterator</a></td><td class='docblock-short'><p>Iterator for consuming an <code>TinyVec</code> and returning owned elements.</p>
+</td></tr></table><h2 id='traits' class='section-header'><a href="#traits">Traits</a></h2>
+<table><tr class='module-item'><td><a class="trait" href="trait.Array.html" title='tinyvec::Array trait'>Array</a></td><td class='docblock-short'><p>A trait for types that are an array.</p>
+</td></tr></table></section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../";window.currentCrate = "tinyvec";</script><script src="../main.js"></script><script defer src="../search-index.js"></script></body></html>

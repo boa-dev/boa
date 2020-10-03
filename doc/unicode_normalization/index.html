@@ -1,0 +1,56 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="API documentation for the Rust `unicode_normalization` crate."><meta name="keywords" content="rust, rustlang, rust-lang, unicode_normalization"><title>unicode_normalization - Rust</title><link rel="stylesheet" type="text/css" href="../normalize.css"><link rel="stylesheet" type="text/css" href="../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../dark.css"><link rel="stylesheet" type="text/css" href="../light.css" id="themeStyle"><script src="../storage.js"></script><noscript><link rel="stylesheet" href="../noscript.css"></noscript><link rel="shortcut icon" href="https://unicode-rs.github.io/unicode-rs_sm.png"><style type="text/css">#crate-search{background-image:url("../down-arrow.svg");}</style></head><body class="rustdoc mod"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../unicode_normalization/index.html'><div class='logo-container'><img src='https://unicode-rs.github.io/unicode-rs_sm.png' alt='logo'></div></a><p class='location'>Crate unicode_normalization</p><div class="sidebar-elems"><a id='all-types' href='all.html'><p>See all unicode_normalization's items</p></a><div class="block items"><ul><li><a href="#modules">Modules</a></li><li><a href="#structs">Structs</a></li><li><a href="#enums">Enums</a></li><li><a href="#constants">Constants</a></li><li><a href="#traits">Traits</a></li><li><a href="#functions">Functions</a></li></ul></div><p class='location'></p><script>window.sidebarCurrent = {name: 'unicode_normalization', ty: 'mod', relpath: '../'};</script></div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../settings.html"><img src="../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><h1 class='fqn'><span class='out-of-band'><span id='render-detail'><a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">[<span class='inner'>&#x2212;</span>]</a></span><a class='srclink' href='../src/unicode_normalization/lib.rs.html#11-168' title='goto source code'>[src]</a></span><span class='in-band'>Crate <a class="mod" href=''>unicode_normalization</a></span></h1><div class='docblock'><p>Unicode character composition and decomposition utilities
+as described in
+<a href="http://www.unicode.org/reports/tr15/">Unicode Standard Annex #15</a>.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered">
+<span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">unicode_normalization</span>;
+
+<span class="kw">use</span> <span class="ident">unicode_normalization</span>::<span class="ident">char</span>::<span class="ident">compose</span>;
+<span class="kw">use</span> <span class="ident">unicode_normalization</span>::<span class="ident">UnicodeNormalization</span>;
+
+<span class="kw">fn</span> <span class="ident">main</span>() {
+    <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">compose</span>(<span class="string">&#39;A&#39;</span>,<span class="string">&#39;\u{30a}&#39;</span>), <span class="prelude-val">Some</span>(<span class="string">&#39;Å&#39;</span>));
+
+    <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <span class="string">&quot;ÅΩ&quot;</span>;
+    <span class="kw">let</span> <span class="ident">c</span> <span class="op">=</span> <span class="ident">s</span>.<span class="ident">nfc</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>();
+    <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">c</span>, <span class="string">&quot;ÅΩ&quot;</span>);
+}</pre></div>
+<h1 id="cratesio" class="section-header"><a href="#cratesio">crates.io</a></h1>
+<p>You can use this package in your project by adding the following
+to your <code>Cargo.toml</code>:</p>
+<pre><code class="language-toml">[dependencies]
+unicode-normalization = &quot;0.1.8&quot;
+</code></pre>
+</div><h2 id='modules' class='section-header'><a href="#modules">Modules</a></h2>
+<table><tr class='module-item'><td><a class="mod" href="char/index.html" title='unicode_normalization::char mod'>char</a></td><td class='docblock-short'><p>Methods for composing and decomposing characters.</p>
+</td></tr></table><h2 id='structs' class='section-header'><a href="#structs">Structs</a></h2>
+<table><tr class='module-item'><td><a class="struct" href="struct.Decompositions.html" title='unicode_normalization::Decompositions struct'>Decompositions</a></td><td class='docblock-short'><p>External iterator for a string decomposition's characters.</p>
+</td></tr><tr class='module-item'><td><a class="struct" href="struct.Recompositions.html" title='unicode_normalization::Recompositions struct'>Recompositions</a></td><td class='docblock-short'><p>External iterator for a string recomposition's characters.</p>
+</td></tr><tr class='module-item'><td><a class="struct" href="struct.StreamSafe.html" title='unicode_normalization::StreamSafe struct'>StreamSafe</a></td><td class='docblock-short'><p>UAX15-D4: This iterator keeps track of how many non-starters there have been
+since the last starter in <em>NFKD</em> and will emit a Combining Grapheme Joiner
+(U+034F) if the count exceeds 30.</p>
+</td></tr></table><h2 id='enums' class='section-header'><a href="#enums">Enums</a></h2>
+<table><tr class='module-item'><td><a class="enum" href="enum.IsNormalized.html" title='unicode_normalization::IsNormalized enum'>IsNormalized</a></td><td class='docblock-short'><p>The QuickCheck algorithm can quickly determine if a text is or isn't
+normalized without any allocations in many cases, but it has to be able to
+return <code>Maybe</code> when a full decomposition and recomposition is necessary.</p>
+</td></tr></table><h2 id='constants' class='section-header'><a href="#constants">Constants</a></h2>
+<table><tr class='module-item'><td><a class="constant" href="constant.UNICODE_VERSION.html" title='unicode_normalization::UNICODE_VERSION constant'>UNICODE_VERSION</a></td><td class='docblock-short'></td></tr></table><h2 id='traits' class='section-header'><a href="#traits">Traits</a></h2>
+<table><tr class='module-item'><td><a class="trait" href="trait.UnicodeNormalization.html" title='unicode_normalization::UnicodeNormalization trait'>UnicodeNormalization</a></td><td class='docblock-short'><p>Methods for iterating over strings while applying Unicode normalizations
+as described in
+<a href="http://www.unicode.org/reports/tr15/">Unicode Standard Annex #15</a>.</p>
+</td></tr></table><h2 id='functions' class='section-header'><a href="#functions">Functions</a></h2>
+<table><tr class='module-item'><td><a class="fn" href="fn.is_nfc.html" title='unicode_normalization::is_nfc fn'>is_nfc</a></td><td class='docblock-short'><p>Authoritatively check if a string is in NFC.</p>
+</td></tr><tr class='module-item'><td><a class="fn" href="fn.is_nfc_quick.html" title='unicode_normalization::is_nfc_quick fn'>is_nfc_quick</a></td><td class='docblock-short'><p>Quickly check if a string is in NFC, potentially returning
+<code>IsNormalized::Maybe</code> if further checks are necessary.  In this case a check
+like <code>s.chars().nfc().eq(s.chars())</code> should suffice.</p>
+</td></tr><tr class='module-item'><td><a class="fn" href="fn.is_nfc_stream_safe.html" title='unicode_normalization::is_nfc_stream_safe fn'>is_nfc_stream_safe</a></td><td class='docblock-short'><p>Authoritatively check if a string is Stream-Safe NFC.</p>
+</td></tr><tr class='module-item'><td><a class="fn" href="fn.is_nfc_stream_safe_quick.html" title='unicode_normalization::is_nfc_stream_safe_quick fn'>is_nfc_stream_safe_quick</a></td><td class='docblock-short'><p>Quickly check if a string is Stream-Safe NFC.</p>
+</td></tr><tr class='module-item'><td><a class="fn" href="fn.is_nfd.html" title='unicode_normalization::is_nfd fn'>is_nfd</a></td><td class='docblock-short'><p>Authoritatively check if a string is in NFD.</p>
+</td></tr><tr class='module-item'><td><a class="fn" href="fn.is_nfd_quick.html" title='unicode_normalization::is_nfd_quick fn'>is_nfd_quick</a></td><td class='docblock-short'><p>Quickly check if a string is in NFD.</p>
+</td></tr><tr class='module-item'><td><a class="fn" href="fn.is_nfd_stream_safe.html" title='unicode_normalization::is_nfd_stream_safe fn'>is_nfd_stream_safe</a></td><td class='docblock-short'><p>Authoritatively check if a string is Stream-Safe NFD.</p>
+</td></tr><tr class='module-item'><td><a class="fn" href="fn.is_nfd_stream_safe_quick.html" title='unicode_normalization::is_nfd_stream_safe_quick fn'>is_nfd_stream_safe_quick</a></td><td class='docblock-short'><p>Quickly check if a string is Stream-Safe NFD.</p>
+</td></tr><tr class='module-item'><td><a class="fn" href="fn.is_nfkc.html" title='unicode_normalization::is_nfkc fn'>is_nfkc</a></td><td class='docblock-short'><p>Authoritatively check if a string is in NFKC.</p>
+</td></tr><tr class='module-item'><td><a class="fn" href="fn.is_nfkc_quick.html" title='unicode_normalization::is_nfkc_quick fn'>is_nfkc_quick</a></td><td class='docblock-short'><p>Quickly check if a string is in NFKC.</p>
+</td></tr><tr class='module-item'><td><a class="fn" href="fn.is_nfkd.html" title='unicode_normalization::is_nfkd fn'>is_nfkd</a></td><td class='docblock-short'><p>Authoritatively check if a string is in NFKD.</p>
+</td></tr><tr class='module-item'><td><a class="fn" href="fn.is_nfkd_quick.html" title='unicode_normalization::is_nfkd_quick fn'>is_nfkd_quick</a></td><td class='docblock-short'><p>Quickly check if a string is in NFKD.</p>
+</td></tr></table></section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../";window.currentCrate = "unicode_normalization";</script><script src="../main.js"></script><script defer src="../search-index.js"></script></body></html>

@@ -1,0 +1,1 @@
+initSidebarItems({"fn":[["domain_to_ascii","The domain to ASCII algorithm."],["domain_to_ascii_strict","The domain to ASCII algorithm, with the `beStrict` flag set."],["domain_to_unicode","The domain to Unicode algorithm."]],"mod":[["punycode","Punycode (RFC 3492) implementation."]],"struct":[["Config",""],["Errors","Errors recorded during UTS #46 processing."]]});
