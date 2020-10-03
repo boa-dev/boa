@@ -178,7 +178,7 @@ impl<'context> ClassBuilder<'context> {
     /// Add a method to the class.
     ///
     /// It is added to `prototype`.
-    pub fn method<N>(&mut self, name: N, length: usize, function: NativeFunction)
+    pub fn method<N>(&mut self, name: N, length: usize, function: NativeFunction) -> &mut Self
     where
         N: Into<String>,
     {
@@ -197,12 +197,19 @@ impl<'context> ClassBuilder<'context> {
         self.prototype
             .borrow_mut()
             .insert_field(name, Value::from(function));
+
+        self
     }
 
     /// Add a static method to the class.
     ///
     /// It is added to class object itself.
-    pub fn static_method<N>(&mut self, name: N, length: usize, function: NativeFunction)
+    pub fn static_method<N>(
+        &mut self,
+        name: N,
+        length: usize,
+        function: NativeFunction,
+    ) -> &mut Self
     where
         N: Into<String>,
     {
@@ -221,13 +228,15 @@ impl<'context> ClassBuilder<'context> {
         self.object
             .borrow_mut()
             .insert_field(name, Value::from(function));
+
+        self
     }
 
     /// Add a property to the class, with the specified attribute.
     ///
     /// It is added to `prototype`.
     #[inline]
-    pub fn property<K, V>(&mut self, key: K, value: V, attribute: Attribute)
+    pub fn property<K, V>(&mut self, key: K, value: V, attribute: Attribute) -> &mut Self
     where
         K: Into<PropertyKey>,
         V: Into<Value>,
@@ -238,13 +247,15 @@ impl<'context> ClassBuilder<'context> {
         self.prototype
             .borrow_mut()
             .insert_property(key.into(), property);
+
+        self
     }
 
     /// Add a static property to the class, with the specified attribute.
     ///
     /// It is added to class object itself.
     #[inline]
-    pub fn static_property<K, V>(&mut self, key: K, value: V, attribute: Attribute)
+    pub fn static_property<K, V>(&mut self, key: K, value: V, attribute: Attribute) -> &mut Self
     where
         K: Into<PropertyKey>,
         V: Into<Value>,
@@ -255,6 +266,8 @@ impl<'context> ClassBuilder<'context> {
         self.object
             .borrow_mut()
             .insert_property(key.into(), property);
+
+        self
     }
 
     /// Return the current context.
