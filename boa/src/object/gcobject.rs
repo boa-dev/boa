@@ -16,7 +16,7 @@ use crate::{
 use gc::{Finalize, Gc, GcCell, GcCellRef, GcCellRefMut, Trace};
 use std::{
     cell::RefCell,
-    collections::HashSet,
+    collections::HashMap,
     error::Error,
     fmt::{self, Debug, Display},
     result::Result as StdResult,
@@ -302,45 +302,57 @@ impl Display for BorrowMutError {
 
 impl Error for BorrowMutError {}
 
-/// Prevents infinite recursion during `Debug::fmt`.
-#[derive(Debug)]
-struct RecursionLimiter {
-    /// If this was the first `GcObject` in the tree.
-    free: bool,
-    /// If this is the first time a specific `GcObject` has been seen.
-    first: bool,
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+enum RecursionValueState {
+    /// This value is "live": there's an active RecursionLimiter that hasn't been dropped.
+    Live,
+    /// This value has been seen before, but the recursion limiter has been dropped.
+    /// For example:
+    /// ```javascript
+    /// let b = [];
+    /// JSON.stringify([ // Create a recursion limiter for the root here
+    ///    b,            // state for b's &GcObject here is None
+    ///    b,            // state for b's &GcObject here is Visited
+    /// ]);
+    /// ```
+    Visited,
 }
 
-impl Clone for RecursionLimiter {
-    fn clone(&self) -> Self {
-        Self {
-            // Cloning this value would result in a premature free.
-            free: false,
-            // Cloning this vlaue would result in a value being written multiple times.
-            first: false,
-        }
-    }
+/// Prevents infinite recursion during `Debug::fmt`, `JSON.stringify`, and other conversions.
+/// This uses a thread local, so is not safe to use where the object graph will be traversed by
+/// multiple threads!
+#[derive(Debug)]
+pub struct RecursionLimiter {
+    /// If this was the first `GcObject` in the tree.
+    top_level: bool,
+    /// The ptr being kept in the HashSet, so we can delete it when we drop.
+    ptr: usize,
+    /// If this GcObject has been visited before in the graph, but not in the current branch.
+    pub visited: bool,
+    /// If this GcObject has been visited in the current branch of the graph.
+    pub live: bool,
 }
 
 impl Drop for RecursionLimiter {
     fn drop(&mut self) {
-        // Typically, calling hs.remove(ptr) for "first" objects would be the correct choice here. This would allow the
-        // same object to appear multiple times in the output (provided it does not appear under itself recursively).
-        // However, the JS object hierarchy involves quite a bit of repitition, and the sheer amount of data makes
-        // understanding the Debug output impossible; limiting the usefulness of it.
-        //
-        // Instead, the entire hashset is emptied at by the first GcObject involved. This means that objects will appear
-        // at most once, throughout the graph, hopefully making things a bit clearer.
-        if self.free {
-            Self::VISITED.with(|hs| hs.borrow_mut().clear());
+        if self.top_level {
+            // When the top level of the graph is dropped, we can free the entire map for the next traversal.
+            Self::SEEN.with(|hm| hm.borrow_mut().clear());
+        } else if !self.live {
+            // This was the first RL for this object to become live, so it's no longer live now that it's dropped.
+            Self::SEEN.with(|hm| {
+                hm.borrow_mut()
+                    .insert(self.ptr, RecursionValueState::Visited)
+            });
         }
     }
 }
 
 impl RecursionLimiter {
     thread_local! {
-        /// The list of pointers to `GcObject` that have been visited during the current `Debug::fmt` graph.
-        static VISITED: RefCell<HashSet<usize>> = RefCell::new(HashSet::new());
+        /// The map of pointers to `GcObject` that have been visited during the current `Debug::fmt` graph,
+        /// and the current state of their RecursionLimiter (dropped or live -- see `RecursionValueState`)
+        static SEEN: RefCell<HashMap<usize, RecursionValueState>> = RefCell::new(HashMap::new());
     }
 
     /// Determines if the specified `GcObject` has been visited, and returns a struct that will free it when dropped.
@@ -348,15 +360,27 @@ impl RecursionLimiter {
     /// This is done by maintaining a thread-local hashset containing the pointers of `GcObject` values that have been
     /// visited. The first `GcObject` visited will clear the hashset, while any others will check if they are contained
     /// by the hashset.
-    fn new(o: &GcObject) -> Self {
+    pub fn new(o: &GcObject) -> Self {
         // We shouldn't have to worry too much about this being moved during Debug::fmt.
         let ptr = (o.as_ref() as *const _) as usize;
-        let (free, first) = Self::VISITED.with(|hs| {
-            let mut hs = hs.borrow_mut();
-            (hs.is_empty(), hs.insert(ptr))
+        let (top_level, visited, live) = Self::SEEN.with(|hm| {
+            let mut hm = hm.borrow_mut();
+            let top_level = hm.is_empty();
+            let old_state = hm.insert(ptr, RecursionValueState::Live);
+
+            (
+                top_level,
+                old_state == Some(RecursionValueState::Visited),
+                old_state == Some(RecursionValueState::Live),
+            )
         });
 
-        Self { free, first }
+        Self {
+            top_level,
+            ptr,
+            visited,
+            live,
+        }
     }
 }
 
@@ -364,7 +388,13 @@ impl Debug for GcObject {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> std::fmt::Result {
         let limiter = RecursionLimiter::new(&self);
 
-        if limiter.first {
+        // Typically, using `!limiter.live` would be good enough here.
+        // However, the JS object hierarchy involves quite a bit of repitition, and the sheer amount of data makes
+        // understanding the Debug output impossible; limiting the usefulness of it.
+        //
+        // Instead, we check if the object has appeared before in the entire graph. This means that objects will appear
+        // at most once, hopefully making things a bit clearer.
+        if !limiter.visited && !limiter.live {
             f.debug_tuple("GcObject").field(&self.0).finish()
         } else {
             f.write_str("{ ... }")
