@@ -496,6 +496,97 @@ toString: {
     );
 }
 
+mod cyclic_conversions {
+    use super::*;
+
+    #[test]
+    fn to_json_cyclic() {
+        let mut engine = Context::new();
+        let src = r#"
+            let a = [];
+            a[0] = a;
+            JSON.stringify(a)
+        "#;
+
+        assert_eq!(
+            forward(&mut engine, src),
+            r#"Uncaught "TypeError": "cyclic object value""#,
+        );
+    }
+
+    // These tests don't throw errors. Instead we mirror Chrome / Firefox behavior for these conversions
+    #[test]
+    fn to_string_cyclic() {
+        let mut engine = Context::new();
+        let src = r#"
+            let a = [];
+            a[0] = a;
+            a.toString()
+        "#;
+
+        let value = forward_val(&mut engine, src).unwrap();
+        let result = value.as_string().unwrap();
+        assert_eq!(result, "");
+    }
+
+    #[test]
+    fn to_number_cyclic() {
+        let mut engine = Context::new();
+        let src = r#"
+            let a = [];
+            a[0] = a;
+            +a
+        "#;
+
+        let value = forward_val(&mut engine, src).unwrap();
+        let result = value.as_number().unwrap();
+        assert_eq!(result, 0.);
+    }
+
+    #[test]
+    fn to_boolean_cyclic() {
+        // this already worked before the mitigation, but we don't want to cause a regression
+        let mut engine = Context::new();
+        let src = r#"
+            let a = [];
+            a[0] = a;
+            !!a
+        "#;
+
+        let value = forward_val(&mut engine, src).unwrap();
+        // There isn't an as_boolean function for some reason?
+        assert_eq!(value, Value::Boolean(true));
+    }
+
+    #[test]
+    fn to_bigint_cyclic() {
+        let mut engine = Context::new();
+        let src = r#"
+            let a = [];
+            a[0] = a;
+            BigInt(a)
+        "#;
+
+        let value = forward_val(&mut engine, src).unwrap();
+        let result = value.as_bigint().unwrap().to_f64();
+        assert_eq!(result, 0.);
+    }
+
+    #[test]
+    fn to_u32_cyclic() {
+        let mut engine = Context::new();
+        let src = r#"
+            let a = [];
+            a[0] = a;
+            a | 0
+        "#;
+
+        let value = forward_val(&mut engine, src).unwrap();
+        let result = value.as_number().unwrap();
+        assert_eq!(result, 0.);
+    }
+}
+
 mod abstract_relational_comparison {
     use super::*;
     macro_rules! check_comparison {
