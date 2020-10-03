@@ -143,24 +143,11 @@
 <span id="143">143</span>
 <span id="144">144</span>
 <span id="145">145</span>
-<span id="146">146</span>
-<span id="147">147</span>
-<span id="148">148</span>
-<span id="149">149</span>
-<span id="150">150</span>
-<span id="151">151</span>
-<span id="152">152</span>
-<span id="153">153</span>
-<span id="154">154</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">builtins</span>::<span class="ident">string</span>::<span class="ident">string_iterator</span>::<span class="ident">StringIterator</span>,
-    <span class="ident">builtins</span>::{
-        <span class="ident">function</span>::{<span class="ident">BuiltInFunction</span>, <span class="ident">Function</span>, <span class="ident">FunctionFlags</span>},
-        <span class="ident">ArrayIterator</span>,
-    },
-    <span class="ident">object</span>::<span class="ident">GcObject</span>,
-    <span class="ident">object</span>::{<span class="ident">Object</span>, <span class="ident">PROTOTYPE</span>},
+    <span class="ident">builtins</span>::<span class="ident">ArrayIterator</span>,
+    <span class="ident">object</span>::{<span class="ident">GcObject</span>, <span class="ident">ObjectInitializer</span>},
     <span class="ident">property</span>::<span class="ident">Property</span>,
     <span class="ident">BoaProfiler</span>, <span class="ident">Context</span>, <span class="prelude-ty">Result</span>, <span class="ident">Value</span>,
 };
@@ -234,23 +221,18 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-%iteratorprototype%-object</span>
 <span class="kw">fn</span> <span class="ident">create_iterator_prototype</span>(<span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Value</span> {
-    <span class="kw">let</span> <span class="ident">global</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">global_object</span>();
     <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">BoaProfiler</span>::<span class="ident">global</span>().<span class="ident">start_event</span>(<span class="string">&quot;Iterator Prototype&quot;</span>, <span class="string">&quot;init&quot;</span>);
 
-    <span class="kw">let</span> <span class="ident">iterator_prototype</span> <span class="op">=</span> <span class="ident">Value</span>::<span class="ident">new_object</span>(<span class="prelude-val">Some</span>(<span class="ident">global</span>));
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">function</span> <span class="op">=</span> <span class="ident">Object</span>::<span class="ident">function</span>(
-        <span class="ident">Function</span>::<span class="ident">BuiltIn</span>(
-            <span class="ident">BuiltInFunction</span>(<span class="op">|</span><span class="ident">v</span>, <span class="kw">_</span>, <span class="kw">_</span><span class="op">|</span> <span class="prelude-val">Ok</span>(<span class="ident">v</span>.<span class="ident">clone</span>())),
-            <span class="ident">FunctionFlags</span>::<span class="ident">CALLABLE</span>,
-        ),
-        <span class="ident">global</span>.<span class="ident">get_field</span>(<span class="string">&quot;Function&quot;</span>).<span class="ident">get_field</span>(<span class="ident">PROTOTYPE</span>),
-    );
-    <span class="ident">function</span>.<span class="ident">insert_field</span>(<span class="string">&quot;length&quot;</span>, <span class="ident">Value</span>::<span class="ident">from</span>(<span class="number">0</span>));
-    <span class="ident">function</span>.<span class="ident">insert_field</span>(<span class="string">&quot;name&quot;</span>, <span class="ident">Value</span>::<span class="ident">string</span>(<span class="string">&quot;[Symbol.iterator]&quot;</span>));
-
     <span class="kw">let</span> <span class="ident">symbol_iterator</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">well_known_symbols</span>().<span class="ident">iterator_symbol</span>();
-    <span class="ident">iterator_prototype</span>.<span class="ident">set_field</span>(<span class="ident">symbol_iterator</span>, <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">function</span>));
-    <span class="ident">iterator_prototype</span>
+    <span class="kw">let</span> <span class="ident">iterator_prototype</span> <span class="op">=</span> <span class="ident">ObjectInitializer</span>::<span class="ident">new</span>(<span class="ident">ctx</span>)
+        .<span class="ident">function</span>(
+            <span class="op">|</span><span class="ident">v</span>, <span class="kw">_</span>, <span class="kw">_</span><span class="op">|</span> <span class="prelude-val">Ok</span>(<span class="ident">v</span>.<span class="ident">clone</span>()),
+            (<span class="ident">symbol_iterator</span>, <span class="string">&quot;[Symbol.iterator]&quot;</span>),
+            <span class="number">0</span>,
+        )
+        .<span class="ident">build</span>();
+    <span class="comment">// TODO: return GcObject</span>
+    <span class="ident">iterator_prototype</span>.<span class="ident">into</span>()
 }
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>

@@ -527,6 +527,143 @@
 <span id="527">527</span>
 <span id="528">528</span>
 <span id="529">529</span>
+<span id="530">530</span>
+<span id="531">531</span>
+<span id="532">532</span>
+<span id="533">533</span>
+<span id="534">534</span>
+<span id="535">535</span>
+<span id="536">536</span>
+<span id="537">537</span>
+<span id="538">538</span>
+<span id="539">539</span>
+<span id="540">540</span>
+<span id="541">541</span>
+<span id="542">542</span>
+<span id="543">543</span>
+<span id="544">544</span>
+<span id="545">545</span>
+<span id="546">546</span>
+<span id="547">547</span>
+<span id="548">548</span>
+<span id="549">549</span>
+<span id="550">550</span>
+<span id="551">551</span>
+<span id="552">552</span>
+<span id="553">553</span>
+<span id="554">554</span>
+<span id="555">555</span>
+<span id="556">556</span>
+<span id="557">557</span>
+<span id="558">558</span>
+<span id="559">559</span>
+<span id="560">560</span>
+<span id="561">561</span>
+<span id="562">562</span>
+<span id="563">563</span>
+<span id="564">564</span>
+<span id="565">565</span>
+<span id="566">566</span>
+<span id="567">567</span>
+<span id="568">568</span>
+<span id="569">569</span>
+<span id="570">570</span>
+<span id="571">571</span>
+<span id="572">572</span>
+<span id="573">573</span>
+<span id="574">574</span>
+<span id="575">575</span>
+<span id="576">576</span>
+<span id="577">577</span>
+<span id="578">578</span>
+<span id="579">579</span>
+<span id="580">580</span>
+<span id="581">581</span>
+<span id="582">582</span>
+<span id="583">583</span>
+<span id="584">584</span>
+<span id="585">585</span>
+<span id="586">586</span>
+<span id="587">587</span>
+<span id="588">588</span>
+<span id="589">589</span>
+<span id="590">590</span>
+<span id="591">591</span>
+<span id="592">592</span>
+<span id="593">593</span>
+<span id="594">594</span>
+<span id="595">595</span>
+<span id="596">596</span>
+<span id="597">597</span>
+<span id="598">598</span>
+<span id="599">599</span>
+<span id="600">600</span>
+<span id="601">601</span>
+<span id="602">602</span>
+<span id="603">603</span>
+<span id="604">604</span>
+<span id="605">605</span>
+<span id="606">606</span>
+<span id="607">607</span>
+<span id="608">608</span>
+<span id="609">609</span>
+<span id="610">610</span>
+<span id="611">611</span>
+<span id="612">612</span>
+<span id="613">613</span>
+<span id="614">614</span>
+<span id="615">615</span>
+<span id="616">616</span>
+<span id="617">617</span>
+<span id="618">618</span>
+<span id="619">619</span>
+<span id="620">620</span>
+<span id="621">621</span>
+<span id="622">622</span>
+<span id="623">623</span>
+<span id="624">624</span>
+<span id="625">625</span>
+<span id="626">626</span>
+<span id="627">627</span>
+<span id="628">628</span>
+<span id="629">629</span>
+<span id="630">630</span>
+<span id="631">631</span>
+<span id="632">632</span>
+<span id="633">633</span>
+<span id="634">634</span>
+<span id="635">635</span>
+<span id="636">636</span>
+<span id="637">637</span>
+<span id="638">638</span>
+<span id="639">639</span>
+<span id="640">640</span>
+<span id="641">641</span>
+<span id="642">642</span>
+<span id="643">643</span>
+<span id="644">644</span>
+<span id="645">645</span>
+<span id="646">646</span>
+<span id="647">647</span>
+<span id="648">648</span>
+<span id="649">649</span>
+<span id="650">650</span>
+<span id="651">651</span>
+<span id="652">652</span>
+<span id="653">653</span>
+<span id="654">654</span>
+<span id="655">655</span>
+<span id="656">656</span>
+<span id="657">657</span>
+<span id="658">658</span>
+<span id="659">659</span>
+<span id="660">660</span>
+<span id="661">661</span>
+<span id="662">662</span>
+<span id="663">663</span>
+<span id="664">664</span>
+<span id="665">665</span>
+<span id="666">666</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Javascript context.</span>
 
@@ -558,11 +695,136 @@
 };
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">result</span>::<span class="prelude-ty">Result</span> <span class="kw">as</span> <span class="ident">StdResult</span>;
 
+<span class="doccomment">/// Store a builtin constructor (such as `Object`) and its corresponding prototype.</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>)]</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">StandardConstructor</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">constructor</span>: <span class="ident">GcObject</span>,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">prototype</span>: <span class="ident">GcObject</span>,
+}
+
+<span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">StandardConstructor</span> {
+    <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <span class="self">Self</span> {
+            <span class="ident">constructor</span>: <span class="ident">GcObject</span>::<span class="ident">new</span>(<span class="ident">Object</span>::<span class="ident">default</span>()),
+            <span class="ident">prototype</span>: <span class="ident">GcObject</span>::<span class="ident">new</span>(<span class="ident">Object</span>::<span class="ident">default</span>()),
+        }
+    }
+}
+
+<span class="kw">impl</span> <span class="ident">StandardConstructor</span> {
+    <span class="doccomment">/// Return the constructor object.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// This is the same as `Object`, `Array`, etc.</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">constructor</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">GcObject</span> {
+        <span class="self">self</span>.<span class="ident">constructor</span>.<span class="ident">clone</span>()
+    }
+
+    <span class="doccomment">/// Return the prototype of the constructor object.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// This is the same as `Object.prototype`, `Array.prototype`, etc</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">prototype</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">GcObject</span> {
+        <span class="self">self</span>.<span class="ident">prototype</span>.<span class="ident">clone</span>()
+    }
+}
+
+<span class="doccomment">/// Cached core standard objects.</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Default</span>)]</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">StandardObjects</span> {
+    <span class="ident">object</span>: <span class="ident">StandardConstructor</span>,
+    <span class="ident">function</span>: <span class="ident">StandardConstructor</span>,
+    <span class="ident">array</span>: <span class="ident">StandardConstructor</span>,
+    <span class="ident">bigint</span>: <span class="ident">StandardConstructor</span>,
+    <span class="ident">number</span>: <span class="ident">StandardConstructor</span>,
+    <span class="ident">boolean</span>: <span class="ident">StandardConstructor</span>,
+    <span class="ident">string</span>: <span class="ident">StandardConstructor</span>,
+    <span class="ident">regexp</span>: <span class="ident">StandardConstructor</span>,
+    <span class="ident">symbol</span>: <span class="ident">StandardConstructor</span>,
+    <span class="ident">error</span>: <span class="ident">StandardConstructor</span>,
+    <span class="ident">type_error</span>: <span class="ident">StandardConstructor</span>,
+    <span class="ident">referece_error</span>: <span class="ident">StandardConstructor</span>,
+    <span class="ident">range_error</span>: <span class="ident">StandardConstructor</span>,
+    <span class="ident">syntax_error</span>: <span class="ident">StandardConstructor</span>,
+}
+
+<span class="kw">impl</span> <span class="ident">StandardObjects</span> {
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">object_object</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">StandardConstructor</span> {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">object</span>
+    }
+
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">function_object</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">StandardConstructor</span> {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">function</span>
+    }
+
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">array_object</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">StandardConstructor</span> {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">array</span>
+    }
+
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">bigint_object</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">StandardConstructor</span> {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">bigint</span>
+    }
+
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">number_object</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">StandardConstructor</span> {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">number</span>
+    }
+
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">boolean_object</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">StandardConstructor</span> {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">boolean</span>
+    }
+
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">string_object</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">StandardConstructor</span> {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">string</span>
+    }
+
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">regexp_object</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">StandardConstructor</span> {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">regexp</span>
+    }
+
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">symbol_object</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">StandardConstructor</span> {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">symbol</span>
+    }
+
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">error_object</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">StandardConstructor</span> {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">error</span>
+    }
+
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">reference_error_object</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">StandardConstructor</span> {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">referece_error</span>
+    }
+
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">type_error_object</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">StandardConstructor</span> {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">type_error</span>
+    }
+
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">range_error_object</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">StandardConstructor</span> {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">range_error</span>
+    }
+
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">syntax_error_object</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">StandardConstructor</span> {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">syntax_error</span>
+    }
+}
+
 <span class="doccomment">/// Javascript context. It is the primary way to interact with the runtime.</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// For each `Context` instance a new instance of runtime is created.</span>
-<span class="doccomment">/// It means that it is safe to use different contexts in different threads,</span>
-<span class="doccomment">/// but each `Context` instance must be used only from a single thread.</span>
+<span class="doccomment">/// `Context`s constructed in a thread share the same runtime, therefore it</span>
+<span class="doccomment">/// is possible to share objects from one context to another context, but they</span>
+<span class="doccomment">/// have to be in the same thread.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Context</span> {
     <span class="doccomment">/// realm holds both the global object and the environment</span>
@@ -582,7 +844,11 @@
     <span class="doccomment">/// Cached well known symbols</span>
     <span class="ident">well_known_symbols</span>: <span class="ident">WellKnownSymbols</span>,
 
+    <span class="doccomment">/// Cached iterator prototypes.</span>
     <span class="ident">iterator_prototypes</span>: <span class="ident">IteratorPrototypes</span>,
+
+    <span class="doccomment">/// Cached standard objects and their prototypes</span>
+    <span class="ident">standard_objects</span>: <span class="ident">StandardObjects</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">Context</span> {
@@ -597,6 +863,7 @@
             <span class="ident">console</span>: <span class="ident">Console</span>::<span class="ident">default</span>(),
             <span class="ident">well_known_symbols</span>,
             <span class="ident">iterator_prototypes</span>: <span class="ident">IteratorPrototypes</span>::<span class="ident">default</span>(),
+            <span class="ident">standard_objects</span>: <span class="ident">Default</span>::<span class="ident">default</span>(),
         };
 
         <span class="comment">// Add new builtIns to Context Realm</span>
@@ -998,7 +1265,7 @@
         <span class="self">self</span>.<span class="ident">global_object</span>()
             .<span class="ident">as_object_mut</span>()
             .<span class="ident">unwrap</span>()
-            .<span class="ident">insert_property</span>(<span class="ident">T</span>::<span class="ident">NAME</span>, <span class="ident">property</span>);
+            .<span class="ident">insert</span>(<span class="ident">T</span>::<span class="ident">NAME</span>, <span class="ident">property</span>);
         <span class="prelude-val">Ok</span>(())
     }
 
@@ -1052,9 +1319,16 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">well_known_symbols</span>
     }
 
+    <span class="doccomment">/// Return the cached iterator prototypes.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">iterator_prototypes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">IteratorPrototypes</span> {
         <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">iterator_prototypes</span>
+    }
+
+    <span class="doccomment">/// Return the core standard objects.</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">standard_objects</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">StandardObjects</span> {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">standard_objects</span>
     }
 }
 </pre></div>

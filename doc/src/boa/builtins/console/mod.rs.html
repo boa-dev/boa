@@ -527,6 +527,12 @@
 <span id="527">527</span>
 <span id="528">528</span>
 <span id="529">529</span>
+<span id="530">530</span>
+<span id="531">531</span>
+<span id="532">532</span>
+<span id="533">533</span>
+<span id="534">534</span>
+<span id="535">535</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements the global `console` object.</span>
 <span class="doccomment">//!</span>
@@ -547,7 +553,9 @@
 <span class="kw">mod</span> <span class="ident">tests</span>;
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">builtins</span>::<span class="ident">function</span>::<span class="ident">make_builtin_fn</span>,
+    <span class="ident">builtins</span>::<span class="ident">BuiltIn</span>,
+    <span class="ident">object</span>::<span class="ident">ObjectInitializer</span>,
+    <span class="ident">property</span>::<span class="ident">Attribute</span>,
     <span class="ident">value</span>::{<span class="ident">display_obj</span>, <span class="ident">RcString</span>, <span class="ident">Value</span>},
     <span class="ident">BoaProfiler</span>, <span class="ident">Context</span>, <span class="prelude-ty">Result</span>,
 };
@@ -664,6 +672,41 @@
     <span class="ident">count_map</span>: <span class="ident">FxHashMap</span><span class="op">&lt;</span><span class="ident">RcString</span>, <span class="ident">u32</span><span class="op">&gt;</span>,
     <span class="ident">timer_map</span>: <span class="ident">FxHashMap</span><span class="op">&lt;</span><span class="ident">RcString</span>, <span class="ident">u128</span><span class="op">&gt;</span>,
     <span class="ident">groups</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
+}
+
+<span class="kw">impl</span> <span class="ident">BuiltIn</span> <span class="kw">for</span> <span class="ident">Console</span> {
+    <span class="kw">const</span> <span class="ident">NAME</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;console&quot;</span>;
+
+    <span class="kw">fn</span> <span class="ident">attribute</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Attribute</span> {
+        <span class="ident">Attribute</span>::<span class="ident">WRITABLE</span> <span class="op">|</span> <span class="ident">Attribute</span>::<span class="ident">NON_ENUMERABLE</span> <span class="op">|</span> <span class="ident">Attribute</span>::<span class="ident">CONFIGURABLE</span>
+    }
+
+    <span class="kw">fn</span> <span class="ident">init</span>(<span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>, <span class="ident">Value</span>, <span class="ident">Attribute</span>) {
+        <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">BoaProfiler</span>::<span class="ident">global</span>().<span class="ident">start_event</span>(<span class="self">Self</span>::<span class="ident">NAME</span>, <span class="string">&quot;init&quot;</span>);
+        <span class="kw">let</span> <span class="ident">console</span> <span class="op">=</span> <span class="ident">ObjectInitializer</span>::<span class="ident">new</span>(<span class="ident">context</span>)
+            .<span class="ident">function</span>(<span class="self">Self</span>::<span class="ident">assert</span>, <span class="string">&quot;assert&quot;</span>, <span class="number">0</span>)
+            .<span class="ident">function</span>(<span class="self">Self</span>::<span class="ident">clear</span>, <span class="string">&quot;clear&quot;</span>, <span class="number">0</span>)
+            .<span class="ident">function</span>(<span class="self">Self</span>::<span class="ident">debug</span>, <span class="string">&quot;debug&quot;</span>, <span class="number">0</span>)
+            .<span class="ident">function</span>(<span class="self">Self</span>::<span class="ident">error</span>, <span class="string">&quot;error&quot;</span>, <span class="number">0</span>)
+            .<span class="ident">function</span>(<span class="self">Self</span>::<span class="ident">info</span>, <span class="string">&quot;info&quot;</span>, <span class="number">0</span>)
+            .<span class="ident">function</span>(<span class="self">Self</span>::<span class="ident">log</span>, <span class="string">&quot;log&quot;</span>, <span class="number">0</span>)
+            .<span class="ident">function</span>(<span class="self">Self</span>::<span class="ident">trace</span>, <span class="string">&quot;trace&quot;</span>, <span class="number">0</span>)
+            .<span class="ident">function</span>(<span class="self">Self</span>::<span class="ident">warn</span>, <span class="string">&quot;warn&quot;</span>, <span class="number">0</span>)
+            .<span class="ident">function</span>(<span class="self">Self</span>::<span class="ident">error</span>, <span class="string">&quot;exception&quot;</span>, <span class="number">0</span>)
+            .<span class="ident">function</span>(<span class="self">Self</span>::<span class="ident">count</span>, <span class="string">&quot;count&quot;</span>, <span class="number">0</span>)
+            .<span class="ident">function</span>(<span class="self">Self</span>::<span class="ident">count_reset</span>, <span class="string">&quot;countReset&quot;</span>, <span class="number">0</span>)
+            .<span class="ident">function</span>(<span class="self">Self</span>::<span class="ident">group</span>, <span class="string">&quot;group&quot;</span>, <span class="number">0</span>)
+            .<span class="ident">function</span>(<span class="self">Self</span>::<span class="ident">group</span>, <span class="string">&quot;groupCollapsed&quot;</span>, <span class="number">0</span>)
+            .<span class="ident">function</span>(<span class="self">Self</span>::<span class="ident">group_end</span>, <span class="string">&quot;groupEnd&quot;</span>, <span class="number">0</span>)
+            .<span class="ident">function</span>(<span class="self">Self</span>::<span class="ident">time</span>, <span class="string">&quot;time&quot;</span>, <span class="number">0</span>)
+            .<span class="ident">function</span>(<span class="self">Self</span>::<span class="ident">time_log</span>, <span class="string">&quot;timeLog&quot;</span>, <span class="number">0</span>)
+            .<span class="ident">function</span>(<span class="self">Self</span>::<span class="ident">time_end</span>, <span class="string">&quot;timeEnd&quot;</span>, <span class="number">0</span>)
+            .<span class="ident">function</span>(<span class="self">Self</span>::<span class="ident">dir</span>, <span class="string">&quot;dir&quot;</span>, <span class="number">0</span>)
+            .<span class="ident">function</span>(<span class="self">Self</span>::<span class="ident">dir</span>, <span class="string">&quot;dirxml&quot;</span>, <span class="number">0</span>)
+            .<span class="ident">build</span>();
+
+        (<span class="self">Self</span>::<span class="ident">NAME</span>, <span class="ident">console</span>.<span class="ident">into</span>(), <span class="self">Self</span>::<span class="ident">attribute</span>())
+    }
 }
 
 <span class="kw">impl</span> <span class="ident">Console</span> {
@@ -1024,37 +1067,6 @@
         );
 
         <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">undefined</span>())
-    }
-
-    <span class="doccomment">/// Initialise the `console` object on the global object.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">init</span>(<span class="ident">interpreter</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>, <span class="ident">Value</span>) {
-        <span class="kw">let</span> <span class="ident">global</span> <span class="op">=</span> <span class="ident">interpreter</span>.<span class="ident">global_object</span>();
-        <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">BoaProfiler</span>::<span class="ident">global</span>().<span class="ident">start_event</span>(<span class="self">Self</span>::<span class="ident">NAME</span>, <span class="string">&quot;init&quot;</span>);
-
-        <span class="kw">let</span> <span class="ident">console</span> <span class="op">=</span> <span class="ident">Value</span>::<span class="ident">new_object</span>(<span class="prelude-val">Some</span>(<span class="ident">global</span>));
-
-        <span class="ident">make_builtin_fn</span>(<span class="self">Self</span>::<span class="ident">assert</span>, <span class="string">&quot;assert&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">console</span>, <span class="number">0</span>, <span class="ident">interpreter</span>);
-        <span class="ident">make_builtin_fn</span>(<span class="self">Self</span>::<span class="ident">clear</span>, <span class="string">&quot;clear&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">console</span>, <span class="number">0</span>, <span class="ident">interpreter</span>);
-        <span class="ident">make_builtin_fn</span>(<span class="self">Self</span>::<span class="ident">debug</span>, <span class="string">&quot;debug&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">console</span>, <span class="number">0</span>, <span class="ident">interpreter</span>);
-        <span class="ident">make_builtin_fn</span>(<span class="self">Self</span>::<span class="ident">error</span>, <span class="string">&quot;error&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">console</span>, <span class="number">0</span>, <span class="ident">interpreter</span>);
-        <span class="ident">make_builtin_fn</span>(<span class="self">Self</span>::<span class="ident">info</span>, <span class="string">&quot;info&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">console</span>, <span class="number">0</span>, <span class="ident">interpreter</span>);
-        <span class="ident">make_builtin_fn</span>(<span class="self">Self</span>::<span class="ident">log</span>, <span class="string">&quot;log&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">console</span>, <span class="number">0</span>, <span class="ident">interpreter</span>);
-        <span class="ident">make_builtin_fn</span>(<span class="self">Self</span>::<span class="ident">trace</span>, <span class="string">&quot;trace&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">console</span>, <span class="number">0</span>, <span class="ident">interpreter</span>);
-        <span class="ident">make_builtin_fn</span>(<span class="self">Self</span>::<span class="ident">warn</span>, <span class="string">&quot;warn&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">console</span>, <span class="number">0</span>, <span class="ident">interpreter</span>);
-        <span class="ident">make_builtin_fn</span>(<span class="self">Self</span>::<span class="ident">error</span>, <span class="string">&quot;exception&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">console</span>, <span class="number">0</span>, <span class="ident">interpreter</span>);
-        <span class="ident">make_builtin_fn</span>(<span class="self">Self</span>::<span class="ident">count</span>, <span class="string">&quot;count&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">console</span>, <span class="number">0</span>, <span class="ident">interpreter</span>);
-        <span class="ident">make_builtin_fn</span>(<span class="self">Self</span>::<span class="ident">count_reset</span>, <span class="string">&quot;countReset&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">console</span>, <span class="number">0</span>, <span class="ident">interpreter</span>);
-        <span class="ident">make_builtin_fn</span>(<span class="self">Self</span>::<span class="ident">group</span>, <span class="string">&quot;group&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">console</span>, <span class="number">0</span>, <span class="ident">interpreter</span>);
-        <span class="ident">make_builtin_fn</span>(<span class="self">Self</span>::<span class="ident">group</span>, <span class="string">&quot;groupCollapsed&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">console</span>, <span class="number">0</span>, <span class="ident">interpreter</span>);
-        <span class="ident">make_builtin_fn</span>(<span class="self">Self</span>::<span class="ident">group_end</span>, <span class="string">&quot;groupEnd&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">console</span>, <span class="number">0</span>, <span class="ident">interpreter</span>);
-        <span class="ident">make_builtin_fn</span>(<span class="self">Self</span>::<span class="ident">time</span>, <span class="string">&quot;time&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">console</span>, <span class="number">0</span>, <span class="ident">interpreter</span>);
-        <span class="ident">make_builtin_fn</span>(<span class="self">Self</span>::<span class="ident">time_log</span>, <span class="string">&quot;timeLog&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">console</span>, <span class="number">0</span>, <span class="ident">interpreter</span>);
-        <span class="ident">make_builtin_fn</span>(<span class="self">Self</span>::<span class="ident">time_end</span>, <span class="string">&quot;timeEnd&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">console</span>, <span class="number">0</span>, <span class="ident">interpreter</span>);
-        <span class="ident">make_builtin_fn</span>(<span class="self">Self</span>::<span class="ident">dir</span>, <span class="string">&quot;dir&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">console</span>, <span class="number">0</span>, <span class="ident">interpreter</span>);
-        <span class="ident">make_builtin_fn</span>(<span class="self">Self</span>::<span class="ident">dir</span>, <span class="string">&quot;dirxml&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">console</span>, <span class="number">0</span>, <span class="ident">interpreter</span>);
-
-        (<span class="self">Self</span>::<span class="ident">NAME</span>, <span class="ident">console</span>)
     }
 }
 </pre></div>

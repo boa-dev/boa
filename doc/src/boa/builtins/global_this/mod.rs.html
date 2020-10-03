@@ -31,6 +31,10 @@
 <span id="31">31</span>
 <span id="32">32</span>
 <span id="33">33</span>
+<span id="34">34</span>
+<span id="35">35</span>
+<span id="36">36</span>
+<span id="37">37</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements the global `globalThis` property.</span>
 <span class="doccomment">//!</span>
@@ -44,7 +48,7 @@
 <span class="doccomment">//! [spec]: https://tc39.es/ecma262/#sec-globalthis</span>
 <span class="doccomment">//! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/globalThis</span>
 
-<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">BoaProfiler</span>, <span class="ident">Context</span>, <span class="ident">Value</span>};
+<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">builtins</span>::<span class="ident">BuiltIn</span>, <span class="ident">property</span>::<span class="ident">Attribute</span>, <span class="ident">BoaProfiler</span>, <span class="ident">Context</span>, <span class="ident">Value</span>};
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">tests</span>;
@@ -52,17 +56,21 @@
 <span class="doccomment">/// The JavaScript `globalThis`.</span>
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">GlobalThis</span>;
 
-<span class="kw">impl</span> <span class="ident">GlobalThis</span> {
-    <span class="doccomment">/// The binding name of the property.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const</span> <span class="ident">NAME</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;globalThis&quot;</span>;
+<span class="kw">impl</span> <span class="ident">BuiltIn</span> <span class="kw">for</span> <span class="ident">GlobalThis</span> {
+    <span class="kw">const</span> <span class="ident">NAME</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;globalThis&quot;</span>;
 
-    <span class="doccomment">/// Initialize the `globalThis` property on the global object.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">init</span>(<span class="ident">interpreter</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>, <span class="ident">Value</span>) {
-        <span class="kw">let</span> <span class="ident">global</span> <span class="op">=</span> <span class="ident">interpreter</span>.<span class="ident">global_object</span>();
+    <span class="kw">fn</span> <span class="ident">attribute</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Attribute</span> {
+        <span class="ident">Attribute</span>::<span class="ident">WRITABLE</span> <span class="op">|</span> <span class="ident">Attribute</span>::<span class="ident">NON_ENUMERABLE</span> <span class="op">|</span> <span class="ident">Attribute</span>::<span class="ident">CONFIGURABLE</span>
+    }
+
+    <span class="kw">fn</span> <span class="ident">init</span>(<span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>, <span class="ident">Value</span>, <span class="ident">Attribute</span>) {
         <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">BoaProfiler</span>::<span class="ident">global</span>().<span class="ident">start_event</span>(<span class="self">Self</span>::<span class="ident">NAME</span>, <span class="string">&quot;init&quot;</span>);
 
-        (<span class="self">Self</span>::<span class="ident">NAME</span>, <span class="ident">global</span>.<span class="ident">clone</span>())
+        (
+            <span class="self">Self</span>::<span class="ident">NAME</span>,
+            <span class="ident">context</span>.<span class="ident">global_object</span>().<span class="ident">clone</span>(),
+            <span class="self">Self</span>::<span class="ident">attribute</span>(),
+        )
     }
 }
 </pre></div>
