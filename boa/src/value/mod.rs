@@ -10,7 +10,7 @@ use crate::{
         number::{f64_to_int32, f64_to_uint32},
         BigInt, Number,
     },
-    object::{GcObject, Object, ObjectData, PROTOTYPE, RecursionLimiter},
+    object::{GcObject, Object, ObjectData, RecursionLimiter, PROTOTYPE},
     property::{Attribute, Property, PropertyKey},
     BoaProfiler, Context, Result,
 };
@@ -247,7 +247,7 @@ impl Value {
     fn object_to_json(&self, obj: &GcObject, interpreter: &mut Context) -> Result<JSONValue> {
         let rec_limiter = RecursionLimiter::new(&obj);
         if rec_limiter.live {
-            return Err(interpreter.construct_type_error("cyclic object value"));
+            Err(interpreter.construct_type_error("cyclic object value"))
         } else if obj.borrow().is_array() {
             let mut keys: Vec<u32> = obj.borrow().index_property_keys().cloned().collect();
             keys.sort();
