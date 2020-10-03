@@ -85,7 +85,7 @@ impl Object {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-object.create
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/create
-    pub fn create(this: &Value, args: &[Value], mut ctx: &mut Context) -> Result<Value> {
+    pub fn create(this: &Value, args: &[Value], ctx: &mut Context) -> Result<Value> {
         let prototype = args.get(0).cloned().unwrap_or_else(Value::undefined);
         let properties = args.get(1).cloned().unwrap_or_else(Value::undefined);
 
@@ -102,8 +102,8 @@ impl Object {
             }
         };
 
-        if properties != Value::Undefined {
-            return Object::define_properties(this, &[obj, properties], &mut ctx);
+        if !properties.is_undefined() {
+            return Object::define_properties(this, &[obj, properties], ctx);
         }
 
         Ok(obj)
@@ -145,19 +145,25 @@ impl Object {
         Ok(Value::undefined())
     }
 
-    /// Define multiple properties
+    /// `Object.defineProperties( proto, [propertiesObject] )`
+    ///
+    /// Creates or update own properties to the object
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-object.defineproperties
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/defineProperties
     pub fn define_properties(_: &Value, args: &[Value], ctx: &mut Context) -> Result<Value> {
-        let val = args.get(0).expect("Cannot get object");
-        if let Some(mut obj) = val.as_object_mut() {
-            let props = args
-                .get(1)
-                .expect("Cannot get props")
-                .as_object_mut()
-                .unwrap();
-            obj.define_properties(&props);
-            Ok(val.clone())
+        let arg = args.get(0).cloned().unwrap_or(Value::undefined());
+        let arg_obj = arg.as_object_mut();
+        if let Some(mut obj) = arg_obj {
+            let props = args.get(1).cloned().unwrap_or_else(Value::undefined);
+            obj.define_properties(props, ctx)?;
+            Ok(arg.clone())
         } else {
-            Err(ctx.construct_type_error("Expected an object"))
+            ctx.throw_type_error("Expected an object")
         }
     }
     /// `Object.prototype.toString()`

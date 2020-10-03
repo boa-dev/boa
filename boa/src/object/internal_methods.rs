@@ -9,7 +9,7 @@ use crate::{
     object::Object,
     property::{Attribute, Property, PropertyKey},
     value::{same_value, Value},
-    BoaProfiler,
+    BoaProfiler, Context, Result,
 };
 
 impl Object {
@@ -289,19 +289,7 @@ impl Object {
     ///
     /// [spec](https://tc39.es/ecma262/#table-essential-internal-methods)
     pub fn own_property_keys(&self) -> Vec<PropertyKey> {
-        let size = self.indexed_properties.len()
-            + self.string_properties.len()
-            + self.symbol_properties.len();
-        let mut prop_keys = Vec::with_capacity(size);
-
-        self.index_properties()
-            .for_each(|(p, _)| prop_keys.push(PropertyKey::from(*p)));
-        self.string_properties()
-            .for_each(|(p, _)| prop_keys.push(PropertyKey::from(p.as_str())));
-        self.symbol_properties()
-            .for_each(|(p, _)| prop_keys.push(PropertyKey::from(p.clone())));
-
-        prop_keys
+        self.keys().collect()
     }
 
     /// The abstract operation ObjectDefineProperties
@@ -310,14 +298,15 @@ impl Object {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-object.defineproperties
-    pub fn define_properties(&mut self, props: &Self) {
-        let keys = props.own_property_keys();
+    pub fn define_properties(&mut self, props: Value, ctx: &mut Context) -> Result<()> {
+        let props = props.to_object(ctx)?;
+        let keys = props.borrow().own_property_keys();
         let mut descriptors: Vec<(PropertyKey, Property)> = Vec::new();
 
         for next_key in keys {
-            let prop_desc = props.get_own_property(&next_key);
+            let prop_desc = props.borrow().get_own_property(&next_key);
             if prop_desc.enumerable() {
-                let desc_obj = props.get(&next_key);
+                let desc_obj = props.borrow().get(&next_key);
                 let desc = Property::from(&desc_obj);
                 descriptors.push((next_key, desc));
             }
@@ -326,6 +315,8 @@ impl Object {
         descriptors.into_iter().for_each(|(p, d)| {
             self.define_own_property(p, d);
         });
+
+        Ok(())
     }
 
     // /// `Object.setPropertyOf(obj, prototype)`
