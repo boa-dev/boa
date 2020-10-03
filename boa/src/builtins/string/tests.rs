@@ -321,6 +321,26 @@ fn starts_with() {
 }
 
 #[test]
+fn starts_with_with_regex_arg() {
+    let mut engine = Context::new();
+
+    let scenario = r#"
+        try {
+            'Saturday night'.startsWith(/Saturday/);
+        } catch (e) {
+            e.toString();
+        }
+    "#;
+
+    assert_eq!(
+        forward(
+            &mut engine, scenario
+        ),
+        "\"TypeError: First argument to String.prototype.startsWith must not be a regular expression\""
+    )
+}
+
+#[test]
 fn ends_with() {
     let mut engine = Context::new();
     let init = r#"
@@ -342,6 +362,70 @@ fn ends_with() {
     assert_eq!(forward(&mut engine, "emptyLiteral.endsWith('')"), "true");
     assert_eq!(forward(&mut engine, "enLiteral.endsWith('h')"), "true");
     assert_eq!(forward(&mut engine, "zhLiteral.endsWith('文')"), "true");
+}
+
+#[test]
+fn ends_with_with_regex_arg() {
+    let mut engine = Context::new();
+
+    let scenario = r#"
+        try {
+            'Saturday night'.endsWith(/night/);
+        } catch (e) {
+            e.toString();
+        }
+    "#;
+
+    assert_eq!(
+        forward(
+            &mut engine, scenario
+        ),
+        "\"TypeError: First argument to String.prototype.endsWith must not be a regular expression\""
+    )
+}
+
+#[test]
+fn includes() {
+    let mut engine = Context::new();
+    let init = r#"
+        var empty = new String('');
+        var en = new String('english');
+        var zh = new String('中文');
+
+        var emptyLiteral = '';
+        var enLiteral = 'english';
+        var zhLiteral = '中文';
+        "#;
+
+    forward(&mut engine, init);
+
+    assert_eq!(forward(&mut engine, "empty.includes('')"), "true");
+    assert_eq!(forward(&mut engine, "en.includes('g')"), "true");
+    assert_eq!(forward(&mut engine, "zh.includes('文')"), "true");
+
+    assert_eq!(forward(&mut engine, "emptyLiteral.includes('')"), "true");
+    assert_eq!(forward(&mut engine, "enLiteral.includes('g')"), "true");
+    assert_eq!(forward(&mut engine, "zhLiteral.includes('文')"), "true");
+}
+
+#[test]
+fn includes_with_regex_arg() {
+    let mut engine = Context::new();
+
+    let scenario = r#"
+        try {
+            'Saturday night'.includes(/day/);
+        } catch (e) {
+            e.toString();
+        }
+    "#;
+
+    assert_eq!(
+        forward(
+            &mut engine, scenario
+        ),
+        "\"TypeError: First argument to String.prototype.includes must not be a regular expression\""
+    )
 }
 
 #[test]
