@@ -1180,6 +1180,25 @@
 <span id="1180">1180</span>
 <span id="1181">1181</span>
 <span id="1182">1182</span>
+<span id="1183">1183</span>
+<span id="1184">1184</span>
+<span id="1185">1185</span>
+<span id="1186">1186</span>
+<span id="1187">1187</span>
+<span id="1188">1188</span>
+<span id="1189">1189</span>
+<span id="1190">1190</span>
+<span id="1191">1191</span>
+<span id="1192">1192</span>
+<span id="1193">1193</span>
+<span id="1194">1194</span>
+<span id="1195">1195</span>
+<span id="1196">1196</span>
+<span id="1197">1197</span>
+<span id="1198">1198</span>
+<span id="1199">1199</span>
+<span id="1200">1200</span>
+<span id="1201">1201</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements the global `String` object.</span>
 <span class="doccomment">//!</span>
@@ -1514,11 +1533,15 @@
         <span class="comment">// Then we convert it into a Rust String by wrapping it in from_value</span>
         <span class="kw">let</span> <span class="ident">primitive_val</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">to_string</span>(<span class="ident">ctx</span>)<span class="question-mark">?</span>;
 
-        <span class="comment">// TODO: Should throw TypeError if pattern is regular expression</span>
-        <span class="kw">let</span> <span class="ident">search_string</span> <span class="op">=</span> <span class="ident">args</span>
-            .<span class="ident">get</span>(<span class="number">0</span>)
-            .<span class="ident">expect</span>(<span class="string">&quot;failed to get argument for String method&quot;</span>)
-            .<span class="ident">to_string</span>(<span class="ident">ctx</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">arg</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">cloned</span>().<span class="ident">unwrap_or_else</span>(<span class="ident">Value</span>::<span class="ident">undefined</span>);
+
+        <span class="kw">if</span> <span class="self">Self</span>::<span class="ident">is_regexp_object</span>(<span class="kw-2">&amp;</span><span class="ident">arg</span>) {
+            <span class="ident">ctx</span>.<span class="ident">throw_type_error</span>(
+                <span class="string">&quot;First argument to String.prototype.startsWith must not be a regular expression&quot;</span>,
+            )<span class="question-mark">?</span>;
+        }
+
+        <span class="kw">let</span> <span class="ident">search_string</span> <span class="op">=</span> <span class="ident">arg</span>.<span class="ident">to_string</span>(<span class="ident">ctx</span>)<span class="question-mark">?</span>;
 
         <span class="kw">let</span> <span class="ident">length</span> <span class="op">=</span> <span class="ident">primitive_val</span>.<span class="ident">chars</span>().<span class="ident">count</span>() <span class="kw">as</span> <span class="ident">i32</span>;
         <span class="kw">let</span> <span class="ident">search_length</span> <span class="op">=</span> <span class="ident">search_string</span>.<span class="ident">chars</span>().<span class="ident">count</span>() <span class="kw">as</span> <span class="ident">i32</span>;
@@ -1557,11 +1580,15 @@
         <span class="comment">// Then we convert it into a Rust String by wrapping it in from_value</span>
         <span class="kw">let</span> <span class="ident">primitive_val</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">to_string</span>(<span class="ident">ctx</span>)<span class="question-mark">?</span>;
 
-        <span class="comment">// TODO: Should throw TypeError if search_string is regular expression</span>
-        <span class="kw">let</span> <span class="ident">search_string</span> <span class="op">=</span> <span class="ident">args</span>
-            .<span class="ident">get</span>(<span class="number">0</span>)
-            .<span class="ident">expect</span>(<span class="string">&quot;failed to get argument for String method&quot;</span>)
-            .<span class="ident">to_string</span>(<span class="ident">ctx</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">arg</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">cloned</span>().<span class="ident">unwrap_or_else</span>(<span class="ident">Value</span>::<span class="ident">undefined</span>);
+
+        <span class="kw">if</span> <span class="self">Self</span>::<span class="ident">is_regexp_object</span>(<span class="kw-2">&amp;</span><span class="ident">arg</span>) {
+            <span class="ident">ctx</span>.<span class="ident">throw_type_error</span>(
+                <span class="string">&quot;First argument to String.prototype.endsWith must not be a regular expression&quot;</span>,
+            )<span class="question-mark">?</span>;
+        }
+
+        <span class="kw">let</span> <span class="ident">search_string</span> <span class="op">=</span> <span class="ident">arg</span>.<span class="ident">to_string</span>(<span class="ident">ctx</span>)<span class="question-mark">?</span>;
 
         <span class="kw">let</span> <span class="ident">length</span> <span class="op">=</span> <span class="ident">primitive_val</span>.<span class="ident">chars</span>().<span class="ident">count</span>() <span class="kw">as</span> <span class="ident">i32</span>;
         <span class="kw">let</span> <span class="ident">search_length</span> <span class="op">=</span> <span class="ident">search_string</span>.<span class="ident">chars</span>().<span class="ident">count</span>() <span class="kw">as</span> <span class="ident">i32</span>;
@@ -1603,11 +1630,15 @@
         <span class="comment">// Then we convert it into a Rust String by wrapping it in from_value</span>
         <span class="kw">let</span> <span class="ident">primitive_val</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">to_string</span>(<span class="ident">ctx</span>)<span class="question-mark">?</span>;
 
-        <span class="comment">// TODO: Should throw TypeError if search_string is regular expression</span>
-        <span class="kw">let</span> <span class="ident">search_string</span> <span class="op">=</span> <span class="ident">args</span>
-            .<span class="ident">get</span>(<span class="number">0</span>)
-            .<span class="ident">expect</span>(<span class="string">&quot;failed to get argument for String method&quot;</span>)
-            .<span class="ident">to_string</span>(<span class="ident">ctx</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">arg</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">cloned</span>().<span class="ident">unwrap_or_else</span>(<span class="ident">Value</span>::<span class="ident">undefined</span>);
+
+        <span class="kw">if</span> <span class="self">Self</span>::<span class="ident">is_regexp_object</span>(<span class="kw-2">&amp;</span><span class="ident">arg</span>) {
+            <span class="ident">ctx</span>.<span class="ident">throw_type_error</span>(
+                <span class="string">&quot;First argument to String.prototype.includes must not be a regular expression&quot;</span>,
+            )<span class="question-mark">?</span>;
+        }
+
+        <span class="kw">let</span> <span class="ident">search_string</span> <span class="op">=</span> <span class="ident">arg</span>.<span class="ident">to_string</span>(<span class="ident">ctx</span>)<span class="question-mark">?</span>;
 
         <span class="kw">let</span> <span class="ident">length</span> <span class="op">=</span> <span class="ident">primitive_val</span>.<span class="ident">chars</span>().<span class="ident">count</span>() <span class="kw">as</span> <span class="ident">i32</span>;
 
@@ -1642,6 +1673,13 @@
                 <span class="string">&quot;undefined&quot;</span>.<span class="ident">to_string</span>()
             }
             <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;undefined&quot;</span>.<span class="ident">to_string</span>(),
+        }
+    }
+
+    <span class="kw">fn</span> <span class="ident">is_regexp_object</span>(<span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        <span class="kw">match</span> <span class="ident">value</span> {
+            <span class="ident">Value</span>::<span class="ident">Object</span>(<span class="kw-2">ref</span> <span class="ident">obj</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">obj</span>.<span class="ident">borrow</span>().<span class="ident">is_regexp</span>(),
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
         }
     }
 
