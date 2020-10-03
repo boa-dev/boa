@@ -514,6 +514,23 @@ mod cyclic_conversions {
         );
     }
 
+    #[test]
+    fn to_json_noncyclic() {
+        let mut engine = Context::new();
+        let src = r#"
+            let b = [];
+            let a = [b, b];
+            JSON.stringify(a)
+        "#;
+
+        let value = forward_val(&mut engine, src).unwrap();
+        let result = value.as_string().unwrap();
+        assert_eq!(
+            result,
+            "[[],[]]",
+        );
+    }
+
     // These tests don't throw errors. Instead we mirror Chrome / Firefox behavior for these conversions
     #[test]
     fn to_string_cyclic() {
