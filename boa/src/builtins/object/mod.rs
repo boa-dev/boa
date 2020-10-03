@@ -101,8 +101,7 @@ impl Object {
         let prop = args
             .get(1)
             .expect("Cannot get object")
-            .to_property_key(ctx)
-            .expect("Cannot be used as property key");
+            .to_property_key(ctx)?;
         let desc = Property::from(args.get(2).expect("Cannot get object"));
         obj.set_property(prop, desc);
         Ok(Value::undefined())
