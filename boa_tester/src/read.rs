@@ -2,7 +2,7 @@
 
 use super::{Harness, Locale, Phase, Test, TestSuite, CLI};
 use fxhash::FxHashMap;
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 use std::{fs, io, path::Path};
 
 /// Representation of the YAML metadata in Test262 tests.
@@ -52,26 +52,6 @@ pub(super) enum TestFlag {
     NonDeterministic,
 }
 
-/// Test information structure.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-struct TestInfo {
-    desc: Box<str>,
-    info: Box<str>,
-}
-
-impl TestInfo {
-    /// Creates a test information structure from the full metadata.
-    fn from_metadata(metadata: &MetaData) -> Self {
-        Self {
-            desc: metadata.description.trim().to_owned().into_boxed_str(),
-            info: metadata.info.trim().to_owned().into_boxed_str(),
-        }
-    }
-}
-
-/// Name of the "test information" file.
-const INFO_FILE_NAME: &str = "info.json";
-
 /// Reads the Test262 defined bindings.
 pub(super) fn read_harness() -> io::Result<Harness> {
     let mut includes = FxHashMap::default();
@@ -106,43 +86,11 @@ pub(super) fn read_harness() -> io::Result<Harness> {
 pub(super) fn read_global_suite() -> io::Result<TestSuite> {
     let path = CLI.test262_path().join("test");
 
-    let mut info = if let Some(path) = CLI.output() {
-        let path = path.join(INFO_FILE_NAME);
-        if path.exists() {
-            Some(serde_json::from_reader(io::BufReader::new(
-                fs::File::open(path)?,
-            ))?)
-        } else {
-            Some(FxHashMap::default())
-        }
-    } else {
-        None
-    };
-
-    let suite = read_suite(path.as_path(), &mut info)?;
-
-    if let (Some(path), info) = (CLI.output(), info) {
-        let path = path.join(INFO_FILE_NAME);
-        if CLI.verbose() {
-            println!("Writing the test information file at {}...", path.display());
-        }
-
-        let output = io::BufWriter::new(fs::File::create(path)?);
-        serde_json::to_writer(output, &info)?;
-
-        if CLI.verbose() {
-            println!("Test information file written.");
-        }
-    }
-
-    Ok(suite)
+    Ok(read_suite(path.as_path())?)
 }
 
 /// Reads a test suite in the given path.
-fn read_suite(
-    path: &Path,
-    test_info: &mut Option<FxHashMap<Box<str>, TestInfo>>,
-) -> io::Result<TestSuite> {
+fn read_suite(path: &Path) -> io::Result<TestSuite> {
     use std::ffi::OsStr;
 
     let name = path
@@ -175,11 +123,11 @@ fn read_suite(
         let entry = entry?;
 
         if entry.file_type()?.is_dir() {
-            suites.push(read_suite(entry.path().as_path(), test_info)?);
+            suites.push(read_suite(entry.path().as_path())?);
         } else if filter(&entry.file_name()) {
             continue;
         } else {
-            tests.push(read_test(entry.path().as_path(), test_info)?);
+            tests.push(read_test(entry.path().as_path())?);
         }
     }
 
@@ -191,10 +139,7 @@ fn read_suite(
 }
 
 /// Reads information about a given test case.
-fn read_test(
-    path: &Path,
-    test_info: &mut Option<FxHashMap<Box<str>, TestInfo>>,
-) -> io::Result<Test> {
+fn read_test(path: &Path) -> io::Result<Test> {
     let name = path
         .file_stem()
         .ok_or_else(|| {
@@ -212,25 +157,7 @@ fn read_test(
         })?;
 
     let content = fs::read_to_string(path)?;
-
     let metadata = read_metadata(&content)?;
-
-    if let Some(all_info) = test_info {
-        let path_str = path
-            .strip_prefix(CLI.test262_path())
-            .expect("could not get test path string")
-            .to_str()
-            .ok_or_else(|| {
-                io::Error::new(
-                    io::ErrorKind::InvalidInput,
-                    format!("non-UTF-8 path found: {}", path.display()),
-                )
-            })?;
-
-        let new_info = TestInfo::from_metadata(&metadata);
-
-        let _ = all_info.insert(path_str.to_owned().into_boxed_str(), new_info);
-    }
 
     Ok(Test::new(name, content, metadata))
 }
