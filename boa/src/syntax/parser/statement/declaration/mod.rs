@@ -35,10 +35,11 @@ use std::io::Read;
 pub(super) struct Declaration {
     allow_yield: AllowYield,
     allow_await: AllowAwait,
+    const_init_required: bool,
 }
 
 impl Declaration {
-    pub(super) fn new<Y, A>(allow_yield: Y, allow_await: A) -> Self
+    pub(super) fn new<Y, A>(allow_yield: Y, allow_await: A, const_init_required: bool) -> Self
     where
         Y: Into<AllowYield>,
         A: Into<AllowAwait>,
@@ -46,6 +47,7 @@ impl Declaration {
         Self {
             allow_yield: allow_yield.into(),
             allow_await: allow_await.into(),
+            const_init_required,
         }
     }
 }
@@ -65,7 +67,13 @@ where
                 HoistableDeclaration::new(self.allow_yield, self.allow_await, false).parse(cursor)
             }
             TokenKind::Keyword(Keyword::Const) | TokenKind::Keyword(Keyword::Let) => {
-                LexicalDeclaration::new(true, self.allow_yield, self.allow_await).parse(cursor)
+                LexicalDeclaration::new(
+                    true,
+                    self.allow_yield,
+                    self.allow_await,
+                    self.const_init_required,
+                )
+                .parse(cursor)
             }
             _ => unreachable!("unknown token found: {:?}", tok),
         }

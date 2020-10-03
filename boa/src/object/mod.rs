@@ -1,7 +1,10 @@
 //! This module implements the Rust representation of a JavaScript object.
 
 use crate::{
-    builtins::{function::Function, map::ordered_map::OrderedMap, BigInt, Date, RegExp},
+    builtins::{
+        array::array_iterator::ArrayIterator, function::Function, map::ordered_map::OrderedMap,
+        string::string_iterator::StringIterator, BigInt, Date, RegExp,
+    },
     property::{Property, PropertyKey},
     value::{RcBigInt, RcString, RcSymbol, Value},
     BoaProfiler,
@@ -62,12 +65,14 @@ pub struct Object {
 #[derive(Debug, Trace, Finalize)]
 pub enum ObjectData {
     Array,
+    ArrayIterator(ArrayIterator),
     Map(OrderedMap<Value, Value>),
     RegExp(Box<RegExp>),
     BigInt(RcBigInt),
     Boolean(bool),
     Function(Function),
     String(RcString),
+    StringIterator(StringIterator),
     Number(f64),
     Symbol(RcSymbol),
     Error,
@@ -84,10 +89,12 @@ impl Display for ObjectData {
             "{}",
             match self {
                 Self::Array => "Array",
+                Self::ArrayIterator(_) => "ArrayIterator",
                 Self::Function(_) => "Function",
                 Self::RegExp(_) => "RegExp",
                 Self::Map(_) => "Map",
                 Self::String(_) => "String",
+                Self::StringIterator(_) => "StringIterator",
                 Self::Symbol(_) => "Symbol",
                 Self::Error => "Error",
                 Self::Ordinary => "Ordinary",
@@ -252,6 +259,36 @@ impl Object {
         }
     }
 
+    /// Checks if it is an `ArrayIterator` object.
+    #[inline]
+    pub fn is_array_iterator(&self) -> bool {
+        matches!(self.data, ObjectData::ArrayIterator(_))
+    }
+
+    #[inline]
+    pub fn as_array_iterator(&self) -> Option<&ArrayIterator> {
+        match self.data {
+            ObjectData::ArrayIterator(ref iter) => Some(iter),
+            _ => None,
+        }
+    }
+
+    #[inline]
+    pub fn as_array_iterator_mut(&mut self) -> Option<&mut ArrayIterator> {
+        match &mut self.data {
+            ObjectData::ArrayIterator(iter) => Some(iter),
+            _ => None,
+        }
+    }
+
+    #[inline]
+    pub fn as_string_iterator_mut(&mut self) -> Option<&mut StringIterator> {
+        match &mut self.data {
+            ObjectData::StringIterator(iter) => Some(iter),
+            _ => None,
+        }
+    }
+
     /// Checks if it is a `Map` object.pub
     #[inline]
     pub fn is_map(&self) -> bool {
@@ -399,6 +436,15 @@ impl Object {
     pub fn set_prototype_instance(&mut self, prototype: Value) {
         assert!(prototype.is_null() || prototype.is_object());
         self.prototype = prototype
+    }
+
+    /// Similar to `Value::new_object`, but you can pass a prototype to create from, plus a kind
+    #[inline]
+    pub fn with_prototype(proto: Value, data: ObjectData) -> Object {
+        let mut object = Object::default();
+        object.data = data;
+        object.set_prototype_instance(proto);
+        object
     }
 
     /// Returns `true` if it holds an Rust type that implements `NativeObject`.

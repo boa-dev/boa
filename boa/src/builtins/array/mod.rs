@@ -9,11 +9,13 @@
 //! [spec]: https://tc39.es/ecma262/#sec-array-objects
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array
 
+pub mod array_iterator;
 #[cfg(test)]
 mod tests;
 
 use super::function::{make_builtin_fn, make_constructor_fn};
 use crate::{
+    builtins::array::array_iterator::{ArrayIterationKind, ArrayIterator},
     object::{ObjectData, PROTOTYPE},
     property::{Attribute, Property},
     value::{same_value_zero, Value},
@@ -960,7 +962,7 @@ impl Array {
     /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.reduce
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/reduce
     pub(crate) fn reduce(this: &Value, args: &[Value], interpreter: &mut Context) -> Result<Value> {
-        let this = this.to_object(interpreter)?;
+        let this: Value = this.to_object(interpreter)?.into();
         let callback = match args.get(0) {
             Some(value) if value.is_function() => value,
             _ => return interpreter.throw_type_error("Reduce was called without a callback"),
@@ -1022,7 +1024,7 @@ impl Array {
         args: &[Value],
         interpreter: &mut Context,
     ) -> Result<Value> {
-        let this = this.to_object(interpreter)?;
+        let this: Value = this.to_object(interpreter)?.into();
         let callback = match args.get(0) {
             Some(value) if value.is_function() => value,
             _ => return interpreter.throw_type_error("reduceRight was called without a callback"),
@@ -1091,6 +1093,60 @@ impl Array {
         Ok(accumulator)
     }
 
+    /// `Array.prototype.values( )`
+    ///
+    /// The values method returns an iterable that iterates over the values in the array.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.values
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/values
+    pub(crate) fn values(
+        this: &Value,
+        _args: &[Value],
+        interpreter: &mut Context,
+    ) -> Result<Value> {
+        ArrayIterator::create_array_iterator(interpreter, this.clone(), ArrayIterationKind::Value)
+    }
+
+    /// `Array.prototype.keys( )`
+    ///
+    /// The keys method returns an iterable that iterates over the indexes in the array.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.values
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/values
+    pub(crate) fn keys(this: &Value, _args: &[Value], interpreter: &mut Context) -> Result<Value> {
+        ArrayIterator::create_array_iterator(interpreter, this.clone(), ArrayIterationKind::Key)
+    }
+
+    /// `Array.prototype.entries( )`
+    ///
+    /// The entries method returns an iterable that iterates over the key-value pairs in the array.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.values
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/values
+    pub(crate) fn entries(
+        this: &Value,
+        _args: &[Value],
+        interpreter: &mut Context,
+    ) -> Result<Value> {
+        ArrayIterator::create_array_iterator(
+            interpreter,
+            this.clone(),
+            ArrayIterationKind::KeyAndValue,
+        )
+    }
+
     /// Initialise the `Array` object on the global object.
     #[inline]
     pub(crate) fn init(interpreter: &mut Context) -> (&'static str, Value) {
@@ -1136,6 +1192,15 @@ impl Array {
             &prototype,
             2,
             interpreter,
+        );
+        make_builtin_fn(Self::values, "values", &prototype, 0, interpreter);
+        make_builtin_fn(Self::keys, "keys", &prototype, 0, interpreter);
+        make_builtin_fn(Self::entries, "entries", &prototype, 0, interpreter);
+
+        let symbol_iterator = interpreter.well_known_symbols().iterator_symbol();
+        prototype.set_property(
+            symbol_iterator,
+            Property::default().value(prototype.get_field("values")),
         );
 
         let array = make_constructor_fn(

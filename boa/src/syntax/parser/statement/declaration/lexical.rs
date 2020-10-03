@@ -37,11 +37,17 @@ pub(super) struct LexicalDeclaration {
     allow_in: AllowIn,
     allow_yield: AllowYield,
     allow_await: AllowAwait,
+    const_init_required: bool,
 }
 
 impl LexicalDeclaration {
     /// Creates a new `LexicalDeclaration` parser.
-    pub(super) fn new<I, Y, A>(allow_in: I, allow_yield: Y, allow_await: A) -> Self
+    pub(super) fn new<I, Y, A>(
+        allow_in: I,
+        allow_yield: Y,
+        allow_await: A,
+        const_init_required: bool,
+    ) -> Self
     where
         I: Into<AllowIn>,
         Y: Into<AllowYield>,
@@ -51,6 +57,7 @@ impl LexicalDeclaration {
             allow_in: allow_in.into(),
             allow_yield: allow_yield.into(),
             allow_await: allow_await.into(),
+            const_init_required,
         }
     }
 }
@@ -66,14 +73,22 @@ where
         let tok = cursor.next()?.ok_or(ParseError::AbruptEnd)?;
 
         match tok.kind() {
-            TokenKind::Keyword(Keyword::Const) => {
-                BindingList::new(self.allow_in, self.allow_yield, self.allow_await, true)
-                    .parse(cursor)
-            }
-            TokenKind::Keyword(Keyword::Let) => {
-                BindingList::new(self.allow_in, self.allow_yield, self.allow_await, false)
-                    .parse(cursor)
-            }
+            TokenKind::Keyword(Keyword::Const) => BindingList::new(
+                self.allow_in,
+                self.allow_yield,
+                self.allow_await,
+                true,
+                self.const_init_required,
+            )
+            .parse(cursor),
+            TokenKind::Keyword(Keyword::Let) => BindingList::new(
+                self.allow_in,
+                self.allow_yield,
+                self.allow_await,
+                false,
+                self.const_init_required,
+            )
+            .parse(cursor),
             _ => unreachable!("unknown token found: {:?}", tok),
         }
     }
@@ -94,11 +109,18 @@ struct BindingList {
     allow_yield: AllowYield,
     allow_await: AllowAwait,
     is_const: bool,
+    const_init_required: bool,
 }
 
 impl BindingList {
     /// Creates a new `BindingList` parser.
-    fn new<I, Y, A>(allow_in: I, allow_yield: Y, allow_await: A, is_const: bool) -> Self
+    fn new<I, Y, A>(
+        allow_in: I,
+        allow_yield: Y,
+        allow_await: A,
+        is_const: bool,
+        const_init_required: bool,
+    ) -> Self
     where
         I: Into<AllowIn>,
         Y: Into<AllowYield>,
@@ -109,6 +131,7 @@ impl BindingList {
             allow_yield: allow_yield.into(),
             allow_await: allow_await.into(),
             is_const,
+            const_init_required,
         }
     }
 }
@@ -133,14 +156,18 @@ where
                     .parse(cursor)?;
 
             if self.is_const {
-                if let Some(init) = init {
-                    const_decls.push(ConstDecl::new(ident, init));
+                if self.const_init_required {
+                    if init.is_some() {
+                        const_decls.push(ConstDecl::new(ident, init));
+                    } else {
+                        return Err(ParseError::expected(
+                            vec![TokenKind::Punctuator(Punctuator::Assign)],
+                            cursor.next()?.ok_or(ParseError::AbruptEnd)?,
+                            "const declaration",
+                        ));
+                    }
                 } else {
-                    return Err(ParseError::expected(
-                        vec![TokenKind::Punctuator(Punctuator::Assign)],
-                        cursor.next()?.ok_or(ParseError::AbruptEnd)?,
-                        "const declaration",
-                    ));
+                    const_decls.push(ConstDecl::new(ident, init))
                 }
             } else {
                 let_decls.push(LetDecl::new(ident, init));
@@ -148,6 +175,12 @@ where
 
             match cursor.peek_semicolon()? {
                 SemicolonResult::Found(_) => break,
+                SemicolonResult::NotFound(tk)
+                    if tk.kind() == &TokenKind::Keyword(Keyword::Of)
+                        || tk.kind() == &TokenKind::Keyword(Keyword::In) =>
+                {
+                    break
+                }
                 SemicolonResult::NotFound(tk)
                     if tk.kind() == &TokenKind::Punctuator(Punctuator::Comma) =>
                 {

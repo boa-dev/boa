@@ -35,27 +35,30 @@
       },
       "presentation": {
         "clear": true
-      }
+      },
+      "problemMatcher": []
     },
     {
       "type": "process",
       "label": "Get Tokens",
       "command": "cargo",
-      "args": ["run", "--", "-t=Debug", "./tests/js/test.js"],
+      "args": ["run", "--bin", "boa", "--", "-t=Debug", "./tests/js/test.js"],
       "group": "build",
       "presentation": {
         "clear": true
-      }
+      },
+      "problemMatcher": []
     },
     {
       "type": "process",
       "label": "Get AST",
       "command": "cargo",
-      "args": ["run", "--", "-a=Debug", "./tests/js/test.js"],
+      "args": ["run", "--bin", "boa", "--", "-a=Debug", "./tests/js/test.js"],
       "group": "build",
       "presentation": {
         "clear": true
-      }
+      },
+      "problemMatcher": []
     },
     {
       "type": "process",

@@ -60,16 +60,16 @@ where
     R: Read,
 {
     Ok(if let Some(tok) = cursor.peek(0)? {
-        match tok.kind() {
+        matches!(
+            tok.kind(),
             TokenKind::Keyword(Keyword::Delete)
-            | TokenKind::Keyword(Keyword::Void)
-            | TokenKind::Keyword(Keyword::TypeOf)
-            | TokenKind::Punctuator(Punctuator::Add)
-            | TokenKind::Punctuator(Punctuator::Sub)
-            | TokenKind::Punctuator(Punctuator::Not)
-            | TokenKind::Punctuator(Punctuator::Neg) => true,
-            _ => false,
-        }
+                | TokenKind::Keyword(Keyword::Void)
+                | TokenKind::Keyword(Keyword::TypeOf)
+                | TokenKind::Punctuator(Punctuator::Add)
+                | TokenKind::Punctuator(Punctuator::Sub)
+                | TokenKind::Punctuator(Punctuator::Not)
+                | TokenKind::Punctuator(Punctuator::Neg)
+        )
     } else {
         false
     })

@@ -938,7 +938,18 @@ pub enum AssignOp {
     /// [spec]: https://tc39.es/ecma262/#prod-AssignmentOperator
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Assignment_Operators#Right_shift_assignment
     Shr,
-    // TODO: Add UShl (unsigned shift left).
+
+    /// The unsigned right shift assignment operator moves the specified amount of bits to the right and assigns the result to the variable.
+    ///
+    /// Syntax: `x >>>= y`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#prod-AssignmentOperator
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Unsigned_right_shift_assignment
+    Ushr,
 }
 
 unsafe impl Trace for AssignOp {
@@ -962,6 +973,7 @@ impl Display for AssignOp {
                 Self::Xor => "^=",
                 Self::Shl => "<<=",
                 Self::Shr => ">>=",
+                Self::Ushr => ">>>=",
             }
         )
     }

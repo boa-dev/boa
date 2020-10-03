@@ -681,3 +681,102 @@ fn last_index_non_integer_position_argument() {
     );
     assert_eq!(forward(&mut engine, "'abcx'.lastIndexOf('x', null)"), "3");
 }
+
+#[test]
+fn empty_iter() {
+    let mut engine = Context::new();
+    let init = r#"
+        let iter = new String()[Symbol.iterator]();
+        let next = iter.next();
+    "#;
+    forward(&mut engine, init);
+    assert_eq!(forward(&mut engine, "next.value"), "undefined");
+    assert_eq!(forward(&mut engine, "next.done"), "true");
+}
+
+#[test]
+fn ascii_iter() {
+    let mut engine = Context::new();
+    let init = r#"
+        let iter = new String("Hello World")[Symbol.iterator]();
+        let next = iter.next();
+    "#;
+    forward(&mut engine, init);
+    assert_eq!(forward(&mut engine, "next.value"), "\"H\"");
+    assert_eq!(forward(&mut engine, "next.done"), "false");
+    forward(&mut engine, "next = iter.next()");
+    assert_eq!(forward(&mut engine, "next.value"), "\"e\"");
+    assert_eq!(forward(&mut engine, "next.done"), "false");
+    forward(&mut engine, "next = iter.next()");
+    assert_eq!(forward(&mut engine, "next.value"), "\"l\"");
+    assert_eq!(forward(&mut engine, "next.done"), "false");
+    forward(&mut engine, "next = iter.next()");
+    assert_eq!(forward(&mut engine, "next.value"), "\"l\"");
+    assert_eq!(forward(&mut engine, "next.done"), "false");
+    forward(&mut engine, "next = iter.next()");
+    assert_eq!(forward(&mut engine, "next.value"), "\"o\"");
+    assert_eq!(forward(&mut engine, "next.done"), "false");
+    forward(&mut engine, "next = iter.next()");
+    assert_eq!(forward(&mut engine, "next.value"), "\" \"");
+    assert_eq!(forward(&mut engine, "next.done"), "false");
+    forward(&mut engine, "next = iter.next()");
+    assert_eq!(forward(&mut engine, "next.value"), "\"W\"");
+    assert_eq!(forward(&mut engine, "next.done"), "false");
+    forward(&mut engine, "next = iter.next()");
+    assert_eq!(forward(&mut engine, "next.value"), "\"o\"");
+    assert_eq!(forward(&mut engine, "next.done"), "false");
+    forward(&mut engine, "next = iter.next()");
+    assert_eq!(forward(&mut engine, "next.value"), "\"r\"");
+    assert_eq!(forward(&mut engine, "next.done"), "false");
+    forward(&mut engine, "next = iter.next()");
+    assert_eq!(forward(&mut engine, "next.value"), "\"l\"");
+    assert_eq!(forward(&mut engine, "next.done"), "false");
+    forward(&mut engine, "next = iter.next()");
+    assert_eq!(forward(&mut engine, "next.value"), "\"d\"");
+    assert_eq!(forward(&mut engine, "next.done"), "false");
+    forward(&mut engine, "next = iter.next()");
+    assert_eq!(forward(&mut engine, "next.value"), "undefined");
+    assert_eq!(forward(&mut engine, "next.done"), "true");
+}
+
+#[test]
+fn unicode_iter() {
+    let mut engine = Context::new();
+    let init = r#"
+        let iter = new String("C🙂🙂l W🙂rld")[Symbol.iterator]();
+        let next = iter.next();
+    "#;
+    forward(&mut engine, init);
+    assert_eq!(forward(&mut engine, "next.value"), "\"C\"");
+    assert_eq!(forward(&mut engine, "next.done"), "false");
+    forward(&mut engine, "next = iter.next()");
+    assert_eq!(forward(&mut engine, "next.value"), "\"🙂\"");
+    assert_eq!(forward(&mut engine, "next.done"), "false");
+    forward(&mut engine, "next = iter.next()");
+    assert_eq!(forward(&mut engine, "next.value"), "\"🙂\"");
+    assert_eq!(forward(&mut engine, "next.done"), "false");
+    forward(&mut engine, "next = iter.next()");
+    assert_eq!(forward(&mut engine, "next.value"), "\"l\"");
+    assert_eq!(forward(&mut engine, "next.done"), "false");
+    forward(&mut engine, "next = iter.next()");
+    assert_eq!(forward(&mut engine, "next.value"), "\" \"");
+    assert_eq!(forward(&mut engine, "next.done"), "false");
+    forward(&mut engine, "next = iter.next()");
+    assert_eq!(forward(&mut engine, "next.value"), "\"W\"");
+    assert_eq!(forward(&mut engine, "next.done"), "false");
+    forward(&mut engine, "next = iter.next()");
+    assert_eq!(forward(&mut engine, "next.value"), "\"🙂\"");
+    assert_eq!(forward(&mut engine, "next.done"), "false");
+    forward(&mut engine, "next = iter.next()");
+    assert_eq!(forward(&mut engine, "next.value"), "\"r\"");
+    assert_eq!(forward(&mut engine, "next.done"), "false");
+    forward(&mut engine, "next = iter.next()");
+    assert_eq!(forward(&mut engine, "next.value"), "\"l\"");
+    assert_eq!(forward(&mut engine, "next.done"), "false");
+    forward(&mut engine, "next = iter.next()");
+    assert_eq!(forward(&mut engine, "next.value"), "\"d\"");
+    assert_eq!(forward(&mut engine, "next.done"), "false");
+    forward(&mut engine, "next = iter.next()");
+    assert_eq!(forward(&mut engine, "next.value"), "undefined");
+    assert_eq!(forward(&mut engine, "next.done"), "true");
+}

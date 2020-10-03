@@ -70,12 +70,12 @@ impl<R> Lexer<R> {
     ///
     /// [More information](https://tc39.es/ecma262/#table-32)
     fn is_whitespace(ch: char) -> bool {
-        match ch {
+        matches!(
+            ch,
             '\u{0020}' | '\u{0009}' | '\u{000B}' | '\u{000C}' | '\u{00A0}' | '\u{FEFF}' |
             // Unicode Space_Seperator category (minus \u{0020} and \u{00A0} which are allready stated above)
-            '\u{1680}' | '\u{2000}'..='\u{200A}' | '\u{202F}' | '\u{205F}' | '\u{3000}' => true,
-            _ => false,
-        }
+            '\u{1680}' | '\u{2000}'..='\u{200A}' | '\u{202F}' | '\u{205F}' | '\u{3000}'
+        )
     }
 
     /// Sets the goal symbol for the lexer.

@@ -164,14 +164,6 @@ impl Value {
         }
     }
 
-    /// Similar to `new_object`, but you can pass a prototype to create from, plus a kind
-    pub fn new_object_from_prototype(proto: Value, data: ObjectData) -> Self {
-        let mut object = Object::default();
-        object.data = data;
-        object.set_prototype_instance(proto);
-        Self::object(object)
-    }
-
     /// Convert from a JSON value to a JS value
     pub fn from_json(json: JSONValue, interpreter: &mut Context) -> Self {
         match json {
@@ -189,8 +181,8 @@ impl Value {
                     .global_object()
                     .get_field("Array")
                     .get_field(PROTOTYPE);
-                let new_obj =
-                    Value::new_object_from_prototype(global_array_prototype, ObjectData::Array);
+                let new_obj_obj = Object::with_prototype(global_array_prototype, ObjectData::Array);
+                let new_obj = Value::object(new_obj_obj);
                 let length = vs.len();
                 for (idx, json) in vs.into_iter().enumerate() {
                     new_obj.set_property(
@@ -292,10 +284,7 @@ impl Value {
     /// Returns true if the value the global for a Realm
     pub fn is_global(&self) -> bool {
         match self {
-            Value::Object(object) => match object.borrow().data {
-                ObjectData::Global => true,
-                _ => false,
-            },
+            Value::Object(object) => matches!(object.borrow().data, ObjectData::Global),
             _ => false,
         }
     }
@@ -315,6 +304,14 @@ impl Value {
     }
 
     #[inline]
+    pub fn as_gc_object(&self) -> Option<GcObject> {
+        match self {
+            Self::Object(o) => Some(o.clone()),
+            _ => None,
+        }
+    }
+
+    #[inline]
     pub fn as_object_mut(&self) -> Option<GcCellRefMut<'_, Object>> {
         match *self {
             Self::Object(ref o) => Some(o.borrow_mut()),
@@ -326,6 +323,13 @@ impl Value {
     #[inline]
     pub fn is_symbol(&self) -> bool {
         matches!(self, Self::Symbol(_))
+    }
+
+    pub fn as_symbol(&self) -> Option<RcSymbol> {
+        match self {
+            Self::Symbol(symbol) => Some(symbol.clone()),
+            _ => None,
+        }
     }
 
     /// Returns true if the value is a function
@@ -407,6 +411,14 @@ impl Value {
     #[inline]
     pub fn is_boolean(&self) -> bool {
         matches!(self, Self::Boolean(_))
+    }
+
+    #[inline]
+    pub fn as_boolean(&self) -> Option<bool> {
+        match self {
+            Self::Boolean(boolean) => Some(*boolean),
+            _ => None,
+        }
     }
 
     /// Returns true if the value is a bigint.
@@ -668,15 +680,15 @@ impl Value {
         }
     }
 
-    /// Converts th value to a value of type Object.
+    /// Converts the value to an Object.
     ///
     /// This function is equivalent to `Object(value)` in JavaScript
     ///
     /// See: <https://tc39.es/ecma262/#sec-toobject>
-    pub fn to_object(&self, ctx: &mut Context) -> Result<Value> {
+    pub fn to_object(&self, ctx: &mut Context) -> Result<GcObject> {
         match self {
             Value::Undefined | Value::Null => {
-                ctx.throw_type_error("cannot convert 'null' or 'undefined' to object")
+                Err(ctx.construct_type_error("cannot convert 'null' or 'undefined' to object"))
             }
             Value::Boolean(boolean) => {
                 let proto = ctx
@@ -686,10 +698,10 @@ impl Value {
                     .expect("Boolean was not initialized")
                     .get_field(PROTOTYPE);
 
-                Ok(Value::new_object_from_prototype(
+                Ok(GcObject::new(Object::with_prototype(
                     proto,
                     ObjectData::Boolean(*boolean),
-                ))
+                )))
             }
             Value::Integer(integer) => {
                 let proto = ctx
@@ -698,10 +710,10 @@ impl Value {
                     .get_binding_value("Number")
                     .expect("Number was not initialized")
                     .get_field(PROTOTYPE);
-                Ok(Value::new_object_from_prototype(
+                Ok(GcObject::new(Object::with_prototype(
                     proto,
                     ObjectData::Number(f64::from(*integer)),
-                ))
+                )))
             }
             Value::Rational(rational) => {
                 let proto = ctx
@@ -711,10 +723,10 @@ impl Value {
                     .expect("Number was not initialized")
                     .get_field(PROTOTYPE);
 
-                Ok(Value::new_object_from_prototype(
+                Ok(GcObject::new(Object::with_prototype(
                     proto,
                     ObjectData::Number(*rational),
-                ))
+                )))
             }
             Value::String(ref string) => {
                 let proto = ctx
@@ -724,10 +736,10 @@ impl Value {
                     .expect("String was not initialized")
                     .get_field(PROTOTYPE);
 
-                Ok(Value::new_object_from_prototype(
-                    proto,
-                    ObjectData::String(string.clone()),
-                ))
+                let mut obj = Object::with_prototype(proto, ObjectData::String(string.clone()));
+                // Make sure the correct length is set on our new string object
+                obj.set("length".into(), string.chars().count().into());
+                Ok(GcObject::new(obj))
             }
             Value::Symbol(ref symbol) => {
                 let proto = ctx
@@ -737,10 +749,10 @@ impl Value {
                     .expect("Symbol was not initialized")
                     .get_field(PROTOTYPE);
 
-                Ok(Value::new_object_from_prototype(
+                Ok(GcObject::new(Object::with_prototype(
                     proto,
                     ObjectData::Symbol(symbol.clone()),
-                ))
+                )))
             }
             Value::BigInt(ref bigint) => {
                 let proto = ctx
@@ -749,11 +761,13 @@ impl Value {
                     .get_binding_value("BigInt")
                     .expect("BigInt was not initialized")
                     .get_field(PROTOTYPE);
-                let bigint_obj =
-                    Value::new_object_from_prototype(proto, ObjectData::BigInt(bigint.clone()));
+                let bigint_obj = GcObject::new(Object::with_prototype(
+                    proto,
+                    ObjectData::BigInt(bigint.clone()),
+                ));
                 Ok(bigint_obj)
             }
-            Value::Object(_) => Ok(self.clone()),
+            Value::Object(gcobject) => Ok(gcobject.clone()),
         }
     }
 
@@ -925,7 +939,7 @@ impl Value {
     /// [table]: https://tc39.es/ecma262/#table-14
     /// [spec]: https://tc39.es/ecma262/#sec-requireobjectcoercible
     #[inline]
-    pub fn require_object_coercible<'a>(&'a self, ctx: &mut Context) -> Result<&'a Value> {
+    pub fn require_object_coercible(&self, ctx: &mut Context) -> Result<&Value> {
         if self.is_null_or_undefined() {
             Err(ctx.construct_type_error("cannot convert null or undefined to Object"))
         } else {

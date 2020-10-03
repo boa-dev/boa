@@ -9,6 +9,7 @@ pub mod error;
 pub mod function;
 pub mod global_this;
 pub mod infinity;
+pub mod iterable;
 pub mod json;
 pub mod map;
 pub mod math;
@@ -21,7 +22,7 @@ pub mod symbol;
 pub mod undefined;
 
 pub(crate) use self::{
-    array::Array,
+    array::{array_iterator::ArrayIterator, Array},
     bigint::BigInt,
     boolean::Boolean,
     console::Console,
@@ -49,6 +50,7 @@ pub fn init(interpreter: &mut Context) {
         // The `Function` global must be initialized before other types.
         function::init,
         Object::init,
+        Symbol::init,
         Array::init,
         BigInt::init,
         Boolean::init,
@@ -59,7 +61,6 @@ pub fn init(interpreter: &mut Context) {
         Number::init,
         RegExp::init,
         String::init,
-        Symbol::init,
         Console::init,
         // Global error types.
         Error::init,
