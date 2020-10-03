@@ -1,23 +1,36 @@
 use super::{SuiteResult, CLI};
+use git2::Repository;
+use hex::ToHex;
 use serde::{Deserialize, Serialize};
 use std::{
     env, fs,
     io::{self, BufReader, BufWriter},
+    path::Path,
 };
 
 /// Structure to store full result information.
 #[derive(Debug, Clone, Deserialize, Serialize)]
 struct ResultInfo {
+    #[serde(rename = "c")]
     commit: Box<str>,
+    #[serde(rename = "u")]
+    test262_commit: Box<str>,
+    #[serde(rename = "r")]
     results: SuiteResult,
 }
 
 /// Structure to store full result information.
 #[derive(Debug, Clone, Deserialize, Serialize)]
 struct ReducedResultInfo {
+    #[serde(rename = "c")]
     commit: Box<str>,
+    #[serde(rename = "u")]
+    test262_commit: Box<str>,
+    #[serde(rename = "t")]
     total: usize,
+    #[serde(rename = "p")]
     passed: usize,
+    #[serde(rename = "i")]
     ignored: usize,
 }
 
@@ -26,6 +39,7 @@ impl From<ResultInfo> for ReducedResultInfo {
     fn from(info: ResultInfo) -> Self {
         Self {
             commit: info.commit,
+            test262_commit: info.test262_commit,
             total: info.results.total,
             passed: info.results.passed,
             ignored: info.results.ignored,
@@ -67,6 +81,7 @@ pub(crate) fn write_json(results: SuiteResult) -> io::Result<()> {
 
         let new_results = ResultInfo {
             commit: env::var("GITHUB_SHA").unwrap_or_default().into_boxed_str(),
+            test262_commit: get_test262_commit(),
             results,
         };
 
@@ -94,4 +109,22 @@ pub(crate) fn write_json(results: SuiteResult) -> io::Result<()> {
     }
 
     Ok(())
+}
+
+/// Gets the commit OID of the test262 submodule.
+fn get_test262_commit() -> Box<str> {
+    let repo = Repository::open(".").expect("could not open git repository in current directory");
+
+    let submodule = repo
+        .submodules()
+        .expect("could not get the list of submodules of the repo")
+        .into_iter()
+        .find(|sub| sub.path() == Path::new("test262"))
+        .expect("test262 submodule not found");
+
+    submodule
+        .index_id()
+        .expect("could not get the commit OID")
+        .encode_hex::<String>()
+        .into_boxed_str()
 }
