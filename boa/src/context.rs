@@ -573,7 +573,7 @@ impl Context {
         }
     }
 
-    /// Register a global class of type `T`, where `T` implemets `Class`.
+    /// Register a global class of type `T`, where `T` implements `Class`.
     ///
     /// # Example
     /// ```ignore
