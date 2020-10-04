@@ -149,7 +149,7 @@ struct TestSuite {
 struct SuiteResult {
     #[serde(rename = "n")]
     name: Box<str>,
-    #[serde(rename = "t")]
+    #[serde(rename = "c")]
     total: usize,
     #[serde(rename = "p")]
     passed: usize,
