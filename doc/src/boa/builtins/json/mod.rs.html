@@ -193,6 +193,7 @@
 <span id="193">193</span>
 <span id="194">194</span>
 <span id="195">195</span>
+<span id="196">196</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements the global `JSON` object.</span>
 <span class="doccomment">//!</span>
@@ -257,12 +258,13 @@
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-json.parse</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/parse</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">parse</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="ident">serde_json</span>::<span class="ident">from_str</span>::<span class="op">&lt;</span><span class="ident">JSONValue</span><span class="op">&gt;</span>(
-            <span class="kw-2">&amp;</span><span class="ident">args</span>
-                .<span class="ident">get</span>(<span class="number">0</span>)
-                .<span class="ident">expect</span>(<span class="string">&quot;cannot get argument for JSON.parse&quot;</span>)
-                .<span class="ident">to_string</span>(<span class="ident">ctx</span>)<span class="question-mark">?</span>,
-        ) {
+        <span class="kw">let</span> <span class="ident">arg</span> <span class="op">=</span> <span class="ident">args</span>
+            .<span class="ident">get</span>(<span class="number">0</span>)
+            .<span class="ident">cloned</span>()
+            .<span class="ident">unwrap_or_else</span>(<span class="ident">Value</span>::<span class="ident">undefined</span>)
+            .<span class="ident">to_string</span>(<span class="ident">ctx</span>)<span class="question-mark">?</span>;
+
+        <span class="kw">match</span> <span class="ident">serde_json</span>::<span class="ident">from_str</span>::<span class="op">&lt;</span><span class="ident">JSONValue</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="ident">arg</span>) {
             <span class="prelude-val">Ok</span>(<span class="ident">json</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">let</span> <span class="ident">j</span> <span class="op">=</span> <span class="ident">Value</span>::<span class="ident">from_json</span>(<span class="ident">json</span>, <span class="ident">ctx</span>);
                 <span class="kw">match</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">1</span>) {
@@ -274,7 +276,7 @@
                     <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">j</span>),
                 }
             }
-            <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">err</span>.<span class="ident">to_string</span>())),
+            <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ctx</span>.<span class="ident">throw_syntax_error</span>(<span class="ident">err</span>.<span class="ident">to_string</span>()),
         }
     }
 
