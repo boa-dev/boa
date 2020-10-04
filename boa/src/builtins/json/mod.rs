@@ -61,12 +61,13 @@ impl Json {
     /// [spec]: https://tc39.es/ecma262/#sec-json.parse
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/parse
     pub(crate) fn parse(_: &Value, args: &[Value], ctx: &mut Context) -> Result<Value> {
-        match serde_json::from_str::<JSONValue>(
-            &args
-                .get(0)
-                .expect("cannot get argument for JSON.parse")
-                .to_string(ctx)?,
-        ) {
+        let arg = args
+            .get(0)
+            .cloned()
+            .unwrap_or_else(Value::undefined)
+            .to_string(ctx)?;
+
+        match serde_json::from_str::<JSONValue>(&arg) {
             Ok(json) => {
                 let j = Value::from_json(json, ctx);
                 match args.get(1) {
@@ -78,7 +79,7 @@ impl Json {
                     _ => Ok(j),
                 }
             }
-            Err(err) => Err(Value::from(err.to_string())),
+            Err(err) => ctx.throw_syntax_error(err.to_string()),
         }
     }
 
