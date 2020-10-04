@@ -82,9 +82,7 @@ impl Boolean {
             _ => {}
         }
 
-        Err(ctx
-            .construct_type_error("'this' is not a boolean")
-            .expect("&str used as message"))
+        Err(ctx.construct_type_error("'this' is not a boolean"))
     }
 
     /// The `toString()` method returns a string representing the specified `Boolean` object.

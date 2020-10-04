@@ -59,18 +59,12 @@ pub fn get_iterator(ctx: &mut Context, iterable: Value) -> Result<IteratorRecord
     let iterator_function = iterable
         .get_property(ctx.well_known_symbols().iterator_symbol())
         .and_then(|mut p| p.value.take())
-        .ok_or_else(|| {
-            ctx.construct_type_error("Not an iterable")
-                .expect("&str used as message")
-        })?;
+        .ok_or_else(|| ctx.construct_type_error("Not an iterable"))?;
     let iterator_object = ctx.call(&iterator_function, &iterable, &[])?;
     let next_function = iterator_object
         .get_property("next")
         .and_then(|mut p| p.value.take())
-        .ok_or_else(|| {
-            ctx.construct_type_error("Could not find property `next`")
-                .expect("&str used as message")
-        })?;
+        .ok_or_else(|| ctx.construct_type_error("Could not find property `next`"))?;
     Ok(IteratorRecord::new(iterator_object, next_function))
 }
 
@@ -121,10 +115,7 @@ impl IteratorRecord {
             .get_property("done")
             .and_then(|mut p| p.value.take())
             .and_then(|v| v.as_boolean())
-            .ok_or_else(|| {
-                ctx.construct_type_error("Could not find property `done`")
-                    .expect("&str used as message")
-            })?;
+            .ok_or_else(|| ctx.construct_type_error("Could not find property `done`"))?;
         let next_result = next
             .get_property("value")
             .and_then(|mut p| p.value.take())

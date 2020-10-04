@@ -283,7 +283,7 @@ impl Context {
     }
 
     /// Constructs a `RangeError` with the specified message.
-    pub fn construct_range_error<M>(&mut self, message: M) -> Result<Value>
+    pub fn construct_range_error<M>(&mut self, message: M) -> Value
     where
         M: Into<String>,
     {
@@ -293,6 +293,7 @@ impl Context {
             vec![Const::from(message.into()).into()],
         ))
         .run(self)
+        .expect("Into<String> used as message")
     }
 
     /// Throws a `RangeError` with the specified message.
@@ -300,11 +301,11 @@ impl Context {
     where
         M: Into<String>,
     {
-        Err(self.construct_range_error(message)?)
+        Err(self.construct_range_error(message))
     }
 
     /// Constructs a `TypeError` with the specified message.
-    pub fn construct_type_error<M>(&mut self, message: M) -> Result<Value>
+    pub fn construct_type_error<M>(&mut self, message: M) -> Value
     where
         M: Into<String>,
     {
@@ -314,6 +315,7 @@ impl Context {
             vec![Const::from(message.into()).into()],
         ))
         .run(self)
+        .expect("Into<String> used as message")
     }
 
     /// Throws a `TypeError` with the specified message.
@@ -321,11 +323,11 @@ impl Context {
     where
         M: Into<String>,
     {
-        Err(self.construct_type_error(message)?)
+        Err(self.construct_type_error(message))
     }
 
     /// Constructs a `ReferenceError` with the specified message.
-    pub fn construct_reference_error<M>(&mut self, message: M) -> Result<Value>
+    pub fn construct_reference_error<M>(&mut self, message: M) -> Value
     where
         M: Into<String>,
     {
@@ -334,6 +336,7 @@ impl Context {
             vec![Const::from(message.into() + " is not defined").into()],
         ))
         .run(self)
+        .expect("Into<String> used as message")
     }
 
     /// Throws a `ReferenceError` with the specified message.
@@ -341,11 +344,11 @@ impl Context {
     where
         M: Into<String>,
     {
-        Err(self.construct_reference_error(message)?)
+        Err(self.construct_reference_error(message))
     }
 
     /// Constructs a `SyntaxError` with the specified message.
-    pub fn construct_syntax_error<M>(&mut self, message: M) -> Result<Value>
+    pub fn construct_syntax_error<M>(&mut self, message: M) -> Value
     where
         M: Into<String>,
     {
@@ -354,6 +357,7 @@ impl Context {
             vec![Const::from(message.into()).into()],
         ))
         .run(self)
+        .expect("Into<String> used as message")
     }
 
     /// Throws a `SyntaxError` with the specified message.
@@ -361,7 +365,7 @@ impl Context {
     where
         M: Into<String>,
     {
-        Err(self.construct_syntax_error(message)?)
+        Err(self.construct_syntax_error(message))
     }
 
     /// Utility to create a function Value for Function Declarations, Arrow Functions or Function Expressions

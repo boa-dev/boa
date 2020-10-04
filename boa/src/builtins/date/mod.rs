@@ -1337,7 +1337,5 @@ pub fn this_time_value(value: &Value, ctx: &mut Context) -> Result<Date> {
             return Ok(*date);
         }
     }
-    Err(ctx
-        .construct_type_error("'this' is not a Date")
-        .expect("&str used as message"))
+    Err(ctx.construct_type_error("'this' is not a Date"))
 }

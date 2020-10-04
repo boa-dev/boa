@@ -79,10 +79,8 @@ impl ArrayIterator {
                     .array
                     .get_field("length")
                     .as_number()
-                    .ok_or_else(|| {
-                        ctx.construct_type_error("Not an array")
-                            .expect("&str used as message")
-                    })? as u32;
+                    .ok_or_else(|| ctx.construct_type_error("Not an array"))?
+                    as u32;
                 if array_iterator.next_index >= len {
                     array_iterator.array = Value::undefined();
                     return Ok(create_iter_result_object(ctx, Value::undefined(), true));
