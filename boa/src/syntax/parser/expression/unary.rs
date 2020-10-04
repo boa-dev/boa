@@ -15,7 +15,7 @@ use crate::{
             op::UnaryOp,
             Keyword, Punctuator,
         },
-        lexer::TokenKind,
+        lexer::{Error as LexError, TokenKind},
         parser::{
             expression::update::UpdateExpression, AllowAwait, AllowYield, Cursor, ParseError,
             ParseResult, TokenParser,
@@ -61,11 +61,23 @@ where
     fn parse(self, cursor: &mut Cursor<R>, strict_mode: bool) -> ParseResult {
         let _timer = BoaProfiler::global().start_event("UnaryExpression", "Parsing");
 
-        let tok = cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?;
+        // TODO: can we avoid cloning?
+        let tok = cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?.clone();
         match tok.kind() {
             TokenKind::Keyword(Keyword::Delete) => {
                 cursor.next()?.expect("Delete keyword vanished"); // Consume the token.
-                Ok(node::UnaryOp::new(UnaryOp::Delete, self.parse(cursor, strict_mode)?).into())
+                let val = self.parse(cursor, strict_mode)?;
+
+                if strict_mode {
+                    if let Node::Identifier(_) = val {
+                        return Err(ParseError::lex(LexError::Syntax(
+                            "Delete <variable> statements not allowed in strict mode".into(),
+                            tok.span().start(),
+                        )));
+                    }
+                }
+
+                Ok(node::UnaryOp::new(UnaryOp::Delete, val).into())
             }
             TokenKind::Keyword(Keyword::Void) => {
                 cursor.next()?.expect("Void keyword vanished"); // Consume the token.
