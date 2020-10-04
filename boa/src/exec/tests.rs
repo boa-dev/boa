@@ -1472,8 +1472,7 @@ fn test_strict_mode_reserved_name() {
 #[test]
 fn test_strict_mode_func_decl_in_block() {
     // Checks that a function declaration in a block is an error in
-    // strict mode code.
-    // TODO - find the spec reference for this.
+    // strict mode code as per https://tc39.es/ecma262/#early-error.
 
     let scenario = r#"
     'use strict';
