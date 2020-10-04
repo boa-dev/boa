@@ -125,7 +125,7 @@ where
             Some(tok) => {
                 match tok.kind() {
                     TokenKind::StringLiteral(string) | TokenKind::TemplateLiteral(string) => {
-                        if string.to_string() == "use strict" {
+                        if string.as_ref() == "use strict" {
                             cursor.set_strict_mode(true);
                         }
                     }
