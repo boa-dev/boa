@@ -12,21 +12,22 @@
 #[cfg(test)]
 mod tests;
 
-use crate::{BoaProfiler, Context, Value};
+use crate::{builtins::BuiltIn, property::Attribute, BoaProfiler, Context, Value};
 
 /// JavaScript global `Infinity` property.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub(crate) struct Infinity;
 
-impl Infinity {
-    /// The binding name of the property.
-    pub(crate) const NAME: &'static str = "Infinity";
+impl BuiltIn for Infinity {
+    const NAME: &'static str = "Infinity";
 
-    /// Initialize the `Infinity` property on the global object.
-    #[inline]
-    pub(crate) fn init(_interpreter: &mut Context) -> (&'static str, Value) {
+    fn attribute() -> Attribute {
+        Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT
+    }
+
+    fn init(_context: &mut Context) -> (&'static str, Value, Attribute) {
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
-        (Self::NAME, Value::from(f64::INFINITY))
+        (Self::NAME, f64::INFINITY.into(), Self::attribute())
     }
 }

@@ -96,7 +96,7 @@ impl ArrayIterator {
                     }
                     ArrayIterationKind::KeyAndValue => {
                         let element_value = array_iterator.array.get_field(index);
-                        let result = Array::make_array(
+                        let result = Array::constructor(
                             &Value::new_object(Some(ctx.global_object())),
                             &[index.into(), element_value],
                             ctx,

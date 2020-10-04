@@ -12,9 +12,9 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function
 
 use crate::{
-    builtins::Array,
+    builtins::{Array, BuiltIn},
     environment::lexical_environment::Environment,
-    object::{Object, ObjectData, PROTOTYPE},
+    object::{ConstructorBuilder, Object, ObjectData, PROTOTYPE},
     property::{Attribute, Property},
     syntax::ast::node::{FormalParameter, RcStatementList},
     BoaProfiler, Context, Result, Value,
@@ -188,22 +188,11 @@ pub fn create_unmapped_arguments_object(arguments_list: &[Value]) -> Value {
             Attribute::WRITABLE | Attribute::ENUMERABLE | Attribute::CONFIGURABLE,
         );
 
-        obj.insert_property(index, prop);
+        obj.insert(index, prop);
         index += 1;
     }
 
     Value::from(obj)
-}
-
-/// Create new function `[[Construct]]`
-///
-// This gets called when a new Function() is created.
-pub fn make_function(this: &Value, _: &[Value], _: &mut Context) -> Result<Value> {
-    this.set_data(ObjectData::Function(Function::BuiltIn(
-        BuiltInFunction(|_, _, _| Ok(Value::undefined())),
-        FunctionFlags::CALLABLE | FunctionFlags::CONSTRUCTABLE,
-    )));
-    Ok(this.clone())
 }
 
 /// Creates a new constructor function
@@ -237,25 +226,26 @@ pub fn make_constructor_fn(
         length.into(),
         Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT,
     );
-    constructor.insert_property("length", length);
+    constructor.insert("length", length);
 
     let name = Property::data_descriptor(
         name.into(),
         Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT,
     );
-    constructor.insert_property("name", name);
+    constructor.insert("name", name);
 
     let constructor = Value::from(constructor);
 
-    prototype
-        .as_object_mut()
-        .unwrap()
-        .insert_field("constructor", constructor.clone());
+    prototype.as_object_mut().unwrap().insert_property(
+        "constructor",
+        constructor.clone(),
+        Attribute::all(),
+    );
 
     constructor
         .as_object_mut()
         .expect("constructor object")
-        .insert_field(PROTOTYPE, prototype);
+        .insert_property(PROTOTYPE, prototype, Attribute::all());
 
     constructor
 }
@@ -297,23 +287,48 @@ pub fn make_builtin_fn<N>(
             .get_field("Function")
             .get_field("prototype"),
     );
-    function.insert_field("length", Value::from(length));
+    function.insert_property("length", length, Attribute::all());
 
     parent
         .as_object_mut()
         .unwrap()
-        .insert_field(name, Value::from(function));
+        .insert_property(name, function, Attribute::all());
 }
 
-/// Initialise the `Function` object on the global object.
-#[inline]
-pub fn init(interpreter: &mut Context) -> (&'static str, Value) {
-    let global = interpreter.global_object();
-    let _timer = BoaProfiler::global().start_event("function", "init");
-    let prototype = Value::new_object(Some(global));
+#[derive(Debug, Clone, Copy)]
+pub struct BuiltInFunctionObject;
 
-    let function_object =
-        make_constructor_fn("Function", 1, make_function, global, prototype, true, true);
+impl BuiltInFunctionObject {
+    pub const LENGTH: usize = 1;
 
-    ("Function", function_object)
+    fn constructor(this: &Value, _args: &[Value], _context: &mut Context) -> Result<Value> {
+        this.set_data(ObjectData::Function(Function::BuiltIn(
+            BuiltInFunction(|_, _, _| Ok(Value::undefined())),
+            FunctionFlags::CALLABLE | FunctionFlags::CONSTRUCTABLE,
+        )));
+        Ok(this.clone())
+    }
+}
+
+impl BuiltIn for BuiltInFunctionObject {
+    const NAME: &'static str = "Function";
+
+    fn attribute() -> Attribute {
+        Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE
+    }
+
+    fn init(context: &mut Context) -> (&'static str, Value, Attribute) {
+        let _timer = BoaProfiler::global().start_event("function", "init");
+
+        let function_object = ConstructorBuilder::with_standard_object(
+            context,
+            Self::constructor,
+            context.standard_objects().function_object().clone(),
+        )
+        .name(Self::NAME)
+        .length(Self::LENGTH)
+        .build();
+
+        (Self::NAME, function_object.into(), Self::attribute())
+    }
 }

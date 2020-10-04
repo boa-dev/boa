@@ -147,20 +147,41 @@ struct TestSuite {
 /// Outcome of a test suite.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 struct SuiteResult {
+    #[serde(rename = "n")]
     name: Box<str>,
+    #[serde(rename = "c")]
     total: usize,
+    #[serde(rename = "p")]
     passed: usize,
+    #[serde(rename = "i")]
     ignored: usize,
     #[serde(skip_serializing_if = "Vec::is_empty")]
+    #[serde(rename = "s")]
     suites: Vec<SuiteResult>,
-    tests: Box<[TestResult]>,
+    #[serde(rename = "t")]
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    tests: Vec<TestResult>,
 }
 
 /// Outcome of a test.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 struct TestResult {
+    #[serde(rename = "n")]
     name: Box<str>,
-    passed: Option<bool>,
+    #[serde(rename = "r")]
+    result: TestOutcomeResult,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+enum TestOutcomeResult {
+    #[serde(rename = "O")]
+    Passed,
+    #[serde(rename = "I")]
+    Ignored,
+    #[serde(rename = "F")]
+    Failed,
+    #[serde(rename = "P")]
+    Panic,
 }
 
 /// Represents a test.

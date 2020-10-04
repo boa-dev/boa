@@ -28,6 +28,7 @@ pub(crate) use self::{
     console::Console,
     date::Date,
     error::{Error, RangeError, ReferenceError, SyntaxError, TypeError},
+    function::BuiltInFunctionObject,
     global_this::GlobalThis,
     infinity::Infinity,
     json::Json,
@@ -35,54 +36,64 @@ pub(crate) use self::{
     math::Math,
     nan::NaN,
     number::Number,
-    object::Object,
+    object::Object as BuiltInObjectObject,
     regexp::RegExp,
     string::String,
     symbol::Symbol,
     undefined::Undefined,
 };
-use crate::{Context, Value};
+use crate::{
+    property::{Attribute, Property},
+    Context, Value,
+};
+
+pub(crate) trait BuiltIn {
+    /// The binding name of the property.
+    const NAME: &'static str;
+
+    fn attribute() -> Attribute;
+    fn init(context: &mut Context) -> (&'static str, Value, Attribute);
+}
 
 /// Initializes builtin objects and functions
 #[inline]
-pub fn init(interpreter: &mut Context) {
+pub fn init(context: &mut Context) {
     let globals = [
-        // The `Function` global must be initialized before other types.
-        function::init,
-        Object::init,
-        Symbol::init,
+        // Global properties.
+        Undefined::init,
+        Infinity::init,
+        NaN::init,
+        GlobalThis::init,
+        BuiltInFunctionObject::init,
+        BuiltInObjectObject::init,
+        Math::init,
+        Json::init,
+        Console::init,
         Array::init,
         BigInt::init,
         Boolean::init,
         Date::init,
-        Json::init,
         Map::init,
-        Math::init,
         Number::init,
-        RegExp::init,
         String::init,
-        Console::init,
-        // Global error types.
+        RegExp::init,
+        Symbol::init,
         Error::init,
         RangeError::init,
         ReferenceError::init,
         TypeError::init,
         SyntaxError::init,
-        // Global properties.
-        NaN::init,
-        Infinity::init,
-        GlobalThis::init,
-        Undefined::init,
     ];
 
+    let global_object = if let Value::Object(global) = context.global_object() {
+        global.clone()
+    } else {
+        unreachable!("global object should always be an object")
+    };
+
     for init in &globals {
-        let (name, value) = init(interpreter);
-        let global = interpreter.global_object();
-        match global {
-            Value::Object(ref global_object) => {
-                global_object.borrow_mut().insert_field(name, value);
-            }
-            _ => unreachable!("expect global object"),
-        }
+        let (name, value, attribute) = init(context);
+        let property = Property::data_descriptor(value, attribute);
+        global_object.borrow_mut().insert(name, property);
     }
 }
