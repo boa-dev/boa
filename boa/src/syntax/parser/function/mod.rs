@@ -266,14 +266,23 @@ where
 
     fn parse(self, cursor: &mut Cursor<R>, strict_mode: bool) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("FunctionStatementList", "Parsing");
+
+        let mut func_scope_strict_mode = strict_mode;
         if let Some(tk) = cursor.peek(0)? {
-            if tk.kind() == &Punctuator::CloseBlock.into() {
-                return Ok(Vec::new().into());
+            match tk.kind() {
+                TokenKind::Punctuator(Punctuator::CloseBlock) => {
+                    return Ok(Vec::new().into());
+                }
+                TokenKind::StringLiteral(string) | TokenKind::TemplateLiteral(string) => {
+                    if string == &"use strict".into() {
+                        func_scope_strict_mode = true;
+                    }
+                }
+                _ => {}
             }
-            // If kind() == " or ' then check for strict directive.
         }
 
         StatementList::new(self.allow_yield, self.allow_await, true, true)
-            .parse(cursor, strict_mode)
+            .parse(cursor, func_scope_strict_mode)
     }
 }
