@@ -76,7 +76,7 @@ impl Executable for Call {
                 )
             }
             _ => (
-                interpreter.realm().global_obj.clone(),
+                interpreter.global_object().clone(),
                 self.expr().run(interpreter)?,
             ), // 'this' binding should come from the function's self-contained environment
         };

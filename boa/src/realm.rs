@@ -21,7 +21,7 @@ use rustc_hash::{FxHashMap, FxHashSet};
 /// In the specification these are called Realm Records.
 #[derive(Debug)]
 pub struct Realm {
-    pub global_obj: Value,
+    pub global_object: Value,
     pub global_env: Gc<GcCell<GlobalEnvironmentRecord>>,
     pub environment: LexicalEnvironment,
 }
@@ -40,7 +40,7 @@ impl Realm {
         let global_env = new_global_environment(global.clone(), global.clone());
 
         Self {
-            global_obj: global.clone(),
+            global_object: global.clone(),
             global_env,
             environment: LexicalEnvironment::new(global),
         }

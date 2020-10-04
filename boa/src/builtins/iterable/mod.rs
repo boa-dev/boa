@@ -16,7 +16,7 @@ pub struct IteratorPrototypes {
 }
 
 impl IteratorPrototypes {
-    pub fn init(ctx: &mut Context) -> Self {
+    pub(crate) fn init(ctx: &mut Context) -> Self {
         let iterator_prototype = create_iterator_prototype(ctx);
         Self {
             iterator_prototype: iterator_prototype
@@ -34,14 +34,17 @@ impl IteratorPrototypes {
         }
     }
 
+    #[inline]
     pub fn array_iterator(&self) -> GcObject {
         self.array_iterator.clone()
     }
 
+    #[inline]
     pub fn iterator_prototype(&self) -> GcObject {
         self.iterator_prototype.clone()
     }
 
+    #[inline]
     pub fn string_iterator(&self) -> GcObject {
         self.string_iterator.clone()
     }

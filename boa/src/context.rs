@@ -225,18 +225,22 @@ impl Default for Context {
 
 impl Context {
     /// Create a new `Context`.
+    #[inline]
     pub fn new() -> Self {
         Default::default()
     }
 
+    #[inline]
     pub fn realm(&self) -> &Realm {
         &self.realm
     }
 
+    #[inline]
     pub fn realm_mut(&mut self) -> &mut Realm {
         &mut self.realm
     }
 
+    #[inline]
     pub fn executor(&mut self) -> &mut Interpreter {
         &mut self.executor
     }
@@ -249,11 +253,13 @@ impl Context {
 
     /// A helper function for getting a mutable reference to the `console` object.
     #[cfg(feature = "console")]
+    #[inline]
     pub(crate) fn console_mut(&mut self) -> &mut Console {
         &mut self.console
     }
 
     /// Sets up the default global objects within Global
+    #[inline]
     fn create_intrinsics(&mut self) {
         let _timer = BoaProfiler::global().start_event("create_intrinsics", "interpreter");
         // Create intrinsics, add global objects here
@@ -287,6 +293,7 @@ impl Context {
     }
 
     /// <https://tc39.es/ecma262/#sec-call>
+    #[inline]
     pub(crate) fn call(&mut self, f: &Value, this: &Value, args: &[Value]) -> Result<Value> {
         match *f {
             Value::Object(ref object) => object.call(this, args, self),
@@ -295,11 +302,13 @@ impl Context {
     }
 
     /// Return the global object.
+    #[inline]
     pub fn global_object(&self) -> &Value {
-        &self.realm.global_obj
+        &self.realm().global_object
     }
 
     /// Constructs a `RangeError` with the specified message.
+    #[inline]
     pub fn construct_range_error<M>(&mut self, message: M) -> Value
     where
         M: Into<String>,
@@ -314,6 +323,7 @@ impl Context {
     }
 
     /// Throws a `RangeError` with the specified message.
+    #[inline]
     pub fn throw_range_error<M>(&mut self, message: M) -> Result<Value>
     where
         M: Into<String>,
@@ -322,6 +332,7 @@ impl Context {
     }
 
     /// Constructs a `TypeError` with the specified message.
+    #[inline]
     pub fn construct_type_error<M>(&mut self, message: M) -> Value
     where
         M: Into<String>,
@@ -336,6 +347,7 @@ impl Context {
     }
 
     /// Throws a `TypeError` with the specified message.
+    #[inline]
     pub fn throw_type_error<M>(&mut self, message: M) -> Result<Value>
     where
         M: Into<String>,
@@ -344,6 +356,7 @@ impl Context {
     }
 
     /// Constructs a `ReferenceError` with the specified message.
+    #[inline]
     pub fn construct_reference_error<M>(&mut self, message: M) -> Value
     where
         M: Into<String>,
@@ -357,6 +370,7 @@ impl Context {
     }
 
     /// Throws a `ReferenceError` with the specified message.
+    #[inline]
     pub fn throw_reference_error<M>(&mut self, message: M) -> Result<Value>
     where
         M: Into<String>,
@@ -365,6 +379,7 @@ impl Context {
     }
 
     /// Constructs a `SyntaxError` with the specified message.
+    #[inline]
     pub fn construct_syntax_error<M>(&mut self, message: M) -> Value
     where
         M: Into<String>,
@@ -378,6 +393,7 @@ impl Context {
     }
 
     /// Throws a `SyntaxError` with the specified message.
+    #[inline]
     pub fn throw_syntax_error<M>(&mut self, message: M) -> Result<Value>
     where
         M: Into<String>,
@@ -494,6 +510,7 @@ impl Context {
     }
 
     /// Register a global function.
+    #[inline]
     pub fn register_global_function(
         &mut self,
         name: &str,
@@ -556,6 +573,7 @@ impl Context {
     }
 
     /// https://tc39.es/ecma262/#sec-hasproperty
+    #[inline]
     pub(crate) fn has_property(&self, obj: &Value, key: &PropertyKey) -> bool {
         if let Some(obj) = obj.as_object() {
             obj.has_property(key)
@@ -564,6 +582,7 @@ impl Context {
         }
     }
 
+    #[inline]
     pub(crate) fn set_value(&mut self, node: &Node, value: Value) -> Result<Value> {
         match node {
             Node::Identifier(ref name) => {
@@ -598,6 +617,7 @@ impl Context {
     ///
     /// context.register_global_class::<MyClass>();
     /// ```
+    #[inline]
     pub fn register_global_class<T>(&mut self) -> Result<()>
     where
         T: Class,
@@ -630,6 +650,7 @@ impl Context {
     ///    .build();
     /// context.register_global_property("myObjectProperty", object, Attribute::all());
     /// ```
+    #[inline]
     pub fn register_global_property<K, V>(&mut self, key: K, value: V, attribute: Attribute)
     where
         K: Into<PropertyKey>,
@@ -655,6 +676,7 @@ impl Context {
     /// assert_eq!(value.as_number().unwrap(), 4.0);
     /// ```
     #[allow(clippy::unit_arg, clippy::drop_copy)]
+    #[inline]
     pub fn eval(&mut self, src: &str) -> Result<Value> {
         let main_timer = BoaProfiler::global().start_event("Main", "Main");
 
