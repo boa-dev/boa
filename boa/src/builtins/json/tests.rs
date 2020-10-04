@@ -315,3 +315,10 @@ fn json_fields_should_be_enumerable() {
     assert_eq!(actual_object, expected);
     assert_eq!(actual_array_index, expected);
 }
+
+#[test]
+fn json_parse_with_no_args_throws_syntax_error() {
+    let mut engine = Context::new();
+    let result = forward(&mut engine, "JSON.parse();");
+    assert!(result.contains("SyntaxError"));
+}
