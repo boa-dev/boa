@@ -351,3 +351,10 @@ fn assert_throws(engine: &mut Context, src: &str, error_type: &str) {
     let result = forward(engine, src);
     assert!(result.contains(error_type));
 }
+
+#[test]
+fn division_by_zero() {
+    let mut engine = Context::new();
+
+    assert_throws(&mut engine, "1n/0n", "RangeError");
+}
