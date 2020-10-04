@@ -4,6 +4,7 @@ use crate::{
     builtins::{
         self,
         function::{Function, FunctionFlags, NativeFunction},
+        iterable::IteratorPrototypes,
         symbol::{Symbol, WellKnownSymbols},
         Console,
     },
@@ -27,11 +28,136 @@ use crate::{
 };
 use std::result::Result as StdResult;
 
+/// Store a builtin constructor (such as `Object`) and its corresponding prototype.
+#[derive(Debug, Clone)]
+pub struct StandardConstructor {
+    pub(crate) constructor: GcObject,
+    pub(crate) prototype: GcObject,
+}
+
+impl Default for StandardConstructor {
+    fn default() -> Self {
+        Self {
+            constructor: GcObject::new(Object::default()),
+            prototype: GcObject::new(Object::default()),
+        }
+    }
+}
+
+impl StandardConstructor {
+    /// Return the constructor object.
+    ///
+    /// This is the same as `Object`, `Array`, etc.
+    #[inline]
+    pub fn constructor(&self) -> GcObject {
+        self.constructor.clone()
+    }
+
+    /// Return the prototype of the constructor object.
+    ///
+    /// This is the same as `Object.prototype`, `Array.prototype`, etc
+    #[inline]
+    pub fn prototype(&self) -> GcObject {
+        self.prototype.clone()
+    }
+}
+
+/// Cached core standard objects.
+#[derive(Debug, Clone, Default)]
+pub struct StandardObjects {
+    object: StandardConstructor,
+    function: StandardConstructor,
+    array: StandardConstructor,
+    bigint: StandardConstructor,
+    number: StandardConstructor,
+    boolean: StandardConstructor,
+    string: StandardConstructor,
+    regexp: StandardConstructor,
+    symbol: StandardConstructor,
+    error: StandardConstructor,
+    type_error: StandardConstructor,
+    referece_error: StandardConstructor,
+    range_error: StandardConstructor,
+    syntax_error: StandardConstructor,
+}
+
+impl StandardObjects {
+    #[inline]
+    pub fn object_object(&self) -> &StandardConstructor {
+        &self.object
+    }
+
+    #[inline]
+    pub fn function_object(&self) -> &StandardConstructor {
+        &self.function
+    }
+
+    #[inline]
+    pub fn array_object(&self) -> &StandardConstructor {
+        &self.array
+    }
+
+    #[inline]
+    pub fn bigint_object(&self) -> &StandardConstructor {
+        &self.bigint
+    }
+
+    #[inline]
+    pub fn number_object(&self) -> &StandardConstructor {
+        &self.number
+    }
+
+    #[inline]
+    pub fn boolean_object(&self) -> &StandardConstructor {
+        &self.boolean
+    }
+
+    #[inline]
+    pub fn string_object(&self) -> &StandardConstructor {
+        &self.string
+    }
+
+    #[inline]
+    pub fn regexp_object(&self) -> &StandardConstructor {
+        &self.regexp
+    }
+
+    #[inline]
+    pub fn symbol_object(&self) -> &StandardConstructor {
+        &self.symbol
+    }
+
+    #[inline]
+    pub fn error_object(&self) -> &StandardConstructor {
+        &self.error
+    }
+
+    #[inline]
+    pub fn reference_error_object(&self) -> &StandardConstructor {
+        &self.referece_error
+    }
+
+    #[inline]
+    pub fn type_error_object(&self) -> &StandardConstructor {
+        &self.type_error
+    }
+
+    #[inline]
+    pub fn range_error_object(&self) -> &StandardConstructor {
+        &self.range_error
+    }
+
+    #[inline]
+    pub fn syntax_error_object(&self) -> &StandardConstructor {
+        &self.syntax_error
+    }
+}
+
 /// Javascript context. It is the primary way to interact with the runtime.
 ///
-/// For each `Context` instance a new instance of runtime is created.
-/// It means that it is safe to use different contexts in different threads,
-/// but each `Context` instance must be used only from a single thread.
+/// `Context`s constructed in a thread share the same runtime, therefore it
+/// is possible to share objects from one context to another context, but they
+/// have to be in the same thread.
 #[derive(Debug)]
 pub struct Context {
     /// realm holds both the global object and the environment
@@ -50,6 +176,12 @@ pub struct Context {
 
     /// Cached well known symbols
     well_known_symbols: WellKnownSymbols,
+
+    /// Cached iterator prototypes.
+    iterator_prototypes: IteratorPrototypes,
+
+    /// Cached standard objects and their prototypes
+    standard_objects: StandardObjects,
 }
 
 impl Default for Context {
@@ -63,13 +195,15 @@ impl Default for Context {
             symbol_count,
             console: Console::default(),
             well_known_symbols,
+            iterator_prototypes: IteratorPrototypes::default(),
+            standard_objects: Default::default(),
         };
 
         // Add new builtIns to Context Realm
         // At a later date this can be removed from here and called explicitly,
         // but for now we almost always want these default builtins
         context.create_intrinsics();
-
+        context.iterator_prototypes = IteratorPrototypes::init(&mut context);
         context
     }
 }
@@ -460,7 +594,7 @@ impl Context {
         self.global_object()
             .as_object_mut()
             .unwrap()
-            .insert_property(T::NAME, property);
+            .insert(T::NAME, property);
         Ok(())
     }
 
@@ -488,7 +622,7 @@ impl Context {
 
         let result = match Self::parser_expr(src) {
             Ok(expr) => expr.run(self),
-            Err(e) => self.throw_type_error(e),
+            Err(e) => self.throw_syntax_error(e),
         };
 
         // The main_timer needs to be dropped before the BoaProfiler is.
@@ -512,5 +646,17 @@ impl Context {
     #[inline]
     pub fn well_known_symbols(&self) -> &WellKnownSymbols {
         &self.well_known_symbols
+    }
+
+    /// Return the cached iterator prototypes.
+    #[inline]
+    pub fn iterator_prototypes(&self) -> &IteratorPrototypes {
+        &self.iterator_prototypes
+    }
+
+    /// Return the core standard objects.
+    #[inline]
+    pub fn standard_objects(&self) -> &StandardObjects {
+        &self.standard_objects
     }
 }

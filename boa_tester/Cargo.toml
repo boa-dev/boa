@@ -1,7 +1,7 @@
 [package]
 name = "boa_tester"
-version = "0.9.0"
-authors = ["Iban Eguia Moraza <razican@protonmail.ch>"]
+version = "0.10.0"
+authors = ["boa-dev"]
 description = "Boa is a Javascript lexer, parser and Just-in-Time compiler written in Rust. Currently, it has support for some of the language."
 repository = "https://github.com/boa-dev/boa"
 keywords = ["javascript", "compiler", "test262", "tester", "js"]
@@ -21,3 +21,5 @@ regex = "1.3.9"
 once_cell = "1.4.1"
 colored = "2.0.0"
 fxhash = "0.2.1"
+git2 = "0.13.11"
+hex = "0.4.2"

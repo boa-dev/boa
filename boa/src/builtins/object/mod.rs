@@ -14,9 +14,9 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object
 
 use crate::{
-    builtins::function::{make_builtin_fn, make_constructor_fn},
-    object::{Object as BuiltinObject, ObjectData},
-    property::Property,
+    builtins::BuiltIn,
+    object::{ConstructorBuilder, Object as BuiltinObject, ObjectData},
+    property::{Attribute, Property},
     value::{same_value, Value},
     BoaProfiler, Context, Result,
 };
@@ -28,15 +28,48 @@ mod tests;
 #[derive(Debug, Clone, Copy)]
 pub struct Object;
 
+impl BuiltIn for Object {
+    const NAME: &'static str = "Object";
+
+    fn attribute() -> Attribute {
+        Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE
+    }
+
+    fn init(context: &mut Context) -> (&'static str, Value, Attribute) {
+        let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
+
+        let object = ConstructorBuilder::with_standard_object(
+            context,
+            Self::constructor,
+            context.standard_objects().object_object().clone(),
+        )
+        .name(Self::NAME)
+        .length(Self::LENGTH)
+        .inherit(Value::null())
+        .method(Self::has_own_property, "hasOwnProperty", 0)
+        .method(Self::property_is_enumerable, "propertyIsEnumerable", 0)
+        .method(Self::to_string, "toString", 0)
+        .static_method(Self::create, "create", 2)
+        .static_method(Self::set_prototype_of, "setPrototypeOf", 2)
+        .static_method(Self::get_prototype_of, "getPrototypeOf", 1)
+        .static_method(Self::define_property, "defineProperty", 3)
+        .static_method(Self::is, "is", 2)
+        .build();
+
+        (Self::NAME, object.into(), Self::attribute())
+    }
+}
+
 impl Object {
-    /// Create a new object.
-    pub fn make_object(_: &Value, args: &[Value], ctx: &mut Context) -> Result<Value> {
+    const LENGTH: usize = 1;
+
+    fn constructor(_: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
         if let Some(arg) = args.get(0) {
             if !arg.is_null_or_undefined() {
-                return Ok(arg.to_object(ctx)?.into());
+                return Ok(arg.to_object(context)?.into());
             }
         }
-        let global = ctx.global_object();
+        let global = context.global_object();
 
         Ok(Value::new_object(Some(global)))
     }
@@ -98,7 +131,10 @@ impl Object {
     /// Define a property in an object
     pub fn define_property(_: &Value, args: &[Value], ctx: &mut Context) -> Result<Value> {
         let obj = args.get(0).expect("Cannot get object");
-        let prop = args.get(1).expect("Cannot get object").to_string(ctx)?;
+        let prop = args
+            .get(1)
+            .expect("Cannot get object")
+            .to_property_key(ctx)?;
         let desc = Property::from(args.get(2).expect("Cannot get object"));
         obj.set_property(prop, desc);
         Ok(Value::undefined())
@@ -191,67 +227,5 @@ impl Object {
         Ok(own_property.map_or(Value::from(false), |own_prop| {
             Value::from(own_prop.enumerable_or(false))
         }))
-    }
-
-    /// Initialise the `Object` object on the global object.
-    #[inline]
-    pub fn init(interpreter: &mut Context) -> (&'static str, Value) {
-        let global = interpreter.global_object();
-        let _timer = BoaProfiler::global().start_event("object", "init");
-
-        let prototype = Value::new_object(None);
-
-        make_builtin_fn(
-            Self::has_own_property,
-            "hasOwnProperty",
-            &prototype,
-            0,
-            interpreter,
-        );
-        make_builtin_fn(
-            Self::property_is_enumerable,
-            "propertyIsEnumerable",
-            &prototype,
-            0,
-            interpreter,
-        );
-        make_builtin_fn(Self::to_string, "toString", &prototype, 0, interpreter);
-
-        let object = make_constructor_fn(
-            "Object",
-            1,
-            Self::make_object,
-            global,
-            prototype,
-            true,
-            true,
-        );
-
-        // static methods of the builtin Object
-        make_builtin_fn(Self::create, "create", &object, 2, interpreter);
-        make_builtin_fn(
-            Self::set_prototype_of,
-            "setPrototypeOf",
-            &object,
-            2,
-            interpreter,
-        );
-        make_builtin_fn(
-            Self::get_prototype_of,
-            "getPrototypeOf",
-            &object,
-            1,
-            interpreter,
-        );
-        make_builtin_fn(
-            Self::define_property,
-            "defineProperty",
-            &object,
-            3,
-            interpreter,
-        );
-        make_builtin_fn(Self::is, "is", &object, 2, interpreter);
-
-        ("Object", object)
     }
 }

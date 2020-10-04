@@ -10,9 +10,10 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RangeError
 
 use crate::{
-    builtins::{function::make_builtin_fn, function::make_constructor_fn},
-    object::ObjectData,
+    builtins::BuiltIn,
+    object::{ConstructorBuilder, ObjectData},
     profiler::BoaProfiler,
+    property::Attribute,
     Context, Result, Value,
 };
 
@@ -20,15 +21,40 @@ use crate::{
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct RangeError;
 
-impl RangeError {
-    /// The name of the object.
-    pub(crate) const NAME: &'static str = "RangeError";
+impl BuiltIn for RangeError {
+    const NAME: &'static str = "RangeError";
 
+    fn attribute() -> Attribute {
+        Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE
+    }
+
+    fn init(context: &mut Context) -> (&'static str, Value, Attribute) {
+        let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
+
+        let error_prototype = context.standard_objects().error_object().prototype();
+        let attribute = Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE;
+        let range_error_object = ConstructorBuilder::with_standard_object(
+            context,
+            Self::constructor,
+            context.standard_objects().range_error_object().clone(),
+        )
+        .name(Self::NAME)
+        .length(Self::LENGTH)
+        .inherit(error_prototype.into())
+        .property("name", Self::NAME, attribute)
+        .property("message", "", attribute)
+        .build();
+
+        (Self::NAME, range_error_object.into(), Self::attribute())
+    }
+}
+
+impl RangeError {
     /// The amount of arguments this function object takes.
     pub(crate) const LENGTH: usize = 1;
 
     /// Create a new error object.
-    pub(crate) fn make_error(this: &Value, args: &[Value], ctx: &mut Context) -> Result<Value> {
+    pub(crate) fn constructor(this: &Value, args: &[Value], ctx: &mut Context) -> Result<Value> {
         if let Some(message) = args.get(0) {
             this.set_field("message", message.to_string(ctx)?);
         }
@@ -37,72 +63,5 @@ impl RangeError {
         // to its Javascript Identifier (global constructor method name)
         this.set_data(ObjectData::Error);
         Ok(this.clone())
-    }
-
-    /// `Error.prototype.toString()`
-    ///
-    /// The toString() method returns a string representing the specified Error object.
-    ///
-    /// More information:
-    ///  - [MDN documentation][mdn]
-    ///  - [ECMAScript reference][spec]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-error.prototype.tostring
-    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error/toString
-    #[allow(clippy::wrong_self_convention)]
-    pub(crate) fn to_string(this: &Value, _: &[Value], ctx: &mut Context) -> Result<Value> {
-        if !this.is_object() {
-            return ctx.throw_type_error("'this' is not an Object");
-        }
-        let name = this.get_field("name");
-        let name_to_string;
-        let name = if name.is_undefined() {
-            "Error"
-        } else {
-            name_to_string = name.to_string(ctx)?;
-            name_to_string.as_str()
-        };
-
-        let message = this.get_field("message");
-        let message_to_string;
-        let message = if message.is_undefined() {
-            ""
-        } else {
-            message_to_string = message.to_string(ctx)?;
-            message_to_string.as_str()
-        };
-
-        if name == "" {
-            Ok(Value::from(message))
-        } else if message == "" {
-            Ok(Value::from(name))
-        } else {
-            Ok(Value::from(format!("{}: {}", name, message)))
-        }
-    }
-
-    /// Initialise the global object with the `RangeError` object.
-    #[inline]
-    pub(crate) fn init(interpreter: &mut Context) -> (&'static str, Value) {
-        let global = interpreter.global_object();
-        let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
-
-        let prototype = Value::new_object(Some(global));
-        prototype.set_field("name", Self::NAME);
-        prototype.set_field("message", "");
-
-        make_builtin_fn(Self::to_string, "toString", &prototype, 0, interpreter);
-
-        let range_error_object = make_constructor_fn(
-            Self::NAME,
-            Self::LENGTH,
-            Self::make_error,
-            global,
-            prototype,
-            true,
-            true,
-        );
-
-        (Self::NAME, range_error_object)
     }
 }

@@ -1,8 +1,8 @@
 #![allow(clippy::mutable_key_type)]
 
-use super::function::{make_builtin_fn, make_constructor_fn};
 use crate::{
-    object::{ObjectData, PROTOTYPE},
+    builtins::BuiltIn,
+    object::{ConstructorBuilder, ObjectData, PROTOTYPE},
     property::{Attribute, Property},
     BoaProfiler, Context, Result, Value,
 };
@@ -15,10 +15,88 @@ mod tests;
 #[derive(Debug, Clone)]
 pub(crate) struct Map(OrderedMap<Value, Value>);
 
-impl Map {
-    pub(crate) const NAME: &'static str = "Map";
+impl BuiltIn for Map {
+    const NAME: &'static str = "Map";
 
+    fn attribute() -> Attribute {
+        Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE
+    }
+
+    fn init(context: &mut Context) -> (&'static str, Value, Attribute) {
+        let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
+
+        let map_object = ConstructorBuilder::new(context, Self::constructor)
+            .name(Self::NAME)
+            .length(Self::LENGTH)
+            .method(Self::set, "set", 2)
+            .method(Self::delete, "delete", 1)
+            .method(Self::get, "get", 1)
+            .method(Self::clear, "clear", 0)
+            .method(Self::has, "has", 1)
+            .method(Self::for_each, "forEach", 1)
+            .callable(false)
+            .build();
+
+        (Self::NAME, map_object.into(), Self::attribute())
+    }
+}
+
+impl Map {
     pub(crate) const LENGTH: usize = 1;
+
+    /// Create a new map
+    pub(crate) fn constructor(this: &Value, args: &[Value], ctx: &mut Context) -> Result<Value> {
+        // Set Prototype
+        let prototype = ctx.global_object().get_field("Map").get_field(PROTOTYPE);
+
+        this.as_object_mut()
+            .expect("this is map object")
+            .set_prototype_instance(prototype);
+        // This value is used by console.log and other routines to match Object type
+        // to its Javascript Identifier (global constructor method name)
+
+        // add our arguments in
+        let data = match args.len() {
+            0 => OrderedMap::new(),
+            _ => match &args[0] {
+                Value::Object(object) => {
+                    let object = object.borrow();
+                    if let Some(map) = object.as_map_ref().cloned() {
+                        map
+                    } else if object.is_array() {
+                        let mut map = OrderedMap::new();
+                        let len = args[0].get_field("length").to_integer(ctx)? as i32;
+                        for i in 0..len {
+                            let val = &args[0].get_field(i.to_string());
+                            let (key, value) = Self::get_key_value(val).ok_or_else(|| {
+                                ctx.construct_type_error(
+                                    "iterable for Map should have array-like objects",
+                                )
+                                .expect_err("&str used as message")
+                            })?;
+                            map.insert(key, value);
+                        }
+                        map
+                    } else {
+                        return Err(ctx.construct_type_error(
+                            "iterable for Map should have array-like objects",
+                        )?);
+                    }
+                }
+                _ => {
+                    return Err(ctx
+                        .construct_type_error("iterable for Map should have array-like objects")?)
+                }
+            },
+        };
+
+        // finally create length property
+        Self::set_size(this, data.len());
+
+        this.set_data(ObjectData::Map(data));
+
+        Ok(this.clone())
+    }
 
     /// Helper function to set the size property.
     fn set_size(this: &Value, size: usize) {
@@ -220,90 +298,5 @@ impl Map {
             }
         }
         None
-    }
-
-    /// Create a new map
-    pub(crate) fn make_map(this: &Value, args: &[Value], ctx: &mut Context) -> Result<Value> {
-        // Make a new Object which will internally represent the Array (mapping
-        // between indices and values): this creates an Object with no prototype
-
-        // Set Prototype
-        let prototype = ctx.global_object().get_field("Map").get_field(PROTOTYPE);
-
-        this.as_object_mut()
-            .expect("this is array object")
-            .set_prototype_instance(prototype);
-        // This value is used by console.log and other routines to match Object type
-        // to its Javascript Identifier (global constructor method name)
-
-        // add our arguments in
-        let data = match args.len() {
-            0 => OrderedMap::new(),
-            _ => match &args[0] {
-                Value::Object(object) => {
-                    let object = object.borrow();
-                    if let Some(map) = object.as_map_ref().cloned() {
-                        map
-                    } else if object.is_array() {
-                        let mut map = OrderedMap::new();
-                        let len = args[0].get_field("length").to_integer(ctx)? as i32;
-                        for i in 0..len {
-                            let val = &args[0].get_field(i.to_string());
-                            let (key, value) = Self::get_key_value(val).ok_or_else(|| {
-                                ctx.construct_type_error(
-                                    "iterable for Map should have array-like objects",
-                                )
-                                .expect("&str used as message")
-                            })?;
-                            map.insert(key, value);
-                        }
-                        map
-                    } else {
-                        return Err(ctx.construct_type_error(
-                            "iterable for Map should have array-like objects",
-                        )?);
-                    }
-                }
-                _ => {
-                    return Err(ctx
-                        .construct_type_error("iterable for Map should have array-like objects")?)
-                }
-            },
-        };
-
-        // finally create length property
-        Self::set_size(this, data.len());
-
-        this.set_data(ObjectData::Map(data));
-
-        Ok(this.clone())
-    }
-
-    /// Initialise the `Map` object on the global object.
-    pub(crate) fn init(interpreter: &mut Context) -> (&'static str, Value) {
-        let global = interpreter.global_object();
-        let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
-
-        // Create prototype
-        let prototype = Value::new_object(Some(global));
-
-        make_builtin_fn(Self::set, "set", &prototype, 2, interpreter);
-        make_builtin_fn(Self::delete, "delete", &prototype, 1, interpreter);
-        make_builtin_fn(Self::get, "get", &prototype, 1, interpreter);
-        make_builtin_fn(Self::clear, "clear", &prototype, 0, interpreter);
-        make_builtin_fn(Self::has, "has", &prototype, 1, interpreter);
-        make_builtin_fn(Self::for_each, "forEach", &prototype, 1, interpreter);
-
-        let map_object = make_constructor_fn(
-            Self::NAME,
-            Self::LENGTH,
-            Self::make_map,
-            global,
-            prototype,
-            true,
-            false,
-        );
-
-        (Self::NAME, map_object)
     }
 }

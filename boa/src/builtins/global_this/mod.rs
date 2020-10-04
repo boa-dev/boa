@@ -10,7 +10,7 @@
 //! [spec]: https://tc39.es/ecma262/#sec-globalthis
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/globalThis
 
-use crate::{BoaProfiler, Context, Value};
+use crate::{builtins::BuiltIn, property::Attribute, BoaProfiler, Context, Value};
 
 #[cfg(test)]
 mod tests;
@@ -18,16 +18,20 @@ mod tests;
 /// The JavaScript `globalThis`.
 pub(crate) struct GlobalThis;
 
-impl GlobalThis {
-    /// The binding name of the property.
-    pub(crate) const NAME: &'static str = "globalThis";
+impl BuiltIn for GlobalThis {
+    const NAME: &'static str = "globalThis";
 
-    /// Initialize the `globalThis` property on the global object.
-    #[inline]
-    pub(crate) fn init(interpreter: &mut Context) -> (&'static str, Value) {
-        let global = interpreter.global_object();
+    fn attribute() -> Attribute {
+        Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE
+    }
+
+    fn init(context: &mut Context) -> (&'static str, Value, Attribute) {
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
-        (Self::NAME, global.clone())
+        (
+            Self::NAME,
+            context.global_object().clone(),
+            Self::attribute(),
+        )
     }
 }

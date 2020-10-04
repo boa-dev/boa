@@ -13,9 +13,11 @@
 //! [spec]: https://tc39.es/ecma262/#sec-number-object
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number
 
-use super::function::{make_builtin_fn, make_constructor_fn};
+use super::function::make_builtin_fn;
 use crate::{
-    object::ObjectData,
+    builtins::BuiltIn,
+    object::{ConstructorBuilder, ObjectData},
+    property::Attribute,
     value::{AbstractRelation, Value},
     BoaProfiler, Context, Result,
 };
@@ -40,10 +42,67 @@ const PARSE_INT_MAX_ARG_COUNT: usize = 2;
 /// Maximum number of arguments expected to the builtin parseFloat() function.
 const PARSE_FLOAT_MAX_ARG_COUNT: usize = 1;
 
-impl Number {
-    /// The name of the object.
-    pub(crate) const NAME: &'static str = "Number";
+impl BuiltIn for Number {
+    const NAME: &'static str = "Number";
 
+    fn attribute() -> Attribute {
+        Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE
+    }
+
+    fn init(context: &mut Context) -> (&'static str, Value, Attribute) {
+        let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
+
+        let attribute = Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT;
+        let number_object = ConstructorBuilder::with_standard_object(
+            context,
+            Self::constructor,
+            context.standard_objects().number_object().clone(),
+        )
+        .name(Self::NAME)
+        .length(Self::LENGTH)
+        .static_property("EPSILON", f64::EPSILON, attribute)
+        .static_property("MAX_SAFE_INTEGER", Self::MAX_SAFE_INTEGER, attribute)
+        .static_property("MIN_SAFE_INTEGER", Self::MIN_SAFE_INTEGER, attribute)
+        .static_property("MAX_VALUE", Self::MAX_VALUE, attribute)
+        .static_property("MIN_VALUE", Self::MIN_VALUE, attribute)
+        .static_property("NEGATIVE_INFINITY", f64::NEG_INFINITY, attribute)
+        .static_property("POSITIVE_INFINITY", f64::INFINITY, attribute)
+        .static_property("NaN", f64::NAN, attribute)
+        .method(Self::to_exponential, "toExponential", 1)
+        .method(Self::to_fixed, "toFixed", 1)
+        .method(Self::to_locale_string, "toLocaleString", 0)
+        .method(Self::to_precision, "toPrecision", 1)
+        .method(Self::to_string, "toString", 1)
+        .method(Self::value_of, "valueOf", 0)
+        .static_method(Self::number_is_finite, "isFinite", 1)
+        .static_method(Self::number_is_nan, "isNaN", 1)
+        .static_method(Self::is_safe_integer, "isSafeInteger", 1)
+        .static_method(Self::number_is_integer, "isInteger", 1)
+        .build();
+
+        let global = context.global_object().clone();
+        make_builtin_fn(
+            Self::parse_int,
+            "parseInt",
+            &global,
+            PARSE_INT_MAX_ARG_COUNT,
+            context,
+        );
+        make_builtin_fn(
+            Self::parse_float,
+            "parseFloat",
+            &global,
+            PARSE_FLOAT_MAX_ARG_COUNT,
+            context,
+        );
+        make_builtin_fn(Self::global_is_finite, "isFinite", &global, 1, context);
+        make_builtin_fn(Self::global_is_nan, "isNaN", &global, 1, context);
+
+        (Self::NAME, number_object.into(), Self::attribute())
+    }
+}
+
+impl Number {
     /// The amount of arguments this function object takes.
     pub(crate) const LENGTH: usize = 1;
 
@@ -93,6 +152,17 @@ impl Number {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/MIN_VALUE
     pub(crate) const MIN_VALUE: f64 = f64::MIN;
 
+    /// `Number( value )`
+    pub(crate) fn constructor(this: &Value, args: &[Value], ctx: &mut Context) -> Result<Value> {
+        let data = match args.get(0) {
+            Some(ref value) => value.to_numeric_number(ctx)?,
+            None => 0.0,
+        };
+        this.set_data(ObjectData::Number(data));
+
+        Ok(Value::from(data))
+    }
+
     /// This function returns a `Result` of the number `Value`.
     ///
     /// If the `Value` is a `Number` primitive of `Number` object the number is returned.
@@ -124,19 +194,6 @@ impl Number {
             x if x == 0.0 => format!("{:e}", n).replace("e", "e+"),
             _ => format!("{:e}", n),
         }
-    }
-
-    /// `[[Construct]]` - Creates a Number instance
-    ///
-    /// `[[Call]]` - Creates a number primitive
-    pub(crate) fn make_number(this: &Value, args: &[Value], ctx: &mut Context) -> Result<Value> {
-        let data = match args.get(0) {
-            Some(ref value) => value.to_numeric_number(ctx)?,
-            None => 0.0,
-        };
-        this.set_data(ObjectData::Number(data));
-
-        Ok(Value::from(data))
     }
 
     /// `Number.prototype.toExponential( [fractionDigits] )`
@@ -716,107 +773,6 @@ impl Number {
     #[allow(clippy::float_cmp)]
     pub(crate) fn is_float_integer(number: f64) -> bool {
         number.is_finite() && number.abs().floor() == number.abs()
-    }
-
-    /// Initialise the `Number` object on the global object.
-    #[inline]
-    pub(crate) fn init(interpreter: &mut Context) -> (&'static str, Value) {
-        let global = interpreter.global_object();
-        let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
-
-        let prototype = Value::new_object(Some(global));
-
-        make_builtin_fn(
-            Self::to_exponential,
-            "toExponential",
-            &prototype,
-            1,
-            interpreter,
-        );
-        make_builtin_fn(Self::to_fixed, "toFixed", &prototype, 1, interpreter);
-        make_builtin_fn(
-            Self::to_locale_string,
-            "toLocaleString",
-            &prototype,
-            0,
-            interpreter,
-        );
-        make_builtin_fn(
-            Self::to_precision,
-            "toPrecision",
-            &prototype,
-            1,
-            interpreter,
-        );
-        make_builtin_fn(Self::to_string, "toString", &prototype, 1, interpreter);
-        make_builtin_fn(Self::value_of, "valueOf", &prototype, 0, interpreter);
-
-        make_builtin_fn(
-            Self::parse_int,
-            "parseInt",
-            global,
-            PARSE_INT_MAX_ARG_COUNT,
-            interpreter,
-        );
-        make_builtin_fn(
-            Self::parse_float,
-            "parseFloat",
-            global,
-            PARSE_FLOAT_MAX_ARG_COUNT,
-            interpreter,
-        );
-
-        make_builtin_fn(Self::global_is_finite, "isFinite", global, 1, interpreter);
-        make_builtin_fn(Self::global_is_nan, "isNaN", global, 1, interpreter);
-
-        let number_object = make_constructor_fn(
-            Self::NAME,
-            Self::LENGTH,
-            Self::make_number,
-            global,
-            prototype,
-            true,
-            true,
-        );
-
-        make_builtin_fn(
-            Self::number_is_finite,
-            "isFinite",
-            &number_object,
-            1,
-            interpreter,
-        );
-        make_builtin_fn(Self::number_is_nan, "isNaN", &number_object, 1, interpreter);
-        make_builtin_fn(
-            Self::is_safe_integer,
-            "isSafeInteger",
-            &number_object,
-            1,
-            interpreter,
-        );
-        make_builtin_fn(
-            Self::number_is_integer,
-            "isInteger",
-            &number_object,
-            1,
-            interpreter,
-        );
-
-        // Constants from:
-        // https://tc39.es/ecma262/#sec-properties-of-the-number-constructor
-        {
-            let mut properties = number_object.as_object_mut().expect("'Number' object");
-            properties.insert_field("EPSILON", Value::from(f64::EPSILON));
-            properties.insert_field("MAX_SAFE_INTEGER", Value::from(Self::MAX_SAFE_INTEGER));
-            properties.insert_field("MIN_SAFE_INTEGER", Value::from(Self::MIN_SAFE_INTEGER));
-            properties.insert_field("MAX_VALUE", Value::from(Self::MAX_VALUE));
-            properties.insert_field("MIN_VALUE", Value::from(Self::MIN_VALUE));
-            properties.insert_field("NEGATIVE_INFINITY", Value::from(f64::NEG_INFINITY));
-            properties.insert_field("POSITIVE_INFINITY", Value::from(f64::INFINITY));
-            properties.insert_field("NaN", Value::from(f64::NAN));
-        }
-
-        (Self::NAME, number_object)
     }
 
     /// The abstract operation Number::equal takes arguments

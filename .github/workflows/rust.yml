@@ -54,6 +54,21 @@ jobs:
           command: check
           args: -v
 
+  check_on_macos:
+    name: Check on MacOS
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+          profile: minimal
+      - uses: actions-rs/cargo@v1
+        with:
+          command: check
+          args: -v
+
   test_on_linux:
     name: Test Suite on Linux
     runs-on: ubuntu-latest
@@ -85,12 +100,29 @@ jobs:
           args: -v
       - name: Run cargo-tarpaulin
         uses: actions-rs/tarpaulin@v0.1
+        with:
+          args: --ignore-tests
       - name: Upload to codecov.io
         uses: codecov/codecov-action@v1
 
   test_on_windows:
     name: Test Suite on Windows
     runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+          profile: minimal
+      - uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: -v
+
+  test_on_macos:
+    name: Test Suite on MacOS
+    runs-on: macos-latest
     steps:
       - uses: actions/checkout@v2
       - uses: actions-rs/toolchain@v1

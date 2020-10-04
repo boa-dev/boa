@@ -38,9 +38,11 @@ use self::{
 
 use super::{AllowAwait, AllowReturn, AllowYield, Cursor, ParseError, TokenParser};
 
-use crate::syntax::lexer::{InputElement, TokenKind};
 use crate::{
-    syntax::ast::{node, Keyword, Node, Punctuator},
+    syntax::{
+        ast::{node, Keyword, Node, Punctuator},
+        lexer::{InputElement, TokenKind},
+    },
     BoaProfiler,
 };
 use labelled_stm::LabelledStatement;
@@ -373,7 +375,7 @@ where
             TokenKind::Keyword(Keyword::Function)
             | TokenKind::Keyword(Keyword::Const)
             | TokenKind::Keyword(Keyword::Let) => {
-                Declaration::new(self.allow_yield, self.allow_await).parse(cursor)
+                Declaration::new(self.allow_yield, self.allow_await, true).parse(cursor)
             }
             _ => {
                 Statement::new(self.allow_yield, self.allow_await, self.allow_return).parse(cursor)

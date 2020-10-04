@@ -61,12 +61,11 @@
 //! [class-trait]: ./trait.Class.html
 
 use crate::{
-    builtins::function::{BuiltInFunction, Function, FunctionFlags, NativeFunction},
-    object::{GcObject, NativeObject, Object, ObjectData, PROTOTYPE},
-    property::{Attribute, Property, PropertyKey},
+    builtins::function::NativeFunction,
+    object::{ConstructorBuilder, GcObject, NativeObject, ObjectData},
+    property::{Attribute, PropertyKey},
     Context, Result, Value,
 };
-use std::fmt::Debug;
 
 /// Native class.
 pub trait Class: NativeObject + Sized {
@@ -108,157 +107,84 @@ impl<T: Class> ClassConstructor for T {
 /// Class builder which allows adding methods and static methods to the class.
 #[derive(Debug)]
 pub struct ClassBuilder<'context> {
-    /// The current context.
-    context: &'context mut Context,
-
-    /// The constructor object.
-    object: GcObject,
-
-    /// The prototype of the object.
-    prototype: GcObject,
+    builder: ConstructorBuilder<'context>,
 }
 
 impl<'context> ClassBuilder<'context> {
+    #[inline]
     pub(crate) fn new<T>(context: &'context mut Context) -> Self
     where
         T: ClassConstructor,
     {
-        let global = context.global_object();
-
-        let prototype = {
-            let object_prototype = global.get_field("Object").get_field(PROTOTYPE);
-
-            let object = Object::create(object_prototype);
-            GcObject::new(object)
-        };
-        // Create the native function
-        let function = Function::BuiltIn(
-            BuiltInFunction(T::raw_constructor),
-            FunctionFlags::CONSTRUCTABLE,
-        );
-
-        // Get reference to Function.prototype
-        // Create the function object and point its instance prototype to Function.prototype
-        let mut constructor =
-            Object::function(function, global.get_field("Function").get_field(PROTOTYPE));
-
-        let length = Property::data_descriptor(
-            T::LENGTH.into(),
-            Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT,
-        );
-        constructor.insert_property("length", length);
-
-        let name = Property::data_descriptor(
-            T::NAME.into(),
-            Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT,
-        );
-        constructor.insert_property("name", name);
-
-        let constructor = GcObject::new(constructor);
-
-        prototype
-            .borrow_mut()
-            .insert_field("constructor", constructor.clone().into());
-
-        constructor
-            .borrow_mut()
-            .insert_field(PROTOTYPE, prototype.clone().into());
-
-        Self {
-            context,
-            object: constructor,
-            prototype,
-        }
+        let mut builder = ConstructorBuilder::new(context, T::raw_constructor);
+        builder.name(T::NAME);
+        builder.length(T::LENGTH);
+        Self { builder }
     }
 
-    pub(crate) fn build(self) -> GcObject {
-        self.object
+    #[inline]
+    pub(crate) fn build(mut self) -> GcObject {
+        self.builder.build()
     }
 
     /// Add a method to the class.
     ///
     /// It is added to `prototype`.
-    pub fn method<N>(&mut self, name: N, length: usize, function: NativeFunction)
+    #[inline]
+    pub fn method<N>(&mut self, name: N, length: usize, function: NativeFunction) -> &mut Self
     where
-        N: Into<String>,
+        N: AsRef<str>,
     {
-        let name = name.into();
-        let mut function = Object::function(
-            Function::BuiltIn(function.into(), FunctionFlags::CALLABLE),
-            self.context
-                .global_object()
-                .get_field("Function")
-                .get_field("prototype"),
-        );
-
-        function.insert_field("length", Value::from(length));
-        function.insert_field("name", Value::from(name.as_str()));
-
-        self.prototype
-            .borrow_mut()
-            .insert_field(name, Value::from(function));
+        self.builder.method(function, name.as_ref(), length);
+        self
     }
 
     /// Add a static method to the class.
     ///
     /// It is added to class object itself.
-    pub fn static_method<N>(&mut self, name: N, length: usize, function: NativeFunction)
+    #[inline]
+    pub fn static_method<N>(
+        &mut self,
+        name: N,
+        length: usize,
+        function: NativeFunction,
+    ) -> &mut Self
     where
-        N: Into<String>,
+        N: AsRef<str>,
     {
-        let name = name.into();
-        let mut function = Object::function(
-            Function::BuiltIn(function.into(), FunctionFlags::CALLABLE),
-            self.context
-                .global_object()
-                .get_field("Function")
-                .get_field("prototype"),
-        );
-
-        function.insert_field("length", Value::from(length));
-        function.insert_field("name", Value::from(name.as_str()));
-
-        self.object
-            .borrow_mut()
-            .insert_field(name, Value::from(function));
+        self.builder.static_method(function, name.as_ref(), length);
+        self
     }
 
     /// Add a property to the class, with the specified attribute.
     ///
     /// It is added to `prototype`.
     #[inline]
-    pub fn property<K, V>(&mut self, key: K, value: V, attribute: Attribute)
+    pub fn property<K, V>(&mut self, key: K, value: V, attribute: Attribute) -> &mut Self
     where
         K: Into<PropertyKey>,
         V: Into<Value>,
     {
-        // We bitwise or (`|`) with `Attribute::default()` (`READONLY | NON_ENUMERABLE | PERMANENT`)
-        // so we dont get an empty attribute.
-        let property = Property::data_descriptor(value.into(), attribute | Attribute::default());
-        self.prototype
-            .borrow_mut()
-            .insert_property(key.into(), property);
+        self.builder.property(key, value, attribute);
+        self
     }
 
     /// Add a static property to the class, with the specified attribute.
     ///
     /// It is added to class object itself.
     #[inline]
-    pub fn static_property<K, V>(&mut self, key: K, value: V, attribute: Attribute)
+    pub fn static_property<K, V>(&mut self, key: K, value: V, attribute: Attribute) -> &mut Self
     where
         K: Into<PropertyKey>,
         V: Into<Value>,
     {
-        // We bitwise or (`|`) with `Attribute::default()` (`READONLY | NON_ENUMERABLE | PERMANENT`)
-        // so we dont get an empty attribute.
-        let property = Property::data_descriptor(value.into(), attribute | Attribute::default());
-        self.object
-            .borrow_mut()
-            .insert_property(key.into(), property);
+        self.builder.static_property(key, value, attribute);
+        self
     }
 
     /// Return the current context.
+    #[inline]
     pub fn context(&mut self) -> &'_ mut Context {
-        self.context
+        self.builder.context()
     }
 }

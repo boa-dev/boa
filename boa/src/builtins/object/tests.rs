@@ -180,3 +180,17 @@ fn object_to_string() {
     assert_eq!(forward(&mut ctx, "re.toString()"), "\"[object RegExp]\"");
     assert_eq!(forward(&mut ctx, "o.toString()"), "\"[object Object]\"");
 }
+
+#[test]
+fn define_symbol_property() {
+    let mut ctx = Context::new();
+
+    let init = r#"
+        let obj = {};
+        let sym = Symbol("key");
+        Object.defineProperty(obj, sym, { value: "val" });
+    "#;
+    eprintln!("{}", forward(&mut ctx, init));
+
+    assert_eq!(forward(&mut ctx, "obj[sym]"), "\"val\"");
+}
