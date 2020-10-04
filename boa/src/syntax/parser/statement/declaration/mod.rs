@@ -58,14 +58,13 @@ where
 {
     type Output = Node;
 
-    fn parse(self, cursor: &mut Cursor<R>, strict_mode: bool) -> Result<Self::Output, ParseError> {
+    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("Declaration", "Parsing");
         let tok = cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?;
 
         match tok.kind() {
             TokenKind::Keyword(Keyword::Function) => {
-                HoistableDeclaration::new(self.allow_yield, self.allow_await, false)
-                    .parse(cursor, strict_mode)
+                HoistableDeclaration::new(self.allow_yield, self.allow_await, false).parse(cursor)
             }
             TokenKind::Keyword(Keyword::Const) | TokenKind::Keyword(Keyword::Let) => {
                 LexicalDeclaration::new(
@@ -74,7 +73,7 @@ where
                     self.allow_await,
                     self.const_init_required,
                 )
-                .parse(cursor, strict_mode)
+                .parse(cursor)
             }
             _ => unreachable!("unknown token found: {:?}", tok),
         }

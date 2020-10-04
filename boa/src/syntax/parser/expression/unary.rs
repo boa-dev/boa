@@ -58,7 +58,7 @@ where
 {
     type Output = Node;
 
-    fn parse(self, cursor: &mut Cursor<R>, strict_mode: bool) -> ParseResult {
+    fn parse(self, cursor: &mut Cursor<R>) -> ParseResult {
         let _timer = BoaProfiler::global().start_event("UnaryExpression", "Parsing");
 
         // TODO: can we avoid cloning?
@@ -66,9 +66,9 @@ where
         match tok.kind() {
             TokenKind::Keyword(Keyword::Delete) => {
                 cursor.next()?.expect("Delete keyword vanished"); // Consume the token.
-                let val = self.parse(cursor, strict_mode)?;
+                let val = self.parse(cursor)?;
 
-                if strict_mode {
+                if cursor.strict_mode() {
                     if let Node::Identifier(_) = val {
                         return Err(ParseError::lex(LexError::Syntax(
                             "Delete <variable> statements not allowed in strict mode".into(),
@@ -81,31 +81,29 @@ where
             }
             TokenKind::Keyword(Keyword::Void) => {
                 cursor.next()?.expect("Void keyword vanished"); // Consume the token.
-                Ok(node::UnaryOp::new(UnaryOp::Void, self.parse(cursor, strict_mode)?).into())
+                Ok(node::UnaryOp::new(UnaryOp::Void, self.parse(cursor)?).into())
             }
             TokenKind::Keyword(Keyword::TypeOf) => {
                 cursor.next()?.expect("TypeOf keyword vanished"); // Consume the token.
-                Ok(node::UnaryOp::new(UnaryOp::TypeOf, self.parse(cursor, strict_mode)?).into())
+                Ok(node::UnaryOp::new(UnaryOp::TypeOf, self.parse(cursor)?).into())
             }
             TokenKind::Punctuator(Punctuator::Add) => {
                 cursor.next()?.expect("+ token vanished"); // Consume the token.
-                Ok(node::UnaryOp::new(UnaryOp::Plus, self.parse(cursor, strict_mode)?).into())
+                Ok(node::UnaryOp::new(UnaryOp::Plus, self.parse(cursor)?).into())
             }
             TokenKind::Punctuator(Punctuator::Sub) => {
                 cursor.next()?.expect("- token vanished"); // Consume the token.
-                Ok(node::UnaryOp::new(UnaryOp::Minus, self.parse(cursor, strict_mode)?).into())
+                Ok(node::UnaryOp::new(UnaryOp::Minus, self.parse(cursor)?).into())
             }
             TokenKind::Punctuator(Punctuator::Neg) => {
                 cursor.next()?.expect("~ token vanished"); // Consume the token.
-                Ok(node::UnaryOp::new(UnaryOp::Tilde, self.parse(cursor, strict_mode)?).into())
+                Ok(node::UnaryOp::new(UnaryOp::Tilde, self.parse(cursor)?).into())
             }
             TokenKind::Punctuator(Punctuator::Not) => {
                 cursor.next()?.expect("! token vanished"); // Consume the token.
-                Ok(node::UnaryOp::new(UnaryOp::Not, self.parse(cursor, strict_mode)?).into())
+                Ok(node::UnaryOp::new(UnaryOp::Not, self.parse(cursor)?).into())
             }
-            _ => {
-                UpdateExpression::new(self.allow_yield, self.allow_await).parse(cursor, strict_mode)
-            }
+            _ => UpdateExpression::new(self.allow_yield, self.allow_await).parse(cursor),
         }
     }
 }

@@ -59,7 +59,7 @@ where
 {
     type Output = Continue;
 
-    fn parse(self, cursor: &mut Cursor<R>, strict_mode: bool) -> Result<Self::Output, ParseError> {
+    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("ContinueStatement", "Parsing");
         cursor.expect(Keyword::Continue, "continue statement")?;
 
@@ -73,8 +73,7 @@ where
 
             None
         } else {
-            let label = LabelIdentifier::new(self.allow_yield, self.allow_await)
-                .parse(cursor, strict_mode)?;
+            let label = LabelIdentifier::new(self.allow_yield, self.allow_await).parse(cursor)?;
             cursor.expect_semicolon("continue statement")?;
 
             Some(label)

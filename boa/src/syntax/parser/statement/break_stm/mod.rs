@@ -60,7 +60,7 @@ where
 {
     type Output = Break;
 
-    fn parse(self, cursor: &mut Cursor<R>, strict_mode: bool) -> Result<Self::Output, ParseError> {
+    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("BreakStatement", "Parsing");
         cursor.expect(Keyword::Break, "break statement")?;
 
@@ -74,8 +74,7 @@ where
 
             None
         } else {
-            let label = LabelIdentifier::new(self.allow_yield, self.allow_await)
-                .parse(cursor, strict_mode)?;
+            let label = LabelIdentifier::new(self.allow_yield, self.allow_await).parse(cursor)?;
             cursor.expect_semicolon("break statement")?;
 
             Some(label)

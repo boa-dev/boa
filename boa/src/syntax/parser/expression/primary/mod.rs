@@ -67,33 +67,33 @@ where
 {
     type Output = Node;
 
-    fn parse(self, cursor: &mut Cursor<R>, strict_mode: bool) -> ParseResult {
+    fn parse(self, cursor: &mut Cursor<R>) -> ParseResult {
         let _timer = BoaProfiler::global().start_event("PrimaryExpression", "Parsing");
 
         let tok = cursor.next()?.ok_or(ParseError::AbruptEnd)?;
 
         match tok.kind() {
             TokenKind::Keyword(Keyword::This) => Ok(Node::This),
-            TokenKind::Keyword(Keyword::Function) => FunctionExpression
-                .parse(cursor, strict_mode)
-                .map(Node::from),
+            TokenKind::Keyword(Keyword::Function) => {
+                FunctionExpression.parse(cursor).map(Node::from)
+            }
             TokenKind::Punctuator(Punctuator::OpenParen) => {
                 cursor.set_goal(InputElement::RegExp);
-                let expr = Expression::new(true, self.allow_yield, self.allow_await)
-                    .parse(cursor, strict_mode)?;
+                let expr =
+                    Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?;
                 cursor.expect(Punctuator::CloseParen, "primary expression")?;
                 Ok(expr)
             }
             TokenKind::Punctuator(Punctuator::OpenBracket) => {
                 cursor.set_goal(InputElement::RegExp);
                 ArrayLiteral::new(self.allow_yield, self.allow_await)
-                    .parse(cursor, strict_mode)
+                    .parse(cursor)
                     .map(Node::ArrayDecl)
             }
             TokenKind::Punctuator(Punctuator::OpenBlock) => {
                 cursor.set_goal(InputElement::RegExp);
                 Ok(ObjectLiteral::new(self.allow_yield, self.allow_await)
-                    .parse(cursor, strict_mode)?
+                    .parse(cursor)?
                     .into())
             }
             TokenKind::BooleanLiteral(boolean) => Ok(Const::from(*boolean).into()),

@@ -57,18 +57,16 @@ where
 {
     type Output = Node;
 
-    fn parse(self, cursor: &mut Cursor<R>, strict_mode: bool) -> Result<Self::Output, ParseError> {
+    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("LeftHandSIdeExpression", "Parsing");
 
         cursor.set_goal(InputElement::TemplateTail);
 
         // TODO: Implement NewExpression: new MemberExpression
-        let lhs =
-            MemberExpression::new(self.allow_yield, self.allow_await).parse(cursor, strict_mode)?;
+        let lhs = MemberExpression::new(self.allow_yield, self.allow_await).parse(cursor)?;
         if let Some(tok) = cursor.peek(0)? {
             if tok.kind() == &TokenKind::Punctuator(Punctuator::OpenParen) {
-                return CallExpression::new(self.allow_yield, self.allow_await, lhs)
-                    .parse(cursor, strict_mode);
+                return CallExpression::new(self.allow_yield, self.allow_await, lhs).parse(cursor);
             }
         }
         Ok(lhs)

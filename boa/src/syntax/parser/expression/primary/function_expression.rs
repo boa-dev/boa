@@ -39,7 +39,7 @@ where
 {
     type Output = FunctionExpr;
 
-    fn parse(self, cursor: &mut Cursor<R>, strict_mode: bool) -> Result<Self::Output, ParseError> {
+    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("FunctionExpression", "Parsing");
 
         let name = if let Some(token) = cursor.peek(0)? {
@@ -47,7 +47,7 @@ where
                 TokenKind::Identifier(_)
                 | TokenKind::Keyword(Keyword::Yield)
                 | TokenKind::Keyword(Keyword::Await) => {
-                    Some(BindingIdentifier::new(false, false).parse(cursor, strict_mode)?)
+                    Some(BindingIdentifier::new(false, false).parse(cursor)?)
                 }
                 _ => None,
             }
@@ -57,12 +57,12 @@ where
 
         cursor.expect(Punctuator::OpenParen, "function expression")?;
 
-        let params = FormalParameters::new(false, false).parse(cursor, strict_mode)?;
+        let params = FormalParameters::new(false, false).parse(cursor)?;
 
         cursor.expect(Punctuator::CloseParen, "function expression")?;
         cursor.expect(Punctuator::OpenBlock, "function expression")?;
 
-        let body = FunctionBody::new(false, false).parse(cursor, strict_mode)?;
+        let body = FunctionBody::new(false, false).parse(cursor)?;
 
         cursor.expect(Punctuator::CloseBlock, "function expression")?;
 

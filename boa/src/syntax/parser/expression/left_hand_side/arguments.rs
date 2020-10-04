@@ -56,7 +56,7 @@ where
 {
     type Output = Box<[Node]>;
 
-    fn parse(self, cursor: &mut Cursor<R>, strict_mode: bool) -> Result<Self::Output, ParseError> {
+    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("Arguments", "Parsing");
 
         cursor.expect(Punctuator::OpenParen, "arguments")?;
@@ -98,7 +98,7 @@ where
                 args.push(
                     Spread::new(
                         AssignmentExpression::new(true, self.allow_yield, self.allow_await)
-                            .parse(cursor, strict_mode)?,
+                            .parse(cursor)?,
                     )
                     .into(),
                 );
@@ -106,7 +106,7 @@ where
                 cursor.set_goal(InputElement::RegExp);
                 args.push(
                     AssignmentExpression::new(true, self.allow_yield, self.allow_await)
-                        .parse(cursor, strict_mode)?,
+                        .parse(cursor)?,
                 );
             }
         }

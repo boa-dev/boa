@@ -61,7 +61,7 @@ where
 {
     type Output = Box<[node::FormalParameter]>;
 
-    fn parse(self, cursor: &mut Cursor<R>, strict_mode: bool) -> Result<Self::Output, ParseError> {
+    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("FormalParameters", "Parsing");
         cursor.set_goal(InputElement::RegExp);
 
@@ -79,11 +79,9 @@ where
             let next_param = match cursor.peek(0)? {
                 Some(tok) if tok.kind() == &TokenKind::Punctuator(Punctuator::Spread) => {
                     rest_param = true;
-                    FunctionRestParameter::new(self.allow_yield, self.allow_await)
-                        .parse(cursor, strict_mode)?
+                    FunctionRestParameter::new(self.allow_yield, self.allow_await).parse(cursor)?
                 }
-                _ => FormalParameter::new(self.allow_yield, self.allow_await)
-                    .parse(cursor, strict_mode)?,
+                _ => FormalParameter::new(self.allow_yield, self.allow_await).parse(cursor)?,
             };
 
             params.push(next_param);
@@ -152,12 +150,11 @@ where
 {
     type Output = node::FormalParameter;
 
-    fn parse(self, cursor: &mut Cursor<R>, strict_mode: bool) -> Result<Self::Output, ParseError> {
+    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("BindingRestElement", "Parsing");
         cursor.expect(Punctuator::Spread, "rest parameter")?;
 
-        let param = BindingIdentifier::new(self.allow_yield, self.allow_await)
-            .parse(cursor, strict_mode)?;
+        let param = BindingIdentifier::new(self.allow_yield, self.allow_await).parse(cursor)?;
         // TODO: BindingPattern
 
         Ok(Self::Output::new(param, None, true))
@@ -198,21 +195,17 @@ where
 {
     type Output = node::FormalParameter;
 
-    fn parse(self, cursor: &mut Cursor<R>, strict_mode: bool) -> Result<Self::Output, ParseError> {
+    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("FormalParameter", "Parsing");
 
         // TODO: BindingPattern
 
-        let param = BindingIdentifier::new(self.allow_yield, self.allow_await)
-            .parse(cursor, strict_mode)?;
+        let param = BindingIdentifier::new(self.allow_yield, self.allow_await).parse(cursor)?;
 
         let init = if let Some(t) = cursor.peek(0)? {
             // Check that this is an initilizer before attempting parse.
             if *t.kind() == TokenKind::Punctuator(Punctuator::Assign) {
-                Some(
-                    Initializer::new(true, self.allow_yield, self.allow_await)
-                        .parse(cursor, strict_mode)?,
-                )
+                Some(Initializer::new(true, self.allow_yield, self.allow_await).parse(cursor)?)
             } else {
                 None
             }
@@ -264,10 +257,10 @@ where
 {
     type Output = node::StatementList;
 
-    fn parse(self, cursor: &mut Cursor<R>, strict_mode: bool) -> Result<Self::Output, ParseError> {
+    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("FunctionStatementList", "Parsing");
 
-        let mut func_scope_strict_mode = strict_mode;
+        let global_strict_mode = cursor.strict_mode();
         if let Some(tk) = cursor.peek(0)? {
             match tk.kind() {
                 TokenKind::Punctuator(Punctuator::CloseBlock) => {
@@ -275,14 +268,18 @@ where
                 }
                 TokenKind::StringLiteral(string) | TokenKind::TemplateLiteral(string) => {
                     if string == &"use strict".into() {
-                        func_scope_strict_mode = true;
+                        cursor.set_strict_mode(true);
                     }
                 }
                 _ => {}
             }
         }
 
-        StatementList::new(self.allow_yield, self.allow_await, true, true, true)
-            .parse(cursor, func_scope_strict_mode)
+        let stmlist =
+            StatementList::new(self.allow_yield, self.allow_await, true, true, true).parse(cursor);
+
+        // Reset strict mode back to the global scope.
+        cursor.set_strict_mode(global_strict_mode);
+        stmlist
     }
 }

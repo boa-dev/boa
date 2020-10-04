@@ -40,11 +40,10 @@ where
 {
     type Output = Node;
 
-    fn parse(self, cursor: &mut Cursor<R>, strict_mode: bool) -> ParseResult {
+    fn parse(self, cursor: &mut Cursor<R>) -> ParseResult {
         let _timer = BoaProfiler::global().start_event("ExpressionStatement", "Parsing");
         // TODO: lookahead
-        let expr =
-            Expression::new(true, self.allow_yield, self.allow_await).parse(cursor, strict_mode)?;
+        let expr = Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?;
 
         cursor.expect_semicolon("expression statement")?;
 

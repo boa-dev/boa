@@ -28,7 +28,7 @@ where
     /// Parses the token stream using the current parser.
     ///
     /// This method needs to be provided by the implementor type.
-    fn parse(self, cursor: &mut Cursor<R>, strict_mode: bool) -> Result<Self::Output, ParseError>;
+    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError>;
 }
 
 /// Boolean representing if the parser should allow a `yield` keyword.
@@ -101,7 +101,7 @@ impl<R> Parser<R> {
     where
         R: Read,
     {
-        Script.parse(&mut self.cursor, false)
+        Script.parse(&mut self.cursor)
     }
 }
 
@@ -120,18 +120,19 @@ where
 {
     type Output = StatementList;
 
-    fn parse(self, cursor: &mut Cursor<R>, strict_mode: bool) -> Result<Self::Output, ParseError> {
+    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         match cursor.peek(0)? {
-            Some(tok) => match tok.kind() {
-                TokenKind::StringLiteral(string) | TokenKind::TemplateLiteral(string) => {
-                    if string == &"use strict".into() {
-                        ScriptBody.parse(cursor, true)
-                    } else {
-                        ScriptBody.parse(cursor, strict_mode)
+            Some(tok) => {
+                match tok.kind() {
+                    TokenKind::StringLiteral(string) | TokenKind::TemplateLiteral(string) => {
+                        if string == &"use strict".into() {
+                            cursor.set_strict_mode(true);
+                        }
                     }
+                    _ => {}
                 }
-                _ => ScriptBody.parse(cursor, strict_mode),
-            },
+                ScriptBody.parse(cursor)
+            }
             None => Ok(StatementList::from(Vec::new())),
         }
     }
@@ -152,8 +153,7 @@ where
 {
     type Output = StatementList;
 
-    fn parse(self, cursor: &mut Cursor<R>, strict_mode: bool) -> Result<Self::Output, ParseError> {
-        self::statement::StatementList::new(false, false, false, false, true)
-            .parse(cursor, strict_mode)
+    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
+        self::statement::StatementList::new(false, false, false, false, true).parse(cursor)
     }
 }

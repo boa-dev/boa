@@ -60,7 +60,7 @@ where
 {
     type Output = Object;
 
-    fn parse(self, cursor: &mut Cursor<R>, strict_mode: bool) -> Result<Self::Output, ParseError> {
+    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("ObjectLiteral", "Parsing");
         let mut elements = Vec::new();
 
@@ -69,10 +69,8 @@ where
                 break;
             }
 
-            elements.push(
-                PropertyDefinition::new(self.allow_yield, self.allow_await)
-                    .parse(cursor, strict_mode)?,
-            );
+            elements
+                .push(PropertyDefinition::new(self.allow_yield, self.allow_await).parse(cursor)?);
 
             if cursor.next_if(Punctuator::CloseBlock)?.is_some() {
                 break;
@@ -127,19 +125,19 @@ where
 {
     type Output = node::PropertyDefinition;
 
-    fn parse(self, cursor: &mut Cursor<R>, strict_mode: bool) -> Result<Self::Output, ParseError> {
+    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("PropertyDefinition", "Parsing");
 
         if cursor.next_if(Punctuator::Spread)?.is_some() {
             let node = AssignmentExpression::new(true, self.allow_yield, self.allow_await)
-                .parse(cursor, strict_mode)?;
+                .parse(cursor)?;
             return Ok(node::PropertyDefinition::SpreadObject(node));
         }
 
         let prop_name = cursor.next()?.ok_or(ParseError::AbruptEnd)?.to_string();
         if cursor.next_if(Punctuator::Colon)?.is_some() {
             let val = AssignmentExpression::new(true, self.allow_yield, self.allow_await)
-                .parse(cursor, strict_mode)?;
+                .parse(cursor)?;
             return Ok(node::PropertyDefinition::property(prop_name, val));
         }
 
@@ -149,7 +147,7 @@ where
             || ["get", "set"].contains(&prop_name.as_str())
         {
             return MethodDefinition::new(self.allow_yield, self.allow_await, prop_name)
-                .parse(cursor, strict_mode);
+                .parse(cursor);
         }
 
         let pos = cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?.span().start();
@@ -192,7 +190,7 @@ where
 {
     type Output = node::PropertyDefinition;
 
-    fn parse(self, cursor: &mut Cursor<R>, strict_mode: bool) -> Result<Self::Output, ParseError> {
+    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("MethodDefinition", "Parsing");
 
         let (methodkind, prop_name, params) = match self.identifier.as_str() {
@@ -203,7 +201,7 @@ where
                     "property method definition",
                 )?;
                 let first_param = cursor.peek(0)?.expect("current token disappeared").clone();
-                let params = FormalParameters::new(false, false).parse(cursor, strict_mode)?;
+                let params = FormalParameters::new(false, false).parse(cursor)?;
                 cursor.expect(Punctuator::CloseParen, "method definition")?;
                 if idn == "get" {
                     if !params.is_empty() {
@@ -224,7 +222,7 @@ where
                 }
             }
             prop_name => {
-                let params = FormalParameters::new(false, false).parse(cursor, strict_mode)?;
+                let params = FormalParameters::new(false, false).parse(cursor)?;
                 cursor.expect(Punctuator::CloseParen, "method definition")?;
                 (
                     MethodDefinitionKind::Ordinary,
@@ -238,7 +236,7 @@ where
             TokenKind::Punctuator(Punctuator::OpenBlock),
             "property method definition",
         )?;
-        let body = FunctionBody::new(false, false).parse(cursor, strict_mode)?;
+        let body = FunctionBody::new(false, false).parse(cursor)?;
         cursor.expect(
             TokenKind::Punctuator(Punctuator::CloseBlock),
             "property method definition",
@@ -291,11 +289,10 @@ where
 {
     type Output = Node;
 
-    fn parse(self, cursor: &mut Cursor<R>, strict_mode: bool) -> ParseResult {
+    fn parse(self, cursor: &mut Cursor<R>) -> ParseResult {
         let _timer = BoaProfiler::global().start_event("Initializer", "Parsing");
 
         cursor.expect(Punctuator::Assign, "initializer")?;
-        AssignmentExpression::new(self.allow_in, self.allow_yield, self.allow_await)
-            .parse(cursor, strict_mode)
+        AssignmentExpression::new(self.allow_in, self.allow_yield, self.allow_await).parse(cursor)
     }
 }

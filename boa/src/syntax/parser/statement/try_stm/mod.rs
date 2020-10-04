@@ -55,13 +55,13 @@ where
 {
     type Output = Try;
 
-    fn parse(self, cursor: &mut Cursor<R>, strict_mode: bool) -> Result<Try, ParseError> {
+    fn parse(self, cursor: &mut Cursor<R>) -> Result<Try, ParseError> {
         let _timer = BoaProfiler::global().start_event("TryStatement", "Parsing");
         // TRY
         cursor.expect(Keyword::Try, "try statement")?;
 
-        let try_clause = Block::new(self.allow_yield, self.allow_await, self.allow_return)
-            .parse(cursor, strict_mode)?;
+        let try_clause =
+            Block::new(self.allow_yield, self.allow_await, self.allow_return).parse(cursor)?;
 
         let next_token = cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?;
 
@@ -79,10 +79,7 @@ where
         }
 
         let catch = if next_token.kind() == &TokenKind::Keyword(Keyword::Catch) {
-            Some(
-                Catch::new(self.allow_yield, self.allow_await, self.allow_return)
-                    .parse(cursor, strict_mode)?,
-            )
+            Some(Catch::new(self.allow_yield, self.allow_await, self.allow_return).parse(cursor)?)
         } else {
             None
         };
@@ -92,7 +89,7 @@ where
             match token.kind() {
                 TokenKind::Keyword(Keyword::Finally) => Some(
                     Finally::new(self.allow_yield, self.allow_await, self.allow_return)
-                        .parse(cursor, strict_mode)?,
+                        .parse(cursor)?,
                 ),
                 _ => None,
             }

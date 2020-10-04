@@ -63,6 +63,7 @@ trait Tokenizer<R> {
 pub struct Lexer<R> {
     cursor: Cursor<R>,
     goal_symbol: InputElement,
+    strict_mode: bool,
 }
 
 impl<R> Lexer<R> {
@@ -95,6 +96,16 @@ impl<R> Lexer<R> {
         self.goal_symbol
     }
 
+    #[inline]
+    pub(super) fn strict_mode(&self) -> bool {
+        self.strict_mode
+    }
+
+    #[inline]
+    pub(super) fn set_strict_mode(&mut self, strict_mode: bool) {
+        self.strict_mode = strict_mode
+    }
+
     /// Creates a new lexer.
     #[inline]
     pub fn new(reader: R) -> Self
@@ -104,6 +115,7 @@ impl<R> Lexer<R> {
         Self {
             cursor: Cursor::new(reader),
             goal_symbol: Default::default(),
+            strict_mode: false, // Strict mode off by default.
         }
     }
 
