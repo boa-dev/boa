@@ -1491,7 +1491,7 @@ fn test_strict_mode_func_decl_in_block() {
 #[test]
 fn test_strict_mode_dup_func_parameters() {
     // Checks that a function cannot contain duplicate parameter
-    // names in strict mode code.
+    // names in strict mode code as per https://tc39.es/ecma262/#sec-function-definitions-static-semantics-early-errors.
 
     let scenario = r#"
     'use strict';
