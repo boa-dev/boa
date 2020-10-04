@@ -87,12 +87,7 @@ impl Executable for BinOp {
                     NumOp::Sub => x.sub(&y, interpreter),
                     NumOp::Mul => x.mul(&y, interpreter),
                     NumOp::Exp => x.pow(&y, interpreter),
-                    NumOp::Div => {
-                        if y == Value::bigint(BigInt::from(0)) {
-                            return interpreter.throw_range_error("BigInt division by zero");
-                        }
-                        x.div(&y, interpreter)
-                    }
+                    NumOp::Div => x.div(&y, interpreter),
                     NumOp::Mod => x.rem(&y, interpreter),
                 }
             }

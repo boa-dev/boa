@@ -439,11 +439,11 @@ impl Context {
                 let key = field.to_property_key(self)?;
                 Ok(get_field.obj().run(self)?.set_field(key, value))
             }
-            _ => panic!("TypeError: invalid assignment to {}", node),
+            _ => self.throw_type_error(format!("invalid assignment to {}", node)),
         }
     }
 
-    /// Register a global class of type `T`, where `T` implemets `Class`.
+    /// Register a global class of type `T`, where `T` implements `Class`.
     ///
     /// # Example
     /// ```ignore
