@@ -5,6 +5,9 @@ fn error_to_string() {
     let mut ctx = Context::new();
     let init = r#"
         let e = new Error('1');
+        let name = new Error();
+        let message = new Error('message');
+        message.name = '';
         let range_e = new RangeError('2');
         let ref_e = new ReferenceError('3');
         let syntax_e = new SyntaxError('4');
@@ -12,6 +15,8 @@ fn error_to_string() {
     "#;
     forward(&mut ctx, init);
     assert_eq!(forward(&mut ctx, "e.toString()"), "\"Error: 1\"");
+    assert_eq!(forward(&mut ctx, "name.toString()"), "\"Error\"");
+    assert_eq!(forward(&mut ctx, "message.toString()"), "\"message\"");
     assert_eq!(forward(&mut ctx, "range_e.toString()"), "\"RangeError: 2\"");
     assert_eq!(
         forward(&mut ctx, "ref_e.toString()"),
