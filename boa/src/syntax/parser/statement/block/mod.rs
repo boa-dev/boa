@@ -83,7 +83,7 @@ where
             self.allow_await,
             self.allow_return,
             true,
-            false,
+            true,
         )
         .parse(cursor)
         .map(node::Block::from)?;
