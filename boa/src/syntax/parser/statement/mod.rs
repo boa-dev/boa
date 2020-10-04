@@ -447,16 +447,34 @@ where
 {
     type Output = Box<str>;
 
+    /// Strict mode parsing as per https://tc39.es/ecma262/#sec-identifiers-static-semantics-early-errors.
     fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("BindingIdentifier", "Parsing");
-        // TODO: strict mode.
 
         let next_token = cursor.next()?.ok_or(ParseError::AbruptEnd)?;
 
         match next_token.kind() {
             TokenKind::Identifier(ref s) => Ok(s.clone()),
-            TokenKind::Keyword(k @ Keyword::Yield) if !self.allow_yield.0 => Ok(k.as_str().into()),
-            TokenKind::Keyword(k @ Keyword::Await) if !self.allow_await.0 => Ok(k.as_str().into()),
+            TokenKind::Keyword(k @ Keyword::Yield) if !self.allow_yield.0 => {
+                if cursor.strict_mode() {
+                    Err(ParseError::lex(LexError::Syntax(
+                        "yield keyword in binding identifier not allowed in strict mode".into(),
+                        next_token.span().start(),
+                    )))
+                } else {
+                    Ok(k.as_str().into())
+                }
+            }
+            TokenKind::Keyword(k @ Keyword::Await) if !self.allow_await.0 => {
+                if cursor.strict_mode() {
+                    Err(ParseError::lex(LexError::Syntax(
+                        "await keyword in binding identifier not allowed in strict mode".into(),
+                        next_token.span().start(),
+                    )))
+                } else {
+                    Ok(k.as_str().into())
+                }
+            }
             _ => Err(ParseError::expected(
                 vec![TokenKind::identifier("identifier")],
                 next_token,

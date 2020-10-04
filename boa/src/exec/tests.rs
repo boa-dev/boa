@@ -1455,8 +1455,8 @@ fn test_strict_mode_reserved_name() {
         "var static = 10;",
         "var eval = 10;",
         "var arguments = 10;",
-        // "var let = 10;", Don't currently reject correctly.
-        // "var yield = 10;",
+        "var let = 10;",
+        "var yield = 10;",
     ];
 
     for case in test_cases.iter() {
