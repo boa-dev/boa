@@ -3,12 +3,13 @@
 pub mod array;
 pub mod block;
 pub mod break_node;
+pub mod call;
 pub mod conditional;
 pub mod declaration;
-pub mod expression;
 pub mod field;
 pub mod identifier;
 pub mod iteration;
+pub mod new;
 pub mod object;
 pub mod operator;
 pub mod return_smt;
@@ -22,15 +23,16 @@ pub use self::{
     array::ArrayDecl,
     block::Block,
     break_node::Break,
+    call::Call,
     conditional::{ConditionalOp, If},
     declaration::{
         ArrowFunctionDecl, ConstDecl, ConstDeclList, FunctionDecl, FunctionExpr, LetDecl,
         LetDeclList, VarDecl, VarDeclList,
     },
-    expression::{Call, New},
     field::{GetConstField, GetField},
     identifier::Identifier,
     iteration::{Continue, DoWhileLoop, ForLoop, ForOfLoop, WhileLoop},
+    new::New,
     object::Object,
     operator::{Assign, BinOp, UnaryOp},
     return_smt::Return,
@@ -209,6 +211,7 @@ impl Node {
         }
 
         match *self {
+            Self::Call(ref expr) => Display::fmt(expr, f),
             Self::Const(ref c) => write!(f, "{}", c),
             Self::ConditionalOp(ref cond_op) => Display::fmt(cond_op, f),
             Self::ForLoop(ref for_loop) => for_loop.display(f, indentation),
@@ -220,10 +223,9 @@ impl Node {
             Self::Spread(ref spread) => Display::fmt(spread, f),
             Self::Block(ref block) => block.display(f, indentation),
             Self::Identifier(ref s) => Display::fmt(s, f),
+            Self::New(ref expr) => Display::fmt(expr, f),
             Self::GetConstField(ref get_const_field) => Display::fmt(get_const_field, f),
             Self::GetField(ref get_field) => Display::fmt(get_field, f),
-            Self::Call(ref expr) => Display::fmt(expr, f),
-            Self::New(ref expr) => Display::fmt(expr, f),
             Self::WhileLoop(ref while_loop) => while_loop.display(f, indentation),
             Self::DoWhileLoop(ref do_while) => do_while.display(f, indentation),
             Self::If(ref if_smt) => if_smt.display(f, indentation),
@@ -249,6 +251,7 @@ impl Executable for Node {
     fn run(&self, interpreter: &mut Context) -> Result<Value> {
         let _timer = BoaProfiler::global().start_event("Executable", "exec");
         match *self {
+            Node::Call(ref call) => call.run(interpreter),
             Node::Const(Const::Null) => Ok(Value::null()),
             Node::Const(Const::Num(num)) => Ok(Value::rational(num)),
             Node::Const(Const::Int(num)) => Ok(Value::integer(num)),
@@ -263,7 +266,6 @@ impl Executable for Node {
             Node::Identifier(ref identifier) => identifier.run(interpreter),
             Node::GetConstField(ref get_const_field_node) => get_const_field_node.run(interpreter),
             Node::GetField(ref get_field) => get_field.run(interpreter),
-            Node::Call(ref call) => call.run(interpreter),
             Node::WhileLoop(ref while_loop) => while_loop.run(interpreter),
             Node::DoWhileLoop(ref do_while) => do_while.run(interpreter),
             Node::ForLoop(ref for_loop) => for_loop.run(interpreter),
