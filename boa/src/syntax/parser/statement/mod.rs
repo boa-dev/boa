@@ -41,7 +41,7 @@ use super::{AllowAwait, AllowReturn, AllowYield, Cursor, ParseError, TokenParser
 use crate::{
     syntax::{
         ast::{node, Keyword, Node, Punctuator},
-        lexer::{InputElement, TokenKind, Error as LexError},
+        lexer::{Error as LexError, InputElement, TokenKind},
     },
     BoaProfiler,
 };
@@ -193,10 +193,12 @@ where
                     .map(Node::from);
                 }
 
-                ExpressionStatement::new(self.allow_yield, self.allow_await).parse(cursor, strict_mode)
+                ExpressionStatement::new(self.allow_yield, self.allow_await)
+                    .parse(cursor, strict_mode)
             }
 
-            _ => ExpressionStatement::new(self.allow_yield, self.allow_await).parse(cursor, strict_mode),
+            _ => ExpressionStatement::new(self.allow_yield, self.allow_await)
+                .parse(cursor, strict_mode),
         }
     }
 }
@@ -393,10 +395,12 @@ where
                         tok.span().start(),
                     )));
                 }
-                Declaration::new(self.allow_yield, self.allow_await, true).parse(cursor, strict_mode)
+                Declaration::new(self.allow_yield, self.allow_await, true)
+                    .parse(cursor, strict_mode)
             }
             TokenKind::Keyword(Keyword::Const) | TokenKind::Keyword(Keyword::Let) => {
-                Declaration::new(self.allow_yield, self.allow_await, true).parse(cursor, strict_mode)
+                Declaration::new(self.allow_yield, self.allow_await, true)
+                    .parse(cursor, strict_mode)
             }
             _ => Statement::new(self.allow_yield, self.allow_await, self.allow_return)
                 .parse(cursor, strict_mode),

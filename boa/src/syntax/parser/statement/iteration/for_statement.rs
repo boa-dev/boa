@@ -81,9 +81,10 @@ where
                         .map(Node::from)?,
                 )
             }
-            TokenKind::Keyword(Keyword::Let) | TokenKind::Keyword(Keyword::Const) => {
-                Some(Declaration::new(self.allow_yield, self.allow_await, false).parse(cursor, strict_mode)?)
-            }
+            TokenKind::Keyword(Keyword::Let) | TokenKind::Keyword(Keyword::Const) => Some(
+                Declaration::new(self.allow_yield, self.allow_await, false)
+                    .parse(cursor, strict_mode)?,
+            ),
             TokenKind::Punctuator(Punctuator::Semicolon) => None,
             _ => Some(
                 Expression::new(true, self.allow_yield, self.allow_await)
@@ -98,11 +99,11 @@ where
             }
             Some(tok) if tok.kind() == &TokenKind::Keyword(Keyword::Of) && init.is_some() => {
                 let _ = cursor.next();
-                let iterable =
-                    Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?;
+                let iterable = Expression::new(true, self.allow_yield, self.allow_await)
+                    .parse(cursor, strict_mode)?;
                 cursor.expect(Punctuator::CloseParen, "for of statement")?;
                 let body = Statement::new(self.allow_yield, self.allow_await, self.allow_return)
-                    .parse(cursor)?;
+                    .parse(cursor, strict_mode)?;
                 return Ok(ForOfLoop::new(init.unwrap(), iterable, body).into());
             }
             _ => {}
