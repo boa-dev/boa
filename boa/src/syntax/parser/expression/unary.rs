@@ -61,8 +61,8 @@ where
     fn parse(self, cursor: &mut Cursor<R>) -> ParseResult {
         let _timer = BoaProfiler::global().start_event("UnaryExpression", "Parsing");
 
-        // TODO: can we avoid cloning?
-        let tok = cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?.clone();
+        let tok = cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?;
+        let token_start = tok.span().start();
         match tok.kind() {
             TokenKind::Keyword(Keyword::Delete) => {
                 cursor.next()?.expect("Delete keyword vanished"); // Consume the token.
@@ -72,7 +72,7 @@ where
                     if let Node::Identifier(_) = val {
                         return Err(ParseError::lex(LexError::Syntax(
                             "Delete <variable> statements not allowed in strict mode".into(),
-                            tok.span().start(),
+                            token_start,
                         )));
                     }
                 }
