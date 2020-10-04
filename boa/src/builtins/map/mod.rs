@@ -78,14 +78,15 @@ impl Map {
                         }
                         map
                     } else {
-                        return Err(ctx.construct_type_error(
-                            "iterable for Map should have array-like objects",
-                        )?);
+                        return Err(ctx
+                            .construct_type_error("iterable for Map should have array-like objects")
+                            .expect("&str used as message"));
                     }
                 }
                 _ => {
                     return Err(ctx
-                        .construct_type_error("iterable for Map should have array-like objects")?)
+                        .construct_type_error("iterable for Map should have array-like objects")
+                        .expect("&str used as message"))
                 }
             },
         };
@@ -131,10 +132,14 @@ impl Map {
                 map.insert(key, value);
                 map.len()
             } else {
-                return Err(ctx.construct_type_error("'this' is not a Map")?);
+                return Err(ctx
+                    .construct_type_error("'this' is not a Map")
+                    .expect("&str used as message"));
             }
         } else {
-            return Err(ctx.construct_type_error("'this' is not a Map")?);
+            return Err(ctx
+                .construct_type_error("'this' is not a Map")
+                .expect("&str used as message"));
         };
 
         Self::set_size(this, size);
@@ -164,10 +169,14 @@ impl Map {
                 let deleted = map.remove(key).is_some();
                 (deleted, map.len())
             } else {
-                return Err(ctx.construct_type_error("'this' is not a Map")?);
+                return Err(ctx
+                    .construct_type_error("'this' is not a Map")
+                    .expect("&str used as message"));
             }
         } else {
-            return Err(ctx.construct_type_error("'this' is not a Map")?);
+            return Err(ctx
+                .construct_type_error("'this' is not a Map")
+                .expect("&str used as message"));
         };
         Self::set_size(this, size);
         Ok(deleted.into())
@@ -201,7 +210,9 @@ impl Map {
             }
         }
 
-        Err(ctx.construct_type_error("'this' is not a Map")?)
+        Err(ctx
+            .construct_type_error("'this' is not a Map")
+            .expect("&str used as message"))
     }
 
     /// `Map.prototype.clear( )`
@@ -246,7 +257,9 @@ impl Map {
             }
         }
 
-        Err(ctx.construct_type_error("'this' is not a Map")?)
+        Err(ctx
+            .construct_type_error("'this' is not a Map")
+            .expect("&str used as message"))
     }
 
     /// `Map.prototype.forEach( callbackFn [ , thisArg ] )`

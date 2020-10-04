@@ -95,16 +95,16 @@ impl Error {
     /// [spec]: https://tc39.es/ecma262/#sec-error.prototype.tostring
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error/toString
     #[allow(clippy::wrong_self_convention)]
-    pub(crate) fn to_string(this: &Value, _: &[Value], ctx: &mut Context) -> Result<Value> {
+    pub(crate) fn to_string(this: &Value, _: &[Value], context: &mut Context) -> Result<Value> {
         if !this.is_object() {
-            return ctx.throw_type_error("'this' is not an Object");
+            return context.throw_type_error("'this' is not an Object");
         }
         let name = this.get_field("name");
         let name_to_string;
         let name = if name.is_undefined() {
             "Error"
         } else {
-            name_to_string = name.to_string(ctx)?;
+            name_to_string = name.to_string(context)?;
             name_to_string.as_str()
         };
 
@@ -113,7 +113,7 @@ impl Error {
         let message = if message.is_undefined() {
             ""
         } else {
-            message_to_string = message.to_string(ctx)?;
+            message_to_string = message.to_string(context)?;
             message_to_string.as_str()
         };
 

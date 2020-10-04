@@ -120,7 +120,9 @@ impl BigInt {
         }
 
         // 3. Throw a TypeError exception.
-        Err(ctx.construct_type_error("'this' is not a BigInt")?)
+        Err(ctx
+            .construct_type_error("'this' is not a BigInt")
+            .expect("&str used as message"))
     }
 
     /// `BigInt.prototype.toString( [radix] )`

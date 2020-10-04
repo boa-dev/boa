@@ -336,7 +336,9 @@ impl Symbol {
             _ => {}
         }
 
-        Err(ctx.construct_type_error("'this' is not a Symbol")?)
+        Err(ctx
+            .construct_type_error("'this' is not a Symbol")
+            .expect("&str used as message"))
     }
 
     /// `Symbol.prototype.toString()`

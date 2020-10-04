@@ -156,7 +156,9 @@ impl String {
             _ => {}
         }
 
-        Err(ctx.construct_type_error("'this' is not a string")?)
+        Err(ctx
+            .construct_type_error("'this' is not a string")
+            .expect("&str used as message"))
     }
 
     /// Get the string value to a primitive string
