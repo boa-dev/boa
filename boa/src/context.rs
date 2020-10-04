@@ -439,7 +439,7 @@ impl Context {
                 let key = field.to_property_key(self)?;
                 Ok(get_field.obj().run(self)?.set_field(key, value))
             }
-            _ => self.throw_type_error(format!("invalid assignment to {}", node)),
+            _ => panic!("TypeError: invalid assignment to {}", node),
         }
     }
 
