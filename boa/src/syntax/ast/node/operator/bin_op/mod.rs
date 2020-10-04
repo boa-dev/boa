@@ -82,7 +82,6 @@ impl Executable for BinOp {
             op::BinOp::Num(op) => {
                 let x = self.lhs().run(interpreter)?;
                 let y = self.rhs().run(interpreter)?;
-
                 match op {
                     NumOp::Add => x.add(&y, interpreter),
                     NumOp::Sub => x.sub(&y, interpreter),
@@ -92,7 +91,6 @@ impl Executable for BinOp {
                         if y == Value::bigint(BigInt::from(0)) {
                             return interpreter.throw_range_error("BigInt division by zero");
                         }
-
                         x.div(&y, interpreter)
                     }
                     NumOp::Mod => x.rem(&y, interpreter),
