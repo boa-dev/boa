@@ -291,6 +291,16 @@ pub enum Keyword {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/new
     New,
 
+    /// The `of` keyword.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-for-in-and-for-of-statements
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/for...of
+    Of,
+
     /// The `return` keyword
     ///
     /// More information:
@@ -467,6 +477,7 @@ impl Keyword {
             Self::Import => "import",
             Self::Let => "let",
             Self::New => "new",
+            Self::Of => "of",
             Self::Return => "return",
             Self::Super => "super",
             Self::Switch => "switch",
@@ -538,6 +549,7 @@ impl FromStr for Keyword {
             "import" => Ok(Self::Import),
             "let" => Ok(Self::Let),
             "new" => Ok(Self::New),
+            "of" => Ok(Self::Of),
             "return" => Ok(Self::Return),
             "super" => Ok(Self::Super),
             "switch" => Ok(Self::Switch),

@@ -9,41 +9,140 @@
 //! [spec]: https://tc39.es/ecma262/#sec-string-object
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String
 
+pub mod string_iterator;
 #[cfg(test)]
 mod tests;
 
-use super::function::{make_builtin_fn, make_constructor_fn};
 use crate::{
-    builtins::RegExp,
-    object::{Object, ObjectData},
-    property::Property,
+    builtins::{string::string_iterator::StringIterator, BuiltIn, RegExp},
+    object::{ConstructorBuilder, Object, ObjectData},
+    property::Attribute,
     value::{RcString, Value},
     BoaProfiler, Context, Result,
 };
 use regex::Regex;
-use std::string::String as StdString;
 use std::{
+    char::decode_utf16,
     cmp::{max, min},
     f64::NAN,
+    string::String as StdString,
 };
+
+pub(crate) fn code_point_at(string: RcString, position: i32) -> Option<(u32, u8, bool)> {
+    let size = string.encode_utf16().count() as i32;
+    if position < 0 || position >= size {
+        return None;
+    }
+    let mut encoded = string.encode_utf16();
+    let first = encoded.nth(position as usize)?;
+    if !is_leading_surrogate(first) && !is_trailing_surrogate(first) {
+        return Some((first as u32, 1, false));
+    }
+    if is_trailing_surrogate(first) || position + 1 == size {
+        return Some((first as u32, 1, true));
+    }
+    let second = encoded.next()?;
+    if !is_trailing_surrogate(second) {
+        return Some((first as u32, 1, true));
+    }
+    let cp = (first as u32 - 0xD800) * 0x400 + (second as u32 - 0xDC00) + 0x10000;
+    Some((cp, 2, false))
+}
+
+fn is_leading_surrogate(value: u16) -> bool {
+    value >= 0xD800 && value <= 0xDBFF
+}
+
+fn is_trailing_surrogate(value: u16) -> bool {
+    value >= 0xDC00 && value <= 0xDFFF
+}
 
 /// JavaScript `String` implementation.
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct String;
 
-impl String {
-    /// The name of the object.
-    pub(crate) const NAME: &'static str = "String";
+impl BuiltIn for String {
+    const NAME: &'static str = "String";
 
+    fn attribute() -> Attribute {
+        Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE
+    }
+
+    fn init(context: &mut Context) -> (&'static str, Value, Attribute) {
+        let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
+
+        let symbol_iterator = context.well_known_symbols().iterator_symbol();
+
+        let attribute = Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT;
+        let string_object = ConstructorBuilder::with_standard_object(
+            context,
+            Self::constructor,
+            context.standard_objects().string_object().clone(),
+        )
+        .name(Self::NAME)
+        .length(Self::LENGTH)
+        .property("length", 0, attribute)
+        .method(Self::char_at, "charAt", 1)
+        .method(Self::char_code_at, "charCodeAt", 1)
+        .method(Self::to_string, "toString", 0)
+        .method(Self::concat, "concat", 1)
+        .method(Self::repeat, "repeat", 1)
+        .method(Self::slice, "slice", 2)
+        .method(Self::starts_with, "startsWith", 1)
+        .method(Self::ends_with, "endsWith", 1)
+        .method(Self::includes, "includes", 1)
+        .method(Self::index_of, "indexOf", 1)
+        .method(Self::last_index_of, "lastIndexOf", 1)
+        .method(Self::r#match, "match", 1)
+        .method(Self::pad_end, "padEnd", 1)
+        .method(Self::pad_start, "padStart", 1)
+        .method(Self::trim, "trim", 0)
+        .method(Self::trim_start, "trimStart", 0)
+        .method(Self::trim_end, "trimEnd", 0)
+        .method(Self::to_lowercase, "toLowerCase", 0)
+        .method(Self::to_uppercase, "toUpperCase", 0)
+        .method(Self::substring, "substring", 2)
+        .method(Self::substr, "substr", 2)
+        .method(Self::value_of, "valueOf", 0)
+        .method(Self::match_all, "matchAll", 1)
+        .method(Self::replace, "replace", 2)
+        .method(Self::iterator, (symbol_iterator, "[Symbol.iterator]"), 0)
+        .build();
+
+        (Self::NAME, string_object.into(), Self::attribute())
+    }
+}
+
+impl String {
     /// The amount of arguments this function object takes.
     pub(crate) const LENGTH: usize = 1;
 
-    ///  JavaScript strings must be between `0` and less than positive `Infinity` and cannot be a negative number.
+    /// JavaScript strings must be between `0` and less than positive `Infinity` and cannot be a negative number.
     /// The range of allowed values can be described like this: `[0, +∞)`.
     ///
     /// The resulting string can also not be larger than the maximum string size,
     /// which can differ in JavaScript engines. In Boa it is `2^32 - 1`
     pub(crate) const MAX_STRING_LENGTH: f64 = u32::MAX as f64;
+
+    /// `String( value )`
+    ///
+    /// <https://tc39.es/ecma262/#sec-string-constructor-string-value>
+    pub(crate) fn constructor(this: &Value, args: &[Value], ctx: &mut Context) -> Result<Value> {
+        // This value is used by console.log and other routines to match Obexpecty"failed to parse argument for String method"pe
+        // to its Javascript Identifier (global constructor method name)
+        let string = match args.get(0) {
+            Some(ref value) => value.to_string(ctx)?,
+            None => RcString::default(),
+        };
+
+        let length = string.encode_utf16().count();
+
+        this.set_field("length", Value::from(length as i32));
+
+        this.set_data(ObjectData::String(string.clone()));
+
+        Ok(Value::from(string))
+    }
 
     fn this_string_value(this: &Value, ctx: &mut Context) -> Result<RcString> {
         match this {
@@ -58,27 +157,6 @@ impl String {
         }
 
         Err(ctx.construct_type_error("'this' is not a string"))
-    }
-
-    /// [[Construct]] - Creates a new instance `this`
-    ///
-    /// [[Call]] - Returns a new native `string`
-    /// <https://tc39.es/ecma262/#sec-string-constructor-string-value>
-    pub(crate) fn make_string(this: &Value, args: &[Value], ctx: &mut Context) -> Result<Value> {
-        // This value is used by console.log and other routines to match Obexpecty"failed to parse argument for String method"pe
-        // to its Javascript Identifier (global constructor method name)
-        let string = match args.get(0) {
-            Some(ref value) => value.to_string(ctx)?,
-            None => RcString::default(),
-        };
-
-        let length = string.chars().count();
-
-        this.set_field("length", Value::from(length as i32));
-
-        this.set_data(ObjectData::String(string.clone()));
-
-        Ok(Value::from(string))
     }
 
     /// Get the string value to a primitive string
@@ -169,7 +247,6 @@ impl String {
             .nth(pos as usize)
             .expect("failed to get utf16 value");
         // If there is no element at that index, the result is NaN
-        // TODO: We currently don't have NaN
         Ok(Value::from(f64::from(utf16_val)))
     }
 
@@ -298,11 +375,15 @@ impl String {
         // Then we convert it into a Rust String by wrapping it in from_value
         let primitive_val = this.to_string(ctx)?;
 
-        // TODO: Should throw TypeError if pattern is regular expression
-        let search_string = args
-            .get(0)
-            .expect("failed to get argument for String method")
-            .to_string(ctx)?;
+        let arg = args.get(0).cloned().unwrap_or_else(Value::undefined);
+
+        if Self::is_regexp_object(&arg) {
+            ctx.throw_type_error(
+                "First argument to String.prototype.startsWith must not be a regular expression",
+            )?;
+        }
+
+        let search_string = arg.to_string(ctx)?;
 
         let length = primitive_val.chars().count() as i32;
         let search_length = search_string.chars().count() as i32;
@@ -341,11 +422,15 @@ impl String {
         // Then we convert it into a Rust String by wrapping it in from_value
         let primitive_val = this.to_string(ctx)?;
 
-        // TODO: Should throw TypeError if search_string is regular expression
-        let search_string = args
-            .get(0)
-            .expect("failed to get argument for String method")
-            .to_string(ctx)?;
+        let arg = args.get(0).cloned().unwrap_or_else(Value::undefined);
+
+        if Self::is_regexp_object(&arg) {
+            ctx.throw_type_error(
+                "First argument to String.prototype.endsWith must not be a regular expression",
+            )?;
+        }
+
+        let search_string = arg.to_string(ctx)?;
 
         let length = primitive_val.chars().count() as i32;
         let search_length = search_string.chars().count() as i32;
@@ -387,11 +472,15 @@ impl String {
         // Then we convert it into a Rust String by wrapping it in from_value
         let primitive_val = this.to_string(ctx)?;
 
-        // TODO: Should throw TypeError if search_string is regular expression
-        let search_string = args
-            .get(0)
-            .expect("failed to get argument for String method")
-            .to_string(ctx)?;
+        let arg = args.get(0).cloned().unwrap_or_else(Value::undefined);
+
+        if Self::is_regexp_object(&arg) {
+            ctx.throw_type_error(
+                "First argument to String.prototype.includes must not be a regular expression",
+            )?;
+        }
+
+        let search_string = arg.to_string(ctx)?;
 
         let length = primitive_val.chars().count() as i32;
 
@@ -426,6 +515,13 @@ impl String {
                 "undefined".to_string()
             }
             _ => "undefined".to_string(),
+        }
+    }
+
+    fn is_regexp_object(value: &Value) -> bool {
+        match value {
+            Value::Object(ref obj) => obj.borrow().is_regexp(),
+            _ => false,
         }
     }
 
@@ -687,7 +783,7 @@ impl String {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/match
     /// [regex]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions
     pub(crate) fn r#match(this: &Value, args: &[Value], ctx: &mut Context) -> Result<Value> {
-        let re = RegExp::make_regexp(&Value::from(Object::default()), &[args[0].clone()], ctx)?;
+        let re = RegExp::constructor(&Value::from(Object::default()), &[args[0].clone()], ctx)?;
         RegExp::r#match(&re, this.to_string(ctx)?, ctx)
     }
 
@@ -923,7 +1019,7 @@ impl String {
                 .expect("failed to get argument for String method")
                 .to_integer(ctx)? as i32
         };
-        let length = primitive_val.chars().count() as i32;
+        let length = primitive_val.encode_utf16().count() as i32;
         // If less than 2 args specified, end is the length of the this object converted to a String
         let end = if args.len() < 2 {
             length
@@ -941,12 +1037,14 @@ impl String {
         let to = max(final_start, final_end) as usize;
         // Extract the part of the string contained between the start index and the end index
         // where start is guaranteed to be smaller or equals to end
-        let extracted_string: StdString = primitive_val
-            .chars()
-            .skip(from)
-            .take(to.wrapping_sub(from))
-            .collect();
-        Ok(Value::from(extracted_string))
+        let extracted_string: std::result::Result<StdString, _> = decode_utf16(
+            primitive_val
+                .encode_utf16()
+                .skip(from)
+                .take(to.wrapping_sub(from)),
+        )
+        .collect();
+        Ok(Value::from(extracted_string.expect("Invalid string")))
     }
 
     /// `String.prototype.substr( start[, length] )`
@@ -1038,13 +1136,13 @@ impl String {
         let re: Value = match args.get(0) {
             Some(arg) => {
                 if arg.is_null() {
-                    RegExp::make_regexp(
+                    RegExp::constructor(
                         &Value::from(Object::default()),
                         &[Value::from(arg.to_string(ctx)?), Value::from("g")],
                         ctx,
                     )
                 } else if arg.is_undefined() {
-                    RegExp::make_regexp(
+                    RegExp::constructor(
                         &Value::from(Object::default()),
                         &[Value::undefined(), Value::from("g")],
                         ctx,
@@ -1053,7 +1151,7 @@ impl String {
                     Ok(arg.clone())
                 }
             }
-            None => RegExp::make_regexp(
+            None => RegExp::constructor(
                 &Value::from(Object::default()),
                 &[Value::from(""), Value::from("g")],
                 ctx,
@@ -1063,72 +1161,7 @@ impl String {
         RegExp::match_all(&re, this.to_string(ctx)?.to_string())
     }
 
-    /// Initialise the `String` object on the global object.
-    #[inline]
-    pub(crate) fn init(interpreter: &mut Context) -> (&'static str, Value) {
-        let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
-
-        // Create `String` `prototype`
-
-        let global = interpreter.global_object();
-        let prototype = Value::new_object(Some(global));
-        let length = Property::default().value(Value::from(0));
-
-        prototype.set_property("length", length);
-
-        make_builtin_fn(Self::char_at, "charAt", &prototype, 1, interpreter);
-        make_builtin_fn(Self::char_code_at, "charCodeAt", &prototype, 1, interpreter);
-        make_builtin_fn(Self::to_string, "toString", &prototype, 0, interpreter);
-        make_builtin_fn(Self::concat, "concat", &prototype, 1, interpreter);
-        make_builtin_fn(Self::repeat, "repeat", &prototype, 1, interpreter);
-        make_builtin_fn(Self::slice, "slice", &prototype, 2, interpreter);
-        make_builtin_fn(Self::starts_with, "startsWith", &prototype, 1, interpreter);
-        make_builtin_fn(Self::ends_with, "endsWith", &prototype, 1, interpreter);
-        make_builtin_fn(Self::includes, "includes", &prototype, 1, interpreter);
-        make_builtin_fn(Self::index_of, "indexOf", &prototype, 1, interpreter);
-        make_builtin_fn(
-            Self::last_index_of,
-            "lastIndexOf",
-            &prototype,
-            1,
-            interpreter,
-        );
-        make_builtin_fn(Self::r#match, "match", &prototype, 1, interpreter);
-        make_builtin_fn(Self::pad_end, "padEnd", &prototype, 1, interpreter);
-        make_builtin_fn(Self::pad_start, "padStart", &prototype, 1, interpreter);
-        make_builtin_fn(Self::trim, "trim", &prototype, 0, interpreter);
-        make_builtin_fn(Self::trim_start, "trimStart", &prototype, 0, interpreter);
-        make_builtin_fn(Self::trim_end, "trimEnd", &prototype, 0, interpreter);
-        make_builtin_fn(
-            Self::to_lowercase,
-            "toLowerCase",
-            &prototype,
-            0,
-            interpreter,
-        );
-        make_builtin_fn(
-            Self::to_uppercase,
-            "toUpperCase",
-            &prototype,
-            0,
-            interpreter,
-        );
-        make_builtin_fn(Self::substring, "substring", &prototype, 2, interpreter);
-        make_builtin_fn(Self::substr, "substr", &prototype, 2, interpreter);
-        make_builtin_fn(Self::value_of, "valueOf", &prototype, 0, interpreter);
-        make_builtin_fn(Self::match_all, "matchAll", &prototype, 1, interpreter);
-        make_builtin_fn(Self::replace, "replace", &prototype, 2, interpreter);
-
-        let string_object = make_constructor_fn(
-            Self::NAME,
-            Self::LENGTH,
-            Self::make_string,
-            global,
-            prototype,
-            true,
-            true,
-        );
-
-        (Self::NAME, string_object)
+    pub(crate) fn iterator(this: &Value, _args: &[Value], ctx: &mut Context) -> Result<Value> {
+        StringIterator::create_string_iterator(ctx, this.clone())
     }
 }

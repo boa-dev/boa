@@ -34,6 +34,15 @@ fn property_accessor_member_expression_bracket_notation_on_string_literal() {
 }
 
 #[test]
+fn length_correct_value_on_string_literal() {
+    let scenario = r#"
+    'hello'.length;
+    "#;
+
+    assert_eq!(&exec(scenario), "5");
+}
+
+#[test]
 fn property_accessor_member_expression_dot_notation_on_function() {
     let scenario = r#"
         function asd () {};
@@ -1330,7 +1339,7 @@ fn assign_to_object_decl() {
     let mut engine = Context::new();
 
     const ERR_MSG: &str =
-        "Uncaught \"SyntaxError\": \"expected token \';\', got \':\' in expression statement at line 1, col 3\"";
+        "Uncaught \"SyntaxError\": \"unexpected token '=', primary expression at line 1, col 8\"";
 
     assert_eq!(forward(&mut engine, "{a: 3} = {a: 5};"), ERR_MSG);
 }
@@ -1367,4 +1376,10 @@ fn test_undefined_type() {
 fn test_conditional_op() {
     let scenario = "1 === 2 ? 'a' : 'b'";
     assert_eq!(&exec(scenario), "\"b\"");
+}
+
+#[test]
+fn test_identifier_op() {
+    let scenario = "break = 1";
+    assert_eq!(&exec(scenario), "\"SyntaxError\": \"expected token \'identifier\', got \'=\' in binding identifier at line 1, col 7\"");
 }

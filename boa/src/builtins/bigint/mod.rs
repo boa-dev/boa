@@ -13,8 +13,9 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/BigInt
 
 use crate::{
-    builtins::function::{make_builtin_fn, make_constructor_fn},
-    object::ObjectData,
+    builtins::BuiltIn,
+    object::{ConstructorBuilder, ObjectData},
+    property::Attribute,
     value::{RcBigInt, Value},
     BoaProfiler, Context, Result,
 };
@@ -40,12 +41,56 @@ mod tests;
 #[derive(Clone, Hash, PartialEq, Eq, PartialOrd, Ord, Default)]
 pub struct BigInt(num_bigint::BigInt);
 
-impl BigInt {
-    /// The name of the object.
-    pub(crate) const NAME: &'static str = "BigInt";
+impl BuiltIn for BigInt {
+    const NAME: &'static str = "BigInt";
 
+    fn attribute() -> Attribute {
+        Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE
+    }
+
+    fn init(context: &mut Context) -> (&'static str, Value, Attribute) {
+        let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
+
+        let bigint_object = ConstructorBuilder::with_standard_object(
+            context,
+            Self::constructor,
+            context.standard_objects().bigint_object().clone(),
+        )
+        .name(Self::NAME)
+        .length(Self::LENGTH)
+        .method(Self::to_string, "toString", 1)
+        .method(Self::value_of, "valueOf", 0)
+        .static_method(Self::as_int_n, "asIntN", 2)
+        .static_method(Self::as_uint_n, "asUintN", 2)
+        .callable(true)
+        .constructable(false)
+        .build();
+
+        (Self::NAME, bigint_object.into(), Self::attribute())
+    }
+}
+
+impl BigInt {
     /// The amount of arguments this function object takes.
     pub(crate) const LENGTH: usize = 1;
+
+    /// `BigInt()`
+    ///
+    /// The `BigInt()` constructor is used to create BigInt objects.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-bigint-objects
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/BigInt/BigInt
+    fn constructor(_: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+        let data = match args.get(0) {
+            Some(ref value) => value.to_bigint(context)?,
+            None => RcBigInt::from(Self::from(0)),
+        };
+        Ok(Value::from(data))
+    }
 
     /// The abstract operation thisBigIntValue takes argument value.
     ///
@@ -76,24 +121,6 @@ impl BigInt {
 
         // 3. Throw a TypeError exception.
         Err(ctx.construct_type_error("'this' is not a BigInt"))
-    }
-
-    /// `BigInt()`
-    ///
-    /// The `BigInt()` constructor is used to create BigInt objects.
-    ///
-    /// More information:
-    ///  - [ECMAScript reference][spec]
-    ///  - [MDN documentation][mdn]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-bigint-objects
-    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/BigInt/BigInt
-    pub(crate) fn make_bigint(_: &Value, args: &[Value], ctx: &mut Context) -> Result<Value> {
-        let data = match args.get(0) {
-            Some(ref value) => value.to_bigint(ctx)?,
-            None => RcBigInt::from(Self::from(0)),
-        };
-        Ok(Value::from(data))
     }
 
     /// `BigInt.prototype.toString( [radix] )`
@@ -193,33 +220,6 @@ impl BigInt {
                 .mod_floor(&BigInt::from(2).pow(&BigInt::from(bits as i64))),
             bits,
         ))
-    }
-
-    /// Initialise the `BigInt` object on the global object.
-    #[inline]
-    pub fn init(interpreter: &mut Context) -> (&'static str, Value) {
-        let global = interpreter.global_object();
-        let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
-
-        let prototype = Value::new_object(Some(global));
-
-        make_builtin_fn(Self::to_string, "toString", &prototype, 1, interpreter);
-        make_builtin_fn(Self::value_of, "valueOf", &prototype, 0, interpreter);
-
-        let bigint_object = make_constructor_fn(
-            Self::NAME,
-            Self::LENGTH,
-            Self::make_bigint,
-            global,
-            prototype,
-            false,
-            true,
-        );
-
-        make_builtin_fn(Self::as_int_n, "asIntN", &bigint_object, 2, interpreter);
-        make_builtin_fn(Self::as_uint_n, "asUintN", &bigint_object, 2, interpreter);
-
-        (Self::NAME, bigint_object)
     }
 }
 

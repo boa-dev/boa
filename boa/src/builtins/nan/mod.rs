@@ -13,21 +13,22 @@
 #[cfg(test)]
 mod tests;
 
-use crate::{BoaProfiler, Context, Value};
+use crate::{builtins::BuiltIn, property::Attribute, BoaProfiler, Context, Value};
 
 /// JavaScript global `NaN` property.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub(crate) struct NaN;
 
-impl NaN {
-    /// The binding name of the property.
-    pub(crate) const NAME: &'static str = "NaN";
+impl BuiltIn for NaN {
+    const NAME: &'static str = "NaN";
 
-    /// Initialize the `NaN` property on the global object.
-    #[inline]
-    pub(crate) fn init(_interpreter: &mut Context) -> (&'static str, Value) {
+    fn attribute() -> Attribute {
+        Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT
+    }
+
+    fn init(_context: &mut Context) -> (&'static str, Value, Attribute) {
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
-        (Self::NAME, Value::from(f64::NAN))
+        (Self::NAME, f64::NAN.into(), Self::attribute())
     }
 }
