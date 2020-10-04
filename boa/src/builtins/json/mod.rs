@@ -79,7 +79,7 @@ impl Json {
                     _ => Ok(j),
                 }
             }
-            Err(err) => Err(Value::from(err.to_string())),
+            Err(err) => ctx.throw_syntax_error(err.to_string()),
         }
     }
 
