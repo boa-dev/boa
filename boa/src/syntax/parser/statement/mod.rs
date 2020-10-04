@@ -37,7 +37,7 @@ use self::{
 
 use super::{AllowAwait, AllowReturn, AllowYield, Cursor, ParseError, TokenParser};
 
-use crate::syntax::lexer::TokenKind;
+use crate::syntax::lexer::{Error as LexError, TokenKind};
 use crate::{
     syntax::ast::{node, Keyword, Node, Punctuator},
     BoaProfiler,
@@ -191,6 +191,7 @@ pub(super) struct StatementList {
     allow_await: AllowAwait,
     allow_return: AllowReturn,
     break_when_closingbraces: bool,
+    in_block: bool,
 }
 
 impl StatementList {
@@ -200,6 +201,7 @@ impl StatementList {
         allow_await: A,
         allow_return: R,
         break_when_closingbraces: bool,
+        in_block: bool,
     ) -> Self
     where
         Y: Into<AllowYield>,
@@ -211,6 +213,7 @@ impl StatementList {
             allow_await: allow_await.into(),
             allow_return: allow_return.into(),
             break_when_closingbraces,
+            in_block,
         }
     }
 
@@ -245,9 +248,13 @@ impl StatementList {
                 return Err(ParseError::AbruptEnd);
             }
 
-            let item =
-                StatementListItem::new(self.allow_yield, self.allow_await, self.allow_return)
-                    .parse(cursor, strict_mode)?;
+            let item = StatementListItem::new(
+                self.allow_yield,
+                self.allow_await,
+                self.allow_return,
+                self.in_block,
+            )
+            .parse(cursor, strict_mode)?;
 
             items.push(item);
 
@@ -290,9 +297,13 @@ where
                 _ => {}
             }
 
-            let item =
-                StatementListItem::new(self.allow_yield, self.allow_await, self.allow_return)
-                    .parse(cursor, strict_mode)?;
+            let item = StatementListItem::new(
+                self.allow_yield,
+                self.allow_await,
+                self.allow_return,
+                self.in_block,
+            )
+            .parse(cursor, strict_mode)?;
             items.push(item);
 
             // move the cursor forward for any consecutive semicolon.
@@ -320,11 +331,12 @@ struct StatementListItem {
     allow_yield: AllowYield,
     allow_await: AllowAwait,
     allow_return: AllowReturn,
+    in_block: bool,
 }
 
 impl StatementListItem {
     /// Creates a new `StatementListItem` parser.
-    fn new<Y, A, R>(allow_yield: Y, allow_await: A, allow_return: R) -> Self
+    fn new<Y, A, R>(allow_yield: Y, allow_await: A, allow_return: R, in_block: bool) -> Self
     where
         Y: Into<AllowYield>,
         A: Into<AllowAwait>,
@@ -334,6 +346,7 @@ impl StatementListItem {
             allow_yield: allow_yield.into(),
             allow_await: allow_await.into(),
             allow_return: allow_return.into(),
+            in_block,
         }
     }
 }
@@ -349,9 +362,16 @@ where
         let tok = cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?;
 
         match *tok.kind() {
-            TokenKind::Keyword(Keyword::Function)
-            | TokenKind::Keyword(Keyword::Const)
-            | TokenKind::Keyword(Keyword::Let) => {
+            TokenKind::Keyword(Keyword::Function) => {
+                if strict_mode && self.in_block {
+                    return Err(ParseError::lex(LexError::Syntax(
+                        "Function declaration in blocks not allowed in strict mode".into(),
+                        tok.span().start(),
+                    )));
+                }
+                Declaration::new(self.allow_yield, self.allow_await).parse(cursor, strict_mode)
+            }
+            TokenKind::Keyword(Keyword::Const) | TokenKind::Keyword(Keyword::Let) => {
                 Declaration::new(self.allow_yield, self.allow_await).parse(cursor, strict_mode)
             }
             _ => Statement::new(self.allow_yield, self.allow_await, self.allow_return)

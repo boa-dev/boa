@@ -282,7 +282,7 @@ where
             }
         }
 
-        StatementList::new(self.allow_yield, self.allow_await, true, true)
+        StatementList::new(self.allow_yield, self.allow_await, true, true, true)
             .parse(cursor, func_scope_strict_mode)
     }
 }

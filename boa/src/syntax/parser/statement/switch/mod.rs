@@ -132,6 +132,7 @@ where
                         self.allow_await,
                         self.allow_return,
                         true,
+                        false,
                     )
                     .parse_generalised(
                         cursor,
@@ -157,6 +158,7 @@ where
                         self.allow_await,
                         self.allow_return,
                         true,
+                        false,
                     )
                     .parse_generalised(
                         cursor,
