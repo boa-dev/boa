@@ -45,12 +45,7 @@ impl Identifier {
 }
 
 impl<R> Tokenizer<R> for Identifier {
-    fn lex(
-        &mut self,
-        cursor: &mut Cursor<R>,
-        start_pos: Position,
-        strict_mode: bool,
-    ) -> Result<Token, Error>
+    fn lex(&mut self, cursor: &mut Cursor<R>, start_pos: Position) -> Result<Token, Error>
     where
         R: Read,
     {
@@ -68,7 +63,7 @@ impl<R> Tokenizer<R> for Identifier {
             "null" => TokenKind::NullLiteral,
             slice => {
                 if let Ok(keyword) = slice.parse() {
-                    if strict_mode && keyword == Keyword::With {
+                    if cursor.strict_mode() && keyword == Keyword::With {
                         return Err(Error::Syntax(
                             "using 'with' statement not allowed in strict mode".into(),
                             start_pos,
@@ -76,7 +71,7 @@ impl<R> Tokenizer<R> for Identifier {
                     }
                     TokenKind::Keyword(keyword)
                 } else {
-                    if strict_mode && STRICT_FORBIDDEN_IDENTIFIERS.contains(&slice) {
+                    if cursor.strict_mode() && STRICT_FORBIDDEN_IDENTIFIERS.contains(&slice) {
                         return Err(Error::Syntax(
                             format!(
                                 "using future reserved keyword '{}' not allowed in strict mode",

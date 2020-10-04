@@ -134,12 +134,7 @@ where
 }
 
 impl<R> Tokenizer<R> for NumberLiteral {
-    fn lex(
-        &mut self,
-        cursor: &mut Cursor<R>,
-        start_pos: Position,
-        strict_mode: bool,
-    ) -> Result<Token, Error>
+    fn lex(&mut self, cursor: &mut Cursor<R>, start_pos: Position) -> Result<Token, Error>
     where
         R: Read,
     {
@@ -191,7 +186,7 @@ impl<R> Tokenizer<R> for NumberLiteral {
                     ch => {
                         if ch.is_digit(8) {
                             // LegacyOctalIntegerLiteral
-                            if strict_mode {
+                            if cursor.strict_mode() {
                                 // LegacyOctalIntegerLiteral is forbidden with strict mode true.
                                 return Err(Error::syntax(
                                     "implicit octal literals are not allowed in strict mode",
@@ -209,7 +204,7 @@ impl<R> Tokenizer<R> for NumberLiteral {
                             // Indicates a numerical digit comes after then 0 but it isn't an octal digit
                             // so therefore this must be a number with an unneeded leading 0. This is
                             // forbidden in strict mode.
-                            if strict_mode {
+                            if cursor.strict_mode() {
                                 return Err(Error::syntax(
                                     "leading 0's are not allowed in strict mode",
                                     start_pos,

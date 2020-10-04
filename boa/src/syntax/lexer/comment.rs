@@ -23,12 +23,7 @@ use std::io::Read;
 pub(super) struct SingleLineComment;
 
 impl<R> Tokenizer<R> for SingleLineComment {
-    fn lex(
-        &mut self,
-        cursor: &mut Cursor<R>,
-        start_pos: Position,
-        strict_mode: bool,
-    ) -> Result<Token, Error>
+    fn lex(&mut self, cursor: &mut Cursor<R>, start_pos: Position) -> Result<Token, Error>
     where
         R: Read,
     {
@@ -63,12 +58,7 @@ impl<R> Tokenizer<R> for SingleLineComment {
 pub(super) struct MultiLineComment;
 
 impl<R> Tokenizer<R> for MultiLineComment {
-    fn lex(
-        &mut self,
-        cursor: &mut Cursor<R>,
-        start_pos: Position,
-        strict_mode: bool,
-    ) -> Result<Token, Error>
+    fn lex(&mut self, cursor: &mut Cursor<R>, start_pos: Position) -> Result<Token, Error>
     where
         R: Read,
     {

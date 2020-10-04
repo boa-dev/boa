@@ -48,12 +48,7 @@ pub use token::{Token, TokenKind};
 
 trait Tokenizer<R> {
     /// Lexes the next token.
-    fn lex(
-        &mut self,
-        cursor: &mut Cursor<R>,
-        start_pos: Position,
-        strict_mode: bool,
-    ) -> Result<Token, Error>
+    fn lex(&mut self, cursor: &mut Cursor<R>, start_pos: Position) -> Result<Token, Error>
     where
         R: Read;
 }
@@ -63,7 +58,6 @@ trait Tokenizer<R> {
 pub struct Lexer<R> {
     cursor: Cursor<R>,
     goal_symbol: InputElement,
-    strict_mode: bool,
 }
 
 impl<R> Lexer<R> {
@@ -98,12 +92,12 @@ impl<R> Lexer<R> {
 
     #[inline]
     pub(super) fn strict_mode(&self) -> bool {
-        self.strict_mode
+        self.cursor.strict_mode()
     }
 
     #[inline]
     pub(super) fn set_strict_mode(&mut self, strict_mode: bool) {
-        self.strict_mode = strict_mode
+        self.cursor.set_strict_mode(strict_mode)
     }
 
     /// Creates a new lexer.
@@ -115,7 +109,6 @@ impl<R> Lexer<R> {
         Self {
             cursor: Cursor::new(reader),
             goal_symbol: Default::default(),
-            strict_mode: false, // Strict mode off by default.
         }
     }
 
@@ -126,11 +119,7 @@ impl<R> Lexer<R> {
     // that means it could be multiple different tokens depending on the input token.
     //
     // As per https://tc39.es/ecma262/#sec-ecmascript-language-lexical-grammar
-    pub(crate) fn lex_slash_token(
-        &mut self,
-        start: Position,
-        strict_mode: bool,
-    ) -> Result<Token, Error>
+    pub(crate) fn lex_slash_token(&mut self, start: Position) -> Result<Token, Error>
     where
         R: Read,
     {
@@ -140,11 +129,11 @@ impl<R> Lexer<R> {
             match c {
                 '/' => {
                     self.cursor.next_char()?.expect("/ token vanished"); // Consume the '/'
-                    SingleLineComment.lex(&mut self.cursor, start, strict_mode)
+                    SingleLineComment.lex(&mut self.cursor, start)
                 }
                 '*' => {
                     self.cursor.next_char()?.expect("* token vanished"); // Consume the '*'
-                    MultiLineComment.lex(&mut self.cursor, start, strict_mode)
+                    MultiLineComment.lex(&mut self.cursor, start)
                 }
                 ch => {
                     match self.get_goal() {
@@ -167,7 +156,7 @@ impl<R> Lexer<R> {
                         }
                         InputElement::RegExp | InputElement::RegExpOrTemplateTail => {
                             // Can be a regular expression.
-                            RegexLiteral.lex(&mut self.cursor, start, strict_mode)
+                            RegexLiteral.lex(&mut self.cursor, start)
                         }
                     }
                 }
@@ -201,21 +190,16 @@ impl<R> Lexer<R> {
             }
         };
 
-        // TODO, setting strict mode on/off.
-        let strict_mode = false;
-
         let token = match next_chr {
             '\r' | '\n' | '\u{2028}' | '\u{2029}' => Ok(Token::new(
                 TokenKind::LineTerminator,
                 Span::new(start, self.cursor.pos()),
             )),
-            '"' | '\'' => StringLiteral::new(next_chr).lex(&mut self.cursor, start, strict_mode),
-            '`' => TemplateLiteral.lex(&mut self.cursor, start, strict_mode),
-            _ if next_chr.is_digit(10) => {
-                NumberLiteral::new(next_chr).lex(&mut self.cursor, start, strict_mode)
-            }
+            '"' | '\'' => StringLiteral::new(next_chr).lex(&mut self.cursor, start),
+            '`' => TemplateLiteral.lex(&mut self.cursor, start),
+            _ if next_chr.is_digit(10) => NumberLiteral::new(next_chr).lex(&mut self.cursor, start),
             _ if next_chr.is_alphabetic() || next_chr == '$' || next_chr == '_' => {
-                Identifier::new(next_chr).lex(&mut self.cursor, start, strict_mode)
+                Identifier::new(next_chr).lex(&mut self.cursor, start)
             }
             ';' => Ok(Token::new(
                 Punctuator::Semicolon.into(),
@@ -225,7 +209,7 @@ impl<R> Lexer<R> {
                 Punctuator::Colon.into(),
                 Span::new(start, self.cursor.pos()),
             )),
-            '.' => SpreadLiteral::new().lex(&mut self.cursor, start, strict_mode),
+            '.' => SpreadLiteral::new().lex(&mut self.cursor, start),
             '(' => Ok(Token::new(
                 Punctuator::OpenParen.into(),
                 Span::new(start, self.cursor.pos()),
@@ -258,9 +242,9 @@ impl<R> Lexer<R> {
                 Punctuator::Question.into(),
                 Span::new(start, self.cursor.pos()),
             )),
-            '/' => self.lex_slash_token(start, strict_mode),
+            '/' => self.lex_slash_token(start),
             '=' | '*' | '+' | '-' | '%' | '|' | '&' | '^' | '<' | '>' | '!' | '~' => {
-                Operator::new(next_chr).lex(&mut self.cursor, start, strict_mode)
+                Operator::new(next_chr).lex(&mut self.cursor, start)
             }
             _ => {
                 let details = format!(
