@@ -9,7 +9,7 @@ mod statement;
 mod tests;
 
 pub use self::error::{ParseError, ParseResult};
-use crate::syntax::ast::node::StatementList;
+use crate::syntax::{ast::node::StatementList, lexer::TokenKind};
 
 use cursor::Cursor;
 
@@ -121,11 +121,18 @@ where
     type Output = StatementList;
 
     fn parse(self, cursor: &mut Cursor<R>, strict_mode: bool) -> Result<Self::Output, ParseError> {
-        if cursor.peek(0)?.is_some() {
-            // TODO - Setting global strict mode directive.
-            ScriptBody.parse(cursor, strict_mode)
-        } else {
-            Ok(StatementList::from(Vec::new()))
+        match cursor.peek(0)? {
+            Some(tok) => match tok.kind() {
+                TokenKind::StringLiteral(string) | TokenKind::TemplateLiteral(string) => {
+                    if string == &"use strict".into() {
+                        ScriptBody.parse(cursor, true)
+                    } else {
+                        ScriptBody.parse(cursor, strict_mode)
+                    }
+                }
+                _ => ScriptBody.parse(cursor, strict_mode),
+            },
+            None => Ok(StatementList::from(Vec::new())),
         }
     }
 }
