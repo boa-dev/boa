@@ -10,7 +10,7 @@ use crate::{
     },
     class::{Class, ClassBuilder},
     exec::Interpreter,
-    object::{GcObject, Object, ObjectData, RecursionLimiter, PROTOTYPE},
+    object::{GcObject, Object, ObjectData, PROTOTYPE},
     property::{Property, PropertyKey},
     realm::Realm,
     syntax::{
@@ -23,7 +23,7 @@ use crate::{
         },
         Parser,
     },
-    value::{PreferredType, RcString, RcSymbol, Type, Value},
+    value::{RcString, RcSymbol, Value},
     BoaProfiler, Executable, Result,
 };
 use std::result::Result as StdResult;
@@ -366,79 +366,6 @@ impl Context {
         }
 
         Err(())
-    }
-
-    /// Converts an object to a primitive.
-    ///
-    /// Diverges from the spec to prevent a stack overflow when the object is recursive.
-    /// For example,
-    /// ```javascript
-    /// let a = [1];
-    /// a[1] = a;
-    /// console.log(a.toString()); // We print "1,"
-    /// ```
-    /// The spec doesn't mention what to do in this situation, but a naive implementation
-    /// would overflow the stack recursively calling `toString()`. We follow v8 and SpiderMonkey
-    /// instead by returning a default value for the given `hint` -- either `0.` or `""`.
-    /// Example in v8: https://repl.it/repls/IvoryCircularCertification#index.js
-    ///
-    /// More information:
-    ///  - [ECMAScript][spec]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-ordinarytoprimitive
-    pub(crate) fn ordinary_to_primitive(
-        &mut self,
-        o: &Value,
-        hint: PreferredType,
-    ) -> Result<Value> {
-        // 1. Assert: Type(O) is Object.
-        // TODO: #776 this should also accept Type::Function
-        debug_assert!(o.get_type() == Type::Object);
-        // 2. Assert: Type(hint) is String and its value is either "string" or "number".
-        debug_assert!(hint == PreferredType::String || hint == PreferredType::Number);
-
-        // Diverge from the spec here to make sure we aren't going to overflow the stack by converting
-        // a recursive structure
-        // We can follow v8 & SpiderMonkey's lead and return a default value for the hint in this situation
-        // (see https://repl.it/repls/IvoryCircularCertification#index.js)
-        let obj = o.as_gc_object().unwrap(); // UNWRAP: Asserted type above
-        let recursion_limiter = RecursionLimiter::new(&obj);
-        if recursion_limiter.live {
-            // we're in a recursive object, bail
-            return Ok(match hint {
-                PreferredType::Number => Value::number(0.),
-                PreferredType::String => Value::string(""),
-                PreferredType::Default => unreachable!(), // checked hint type above
-            });
-        }
-
-        // 3. If hint is "string", then
-        //    a. Let methodNames be « "toString", "valueOf" ».
-        // 4. Else,
-        //    a. Let methodNames be « "valueOf", "toString" ».
-        let method_names = if hint == PreferredType::String {
-            ["toString", "valueOf"]
-        } else {
-            ["valueOf", "toString"]
-        };
-
-        // 5. For each name in methodNames in List order, do
-        for name in &method_names {
-            // a. Let method be ? Get(O, name).
-            let method: Value = o.get_field(*name);
-            // b. If IsCallable(method) is true, then
-            if method.is_function() {
-                // i. Let result be ? Call(method, O).
-                let result = self.call(&method, &o, &[])?;
-                // ii. If Type(result) is not Object, return result.
-                if !result.is_object() {
-                    return Ok(result);
-                }
-            }
-        }
-
-        // 6. Throw a TypeError exception.
-        self.throw_type_error("cannot convert object to primitive value")
     }
 
     /// https://tc39.es/ecma262/#sec-hasproperty

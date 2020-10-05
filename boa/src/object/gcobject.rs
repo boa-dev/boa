@@ -11,6 +11,7 @@ use crate::{
         function_environment_record::BindingStatus, lexical_environment::new_function_environment,
     },
     syntax::ast::node::RcStatementList,
+    value::PreferredType,
     Context, Executable, Result, Value,
 };
 use gc::{Finalize, Gc, GcCell, GcCellRef, GcCellRefMut, Trace};
@@ -266,6 +267,78 @@ impl GcObject {
                 Ok(binding)
             }
         }
+    }
+
+    /// Converts an object to a primitive.
+    ///
+    /// Diverges from the spec to prevent a stack overflow when the object is recursive.
+    /// For example,
+    /// ```javascript
+    /// let a = [1];
+    /// a[1] = a;
+    /// console.log(a.toString()); // We print "1,"
+    /// ```
+    /// The spec doesn't mention what to do in this situation, but a naive implementation
+    /// would overflow the stack recursively calling `toString()`. We follow v8 and SpiderMonkey
+    /// instead by returning a default value for the given `hint` -- either `0.` or `""`.
+    /// Example in v8: https://repl.it/repls/IvoryCircularCertification#index.js
+    ///
+    /// More information:
+    ///  - [ECMAScript][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-ordinarytoprimitive
+    pub(crate) fn ordinary_to_primitive(
+        &self,
+        interpreter: &mut Context,
+        hint: PreferredType,
+    ) -> Result<Value> {
+        // 1. Assert: Type(O) is Object.
+        //      Already is GcObject by type.
+        // 2. Assert: Type(hint) is String and its value is either "string" or "number".
+        debug_assert!(hint == PreferredType::String || hint == PreferredType::Number);
+
+        // Diverge from the spec here to make sure we aren't going to overflow the stack by converting
+        // a recursive structure
+        // We can follow v8 & SpiderMonkey's lead and return a default value for the hint in this situation
+        // (see https://repl.it/repls/IvoryCircularCertification#index.js)
+        let recursion_limiter = RecursionLimiter::new(&self);
+        if recursion_limiter.live {
+            // we're in a recursive object, bail
+            return Ok(match hint {
+                PreferredType::Number => Value::from(0),
+                PreferredType::String => Value::from(""),
+                PreferredType::Default => unreachable!("checked type hint in step 2"),
+            });
+        }
+
+        // 3. If hint is "string", then
+        //    a. Let methodNames be « "toString", "valueOf" ».
+        // 4. Else,
+        //    a. Let methodNames be « "valueOf", "toString" ».
+        let method_names = if hint == PreferredType::String {
+            ["toString", "valueOf"]
+        } else {
+            ["valueOf", "toString"]
+        };
+
+        // 5. For each name in methodNames in List order, do
+        let this = Value::from(self.clone());
+        for name in &method_names {
+            // a. Let method be ? Get(O, name).
+            let method: Value = this.get_field(*name);
+            // b. If IsCallable(method) is true, then
+            if method.is_function() {
+                // i. Let result be ? Call(method, O).
+                let result = self.call(&this, &[], interpreter)?;
+                // ii. If Type(result) is not Object, return result.
+                if !result.is_object() {
+                    return Ok(result);
+                }
+            }
+        }
+
+        // 6. Throw a TypeError exception.
+        interpreter.throw_type_error("cannot convert object to primitive value")
     }
 }
 

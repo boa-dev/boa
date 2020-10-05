@@ -601,7 +601,7 @@ impl Value {
     pub fn to_primitive(&self, ctx: &mut Context, preferred_type: PreferredType) -> Result<Value> {
         // 1. Assert: input is an ECMAScript language value. (always a value not need to check)
         // 2. If Type(input) is Object, then
-        if let Value::Object(_) = self {
+        if let Value::Object(obj) = self {
             let mut hint = preferred_type;
 
             // Skip d, e we don't support Symbols yet
@@ -612,7 +612,7 @@ impl Value {
             };
 
             // g. Return ? OrdinaryToPrimitive(input, hint).
-            ctx.ordinary_to_primitive(self, hint)
+            obj.ordinary_to_primitive(ctx, hint)
         } else {
             // 3. Return input.
             Ok(self.clone())
