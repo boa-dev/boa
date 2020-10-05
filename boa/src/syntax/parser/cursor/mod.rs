@@ -56,6 +56,16 @@ where
         self.buffered_lexer.peek(skip_n, true)
     }
 
+    #[inline]
+    pub(super) fn strict_mode(&self) -> bool {
+        self.buffered_lexer.strict_mode()
+    }
+
+    #[inline]
+    pub(super) fn set_strict_mode(&mut self, strict_mode: bool) {
+        self.buffered_lexer.set_strict_mode(strict_mode)
+    }
+
     /// Returns an error if the next token is not of kind `kind`.
     ///
     /// Note: it will consume the next token only if the next token is the expected type.

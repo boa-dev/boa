@@ -82,6 +82,16 @@ where
         self.lexer.lex_slash_token(start).map_err(|e| e.into())
     }
 
+    #[inline]
+    pub(super) fn strict_mode(&self) -> bool {
+        self.lexer.strict_mode()
+    }
+
+    #[inline]
+    pub(super) fn set_strict_mode(&mut self, strict_mode: bool) {
+        self.lexer.set_strict_mode(strict_mode)
+    }
+
     /// Fills the peeking buffer with the next token.
     ///
     /// It will not fill two line terminators one after the other.

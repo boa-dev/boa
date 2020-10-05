@@ -41,7 +41,7 @@ use super::{AllowAwait, AllowReturn, AllowYield, Cursor, ParseError, TokenParser
 use crate::{
     syntax::{
         ast::{node, Keyword, Node, Punctuator},
-        lexer::{InputElement, TokenKind},
+        lexer::{Error as LexError, InputElement, TokenKind},
     },
     BoaProfiler,
 };
@@ -215,6 +215,7 @@ pub(super) struct StatementList {
     allow_await: AllowAwait,
     allow_return: AllowReturn,
     break_when_closingbraces: bool,
+    in_block: bool,
 }
 
 impl StatementList {
@@ -224,6 +225,7 @@ impl StatementList {
         allow_await: A,
         allow_return: R,
         break_when_closingbraces: bool,
+        in_block: bool,
     ) -> Self
     where
         Y: Into<AllowYield>,
@@ -235,6 +237,7 @@ impl StatementList {
             allow_await: allow_await.into(),
             allow_return: allow_return.into(),
             break_when_closingbraces,
+            in_block,
         }
     }
 
@@ -268,9 +271,13 @@ impl StatementList {
                 return Err(ParseError::AbruptEnd);
             }
 
-            let item =
-                StatementListItem::new(self.allow_yield, self.allow_await, self.allow_return)
-                    .parse(cursor)?;
+            let item = StatementListItem::new(
+                self.allow_yield,
+                self.allow_await,
+                self.allow_return,
+                self.in_block,
+            )
+            .parse(cursor)?;
 
             items.push(item);
 
@@ -313,9 +320,13 @@ where
                 _ => {}
             }
 
-            let item =
-                StatementListItem::new(self.allow_yield, self.allow_await, self.allow_return)
-                    .parse(cursor)?;
+            let item = StatementListItem::new(
+                self.allow_yield,
+                self.allow_await,
+                self.allow_return,
+                self.in_block,
+            )
+            .parse(cursor)?;
             items.push(item);
 
             // move the cursor forward for any consecutive semicolon.
@@ -343,11 +354,12 @@ struct StatementListItem {
     allow_yield: AllowYield,
     allow_await: AllowAwait,
     allow_return: AllowReturn,
+    in_block: bool,
 }
 
 impl StatementListItem {
     /// Creates a new `StatementListItem` parser.
-    fn new<Y, A, R>(allow_yield: Y, allow_await: A, allow_return: R) -> Self
+    fn new<Y, A, R>(allow_yield: Y, allow_await: A, allow_return: R, in_block: bool) -> Self
     where
         Y: Into<AllowYield>,
         A: Into<AllowAwait>,
@@ -357,6 +369,7 @@ impl StatementListItem {
             allow_yield: allow_yield.into(),
             allow_await: allow_await.into(),
             allow_return: allow_return.into(),
+            in_block,
         }
     }
 }
@@ -369,12 +382,20 @@ where
 
     fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("StatementListItem", "Parsing");
+        let strict_mode = cursor.strict_mode();
         let tok = cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?;
 
         match *tok.kind() {
-            TokenKind::Keyword(Keyword::Function)
-            | TokenKind::Keyword(Keyword::Const)
-            | TokenKind::Keyword(Keyword::Let) => {
+            TokenKind::Keyword(Keyword::Function) => {
+                if strict_mode && self.in_block {
+                    return Err(ParseError::lex(LexError::Syntax(
+                        "Function declaration in blocks not allowed in strict mode".into(),
+                        tok.span().start(),
+                    )));
+                }
+                Declaration::new(self.allow_yield, self.allow_await, true).parse(cursor)
+            }
+            TokenKind::Keyword(Keyword::Const) | TokenKind::Keyword(Keyword::Let) => {
                 Declaration::new(self.allow_yield, self.allow_await, true).parse(cursor)
             }
             _ => {
@@ -426,16 +447,34 @@ where
 {
     type Output = Box<str>;
 
+    /// Strict mode parsing as per https://tc39.es/ecma262/#sec-identifiers-static-semantics-early-errors.
     fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("BindingIdentifier", "Parsing");
-        // TODO: strict mode.
 
         let next_token = cursor.next()?.ok_or(ParseError::AbruptEnd)?;
 
         match next_token.kind() {
             TokenKind::Identifier(ref s) => Ok(s.clone()),
-            TokenKind::Keyword(k @ Keyword::Yield) if !self.allow_yield.0 => Ok(k.as_str().into()),
-            TokenKind::Keyword(k @ Keyword::Await) if !self.allow_await.0 => Ok(k.as_str().into()),
+            TokenKind::Keyword(k @ Keyword::Yield) if !self.allow_yield.0 => {
+                if cursor.strict_mode() {
+                    Err(ParseError::lex(LexError::Syntax(
+                        "yield keyword in binding identifier not allowed in strict mode".into(),
+                        next_token.span().start(),
+                    )))
+                } else {
+                    Ok(k.as_str().into())
+                }
+            }
+            TokenKind::Keyword(k @ Keyword::Await) if !self.allow_await.0 => {
+                if cursor.strict_mode() {
+                    Err(ParseError::lex(LexError::Syntax(
+                        "await keyword in binding identifier not allowed in strict mode".into(),
+                        next_token.span().start(),
+                    )))
+                } else {
+                    Ok(k.as_str().into())
+                }
+            }
             _ => Err(ParseError::expected(
                 vec![TokenKind::identifier("identifier")],
                 next_token,

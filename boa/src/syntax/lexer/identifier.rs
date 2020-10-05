@@ -4,11 +4,25 @@ use super::{Cursor, Error, Tokenizer};
 use crate::{
     profiler::BoaProfiler,
     syntax::{
-        ast::{Position, Span},
+        ast::{Keyword, Position, Span},
         lexer::{Token, TokenKind},
     },
 };
 use std::io::Read;
+
+const STRICT_FORBIDDEN_IDENTIFIERS: [&str; 11] = [
+    "eval",
+    "arguments",
+    "implements",
+    "interface",
+    "let",
+    "package",
+    "private",
+    "protected",
+    "public",
+    "static",
+    "yield",
+];
 
 /// Identifier lexing.
 ///
@@ -49,8 +63,24 @@ impl<R> Tokenizer<R> for Identifier {
             "null" => TokenKind::NullLiteral,
             slice => {
                 if let Ok(keyword) = slice.parse() {
+                    if cursor.strict_mode() && keyword == Keyword::With {
+                        return Err(Error::Syntax(
+                            "using 'with' statement not allowed in strict mode".into(),
+                            start_pos,
+                        ));
+                    }
                     TokenKind::Keyword(keyword)
                 } else {
+                    if cursor.strict_mode() && STRICT_FORBIDDEN_IDENTIFIERS.contains(&slice) {
+                        return Err(Error::Syntax(
+                            format!(
+                                "using future reserved keyword '{}' not allowed in strict mode",
+                                slice
+                            )
+                            .into(),
+                            start_pos,
+                        ));
+                    }
                     TokenKind::identifier(slice)
                 }
             }

@@ -90,6 +90,16 @@ impl<R> Lexer<R> {
         self.goal_symbol
     }
 
+    #[inline]
+    pub(super) fn strict_mode(&self) -> bool {
+        self.cursor.strict_mode()
+    }
+
+    #[inline]
+    pub(super) fn set_strict_mode(&mut self, strict_mode: bool) {
+        self.cursor.set_strict_mode(strict_mode)
+    }
+
     /// Creates a new lexer.
     #[inline]
     pub fn new(reader: R) -> Self
@@ -180,9 +190,6 @@ impl<R> Lexer<R> {
             }
         };
 
-        // TODO, setting strict mode on/off.
-        let strict_mode = false;
-
         let token = match next_chr {
             '\r' | '\n' | '\u{2028}' | '\u{2029}' => Ok(Token::new(
                 TokenKind::LineTerminator,
@@ -190,9 +197,7 @@ impl<R> Lexer<R> {
             )),
             '"' | '\'' => StringLiteral::new(next_chr).lex(&mut self.cursor, start),
             '`' => TemplateLiteral.lex(&mut self.cursor, start),
-            _ if next_chr.is_digit(10) => {
-                NumberLiteral::new(next_chr, strict_mode).lex(&mut self.cursor, start)
-            }
+            _ if next_chr.is_digit(10) => NumberLiteral::new(next_chr).lex(&mut self.cursor, start),
             _ if next_chr.is_alphabetic() || next_chr == '$' || next_chr == '_' => {
                 Identifier::new(next_chr).lex(&mut self.cursor, start)
             }
