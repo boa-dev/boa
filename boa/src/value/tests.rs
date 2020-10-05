@@ -496,6 +496,9 @@ toString: {
     );
 }
 
+/// Test cyclic conversions that previously caused stack overflows
+/// Relevant mitigations for these are in `GcObject::ordinary_to_primitive` and
+/// `GcObject::to_json`
 mod cyclic_conversions {
     use super::*;
 
@@ -598,6 +601,19 @@ mod cyclic_conversions {
         let value = forward_val(&mut engine, src).unwrap();
         let result = value.as_number().unwrap();
         assert_eq!(result, 0.);
+    }
+
+    #[test]
+    fn console_log_cyclic() {
+        let mut engine = Context::new();
+        let src = r#"
+            let a = [1];
+            a[1] = a;
+            console.log(a);
+        "#;
+
+        let _ = forward(&mut engine, src);
+        // Should not stack overflow
     }
 }
 
