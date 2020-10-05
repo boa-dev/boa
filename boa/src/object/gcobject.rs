@@ -330,7 +330,7 @@ impl GcObject {
             // b. If IsCallable(method) is true, then
             if method.is_function() {
                 // i. Let result be ? Call(method, O).
-                let result = self.call(&this, &[], interpreter)?;
+                let result = interpreter.call(&method, &this, &[])?;
                 // ii. If Type(result) is not Object, return result.
                 if !result.is_object() {
                     return Ok(result);
