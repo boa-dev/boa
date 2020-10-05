@@ -25,6 +25,9 @@ pub(crate) mod r#type;
 // pub(crate) mod eval;
 // pub(crate) mod uri;
 
+#[cfg(test)]
+mod tests;
+
 pub(crate) use self::r#type::TypeError;
 pub(crate) use self::range::RangeError;
 pub(crate) use self::reference::ReferenceError;
@@ -78,7 +81,7 @@ impl Error {
         // This value is used by console.log and other routines to match Object type
         // to its Javascript Identifier (global constructor method name)
         this.set_data(ObjectData::Error);
-        Err(this.clone())
+        Ok(this.clone())
     }
 
     /// `Error.prototype.toString()`
@@ -93,8 +96,33 @@ impl Error {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error/toString
     #[allow(clippy::wrong_self_convention)]
     pub(crate) fn to_string(this: &Value, _: &[Value], context: &mut Context) -> Result<Value> {
-        let name = this.get_field("name").to_string(context)?;
-        let message = this.get_field("message").to_string(context)?;
-        Ok(format!("{}: {}", name, message).into())
+        if !this.is_object() {
+            return context.throw_type_error("'this' is not an Object");
+        }
+        let name = this.get_field("name");
+        let name_to_string;
+        let name = if name.is_undefined() {
+            "Error"
+        } else {
+            name_to_string = name.to_string(context)?;
+            name_to_string.as_str()
+        };
+
+        let message = this.get_field("message");
+        let message_to_string;
+        let message = if message.is_undefined() {
+            ""
+        } else {
+            message_to_string = message.to_string(context)?;
+            message_to_string.as_str()
+        };
+
+        if name.is_empty() {
+            Ok(message.into())
+        } else if message.is_empty() {
+            Ok(name.into())
+        } else {
+            Ok(format!("{}: {}", name, message).into())
+        }
     }
 }

@@ -293,7 +293,7 @@ impl Context {
             vec![Const::from(message.into()).into()],
         ))
         .run(self)
-        .expect_err("RangeError should always throw")
+        .expect("Into<String> used as message")
     }
 
     /// Throws a `RangeError` with the specified message.
@@ -315,7 +315,7 @@ impl Context {
             vec![Const::from(message.into()).into()],
         ))
         .run(self)
-        .expect_err("TypeError should always throw")
+        .expect("Into<String> used as message")
     }
 
     /// Throws a `TypeError` with the specified message.
@@ -336,7 +336,7 @@ impl Context {
             vec![Const::from(message.into() + " is not defined").into()],
         ))
         .run(self)
-        .expect_err("ReferenceError should always throw")
+        .expect("Into<String> used as message")
     }
 
     /// Throws a `ReferenceError` with the specified message.
@@ -357,7 +357,7 @@ impl Context {
             vec![Const::from(message.into()).into()],
         ))
         .run(self)
-        .expect_err("SyntaxError should always throw")
+        .expect("Into<String> used as message")
     }
 
     /// Throws a `SyntaxError` with the specified message.
