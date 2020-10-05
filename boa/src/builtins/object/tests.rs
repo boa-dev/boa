@@ -1,4 +1,6 @@
-use crate::{forward, Context};
+use std::collections::HashMap;
+
+use crate::{forward, property::Property, value::RcString, Context, Value};
 
 #[test]
 fn object_create_with_regular_object() {
@@ -190,4 +192,53 @@ fn define_symbol_property() {
     eprintln!("{}", forward(&mut ctx, init));
 
     assert_eq!(forward(&mut ctx, "obj[sym]"), "\"val\"");
+}
+
+#[test]
+fn get_own_property_descriptor_1_arg_returns_undefined() {
+    let mut ctx = Context::new();
+    let code = r#"
+        let obj = {a: 2};
+        Object.getOwnPropertyDescriptor(obj)
+    "#;
+    assert_eq!(ctx.eval(code).unwrap(), Value::undefined());
+}
+
+#[test]
+fn get_own_property_descriptor() {
+    let mut ctx = Context::new();
+    forward(
+        &mut ctx,
+        r#"
+        let obj = {a: 2};
+        let result = Object.getOwnPropertyDescriptor(obj, "a");
+    "#,
+    );
+
+    assert_eq!(forward(&mut ctx, "result.enumerable"), "true");
+    assert_eq!(forward(&mut ctx, "result.writable"), "true");
+    assert_eq!(forward(&mut ctx, "result.configurable"), "true");
+    assert_eq!(forward(&mut ctx, "result.value"), "2");
+}
+
+#[test]
+fn get_own_property_descriptors() {
+    let mut ctx = Context::new();
+    forward(
+        &mut ctx,
+        r#"
+        let obj = {a: 1, b: 2};
+        let result = Object.getOwnPropertyDescriptors(obj);
+    "#,
+    );
+
+    assert_eq!(forward(&mut ctx, "result.a.enumerable"), "true");
+    assert_eq!(forward(&mut ctx, "result.a.writable"), "true");
+    assert_eq!(forward(&mut ctx, "result.a.configurable"), "true");
+    assert_eq!(forward(&mut ctx, "result.a.value"), "1");
+
+    assert_eq!(forward(&mut ctx, "result.b.enumerable"), "true");
+    assert_eq!(forward(&mut ctx, "result.b.writable"), "true");
+    assert_eq!(forward(&mut ctx, "result.b.configurable"), "true");
+    assert_eq!(forward(&mut ctx, "result.b.value"), "2");
 }

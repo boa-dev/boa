@@ -155,12 +155,10 @@ impl Object {
         ctx: &mut Context,
     ) -> Result<Value> {
         let object = args.get(0).unwrap().to_object(ctx)?;
-
         let descriptors = ctx.construct_object();
 
         for (key, _) in object.borrow().string_properties() {
             let key = PropertyKey::from(key.clone());
-
             let desc = object.borrow().get_own_property(&key);
             let descriptor = Self::from_property_descriptor(desc, ctx)?;
 
