@@ -125,4 +125,13 @@ fn function_prototype_call() {
     let value = forward_val(&mut engine, func).unwrap();
     assert!(value.is_string());
     assert_eq!(value.as_string().unwrap(), "[object Error]");
+
+    let throw = r#"
+        let call = Function.prototype.call;
+        call(call)
+        "#;
+    let value = forward_val(&mut engine, throw).unwrap_err();
+    assert!(value.is_object());
+    let string = value.to_string(&mut engine).unwrap();
+    assert!(string.starts_with("TypeError"))
 }

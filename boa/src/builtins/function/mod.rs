@@ -324,12 +324,13 @@ impl BuiltInFunctionObject {
     /// [spec]: https://tc39.es/ecma262/#sec-function.prototype.call
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/call
     fn call(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
-        let func = this;
-        if !func.is_function() {
-            return context.throw_type_error("TODO: this is not a function");
+        if !this.is_function() {
+            return context.throw_type_error(format!("{} is not a function", this.display()));
         }
-        let this_arg: Value = args.get(0).map_or_else(Value::default, Value::clone);
-        context.call(func, &this_arg, &args[1..])
+        let this_arg: Value = args.get(0).cloned().unwrap_or_default();
+        // TODO?: 3. Perform PrepareForTailCall
+        let start = if !args.is_empty() { 1 } else { 0 };
+        context.call(this, &this_arg, &args[start..])
     }
 }
 
