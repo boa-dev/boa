@@ -61,6 +61,14 @@
         min-height: 100px;
       }
     }
+
+    footer {
+      margin-top: 2em;
+      text-align: center;
+    }
+    footer a {
+      margin: 0 1em;
+    }
   </style>
 
   <body>
@@ -73,6 +81,20 @@
         <div class="textbox"></div>
         <p class="output"></p>
       </div>
+      <footer>
+        <a href="https://github.com/boa-dev/boa" title="View on GitHub"
+          >View on GitHub</a
+        >
+        -
+        <a href="https://discord.gg/tUFFk9Y" title="Discord chat"
+          >Discord chat</a
+        >
+        - <a href="./doc/" title="API documentation">API documentation</a> -
+        <a href="./test262/" title="ECMASCript conformance"
+          >ECMASCript conformance</a
+        >
+        - <a href="./dev/bench/" title="Benchmarks">Benchmarks</a>
+      </footer>
     </div>
     <script src="app.js"></script>
     <script src="editor.worker.js"></script>

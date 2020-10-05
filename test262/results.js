@@ -235,6 +235,7 @@
           }
 
           let testCard = $("<div></div>")
+            .attr("title", innerTest.n)
             .addClass("card")
             .addClass("test")
             .addClass("embed-responsive")
