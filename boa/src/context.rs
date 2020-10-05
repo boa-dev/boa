@@ -79,6 +79,7 @@ pub struct StandardObjects {
     referece_error: StandardConstructor,
     range_error: StandardConstructor,
     syntax_error: StandardConstructor,
+    eval_error: StandardConstructor,
 }
 
 impl StandardObjects {
@@ -150,6 +151,11 @@ impl StandardObjects {
     #[inline]
     pub fn syntax_error_object(&self) -> &StandardConstructor {
         &self.syntax_error
+    }
+
+    #[inline]
+    pub fn eval_error_object(&self) -> &StandardConstructor {
+        &self.eval_error
     }
 }
 
@@ -366,6 +372,27 @@ impl Context {
         M: Into<String>,
     {
         Err(self.construct_syntax_error(message))
+    }
+
+    /// Constructs a `EvalError` with the specified message.
+    pub fn construct_eval_error<M>(&mut self, message: M) -> Value
+    where
+        M: Into<String>,
+    {
+        New::from(Call::new(
+            Identifier::from("EvalError"),
+            vec![Const::from(message.into()).into()],
+        ))
+        .run(self)
+        .expect("Into<String> used as message")
+    }
+
+    /// Throws a `EvalError` with the specified message.
+    pub fn throw_eval_error<M>(&mut self, message: M) -> Result<Value>
+    where
+        M: Into<String>,
+    {
+        Err(self.construct_eval_error(message))
     }
 
     /// Utility to create a function Value for Function Declarations, Arrow Functions or Function Expressions

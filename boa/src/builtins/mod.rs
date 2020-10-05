@@ -27,7 +27,7 @@ pub(crate) use self::{
     boolean::Boolean,
     console::Console,
     date::Date,
-    error::{Error, RangeError, ReferenceError, SyntaxError, TypeError},
+    error::{Error, EvalError, RangeError, ReferenceError, SyntaxError, TypeError},
     function::BuiltInFunctionObject,
     global_this::GlobalThis,
     infinity::Infinity,
@@ -83,6 +83,7 @@ pub fn init(context: &mut Context) {
         ReferenceError::init,
         TypeError::init,
         SyntaxError::init,
+        EvalError::init,
     ];
 
     let global_object = if let Value::Object(global) = context.global_object() {
