@@ -228,6 +228,16 @@
 <span id="228">228</span>
 <span id="229">229</span>
 <span id="230">230</span>
+<span id="231">231</span>
+<span id="232">232</span>
+<span id="233">233</span>
+<span id="234">234</span>
+<span id="235">235</span>
+<span id="236">236</span>
+<span id="237">237</span>
+<span id="238">238</span>
+<span id="239">239</span>
+<span id="240">240</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">profiler</span>::<span class="ident">BoaProfiler</span>,
@@ -311,6 +321,16 @@
         <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">BoaProfiler</span>::<span class="ident">global</span>().<span class="ident">start_event</span>(<span class="string">&quot;cursor::lex_regex()&quot;</span>, <span class="string">&quot;Parsing&quot;</span>);
         <span class="self">self</span>.<span class="ident">set_goal</span>(<span class="ident">InputElement</span>::<span class="ident">RegExp</span>);
         <span class="self">self</span>.<span class="ident">lexer</span>.<span class="ident">lex_slash_token</span>(<span class="ident">start</span>).<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">e</span>.<span class="ident">into</span>())
+    }
+
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">strict_mode</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        <span class="self">self</span>.<span class="ident">lexer</span>.<span class="ident">strict_mode</span>()
+    }
+
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">set_strict_mode</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">strict_mode</span>: <span class="ident">bool</span>) {
+        <span class="self">self</span>.<span class="ident">lexer</span>.<span class="ident">set_strict_mode</span>(<span class="ident">strict_mode</span>)
     }
 
     <span class="doccomment">/// Fills the peeking buffer with the next token.</span>

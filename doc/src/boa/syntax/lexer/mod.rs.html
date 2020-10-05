@@ -277,6 +277,11 @@
 <span id="277">277</span>
 <span id="278">278</span>
 <span id="279">279</span>
+<span id="280">280</span>
+<span id="281">281</span>
+<span id="282">282</span>
+<span id="283">283</span>
+<span id="284">284</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! A lexical analyzer for JavaScript source code.</span>
 <span class="doccomment">//!</span>
@@ -370,6 +375,16 @@
         <span class="self">self</span>.<span class="ident">goal_symbol</span>
     }
 
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">strict_mode</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        <span class="self">self</span>.<span class="ident">cursor</span>.<span class="ident">strict_mode</span>()
+    }
+
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">set_strict_mode</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">strict_mode</span>: <span class="ident">bool</span>) {
+        <span class="self">self</span>.<span class="ident">cursor</span>.<span class="ident">set_strict_mode</span>(<span class="ident">strict_mode</span>)
+    }
+
     <span class="doccomment">/// Creates a new lexer.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">reader</span>: <span class="ident">R</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>
@@ -460,9 +475,6 @@
             }
         };
 
-        <span class="comment">// TODO, setting strict mode on/off.</span>
-        <span class="kw">let</span> <span class="ident">strict_mode</span> <span class="op">=</span> <span class="bool-val">false</span>;
-
         <span class="kw">let</span> <span class="ident">token</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">next_chr</span> {
             <span class="string">&#39;\r&#39;</span> <span class="op">|</span> <span class="string">&#39;\n&#39;</span> <span class="op">|</span> <span class="string">&#39;\u{2028}&#39;</span> <span class="op">|</span> <span class="string">&#39;\u{2029}&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Token</span>::<span class="ident">new</span>(
                 <span class="ident">TokenKind</span>::<span class="ident">LineTerminator</span>,
@@ -470,9 +482,7 @@
             )),
             <span class="string">&#39;&quot;&#39;</span> <span class="op">|</span> <span class="string">&#39;\&#39;&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">StringLiteral</span>::<span class="ident">new</span>(<span class="ident">next_chr</span>).<span class="ident">lex</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">cursor</span>, <span class="ident">start</span>),
             <span class="string">&#39;`&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">TemplateLiteral</span>.<span class="ident">lex</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">cursor</span>, <span class="ident">start</span>),
-            <span class="kw">_</span> <span class="kw">if</span> <span class="ident">next_chr</span>.<span class="ident">is_digit</span>(<span class="number">10</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="ident">NumberLiteral</span>::<span class="ident">new</span>(<span class="ident">next_chr</span>, <span class="ident">strict_mode</span>).<span class="ident">lex</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">cursor</span>, <span class="ident">start</span>)
-            }
+            <span class="kw">_</span> <span class="kw">if</span> <span class="ident">next_chr</span>.<span class="ident">is_digit</span>(<span class="number">10</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">NumberLiteral</span>::<span class="ident">new</span>(<span class="ident">next_chr</span>).<span class="ident">lex</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">cursor</span>, <span class="ident">start</span>),
             <span class="kw">_</span> <span class="kw">if</span> <span class="ident">next_chr</span>.<span class="ident">is_alphabetic</span>() <span class="op">|</span><span class="op">|</span> <span class="ident">next_chr</span> <span class="op">=</span><span class="op">=</span> <span class="string">&#39;$&#39;</span> <span class="op">|</span><span class="op">|</span> <span class="ident">next_chr</span> <span class="op">=</span><span class="op">=</span> <span class="string">&#39;_&#39;</span> <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="ident">Identifier</span>::<span class="ident">new</span>(<span class="ident">next_chr</span>).<span class="ident">lex</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">cursor</span>, <span class="ident">start</span>)
             }

@@ -177,6 +177,8 @@
 <span id="177">177</span>
 <span id="178">178</span>
 <span id="179">179</span>
+<span id="180">180</span>
+<span id="181">181</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">tests</span>;
@@ -310,6 +312,7 @@
                         <span class="self">self</span>.<span class="ident">allow_await</span>,
                         <span class="self">self</span>.<span class="ident">allow_return</span>,
                         <span class="bool-val">true</span>,
+                        <span class="bool-val">false</span>,
                     )
                     .<span class="ident">parse_generalised</span>(<span class="ident">cursor</span>, <span class="kw-2">&amp;</span><span class="ident">CASE_BREAK_TOKENS</span>)<span class="question-mark">?</span>;
 
@@ -331,6 +334,7 @@
                         <span class="self">self</span>.<span class="ident">allow_await</span>,
                         <span class="self">self</span>.<span class="ident">allow_return</span>,
                         <span class="bool-val">true</span>,
+                        <span class="bool-val">false</span>,
                     )
                     .<span class="ident">parse_generalised</span>(<span class="ident">cursor</span>, <span class="kw-2">&amp;</span><span class="ident">CASE_BREAK_TOKENS</span>)<span class="question-mark">?</span>;
 

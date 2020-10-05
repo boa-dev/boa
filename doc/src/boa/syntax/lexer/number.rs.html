@@ -325,7 +325,6 @@
 <span id="325">325</span>
 <span id="326">326</span>
 <span id="327">327</span>
-<span id="328">328</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements lexing for number literals (123, 787) used in the JavaScript programing language.</span>
 
@@ -353,13 +352,12 @@
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
 <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct</span> <span class="ident">NumberLiteral</span> {
     <span class="ident">init</span>: <span class="ident">char</span>,
-    <span class="ident">strict_mode</span>: <span class="ident">bool</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">NumberLiteral</span> {
     <span class="doccomment">/// Creates a new string literal lexer.</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">init</span>: <span class="ident">char</span>, <span class="ident">strict_mode</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="self">Self</span> { <span class="ident">init</span>, <span class="ident">strict_mode</span> }
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">init</span>: <span class="ident">char</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <span class="self">Self</span> { <span class="ident">init</span> }
     }
 }
 
@@ -516,7 +514,7 @@
                     <span class="ident">ch</span> <span class="op">=</span><span class="op">&gt;</span> {
                         <span class="kw">if</span> <span class="ident">ch</span>.<span class="ident">is_digit</span>(<span class="number">8</span>) {
                             <span class="comment">// LegacyOctalIntegerLiteral</span>
-                            <span class="kw">if</span> <span class="self">self</span>.<span class="ident">strict_mode</span> {
+                            <span class="kw">if</span> <span class="ident">cursor</span>.<span class="ident">strict_mode</span>() {
                                 <span class="comment">// LegacyOctalIntegerLiteral is forbidden with strict mode true.</span>
                                 <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error</span>::<span class="ident">syntax</span>(
                                     <span class="string">&quot;implicit octal literals are not allowed in strict mode&quot;</span>,
@@ -534,7 +532,7 @@
                             <span class="comment">// Indicates a numerical digit comes after then 0 but it isn&#39;t an octal digit</span>
                             <span class="comment">// so therefore this must be a number with an unneeded leading 0. This is</span>
                             <span class="comment">// forbidden in strict mode.</span>
-                            <span class="kw">if</span> <span class="self">self</span>.<span class="ident">strict_mode</span> {
+                            <span class="kw">if</span> <span class="ident">cursor</span>.<span class="ident">strict_mode</span>() {
                                 <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error</span>::<span class="ident">syntax</span>(
                                     <span class="string">&quot;leading 0&#39;s are not allowed in strict mode&quot;</span>,
                                     <span class="ident">start_pos</span>,

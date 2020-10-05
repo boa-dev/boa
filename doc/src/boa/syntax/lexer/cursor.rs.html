@@ -283,6 +283,18 @@
 <span id="283">283</span>
 <span id="284">284</span>
 <span id="285">285</span>
+<span id="286">286</span>
+<span id="287">287</span>
+<span id="288">288</span>
+<span id="289">289</span>
+<span id="290">290</span>
+<span id="291">291</span>
+<span id="292">292</span>
+<span id="293">293</span>
+<span id="294">294</span>
+<span id="295">295</span>
+<span id="296">296</span>
+<span id="297">297</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Module implementing the lexer cursor. This is used for managing the input byte stream.</span>
 
@@ -295,6 +307,7 @@
     <span class="ident">iter</span>: <span class="ident">InnerIter</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>,
     <span class="ident">peeked</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">char</span><span class="op">&gt;</span><span class="op">&gt;</span>,
     <span class="ident">pos</span>: <span class="ident">Position</span>,
+    <span class="ident">strict_mode</span>: <span class="ident">bool</span>,
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
@@ -324,6 +337,16 @@
         <span class="kw">let</span> <span class="ident">current_line</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">pos</span>.<span class="ident">line_number</span>();
         <span class="self">self</span>.<span class="ident">pos</span> <span class="op">=</span> <span class="ident">Position</span>::<span class="ident">new</span>(<span class="ident">current_line</span>, <span class="number">1</span>);
     }
+
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">strict_mode</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        <span class="self">self</span>.<span class="ident">strict_mode</span>
+    }
+
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">set_strict_mode</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">strict_mode</span>: <span class="ident">bool</span>) {
+        <span class="self">self</span>.<span class="ident">strict_mode</span> <span class="op">=</span> <span class="ident">strict_mode</span>
+    }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>
@@ -337,6 +360,7 @@
             <span class="ident">iter</span>: <span class="ident">InnerIter</span>::<span class="ident">new</span>(<span class="ident">inner</span>.<span class="ident">bytes</span>()),
             <span class="ident">peeked</span>: <span class="prelude-val">None</span>,
             <span class="ident">pos</span>: <span class="ident">Position</span>::<span class="ident">new</span>(<span class="number">1</span>, <span class="number">1</span>),
+            <span class="ident">strict_mode</span>: <span class="bool-val">false</span>,
         }
     }
 
