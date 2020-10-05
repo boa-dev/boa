@@ -114,3 +114,15 @@ fn function_prototype_length() {
     assert!(value.is_number());
     assert_eq!(value.as_number().unwrap(), 0.0);
 }
+
+#[test]
+fn function_prototype_call() {
+    let mut engine = Context::new();
+    let func = r#"
+        let e = new Error()
+        Object.prototype.toString.call(e)
+        "#;
+    let value = forward_val(&mut engine, func).unwrap();
+    assert!(value.is_string());
+    assert_eq!(value.as_string().unwrap(), "[object Error]");
+}
