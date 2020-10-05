@@ -6,7 +6,6 @@ use crate::{
         function::{Function, FunctionFlags, NativeFunction},
         iterable::IteratorPrototypes,
         symbol::{Symbol, WellKnownSymbols},
-        Console,
     },
     class::{Class, ClassBuilder},
     exec::Interpreter,
@@ -27,6 +26,9 @@ use crate::{
     BoaProfiler, Executable, Result,
 };
 use std::result::Result as StdResult;
+
+#[cfg(feature = "console")]
+use crate::builtins::console::Console;
 
 /// Store a builtin constructor (such as `Object`) and its corresponding prototype.
 #[derive(Debug, Clone)]
@@ -172,6 +174,7 @@ pub struct Context {
     symbol_count: u32,
 
     /// console object state.
+    #[cfg(feature = "console")]
     console: Console,
 
     /// Cached well known symbols
@@ -193,6 +196,7 @@ impl Default for Context {
             realm,
             executor,
             symbol_count,
+            #[cfg(feature = "console")]
             console: Console::default(),
             well_known_symbols,
             iterator_prototypes: IteratorPrototypes::default(),
@@ -227,11 +231,13 @@ impl Context {
     }
 
     /// A helper function for getting a immutable reference to the `console` object.
+    #[cfg(feature = "console")]
     pub(crate) fn console(&self) -> &Console {
         &self.console
     }
 
     /// A helper function for getting a mutable reference to the `console` object.
+    #[cfg(feature = "console")]
     pub(crate) fn console_mut(&mut self) -> &mut Console {
         &mut self.console
     }
