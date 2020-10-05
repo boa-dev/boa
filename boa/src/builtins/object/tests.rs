@@ -1,6 +1,4 @@
-use std::collections::HashMap;
-
-use crate::{forward, property::Property, value::RcString, Context, Value};
+use crate::{forward, Context, Value};
 
 #[test]
 fn object_create_with_regular_object() {
