@@ -2,7 +2,7 @@
 This is an experimental Javascript lexer, parser and compiler written in Rust. Currently, it has support for some of the language.
 
 # Crate Features
- - **serde** - Enables serialization and deserelization of the AST (Abstracr Syntax Tree).
+ - **serde** - Enables serialization and deserialization of the AST (Abstract Syntax Tree).
  - **console** - Enables `boa`s WHATWG `console` object implementation.
  - **profiler** - Enables profiling with measureme (this is mostly internal).
 
