@@ -28,3 +28,28 @@ fn error_to_string() {
     );
     assert_eq!(forward(&mut ctx, "type_e.toString()"), "\"TypeError: 5\"");
 }
+
+#[test]
+fn eval_error_name() {
+    let mut ctx = Context::new();
+    assert_eq!(forward(&mut ctx, "EvalError.name"), "\"EvalError\"");
+}
+
+#[test]
+fn eval_error_length() {
+    let mut ctx = Context::new();
+    assert_eq!(forward(&mut ctx, "EvalError.length"), "1");
+}
+
+#[test]
+fn eval_error_to_string() {
+    let mut ctx = Context::new();
+    assert_eq!(
+        forward(&mut ctx, "new EvalError('hello').toString()"),
+        "\"EvalError: hello\""
+    );
+    assert_eq!(
+        forward(&mut ctx, "new EvalError().toString()"),
+        "\"EvalError\""
+    );
+}
