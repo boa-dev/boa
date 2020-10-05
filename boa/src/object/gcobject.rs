@@ -15,6 +15,7 @@ use crate::{
     Context, Executable, Result, Value,
 };
 use gc::{Finalize, Gc, GcCell, GcCellRef, GcCellRefMut, Trace};
+use serde_json::{map::Map, Value as JSONValue};
 use std::{
     cell::RefCell,
     collections::HashMap,
@@ -339,6 +340,39 @@ impl GcObject {
 
         // 6. Throw a TypeError exception.
         interpreter.throw_type_error("cannot convert object to primitive value")
+    }
+
+    /// Converts an object to JSON, checking for reference cycles and throwing a TypeError if one is found
+    pub(crate) fn to_json(&self, interpreter: &mut Context) -> Result<JSONValue> {
+        let rec_limiter = RecursionLimiter::new(self);
+        if rec_limiter.live {
+            Err(interpreter.construct_type_error("cyclic object value"))
+        } else if self.borrow().is_array() {
+            let mut keys: Vec<u32> = self.borrow().index_property_keys().cloned().collect();
+            keys.sort();
+            let mut arr: Vec<JSONValue> = Vec::with_capacity(keys.len());
+            let this = Value::from(self.clone());
+            for key in keys {
+                let value = this.get_field(key);
+                if value.is_undefined() || value.is_function() || value.is_symbol() {
+                    arr.push(JSONValue::Null);
+                } else {
+                    arr.push(value.to_json(interpreter)?);
+                }
+            }
+            Ok(JSONValue::Array(arr))
+        } else {
+            let mut new_obj = Map::new();
+            let this = Value::from(self.clone());
+            for k in self.borrow().keys() {
+                let key = k.clone();
+                let value = this.get_field(k.to_string());
+                if !value.is_undefined() && !value.is_function() && !value.is_symbol() {
+                    new_obj.insert(key.to_string(), value.to_json(interpreter)?);
+                }
+            }
+            Ok(JSONValue::Object(new_obj))
+        }
     }
 }
 

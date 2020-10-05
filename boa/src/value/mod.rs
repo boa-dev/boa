@@ -10,12 +10,12 @@ use crate::{
         number::{f64_to_int32, f64_to_uint32},
         BigInt, Number,
     },
-    object::{GcObject, Object, ObjectData, RecursionLimiter, PROTOTYPE},
+    object::{GcObject, Object, ObjectData, PROTOTYPE},
     property::{Attribute, Property, PropertyKey},
     BoaProfiler, Context, Result,
 };
 use gc::{Finalize, GcCellRef, GcCellRefMut, Trace};
-use serde_json::{map::Map, Number as JSONNumber, Value as JSONValue};
+use serde_json::{Number as JSONNumber, Value as JSONValue};
 use std::{
     collections::HashSet,
     convert::TryFrom,
@@ -228,7 +228,7 @@ impl Value {
         match *self {
             Self::Null => Ok(JSONValue::Null),
             Self::Boolean(b) => Ok(JSONValue::Bool(b)),
-            Self::Object(ref obj) => self.object_to_json(obj, interpreter),
+            Self::Object(ref obj) => obj.to_json(interpreter),
             Self::String(ref str) => Ok(JSONValue::String(str.to_string())),
             Self::Rational(num) => Ok(JSONNumber::from_f64(num)
                 .map(JSONValue::Number)
@@ -240,37 +240,6 @@ impl Value {
             Self::Symbol(_) | Self::Undefined => {
                 unreachable!("Symbols and Undefined JSON Values depend on parent type");
             }
-        }
-    }
-
-    /// Converts an object to JSON, checking for reference cycles and throwing a TypeError if one is found
-    fn object_to_json(&self, obj: &GcObject, interpreter: &mut Context) -> Result<JSONValue> {
-        let rec_limiter = RecursionLimiter::new(&obj);
-        if rec_limiter.live {
-            Err(interpreter.construct_type_error("cyclic object value"))
-        } else if obj.borrow().is_array() {
-            let mut keys: Vec<u32> = obj.borrow().index_property_keys().cloned().collect();
-            keys.sort();
-            let mut arr: Vec<JSONValue> = Vec::with_capacity(keys.len());
-            for key in keys {
-                let value = self.get_field(key);
-                if value.is_undefined() || value.is_function() || value.is_symbol() {
-                    arr.push(JSONValue::Null);
-                } else {
-                    arr.push(value.to_json(interpreter)?);
-                }
-            }
-            Ok(JSONValue::Array(arr))
-        } else {
-            let mut new_obj = Map::new();
-            for k in obj.borrow().keys() {
-                let key = k.clone();
-                let value = self.get_field(k.to_string());
-                if !value.is_undefined() && !value.is_function() && !value.is_symbol() {
-                    new_obj.insert(key.to_string(), value.to_json(interpreter)?);
-                }
-            }
-            Ok(JSONValue::Object(new_obj))
         }
     }
 
