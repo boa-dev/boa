@@ -117,12 +117,12 @@ impl Error {
             message_to_string.as_str()
         };
 
-        if name == "" {
-            Ok(Value::from(message))
-        } else if message == "" {
-            Ok(Value::from(name))
+        if name.is_empty() {
+            Ok(message.into())
+        } else if message.is_empty() {
+            Ok(name.into())
         } else {
-            Ok(Value::from(format!("{}: {}", name, message)))
+            Ok(format!("{}: {}", name, message).into())
         }
     }
 }
