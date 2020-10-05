@@ -13,7 +13,13 @@
 //! [spec]: https://tc39.es/ecma262/#sec-objects
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object
 
-use crate::{BoaProfiler, Context, Result, builtins::BuiltIn, object::{ConstructorBuilder, Object as BuiltinObject, ObjectData}, property::{Attribute, Property, PropertyKey}, value::{same_value, Value}};
+use crate::{
+    builtins::BuiltIn,
+    object::{ConstructorBuilder, Object as BuiltinObject, ObjectData},
+    property::{Attribute, Property, PropertyKey},
+    value::{same_value, Value},
+    BoaProfiler, Context, Result,
+};
 
 #[cfg(test)]
 mod tests;
@@ -134,9 +140,9 @@ impl Object {
     }
 
     /// `Object.getOwnPropertyDescriptors( object )`
-    /// 
-    /// Returns all own property descriptors of a given object. 
-    /// 
+    ///
+    /// Returns all own property descriptors of a given object.
+    ///
     /// More information:
     ///  - [ECMAScript reference][spec]
     ///  - [MDN documentation][mdn]
@@ -153,14 +159,15 @@ impl Object {
         let descriptors = ctx.construct_object();
 
         for (key, _) in object.borrow().string_properties() {
-
             let key = PropertyKey::from(key.clone());
 
             let desc = object.borrow().get_own_property(&key);
             let descriptor = Self::from_property_descriptor(desc, ctx)?;
 
             if descriptor != Value::undefined() {
-                descriptors.borrow_mut().insert(key, Property::data_descriptor(descriptor, Attribute::all()));
+                descriptors
+                    .borrow_mut()
+                    .insert(key, Property::data_descriptor(descriptor, Attribute::all()));
             }
         }
 
