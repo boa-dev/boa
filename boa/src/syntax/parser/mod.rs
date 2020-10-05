@@ -9,7 +9,7 @@ mod statement;
 mod tests;
 
 pub use self::error::{ParseError, ParseResult};
-use crate::syntax::ast::node::StatementList;
+use crate::syntax::{ast::node::StatementList, lexer::TokenKind};
 
 use cursor::Cursor;
 
@@ -121,10 +121,19 @@ where
     type Output = StatementList;
 
     fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
-        if cursor.peek(0)?.is_some() {
-            ScriptBody.parse(cursor)
-        } else {
-            Ok(StatementList::from(Vec::new()))
+        match cursor.peek(0)? {
+            Some(tok) => {
+                match tok.kind() {
+                    TokenKind::StringLiteral(string) | TokenKind::TemplateLiteral(string) => {
+                        if string.as_ref() == "use strict" {
+                            cursor.set_strict_mode(true);
+                        }
+                    }
+                    _ => {}
+                }
+                ScriptBody.parse(cursor)
+            }
+            None => Ok(StatementList::from(Vec::new())),
         }
     }
 }
@@ -145,6 +154,6 @@ where
     type Output = StatementList;
 
     fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
-        self::statement::StatementList::new(false, false, false, false).parse(cursor)
+        self::statement::StatementList::new(false, false, false, false, true).parse(cursor)
     }
 }

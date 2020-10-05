@@ -15,7 +15,7 @@ use crate::{
             op::UnaryOp,
             Keyword, Punctuator,
         },
-        lexer::TokenKind,
+        lexer::{Error as LexError, TokenKind},
         parser::{
             expression::update::UpdateExpression, AllowAwait, AllowYield, Cursor, ParseError,
             ParseResult, TokenParser,
@@ -62,10 +62,22 @@ where
         let _timer = BoaProfiler::global().start_event("UnaryExpression", "Parsing");
 
         let tok = cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?;
+        let token_start = tok.span().start();
         match tok.kind() {
             TokenKind::Keyword(Keyword::Delete) => {
                 cursor.next()?.expect("Delete keyword vanished"); // Consume the token.
-                Ok(node::UnaryOp::new(UnaryOp::Delete, self.parse(cursor)?).into())
+                let val = self.parse(cursor)?;
+
+                if cursor.strict_mode() {
+                    if let Node::Identifier(_) = val {
+                        return Err(ParseError::lex(LexError::Syntax(
+                            "Delete <variable> statements not allowed in strict mode".into(),
+                            token_start,
+                        )));
+                    }
+                }
+
+                Ok(node::UnaryOp::new(UnaryOp::Delete, val).into())
             }
             TokenKind::Keyword(Keyword::Void) => {
                 cursor.next()?.expect("Void keyword vanished"); // Consume the token.

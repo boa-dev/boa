@@ -259,12 +259,27 @@ where
 
     fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("FunctionStatementList", "Parsing");
+
+        let global_strict_mode = cursor.strict_mode();
         if let Some(tk) = cursor.peek(0)? {
-            if tk.kind() == &Punctuator::CloseBlock.into() {
-                return Ok(Vec::new().into());
+            match tk.kind() {
+                TokenKind::Punctuator(Punctuator::CloseBlock) => {
+                    return Ok(Vec::new().into());
+                }
+                TokenKind::StringLiteral(string) | TokenKind::TemplateLiteral(string) => {
+                    if string == &"use strict".into() {
+                        cursor.set_strict_mode(true);
+                    }
+                }
+                _ => {}
             }
         }
 
-        StatementList::new(self.allow_yield, self.allow_await, true, true).parse(cursor)
+        let stmlist =
+            StatementList::new(self.allow_yield, self.allow_await, true, true, true).parse(cursor);
+
+        // Reset strict mode back to the global scope.
+        cursor.set_strict_mode(global_strict_mode);
+        stmlist
     }
 }

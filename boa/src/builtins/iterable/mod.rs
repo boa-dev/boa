@@ -1,11 +1,7 @@
 use crate::{
     builtins::string::string_iterator::StringIterator,
-    builtins::{
-        function::{BuiltInFunction, Function, FunctionFlags},
-        ArrayIterator,
-    },
-    object::GcObject,
-    object::{Object, PROTOTYPE},
+    builtins::ArrayIterator,
+    object::{GcObject, ObjectInitializer},
     property::Property,
     BoaProfiler, Context, Result, Value,
 };
@@ -79,23 +75,18 @@ pub fn get_iterator(ctx: &mut Context, iterable: Value) -> Result<IteratorRecord
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-%iteratorprototype%-object
 fn create_iterator_prototype(ctx: &mut Context) -> Value {
-    let global = ctx.global_object();
     let _timer = BoaProfiler::global().start_event("Iterator Prototype", "init");
 
-    let iterator_prototype = Value::new_object(Some(global));
-    let mut function = Object::function(
-        Function::BuiltIn(
-            BuiltInFunction(|v, _, _| Ok(v.clone())),
-            FunctionFlags::CALLABLE,
-        ),
-        global.get_field("Function").get_field(PROTOTYPE),
-    );
-    function.insert_field("length", Value::from(0));
-    function.insert_field("name", Value::string("[Symbol.iterator]"));
-
     let symbol_iterator = ctx.well_known_symbols().iterator_symbol();
-    iterator_prototype.set_field(symbol_iterator, Value::from(function));
-    iterator_prototype
+    let iterator_prototype = ObjectInitializer::new(ctx)
+        .function(
+            |v, _, _| Ok(v.clone()),
+            (symbol_iterator, "[Symbol.iterator]"),
+            0,
+        )
+        .build();
+    // TODO: return GcObject
+    iterator_prototype.into()
 }
 
 #[derive(Debug)]

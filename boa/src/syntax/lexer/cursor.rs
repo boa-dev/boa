@@ -9,6 +9,7 @@ pub(super) struct Cursor<R> {
     iter: InnerIter<R>,
     peeked: Option<Option<char>>,
     pos: Position,
+    strict_mode: bool,
 }
 
 impl<R> Cursor<R> {
@@ -38,6 +39,16 @@ impl<R> Cursor<R> {
         let current_line = self.pos.line_number();
         self.pos = Position::new(current_line, 1);
     }
+
+    #[inline]
+    pub(super) fn strict_mode(&self) -> bool {
+        self.strict_mode
+    }
+
+    #[inline]
+    pub(super) fn set_strict_mode(&mut self, strict_mode: bool) {
+        self.strict_mode = strict_mode
+    }
 }
 
 impl<R> Cursor<R>
@@ -51,6 +62,7 @@ where
             iter: InnerIter::new(inner.bytes()),
             peeked: None,
             pos: Position::new(1, 1),
+            strict_mode: false,
         }
     }
 

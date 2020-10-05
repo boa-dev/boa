@@ -14,8 +14,9 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON
 
 use crate::{
-    builtins::function::make_builtin_fn,
-    property::{Property, PropertyKey},
+    builtins::BuiltIn,
+    object::ObjectInitializer,
+    property::{Attribute, Property, PropertyKey},
     BoaProfiler, Context, Result, Value,
 };
 use serde_json::{self, Value as JSONValue};
@@ -27,10 +28,26 @@ mod tests;
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub(crate) struct Json;
 
-impl Json {
-    /// The name of the object.
-    pub(crate) const NAME: &'static str = "JSON";
+impl BuiltIn for Json {
+    const NAME: &'static str = "JSON";
 
+    fn attribute() -> Attribute {
+        Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE
+    }
+
+    fn init(context: &mut Context) -> (&'static str, Value, Attribute) {
+        let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
+
+        let json_object = ObjectInitializer::new(context)
+            .function(Self::parse, "parse", 2)
+            .function(Self::stringify, "stringify", 3)
+            .build();
+
+        (Self::NAME, json_object.into(), Self::attribute())
+    }
+}
+
+impl Json {
     /// `JSON.parse( text[, reviver] )`
     ///
     /// This `JSON` method parses a JSON string, constructing the JavaScript value or object described by the string.
@@ -44,12 +61,13 @@ impl Json {
     /// [spec]: https://tc39.es/ecma262/#sec-json.parse
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/parse
     pub(crate) fn parse(_: &Value, args: &[Value], ctx: &mut Context) -> Result<Value> {
-        match serde_json::from_str::<JSONValue>(
-            &args
-                .get(0)
-                .expect("cannot get argument for JSON.parse")
-                .to_string(ctx)?,
-        ) {
+        let arg = args
+            .get(0)
+            .cloned()
+            .unwrap_or_else(Value::undefined)
+            .to_string(ctx)?;
+
+        match serde_json::from_str::<JSONValue>(&arg) {
             Ok(json) => {
                 let j = Value::from_json(json, ctx);
                 match args.get(1) {
@@ -61,7 +79,7 @@ impl Json {
                     _ => Ok(j),
                 }
             }
-            Err(err) => Err(Value::from(err.to_string())),
+            Err(err) => ctx.throw_syntax_error(err.to_string()),
         }
     }
 
@@ -174,18 +192,5 @@ impl Json {
         } else {
             Ok(Value::from(object.to_json(ctx)?.to_string()))
         }
-    }
-
-    /// Initialise the `JSON` object on the global object.
-    #[inline]
-    pub(crate) fn init(interpreter: &mut Context) -> (&'static str, Value) {
-        let global = interpreter.global_object();
-        let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
-        let json = Value::new_object(Some(global));
-
-        make_builtin_fn(Self::parse, "parse", &json, 2, interpreter);
-        make_builtin_fn(Self::stringify, "stringify", &json, 3, interpreter);
-
-        (Self::NAME, json)
     }
 }

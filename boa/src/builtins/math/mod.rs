@@ -11,7 +11,10 @@
 //! [spec]: https://tc39.es/ecma262/#sec-math-object
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math
 
-use crate::{builtins::function::make_builtin_fn, BoaProfiler, Context, Result, Value};
+use crate::{
+    builtins::BuiltIn, object::ObjectInitializer, property::Attribute, BoaProfiler, Context,
+    Result, Value,
+};
 use std::f64;
 
 #[cfg(test)]
@@ -21,10 +24,68 @@ mod tests;
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub(crate) struct Math;
 
-impl Math {
-    /// The name of the object.
-    pub(crate) const NAME: &'static str = "Math";
+impl BuiltIn for Math {
+    const NAME: &'static str = "Math";
 
+    fn attribute() -> Attribute {
+        Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE
+    }
+
+    fn init(context: &mut Context) -> (&'static str, Value, Attribute) {
+        let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
+
+        let attribute = Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT;
+        let object = ObjectInitializer::new(context)
+            .property("E", f64::consts::E, attribute)
+            .property("LN2", f64::consts::LN_2, attribute)
+            .property("LN10", f64::consts::LN_10, attribute)
+            .property("LOG2E", f64::consts::LOG2_E, attribute)
+            .property("LOG10E", f64::consts::LOG10_E, attribute)
+            .property("SQRT1_2", 0.5_f64.sqrt(), attribute)
+            .property("SQRT2", f64::consts::SQRT_2, attribute)
+            .property("PI", f64::consts::PI, attribute)
+            .function(Self::abs, "abs", 1)
+            .function(Self::acos, "acos", 1)
+            .function(Self::acosh, "acosh", 1)
+            .function(Self::asin, "asin", 1)
+            .function(Self::asinh, "asinh", 1)
+            .function(Self::atan, "atan", 1)
+            .function(Self::atanh, "atanh", 1)
+            .function(Self::atan2, "atan2", 2)
+            .function(Self::cbrt, "cbrt", 1)
+            .function(Self::ceil, "ceil", 1)
+            .function(Self::clz32, "clz32", 1)
+            .function(Self::cos, "cos", 1)
+            .function(Self::cosh, "cosh", 1)
+            .function(Self::exp, "exp", 1)
+            .function(Self::expm1, "expm1", 1)
+            .function(Self::floor, "floor", 1)
+            .function(Self::fround, "fround", 1)
+            .function(Self::hypot, "hypot", 1)
+            .function(Self::imul, "imul", 1)
+            .function(Self::log, "log", 1)
+            .function(Self::log1p, "log1p", 1)
+            .function(Self::log10, "log10", 1)
+            .function(Self::log2, "log2", 1)
+            .function(Self::max, "max", 2)
+            .function(Self::min, "min", 2)
+            .function(Self::pow, "pow", 2)
+            .function(Self::random, "random", 0)
+            .function(Self::round, "round", 1)
+            .function(Self::sign, "sign", 1)
+            .function(Self::sin, "sin", 1)
+            .function(Self::sinh, "sinh", 1)
+            .function(Self::sqrt, "sqrt", 1)
+            .function(Self::tan, "tan", 1)
+            .function(Self::tanh, "tanh", 1)
+            .function(Self::trunc, "trunc", 1)
+            .build();
+
+        (Self::NAME, object.into(), Self::attribute())
+    }
+}
+
+impl Math {
     /// Get the absolute value of a number.
     ///
     /// More information:
@@ -631,70 +692,5 @@ impl Math {
             .transpose()?
             .map_or(f64::NAN, f64::trunc)
             .into())
-    }
-
-    /// Create a new `Math` object
-    pub(crate) fn create(interpreter: &mut Context) -> Value {
-        let global = interpreter.global_object();
-        let _timer = BoaProfiler::global().start_event("math:create", "init");
-        let math = Value::new_object(Some(global));
-
-        {
-            let mut properties = math.as_object_mut().unwrap();
-            properties.insert_field("E", Value::from(f64::consts::E));
-            properties.insert_field("LN2", Value::from(f64::consts::LN_2));
-            properties.insert_field("LN10", Value::from(f64::consts::LN_10));
-            properties.insert_field("LOG2E", Value::from(f64::consts::LOG2_E));
-            properties.insert_field("LOG10E", Value::from(f64::consts::LOG10_E));
-            properties.insert_field("SQRT1_2", Value::from(0.5_f64.sqrt()));
-            properties.insert_field("SQRT2", Value::from(f64::consts::SQRT_2));
-            properties.insert_field("PI", Value::from(f64::consts::PI));
-        }
-
-        make_builtin_fn(Self::abs, "abs", &math, 1, interpreter);
-        make_builtin_fn(Self::acos, "acos", &math, 1, interpreter);
-        make_builtin_fn(Self::acosh, "acosh", &math, 1, interpreter);
-        make_builtin_fn(Self::asin, "asin", &math, 1, interpreter);
-        make_builtin_fn(Self::asinh, "asinh", &math, 1, interpreter);
-        make_builtin_fn(Self::atan, "atan", &math, 1, interpreter);
-        make_builtin_fn(Self::atanh, "atanh", &math, 1, interpreter);
-        make_builtin_fn(Self::atan2, "atan2", &math, 2, interpreter);
-        make_builtin_fn(Self::cbrt, "cbrt", &math, 1, interpreter);
-        make_builtin_fn(Self::ceil, "ceil", &math, 1, interpreter);
-        make_builtin_fn(Self::clz32, "clz32", &math, 1, interpreter);
-        make_builtin_fn(Self::cos, "cos", &math, 1, interpreter);
-        make_builtin_fn(Self::cosh, "cosh", &math, 1, interpreter);
-        make_builtin_fn(Self::exp, "exp", &math, 1, interpreter);
-        make_builtin_fn(Self::expm1, "expm1", &math, 1, interpreter);
-        make_builtin_fn(Self::floor, "floor", &math, 1, interpreter);
-        make_builtin_fn(Self::fround, "fround", &math, 1, interpreter);
-        make_builtin_fn(Self::hypot, "hypot", &math, 1, interpreter);
-        make_builtin_fn(Self::imul, "imul", &math, 1, interpreter);
-        make_builtin_fn(Self::log, "log", &math, 1, interpreter);
-        make_builtin_fn(Self::log1p, "log1p", &math, 1, interpreter);
-        make_builtin_fn(Self::log10, "log10", &math, 1, interpreter);
-        make_builtin_fn(Self::log2, "log2", &math, 1, interpreter);
-        make_builtin_fn(Self::max, "max", &math, 2, interpreter);
-        make_builtin_fn(Self::min, "min", &math, 2, interpreter);
-        make_builtin_fn(Self::pow, "pow", &math, 2, interpreter);
-        make_builtin_fn(Self::random, "random", &math, 0, interpreter);
-        make_builtin_fn(Self::round, "round", &math, 1, interpreter);
-        make_builtin_fn(Self::sign, "sign", &math, 1, interpreter);
-        make_builtin_fn(Self::sin, "sin", &math, 1, interpreter);
-        make_builtin_fn(Self::sinh, "sinh", &math, 1, interpreter);
-        make_builtin_fn(Self::sqrt, "sqrt", &math, 1, interpreter);
-        make_builtin_fn(Self::tan, "tan", &math, 1, interpreter);
-        make_builtin_fn(Self::tanh, "tanh", &math, 1, interpreter);
-        make_builtin_fn(Self::trunc, "trunc", &math, 1, interpreter);
-
-        math
-    }
-
-    /// Initialise the `Math` object on the global object.
-    #[inline]
-    pub(crate) fn init(interpreter: &mut Context) -> (&'static str, Value) {
-        let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
-
-        (Self::NAME, Self::create(interpreter))
     }
 }

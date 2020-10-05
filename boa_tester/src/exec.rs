@@ -1,6 +1,9 @@
 //! Execution module for the test runner.
 
-use super::{Harness, Outcome, Phase, SuiteResult, Test, TestFlags, TestResult, TestSuite, CLI};
+use super::{
+    Harness, Outcome, Phase, SuiteResult, Test, TestFlags, TestOutcomeResult, TestResult,
+    TestSuite, CLI,
+};
 use boa::{parse, Context};
 use colored::Colorize;
 use fxhash::FxHashSet;
@@ -43,10 +46,10 @@ impl TestSuite {
         let mut passed = 0;
         let mut ignored = 0;
         for test in &tests {
-            if let Some(true) = test.passed {
-                passed += 1;
-            } else if test.passed.is_none() {
-                ignored += 1;
+            match test.result {
+                TestOutcomeResult::Passed => passed += 1,
+                TestOutcomeResult::Ignored => ignored += 1,
+                _ => {}
             }
         }
 
@@ -74,7 +77,7 @@ impl TestSuite {
             passed,
             ignored,
             suites,
-            tests: tests.into_boxed_slice(),
+            tests,
         }
     }
 }
@@ -84,7 +87,7 @@ impl Test {
     pub(crate) fn run(&self, harness: &Harness) -> TestResult {
         // println!("Starting `{}`", self.name);
 
-        let passed = if !self.flags.intersects(TestFlags::ASYNC | TestFlags::MODULE)
+        let result = if !self.flags.intersects(TestFlags::ASYNC | TestFlags::MODULE)
             && !IGNORED.contains(&self.name)
         {
             let res = panic::catch_unwind(|| {
@@ -138,24 +141,39 @@ impl Test {
                 }
             });
 
-            let passed = res.unwrap_or_else(|_| {
-                eprintln!("last panic was on test \"{}\"", self.name);
-                false
-            });
+            let result = res
+                .map(|res| {
+                    if res {
+                        TestOutcomeResult::Passed
+                    } else {
+                        TestOutcomeResult::Failed
+                    }
+                })
+                .unwrap_or_else(|_| {
+                    eprintln!("last panic was on test \"{}\"", self.name);
+                    TestOutcomeResult::Panic
+                });
 
-            print!("{}", if passed { ".".green() } else { ".".red() });
+            print!(
+                "{}",
+                if let TestOutcomeResult::Passed = result {
+                    ".".green()
+                } else {
+                    ".".red()
+                }
+            );
 
-            Some(passed)
+            result
         } else {
             // Ignoring async tests for now.
             // TODO: implement async and add `harness/doneprintHandle.js` to the includes.
             print!("{}", ".".yellow());
-            None
+            TestOutcomeResult::Ignored
         };
 
         TestResult {
             name: self.name.clone(),
-            passed,
+            result,
         }
     }
 

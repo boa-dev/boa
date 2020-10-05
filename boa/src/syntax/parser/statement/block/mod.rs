@@ -78,10 +78,15 @@ where
             }
         }
 
-        let statement_list =
-            StatementList::new(self.allow_yield, self.allow_await, self.allow_return, true)
-                .parse(cursor)
-                .map(node::Block::from)?;
+        let statement_list = StatementList::new(
+            self.allow_yield,
+            self.allow_await,
+            self.allow_return,
+            true,
+            true,
+        )
+        .parse(cursor)
+        .map(node::Block::from)?;
         cursor.expect(Punctuator::CloseBlock, "block")?;
 
         Ok(statement_list)
