@@ -157,12 +157,12 @@ impl Object {
         let object = args.get(0).unwrap_or(&Value::undefined()).to_object(ctx)?;
         let descriptors = ctx.construct_object();
 
-        for (key, _) in object.borrow().string_properties() {
+        for key in object.borrow().keys() {
             let key = PropertyKey::from(key.clone());
             let desc = object.borrow().get_own_property(&key);
             let descriptor = Self::from_property_descriptor(desc, ctx)?;
 
-            if descriptor != Value::undefined() {
+            if !descriptor.is_undefined() {
                 descriptors
                     .borrow_mut()
                     .insert(key, Property::data_descriptor(descriptor, Attribute::all()));
