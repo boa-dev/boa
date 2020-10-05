@@ -670,6 +670,29 @@ impl<'context> FunctionBuilder<'context> {
 
         GcObject::new(function)
     }
+
+    /// Initializes the `Function.prototype` function object.
+    pub(crate) fn build_function_prototype(&mut self, object: &GcObject) {
+        let mut object = object.borrow_mut();
+        object.data = ObjectData::Function(Function::BuiltIn(
+            self.function,
+            FunctionFlags::from_parameters(self.callable, self.constructable),
+        ));
+        object.set_prototype_instance(
+            self.context
+                .standard_objects()
+                .object_object()
+                .prototype()
+                .into(),
+        );
+        let attribute = Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT;
+        if let Some(name) = self.name.take() {
+            object.insert_property("name", name, attribute);
+        } else {
+            object.insert_property("name", "", attribute);
+        }
+        object.insert_property("length", self.length, attribute);
+    }
 }
 
 /// Builder for creating objects with properties.
