@@ -156,7 +156,7 @@ impl Object {
     /// [spec]: https://tc39.es/ecma262/#sec-object.defineproperties
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/defineProperties
     pub fn define_properties(_: &Value, args: &[Value], ctx: &mut Context) -> Result<Value> {
-        let arg = args.get(0).cloned().unwrap_or(Value::undefined());
+        let arg = args.get(0).cloned().unwrap_or_default();
         let arg_obj = arg.as_object_mut();
         if let Some(mut obj) = arg_obj {
             let props = args.get(1).cloned().unwrap_or_else(Value::undefined);

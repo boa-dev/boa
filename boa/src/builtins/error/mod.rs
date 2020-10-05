@@ -23,7 +23,7 @@ pub(crate) mod range;
 pub(crate) mod reference;
 pub(crate) mod syntax;
 pub(crate) mod r#type;
-// pub(crate) mod uri;
+pub(crate) mod uri;
 
 #[cfg(test)]
 mod tests;
@@ -33,7 +33,7 @@ pub(crate) use self::r#type::TypeError;
 pub(crate) use self::range::RangeError;
 pub(crate) use self::reference::ReferenceError;
 pub(crate) use self::syntax::SyntaxError;
-// pub(crate) use self::uri::UriError;
+pub(crate) use self::uri::UriError;
 
 /// Built-in `Error` object.
 #[derive(Debug, Clone, Copy)]
