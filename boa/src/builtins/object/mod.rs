@@ -13,13 +13,7 @@
 //! [spec]: https://tc39.es/ecma262/#sec-objects
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object
 
-use crate::{
-    builtins::BuiltIn,
-    object::{ConstructorBuilder, Object as BuiltinObject, ObjectData},
-    property::{Attribute, Property},
-    value::{same_value, Value},
-    BoaProfiler, Context, Result,
-};
+use crate::{BoaProfiler, Context, Result, builtins::BuiltIn, object::{ConstructorBuilder, Object as BuiltinObject, ObjectData}, property::{Attribute, Property, PropertyKey}, value::{same_value, Value}};
 
 #[cfg(test)]
 mod tests;
@@ -54,6 +48,16 @@ impl BuiltIn for Object {
         .static_method(Self::get_prototype_of, "getPrototypeOf", 1)
         .static_method(Self::define_property, "defineProperty", 3)
         .static_method(Self::is, "is", 2)
+        .static_method(
+            Self::get_own_property_descriptor,
+            "getOwnPropertyDescriptor",
+            2,
+        )
+        .static_method(
+            Self::get_own_property_descriptors,
+            "getOwnPropertyDescriptors",
+            1,
+        )
         .build();
 
         (Self::NAME, object.into(), Self::attribute())
@@ -102,6 +106,101 @@ impl Object {
                 prototype.display()
             )),
         }
+    }
+
+    /// `Object.getOwnPropertyDescriptor( object, property )`
+    ///
+    /// Returns an object describing the configuration of a specific property on a given object.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://www.ecma-international.org/ecma-262/10.0/index.html#sec-object.getownpropertydescriptor
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/getOwnPropertyDescriptor
+    pub fn get_own_property_descriptor(
+        _: &Value,
+        args: &[Value],
+        ctx: &mut Context,
+    ) -> Result<Value> {
+        let object = args.get(0).unwrap().to_object(ctx)?;
+        if let Some(key) = args.get(1) {
+            let key = key.to_property_key(ctx)?;
+            let desc = object.borrow().get_own_property(&key);
+            Self::from_property_descriptor(desc, ctx)
+        } else {
+            Ok(Value::undefined())
+        }
+    }
+
+    /// `Object.getOwnPropertyDescriptors( object )`
+    /// 
+    /// Returns all own property descriptors of a given object. 
+    /// 
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://www.ecma-international.org/ecma-262/10.0/index.html#sec-object.getownpropertydescriptor
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/getOwnPropertyDescriptors
+    pub fn get_own_property_descriptors(
+        _: &Value,
+        args: &[Value],
+        ctx: &mut Context,
+    ) -> Result<Value> {
+        let object = args.get(0).unwrap().to_object(ctx)?;
+
+        let descriptors = ctx.construct_object();
+
+        for (key, _) in object.borrow().string_properties() {
+
+            let key = PropertyKey::from(key.clone());
+
+            let desc = object.borrow().get_own_property(&key);
+            let descriptor = Self::from_property_descriptor(desc, ctx)?;
+
+            if descriptor != Value::undefined() {
+                descriptors.borrow_mut().insert(key, Property::data_descriptor(descriptor, Attribute::all()));
+            }
+        }
+
+        Ok(Value::Object(descriptors))
+    }
+
+    /// https://www.ecma-international.org/ecma-262/10.0/index.html#sec-frompropertydescriptor
+    fn from_property_descriptor(desc: Property, ctx: &mut Context) -> Result<Value> {
+        let descriptor = ctx.construct_object();
+        if let Some(value) = &desc.value {
+            descriptor.borrow_mut().insert(
+                "value",
+                Property::data_descriptor(value.clone(), Attribute::all()),
+            );
+        }
+        if let Some(set) = &desc.set {
+            descriptor.borrow_mut().insert(
+                "set",
+                Property::data_descriptor(set.clone(), Attribute::all()),
+            );
+        }
+        if let Some(get) = &desc.get {
+            descriptor.borrow_mut().insert(
+                "get",
+                Property::data_descriptor(get.clone(), Attribute::all()),
+            );
+        }
+        descriptor.borrow_mut().insert(
+            "writable",
+            Property::data_descriptor(desc.writable().into(), Attribute::all()),
+        );
+        descriptor.borrow_mut().insert(
+            "enumerable",
+            Property::data_descriptor(desc.enumerable().into(), Attribute::all()),
+        );
+        descriptor.borrow_mut().insert(
+            "configurable",
+            Property::data_descriptor(desc.configurable().into(), Attribute::all()),
+        );
+        Ok(Value::Object(descriptor))
     }
 
     /// Uses the SameValue algorithm to check equality of objects
