@@ -25,7 +25,7 @@ mod gcobject;
 mod internal_methods;
 mod iter;
 
-pub use gcobject::{GcObject, Ref, RefMut};
+pub use gcobject::{GcObject, RecursionLimiter, Ref, RefMut};
 pub use iter::*;
 
 /// Static `prototype`, usually set on constructors as a key to point to their respective prototype object.
