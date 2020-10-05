@@ -191,3 +191,22 @@ fn define_symbol_property() {
 
     assert_eq!(forward(&mut ctx, "obj[sym]"), "\"val\"");
 }
+
+#[test]
+fn object_define_properties() {
+    let mut ctx = Context::new();
+
+    let init = r#"
+        const obj = {};
+
+        Object.defineProperties(obj, {
+            p: {
+                value: 42,
+                writable: true
+            }
+        });
+    "#;
+    eprintln!("{}", forward(&mut ctx, init));
+
+    assert_eq!(forward(&mut ctx, "obj.p"), "42");
+}

@@ -85,7 +85,7 @@ impl Object {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-object.create
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/create
-    pub fn create(this: &Value, args: &[Value], ctx: &mut Context) -> Result<Value> {
+    pub fn create(_: &Value, args: &[Value], ctx: &mut Context) -> Result<Value> {
         let prototype = args.get(0).cloned().unwrap_or_else(Value::undefined);
         let properties = args.get(1).cloned().unwrap_or_else(Value::undefined);
 
@@ -103,7 +103,7 @@ impl Object {
         };
 
         if !properties.is_undefined() {
-            return Object::define_properties(this, &[obj, properties], ctx);
+            return Object::define_properties(&Value::Undefined, &[obj, properties], ctx);
         }
 
         Ok(obj)
