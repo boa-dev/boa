@@ -16,7 +16,7 @@
 use crate::{
     builtins::BuiltIn,
     object::{ConstructorBuilder, Object as BuiltinObject, ObjectData},
-    property::{Attribute, Property, PropertyKey},
+    property::{Attribute, Property},
     value::{same_value, Value},
     BoaProfiler, Context, Result,
 };
@@ -158,7 +158,6 @@ impl Object {
         let descriptors = ctx.construct_object();
 
         for key in object.borrow().keys() {
-            let key = PropertyKey::from(key.clone());
             let desc = object.borrow().get_own_property(&key);
             let descriptor = Self::from_property_descriptor(desc, ctx)?;
 
