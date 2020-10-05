@@ -960,7 +960,7 @@
             <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">Const</span>::<span class="ident">from</span>(<span class="ident">message</span>.<span class="ident">into</span>()).<span class="ident">into</span>()],
         ))
         .<span class="ident">run</span>(<span class="self">self</span>)
-        .<span class="ident">expect_err</span>(<span class="string">&quot;RangeError should always throw&quot;</span>)
+        .<span class="ident">expect</span>(<span class="string">&quot;Into&lt;String&gt; used as message&quot;</span>)
     }
 
     <span class="doccomment">/// Throws a `RangeError` with the specified message.</span>
@@ -982,7 +982,7 @@
             <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">Const</span>::<span class="ident">from</span>(<span class="ident">message</span>.<span class="ident">into</span>()).<span class="ident">into</span>()],
         ))
         .<span class="ident">run</span>(<span class="self">self</span>)
-        .<span class="ident">expect_err</span>(<span class="string">&quot;TypeError should always throw&quot;</span>)
+        .<span class="ident">expect</span>(<span class="string">&quot;Into&lt;String&gt; used as message&quot;</span>)
     }
 
     <span class="doccomment">/// Throws a `TypeError` with the specified message.</span>
@@ -1003,7 +1003,7 @@
             <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">Const</span>::<span class="ident">from</span>(<span class="ident">message</span>.<span class="ident">into</span>() <span class="op">+</span> <span class="string">&quot; is not defined&quot;</span>).<span class="ident">into</span>()],
         ))
         .<span class="ident">run</span>(<span class="self">self</span>)
-        .<span class="ident">expect_err</span>(<span class="string">&quot;ReferenceError should always throw&quot;</span>)
+        .<span class="ident">expect</span>(<span class="string">&quot;Into&lt;String&gt; used as message&quot;</span>)
     }
 
     <span class="doccomment">/// Throws a `ReferenceError` with the specified message.</span>
@@ -1024,7 +1024,7 @@
             <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">Const</span>::<span class="ident">from</span>(<span class="ident">message</span>.<span class="ident">into</span>()).<span class="ident">into</span>()],
         ))
         .<span class="ident">run</span>(<span class="self">self</span>)
-        .<span class="ident">expect_err</span>(<span class="string">&quot;SyntaxError should always throw&quot;</span>)
+        .<span class="ident">expect</span>(<span class="string">&quot;Into&lt;String&gt; used as message&quot;</span>)
     }
 
     <span class="doccomment">/// Throws a `SyntaxError` with the specified message.</span>
