@@ -154,7 +154,7 @@ impl Object {
         args: &[Value],
         ctx: &mut Context,
     ) -> Result<Value> {
-        let object = args.get(0).unwrap().to_object(ctx)?;
+        let object = args.get(0).unwrap_or(&Value::undefined()).to_object(ctx)?;
         let descriptors = ctx.construct_object();
 
         for (key, _) in object.borrow().string_properties() {
