@@ -61,3 +61,56 @@ fn self_mutating_function_when_constructing() {
         3
     );
 }
+
+#[test]
+fn call_function_prototype() {
+    let mut engine = Context::new();
+    let func = r#"
+        Function.prototype()
+        "#;
+    let value = forward_val(&mut engine, func).unwrap();
+    assert!(value.is_undefined());
+}
+
+#[test]
+fn call_function_prototype_with_arguments() {
+    let mut engine = Context::new();
+    let func = r#"
+        Function.prototype(1, "", new String(""))
+        "#;
+    let value = forward_val(&mut engine, func).unwrap();
+    assert!(value.is_undefined());
+}
+
+#[test]
+fn call_function_prototype_with_new() {
+    let mut engine = Context::new();
+    let func = r#"
+        new Function.prototype()
+        "#;
+    let value = forward_val(&mut engine, func);
+    assert!(value.is_err());
+}
+
+#[test]
+fn function_prototype_name() {
+    let mut engine = Context::new();
+    let func = r#"
+        Function.prototype.name
+        "#;
+    let value = forward_val(&mut engine, func).unwrap();
+    assert!(value.is_string());
+    assert!(value.as_string().unwrap().is_empty());
+}
+
+#[test]
+#[allow(clippy::float_cmp)]
+fn function_prototype_length() {
+    let mut engine = Context::new();
+    let func = r#"
+        Function.prototype.length
+        "#;
+    let value = forward_val(&mut engine, func).unwrap();
+    assert!(value.is_number());
+    assert_eq!(value.as_number().unwrap(), 0.0);
+}

@@ -14,7 +14,7 @@
 use crate::{
     builtins::{Array, BuiltIn},
     environment::lexical_environment::Environment,
-    object::{ConstructorBuilder, Object, ObjectData, PROTOTYPE},
+    object::{ConstructorBuilder, FunctionBuilder, Object, ObjectData, PROTOTYPE},
     property::{Attribute, Property},
     syntax::ast::node::{FormalParameter, RcStatementList},
     BoaProfiler, Context, Result, Value,
@@ -301,12 +301,16 @@ pub struct BuiltInFunctionObject;
 impl BuiltInFunctionObject {
     pub const LENGTH: usize = 1;
 
-    fn constructor(this: &Value, _args: &[Value], _context: &mut Context) -> Result<Value> {
+    fn constructor(this: &Value, _: &[Value], _: &mut Context) -> Result<Value> {
         this.set_data(ObjectData::Function(Function::BuiltIn(
             BuiltInFunction(|_, _, _| Ok(Value::undefined())),
             FunctionFlags::CALLABLE | FunctionFlags::CONSTRUCTABLE,
         )));
         Ok(this.clone())
+    }
+
+    fn prototype(_: &Value, _: &[Value], _: &mut Context) -> Result<Value> {
+        Ok(Value::undefined())
     }
 }
 
@@ -319,6 +323,14 @@ impl BuiltIn for BuiltInFunctionObject {
 
     fn init(context: &mut Context) -> (&'static str, Value, Attribute) {
         let _timer = BoaProfiler::global().start_event("function", "init");
+
+        let function_prototype = context.standard_objects().function_object().prototype();
+        FunctionBuilder::new(context, Self::prototype)
+            .name("")
+            .length(0)
+            .callable(true)
+            .constructable(false)
+            .build_function_prototype(&function_prototype);
 
         let function_object = ConstructorBuilder::with_standard_object(
             context,
