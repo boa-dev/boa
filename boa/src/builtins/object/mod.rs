@@ -191,17 +191,17 @@ impl Object {
         }
 
         descriptor
-                .property("writable", Value::from(desc.writable()), Attribute::all())
-                .property(
-                    "enumerable",
-                    Value::from(desc.enumerable()),
-                    Attribute::all(),
-                )
-                .property(
-                    "configurable",
-                    Value::from(desc.configurable()),
-                    Attribute::all(),
-                );
+            .property("writable", Value::from(desc.writable()), Attribute::all())
+            .property(
+                "enumerable",
+                Value::from(desc.enumerable()),
+                Attribute::all(),
+            )
+            .property(
+                "configurable",
+                Value::from(desc.configurable()),
+                Attribute::all(),
+            );
 
         Ok(descriptor.build().into())
     }
