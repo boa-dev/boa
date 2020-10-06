@@ -652,6 +652,32 @@
 <span id="652">652</span>
 <span id="653">653</span>
 <span id="654">654</span>
+<span id="655">655</span>
+<span id="656">656</span>
+<span id="657">657</span>
+<span id="658">658</span>
+<span id="659">659</span>
+<span id="660">660</span>
+<span id="661">661</span>
+<span id="662">662</span>
+<span id="663">663</span>
+<span id="664">664</span>
+<span id="665">665</span>
+<span id="666">666</span>
+<span id="667">667</span>
+<span id="668">668</span>
+<span id="669">669</span>
+<span id="670">670</span>
+<span id="671">671</span>
+<span id="672">672</span>
+<span id="673">673</span>
+<span id="674">674</span>
+<span id="675">675</span>
+<span id="676">676</span>
+<span id="677">677</span>
+<span id="678">678</span>
+<span id="679">679</span>
+<span id="680">680</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Javascript context.</span>
 
@@ -737,6 +763,7 @@
     <span class="ident">range_error</span>: <span class="ident">StandardConstructor</span>,
     <span class="ident">syntax_error</span>: <span class="ident">StandardConstructor</span>,
     <span class="ident">eval_error</span>: <span class="ident">StandardConstructor</span>,
+    <span class="ident">uri_error</span>: <span class="ident">StandardConstructor</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">StandardObjects</span> {
@@ -813,6 +840,10 @@
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">eval_error_object</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">StandardConstructor</span> {
         <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">eval_error</span>
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">uri_error_object</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">StandardConstructor</span> {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">uri_error</span>
     }
 }
 
@@ -1048,12 +1079,33 @@
         .<span class="ident">expect</span>(<span class="string">&quot;Into&lt;String&gt; used as message&quot;</span>)
     }
 
+    <span class="doccomment">/// Constructs a `URIError` with the specified message.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">construct_uri_error</span><span class="op">&lt;</span><span class="ident">M</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">message</span>: <span class="ident">M</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Value</span>
+    <span class="kw">where</span>
+        <span class="ident">M</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
+    {
+        <span class="ident">New</span>::<span class="ident">from</span>(<span class="ident">Call</span>::<span class="ident">new</span>(
+            <span class="ident">Identifier</span>::<span class="ident">from</span>(<span class="string">&quot;URIError&quot;</span>),
+            <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">Const</span>::<span class="ident">from</span>(<span class="ident">message</span>.<span class="ident">into</span>()).<span class="ident">into</span>()],
+        ))
+        .<span class="ident">run</span>(<span class="self">self</span>)
+        .<span class="ident">expect</span>(<span class="string">&quot;Into&lt;String&gt; used as message&quot;</span>)
+    }
+
     <span class="doccomment">/// Throws a `EvalError` with the specified message.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">throw_eval_error</span><span class="op">&lt;</span><span class="ident">M</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">message</span>: <span class="ident">M</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">M</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
     {
         <span class="prelude-val">Err</span>(<span class="self">self</span>.<span class="ident">construct_eval_error</span>(<span class="ident">message</span>))
+    }
+
+    <span class="doccomment">/// Throws a `URIError` with the specified message.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">throw_uri_error</span><span class="op">&lt;</span><span class="ident">M</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">message</span>: <span class="ident">M</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span>
+    <span class="kw">where</span>
+        <span class="ident">M</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
+    {
+        <span class="prelude-val">Err</span>(<span class="self">self</span>.<span class="ident">construct_uri_error</span>(<span class="ident">message</span>))
     }
 
     <span class="doccomment">/// Utility to create a function Value for Function Declarations, Arrow Functions or Function Expressions</span>
