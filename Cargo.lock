@@ -17,7 +17,7 @@ dependencies = [
  "num-traits",
  "once_cell",
  "rand",
- "regex",
+ "regress",
  "rustc-hash",
  "ryu-js",
  "serde",
@@ -970,6 +970,15 @@ name = "regex-syntax"
 version = "0.6.18"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "26412eb97c6b088a6997e05f69403a802a92d520de2f8e63c2b65f9e0f47c4e8"
+
+[[package]]
+name = "regress"
+version = "0.1.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d669f9db16c334d72d7f92d52874373eb0df8f642230401952a6901872fee4c5"
+dependencies = [
+ "memchr",
+]
 
 [[package]]
 name = "rust-argon2"

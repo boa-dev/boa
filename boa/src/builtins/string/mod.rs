@@ -20,7 +20,7 @@ use crate::{
     value::{RcString, Value},
     BoaProfiler, Context, Result,
 };
-use regex::Regex;
+use regress::Regex;
 use std::{
     char::decode_utf16,
     cmp::{max, min},
@@ -554,8 +554,9 @@ impl String {
             None => return Ok(Value::from(primitive_val)),
         };
         let caps = re
-            .captures(&primitive_val)
-            .expect("unable to get capture groups from text");
+            .find(&primitive_val)
+            .expect("unable to get capture groups from text")
+            .captures;
 
         let replace_value = if args.len() > 1 {
             // replace_object could be a string or function or not exist at all
@@ -583,17 +584,16 @@ impl String {
                                 }
                                 (Some('&'), _) => {
                                     // $&
-                                    let matched = caps.get(0).expect("cannot get matched value");
-                                    result.push_str(matched.as_str());
+                                    result.push_str(&primitive_val[mat.total()]);
                                 }
                                 (Some('`'), _) => {
                                     // $`
-                                    let start_of_match = mat.start();
+                                    let start_of_match = mat.total().start;
                                     result.push_str(&primitive_val[..start_of_match]);
                                 }
                                 (Some('\''), _) => {
                                     // $'
-                                    let end_of_match = mat.end();
+                                    let end_of_match = mat.total().end;
                                     result.push_str(&primitive_val[end_of_match..]);
                                 }
                                 (Some(second), Some(third))
@@ -610,9 +610,9 @@ impl String {
                                             result.push(ch);
                                         }
                                     } else {
-                                        let group = match caps.get(nn) {
-                                            Some(text) => text.as_str(),
-                                            None => "",
+                                        let group = match mat.group(nn) {
+                                            Some(range) => &primitive_val[range.clone()],
+                                            _ => "",
                                         };
                                         result.push_str(group);
                                         chars.next(); // consume third
@@ -625,9 +625,9 @@ impl String {
                                         result.push(first);
                                         result.push(second);
                                     } else {
-                                        let group = match caps.get(n) {
-                                            Some(text) => text.as_str(),
-                                            None => "",
+                                        let group = match mat.group(n) {
+                                            Some(range) => &primitive_val[range.clone()],
+                                            _ => "",
                                         };
                                         result.push_str(group);
                                     }
@@ -654,16 +654,16 @@ impl String {
                 }
                 Value::Object(_) => {
                     // This will return the matched substring first, then captured parenthesized groups later
-                    let mut results: Vec<Value> = caps
-                        .iter()
-                        .map(|capture| Value::from(capture.unwrap().as_str()))
+                    let mut results: Vec<Value> = mat
+                        .groups()
+                        .map(|group| match group {
+                            Some(range) => Value::from(&primitive_val[range]),
+                            None => Value::undefined(),
+                        })
                         .collect();
 
                     // Returns the starting byte offset of the match
-                    let start = caps
-                        .get(0)
-                        .expect("Unable to get Byte offset from string for match")
-                        .start();
+                    let start = mat.total().start;
                     results.push(Value::from(start));
                     // Push the whole string being examined
                     results.push(Value::from(primitive_val.to_string()));
@@ -679,7 +679,7 @@ impl String {
         };
 
         Ok(Value::from(primitive_val.replacen(
-            &mat.as_str(),
+            &primitive_val[mat.total()],
             &replace_value,
             1,
         )))
