@@ -619,6 +619,12 @@
 <span id="619">619</span>
 <span id="620">620</span>
 <span id="621">621</span>
+<span id="622">622</span>
+<span id="623">623</span>
+<span id="624">624</span>
+<span id="625">625</span>
+<span id="626">626</span>
+<span id="627">627</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Javascript context.</span>
 
@@ -628,7 +634,6 @@
         <span class="ident">function</span>::{<span class="ident">Function</span>, <span class="ident">FunctionFlags</span>, <span class="ident">NativeFunction</span>},
         <span class="ident">iterable</span>::<span class="ident">IteratorPrototypes</span>,
         <span class="ident">symbol</span>::{<span class="ident">Symbol</span>, <span class="ident">WellKnownSymbols</span>},
-        <span class="ident">Console</span>,
     },
     <span class="ident">class</span>::{<span class="ident">Class</span>, <span class="ident">ClassBuilder</span>},
     <span class="ident">exec</span>::<span class="ident">Interpreter</span>,
@@ -649,6 +654,9 @@
     <span class="ident">BoaProfiler</span>, <span class="ident">Executable</span>, <span class="prelude-ty">Result</span>,
 };
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">result</span>::<span class="prelude-ty">Result</span> <span class="kw">as</span> <span class="ident">StdResult</span>;
+
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;console&quot;</span>)]</span>
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">builtins</span>::<span class="ident">console</span>::<span class="ident">Console</span>;
 
 <span class="doccomment">/// Store a builtin constructor (such as `Object`) and its corresponding prototype.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>)]</span>
@@ -794,6 +802,7 @@
     <span class="ident">symbol_count</span>: <span class="ident">u32</span>,
 
     <span class="doccomment">/// console object state.</span>
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;console&quot;</span>)]</span>
     <span class="ident">console</span>: <span class="ident">Console</span>,
 
     <span class="doccomment">/// Cached well known symbols</span>
@@ -815,6 +824,7 @@
             <span class="ident">realm</span>,
             <span class="ident">executor</span>,
             <span class="ident">symbol_count</span>,
+            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;console&quot;</span>)]</span>
             <span class="ident">console</span>: <span class="ident">Console</span>::<span class="ident">default</span>(),
             <span class="ident">well_known_symbols</span>,
             <span class="ident">iterator_prototypes</span>: <span class="ident">IteratorPrototypes</span>::<span class="ident">default</span>(),
@@ -849,11 +859,13 @@
     }
 
     <span class="doccomment">/// A helper function for getting a immutable reference to the `console` object.</span>
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;console&quot;</span>)]</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">console</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">Console</span> {
         <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">console</span>
     }
 
     <span class="doccomment">/// A helper function for getting a mutable reference to the `console` object.</span>
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;console&quot;</span>)]</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">console_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Console</span> {
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">console</span>
     }

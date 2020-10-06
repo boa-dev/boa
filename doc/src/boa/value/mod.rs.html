@@ -980,7 +980,6 @@
 <span id="980">980</span>
 <span id="981">981</span>
 <span id="982">982</span>
-<span id="983">983</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements the JavaScript Value.</span>
 <span class="doccomment">//!</span>
@@ -1009,7 +1008,7 @@
 };
 
 <span class="kw">mod</span> <span class="ident">conversions</span>;
-<span class="kw">mod</span> <span class="ident">display</span>;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod</span> <span class="ident">display</span>;
 <span class="kw">mod</span> <span class="ident">equality</span>;
 <span class="kw">mod</span> <span class="ident">hash</span>;
 <span class="kw">mod</span> <span class="ident">operations</span>;
@@ -1019,7 +1018,6 @@
 <span class="kw">mod</span> <span class="ident">r#type</span>;
 
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">conversions</span>::<span class="kw-2">*</span>;
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use</span> <span class="ident">display</span>::<span class="ident">display_obj</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">display</span>::<span class="ident">ValueDisplay</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">equality</span>::<span class="kw-2">*</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">hash</span>::<span class="kw-2">*</span>;
