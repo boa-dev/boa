@@ -438,12 +438,15 @@ impl RegExp {
     /// [spec]: https://tc39.es/ecma262/#sec-regexp.prototype.tostring
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/toString
     #[allow(clippy::wrong_self_convention)]
-    pub(crate) fn to_string(this: &Value, _: &[Value], _: &mut Context) -> Result<Value> {
+    pub(crate) fn to_string(this: &Value, _: &[Value], context: &mut Context) -> Result<Value> {
         let (body, flags) = if let Some(object) = this.as_object() {
             let regex = object.as_regexp().unwrap();
             (regex.original_source.clone(), regex.flags.clone())
         } else {
-            panic!("object is not an object")
+            return context.throw_type_error(format!(
+                "Method RegExp.prototype.toString called on incompatible receiver {}",
+                this.display()
+            ));
         };
         Ok(Value::from(format!("/{}/{}", body, flags)))
     }

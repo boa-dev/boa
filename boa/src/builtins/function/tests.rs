@@ -114,3 +114,52 @@ fn function_prototype_length() {
     assert!(value.is_number());
     assert_eq!(value.as_number().unwrap(), 0.0);
 }
+
+#[test]
+fn function_prototype_call() {
+    let mut engine = Context::new();
+    let func = r#"
+        let e = new Error()
+        Object.prototype.toString.call(e)
+        "#;
+    let value = forward_val(&mut engine, func).unwrap();
+    assert!(value.is_string());
+    assert_eq!(value.as_string().unwrap(), "[object Error]");
+}
+
+#[test]
+fn function_prototype_call_throw() {
+    let mut engine = Context::new();
+    let throw = r#"
+        let call = Function.prototype.call;
+        call(call)
+        "#;
+    let value = forward_val(&mut engine, throw).unwrap_err();
+    assert!(value.is_object());
+    let string = value.to_string(&mut engine).unwrap();
+    assert!(string.starts_with("TypeError"))
+}
+
+#[test]
+fn function_prototype_call_multiple_args() {
+    let mut engine = Context::new();
+    let init = r#"
+        function f(a, b) {
+            this.a = a;
+            this.b = b;
+        }
+        let o = {a: 0, b: 0};
+        f.call(o, 1, 2);
+    "#;
+    forward_val(&mut engine, init).unwrap();
+    let boolean = forward_val(&mut engine, "o.a == 1")
+        .unwrap()
+        .as_boolean()
+        .unwrap();
+    assert!(boolean);
+    let boolean = forward_val(&mut engine, "o.b == 2")
+        .unwrap()
+        .as_boolean()
+        .unwrap();
+    assert!(boolean);
+}

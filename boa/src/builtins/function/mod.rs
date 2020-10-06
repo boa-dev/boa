@@ -312,6 +312,26 @@ impl BuiltInFunctionObject {
     fn prototype(_: &Value, _: &[Value], _: &mut Context) -> Result<Value> {
         Ok(Value::undefined())
     }
+
+    /// `Function.prototype.call`
+    ///
+    /// The call() method invokes self with the first argument as the `this` value.
+    ///
+    /// More information:
+    ///  - [MDN documentation][mdn]
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-function.prototype.call
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/call
+    fn call(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+        if !this.is_function() {
+            return context.throw_type_error(format!("{} is not a function", this.display()));
+        }
+        let this_arg: Value = args.get(0).cloned().unwrap_or_default();
+        // TODO?: 3. Perform PrepareForTailCall
+        let start = if !args.is_empty() { 1 } else { 0 };
+        context.call(this, &this_arg, &args[start..])
+    }
 }
 
 impl BuiltIn for BuiltInFunctionObject {
@@ -339,6 +359,7 @@ impl BuiltIn for BuiltInFunctionObject {
         )
         .name(Self::NAME)
         .length(Self::LENGTH)
+        .method(Self::call, "call", 1)
         .build();
 
         (Self::NAME, function_object.into(), Self::attribute())
