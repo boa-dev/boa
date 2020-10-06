@@ -15,7 +15,7 @@
 
 use crate::{
     builtins::BuiltIn,
-    object::{ConstructorBuilder, Object as BuiltinObject, ObjectData},
+    object::{ConstructorBuilder, Object as BuiltinObject, ObjectData, ObjectInitializer},
     property::{Attribute, Property},
     value::{same_value, Value},
     BoaProfiler, Context, Result,
@@ -173,38 +173,33 @@ impl Object {
 
     /// https://www.ecma-international.org/ecma-262/10.0/index.html#sec-frompropertydescriptor
     fn from_property_descriptor(desc: Property, ctx: &mut Context) -> Result<Value> {
-        let descriptor = ctx.construct_object();
+        let mut descriptor = ObjectInitializer::new(ctx);
+
         if let Some(value) = &desc.value {
-            descriptor.borrow_mut().insert(
-                "value",
-                Property::data_descriptor(value.clone(), Attribute::all()),
-            );
+            descriptor.property("value", value, Attribute::all());
         }
         if let Some(set) = &desc.set {
-            descriptor.borrow_mut().insert(
-                "set",
-                Property::data_descriptor(set.clone(), Attribute::all()),
-            );
+            descriptor.property("set", set, Attribute::all());
         }
         if let Some(get) = &desc.get {
-            descriptor.borrow_mut().insert(
-                "get",
-                Property::data_descriptor(get.clone(), Attribute::all()),
-            );
+            descriptor.property("get", get, Attribute::all());
         }
-        descriptor.borrow_mut().insert(
-            "writable",
-            Property::data_descriptor(desc.writable().into(), Attribute::all()),
-        );
-        descriptor.borrow_mut().insert(
-            "enumerable",
-            Property::data_descriptor(desc.enumerable().into(), Attribute::all()),
-        );
-        descriptor.borrow_mut().insert(
-            "configurable",
-            Property::data_descriptor(desc.configurable().into(), Attribute::all()),
-        );
-        Ok(Value::Object(descriptor))
+
+        Ok(Value::Object(
+            descriptor
+                .property("writable", Value::from(desc.writable()), Attribute::all())
+                .property(
+                    "enumerable",
+                    Value::from(desc.enumerable()),
+                    Attribute::all(),
+                )
+                .property(
+                    "configurable",
+                    Value::from(desc.configurable()),
+                    Attribute::all(),
+                )
+                .build(),
+        ))
     }
 
     /// Uses the SameValue algorithm to check equality of objects
