@@ -9,7 +9,7 @@ use crate::{
     object::Object,
     property::{Attribute, Property, PropertyKey},
     value::{same_value, Value},
-    BoaProfiler,
+    BoaProfiler, Context, Result,
 };
 
 impl Object {
@@ -280,6 +280,43 @@ impl Object {
             d.attribute = v.attribute;
             d
         })
+    }
+
+    /// Essential internal method OwnPropertyKeys
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec](https://tc39.es/ecma262/#table-essential-internal-methods)
+    pub fn own_property_keys(&self) -> Vec<PropertyKey> {
+        self.keys().collect()
+    }
+
+    /// The abstract operation ObjectDefineProperties
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-object.defineproperties
+    pub fn define_properties(&mut self, props: Value, ctx: &mut Context) -> Result<()> {
+        let props = props.to_object(ctx)?;
+        let keys = props.borrow().own_property_keys();
+        let mut descriptors: Vec<(PropertyKey, Property)> = Vec::new();
+
+        for next_key in keys {
+            let prop_desc = props.borrow().get_own_property(&next_key);
+            if prop_desc.enumerable() {
+                let desc_obj = props.borrow().get(&next_key);
+                let desc = Property::from(&desc_obj);
+                descriptors.push((next_key, desc));
+            }
+        }
+
+        descriptors.into_iter().for_each(|(p, d)| {
+            self.define_own_property(p, d);
+        });
+
+        Ok(())
     }
 
     // /// `Object.setPropertyOf(obj, prototype)`

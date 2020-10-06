@@ -11,12 +11,14 @@ use crate::{
         function_environment_record::BindingStatus, lexical_environment::new_function_environment,
     },
     syntax::ast::node::RcStatementList,
+    value::PreferredType,
     Context, Executable, Result, Value,
 };
 use gc::{Finalize, Gc, GcCell, GcCellRef, GcCellRefMut, Trace};
+use serde_json::{map::Map, Value as JSONValue};
 use std::{
     cell::RefCell,
-    collections::HashSet,
+    collections::HashMap,
     error::Error,
     fmt::{self, Debug, Display},
     result::Result as StdResult,
@@ -267,6 +269,111 @@ impl GcObject {
             }
         }
     }
+
+    /// Converts an object to a primitive.
+    ///
+    /// Diverges from the spec to prevent a stack overflow when the object is recursive.
+    /// For example,
+    /// ```javascript
+    /// let a = [1];
+    /// a[1] = a;
+    /// console.log(a.toString()); // We print "1,"
+    /// ```
+    /// The spec doesn't mention what to do in this situation, but a naive implementation
+    /// would overflow the stack recursively calling `toString()`. We follow v8 and SpiderMonkey
+    /// instead by returning a default value for the given `hint` -- either `0.` or `""`.
+    /// Example in v8: https://repl.it/repls/IvoryCircularCertification#index.js
+    ///
+    /// More information:
+    ///  - [ECMAScript][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-ordinarytoprimitive
+    pub(crate) fn ordinary_to_primitive(
+        &self,
+        interpreter: &mut Context,
+        hint: PreferredType,
+    ) -> Result<Value> {
+        // 1. Assert: Type(O) is Object.
+        //      Already is GcObject by type.
+        // 2. Assert: Type(hint) is String and its value is either "string" or "number".
+        debug_assert!(hint == PreferredType::String || hint == PreferredType::Number);
+
+        // Diverge from the spec here to make sure we aren't going to overflow the stack by converting
+        // a recursive structure
+        // We can follow v8 & SpiderMonkey's lead and return a default value for the hint in this situation
+        // (see https://repl.it/repls/IvoryCircularCertification#index.js)
+        let recursion_limiter = RecursionLimiter::new(&self);
+        if recursion_limiter.live {
+            // we're in a recursive object, bail
+            return Ok(match hint {
+                PreferredType::Number => Value::from(0),
+                PreferredType::String => Value::from(""),
+                PreferredType::Default => unreachable!("checked type hint in step 2"),
+            });
+        }
+
+        // 3. If hint is "string", then
+        //    a. Let methodNames be « "toString", "valueOf" ».
+        // 4. Else,
+        //    a. Let methodNames be « "valueOf", "toString" ».
+        let method_names = if hint == PreferredType::String {
+            ["toString", "valueOf"]
+        } else {
+            ["valueOf", "toString"]
+        };
+
+        // 5. For each name in methodNames in List order, do
+        let this = Value::from(self.clone());
+        for name in &method_names {
+            // a. Let method be ? Get(O, name).
+            let method: Value = this.get_field(*name);
+            // b. If IsCallable(method) is true, then
+            if method.is_function() {
+                // i. Let result be ? Call(method, O).
+                let result = interpreter.call(&method, &this, &[])?;
+                // ii. If Type(result) is not Object, return result.
+                if !result.is_object() {
+                    return Ok(result);
+                }
+            }
+        }
+
+        // 6. Throw a TypeError exception.
+        interpreter.throw_type_error("cannot convert object to primitive value")
+    }
+
+    /// Converts an object to JSON, checking for reference cycles and throwing a TypeError if one is found
+    pub(crate) fn to_json(&self, interpreter: &mut Context) -> Result<JSONValue> {
+        let rec_limiter = RecursionLimiter::new(self);
+        if rec_limiter.live {
+            Err(interpreter.construct_type_error("cyclic object value"))
+        } else if self.borrow().is_array() {
+            let mut keys: Vec<u32> = self.borrow().index_property_keys().cloned().collect();
+            keys.sort();
+            let mut arr: Vec<JSONValue> = Vec::with_capacity(keys.len());
+            let this = Value::from(self.clone());
+            for key in keys {
+                let value = this.get_field(key);
+                if value.is_undefined() || value.is_function() || value.is_symbol() {
+                    arr.push(JSONValue::Null);
+                } else {
+                    arr.push(value.to_json(interpreter)?);
+                }
+            }
+            Ok(JSONValue::Array(arr))
+        } else {
+            let mut new_obj = Map::new();
+            let this = Value::from(self.clone());
+            for k in self.borrow().keys() {
+                let key = k.clone();
+                let value = this.get_field(k.to_string());
+                if !value.is_undefined() && !value.is_function() && !value.is_symbol() {
+                    new_obj.insert(key.to_string(), value.to_json(interpreter)?);
+                }
+            }
+            Ok(JSONValue::Object(new_obj))
+        }
+    }
 }
 
 impl AsRef<GcCell<Object>> for GcObject {
@@ -302,45 +409,57 @@ impl Display for BorrowMutError {
 
 impl Error for BorrowMutError {}
 
-/// Prevents infinite recursion during `Debug::fmt`.
-#[derive(Debug)]
-struct RecursionLimiter {
-    /// If this was the first `GcObject` in the tree.
-    free: bool,
-    /// If this is the first time a specific `GcObject` has been seen.
-    first: bool,
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+enum RecursionValueState {
+    /// This value is "live": there's an active RecursionLimiter that hasn't been dropped.
+    Live,
+    /// This value has been seen before, but the recursion limiter has been dropped.
+    /// For example:
+    /// ```javascript
+    /// let b = [];
+    /// JSON.stringify([ // Create a recursion limiter for the root here
+    ///    b,            // state for b's &GcObject here is None
+    ///    b,            // state for b's &GcObject here is Visited
+    /// ]);
+    /// ```
+    Visited,
 }
 
-impl Clone for RecursionLimiter {
-    fn clone(&self) -> Self {
-        Self {
-            // Cloning this value would result in a premature free.
-            free: false,
-            // Cloning this vlaue would result in a value being written multiple times.
-            first: false,
-        }
-    }
+/// Prevents infinite recursion during `Debug::fmt`, `JSON.stringify`, and other conversions.
+/// This uses a thread local, so is not safe to use where the object graph will be traversed by
+/// multiple threads!
+#[derive(Debug)]
+pub struct RecursionLimiter {
+    /// If this was the first `GcObject` in the tree.
+    top_level: bool,
+    /// The ptr being kept in the HashSet, so we can delete it when we drop.
+    ptr: usize,
+    /// If this GcObject has been visited before in the graph, but not in the current branch.
+    pub visited: bool,
+    /// If this GcObject has been visited in the current branch of the graph.
+    pub live: bool,
 }
 
 impl Drop for RecursionLimiter {
     fn drop(&mut self) {
-        // Typically, calling hs.remove(ptr) for "first" objects would be the correct choice here. This would allow the
-        // same object to appear multiple times in the output (provided it does not appear under itself recursively).
-        // However, the JS object hierarchy involves quite a bit of repitition, and the sheer amount of data makes
-        // understanding the Debug output impossible; limiting the usefulness of it.
-        //
-        // Instead, the entire hashset is emptied at by the first GcObject involved. This means that objects will appear
-        // at most once, throughout the graph, hopefully making things a bit clearer.
-        if self.free {
-            Self::VISITED.with(|hs| hs.borrow_mut().clear());
+        if self.top_level {
+            // When the top level of the graph is dropped, we can free the entire map for the next traversal.
+            Self::SEEN.with(|hm| hm.borrow_mut().clear());
+        } else if !self.live {
+            // This was the first RL for this object to become live, so it's no longer live now that it's dropped.
+            Self::SEEN.with(|hm| {
+                hm.borrow_mut()
+                    .insert(self.ptr, RecursionValueState::Visited)
+            });
         }
     }
 }
 
 impl RecursionLimiter {
     thread_local! {
-        /// The list of pointers to `GcObject` that have been visited during the current `Debug::fmt` graph.
-        static VISITED: RefCell<HashSet<usize>> = RefCell::new(HashSet::new());
+        /// The map of pointers to `GcObject` that have been visited during the current `Debug::fmt` graph,
+        /// and the current state of their RecursionLimiter (dropped or live -- see `RecursionValueState`)
+        static SEEN: RefCell<HashMap<usize, RecursionValueState>> = RefCell::new(HashMap::new());
     }
 
     /// Determines if the specified `GcObject` has been visited, and returns a struct that will free it when dropped.
@@ -348,15 +467,27 @@ impl RecursionLimiter {
     /// This is done by maintaining a thread-local hashset containing the pointers of `GcObject` values that have been
     /// visited. The first `GcObject` visited will clear the hashset, while any others will check if they are contained
     /// by the hashset.
-    fn new(o: &GcObject) -> Self {
+    pub fn new(o: &GcObject) -> Self {
         // We shouldn't have to worry too much about this being moved during Debug::fmt.
         let ptr = (o.as_ref() as *const _) as usize;
-        let (free, first) = Self::VISITED.with(|hs| {
-            let mut hs = hs.borrow_mut();
-            (hs.is_empty(), hs.insert(ptr))
+        let (top_level, visited, live) = Self::SEEN.with(|hm| {
+            let mut hm = hm.borrow_mut();
+            let top_level = hm.is_empty();
+            let old_state = hm.insert(ptr, RecursionValueState::Live);
+
+            (
+                top_level,
+                old_state == Some(RecursionValueState::Visited),
+                old_state == Some(RecursionValueState::Live),
+            )
         });
 
-        Self { free, first }
+        Self {
+            top_level,
+            ptr,
+            visited,
+            live,
+        }
     }
 }
 
@@ -364,7 +495,13 @@ impl Debug for GcObject {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> std::fmt::Result {
         let limiter = RecursionLimiter::new(&self);
 
-        if limiter.first {
+        // Typically, using `!limiter.live` would be good enough here.
+        // However, the JS object hierarchy involves quite a bit of repitition, and the sheer amount of data makes
+        // understanding the Debug output impossible; limiting the usefulness of it.
+        //
+        // Instead, we check if the object has appeared before in the entire graph. This means that objects will appear
+        // at most once, hopefully making things a bit clearer.
+        if !limiter.visited && !limiter.live {
             f.debug_tuple("GcObject").field(&self.0).finish()
         } else {
             f.write_str("{ ... }")

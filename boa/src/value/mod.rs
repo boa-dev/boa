@@ -15,7 +15,7 @@ use crate::{
     BoaProfiler, Context, Result,
 };
 use gc::{Finalize, GcCellRef, GcCellRefMut, Trace};
-use serde_json::{map::Map, Number as JSONNumber, Value as JSONValue};
+use serde_json::{Number as JSONNumber, Value as JSONValue};
 use std::{
     collections::HashSet,
     convert::TryFrom,
@@ -25,7 +25,7 @@ use std::{
 };
 
 mod conversions;
-mod display;
+pub(crate) mod display;
 mod equality;
 mod hash;
 mod operations;
@@ -35,7 +35,6 @@ mod rcsymbol;
 mod r#type;
 
 pub use conversions::*;
-pub(crate) use display::display_obj;
 pub use display::ValueDisplay;
 pub use equality::*;
 pub use hash::*;
@@ -225,32 +224,7 @@ impl Value {
         match *self {
             Self::Null => Ok(JSONValue::Null),
             Self::Boolean(b) => Ok(JSONValue::Bool(b)),
-            Self::Object(ref obj) => {
-                if obj.borrow().is_array() {
-                    let mut keys: Vec<u32> = obj.borrow().index_property_keys().cloned().collect();
-                    keys.sort();
-                    let mut arr: Vec<JSONValue> = Vec::with_capacity(keys.len());
-                    for key in keys {
-                        let value = self.get_field(key);
-                        if value.is_undefined() || value.is_function() || value.is_symbol() {
-                            arr.push(JSONValue::Null);
-                        } else {
-                            arr.push(value.to_json(interpreter)?);
-                        }
-                    }
-                    Ok(JSONValue::Array(arr))
-                } else {
-                    let mut new_obj = Map::new();
-                    for k in obj.borrow().keys() {
-                        let key = k.clone();
-                        let value = self.get_field(k.to_string());
-                        if !value.is_undefined() && !value.is_function() && !value.is_symbol() {
-                            new_obj.insert(key.to_string(), value.to_json(interpreter)?);
-                        }
-                    }
-                    Ok(JSONValue::Object(new_obj))
-                }
-            }
+            Self::Object(ref obj) => obj.to_json(interpreter),
             Self::String(ref str) => Ok(JSONValue::String(str.to_string())),
             Self::Rational(num) => Ok(JSONNumber::from_f64(num)
                 .map(JSONValue::Number)
@@ -592,7 +566,7 @@ impl Value {
     pub fn to_primitive(&self, ctx: &mut Context, preferred_type: PreferredType) -> Result<Value> {
         // 1. Assert: input is an ECMAScript language value. (always a value not need to check)
         // 2. If Type(input) is Object, then
-        if let Value::Object(_) = self {
+        if let Value::Object(obj) = self {
             let mut hint = preferred_type;
 
             // Skip d, e we don't support Symbols yet
@@ -603,7 +577,7 @@ impl Value {
             };
 
             // g. Return ? OrdinaryToPrimitive(input, hint).
-            ctx.ordinary_to_primitive(self, hint)
+            obj.ordinary_to_primitive(ctx, hint)
         } else {
             // 3. Return input.
             Ok(self.clone())

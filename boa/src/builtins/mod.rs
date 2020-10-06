@@ -3,6 +3,7 @@
 pub mod array;
 pub mod bigint;
 pub mod boolean;
+#[cfg(feature = "console")]
 pub mod console;
 pub mod date;
 pub mod error;
@@ -25,7 +26,6 @@ pub(crate) use self::{
     array::{array_iterator::ArrayIterator, Array},
     bigint::BigInt,
     boolean::Boolean,
-    console::Console,
     date::Date,
     error::{Error, EvalError, RangeError, ReferenceError, SyntaxError, TypeError},
     function::BuiltInFunctionObject,
@@ -68,7 +68,6 @@ pub fn init(context: &mut Context) {
         BuiltInObjectObject::init,
         Math::init,
         Json::init,
-        Console::init,
         Array::init,
         BigInt::init,
         Boolean::init,
@@ -84,6 +83,8 @@ pub fn init(context: &mut Context) {
         TypeError::init,
         SyntaxError::init,
         EvalError::init,
+        #[cfg(feature = "console")]
+        console::Console::init,
     ];
 
     let global_object = if let Value::Object(global) = context.global_object() {
