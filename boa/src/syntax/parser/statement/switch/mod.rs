@@ -130,6 +130,7 @@ where
                         self.allow_await,
                         self.allow_return,
                         true,
+                        false,
                     )
                     .parse_generalised(cursor, &CASE_BREAK_TOKENS)?;
 
@@ -151,6 +152,7 @@ where
                         self.allow_await,
                         self.allow_return,
                         true,
+                        false,
                     )
                     .parse_generalised(cursor, &CASE_BREAK_TOKENS)?;
 

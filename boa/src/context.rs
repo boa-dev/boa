@@ -23,7 +23,7 @@ use crate::{
         },
         Parser,
     },
-    value::{PreferredType, RcString, RcSymbol, Type, Value},
+    value::{RcString, RcSymbol, Value},
     BoaProfiler, Executable, Result,
 };
 use std::result::Result as StdResult;
@@ -293,7 +293,7 @@ impl Context {
             vec![Const::from(message.into()).into()],
         ))
         .run(self)
-        .expect_err("RangeError should always throw")
+        .expect("Into<String> used as message")
     }
 
     /// Throws a `RangeError` with the specified message.
@@ -315,7 +315,7 @@ impl Context {
             vec![Const::from(message.into()).into()],
         ))
         .run(self)
-        .expect_err("TypeError should always throw")
+        .expect("Into<String> used as message")
     }
 
     /// Throws a `TypeError` with the specified message.
@@ -336,7 +336,7 @@ impl Context {
             vec![Const::from(message.into() + " is not defined").into()],
         ))
         .run(self)
-        .expect_err("ReferenceError should always throw")
+        .expect("Into<String> used as message")
     }
 
     /// Throws a `ReferenceError` with the specified message.
@@ -357,7 +357,7 @@ impl Context {
             vec![Const::from(message.into()).into()],
         ))
         .run(self)
-        .expect_err("SyntaxError should always throw")
+        .expect("Into<String> used as message")
     }
 
     /// Throws a `SyntaxError` with the specified message.
@@ -496,51 +496,6 @@ impl Context {
         }
 
         Err(())
-    }
-
-    /// Converts an object to a primitive.
-    ///
-    /// More information:
-    ///  - [ECMAScript][spec]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-ordinarytoprimitive
-    pub(crate) fn ordinary_to_primitive(
-        &mut self,
-        o: &Value,
-        hint: PreferredType,
-    ) -> Result<Value> {
-        // 1. Assert: Type(O) is Object.
-        debug_assert!(o.get_type() == Type::Object);
-        // 2. Assert: Type(hint) is String and its value is either "string" or "number".
-        debug_assert!(hint == PreferredType::String || hint == PreferredType::Number);
-
-        // 3. If hint is "string", then
-        //    a. Let methodNames be « "toString", "valueOf" ».
-        // 4. Else,
-        //    a. Let methodNames be « "valueOf", "toString" ».
-        let method_names = if hint == PreferredType::String {
-            ["toString", "valueOf"]
-        } else {
-            ["valueOf", "toString"]
-        };
-
-        // 5. For each name in methodNames in List order, do
-        for name in &method_names {
-            // a. Let method be ? Get(O, name).
-            let method: Value = o.get_field(*name);
-            // b. If IsCallable(method) is true, then
-            if method.is_function() {
-                // i. Let result be ? Call(method, O).
-                let result = self.call(&method, &o, &[])?;
-                // ii. If Type(result) is not Object, return result.
-                if !result.is_object() {
-                    return Ok(result);
-                }
-            }
-        }
-
-        // 6. Throw a TypeError exception.
-        self.throw_type_error("cannot convert object to primitive value")
     }
 
     /// https://tc39.es/ecma262/#sec-hasproperty

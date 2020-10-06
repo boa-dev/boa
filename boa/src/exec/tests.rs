@@ -1383,3 +1383,124 @@ fn test_identifier_op() {
     let scenario = "break = 1";
     assert_eq!(&exec(scenario), "\"SyntaxError\": \"expected token \'identifier\', got \'=\' in binding identifier at line 1, col 7\"");
 }
+
+#[test]
+fn test_strict_mode_octal() {
+    // Checks as per https://tc39.es/ecma262/#sec-literals-numeric-literals that 0 prefix
+    // octal number literal syntax is a syntax error in strict mode.
+
+    let scenario = r#"
+    'use strict';
+    var n = 023;
+    "#;
+
+    let mut engine = Context::new();
+
+    let string = dbg!(forward(&mut engine, scenario));
+
+    assert!(string.starts_with("Uncaught \"SyntaxError\": "));
+}
+
+#[test]
+fn test_strict_mode_with() {
+    // Checks as per https://tc39.es/ecma262/#sec-with-statement-static-semantics-early-errors
+    // that a with statement is an error in strict mode code.
+
+    let scenario = r#"
+    'use strict';
+    function f(x, o) {
+        with (o) {
+            console.log(x);
+        }
+    }
+    "#;
+
+    let mut engine = Context::new();
+
+    let string = dbg!(forward(&mut engine, scenario));
+
+    assert!(string.starts_with("Uncaught \"SyntaxError\": "));
+}
+
+#[test]
+fn test_strict_mode_delete() {
+    // Checks as per https://tc39.es/ecma262/#sec-delete-operator-static-semantics-early-errors
+    // that delete on a variable name is an error in strict mode code.
+
+    let scenario = r#"
+    'use strict';
+    let x = 10;
+    delete x;
+    "#;
+
+    let mut engine = Context::new();
+
+    let string = dbg!(forward(&mut engine, scenario));
+
+    assert!(string.starts_with("Uncaught \"SyntaxError\": "));
+}
+
+#[test]
+fn test_strict_mode_reserved_name() {
+    // Checks that usage of a reserved keyword for an identifier name is
+    // an error in strict mode code as per https://tc39.es/ecma262/#sec-strict-mode-of-ecmascript.
+
+    let test_cases = [
+        "var implements = 10;",
+        "var interface = 10;",
+        "var package = 10;",
+        "var private = 10;",
+        "var protected = 10;",
+        "var public = 10;",
+        "var static = 10;",
+        "var eval = 10;",
+        "var arguments = 10;",
+        "var let = 10;",
+        "var yield = 10;",
+    ];
+
+    for case in test_cases.iter() {
+        let mut engine = Context::new();
+        let scenario = format!("'use strict'; \n {}", case);
+
+        let string = dbg!(forward(&mut engine, &scenario));
+
+        assert!(string.starts_with("Uncaught \"SyntaxError\": "));
+    }
+}
+
+#[test]
+fn test_strict_mode_func_decl_in_block() {
+    // Checks that a function declaration in a block is an error in
+    // strict mode code as per https://tc39.es/ecma262/#early-error.
+
+    let scenario = r#"
+    'use strict';
+    let a = 4;
+    let b = 5;
+    if (a < b) { function f() {} }
+    "#;
+
+    let mut engine = Context::new();
+
+    let string = dbg!(forward(&mut engine, scenario));
+
+    assert!(string.starts_with("Uncaught \"SyntaxError\": "));
+}
+
+#[test]
+fn test_strict_mode_dup_func_parameters() {
+    // Checks that a function cannot contain duplicate parameter
+    // names in strict mode code as per https://tc39.es/ecma262/#sec-function-definitions-static-semantics-early-errors.
+
+    let scenario = r#"
+    'use strict';
+    function f(a, b, b) {}
+    "#;
+
+    let mut engine = Context::new();
+
+    let string = dbg!(forward(&mut engine, scenario));
+
+    assert!(string.starts_with("Uncaught \"SyntaxError\": "));
+}

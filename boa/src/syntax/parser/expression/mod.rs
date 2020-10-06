@@ -61,7 +61,7 @@ macro_rules! expression { ($name:ident, $lower:ident, [$( $op:path ),*], [$( $lo
     {
         type Output = Node;
 
-        fn parse(self, cursor: &mut Cursor<R>) -> ParseResult {
+        fn parse(self, cursor: &mut Cursor<R>)-> ParseResult {
             let _timer = BoaProfiler::global().start_event($profile, "Parsing");
 
             if $goal.is_some() {
