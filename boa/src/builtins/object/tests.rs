@@ -244,6 +244,7 @@ fn get_own_property_descriptors() {
     assert_eq!(forward(&mut ctx, "result.b.value"), "2");
 }
 
+#[test]
 fn object_define_properties() {
     let mut ctx = Context::new();
 
