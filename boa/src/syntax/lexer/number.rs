@@ -327,10 +327,7 @@ impl<R> Tokenizer<R> for NumberLiteral {
                 TokenKind::NumericLiteral(numeric_literal),
                 Span::new(start_pos, cursor.pos()),
             )),
-            Err(error_message) => Err(Error::syntax(
-                error_message,
-                cursor.pos(),
-            )),
+            Err(error_message) => Err(Error::syntax(error_message, cursor.pos())),
         }
     }
 }
