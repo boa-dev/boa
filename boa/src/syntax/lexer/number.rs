@@ -287,27 +287,29 @@ impl<R> Tokenizer<R> for NumberLiteral {
 
         let num = match kind {
             NumericKind::BigInt(base) => {
-                Numeric::BigInt(
-                    BigInt::from_string_radix(&buf, base).expect("Could not convert to BigInt")
-                    )
+                let val = BigInt::from_string_radix(&buf, base);
+                match val {
+                    Some(bigint) => Ok(Numeric::BigInt(bigint)),
+                    _ => Err("Could not convert to BigInt"),
+                }
             }
             NumericKind::Rational /* base: 10 */ => {
                 let val = f64::from_str(&buf).expect("Failed to parse float after checks");
                 let int_val = val as i32;
 
-                // The truncated float should be identically to the non-truncated float for the conversion to be loss-less, 
+                // The truncated float should be identically to the non-truncated float for the conversion to be loss-less,
                 // any other different and the number must be stored as a rational.
                 #[allow(clippy::float_cmp)]
                 if (int_val as f64) == val {
                     // For performance reasons we attempt to store values as integers if possible.
-                    Numeric::Integer(int_val)
+                    Ok(Numeric::Integer(int_val))
                 } else {
-                    Numeric::Rational(val)
+                    Ok(Numeric::Rational(val))
                 }
             },
             NumericKind::Integer(base) => {
                 if let Ok(num) = i32::from_str_radix(&buf, base) {
-                    Numeric::Integer(num)
+                    Ok(Numeric::Integer(num))
                 } else {
                     let b = f64::from(base);
                     let mut result = 0.0_f64;
@@ -315,14 +317,20 @@ impl<R> Tokenizer<R> for NumberLiteral {
                         let digit = f64::from(c.to_digit(base).expect("could not parse digit after already checking validity"));
                         result = result * b + digit;
                     }
-                    Numeric::Rational(result)
+                    Ok(Numeric::Rational(result))
                 }
             }
         };
 
-        Ok(Token::new(
-            TokenKind::NumericLiteral(num),
-            Span::new(start_pos, cursor.pos()),
-        ))
+        match num {
+            Ok(numeric_literal) => Ok(Token::new(
+                TokenKind::NumericLiteral(numeric_literal),
+                Span::new(start_pos, cursor.pos()),
+            )),
+            Err(error_message) => Err(Error::syntax(
+                error_message,
+                cursor.pos(),
+            )),
+        }
     }
 }
