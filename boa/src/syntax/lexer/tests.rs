@@ -657,3 +657,48 @@ fn non_english_str() {
 
     expect_tokens(&mut lexer, &expected);
 }
+
+mod carriage_return {
+    use super::*;
+
+    fn expect_tokens_with_lines(lines: usize, src: &str) {
+        let mut lexer = Lexer::new(src.as_bytes());
+
+        let mut expected = Vec::with_capacity(lines + 2);
+        expected.push(TokenKind::Punctuator(Punctuator::Sub));
+        for _ in 0..lines {
+            expected.push(TokenKind::LineTerminator);
+        }
+        expected.push(TokenKind::NumericLiteral(Numeric::Integer(3)));
+
+        expect_tokens(&mut lexer, &expected);
+    }
+
+    #[test]
+    fn regular_line() {
+        expect_tokens_with_lines(1, "-\n3");
+        expect_tokens_with_lines(2, "-\n\n3");
+        expect_tokens_with_lines(3, "-\n\n\n3");
+    }
+
+    #[test]
+    fn carriage_return() {
+        expect_tokens_with_lines(1, "-\r3");
+        expect_tokens_with_lines(2, "-\r\r3");
+        expect_tokens_with_lines(3, "-\r\r\r3");
+    }
+
+    #[test]
+    fn windows_line() {
+        expect_tokens_with_lines(1, "-\r\n3");
+        expect_tokens_with_lines(2, "-\r\n\r\n3");
+        expect_tokens_with_lines(3, "-\r\n\r\n\r\n3");
+    }
+
+    #[test]
+    fn mixed_line() {
+        expect_tokens_with_lines(2, "-\r\n\n3");
+        expect_tokens_with_lines(2, "-\n\r3");
+        expect_tokens_with_lines(3, "-\r\n\n\r3");
+    }
+}

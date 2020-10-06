@@ -33,13 +33,6 @@ impl<R> Cursor<R> {
         self.pos = Position::new(next_line, 1);
     }
 
-    /// Performs a carriage return to modify the position in the source.
-    #[inline]
-    fn carriage_return(&mut self) {
-        let current_line = self.pos.line_number();
-        self.pos = Position::new(current_line, 1);
-    }
-
     #[inline]
     pub(super) fn strict_mode(&self) -> bool {
         self.strict_mode
@@ -177,7 +170,14 @@ where
         };
 
         match chr {
-            Some('\r') => self.carriage_return(),
+            Some('\r') => {
+                // Try to take a newline if it's next, for windows "\r\n" newlines
+                // Otherwise, treat as a Mac OS9 bare '\r' newline
+                if self.peek()? == Some('\n') {
+                    self.peeked.take();
+                }
+                self.next_line();
+            }
             Some('\n') | Some('\u{2028}') | Some('\u{2029}') => self.next_line(),
             Some(_) => self.next_column(),
             None => {}
