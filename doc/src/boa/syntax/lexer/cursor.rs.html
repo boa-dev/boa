@@ -331,13 +331,6 @@
         <span class="self">self</span>.<span class="ident">pos</span> <span class="op">=</span> <span class="ident">Position</span>::<span class="ident">new</span>(<span class="ident">next_line</span>, <span class="number">1</span>);
     }
 
-    <span class="doccomment">/// Performs a carriage return to modify the position in the source.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">carriage_return</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
-        <span class="kw">let</span> <span class="ident">current_line</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">pos</span>.<span class="ident">line_number</span>();
-        <span class="self">self</span>.<span class="ident">pos</span> <span class="op">=</span> <span class="ident">Position</span>::<span class="ident">new</span>(<span class="ident">current_line</span>, <span class="number">1</span>);
-    }
-
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">strict_mode</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
         <span class="self">self</span>.<span class="ident">strict_mode</span>
@@ -475,7 +468,14 @@
         };
 
         <span class="kw">match</span> <span class="ident">chr</span> {
-            <span class="prelude-val">Some</span>(<span class="string">&#39;\r&#39;</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">carriage_return</span>(),
+            <span class="prelude-val">Some</span>(<span class="string">&#39;\r&#39;</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="comment">// Try to take a newline if it&#39;s next, for windows &quot;\r\n&quot; newlines</span>
+                <span class="comment">// Otherwise, treat as a Mac OS9 bare &#39;\r&#39; newline</span>
+                <span class="kw">if</span> <span class="self">self</span>.<span class="ident">peek</span>()<span class="question-mark">?</span> <span class="op">=</span><span class="op">=</span> <span class="prelude-val">Some</span>(<span class="string">&#39;\n&#39;</span>) {
+                    <span class="self">self</span>.<span class="ident">peeked</span>.<span class="ident">take</span>();
+                }
+                <span class="self">self</span>.<span class="ident">next_line</span>();
+            }
             <span class="prelude-val">Some</span>(<span class="string">&#39;\n&#39;</span>) <span class="op">|</span> <span class="prelude-val">Some</span>(<span class="string">&#39;\u{2028}&#39;</span>) <span class="op">|</span> <span class="prelude-val">Some</span>(<span class="string">&#39;\u{2029}&#39;</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">next_line</span>(),
             <span class="prelude-val">Some</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">next_column</span>(),
             <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> {}
