@@ -25,7 +25,7 @@ use std::{
 };
 
 mod conversions;
-mod display;
+pub(crate) mod display;
 mod equality;
 mod hash;
 mod operations;
@@ -35,7 +35,6 @@ mod rcsymbol;
 mod r#type;
 
 pub use conversions::*;
-pub(crate) use display::display_obj;
 pub use display::ValueDisplay;
 pub use equality::*;
 pub use hash::*;

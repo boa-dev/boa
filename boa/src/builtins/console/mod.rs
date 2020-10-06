@@ -20,7 +20,7 @@ use crate::{
     builtins::BuiltIn,
     object::ObjectInitializer,
     property::Attribute,
-    value::{display_obj, RcString, Value},
+    value::{display::display_obj, RcString, Value},
     BoaProfiler, Context, Result,
 };
 use rustc_hash::FxHashMap;
