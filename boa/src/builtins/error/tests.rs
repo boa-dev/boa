@@ -53,3 +53,28 @@ fn eval_error_to_string() {
         "\"EvalError\""
     );
 }
+
+#[test]
+fn uri_error_name() {
+    let mut ctx = Context::new();
+    assert_eq!(forward(&mut ctx, "URIError.name"), "\"URIError\"");
+}
+
+#[test]
+fn uri_error_length() {
+    let mut ctx = Context::new();
+    assert_eq!(forward(&mut ctx, "URIError.length"), "1");
+}
+
+#[test]
+fn uri_error_to_string() {
+    let mut ctx = Context::new();
+    assert_eq!(
+        forward(&mut ctx, "new URIError('hello').toString()"),
+        "\"URIError: hello\""
+    );
+    assert_eq!(
+        forward(&mut ctx, "new URIError().toString()"),
+        "\"URIError\""
+    );
+}
