@@ -27,7 +27,7 @@ pub(crate) use self::{
     bigint::BigInt,
     boolean::Boolean,
     date::Date,
-    error::{Error, RangeError, ReferenceError, SyntaxError, TypeError},
+    error::{Error, EvalError, RangeError, ReferenceError, SyntaxError, TypeError},
     function::BuiltInFunctionObject,
     global_this::GlobalThis,
     infinity::Infinity,
@@ -82,6 +82,7 @@ pub fn init(context: &mut Context) {
         ReferenceError::init,
         TypeError::init,
         SyntaxError::init,
+        EvalError::init,
         #[cfg(feature = "console")]
         console::Console::init,
     ];
