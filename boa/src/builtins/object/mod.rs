@@ -190,8 +190,7 @@ impl Object {
             descriptor.property("get", get, Attribute::all());
         }
 
-        Ok(Value::Object(
-            descriptor
+        descriptor
                 .property("writable", Value::from(desc.writable()), Attribute::all())
                 .property(
                     "enumerable",
@@ -202,9 +201,9 @@ impl Object {
                     "configurable",
                     Value::from(desc.configurable()),
                     Attribute::all(),
-                )
-                .build(),
-        ))
+                );
+
+        Ok(descriptor.build().into())
     }
 
     /// Uses the SameValue algorithm to check equality of objects
