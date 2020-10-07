@@ -1117,12 +1117,13 @@ impl Array {
                 );
             }
             let result = this.get_field(k);
-            k -= 1;
+            k = k.overflowing_sub(1).0;
             result
         } else {
             initial_value
         };
-        loop {
+        // usize::MAX is bigger than the maximum array size so we can use it check for integer undeflow
+        while k != usize::MAX {
             if this.has_field(k) {
                 let arguments = [accumulator, this.get_field(k), Value::from(k), this.clone()];
                 accumulator = interpreter.call(&callback, &Value::undefined(), &arguments)?;
@@ -1144,7 +1145,7 @@ impl Array {
             if k == 0 {
                 break;
             }
-            k -= 1;
+            k = k.overflowing_sub(1).0;
         }
         Ok(accumulator)
     }
