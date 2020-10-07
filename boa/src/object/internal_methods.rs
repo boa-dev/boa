@@ -7,10 +7,12 @@
 
 use crate::{
     object::Object,
-    property::{Attribute, DataDescriptor, PropertyDescriptor, PropertyKey},
+    property::{AccessorDescriptor, Attribute, DataDescriptor, PropertyDescriptor, PropertyKey},
     value::{same_value, Value},
     BoaProfiler, Context, Result,
 };
+
+use super::GcObject;
 
 impl Object {
     /// Check if object has property.
@@ -80,19 +82,10 @@ impl Object {
 
                 parent.get_field(key.clone())
             }
-            Some(desc) => {
-                if desc.is_data_descriptor() {
-                    return desc.value.clone().expect("failed to extract value");
-                }
-
-                let getter = desc.get.clone();
-                if getter.is_none() || getter.expect("Failed to get object").is_undefined() {
-                    return Value::undefined();
-                }
-
-                // TODO: Call getter from here!
-                Value::undefined()
-            }
+            Some(ref desc) => match desc {
+                PropertyDescriptor::Accessor(_) => todo!(),
+                PropertyDescriptor::Data(desc) => desc.value(),
+            },
         }
     }
 
@@ -102,7 +95,7 @@ impl Object {
         let _timer = BoaProfiler::global().start_event("Object::set", "object");
 
         // Fetch property key
-        let mut own_desc = if let Some(desc) = self.get_own_property(&key) {
+        let own_desc = if let Some(desc) = self.get_own_property(&key) {
             desc
         } else {
             let parent = self.get_prototype_of();
@@ -116,23 +109,16 @@ impl Object {
             .into()
         };
 
-        // [3]
-        if own_desc.is_data_descriptor() {
-            if !own_desc.writable() {
-                return false;
-            }
+        match &own_desc {
+            PropertyDescriptor::Data(desc) => {
+                if !desc.writable() {
+                    return false;
+                }
 
-            // Change value on the current descriptor
-            own_desc.value = Some(val);
-            return self.define_own_property(key, own_desc);
-        }
-        // [4]
-        debug_assert!(own_desc.is_accessor_descriptor());
-        match own_desc.set {
-            None => false,
-            Some(_) => {
-                unimplemented!();
+                let desc = DataDescriptor::new(val, own_desc.attributes()).into();
+                self.define_own_property(key, desc)
             }
+            PropertyDescriptor::Accessor(_) => todo!(),
         }
     }
 
@@ -151,7 +137,7 @@ impl Object {
         let key = key.into();
         let extensible = self.is_extensible();
 
-        let mut current = if let Some(desc) = self.get_own_property(&key) {
+        let current = if let Some(desc) = self.get_own_property(&key) {
             desc
         } else {
             if !extensible {
@@ -173,66 +159,53 @@ impl Object {
             }
         }
 
-        // 5
-        if desc.is_generic_descriptor() {
-            // 6
-        } else if current.is_data_descriptor() != desc.is_data_descriptor() {
-            // a
-            if !current.configurable() {
-                return false;
-            }
-            // b
-            if current.is_data_descriptor() {
-                // Convert to accessor
-                current.value = None;
-                current.attribute.remove(Attribute::WRITABLE);
-            } else {
-                // c
-                // convert to data
-                current.get = None;
-                current.set = None;
-            }
+        match (&current, &desc) {
+            (PropertyDescriptor::Data(current), PropertyDescriptor::Data(desc)) => {
+                if !current.configurable() && !current.writable() {
+                    if desc.writable() {
+                        return false;
+                    }
 
-            self.insert(key, current);
-            return true;
-        // 7
-        } else if current.is_data_descriptor() && desc.is_data_descriptor() {
-            // a
-            if !current.configurable() && !current.writable() {
-                if desc.writable() {
+                    if !same_value(&desc.value(), &current.value()) {
+                        return false;
+                    }
+                }
+            }
+            (PropertyDescriptor::Data(current), PropertyDescriptor::Accessor(_)) => {
+                if !current.configurable() {
                     return false;
                 }
 
-                if desc.value.is_some()
-                    && !same_value(
-                        &desc.value.clone().unwrap(),
-                        &current.value.clone().unwrap(),
-                    )
-                {
-                    return false;
-                }
-
+                let current = AccessorDescriptor::new(None, None, current.attributes());
+                self.insert(key, current);
                 return true;
             }
-        // 8
-        } else {
-            if !current.configurable() {
-                if desc.set.is_some()
-                    && !same_value(&desc.set.clone().unwrap(), &current.set.clone().unwrap())
-                {
+            (PropertyDescriptor::Accessor(current), PropertyDescriptor::Data(_)) => {
+                if !current.configurable() {
                     return false;
                 }
 
-                if desc.get.is_some()
-                    && !same_value(&desc.get.clone().unwrap(), &current.get.clone().unwrap())
-                {
-                    return false;
+                let current = DataDescriptor::new(Value::undefined(), current.attributes());
+                self.insert(key, current);
+                return true;
+            }
+            (PropertyDescriptor::Accessor(current), PropertyDescriptor::Accessor(desc)) => {
+                if !current.configurable() {
+                    if let (Some(current_get), Some(desc_get)) = (current.set(), desc.set()) {
+                        if !GcObject::equals(&current_get, &desc_get) {
+                            return false;
+                        }
+                    }
+
+                    if let (Some(current_set), Some(desc_set)) = (current.set(), desc.set()) {
+                        if !GcObject::equals(&current_set, &desc_set) {
+                            return false;
+                        }
+                    }
                 }
             }
-
-            return true;
         }
-        // 9
+
         self.insert(key, desc);
         true
     }

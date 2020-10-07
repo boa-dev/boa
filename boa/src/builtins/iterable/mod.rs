@@ -57,14 +57,15 @@ pub fn create_iter_result_object(ctx: &mut Context, value: Value, done: bool) ->
 
 /// Get an iterator record
 pub fn get_iterator(ctx: &mut Context, iterable: Value) -> Result<IteratorRecord> {
+    // TODO: Fix the accessor handling
     let iterator_function = iterable
         .get_property(ctx.well_known_symbols().iterator_symbol())
-        .and_then(|mut p| p.value.take())
+        .map(|p| p.as_data_descriptor().unwrap().value())
         .ok_or_else(|| ctx.construct_type_error("Not an iterable"))?;
     let iterator_object = ctx.call(&iterator_function, &iterable, &[])?;
     let next_function = iterator_object
         .get_property("next")
-        .and_then(|mut p| p.value.take())
+        .map(|p| p.as_data_descriptor().unwrap().value())
         .ok_or_else(|| ctx.construct_type_error("Could not find property `next`"))?;
     Ok(IteratorRecord::new(iterator_object, next_function))
 }
@@ -112,14 +113,17 @@ impl IteratorRecord {
     /// [spec]: https://tc39.es/ecma262/#sec-iteratornext
     pub(crate) fn next(&self, ctx: &mut Context) -> Result<IteratorResult> {
         let next = ctx.call(&self.next_function, &self.iterator_object, &[])?;
+        // FIXME: handle accessor descriptors
         let done = next
             .get_property("done")
-            .and_then(|mut p| p.value.take())
+            .map(|p| p.as_data_descriptor().unwrap().value())
             .and_then(|v| v.as_boolean())
             .ok_or_else(|| ctx.construct_type_error("Could not find property `done`"))?;
+
+        // FIXME: handle accessor descriptors
         let next_result = next
             .get_property("value")
-            .and_then(|mut p| p.value.take())
+            .map(|p| p.as_data_descriptor().unwrap().value())
             .unwrap_or_default();
         Ok(IteratorResult::new(next_result, done))
     }

@@ -24,13 +24,14 @@ use std::{convert::TryFrom, fmt};
 mod attribute;
 pub use attribute::Attribute;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Trace, Finalize)]
 pub struct DataDescriptor {
     value: Value,
     attribute: Attribute,
 }
 
 impl DataDescriptor {
+    #[inline]
     pub fn new<V>(value: V, attribute: Attribute) -> Self
     where
         V: Into<Value>,
@@ -41,10 +42,12 @@ impl DataDescriptor {
         }
     }
 
+    #[inline]
     pub fn value(&self) -> Value {
         self.value.clone()
     }
 
+    #[inline]
     pub fn attributes(&self) -> Attribute {
         self.attribute
     }
@@ -83,16 +86,11 @@ impl DataDescriptor {
 
 impl From<DataDescriptor> for PropertyDescriptor {
     fn from(value: DataDescriptor) -> Self {
-        Self {
-            attribute: value.attributes(),
-            value: Some(value.value()),
-            get: None,
-            set: None,
-        }
+        Self::Data(value)
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Trace, Finalize)]
 pub struct AccessorDescriptor {
     /// The function serving as getter
     get: Option<GcObject>,
@@ -148,12 +146,7 @@ impl AccessorDescriptor {
 
 impl From<AccessorDescriptor> for PropertyDescriptor {
     fn from(value: AccessorDescriptor) -> Self {
-        Self {
-            attribute: value.attributes(),
-            get: value.get().map(Into::into),
-            set: value.get().map(Into::into),
-            value: None,
-        }
+        Self::Accessor(value)
     }
 }
 
@@ -175,41 +168,13 @@ impl From<AccessorDescriptor> for PropertyDescriptor {
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-property-descriptor-specification-type
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/defineProperty
-#[derive(Trace, Finalize, Clone, Debug)]
-pub struct PropertyDescriptor {
-    pub(crate) attribute: Attribute,
-    /// The value associated with the property
-    pub value: Option<Value>,
-    /// The function serving as getter
-    pub get: Option<Value>,
-    /// The function serving as setter
-    pub set: Option<Value>,
+#[derive(Debug, Clone, Trace, Finalize)]
+pub enum PropertyDescriptor {
+    Accessor(AccessorDescriptor),
+    Data(DataDescriptor),
 }
 
 impl PropertyDescriptor {
-    /// Get the
-    #[inline]
-    pub fn configurable(&self) -> bool {
-        self.attribute.configurable()
-    }
-
-    #[inline]
-    pub fn set_configurable(&mut self, configurable: bool) {
-        self.attribute.set_configurable(configurable)
-    }
-
-    /// Set enumerable
-    #[inline]
-    pub fn enumerable(&self) -> bool {
-        self.attribute.enumerable()
-    }
-
-    /// Set writable
-    #[inline]
-    pub fn writable(&self) -> bool {
-        self.attribute.writable()
-    }
-
     /// An accessor Property Descriptor is one that includes any fields named either [[Get]] or [[Set]].
     ///
     /// More information:
@@ -218,7 +183,15 @@ impl PropertyDescriptor {
     /// [spec]: https://tc39.es/ecma262/#sec-isaccessordescriptor
     #[inline]
     pub fn is_accessor_descriptor(&self) -> bool {
-        self.get.is_some() || self.set.is_some()
+        matches!(self, Self::Accessor(_))
+    }
+
+    #[inline]
+    pub fn as_accessor_descriptor(&self) -> Option<&AccessorDescriptor> {
+        match self {
+            Self::Accessor(ref accessor) => Some(accessor),
+            _ => None,
+        }
     }
 
     /// A data Property Descriptor is one that includes any fields named either [[Value]] or [[Writable]].
@@ -229,18 +202,39 @@ impl PropertyDescriptor {
     /// [spec]: https://tc39.es/ecma262/#sec-isdatadescriptor
     #[inline]
     pub fn is_data_descriptor(&self) -> bool {
-        self.value.is_some() || self.attribute.writable()
+        matches!(self, Self::Data(_))
     }
 
-    /// Check if a property is generic descriptor.
-    ///
-    /// More information:
-    /// - [ECMAScript reference][spec]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-isgenericdescriptor
     #[inline]
-    pub fn is_generic_descriptor(&self) -> bool {
-        !self.is_accessor_descriptor() && !self.is_data_descriptor()
+    pub fn as_data_descriptor(&self) -> Option<&DataDescriptor> {
+        match self {
+            Self::Data(ref data) => Some(data),
+            _ => None,
+        }
+    }
+
+    #[inline]
+    pub fn enumerable(&self) -> bool {
+        match self {
+            Self::Accessor(ref accessor) => accessor.enumerable(),
+            Self::Data(ref data) => data.enumerable(),
+        }
+    }
+
+    #[inline]
+    pub fn configurable(&self) -> bool {
+        match self {
+            Self::Accessor(ref accessor) => accessor.configurable(),
+            Self::Data(ref data) => data.configurable(),
+        }
+    }
+
+    #[inline]
+    pub fn attributes(&self) -> Attribute {
+        match self {
+            Self::Accessor(ref accessor) => accessor.attributes(),
+            Self::Data(ref data) => data.attributes(),
+        }
     }
 }
 

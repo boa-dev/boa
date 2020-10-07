@@ -155,7 +155,8 @@ impl Json {
                     let object_to_return = Value::new_object(None);
                     for (key, val) in obj
                         .iter()
-                        .filter_map(|(k, v)| v.value.as_ref().map(|value| (k, value)))
+                        // FIXME: handle accessor descriptors
+                        .map(|(k, v)| (k, v.as_data_descriptor().unwrap().value()))
                     {
                         let this_arg = object.clone();
                         object_to_return.set_property(
@@ -185,7 +186,8 @@ impl Json {
             for field in fields {
                 if let Some(value) = object
                     .get_property(field.to_string(ctx)?)
-                    .and_then(|prop| prop.value.as_ref().map(|v| v.to_json(ctx)))
+                    // FIXME: handle accessor descriptors
+                    .map(|prop| prop.as_data_descriptor().unwrap().value().to_json(ctx))
                     .transpose()?
                 {
                     obj_to_return.insert(field.to_string(ctx)?.to_string(), value);

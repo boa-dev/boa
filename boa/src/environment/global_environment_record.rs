@@ -41,8 +41,8 @@ impl GlobalEnvironmentRecord {
         let global_object = &self.object_record.bindings;
         let existing_prop = global_object.get_property(name);
         match existing_prop {
-            Some(prop) => {
-                if prop.value.is_none() || prop.configurable() {
+            Some(desc) => {
+                if desc.configurable() {
                     return false;
                 }
                 true
@@ -70,21 +70,19 @@ impl GlobalEnvironmentRecord {
     pub fn create_global_function_binding(&mut self, name: &str, value: Value, deletion: bool) {
         let global_object = &mut self.object_record.bindings;
         let existing_prop = global_object.get_property(name);
-        if let Some(prop) = existing_prop {
-            if prop.value.is_none() || prop.configurable() {
-                let mut property =
-                    DataDescriptor::new(value, Attribute::WRITABLE | Attribute::ENUMERABLE);
-                property.set_configurable(deletion);
-
-                global_object.update_property(name, property);
+        let desc = match existing_prop {
+            Some(desc) if desc.configurable() => DataDescriptor::new(value, Attribute::empty()),
+            Some(_) => {
+                let mut attributes = Attribute::WRITABLE | Attribute::ENUMERABLE;
+                if deletion {
+                    attributes |= Attribute::CONFIGURABLE;
+                }
+                DataDescriptor::new(value, attributes)
             }
-        } else {
-            let mut property =
-                DataDescriptor::new(value, Attribute::WRITABLE | Attribute::ENUMERABLE);
-            property.set_configurable(deletion);
+            None => DataDescriptor::new(value, Attribute::empty()),
+        };
 
-            global_object.update_property(name, property);
-        }
+        global_object.update_property(name, desc);
     }
 }
 
