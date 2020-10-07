@@ -591,15 +591,15 @@ impl Array {
         let callback = args.get(0).cloned().unwrap_or_else(Value::undefined);
         let this_val = args.get(1).cloned().unwrap_or_else(Value::undefined);
 
-        let length = this.get_field("length").as_number().unwrap() as i64;
+        let length = this.get_field("length").to_length(context)?;
 
-        if length > 2i64.pow(32) - 1 {
+        if length > 2usize.pow(32) - 1 {
             return context.throw_range_error("Invalid array length");
         }
 
         let new = Self::new_array(context)?;
 
-        let values: Vec<Value> = (0..length as i32)
+        let values: Vec<Value> = (0..length)
             .map(|idx| {
                 let element = this.get_field(idx);
                 let args = [element, Value::from(idx), new.clone()];
