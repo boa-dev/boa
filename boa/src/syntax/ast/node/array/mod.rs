@@ -39,14 +39,27 @@ impl Executable for ArrayDecl {
         for elem in self.as_ref() {
             if let Node::Spread(ref x) = elem {
                 let val = x.run(interpreter)?;
-                let mut vals = interpreter.extract_array_properties(&val).unwrap();
-                elements.append(&mut vals);
-                continue; // Don't push array after spread
+                let iterator_record =
+                    super::super::super::super::builtins::iterable::get_iterator(interpreter, val)?;
+                //not sure what to do with this next_index mentioned in the spec
+                //it is mentioned that it has to be returned from somewhere
+                //https://tc39.es/ecma262/#sec-runtime-semantics-arrayaccumulation
+                //let mut next_index = 0;
+                loop {
+                    let next = iterator_record.next(interpreter)?;
+                    if next.is_done() {
+                        break;
+                    }
+                    let next_value = next.value();
+                    //next_index += 1;
+                    elements.push(next_value.clone());
+                }
+            } else {
+                elements.push(elem.run(interpreter)?);
             }
-            elements.push(elem.run(interpreter)?);
         }
-        Array::add_to_array_object(&array, &elements)?;
 
+        Array::add_to_array_object(&array, &elements)?;
         Ok(array)
     }
 }
