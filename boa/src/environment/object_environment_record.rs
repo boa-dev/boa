@@ -65,7 +65,10 @@ impl EnvironmentRecordTrait for ObjectEnvironmentRecord {
 
         let mut property = DataDescriptor::new(value, Attribute::ENUMERABLE);
         property.set_configurable(strict);
-        self.bindings.update_property(name, property);
+        self.bindings
+            .as_object_mut()
+            .expect("binding object")
+            .insert(name, property);
     }
 
     fn get_binding_value(&self, name: &str, strict: bool) -> Value {

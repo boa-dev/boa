@@ -82,7 +82,10 @@ impl GlobalEnvironmentRecord {
             None => DataDescriptor::new(value, Attribute::empty()),
         };
 
-        global_object.update_property(name, desc);
+        global_object
+            .as_object_mut()
+            .expect("global object")
+            .insert(name, desc);
     }
 }
 

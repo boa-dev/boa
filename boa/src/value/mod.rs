@@ -462,21 +462,6 @@ impl Value {
         }
     }
 
-    /// update_prop will overwrite individual [Property] fields, unlike
-    /// Set_prop, which will overwrite prop with a new Property
-    ///
-    /// Mostly used internally for now
-    pub(crate) fn update_property<P>(&self, field: &str, new_property: P)
-    where
-        P: Into<PropertyDescriptor>,
-    {
-        let _timer = BoaProfiler::global().start_event("Value::update_property", "value");
-
-        if let Some(ref mut object) = self.as_object_mut() {
-            object.insert(field, new_property.into());
-        }
-    }
-
     /// Resolve the property in the object and get its value, or undefined if this is not an object or the field doesn't exist
     /// get_field recieves a Property from get_prop(). It should then return the [[Get]] result value if that's set, otherwise fall back to [[Value]]
     /// TODO: this function should use the get Value if its set
