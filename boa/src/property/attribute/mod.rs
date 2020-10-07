@@ -10,11 +10,12 @@ bitflags! {
     /// This struct constains the property flags as describen in the ECMAScript specification.
     ///
     /// It contains the following flags:
-    ///  - `[[Writable]]` (`WRITABLE`) - If `false`, attempts by ECMAScript code to change the property's `[[Value]]` attribute using `[[Set]]` will not succeed.
+    ///  - `[[Writable]]` (`WRITABLE`) - If `false`, attempts by ECMAScript code to change the property's
+    /// `[[Value]]` attribute using `[[Set]]` will not succeed.
     ///  - `[[Enumerable]]` (`ENUMERABLE`) - If the property will be enumerated by a for-in enumeration.
-    ///  - `[[Configurable]]` (`CONFIGURABLE`) - If `false`, attempts to delete the property, change the property to be an `accessor property`, or change its attributes (other than `[[Value]]`, or changing `[[Writable]]` to `false`) will fail.
-    ///
-    /// Additionaly there are flags for when the flags are defined.
+    ///  - `[[Configurable]]` (`CONFIGURABLE`) - If `false`, attempts to delete the property,
+    /// change the property to be an `accessor property`, or change its attributes (other than `[[Value]]`,
+    /// or changing `[[Writable]]` to `false`) will fail.
     #[derive(Finalize)]
     pub struct Attribute: u8 {
         /// The `Writable` attribute decides whether the value associated with the property can be changed or not, from its initial value.

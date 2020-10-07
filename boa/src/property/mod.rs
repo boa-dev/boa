@@ -24,133 +24,188 @@ use std::{convert::TryFrom, fmt};
 mod attribute;
 pub use attribute::Attribute;
 
+/// A data descriptor is a property that has a value, which may or may not be writable.
+///
+/// More information:
+/// - [MDN documentation][mdn]
+/// - [ECMAScript reference][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-property-descriptor-specification-type
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/defineProperty
 #[derive(Debug, Clone, Trace, Finalize)]
 pub struct DataDescriptor {
     value: Value,
-    attribute: Attribute,
+    attributes: Attribute,
 }
 
 impl DataDescriptor {
+    /// Create a new `DataDescriptor`.
     #[inline]
-    pub fn new<V>(value: V, attribute: Attribute) -> Self
+    pub fn new<V>(value: V, attributes: Attribute) -> Self
     where
         V: Into<Value>,
     {
         Self {
             value: value.into(),
-            attribute,
+            attributes,
         }
     }
 
+    /// Return the `value` of the data descriptor.
     #[inline]
     pub fn value(&self) -> Value {
         self.value.clone()
     }
 
+    /// Return the attributes of the descriptor.
     #[inline]
     pub fn attributes(&self) -> Attribute {
-        self.attribute
+        self.attributes
     }
 
+    /// Check whether the descriptor is configurable.
     #[inline]
     pub fn configurable(&self) -> bool {
-        self.attribute.configurable()
+        self.attributes.configurable()
     }
 
+    /// Set whether the descriptor is configurable.
     #[inline]
     pub fn set_configurable(&mut self, configurable: bool) {
-        self.attribute.set_configurable(configurable)
+        self.attributes.set_configurable(configurable)
     }
 
-    /// Set enumerable
+    /// Check whether the descriptor is configurable.
     #[inline]
     pub fn enumerable(&self) -> bool {
-        self.attribute.enumerable()
+        self.attributes.enumerable()
     }
 
+    /// Set whether the descriptor is enumerable.
     #[inline]
     pub fn set_enumerable(&mut self, enumerable: bool) {
-        self.attribute.set_enumerable(enumerable)
+        self.attributes.set_enumerable(enumerable)
     }
 
+    /// Check whether the descriptor is writable.
     #[inline]
     pub fn writable(&self) -> bool {
-        self.attribute.writable()
+        self.attributes.writable()
     }
 
+    /// Set whether the descriptor is writable.
     #[inline]
     pub fn set_writable(&mut self, writable: bool) {
-        self.attribute.set_writable(writable)
+        self.attributes.set_writable(writable)
     }
 }
 
 impl From<DataDescriptor> for PropertyDescriptor {
+    #[inline]
     fn from(value: DataDescriptor) -> Self {
         Self::Data(value)
     }
 }
 
+/// An accessor descriptor is a property described by a getter-setter pair of functions.
+///
+/// More information:
+/// - [MDN documentation][mdn]
+/// - [ECMAScript reference][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-property-descriptor-specification-type
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/defineProperty
 #[derive(Debug, Clone, Trace, Finalize)]
 pub struct AccessorDescriptor {
-    /// The function serving as getter
+    /// The function serving as getter.
     get: Option<GcObject>,
-    /// The function serving as setter
+    /// The function serving as setter.
     set: Option<GcObject>,
-    attribute: Attribute,
+    /// The attributes of the accessor descriptor.
+    attributes: Attribute,
 }
 
 impl AccessorDescriptor {
-    pub fn new(get: Option<GcObject>, set: Option<GcObject>, mut attribute: Attribute) -> Self {
+    /// Create a new `AccessorDescriptor`.
+    ///
+    /// If the `attributes` argument contains a `writable` flag, it will be removed so only `enumerable`
+    /// and `configurable` remains.
+    #[inline]
+    pub fn new(get: Option<GcObject>, set: Option<GcObject>, mut attributes: Attribute) -> Self {
         // Accessors can not have writable attribute.
-        attribute.remove(Attribute::WRITABLE);
+        attributes.remove(Attribute::WRITABLE);
         Self {
             get,
             set,
-            attribute,
+            attributes,
         }
     }
 
-    pub fn get(&self) -> Option<GcObject> {
-        self.get.clone()
+    /// Return the getter if it exists.
+    #[inline]
+    pub fn getter(&self) -> Option<&GcObject> {
+        self.get.as_ref()
     }
 
-    pub fn set(&self) -> Option<GcObject> {
-        self.get.clone()
+    /// Return the getter if it exists.
+    #[inline]
+    pub fn setter(&self) -> Option<&GcObject> {
+        self.set.as_ref()
     }
 
+    /// Set the getter of the accessor descriptor.
+    #[inline]
+    pub fn set_getter(&mut self, get: Option<GcObject>) {
+        self.get = get;
+    }
+
+    /// Set the setter of the accessor descriptor.
+    #[inline]
+    pub fn set_setter(&mut self, set: Option<GcObject>) {
+        self.set = set;
+    }
+
+    /// Return the attributes of the accessor descriptor.
+    ///
+    /// It is guaranteed to not contain a `writable` flag
+    #[inline]
     pub fn attributes(&self) -> Attribute {
-        self.attribute
+        self.attributes
     }
 
+    /// Check whether the descriptor is configurable.
     #[inline]
     pub fn configurable(&self) -> bool {
-        self.attribute.configurable()
+        self.attributes.configurable()
     }
 
+    /// Set whether the descriptor is configurable.
     #[inline]
     pub fn set_configurable(&mut self, configurable: bool) {
-        self.attribute.set_configurable(configurable)
+        self.attributes.set_configurable(configurable)
     }
 
-    /// Set enumerable
+    /// Check whether the descriptor is enumerable.
     #[inline]
     pub fn enumerable(&self) -> bool {
-        self.attribute.enumerable()
+        self.attributes.enumerable()
     }
 
+    /// Set whether the descriptor is enumerable.
     #[inline]
     pub fn set_enumerable(&mut self, enumerable: bool) {
-        self.attribute.set_enumerable(enumerable)
+        self.attributes.set_enumerable(enumerable)
     }
 }
 
 impl From<AccessorDescriptor> for PropertyDescriptor {
+    #[inline]
     fn from(value: AccessorDescriptor) -> Self {
         Self::Accessor(value)
     }
 }
 
-/// This represents a Javascript Property AKA The Property Descriptor.
+/// This represents a JavaScript Property AKA The Property Descriptor.
 ///
 /// Property descriptors present in objects come in two main flavors:
 ///  - data descriptors
@@ -159,8 +214,6 @@ impl From<AccessorDescriptor> for PropertyDescriptor {
 /// A data descriptor is a property that has a value, which may or may not be writable.
 /// An accessor descriptor is a property described by a getter-setter pair of functions.
 /// A descriptor must be one of these two flavors; it cannot be both.
-///
-/// Any field in a JavaScript Property may be present or absent.
 ///
 /// More information:
 /// - [MDN documentation][mdn]
@@ -186,6 +239,7 @@ impl PropertyDescriptor {
         matches!(self, Self::Accessor(_))
     }
 
+    /// Return `Some()` if it is a accessor descriptor, `None` otherwise.
     #[inline]
     pub fn as_accessor_descriptor(&self) -> Option<&AccessorDescriptor> {
         match self {
@@ -205,6 +259,7 @@ impl PropertyDescriptor {
         matches!(self, Self::Data(_))
     }
 
+    /// Return `Some()` if it is a data descriptor, `None` otherwise.
     #[inline]
     pub fn as_data_descriptor(&self) -> Option<&DataDescriptor> {
         match self {
@@ -213,6 +268,7 @@ impl PropertyDescriptor {
         }
     }
 
+    /// Check whether the descriptor is enumerable.
     #[inline]
     pub fn enumerable(&self) -> bool {
         match self {
@@ -221,6 +277,7 @@ impl PropertyDescriptor {
         }
     }
 
+    /// Check whether the descriptor is enumerable.
     #[inline]
     pub fn configurable(&self) -> bool {
         match self {
@@ -229,6 +286,7 @@ impl PropertyDescriptor {
         }
     }
 
+    /// Return the attributes of the descriptor.
     #[inline]
     pub fn attributes(&self) -> Attribute {
         match self {

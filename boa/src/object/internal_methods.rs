@@ -6,13 +6,11 @@
 //! [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots
 
 use crate::{
-    object::Object,
+    object::{GcObject, Object},
     property::{AccessorDescriptor, Attribute, DataDescriptor, PropertyDescriptor, PropertyKey},
     value::{same_value, Value},
     BoaProfiler, Context, Result,
 };
-
-use super::GcObject;
 
 impl Object {
     /// Check if object has property.
@@ -191,13 +189,13 @@ impl Object {
             }
             (PropertyDescriptor::Accessor(current), PropertyDescriptor::Accessor(desc)) => {
                 if !current.configurable() {
-                    if let (Some(current_get), Some(desc_get)) = (current.set(), desc.set()) {
+                    if let (Some(current_get), Some(desc_get)) = (current.getter(), desc.getter()) {
                         if !GcObject::equals(&current_get, &desc_get) {
                             return false;
                         }
                     }
 
-                    if let (Some(current_set), Some(desc_set)) = (current.set(), desc.set()) {
+                    if let (Some(current_set), Some(desc_set)) = (current.setter(), desc.setter()) {
                         if !GcObject::equals(&current_set, &desc_set) {
                             return false;
                         }
