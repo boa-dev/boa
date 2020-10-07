@@ -581,7 +581,7 @@ impl Array {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.map
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/map
-    pub(crate) fn map(this: &Value, args: &[Value], interpreter: &mut Context) -> Result<Value> {
+    pub(crate) fn map(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
         if args.is_empty() {
             return Err(Value::from(
                 "missing argument 0 when calling function Array.prototype.map",
@@ -591,16 +591,20 @@ impl Array {
         let callback = args.get(0).cloned().unwrap_or_else(Value::undefined);
         let this_val = args.get(1).cloned().unwrap_or_else(Value::undefined);
 
-        let length = this.get_field("length").as_number().unwrap() as i32;
+        let length = this.get_field("length").as_number().unwrap() as i64;
 
-        let new = Self::new_array(interpreter)?;
+        if length > 2i64.pow(32) - 1 {
+            return context.throw_range_error("Invalid array length");
+        }
 
-        let values: Vec<Value> = (0..length)
+        let new = Self::new_array(context)?;
+
+        let values: Vec<Value> = (0..length as i32)
             .map(|idx| {
                 let element = this.get_field(idx);
                 let args = [element, Value::from(idx), new.clone()];
 
-                interpreter
+                context
                     .call(&callback, &this_val, &args)
                     .unwrap_or_else(|_| Value::undefined())
             })
