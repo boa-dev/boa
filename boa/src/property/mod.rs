@@ -147,7 +147,7 @@ impl AccessorDescriptor {
         self.get.as_ref()
     }
 
-    /// Return the getter if it exists.
+    /// Return the setter if it exists.
     #[inline]
     pub fn setter(&self) -> Option<&GcObject> {
         self.set.as_ref()
@@ -277,7 +277,7 @@ impl PropertyDescriptor {
         }
     }
 
-    /// Check whether the descriptor is enumerable.
+    /// Check whether the descriptor is configurable.
     #[inline]
     pub fn configurable(&self) -> bool {
         match self {
