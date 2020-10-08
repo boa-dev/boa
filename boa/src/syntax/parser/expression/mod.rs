@@ -53,8 +53,8 @@ impl PartialEq<Punctuator> for Keyword {
 ///     ...
 ///
 /// This macro has 2 mandatory identifiers:
-///  - The `$name` identifier will contain the name of the TargetExpression.
-///  - The `$lower` identifier will contain the parser for the InnerExpression.
+///  - The `$name` identifier is the name of the TargetExpression struct that the parser will be implemented for.
+///  - The `$lower` identifier is the name of the InnerExpression struct according to the pattern above.
 ///
 /// A list of punctuators (operands between the <TargetExpression> and <InnerExpression>) are passed as the third parameter.
 ///
