@@ -7,7 +7,6 @@ use std::io::{self, Bytes, Error, ErrorKind, Read};
 #[derive(Debug)]
 pub(super) struct Cursor<R> {
     iter: InnerIter<R>,
-    peeked: Option<Option<char>>,
     pos: Position,
     strict_mode: bool,
 }
@@ -53,7 +52,6 @@ where
     pub(super) fn new(inner: R) -> Self {
         Self {
             iter: InnerIter::new(inner.bytes()),
-            peeked: None,
             pos: Position::new(1, 1),
             strict_mode: false,
         }
@@ -64,14 +62,7 @@ where
     pub(super) fn peek(&mut self) -> Result<Option<char>, Error> {
         let _timer = BoaProfiler::global().start_event("cursor::peek()", "Lexing");
 
-        let iter = &mut self.iter;
-        if let Some(v) = self.peeked {
-            Ok(v)
-        } else {
-            let val = iter.next_char()?;
-            self.peeked = Some(val);
-            Ok(val)
-        }
+        self.iter.peek_char()
     }
 
     /// Compares the character passed in to the next character, if they match true is returned and the buffer is incremented
@@ -81,7 +72,7 @@ where
 
         Ok(match self.peek()? {
             Some(next) if next == peek => {
-                let _ = self.peeked.take();
+                let _ = self.iter.next_char();
                 true
             }
             _ => false,
@@ -164,17 +155,14 @@ where
     pub(crate) fn next_char(&mut self) -> Result<Option<char>, Error> {
         let _timer = BoaProfiler::global().start_event("cursor::next_char()", "Lexing");
 
-        let chr = match self.peeked.take() {
-            Some(v) => v,
-            None => self.iter.next_char()?,
-        };
+        let chr = self.iter.next_char()?;
 
         match chr {
             Some('\r') => {
                 // Try to take a newline if it's next, for windows "\r\n" newlines
                 // Otherwise, treat as a Mac OS9 bare '\r' newline
                 if self.peek()? == Some('\n') {
-                    self.peeked.take();
+                    let _ = self.iter.next_char();
                 }
                 self.next_line();
             }
@@ -191,13 +179,17 @@ where
 #[derive(Debug)]
 struct InnerIter<R> {
     iter: Bytes<R>,
+    peeked_char: Option<Option<char>>,
 }
 
 impl<R> InnerIter<R> {
     /// Creates a new inner iterator.
     #[inline]
     fn new(iter: Bytes<R>) -> Self {
-        Self { iter }
+        Self {
+            iter,
+            peeked_char: None,
+        }
     }
 }
 
@@ -222,8 +214,25 @@ where
         Ok(())
     }
 
+    /// Peeks the next UTF-8 checked character.
+    #[inline]
+    pub(super) fn peek_char(&mut self) -> Result<Option<char>, Error> {
+        if let Some(v) = self.peeked_char {
+            Ok(v)
+        } else {
+            let chr = self.next_char()?;
+            self.peeked_char = Some(chr);
+            Ok(chr)
+        }
+    }
+
     /// Retrieves the next UTF-8 checked character.
     fn next_char(&mut self) -> io::Result<Option<char>> {
+        if let Some(v) = self.peeked_char {
+            let _ = self.peeked_char.take();
+            return Ok(v);
+        }
+
         let first_byte = match self.iter.next().transpose()? {
             Some(b) => b,
             None => return Ok(None),
@@ -283,11 +292,13 @@ where
     /// Retrieves the next ASCII checked character.
     #[inline]
     fn next_ascii(&mut self) -> io::Result<Option<u8>> {
-        let next_byte = self.iter.next().transpose()?;
-
-        match next_byte {
-            Some(next) if next <= 0x7F => Ok(Some(next)),
-            None => Ok(None),
+        match self.next_char() {
+            Ok(Some(chr)) if chr.is_ascii() => {
+                let mut buf = [0u8; 4];
+                chr.encode_utf8(&mut buf);
+                Ok(Some(buf[0]))
+            },
+            Ok(None) => Ok(None),
             _ => Err(io::Error::new(
                 io::ErrorKind::InvalidData,
                 "non-ASCII byte found",
