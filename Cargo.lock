@@ -656,12 +656,13 @@ checksum = "60302e4db3a61da70c0cb7991976248362f30319e88850c487b9b95bbf059e00"
 
 [[package]]
 name = "measureme"
-version = "0.8.0"
+version = "9.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7e5a18d45a9687ab429498b80d36ca4f267cdc9d7732cdd4b538ff79d952f81f"
+checksum = "22bf8d885d073610aee20e7fa205c4341ed32a761dbde96da5fd96301a8d3e82"
 dependencies = [
  "parking_lot",
  "rustc-hash",
+ "smallvec",
 ]
 
 [[package]]
