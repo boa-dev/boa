@@ -45,13 +45,18 @@ impl PartialEq<Punctuator> for Keyword {
     }
 }
 
-/// Generates an expression parser.
+/// Generates an expression parser for a number of expressions whose production rules are of the following pattern.
+/// <TargetExpression>[allowed_identifiers]
+///     => <InnerExpression>[?allowed_identifiers]
+///     => <TargetExpression>[?allowed_identifiers] <op1> <InnerExpression>[?allowed_identifiers]
+///     => <TargetExpression>[?allowed_identifiers] <op2> <InnerExpression>[?allowed_identifiers]
+///     ...
 ///
 /// This macro has 2 mandatory identifiers:
-///  - The `$name` identifier will contain the name of the parsing structure.
-///  - The `$lower` identifier will contain the parser for lower level expressions.
+///  - The `$name` identifier will contain the name of the TargetExpression.
+///  - The `$lower` identifier will contain the parser for the InnerExpression.
 ///
-/// Those exressions are divided by the punctuators passed as the third parameter.
+/// A list of punctuators (operands between the <TargetExpression> and <InnerExpression>) are passed as the third parameter.
 ///
 /// The fifth parameter is an Option<InputElement> which sets the goal symbol to set before parsing (or None to leave it as is).
 macro_rules! expression { ($name:ident, $lower:ident, [$( $op:path ),*], [$( $low_param:ident ),*], $goal:expr ) => {
