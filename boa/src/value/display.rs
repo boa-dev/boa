@@ -49,9 +49,10 @@ macro_rules! print_obj_value {
     (props of $obj:expr, $display_fn:ident, $indent:expr, $encounters:expr, $print_internals:expr) => {
         print_obj_value!(impl $obj, |(key, val)| {
             let v = &val
-                .value
-                .as_ref()
-                .expect("Could not get the property's value");
+                // FIXME: handle accessor descriptors
+                .as_data_descriptor()
+                .unwrap()
+                .value();
 
             format!(
                 "{:>width$}: {}",
@@ -94,9 +95,12 @@ pub(crate) fn log_string_from(x: &Value, print_internals: bool, print_children: 
                     let len = v
                         .borrow()
                         .get_own_property(&PropertyKey::from("length"))
-                        .value
-                        .clone()
-                        .expect("Could not borrow value")
+                        // TODO: do this in a better way `unwrap`
+                        .unwrap()
+                        // FIXME: handle accessor descriptors
+                        .as_data_descriptor()
+                        .unwrap()
+                        .value()
                         .as_number()
                         .unwrap() as i32;
 
@@ -112,9 +116,12 @@ pub(crate) fn log_string_from(x: &Value, print_internals: bool, print_children: 
                                 log_string_from(
                                     &v.borrow()
                                         .get_own_property(&i.into())
-                                        .value
-                                        .clone()
-                                        .expect("Could not borrow value"),
+                                        // TODO: do this in a better way "unwrap"
+                                        .unwrap()
+                                        // FIXME: handle accessor descriptors
+                                        .as_data_descriptor()
+                                        .unwrap()
+                                        .value(),
                                     print_internals,
                                     false,
                                 )
@@ -131,9 +138,12 @@ pub(crate) fn log_string_from(x: &Value, print_internals: bool, print_children: 
                     let size = v
                         .borrow()
                         .get_own_property(&PropertyKey::from("size"))
-                        .value
-                        .clone()
-                        .expect("Could not borrow value")
+                        // TODO: do this in a better way "unwrap"
+                        .unwrap()
+                        // FIXME: handle accessor descriptors
+                        .as_data_descriptor()
+                        .unwrap()
+                        .value()
                         .as_number()
                         .unwrap() as i32;
                     if size == 0 {

@@ -127,7 +127,7 @@ where
     fn from(value: &[T]) -> Self {
         let mut array = Object::default();
         for (i, item) in value.iter().enumerate() {
-            array.insert(i, Property::default().value(item.clone().into()));
+            array.insert(i, DataDescriptor::new(item.clone(), Attribute::all()));
         }
         Self::from(array)
     }
@@ -140,7 +140,7 @@ where
     fn from(value: Vec<T>) -> Self {
         let mut array = Object::default();
         for (i, item) in value.into_iter().enumerate() {
-            array.insert(i, Property::default().value(item.into()));
+            array.insert(i, DataDescriptor::new(item, Attribute::all()));
         }
         Value::from(array)
     }

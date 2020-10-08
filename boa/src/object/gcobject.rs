@@ -10,6 +10,7 @@ use crate::{
     environment::{
         function_environment_record::BindingStatus, lexical_environment::new_function_environment,
     },
+    property::{AccessorDescriptor, Attribute, DataDescriptor, PropertyDescriptor, PropertyKey},
     syntax::ast::node::RcStatementList,
     value::PreferredType,
     Context, Executable, Result, Value,
@@ -372,6 +373,81 @@ impl GcObject {
                 }
             }
             Ok(JSONValue::Object(new_obj))
+        }
+    }
+
+    pub fn to_property_descriptor(&self, context: &mut Context) -> Result<PropertyDescriptor> {
+        let mut attribute = Attribute::empty();
+
+        let enumerable_key = PropertyKey::from("enumerable");
+        if self.borrow().has_property(&enumerable_key)
+            && self.borrow().get(&enumerable_key).to_boolean()
+        {
+            attribute |= Attribute::ENUMERABLE;
+        }
+
+        let configurable_key = PropertyKey::from("configurable");
+        if self.borrow().has_property(&configurable_key)
+            && self.borrow().get(&configurable_key).to_boolean()
+        {
+            attribute |= Attribute::CONFIGURABLE;
+        }
+
+        let mut value = None;
+        let value_key = PropertyKey::from("value");
+        if self.borrow().has_property(&value_key) {
+            value = Some(self.borrow().get(&value_key));
+        }
+
+        let mut has_writable = false;
+        let writable_key = PropertyKey::from("writable");
+        if self.borrow().has_property(&writable_key) {
+            has_writable = true;
+            if self.borrow().get(&writable_key).to_boolean() {
+                attribute |= Attribute::WRITABLE;
+            }
+        }
+
+        let mut get = None;
+        let get_key = PropertyKey::from("get");
+        if self.borrow().has_property(&get_key) {
+            let getter = self.borrow().get(&get_key);
+            match getter {
+                Value::Object(ref object) if object.borrow().is_callable() => {
+                    get = Some(object.clone());
+                }
+                _ => {
+                    return Err(
+                        context.construct_type_error("Property descriptor getter must be callable")
+                    );
+                }
+            }
+        }
+
+        let mut set = None;
+        let set_key = PropertyKey::from("set");
+        if self.borrow().has_property(&set_key) {
+            let setter = self.borrow().get(&set_key);
+            match setter {
+                Value::Object(ref object) if object.borrow().is_callable() => {
+                    set = Some(object.clone());
+                }
+                _ => {
+                    return Err(
+                        context.construct_type_error("Property descriptor setter must be callable")
+                    );
+                }
+            };
+        }
+
+        if get.is_some() || set.is_some() {
+            if value.is_some() || has_writable {
+                return Err(context.construct_type_error("Invalid property descriptor. Cannot both specify accessors and a value or writable attribute"));
+            }
+
+            Ok(AccessorDescriptor::new(get, set, attribute).into())
+        } else {
+            Ok(DataDescriptor::new(value.unwrap_or_else(Value::undefined), attribute).into())
         }
     }
 }

@@ -17,7 +17,7 @@ use crate::{
     builtins::array::array_iterator::{ArrayIterationKind, ArrayIterator},
     builtins::BuiltIn,
     object::{ConstructorBuilder, FunctionBuilder, ObjectData, PROTOTYPE},
-    property::{Attribute, Property},
+    property::{Attribute, DataDescriptor},
     value::{same_value_zero, Value},
     BoaProfiler, Context, Result,
 };
@@ -129,8 +129,8 @@ impl Array {
         }
 
         // finally create length property
-        let length = Property::data_descriptor(
-            length.into(),
+        let length = DataDescriptor::new(
+            length,
             Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::PERMANENT,
         );
 
@@ -171,8 +171,8 @@ impl Array {
         }
 
         // Create length
-        let length = Property::data_descriptor(
-            array_contents.len().into(),
+        let length = DataDescriptor::new(
+            array_contents.len(),
             Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::PERMANENT,
         );
         array_obj_ptr.set_property("length".to_string(), length);

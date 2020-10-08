@@ -63,12 +63,11 @@ fn date_this_time_value() {
     let message_property = &error
         .get_property("message")
         .expect("Expected 'message' property")
-        .value;
+        .as_data_descriptor()
+        .unwrap()
+        .value();
 
-    assert_eq!(
-        &Some(Value::string("\'this\' is not a Date")),
-        message_property
-    );
+    assert_eq!(Value::string("\'this\' is not a Date"), *message_property);
 }
 
 #[test]

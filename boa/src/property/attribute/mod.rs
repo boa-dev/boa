@@ -10,40 +10,31 @@ bitflags! {
     /// This struct constains the property flags as describen in the ECMAScript specification.
     ///
     /// It contains the following flags:
-    ///  - `[[Writable]]` (`WRITABLE`) - If `false`, attempts by ECMAScript code to change the property's `[[Value]]` attribute using `[[Set]]` will not succeed.
+    ///  - `[[Writable]]` (`WRITABLE`) - If `false`, attempts by ECMAScript code to change the property's
+    /// `[[Value]]` attribute using `[[Set]]` will not succeed.
     ///  - `[[Enumerable]]` (`ENUMERABLE`) - If the property will be enumerated by a for-in enumeration.
-    ///  - `[[Configurable]]` (`CONFIGURABLE`) - If `false`, attempts to delete the property, change the property to be an `accessor property`, or change its attributes (other than `[[Value]]`, or changing `[[Writable]]` to `false`) will fail.
-    ///
-    /// Additionaly there are flags for when the flags are defined.
+    ///  - `[[Configurable]]` (`CONFIGURABLE`) - If `false`, attempts to delete the property,
+    /// change the property to be an `accessor property`, or change its attributes (other than `[[Value]]`,
+    /// or changing `[[Writable]]` to `false`) will fail.
     #[derive(Finalize)]
     pub struct Attribute: u8 {
         /// The `Writable` attribute decides whether the value associated with the property can be changed or not, from its initial value.
-        const WRITABLE = 0b0000_0011;
-
-        /// The property is not writable.
-        const READONLY = 0b0000_0010;
-
-        /// Is the `Writable` flag defined.
-        const HAS_WRITABLE = 0b0000_0010;
+        const WRITABLE = 0b0000_0001;
 
         /// If the property can be enumerated by a `for-in` loop.
-        const ENUMERABLE = 0b0000_1100;
-
-        /// The property can not be enumerated in a `for-in` loop.
-        const NON_ENUMERABLE = 0b0000_1000;
-
-        /// Is the `Enumerable` flag defined.
-        const HAS_ENUMERABLE = 0b0000_1000;
+        const ENUMERABLE = 0b0000_0010;
 
         /// If the property descriptor can be changed later.
-        const CONFIGURABLE = 0b0011_0000;
+        const CONFIGURABLE = 0b0000_0100;
+
+        /// The property is not writable.
+        const READONLY = 0b0000_0000;
+
+        /// The property can not be enumerated in a `for-in` loop.
+        const NON_ENUMERABLE = 0b0000_0000;
 
         /// The property descriptor cannot be changed.
-        const PERMANENT = 0b0010_0000;
-
-        /// Is the `Configurable` flag defined.
-        const HAS_CONFIGURABLE = 0b0010_0000;
-
+        const PERMANENT = 0b0000_0000;
     }
 }
 
@@ -63,12 +54,6 @@ impl Attribute {
         self.bits = 0;
     }
 
-    /// Is the `writable` flag defined.
-    #[inline]
-    pub fn has_writable(self) -> bool {
-        self.contains(Self::HAS_WRITABLE)
-    }
-
     /// Sets the `writable` flag.
     #[inline]
     pub fn set_writable(&mut self, value: bool) {
@@ -82,14 +67,7 @@ impl Attribute {
     /// Gets the `writable` flag.
     #[inline]
     pub fn writable(self) -> bool {
-        debug_assert!(self.has_writable());
         self.contains(Self::WRITABLE)
-    }
-
-    /// Is the `enumerable` flag defined.
-    #[inline]
-    pub fn has_enumerable(self) -> bool {
-        self.contains(Self::HAS_ENUMERABLE)
     }
 
     /// Sets the `enumerable` flag.
@@ -105,14 +83,7 @@ impl Attribute {
     /// Gets the `enumerable` flag.
     #[inline]
     pub fn enumerable(self) -> bool {
-        debug_assert!(self.has_enumerable());
         self.contains(Self::ENUMERABLE)
-    }
-
-    /// Is the `configurable` flag defined.
-    #[inline]
-    pub fn has_configurable(self) -> bool {
-        self.contains(Self::HAS_CONFIGURABLE)
     }
 
     /// Sets the `configurable` flag.
@@ -128,7 +99,6 @@ impl Attribute {
     /// Gets the `configurable` flag.
     #[inline]
     pub fn configurable(self) -> bool {
-        debug_assert!(self.has_configurable());
         self.contains(Self::CONFIGURABLE)
     }
 }

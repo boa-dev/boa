@@ -1,3 +1,5 @@
+#![allow(clippy::float_cmp)]
+
 use super::*;
 use crate::{forward, forward_val, Context};
 
@@ -557,7 +559,7 @@ mod cyclic_conversions {
 
         let value = forward_val(&mut engine, src).unwrap();
         let result = value.as_number().unwrap();
-        assert_eq!(result, 0.);
+        assert_eq!(result, 0.0);
     }
 
     #[test]
