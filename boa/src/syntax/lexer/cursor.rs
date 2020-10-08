@@ -293,11 +293,7 @@ where
     #[inline]
     fn next_ascii(&mut self) -> io::Result<Option<u8>> {
         match self.next_char() {
-            Ok(Some(chr)) if chr.is_ascii() => {
-                let mut buf = [0u8; 4];
-                chr.encode_utf8(&mut buf);
-                Ok(Some(buf[0]))
-            }
+            Ok(Some(chr)) if chr.is_ascii() => Ok(Some(chr as u8)),
             Ok(None) => Ok(None),
             _ => Err(io::Error::new(
                 io::ErrorKind::InvalidData,
