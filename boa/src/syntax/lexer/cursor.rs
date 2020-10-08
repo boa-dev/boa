@@ -297,7 +297,7 @@ where
                 let mut buf = [0u8; 4];
                 chr.encode_utf8(&mut buf);
                 Ok(Some(buf[0]))
-            },
+            }
             Ok(None) => Ok(None),
             _ => Err(io::Error::new(
                 io::ErrorKind::InvalidData,
