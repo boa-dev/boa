@@ -55,9 +55,8 @@ impl Executable for New {
 
         match func_object {
             Value::Object(ref object) => object.construct(&v_args, interpreter),
-            _ => interpreter.throw_type_error(format!(
-                "{} is not a constructor", self.expr().to_string(),
-            )),
+            _ => interpreter
+                .throw_type_error(format!("{} is not a constructor", self.expr().to_string(),)),
         }
     }
 }
