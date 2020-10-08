@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/dtoa-0.4.6/src/dtoa.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>dtoa.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../dtoa/index.html'><div class='logo-container'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/dtoa-0.4.6/src/dtoa.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>dtoa.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../dtoa/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
+                <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -543,7 +544,7 @@
     <span class="ident">significand_type</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">sigty</span>:<span class="ident">ty</span>,
     <span class="ident">exponent_type</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">expty</span>:<span class="ident">ty</span>,
     $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">diyfp_param</span>:<span class="ident">ident</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">diyfp_value</span>:<span class="ident">tt</span>,)<span class="op">*</span>
-) <span class="op">=</span><span class="op">&gt;</span> {
+) <span class="op">=&gt;</span> {
 
 <span class="macro">diyfp</span><span class="macro">!</span> {
     <span class="ident">floating_type</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">fty</span>,
@@ -565,11 +566,11 @@ inline void GrisuRound(char* buffer, int len, uint64_t delta, uint64_t rest, uin
 
 <span class="attribute">#[<span class="ident">inline</span>]</span>
 <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">grisu_round</span>(<span class="ident">buffer</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">u8</span>, <span class="ident">len</span>: <span class="ident">isize</span>, <span class="ident">delta</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">sigty</span>, <span class="kw-2">mut</span> <span class="ident">rest</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">sigty</span>, <span class="ident">ten_kappa</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">sigty</span>, <span class="ident">wp_w</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">sigty</span>) {
-    <span class="kw">while</span> <span class="ident">rest</span> <span class="op">&lt;</span> <span class="ident">wp_w</span> <span class="kw-2">&amp;</span><span class="op">&amp;</span> <span class="ident">delta</span> <span class="op">-</span> <span class="ident">rest</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">ten_kappa</span> <span class="kw-2">&amp;</span><span class="op">&amp;</span>
-           (<span class="ident">rest</span> <span class="op">+</span> <span class="ident">ten_kappa</span> <span class="op">&lt;</span> <span class="ident">wp_w</span> <span class="op">|</span><span class="op">|</span> <span class="comment">// closer</span>
+    <span class="kw">while</span> <span class="ident">rest</span> <span class="op">&lt;</span> <span class="ident">wp_w</span> <span class="op">&amp;&amp;</span> <span class="ident">delta</span> <span class="op">-</span> <span class="ident">rest</span> <span class="op">&gt;=</span> <span class="ident">ten_kappa</span> <span class="op">&amp;&amp;</span>
+           (<span class="ident">rest</span> <span class="op">+</span> <span class="ident">ten_kappa</span> <span class="op">&lt;</span> <span class="ident">wp_w</span> <span class="op">||</span> <span class="comment">// closer</span>
             <span class="ident">wp_w</span> <span class="op">-</span> <span class="ident">rest</span> <span class="op">&gt;</span> <span class="ident">rest</span> <span class="op">+</span> <span class="ident">ten_kappa</span> <span class="op">-</span> <span class="ident">wp_w</span>) {
-        <span class="kw-2">*</span><span class="ident">buffer</span>.<span class="ident">offset</span>(<span class="ident">len</span> <span class="op">-</span> <span class="number">1</span>) <span class="op">-</span><span class="op">=</span> <span class="number">1</span>;
-        <span class="ident">rest</span> <span class="op">+</span><span class="op">=</span> <span class="ident">ten_kappa</span>;
+        <span class="kw-2">*</span><span class="ident">buffer</span>.<span class="ident">offset</span>(<span class="ident">len</span> <span class="op">-</span> <span class="number">1</span>) <span class="op">-=</span> <span class="number">1</span>;
+        <span class="ident">rest</span> <span class="op">+=</span> <span class="ident">ten_kappa</span>;
     }
 }
 
@@ -592,7 +593,7 @@ inline unsigned CountDecimalDigit32(uint32_t n) {
 */</span>
 
 <span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">fn</span> <span class="ident">count_decimal_digit32</span>(<span class="ident">n</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+<span class="kw">fn</span> <span class="ident">count_decimal_digit32</span>(<span class="ident">n</span>: <span class="ident">u32</span>) <span class="op">-&gt;</span> <span class="ident">usize</span> {
     <span class="kw">if</span> <span class="ident">n</span> <span class="op">&lt;</span> <span class="number">10</span> { <span class="number">1</span> }
     <span class="kw">else</span> <span class="kw">if</span> <span class="ident">n</span> <span class="op">&lt;</span> <span class="number">100</span> { <span class="number">2</span> }
     <span class="kw">else</span> <span class="kw">if</span> <span class="ident">n</span> <span class="op">&lt;</span> <span class="number">1000</span> { <span class="number">3</span> }
@@ -618,11 +619,11 @@ inline void DigitGen(const DiyFp&amp; W, const DiyFp&amp; Mp, uint64_t delta, ch
 
 <span class="comment">// Returns length and k.</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">digit_gen</span>(<span class="ident">w</span>: <span class="ident">DiyFp</span>, <span class="ident">mp</span>: <span class="ident">DiyFp</span>, <span class="kw-2">mut</span> <span class="ident">delta</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">sigty</span>, <span class="ident">buffer</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">u8</span>, <span class="kw-2">mut</span> <span class="ident">k</span>: <span class="ident">isize</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="ident">isize</span>, <span class="ident">isize</span>) {
+<span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">digit_gen</span>(<span class="ident">w</span>: <span class="ident">DiyFp</span>, <span class="ident">mp</span>: <span class="ident">DiyFp</span>, <span class="kw-2">mut</span> <span class="ident">delta</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">sigty</span>, <span class="ident">buffer</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">u8</span>, <span class="kw-2">mut</span> <span class="ident">k</span>: <span class="ident">isize</span>) <span class="op">-&gt;</span> (<span class="ident">isize</span>, <span class="ident">isize</span>) {
     <span class="kw">static</span> <span class="ident">POW10</span>: [<span class="macro-nonterminal">$</span><span class="macro-nonterminal">sigty</span>; <span class="number">10</span>] <span class="op">=</span> [ <span class="number">1</span>, <span class="number">10</span>, <span class="number">100</span>, <span class="number">1000</span>, <span class="number">10000</span>, <span class="number">100000</span>, <span class="number">1000000</span>, <span class="number">10000000</span>, <span class="number">100000000</span>, <span class="number">1000000000</span> ];
-    <span class="kw">let</span> <span class="ident">one</span> <span class="op">=</span> <span class="ident">DiyFp</span>::<span class="ident">new</span>(<span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="op">-</span><span class="ident">mp</span>.<span class="ident">e</span>, <span class="ident">mp</span>.<span class="ident">e</span>);
+    <span class="kw">let</span> <span class="ident">one</span> <span class="op">=</span> <span class="ident">DiyFp</span>::<span class="ident">new</span>(<span class="number">1</span> <span class="op">&lt;&lt;</span> <span class="op">-</span><span class="ident">mp</span>.<span class="ident">e</span>, <span class="ident">mp</span>.<span class="ident">e</span>);
     <span class="kw">let</span> <span class="ident">wp_w</span> <span class="op">=</span> <span class="ident">mp</span> <span class="op">-</span> <span class="ident">w</span>;
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">p1</span> <span class="op">=</span> (<span class="ident">mp</span>.<span class="ident">f</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">-</span><span class="ident">one</span>.<span class="ident">e</span>) <span class="kw">as</span> <span class="ident">u32</span>;
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">p1</span> <span class="op">=</span> (<span class="ident">mp</span>.<span class="ident">f</span> <span class="op">&gt;&gt;</span> <span class="op">-</span><span class="ident">one</span>.<span class="ident">e</span>) <span class="kw">as</span> <span class="ident">u32</span>;
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">p2</span> <span class="op">=</span> <span class="ident">mp</span>.<span class="ident">f</span> <span class="op">&amp;</span> (<span class="ident">one</span>.<span class="ident">f</span> <span class="op">-</span> <span class="number">1</span>);
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">kappa</span> <span class="op">=</span> <span class="ident">count_decimal_digit32</span>(<span class="ident">p1</span>); <span class="comment">// kappa in [0, 9]</span>
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">len</span> <span class="op">=</span> <span class="number">0</span>;
@@ -656,26 +657,26 @@ inline void DigitGen(const DiyFp&amp; W, const DiyFp&amp; Mp, uint64_t delta, ch
     <span class="kw">while</span> <span class="ident">kappa</span> <span class="op">&gt;</span> <span class="number">0</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">d</span> <span class="op">=</span> <span class="number">0u32</span>;
         <span class="kw">match</span> <span class="ident">kappa</span> {
-            <span class="number">9</span> <span class="op">=</span><span class="op">&gt;</span> { <span class="ident">d</span> <span class="op">=</span> <span class="ident">p1</span> <span class="op">/</span>  <span class="number">100000000</span>; <span class="ident">p1</span> <span class="op">%</span><span class="op">=</span>  <span class="number">100000000</span>; }
-            <span class="number">8</span> <span class="op">=</span><span class="op">&gt;</span> { <span class="ident">d</span> <span class="op">=</span> <span class="ident">p1</span> <span class="op">/</span>   <span class="number">10000000</span>; <span class="ident">p1</span> <span class="op">%</span><span class="op">=</span>   <span class="number">10000000</span>; }
-            <span class="number">7</span> <span class="op">=</span><span class="op">&gt;</span> { <span class="ident">d</span> <span class="op">=</span> <span class="ident">p1</span> <span class="op">/</span>    <span class="number">1000000</span>; <span class="ident">p1</span> <span class="op">%</span><span class="op">=</span>    <span class="number">1000000</span>; }
-            <span class="number">6</span> <span class="op">=</span><span class="op">&gt;</span> { <span class="ident">d</span> <span class="op">=</span> <span class="ident">p1</span> <span class="op">/</span>     <span class="number">100000</span>; <span class="ident">p1</span> <span class="op">%</span><span class="op">=</span>     <span class="number">100000</span>; }
-            <span class="number">5</span> <span class="op">=</span><span class="op">&gt;</span> { <span class="ident">d</span> <span class="op">=</span> <span class="ident">p1</span> <span class="op">/</span>      <span class="number">10000</span>; <span class="ident">p1</span> <span class="op">%</span><span class="op">=</span>      <span class="number">10000</span>; }
-            <span class="number">4</span> <span class="op">=</span><span class="op">&gt;</span> { <span class="ident">d</span> <span class="op">=</span> <span class="ident">p1</span> <span class="op">/</span>       <span class="number">1000</span>; <span class="ident">p1</span> <span class="op">%</span><span class="op">=</span>       <span class="number">1000</span>; }
-            <span class="number">3</span> <span class="op">=</span><span class="op">&gt;</span> { <span class="ident">d</span> <span class="op">=</span> <span class="ident">p1</span> <span class="op">/</span>        <span class="number">100</span>; <span class="ident">p1</span> <span class="op">%</span><span class="op">=</span>        <span class="number">100</span>; }
-            <span class="number">2</span> <span class="op">=</span><span class="op">&gt;</span> { <span class="ident">d</span> <span class="op">=</span> <span class="ident">p1</span> <span class="op">/</span>         <span class="number">10</span>; <span class="ident">p1</span> <span class="op">%</span><span class="op">=</span>         <span class="number">10</span>; }
-            <span class="number">1</span> <span class="op">=</span><span class="op">&gt;</span> { <span class="ident">d</span> <span class="op">=</span> <span class="ident">p1</span>;              <span class="ident">p1</span> <span class="op">=</span>           <span class="number">0</span>; }
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {}
+            <span class="number">9</span> <span class="op">=&gt;</span> { <span class="ident">d</span> <span class="op">=</span> <span class="ident">p1</span> <span class="op">/</span>  <span class="number">100000000</span>; <span class="ident">p1</span> <span class="op">%=</span>  <span class="number">100000000</span>; }
+            <span class="number">8</span> <span class="op">=&gt;</span> { <span class="ident">d</span> <span class="op">=</span> <span class="ident">p1</span> <span class="op">/</span>   <span class="number">10000000</span>; <span class="ident">p1</span> <span class="op">%=</span>   <span class="number">10000000</span>; }
+            <span class="number">7</span> <span class="op">=&gt;</span> { <span class="ident">d</span> <span class="op">=</span> <span class="ident">p1</span> <span class="op">/</span>    <span class="number">1000000</span>; <span class="ident">p1</span> <span class="op">%=</span>    <span class="number">1000000</span>; }
+            <span class="number">6</span> <span class="op">=&gt;</span> { <span class="ident">d</span> <span class="op">=</span> <span class="ident">p1</span> <span class="op">/</span>     <span class="number">100000</span>; <span class="ident">p1</span> <span class="op">%=</span>     <span class="number">100000</span>; }
+            <span class="number">5</span> <span class="op">=&gt;</span> { <span class="ident">d</span> <span class="op">=</span> <span class="ident">p1</span> <span class="op">/</span>      <span class="number">10000</span>; <span class="ident">p1</span> <span class="op">%=</span>      <span class="number">10000</span>; }
+            <span class="number">4</span> <span class="op">=&gt;</span> { <span class="ident">d</span> <span class="op">=</span> <span class="ident">p1</span> <span class="op">/</span>       <span class="number">1000</span>; <span class="ident">p1</span> <span class="op">%=</span>       <span class="number">1000</span>; }
+            <span class="number">3</span> <span class="op">=&gt;</span> { <span class="ident">d</span> <span class="op">=</span> <span class="ident">p1</span> <span class="op">/</span>        <span class="number">100</span>; <span class="ident">p1</span> <span class="op">%=</span>        <span class="number">100</span>; }
+            <span class="number">2</span> <span class="op">=&gt;</span> { <span class="ident">d</span> <span class="op">=</span> <span class="ident">p1</span> <span class="op">/</span>         <span class="number">10</span>; <span class="ident">p1</span> <span class="op">%=</span>         <span class="number">10</span>; }
+            <span class="number">1</span> <span class="op">=&gt;</span> { <span class="ident">d</span> <span class="op">=</span> <span class="ident">p1</span>;              <span class="ident">p1</span> <span class="op">=</span>           <span class="number">0</span>; }
+            <span class="kw">_</span> <span class="op">=&gt;</span> {}
         }
-        <span class="kw">if</span> <span class="ident">d</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span> <span class="op">|</span><span class="op">|</span> <span class="ident">len</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
+        <span class="kw">if</span> <span class="ident">d</span> <span class="op">!=</span> <span class="number">0</span> <span class="op">||</span> <span class="ident">len</span> <span class="op">!=</span> <span class="number">0</span> {
             <span class="kw-2">*</span><span class="ident">buffer</span>.<span class="ident">offset</span>(<span class="ident">len</span>) <span class="op">=</span> <span class="string">b&#39;0&#39;</span> <span class="op">+</span> <span class="ident">d</span> <span class="kw">as</span> <span class="ident">u8</span>;
-            <span class="ident">len</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+            <span class="ident">len</span> <span class="op">+=</span> <span class="number">1</span>;
         }
-        <span class="ident">kappa</span> <span class="op">-</span><span class="op">=</span> <span class="number">1</span>;
-        <span class="kw">let</span> <span class="ident">tmp</span> <span class="op">=</span> (<span class="ident">p1</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">sigty</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="op">-</span><span class="ident">one</span>.<span class="ident">e</span>) <span class="op">+</span> <span class="ident">p2</span>;
-        <span class="kw">if</span> <span class="ident">tmp</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">delta</span> {
-            <span class="ident">k</span> <span class="op">+</span><span class="op">=</span> <span class="ident">kappa</span> <span class="kw">as</span> <span class="ident">isize</span>;
-            <span class="ident">grisu_round</span>(<span class="ident">buffer</span>, <span class="ident">len</span>, <span class="ident">delta</span>, <span class="ident">tmp</span>, <span class="ident">POW10</span>[<span class="ident">kappa</span>] <span class="op">&lt;</span><span class="op">&lt;</span> <span class="op">-</span><span class="ident">one</span>.<span class="ident">e</span>, <span class="ident">wp_w</span>.<span class="ident">f</span>);
+        <span class="ident">kappa</span> <span class="op">-=</span> <span class="number">1</span>;
+        <span class="kw">let</span> <span class="ident">tmp</span> <span class="op">=</span> (<span class="ident">p1</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">sigty</span> <span class="op">&lt;&lt;</span> <span class="op">-</span><span class="ident">one</span>.<span class="ident">e</span>) <span class="op">+</span> <span class="ident">p2</span>;
+        <span class="kw">if</span> <span class="ident">tmp</span> <span class="op">&lt;=</span> <span class="ident">delta</span> {
+            <span class="ident">k</span> <span class="op">+=</span> <span class="ident">kappa</span> <span class="kw">as</span> <span class="ident">isize</span>;
+            <span class="ident">grisu_round</span>(<span class="ident">buffer</span>, <span class="ident">len</span>, <span class="ident">delta</span>, <span class="ident">tmp</span>, <span class="ident">POW10</span>[<span class="ident">kappa</span>] <span class="op">&lt;&lt;</span> <span class="op">-</span><span class="ident">one</span>.<span class="ident">e</span>, <span class="ident">wp_w</span>.<span class="ident">f</span>);
             <span class="kw">return</span> (<span class="ident">len</span>, <span class="ident">k</span>);
         }
     }
@@ -699,17 +700,17 @@ inline void DigitGen(const DiyFp&amp; W, const DiyFp&amp; Mp, uint64_t delta, ch
     }
     */</span>
     <span class="kw">loop</span> {
-        <span class="ident">p2</span> <span class="kw-2">*</span><span class="op">=</span> <span class="number">10</span>;
-        <span class="ident">delta</span> <span class="kw-2">*</span><span class="op">=</span> <span class="number">10</span>;
-        <span class="kw">let</span> <span class="ident">d</span> <span class="op">=</span> (<span class="ident">p2</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">-</span><span class="ident">one</span>.<span class="ident">e</span>) <span class="kw">as</span> <span class="ident">u8</span>;
-        <span class="kw">if</span> <span class="ident">d</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span> <span class="op">|</span><span class="op">|</span> <span class="ident">len</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
+        <span class="ident">p2</span> <span class="op">*=</span> <span class="number">10</span>;
+        <span class="ident">delta</span> <span class="op">*=</span> <span class="number">10</span>;
+        <span class="kw">let</span> <span class="ident">d</span> <span class="op">=</span> (<span class="ident">p2</span> <span class="op">&gt;&gt;</span> <span class="op">-</span><span class="ident">one</span>.<span class="ident">e</span>) <span class="kw">as</span> <span class="ident">u8</span>;
+        <span class="kw">if</span> <span class="ident">d</span> <span class="op">!=</span> <span class="number">0</span> <span class="op">||</span> <span class="ident">len</span> <span class="op">!=</span> <span class="number">0</span> {
             <span class="kw-2">*</span><span class="ident">buffer</span>.<span class="ident">offset</span>(<span class="ident">len</span>) <span class="op">=</span> <span class="string">b&#39;0&#39;</span> <span class="op">+</span> <span class="ident">d</span>;
-            <span class="ident">len</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+            <span class="ident">len</span> <span class="op">+=</span> <span class="number">1</span>;
         }
-        <span class="ident">p2</span> <span class="kw-2">&amp;</span><span class="op">=</span> <span class="ident">one</span>.<span class="ident">f</span> <span class="op">-</span> <span class="number">1</span>;
+        <span class="ident">p2</span> <span class="op">&amp;=</span> <span class="ident">one</span>.<span class="ident">f</span> <span class="op">-</span> <span class="number">1</span>;
         <span class="ident">kappa</span> <span class="op">=</span> <span class="ident">kappa</span>.<span class="ident">wrapping_sub</span>(<span class="number">1</span>);
         <span class="kw">if</span> <span class="ident">p2</span> <span class="op">&lt;</span> <span class="ident">delta</span> {
-            <span class="ident">k</span> <span class="op">+</span><span class="op">=</span> <span class="ident">kappa</span> <span class="kw">as</span> <span class="ident">isize</span>;
+            <span class="ident">k</span> <span class="op">+=</span> <span class="ident">kappa</span> <span class="kw">as</span> <span class="ident">isize</span>;
             <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="op">-</span>(<span class="ident">kappa</span> <span class="kw">as</span> <span class="ident">isize</span>);
             <span class="ident">grisu_round</span>(<span class="ident">buffer</span>, <span class="ident">len</span>, <span class="ident">delta</span>, <span class="ident">p2</span>, <span class="ident">one</span>.<span class="ident">f</span>, <span class="ident">wp_w</span>.<span class="ident">f</span> <span class="op">*</span> <span class="kw">if</span> <span class="ident">index</span> <span class="op">&lt;</span> <span class="number">9</span> { <span class="ident">POW10</span>[<span class="op">-</span>(<span class="ident">kappa</span> <span class="kw">as</span> <span class="ident">isize</span>) <span class="kw">as</span> <span class="ident">usize</span>] } <span class="kw">else</span> { <span class="number">0</span> });
             <span class="kw">return</span> (<span class="ident">len</span>, <span class="ident">k</span>);
@@ -735,7 +736,7 @@ inline void Grisu2(double value, char* buffer, int* length, int* K) {
 
 <span class="comment">// Returns length and k.</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">grisu2</span>(<span class="ident">value</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">fty</span>, <span class="ident">buffer</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">u8</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="ident">isize</span>, <span class="ident">isize</span>) {
+<span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">grisu2</span>(<span class="ident">value</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">fty</span>, <span class="ident">buffer</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">u8</span>) <span class="op">-&gt;</span> (<span class="ident">isize</span>, <span class="ident">isize</span>) {
     <span class="kw">let</span> <span class="ident">v</span> <span class="op">=</span> <span class="ident">DiyFp</span>::<span class="ident">from</span>(<span class="ident">value</span>);
     <span class="kw">let</span> (<span class="ident">w_m</span>, <span class="ident">w_p</span>) <span class="op">=</span> <span class="ident">v</span>.<span class="ident">normalized_boundaries</span>();
 
@@ -743,8 +744,8 @@ inline void Grisu2(double value, char* buffer, int* length, int* K) {
     <span class="kw">let</span> <span class="ident">w</span> <span class="op">=</span> <span class="ident">v</span>.<span class="ident">normalize</span>() <span class="op">*</span> <span class="ident">c_mk</span>;
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">wp</span> <span class="op">=</span> <span class="ident">w_p</span> <span class="op">*</span> <span class="ident">c_mk</span>;
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">wm</span> <span class="op">=</span> <span class="ident">w_m</span> <span class="op">*</span> <span class="ident">c_mk</span>;
-    <span class="ident">wm</span>.<span class="ident">f</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
-    <span class="ident">wp</span>.<span class="ident">f</span> <span class="op">-</span><span class="op">=</span> <span class="number">1</span>;
+    <span class="ident">wm</span>.<span class="ident">f</span> <span class="op">+=</span> <span class="number">1</span>;
+    <span class="ident">wp</span>.<span class="ident">f</span> <span class="op">-=</span> <span class="number">1</span>;
     <span class="ident">digit_gen</span>(<span class="ident">w</span>, <span class="ident">wp</span>, <span class="ident">wp</span>.<span class="ident">f</span> <span class="op">-</span> <span class="ident">wm</span>.<span class="ident">f</span>, <span class="ident">buffer</span>, <span class="ident">k</span>)
 }
 
@@ -775,20 +776,20 @@ inline char* WriteExponent(int K, char* buffer) {
 */</span>
 
 <span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">write_exponent</span>(<span class="kw-2">mut</span> <span class="ident">k</span>: <span class="ident">isize</span>, <span class="kw-2">mut</span> <span class="ident">buffer</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">u8</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">u8</span> {
+<span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">write_exponent</span>(<span class="kw-2">mut</span> <span class="ident">k</span>: <span class="ident">isize</span>, <span class="kw-2">mut</span> <span class="ident">buffer</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">u8</span>) <span class="op">-&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">u8</span> {
     <span class="kw">if</span> <span class="ident">k</span> <span class="op">&lt;</span> <span class="number">0</span> {
         <span class="kw-2">*</span><span class="ident">buffer</span> <span class="op">=</span> <span class="string">b&#39;-&#39;</span>;
         <span class="ident">buffer</span> <span class="op">=</span> <span class="ident">buffer</span>.<span class="ident">offset</span>(<span class="number">1</span>);
         <span class="ident">k</span> <span class="op">=</span> <span class="op">-</span><span class="ident">k</span>;
     }
 
-    <span class="kw">if</span> <span class="ident">k</span> <span class="op">&gt;</span><span class="op">=</span> <span class="number">100</span> {
+    <span class="kw">if</span> <span class="ident">k</span> <span class="op">&gt;=</span> <span class="number">100</span> {
         <span class="kw-2">*</span><span class="ident">buffer</span> <span class="op">=</span> <span class="string">b&#39;0&#39;</span> <span class="op">+</span> (<span class="ident">k</span> <span class="op">/</span> <span class="number">100</span>) <span class="kw">as</span> <span class="ident">u8</span>;
-        <span class="ident">k</span> <span class="op">%</span><span class="op">=</span> <span class="number">100</span>;
+        <span class="ident">k</span> <span class="op">%=</span> <span class="number">100</span>;
         <span class="kw">let</span> <span class="ident">d</span> <span class="op">=</span> <span class="ident">DEC_DIGITS_LUT</span>.<span class="ident">get_unchecked</span>(<span class="ident">k</span> <span class="kw">as</span> <span class="ident">usize</span> <span class="op">*</span> <span class="number">2</span>);
         <span class="ident">ptr</span>::<span class="ident">copy_nonoverlapping</span>(<span class="ident">d</span>, <span class="ident">buffer</span>.<span class="ident">offset</span>(<span class="number">1</span>), <span class="number">2</span>);
         <span class="ident">buffer</span>.<span class="ident">offset</span>(<span class="number">3</span>)
-    } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">k</span> <span class="op">&gt;</span><span class="op">=</span> <span class="number">10</span> {
+    } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">k</span> <span class="op">&gt;=</span> <span class="number">10</span> {
         <span class="kw">let</span> <span class="ident">d</span> <span class="op">=</span> <span class="ident">DEC_DIGITS_LUT</span>.<span class="ident">get_unchecked</span>(<span class="ident">k</span> <span class="kw">as</span> <span class="ident">usize</span> <span class="op">*</span> <span class="number">2</span>);
         <span class="ident">ptr</span>::<span class="ident">copy_nonoverlapping</span>(<span class="ident">d</span>, <span class="ident">buffer</span>, <span class="number">2</span>);
         <span class="ident">buffer</span>.<span class="ident">offset</span>(<span class="number">2</span>)
@@ -804,7 +805,7 @@ inline char* Prettify(char* buffer, int length, int k, int maxDecimalPlaces) {
 */</span>
 
 <span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">prettify</span>(<span class="ident">buffer</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">u8</span>, <span class="ident">length</span>: <span class="ident">isize</span>, <span class="ident">k</span>: <span class="ident">isize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">u8</span> {
+<span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">prettify</span>(<span class="ident">buffer</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">u8</span>, <span class="ident">length</span>: <span class="ident">isize</span>, <span class="ident">k</span>: <span class="ident">isize</span>) <span class="op">-&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">u8</span> {
     <span class="kw">let</span> <span class="ident">kk</span> <span class="op">=</span> <span class="ident">length</span> <span class="op">+</span> <span class="ident">k</span>; <span class="comment">// 10^(kk-1) &lt;= v &lt; 10^kk</span>
 
     <span class="comment">/*
@@ -817,7 +818,7 @@ inline char* Prettify(char* buffer, int length, int k, int maxDecimalPlaces) {
         return &amp;buffer[kk + 2];
     }
     */</span>
-    <span class="kw">if</span> <span class="number">0</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">k</span> <span class="kw-2">&amp;</span><span class="op">&amp;</span> <span class="ident">kk</span> <span class="op">&lt;</span><span class="op">=</span> <span class="number">21</span> {
+    <span class="kw">if</span> <span class="number">0</span> <span class="op">&lt;=</span> <span class="ident">k</span> <span class="op">&amp;&amp;</span> <span class="ident">kk</span> <span class="op">&lt;=</span> <span class="number">21</span> {
         <span class="comment">// 1234e7 -&gt; 12340000000</span>
         <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="ident">length</span>..<span class="ident">kk</span> {
             <span class="kw-2">*</span><span class="ident">buffer</span>.<span class="ident">offset</span>(<span class="ident">i</span>) <span class="op">=</span> <span class="string">b&#39;0&#39;</span>;
@@ -844,7 +845,7 @@ inline char* Prettify(char* buffer, int length, int k, int maxDecimalPlaces) {
             return &amp;buffer[length + 1];
     }
     */</span>
-    <span class="kw">else</span> <span class="kw">if</span> <span class="number">0</span> <span class="op">&lt;</span> <span class="ident">kk</span> <span class="kw-2">&amp;</span><span class="op">&amp;</span> <span class="ident">kk</span> <span class="op">&lt;</span><span class="op">=</span> <span class="number">21</span> {
+    <span class="kw">else</span> <span class="kw">if</span> <span class="number">0</span> <span class="op">&lt;</span> <span class="ident">kk</span> <span class="op">&amp;&amp;</span> <span class="ident">kk</span> <span class="op">&lt;=</span> <span class="number">21</span> {
         <span class="comment">// 1234e-2 -&gt; 12.34</span>
         <span class="ident">ptr</span>::<span class="ident">copy</span>(<span class="ident">buffer</span>.<span class="ident">offset</span>(<span class="ident">kk</span>), <span class="ident">buffer</span>.<span class="ident">offset</span>(<span class="ident">kk</span> <span class="op">+</span> <span class="number">1</span>), (<span class="ident">length</span> <span class="op">-</span> <span class="ident">kk</span>) <span class="kw">as</span> <span class="ident">usize</span>);
         <span class="kw-2">*</span><span class="ident">buffer</span>.<span class="ident">offset</span>(<span class="ident">kk</span>) <span class="op">=</span> <span class="string">b&#39;.&#39;</span>;
@@ -852,7 +853,7 @@ inline char* Prettify(char* buffer, int length, int k, int maxDecimalPlaces) {
             <span class="comment">// When MAX_DECIMAL_PLACES = 2, 1.2345 -&gt; 1.23, 1.102 -&gt; 1.1</span>
             <span class="comment">// Remove extra trailing zeros (at least one) after truncation.</span>
             <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> (<span class="ident">kk</span> <span class="op">+</span> <span class="number">2</span> .. <span class="ident">kk</span> <span class="op">+</span> <span class="ident">MAX_DECIMAL_PLACES</span> <span class="op">+</span> <span class="number">1</span>).<span class="ident">rev</span>() {
-                <span class="kw">if</span> <span class="kw-2">*</span><span class="ident">buffer</span>.<span class="ident">offset</span>(<span class="ident">i</span>) <span class="op">!</span><span class="op">=</span> <span class="string">b&#39;0&#39;</span> {
+                <span class="kw">if</span> <span class="kw-2">*</span><span class="ident">buffer</span>.<span class="ident">offset</span>(<span class="ident">i</span>) <span class="op">!=</span> <span class="string">b&#39;0&#39;</span> {
                     <span class="kw">return</span> <span class="ident">buffer</span>.<span class="ident">offset</span>(<span class="ident">i</span> <span class="op">+</span> <span class="number">1</span>);
                 }
             }
@@ -883,7 +884,7 @@ inline char* Prettify(char* buffer, int length, int k, int maxDecimalPlaces) {
             return &amp;buffer[length + offset];
     }
     */</span>
-    <span class="kw">else</span> <span class="kw">if</span> <span class="op">-</span><span class="number">6</span> <span class="op">&lt;</span> <span class="ident">kk</span> <span class="kw-2">&amp;</span><span class="op">&amp;</span> <span class="ident">kk</span> <span class="op">&lt;</span><span class="op">=</span> <span class="number">0</span> {
+    <span class="kw">else</span> <span class="kw">if</span> <span class="op">-</span><span class="number">6</span> <span class="op">&lt;</span> <span class="ident">kk</span> <span class="op">&amp;&amp;</span> <span class="ident">kk</span> <span class="op">&lt;=</span> <span class="number">0</span> {
         <span class="comment">// 1234e-6 -&gt; 0.001234</span>
         <span class="kw">let</span> <span class="ident">offset</span> <span class="op">=</span> <span class="number">2</span> <span class="op">-</span> <span class="ident">kk</span>;
         <span class="ident">ptr</span>::<span class="ident">copy</span>(<span class="ident">buffer</span>, <span class="ident">buffer</span>.<span class="ident">offset</span>(<span class="ident">offset</span>), <span class="ident">length</span> <span class="kw">as</span> <span class="ident">usize</span>);
@@ -896,7 +897,7 @@ inline char* Prettify(char* buffer, int length, int k, int maxDecimalPlaces) {
             <span class="comment">// When MAX_DECIMAL_PLACES = 2, 0.123 -&gt; 0.12, 0.102 -&gt; 0.1</span>
             <span class="comment">// Remove extra trailing zeros (at least one) after truncation.</span>
             <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> (<span class="number">3</span> .. <span class="ident">MAX_DECIMAL_PLACES</span> <span class="op">+</span> <span class="number">2</span>).<span class="ident">rev</span>() {
-                <span class="kw">if</span> <span class="kw-2">*</span><span class="ident">buffer</span>.<span class="ident">offset</span>(<span class="ident">i</span>) <span class="op">!</span><span class="op">=</span> <span class="string">b&#39;0&#39;</span> {
+                <span class="kw">if</span> <span class="kw-2">*</span><span class="ident">buffer</span>.<span class="ident">offset</span>(<span class="ident">i</span>) <span class="op">!=</span> <span class="string">b&#39;0&#39;</span> {
                     <span class="kw">return</span> <span class="ident">buffer</span>.<span class="ident">offset</span>(<span class="ident">i</span> <span class="op">+</span> <span class="number">1</span>);
                 }
             }
@@ -929,7 +930,7 @@ inline char* Prettify(char* buffer, int length, int k, int maxDecimalPlaces) {
         return WriteExponent(kk - 1, &amp;buffer[2]);
     }
     */</span>
-    <span class="kw">else</span> <span class="kw">if</span> <span class="ident">length</span> <span class="op">=</span><span class="op">=</span> <span class="number">1</span> {
+    <span class="kw">else</span> <span class="kw">if</span> <span class="ident">length</span> <span class="op">==</span> <span class="number">1</span> {
         <span class="comment">// 1e30</span>
         <span class="kw-2">*</span><span class="ident">buffer</span>.<span class="ident">offset</span>(<span class="number">1</span>) <span class="op">=</span> <span class="string">b&#39;e&#39;</span>;
         <span class="ident">write_exponent</span>(<span class="ident">kk</span> <span class="op">-</span> <span class="number">1</span>, <span class="ident">buffer</span>.<span class="ident">offset</span>(<span class="number">2</span>))
@@ -979,17 +980,17 @@ inline char* dtoa(double value, char* buffer, int maxDecimalPlaces = 324) {
 
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">deprecated</span>)]</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">dtoa</span><span class="op">&lt;</span><span class="ident">W</span>: <span class="ident">io</span>::<span class="ident">Write</span><span class="op">&gt;</span>(<span class="kw-2">mut</span> <span class="ident">wr</span>: <span class="ident">W</span>, <span class="kw-2">mut</span> <span class="ident">value</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">fty</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
-    <span class="kw">if</span> <span class="ident">value</span> <span class="op">=</span><span class="op">=</span> <span class="number">0.0</span> {
+<span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">dtoa</span><span class="op">&lt;</span><span class="ident">W</span>: <span class="ident">io</span>::<span class="ident">Write</span><span class="op">&gt;</span>(<span class="kw-2">mut</span> <span class="ident">wr</span>: <span class="ident">W</span>, <span class="kw-2">mut</span> <span class="ident">value</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">fty</span>) <span class="op">-&gt;</span> <span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
+    <span class="kw">if</span> <span class="ident">value</span> <span class="op">==</span> <span class="number">0.0</span> {
         <span class="kw">if</span> <span class="ident">value</span>.<span class="ident">is_sign_negative</span>() {
             <span class="kw">match</span> <span class="ident">wr</span>.<span class="ident">write_all</span>(<span class="string">b&quot;-0.0&quot;</span>) {
-                <span class="prelude-val">Ok</span>(()) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="number">4</span>),
-                <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">e</span>),
+                <span class="prelude-val">Ok</span>(()) <span class="op">=&gt;</span> <span class="prelude-val">Ok</span>(<span class="number">4</span>),
+                <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">e</span>),
             }
         } <span class="kw">else</span> {
             <span class="kw">match</span> <span class="ident">wr</span>.<span class="ident">write_all</span>(<span class="string">b&quot;0.0&quot;</span>) {
-                <span class="prelude-val">Ok</span>(()) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="number">3</span>),
-                <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">e</span>),
+                <span class="prelude-val">Ok</span>(()) <span class="op">=&gt;</span> <span class="prelude-val">Ok</span>(<span class="number">3</span>),
+                <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">e</span>),
             }
         }
     } <span class="kw">else</span> {

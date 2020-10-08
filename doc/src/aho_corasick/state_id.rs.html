@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/aho-corasick-0.7.13/src/state_id.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>state_id.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../aho_corasick/index.html'><div class='logo-container'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/aho-corasick-0.7.13/src/state_id.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>state_id.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../aho_corasick/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
+                <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -205,10 +206,10 @@
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">premultiply_overflow_error</span><span class="op">&lt;</span><span class="ident">S</span>: <span class="ident">StateID</span><span class="op">&gt;</span>(
     <span class="ident">last_state</span>: <span class="ident">S</span>,
     <span class="ident">alphabet_len</span>: <span class="ident">usize</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">requested</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">last_state</span>.<span class="ident">to_usize</span>().<span class="ident">checked_mul</span>(<span class="ident">alphabet_len</span>) {
-        <span class="prelude-val">Some</span>(<span class="ident">requested</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">requested</span>,
-        <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error</span>::<span class="ident">premultiply_overflow</span>(<span class="number">0</span>, <span class="number">0</span>)),
+        <span class="prelude-val">Some</span>(<span class="ident">requested</span>) <span class="op">=&gt;</span> <span class="ident">requested</span>,
+        <span class="prelude-val">None</span> <span class="op">=&gt;</span> <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error</span>::<span class="ident">premultiply_overflow</span>(<span class="number">0</span>, <span class="number">0</span>)),
     };
     <span class="kw">if</span> <span class="ident">requested</span> <span class="op">&gt;</span> <span class="ident">S</span>::<span class="ident">max_id</span>() {
         <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error</span>::<span class="ident">premultiply_overflow</span>(<span class="ident">S</span>::<span class="ident">max_id</span>(), <span class="ident">requested</span>));
@@ -219,7 +220,7 @@
 <span class="doccomment">/// Convert the given `usize` to the chosen state identifier</span>
 <span class="doccomment">/// representation. If the given value cannot fit in the chosen</span>
 <span class="doccomment">/// representation, then an error is returned.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">usize_to_state_id</span><span class="op">&lt;</span><span class="ident">S</span>: <span class="ident">StateID</span><span class="op">&gt;</span>(<span class="ident">value</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">usize_to_state_id</span><span class="op">&lt;</span><span class="ident">S</span>: <span class="ident">StateID</span><span class="op">&gt;</span>(<span class="ident">value</span>: <span class="ident">usize</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> {
     <span class="kw">if</span> <span class="ident">value</span> <span class="op">&gt;</span> <span class="ident">S</span>::<span class="ident">max_id</span>() {
         <span class="prelude-val">Err</span>(<span class="ident">Error</span>::<span class="ident">state_id_overflow</span>(<span class="ident">S</span>::<span class="ident">max_id</span>()))
     } <span class="kw">else</span> {
@@ -229,13 +230,13 @@
 
 <span class="doccomment">/// Return the unique identifier for an automaton&#39;s fail state in the chosen</span>
 <span class="doccomment">/// representation indicated by `S`.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">fail_id</span><span class="op">&lt;</span><span class="ident">S</span>: <span class="ident">StateID</span><span class="op">&gt;</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">S</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">fail_id</span><span class="op">&lt;</span><span class="ident">S</span>: <span class="ident">StateID</span><span class="op">&gt;</span>() <span class="op">-&gt;</span> <span class="ident">S</span> {
     <span class="ident">S</span>::<span class="ident">from_usize</span>(<span class="number">0</span>)
 }
 
 <span class="doccomment">/// Return the unique identifier for an automaton&#39;s fail state in the chosen</span>
 <span class="doccomment">/// representation indicated by `S`.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">dead_id</span><span class="op">&lt;</span><span class="ident">S</span>: <span class="ident">StateID</span><span class="op">&gt;</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">S</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">dead_id</span><span class="op">&lt;</span><span class="ident">S</span>: <span class="ident">StateID</span><span class="op">&gt;</span>() <span class="op">-&gt;</span> <span class="ident">S</span> {
     <span class="ident">S</span>::<span class="ident">from_usize</span>(<span class="number">1</span>)
 }
 
@@ -278,7 +279,7 @@
     <span class="doccomment">/// Implementors may assume that `n &lt;= Self::max_id`. That is, implementors</span>
     <span class="doccomment">/// do not need to check whether `n` can fit inside this implementation&#39;s</span>
     <span class="doccomment">/// representation.</span>
-    <span class="kw">fn</span> <span class="ident">from_usize</span>(<span class="ident">n</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
+    <span class="kw">fn</span> <span class="ident">from_usize</span>(<span class="ident">n</span>: <span class="ident">usize</span>) <span class="op">-&gt;</span> <span class="self">Self</span>;
 
     <span class="doccomment">/// Convert this implementation&#39;s representation to a `usize`.</span>
     <span class="doccomment">///</span>
@@ -288,62 +289,62 @@
     <span class="doccomment">/// way for implementors to achieve this is to simply not provide</span>
     <span class="doccomment">/// implementations of `StateID` that cannot fit into the target platform&#39;s</span>
     <span class="doccomment">/// `usize`.</span>
-    <span class="kw">fn</span> <span class="ident">to_usize</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span>;
+    <span class="kw">fn</span> <span class="ident">to_usize</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">usize</span>;
 
     <span class="doccomment">/// Return the maximum state identifier supported by this representation.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Implementors must return a correct bound. Doing otherwise may result</span>
     <span class="doccomment">/// in unspecified behavior (but will not violate memory safety).</span>
-    <span class="kw">fn</span> <span class="ident">max_id</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span>;
+    <span class="kw">fn</span> <span class="ident">max_id</span>() <span class="op">-&gt;</span> <span class="ident">usize</span>;
 }
 
 <span class="kw">impl</span> <span class="ident">StateID</span> <span class="kw">for</span> <span class="ident">usize</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from_usize</span>(<span class="ident">n</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+    <span class="kw">fn</span> <span class="ident">from_usize</span>(<span class="ident">n</span>: <span class="ident">usize</span>) <span class="op">-&gt;</span> <span class="ident">usize</span> {
         <span class="ident">n</span>
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">to_usize</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+    <span class="kw">fn</span> <span class="ident">to_usize</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">usize</span> {
         <span class="self">self</span>
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">max_id</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+    <span class="kw">fn</span> <span class="ident">max_id</span>() <span class="op">-&gt;</span> <span class="ident">usize</span> {
         ::<span class="ident">std</span>::<span class="ident">usize</span>::<span class="ident">MAX</span>
     }
 }
 
 <span class="kw">impl</span> <span class="ident">StateID</span> <span class="kw">for</span> <span class="ident">u8</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from_usize</span>(<span class="ident">n</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u8</span> {
+    <span class="kw">fn</span> <span class="ident">from_usize</span>(<span class="ident">n</span>: <span class="ident">usize</span>) <span class="op">-&gt;</span> <span class="ident">u8</span> {
         <span class="ident">n</span> <span class="kw">as</span> <span class="ident">u8</span>
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">to_usize</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+    <span class="kw">fn</span> <span class="ident">to_usize</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">usize</span> {
         <span class="self">self</span> <span class="kw">as</span> <span class="ident">usize</span>
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">max_id</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+    <span class="kw">fn</span> <span class="ident">max_id</span>() <span class="op">-&gt;</span> <span class="ident">usize</span> {
         ::<span class="ident">std</span>::<span class="ident">u8</span>::<span class="ident">MAX</span> <span class="kw">as</span> <span class="ident">usize</span>
     }
 }
 
 <span class="kw">impl</span> <span class="ident">StateID</span> <span class="kw">for</span> <span class="ident">u16</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from_usize</span>(<span class="ident">n</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u16</span> {
+    <span class="kw">fn</span> <span class="ident">from_usize</span>(<span class="ident">n</span>: <span class="ident">usize</span>) <span class="op">-&gt;</span> <span class="ident">u16</span> {
         <span class="ident">n</span> <span class="kw">as</span> <span class="ident">u16</span>
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">to_usize</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+    <span class="kw">fn</span> <span class="ident">to_usize</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">usize</span> {
         <span class="self">self</span> <span class="kw">as</span> <span class="ident">usize</span>
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">max_id</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+    <span class="kw">fn</span> <span class="ident">max_id</span>() <span class="op">-&gt;</span> <span class="ident">usize</span> {
         ::<span class="ident">std</span>::<span class="ident">u16</span>::<span class="ident">MAX</span> <span class="kw">as</span> <span class="ident">usize</span>
     }
 }
@@ -351,17 +352,17 @@
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_pointer_width</span> <span class="op">=</span> <span class="string">&quot;32&quot;</span>, <span class="ident">target_pointer_width</span> <span class="op">=</span> <span class="string">&quot;64&quot;</span>))]</span>
 <span class="kw">impl</span> <span class="ident">StateID</span> <span class="kw">for</span> <span class="ident">u32</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from_usize</span>(<span class="ident">n</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span> {
+    <span class="kw">fn</span> <span class="ident">from_usize</span>(<span class="ident">n</span>: <span class="ident">usize</span>) <span class="op">-&gt;</span> <span class="ident">u32</span> {
         <span class="ident">n</span> <span class="kw">as</span> <span class="ident">u32</span>
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">to_usize</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+    <span class="kw">fn</span> <span class="ident">to_usize</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">usize</span> {
         <span class="self">self</span> <span class="kw">as</span> <span class="ident">usize</span>
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">max_id</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+    <span class="kw">fn</span> <span class="ident">max_id</span>() <span class="op">-&gt;</span> <span class="ident">usize</span> {
         ::<span class="ident">std</span>::<span class="ident">u32</span>::<span class="ident">MAX</span> <span class="kw">as</span> <span class="ident">usize</span>
     }
 }
@@ -369,17 +370,17 @@
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_pointer_width</span> <span class="op">=</span> <span class="string">&quot;64&quot;</span>)]</span>
 <span class="kw">impl</span> <span class="ident">StateID</span> <span class="kw">for</span> <span class="ident">u64</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from_usize</span>(<span class="ident">n</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u64</span> {
+    <span class="kw">fn</span> <span class="ident">from_usize</span>(<span class="ident">n</span>: <span class="ident">usize</span>) <span class="op">-&gt;</span> <span class="ident">u64</span> {
         <span class="ident">n</span> <span class="kw">as</span> <span class="ident">u64</span>
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">to_usize</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+    <span class="kw">fn</span> <span class="ident">to_usize</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">usize</span> {
         <span class="self">self</span> <span class="kw">as</span> <span class="ident">usize</span>
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">max_id</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+    <span class="kw">fn</span> <span class="ident">max_id</span>() <span class="op">-&gt;</span> <span class="ident">usize</span> {
         ::<span class="ident">std</span>::<span class="ident">u64</span>::<span class="ident">MAX</span> <span class="kw">as</span> <span class="ident">usize</span>
     }
 }

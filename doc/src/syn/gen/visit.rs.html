@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/syn-1.0.42/src/gen/visit.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>visit.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css"><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script src="../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="shortcut icon" href="../../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../syn/index.html'><div class='logo-container'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/syn-1.0.42/src/gen/visit.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>visit.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script src="../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="shortcut icon" href="../../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../syn/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
+                <a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
 <span id="3">   3</span>
 <span id="4">   4</span>
@@ -3786,18 +3787,18 @@
 <span class="kw">use</span> <span class="ident">proc_macro2</span>::<span class="ident">Span</span>;
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
 <span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">full</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">e</span>:<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> {
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">e</span>:<span class="ident">expr</span>) <span class="op">=&gt;</span> {
         <span class="macro-nonterminal">$</span><span class="macro-nonterminal">e</span>
     };
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)))]</span>
 <span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">full</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">e</span>:<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> {
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">e</span>:<span class="ident">expr</span>) <span class="op">=&gt;</span> {
         <span class="macro">unreachable</span><span class="macro">!</span>()
     };
 }
 <span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">skip</span> {
-    ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tt</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) <span class="op">=</span><span class="op">&gt;</span> {};
+    ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tt</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) <span class="op">=&gt;</span> {};
 }
 <span class="doccomment">/// Syntax tree traversal to walk a shared borrow of a syntax tree.</span>
 <span class="doccomment">///</span>
@@ -4600,8 +4601,8 @@
     <span class="ident">V</span>: <span class="ident">Visit</span><span class="op">&lt;</span><span class="lifetime">&#39;ast</span><span class="op">&gt;</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span>,
 {
     <span class="kw">match</span> <span class="ident">node</span> {
-        <span class="ident">AttrStyle</span>::<span class="ident">Outer</span> <span class="op">=</span><span class="op">&gt;</span> {}
-        <span class="ident">AttrStyle</span>::<span class="ident">Inner</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">AttrStyle</span>::<span class="ident">Outer</span> <span class="op">=&gt;</span> {}
+        <span class="ident">AttrStyle</span>::<span class="ident">Inner</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="ident">tokens_helper</span>(<span class="ident">v</span>, <span class="kw-2">&amp;</span><span class="ident">_binding_0</span>.<span class="ident">spans</span>);
         }
     }
@@ -4637,88 +4638,88 @@
     <span class="ident">V</span>: <span class="ident">Visit</span><span class="op">&lt;</span><span class="lifetime">&#39;ast</span><span class="op">&gt;</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span>,
 {
     <span class="kw">match</span> <span class="ident">node</span> {
-        <span class="ident">BinOp</span>::<span class="ident">Add</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">BinOp</span>::<span class="ident">Add</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="ident">tokens_helper</span>(<span class="ident">v</span>, <span class="kw-2">&amp;</span><span class="ident">_binding_0</span>.<span class="ident">spans</span>);
         }
-        <span class="ident">BinOp</span>::<span class="ident">Sub</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">BinOp</span>::<span class="ident">Sub</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="ident">tokens_helper</span>(<span class="ident">v</span>, <span class="kw-2">&amp;</span><span class="ident">_binding_0</span>.<span class="ident">spans</span>);
         }
-        <span class="ident">BinOp</span>::<span class="ident">Mul</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">BinOp</span>::<span class="ident">Mul</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="ident">tokens_helper</span>(<span class="ident">v</span>, <span class="kw-2">&amp;</span><span class="ident">_binding_0</span>.<span class="ident">spans</span>);
         }
-        <span class="ident">BinOp</span>::<span class="ident">Div</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">BinOp</span>::<span class="ident">Div</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="ident">tokens_helper</span>(<span class="ident">v</span>, <span class="kw-2">&amp;</span><span class="ident">_binding_0</span>.<span class="ident">spans</span>);
         }
-        <span class="ident">BinOp</span>::<span class="ident">Rem</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">BinOp</span>::<span class="ident">Rem</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="ident">tokens_helper</span>(<span class="ident">v</span>, <span class="kw-2">&amp;</span><span class="ident">_binding_0</span>.<span class="ident">spans</span>);
         }
-        <span class="ident">BinOp</span>::<span class="ident">And</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">BinOp</span>::<span class="ident">And</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="ident">tokens_helper</span>(<span class="ident">v</span>, <span class="kw-2">&amp;</span><span class="ident">_binding_0</span>.<span class="ident">spans</span>);
         }
-        <span class="ident">BinOp</span>::<span class="ident">Or</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">BinOp</span>::<span class="ident">Or</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="ident">tokens_helper</span>(<span class="ident">v</span>, <span class="kw-2">&amp;</span><span class="ident">_binding_0</span>.<span class="ident">spans</span>);
         }
-        <span class="ident">BinOp</span>::<span class="ident">BitXor</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">BinOp</span>::<span class="ident">BitXor</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="ident">tokens_helper</span>(<span class="ident">v</span>, <span class="kw-2">&amp;</span><span class="ident">_binding_0</span>.<span class="ident">spans</span>);
         }
-        <span class="ident">BinOp</span>::<span class="ident">BitAnd</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">BinOp</span>::<span class="ident">BitAnd</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="ident">tokens_helper</span>(<span class="ident">v</span>, <span class="kw-2">&amp;</span><span class="ident">_binding_0</span>.<span class="ident">spans</span>);
         }
-        <span class="ident">BinOp</span>::<span class="ident">BitOr</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">BinOp</span>::<span class="ident">BitOr</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="ident">tokens_helper</span>(<span class="ident">v</span>, <span class="kw-2">&amp;</span><span class="ident">_binding_0</span>.<span class="ident">spans</span>);
         }
-        <span class="ident">BinOp</span>::<span class="ident">Shl</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">BinOp</span>::<span class="ident">Shl</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="ident">tokens_helper</span>(<span class="ident">v</span>, <span class="kw-2">&amp;</span><span class="ident">_binding_0</span>.<span class="ident">spans</span>);
         }
-        <span class="ident">BinOp</span>::<span class="ident">Shr</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">BinOp</span>::<span class="ident">Shr</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="ident">tokens_helper</span>(<span class="ident">v</span>, <span class="kw-2">&amp;</span><span class="ident">_binding_0</span>.<span class="ident">spans</span>);
         }
-        <span class="ident">BinOp</span>::<span class="ident">Eq</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">BinOp</span>::<span class="ident">Eq</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="ident">tokens_helper</span>(<span class="ident">v</span>, <span class="kw-2">&amp;</span><span class="ident">_binding_0</span>.<span class="ident">spans</span>);
         }
-        <span class="ident">BinOp</span>::<span class="ident">Lt</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">BinOp</span>::<span class="ident">Lt</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="ident">tokens_helper</span>(<span class="ident">v</span>, <span class="kw-2">&amp;</span><span class="ident">_binding_0</span>.<span class="ident">spans</span>);
         }
-        <span class="ident">BinOp</span>::<span class="ident">Le</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">BinOp</span>::<span class="ident">Le</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="ident">tokens_helper</span>(<span class="ident">v</span>, <span class="kw-2">&amp;</span><span class="ident">_binding_0</span>.<span class="ident">spans</span>);
         }
-        <span class="ident">BinOp</span>::<span class="ident">Ne</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">BinOp</span>::<span class="ident">Ne</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="ident">tokens_helper</span>(<span class="ident">v</span>, <span class="kw-2">&amp;</span><span class="ident">_binding_0</span>.<span class="ident">spans</span>);
         }
-        <span class="ident">BinOp</span>::<span class="ident">Ge</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">BinOp</span>::<span class="ident">Ge</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="ident">tokens_helper</span>(<span class="ident">v</span>, <span class="kw-2">&amp;</span><span class="ident">_binding_0</span>.<span class="ident">spans</span>);
         }
-        <span class="ident">BinOp</span>::<span class="ident">Gt</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">BinOp</span>::<span class="ident">Gt</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="ident">tokens_helper</span>(<span class="ident">v</span>, <span class="kw-2">&amp;</span><span class="ident">_binding_0</span>.<span class="ident">spans</span>);
         }
-        <span class="ident">BinOp</span>::<span class="ident">AddEq</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">BinOp</span>::<span class="ident">AddEq</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="ident">tokens_helper</span>(<span class="ident">v</span>, <span class="kw-2">&amp;</span><span class="ident">_binding_0</span>.<span class="ident">spans</span>);
         }
-        <span class="ident">BinOp</span>::<span class="ident">SubEq</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">BinOp</span>::<span class="ident">SubEq</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="ident">tokens_helper</span>(<span class="ident">v</span>, <span class="kw-2">&amp;</span><span class="ident">_binding_0</span>.<span class="ident">spans</span>);
         }
-        <span class="ident">BinOp</span>::<span class="ident">MulEq</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">BinOp</span>::<span class="ident">MulEq</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="ident">tokens_helper</span>(<span class="ident">v</span>, <span class="kw-2">&amp;</span><span class="ident">_binding_0</span>.<span class="ident">spans</span>);
         }
-        <span class="ident">BinOp</span>::<span class="ident">DivEq</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">BinOp</span>::<span class="ident">DivEq</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="ident">tokens_helper</span>(<span class="ident">v</span>, <span class="kw-2">&amp;</span><span class="ident">_binding_0</span>.<span class="ident">spans</span>);
         }
-        <span class="ident">BinOp</span>::<span class="ident">RemEq</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">BinOp</span>::<span class="ident">RemEq</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="ident">tokens_helper</span>(<span class="ident">v</span>, <span class="kw-2">&amp;</span><span class="ident">_binding_0</span>.<span class="ident">spans</span>);
         }
-        <span class="ident">BinOp</span>::<span class="ident">BitXorEq</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">BinOp</span>::<span class="ident">BitXorEq</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="ident">tokens_helper</span>(<span class="ident">v</span>, <span class="kw-2">&amp;</span><span class="ident">_binding_0</span>.<span class="ident">spans</span>);
         }
-        <span class="ident">BinOp</span>::<span class="ident">BitAndEq</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">BinOp</span>::<span class="ident">BitAndEq</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="ident">tokens_helper</span>(<span class="ident">v</span>, <span class="kw-2">&amp;</span><span class="ident">_binding_0</span>.<span class="ident">spans</span>);
         }
-        <span class="ident">BinOp</span>::<span class="ident">BitOrEq</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">BinOp</span>::<span class="ident">BitOrEq</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="ident">tokens_helper</span>(<span class="ident">v</span>, <span class="kw-2">&amp;</span><span class="ident">_binding_0</span>.<span class="ident">spans</span>);
         }
-        <span class="ident">BinOp</span>::<span class="ident">ShlEq</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">BinOp</span>::<span class="ident">ShlEq</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="ident">tokens_helper</span>(<span class="ident">v</span>, <span class="kw-2">&amp;</span><span class="ident">_binding_0</span>.<span class="ident">spans</span>);
         }
-        <span class="ident">BinOp</span>::<span class="ident">ShrEq</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">BinOp</span>::<span class="ident">ShrEq</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="ident">tokens_helper</span>(<span class="ident">v</span>, <span class="kw-2">&amp;</span><span class="ident">_binding_0</span>.<span class="ident">spans</span>);
         }
     }
@@ -4798,13 +4799,13 @@
     <span class="ident">V</span>: <span class="ident">Visit</span><span class="op">&lt;</span><span class="lifetime">&#39;ast</span><span class="op">&gt;</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span>,
 {
     <span class="kw">match</span> <span class="ident">node</span> {
-        <span class="ident">Data</span>::<span class="ident">Struct</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Data</span>::<span class="ident">Struct</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="ident">v</span>.<span class="ident">visit_data_struct</span>(<span class="ident">_binding_0</span>);
         }
-        <span class="ident">Data</span>::<span class="ident">Enum</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Data</span>::<span class="ident">Enum</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="ident">v</span>.<span class="ident">visit_data_enum</span>(<span class="ident">_binding_0</span>);
         }
-        <span class="ident">Data</span>::<span class="ident">Union</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Data</span>::<span class="ident">Union</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="ident">v</span>.<span class="ident">visit_data_union</span>(<span class="ident">_binding_0</span>);
         }
     }
@@ -4862,127 +4863,127 @@
     <span class="ident">V</span>: <span class="ident">Visit</span><span class="op">&lt;</span><span class="lifetime">&#39;ast</span><span class="op">&gt;</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span>,
 {
     <span class="kw">match</span> <span class="ident">node</span> {
-        <span class="ident">Expr</span>::<span class="ident">Array</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Expr</span>::<span class="ident">Array</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="macro">full</span><span class="macro">!</span>(<span class="ident">v</span>.<span class="ident">visit_expr_array</span>(<span class="ident">_binding_0</span>));
         }
-        <span class="ident">Expr</span>::<span class="ident">Assign</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Expr</span>::<span class="ident">Assign</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="macro">full</span><span class="macro">!</span>(<span class="ident">v</span>.<span class="ident">visit_expr_assign</span>(<span class="ident">_binding_0</span>));
         }
-        <span class="ident">Expr</span>::<span class="ident">AssignOp</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Expr</span>::<span class="ident">AssignOp</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="macro">full</span><span class="macro">!</span>(<span class="ident">v</span>.<span class="ident">visit_expr_assign_op</span>(<span class="ident">_binding_0</span>));
         }
-        <span class="ident">Expr</span>::<span class="ident">Async</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Expr</span>::<span class="ident">Async</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="macro">full</span><span class="macro">!</span>(<span class="ident">v</span>.<span class="ident">visit_expr_async</span>(<span class="ident">_binding_0</span>));
         }
-        <span class="ident">Expr</span>::<span class="ident">Await</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Expr</span>::<span class="ident">Await</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="macro">full</span><span class="macro">!</span>(<span class="ident">v</span>.<span class="ident">visit_expr_await</span>(<span class="ident">_binding_0</span>));
         }
-        <span class="ident">Expr</span>::<span class="ident">Binary</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Expr</span>::<span class="ident">Binary</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="ident">v</span>.<span class="ident">visit_expr_binary</span>(<span class="ident">_binding_0</span>);
         }
-        <span class="ident">Expr</span>::<span class="ident">Block</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Expr</span>::<span class="ident">Block</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="macro">full</span><span class="macro">!</span>(<span class="ident">v</span>.<span class="ident">visit_expr_block</span>(<span class="ident">_binding_0</span>));
         }
-        <span class="ident">Expr</span>::<span class="ident">Box</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Expr</span>::<span class="ident">Box</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="macro">full</span><span class="macro">!</span>(<span class="ident">v</span>.<span class="ident">visit_expr_box</span>(<span class="ident">_binding_0</span>));
         }
-        <span class="ident">Expr</span>::<span class="ident">Break</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Expr</span>::<span class="ident">Break</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="macro">full</span><span class="macro">!</span>(<span class="ident">v</span>.<span class="ident">visit_expr_break</span>(<span class="ident">_binding_0</span>));
         }
-        <span class="ident">Expr</span>::<span class="ident">Call</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Expr</span>::<span class="ident">Call</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="ident">v</span>.<span class="ident">visit_expr_call</span>(<span class="ident">_binding_0</span>);
         }
-        <span class="ident">Expr</span>::<span class="ident">Cast</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Expr</span>::<span class="ident">Cast</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="ident">v</span>.<span class="ident">visit_expr_cast</span>(<span class="ident">_binding_0</span>);
         }
-        <span class="ident">Expr</span>::<span class="ident">Closure</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Expr</span>::<span class="ident">Closure</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="macro">full</span><span class="macro">!</span>(<span class="ident">v</span>.<span class="ident">visit_expr_closure</span>(<span class="ident">_binding_0</span>));
         }
-        <span class="ident">Expr</span>::<span class="ident">Continue</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Expr</span>::<span class="ident">Continue</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="macro">full</span><span class="macro">!</span>(<span class="ident">v</span>.<span class="ident">visit_expr_continue</span>(<span class="ident">_binding_0</span>));
         }
-        <span class="ident">Expr</span>::<span class="ident">Field</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Expr</span>::<span class="ident">Field</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="ident">v</span>.<span class="ident">visit_expr_field</span>(<span class="ident">_binding_0</span>);
         }
-        <span class="ident">Expr</span>::<span class="ident">ForLoop</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Expr</span>::<span class="ident">ForLoop</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="macro">full</span><span class="macro">!</span>(<span class="ident">v</span>.<span class="ident">visit_expr_for_loop</span>(<span class="ident">_binding_0</span>));
         }
-        <span class="ident">Expr</span>::<span class="ident">Group</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Expr</span>::<span class="ident">Group</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="macro">full</span><span class="macro">!</span>(<span class="ident">v</span>.<span class="ident">visit_expr_group</span>(<span class="ident">_binding_0</span>));
         }
-        <span class="ident">Expr</span>::<span class="ident">If</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Expr</span>::<span class="ident">If</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="macro">full</span><span class="macro">!</span>(<span class="ident">v</span>.<span class="ident">visit_expr_if</span>(<span class="ident">_binding_0</span>));
         }
-        <span class="ident">Expr</span>::<span class="ident">Index</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Expr</span>::<span class="ident">Index</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="ident">v</span>.<span class="ident">visit_expr_index</span>(<span class="ident">_binding_0</span>);
         }
-        <span class="ident">Expr</span>::<span class="ident">Let</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Expr</span>::<span class="ident">Let</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="macro">full</span><span class="macro">!</span>(<span class="ident">v</span>.<span class="ident">visit_expr_let</span>(<span class="ident">_binding_0</span>));
         }
-        <span class="ident">Expr</span>::<span class="ident">Lit</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Expr</span>::<span class="ident">Lit</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="ident">v</span>.<span class="ident">visit_expr_lit</span>(<span class="ident">_binding_0</span>);
         }
-        <span class="ident">Expr</span>::<span class="ident">Loop</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Expr</span>::<span class="ident">Loop</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="macro">full</span><span class="macro">!</span>(<span class="ident">v</span>.<span class="ident">visit_expr_loop</span>(<span class="ident">_binding_0</span>));
         }
-        <span class="ident">Expr</span>::<span class="ident">Macro</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Expr</span>::<span class="ident">Macro</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="macro">full</span><span class="macro">!</span>(<span class="ident">v</span>.<span class="ident">visit_expr_macro</span>(<span class="ident">_binding_0</span>));
         }
-        <span class="ident">Expr</span>::<span class="ident">Match</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Expr</span>::<span class="ident">Match</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="macro">full</span><span class="macro">!</span>(<span class="ident">v</span>.<span class="ident">visit_expr_match</span>(<span class="ident">_binding_0</span>));
         }
-        <span class="ident">Expr</span>::<span class="ident">MethodCall</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Expr</span>::<span class="ident">MethodCall</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="macro">full</span><span class="macro">!</span>(<span class="ident">v</span>.<span class="ident">visit_expr_method_call</span>(<span class="ident">_binding_0</span>));
         }
-        <span class="ident">Expr</span>::<span class="ident">Paren</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Expr</span>::<span class="ident">Paren</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="ident">v</span>.<span class="ident">visit_expr_paren</span>(<span class="ident">_binding_0</span>);
         }
-        <span class="ident">Expr</span>::<span class="ident">Path</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Expr</span>::<span class="ident">Path</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="ident">v</span>.<span class="ident">visit_expr_path</span>(<span class="ident">_binding_0</span>);
         }
-        <span class="ident">Expr</span>::<span class="ident">Range</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Expr</span>::<span class="ident">Range</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="macro">full</span><span class="macro">!</span>(<span class="ident">v</span>.<span class="ident">visit_expr_range</span>(<span class="ident">_binding_0</span>));
         }
-        <span class="ident">Expr</span>::<span class="ident">Reference</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Expr</span>::<span class="ident">Reference</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="macro">full</span><span class="macro">!</span>(<span class="ident">v</span>.<span class="ident">visit_expr_reference</span>(<span class="ident">_binding_0</span>));
         }
-        <span class="ident">Expr</span>::<span class="ident">Repeat</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Expr</span>::<span class="ident">Repeat</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="macro">full</span><span class="macro">!</span>(<span class="ident">v</span>.<span class="ident">visit_expr_repeat</span>(<span class="ident">_binding_0</span>));
         }
-        <span class="ident">Expr</span>::<span class="ident">Return</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Expr</span>::<span class="ident">Return</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="macro">full</span><span class="macro">!</span>(<span class="ident">v</span>.<span class="ident">visit_expr_return</span>(<span class="ident">_binding_0</span>));
         }
-        <span class="ident">Expr</span>::<span class="ident">Struct</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Expr</span>::<span class="ident">Struct</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="macro">full</span><span class="macro">!</span>(<span class="ident">v</span>.<span class="ident">visit_expr_struct</span>(<span class="ident">_binding_0</span>));
         }
-        <span class="ident">Expr</span>::<span class="ident">Try</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Expr</span>::<span class="ident">Try</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="macro">full</span><span class="macro">!</span>(<span class="ident">v</span>.<span class="ident">visit_expr_try</span>(<span class="ident">_binding_0</span>));
         }
-        <span class="ident">Expr</span>::<span class="ident">TryBlock</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Expr</span>::<span class="ident">TryBlock</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="macro">full</span><span class="macro">!</span>(<span class="ident">v</span>.<span class="ident">visit_expr_try_block</span>(<span class="ident">_binding_0</span>));
         }
-        <span class="ident">Expr</span>::<span class="ident">Tuple</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Expr</span>::<span class="ident">Tuple</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="macro">full</span><span class="macro">!</span>(<span class="ident">v</span>.<span class="ident">visit_expr_tuple</span>(<span class="ident">_binding_0</span>));
         }
-        <span class="ident">Expr</span>::<span class="ident">Type</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Expr</span>::<span class="ident">Type</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="macro">full</span><span class="macro">!</span>(<span class="ident">v</span>.<span class="ident">visit_expr_type</span>(<span class="ident">_binding_0</span>));
         }
-        <span class="ident">Expr</span>::<span class="ident">Unary</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Expr</span>::<span class="ident">Unary</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="ident">v</span>.<span class="ident">visit_expr_unary</span>(<span class="ident">_binding_0</span>);
         }
-        <span class="ident">Expr</span>::<span class="ident">Unsafe</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Expr</span>::<span class="ident">Unsafe</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="macro">full</span><span class="macro">!</span>(<span class="ident">v</span>.<span class="ident">visit_expr_unsafe</span>(<span class="ident">_binding_0</span>));
         }
-        <span class="ident">Expr</span>::<span class="ident">Verbatim</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Expr</span>::<span class="ident">Verbatim</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="macro">skip</span><span class="macro">!</span>(<span class="ident">_binding_0</span>);
         }
-        <span class="ident">Expr</span>::<span class="ident">While</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Expr</span>::<span class="ident">While</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="macro">full</span><span class="macro">!</span>(<span class="ident">v</span>.<span class="ident">visit_expr_while</span>(<span class="ident">_binding_0</span>));
         }
-        <span class="ident">Expr</span>::<span class="ident">Yield</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Expr</span>::<span class="ident">Yield</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="macro">full</span><span class="macro">!</span>(<span class="ident">v</span>.<span class="ident">visit_expr_yield</span>(<span class="ident">_binding_0</span>));
         }
-        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable</span><span class="macro">!</span>(),
+        <span class="kw">_</span> <span class="op">=&gt;</span> <span class="macro">unreachable</span><span class="macro">!</span>(),
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
@@ -5585,13 +5586,13 @@
     <span class="ident">V</span>: <span class="ident">Visit</span><span class="op">&lt;</span><span class="lifetime">&#39;ast</span><span class="op">&gt;</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span>,
 {
     <span class="kw">match</span> <span class="ident">node</span> {
-        <span class="ident">Fields</span>::<span class="ident">Named</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Fields</span>::<span class="ident">Named</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="ident">v</span>.<span class="ident">visit_fields_named</span>(<span class="ident">_binding_0</span>);
         }
-        <span class="ident">Fields</span>::<span class="ident">Unnamed</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Fields</span>::<span class="ident">Unnamed</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="ident">v</span>.<span class="ident">visit_fields_unnamed</span>(<span class="ident">_binding_0</span>);
         }
-        <span class="ident">Fields</span>::<span class="ident">Unit</span> <span class="op">=</span><span class="op">&gt;</span> {}
+        <span class="ident">Fields</span>::<span class="ident">Unit</span> <span class="op">=&gt;</span> {}
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
@@ -5641,10 +5642,10 @@
     <span class="ident">V</span>: <span class="ident">Visit</span><span class="op">&lt;</span><span class="lifetime">&#39;ast</span><span class="op">&gt;</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span>,
 {
     <span class="kw">match</span> <span class="ident">node</span> {
-        <span class="ident">FnArg</span>::<span class="ident">Receiver</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">FnArg</span>::<span class="ident">Receiver</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="ident">v</span>.<span class="ident">visit_receiver</span>(<span class="ident">_binding_0</span>);
         }
-        <span class="ident">FnArg</span>::<span class="ident">Typed</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">FnArg</span>::<span class="ident">Typed</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="ident">v</span>.<span class="ident">visit_pat_type</span>(<span class="ident">_binding_0</span>);
         }
     }
@@ -5655,22 +5656,22 @@
     <span class="ident">V</span>: <span class="ident">Visit</span><span class="op">&lt;</span><span class="lifetime">&#39;ast</span><span class="op">&gt;</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span>,
 {
     <span class="kw">match</span> <span class="ident">node</span> {
-        <span class="ident">ForeignItem</span>::<span class="ident">Fn</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">ForeignItem</span>::<span class="ident">Fn</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="ident">v</span>.<span class="ident">visit_foreign_item_fn</span>(<span class="ident">_binding_0</span>);
         }
-        <span class="ident">ForeignItem</span>::<span class="ident">Static</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">ForeignItem</span>::<span class="ident">Static</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="ident">v</span>.<span class="ident">visit_foreign_item_static</span>(<span class="ident">_binding_0</span>);
         }
-        <span class="ident">ForeignItem</span>::<span class="ident">Type</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">ForeignItem</span>::<span class="ident">Type</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="ident">v</span>.<span class="ident">visit_foreign_item_type</span>(<span class="ident">_binding_0</span>);
         }
-        <span class="ident">ForeignItem</span>::<span class="ident">Macro</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">ForeignItem</span>::<span class="ident">Macro</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="ident">v</span>.<span class="ident">visit_foreign_item_macro</span>(<span class="ident">_binding_0</span>);
         }
-        <span class="ident">ForeignItem</span>::<span class="ident">Verbatim</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">ForeignItem</span>::<span class="ident">Verbatim</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="macro">skip</span><span class="macro">!</span>(<span class="ident">_binding_0</span>);
         }
-        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable</span><span class="macro">!</span>(),
+        <span class="kw">_</span> <span class="op">=&gt;</span> <span class="macro">unreachable</span><span class="macro">!</span>(),
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
@@ -5735,19 +5736,19 @@
     <span class="ident">V</span>: <span class="ident">Visit</span><span class="op">&lt;</span><span class="lifetime">&#39;ast</span><span class="op">&gt;</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span>,
 {
     <span class="kw">match</span> <span class="ident">node</span> {
-        <span class="ident">GenericArgument</span>::<span class="ident">Lifetime</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">GenericArgument</span>::<span class="ident">Lifetime</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="ident">v</span>.<span class="ident">visit_lifetime</span>(<span class="ident">_binding_0</span>);
         }
-        <span class="ident">GenericArgument</span>::<span class="ident">Type</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">GenericArgument</span>::<span class="ident">Type</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="ident">v</span>.<span class="ident">visit_type</span>(<span class="ident">_binding_0</span>);
         }
-        <span class="ident">GenericArgument</span>::<span class="ident">Binding</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">GenericArgument</span>::<span class="ident">Binding</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="ident">v</span>.<span class="ident">visit_binding</span>(<span class="ident">_binding_0</span>);
         }
-        <span class="ident">GenericArgument</span>::<span class="ident">Constraint</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">GenericArgument</span>::<span class="ident">Constraint</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="ident">v</span>.<span class="ident">visit_constraint</span>(<span class="ident">_binding_0</span>);
         }
-        <span class="ident">GenericArgument</span>::<span class="ident">Const</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">GenericArgument</span>::<span class="ident">Const</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="ident">v</span>.<span class="ident">visit_expr</span>(<span class="ident">_binding_0</span>);
         }
     }
@@ -5758,10 +5759,10 @@
     <span class="ident">V</span>: <span class="ident">Visit</span><span class="op">&lt;</span><span class="lifetime">&#39;ast</span><span class="op">&gt;</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span>,
 {
     <span class="kw">match</span> <span class="ident">node</span> {
-        <span class="ident">GenericMethodArgument</span>::<span class="ident">Type</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">GenericMethodArgument</span>::<span class="ident">Type</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="ident">v</span>.<span class="ident">visit_type</span>(<span class="ident">_binding_0</span>);
         }
-        <span class="ident">GenericMethodArgument</span>::<span class="ident">Const</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">GenericMethodArgument</span>::<span class="ident">Const</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="ident">v</span>.<span class="ident">visit_expr</span>(<span class="ident">_binding_0</span>);
         }
     }
@@ -5772,13 +5773,13 @@
     <span class="ident">V</span>: <span class="ident">Visit</span><span class="op">&lt;</span><span class="lifetime">&#39;ast</span><span class="op">&gt;</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span>,
 {
     <span class="kw">match</span> <span class="ident">node</span> {
-        <span class="ident">GenericParam</span>::<span class="ident">Type</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">GenericParam</span>::<span class="ident">Type</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="ident">v</span>.<span class="ident">visit_type_param</span>(<span class="ident">_binding_0</span>);
         }
-        <span class="ident">GenericParam</span>::<span class="ident">Lifetime</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">GenericParam</span>::<span class="ident">Lifetime</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="ident">v</span>.<span class="ident">visit_lifetime_def</span>(<span class="ident">_binding_0</span>);
         }
-        <span class="ident">GenericParam</span>::<span class="ident">Const</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">GenericParam</span>::<span class="ident">Const</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="ident">v</span>.<span class="ident">visit_const_param</span>(<span class="ident">_binding_0</span>);
         }
     }
@@ -5817,22 +5818,22 @@
     <span class="ident">V</span>: <span class="ident">Visit</span><span class="op">&lt;</span><span class="lifetime">&#39;ast</span><span class="op">&gt;</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span>,
 {
     <span class="kw">match</span> <span class="ident">node</span> {
-        <span class="ident">ImplItem</span>::<span class="ident">Const</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">ImplItem</span>::<span class="ident">Const</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="ident">v</span>.<span class="ident">visit_impl_item_const</span>(<span class="ident">_binding_0</span>);
         }
-        <span class="ident">ImplItem</span>::<span class="ident">Method</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">ImplItem</span>::<span class="ident">Method</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="ident">v</span>.<span class="ident">visit_impl_item_method</span>(<span class="ident">_binding_0</span>);
         }
-        <span class="ident">ImplItem</span>::<span class="ident">Type</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">ImplItem</span>::<span class="ident">Type</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="ident">v</span>.<span class="ident">visit_impl_item_type</span>(<span class="ident">_binding_0</span>);
         }
-        <span class="ident">ImplItem</span>::<span class="ident">Macro</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">ImplItem</span>::<span class="ident">Macro</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="ident">v</span>.<span class="ident">visit_impl_item_macro</span>(<span class="ident">_binding_0</span>);
         }
-        <span class="ident">ImplItem</span>::<span class="ident">Verbatim</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">ImplItem</span>::<span class="ident">Verbatim</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="macro">skip</span><span class="macro">!</span>(<span class="ident">_binding_0</span>);
         }
-        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable</span><span class="macro">!</span>(),
+        <span class="kw">_</span> <span class="op">=&gt;</span> <span class="macro">unreachable</span><span class="macro">!</span>(),
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
@@ -5916,58 +5917,58 @@
     <span class="ident">V</span>: <span class="ident">Visit</span><span class="op">&lt;</span><span class="lifetime">&#39;ast</span><span class="op">&gt;</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span>,
 {
     <span class="kw">match</span> <span class="ident">node</span> {
-        <span class="ident">Item</span>::<span class="ident">Const</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Item</span>::<span class="ident">Const</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="ident">v</span>.<span class="ident">visit_item_const</span>(<span class="ident">_binding_0</span>);
         }
-        <span class="ident">Item</span>::<span class="ident">Enum</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Item</span>::<span class="ident">Enum</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="ident">v</span>.<span class="ident">visit_item_enum</span>(<span class="ident">_binding_0</span>);
         }
-        <span class="ident">Item</span>::<span class="ident">ExternCrate</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Item</span>::<span class="ident">ExternCrate</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="ident">v</span>.<span class="ident">visit_item_extern_crate</span>(<span class="ident">_binding_0</span>);
         }
-        <span class="ident">Item</span>::<span class="ident">Fn</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Item</span>::<span class="ident">Fn</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="ident">v</span>.<span class="ident">visit_item_fn</span>(<span class="ident">_binding_0</span>);
         }
-        <span class="ident">Item</span>::<span class="ident">ForeignMod</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Item</span>::<span class="ident">ForeignMod</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="ident">v</span>.<span class="ident">visit_item_foreign_mod</span>(<span class="ident">_binding_0</span>);
         }
-        <span class="ident">Item</span>::<span class="ident">Impl</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Item</span>::<span class="ident">Impl</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="ident">v</span>.<span class="ident">visit_item_impl</span>(<span class="ident">_binding_0</span>);
         }
-        <span class="ident">Item</span>::<span class="ident">Macro</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Item</span>::<span class="ident">Macro</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="ident">v</span>.<span class="ident">visit_item_macro</span>(<span class="ident">_binding_0</span>);
         }
-        <span class="ident">Item</span>::<span class="ident">Macro2</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Item</span>::<span class="ident">Macro2</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="ident">v</span>.<span class="ident">visit_item_macro2</span>(<span class="ident">_binding_0</span>);
         }
-        <span class="ident">Item</span>::<span class="ident">Mod</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Item</span>::<span class="ident">Mod</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="ident">v</span>.<span class="ident">visit_item_mod</span>(<span class="ident">_binding_0</span>);
         }
-        <span class="ident">Item</span>::<span class="ident">Static</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Item</span>::<span class="ident">Static</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="ident">v</span>.<span class="ident">visit_item_static</span>(<span class="ident">_binding_0</span>);
         }
-        <span class="ident">Item</span>::<span class="ident">Struct</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Item</span>::<span class="ident">Struct</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="ident">v</span>.<span class="ident">visit_item_struct</span>(<span class="ident">_binding_0</span>);
         }
-        <span class="ident">Item</span>::<span class="ident">Trait</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Item</span>::<span class="ident">Trait</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="ident">v</span>.<span class="ident">visit_item_trait</span>(<span class="ident">_binding_0</span>);
         }
-        <span class="ident">Item</span>::<span class="ident">TraitAlias</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Item</span>::<span class="ident">TraitAlias</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="ident">v</span>.<span class="ident">visit_item_trait_alias</span>(<span class="ident">_binding_0</span>);
         }
-        <span class="ident">Item</span>::<span class="ident">Type</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Item</span>::<span class="ident">Type</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="ident">v</span>.<span class="ident">visit_item_type</span>(<span class="ident">_binding_0</span>);
         }
-        <span class="ident">Item</span>::<span class="ident">Union</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Item</span>::<span class="ident">Union</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="ident">v</span>.<span class="ident">visit_item_union</span>(<span class="ident">_binding_0</span>);
         }
-        <span class="ident">Item</span>::<span class="ident">Use</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Item</span>::<span class="ident">Use</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="ident">v</span>.<span class="ident">visit_item_use</span>(<span class="ident">_binding_0</span>);
         }
-        <span class="ident">Item</span>::<span class="ident">Verbatim</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Item</span>::<span class="ident">Verbatim</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="macro">skip</span><span class="macro">!</span>(<span class="ident">_binding_0</span>);
         }
-        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable</span><span class="macro">!</span>(),
+        <span class="kw">_</span> <span class="op">=&gt;</span> <span class="macro">unreachable</span><span class="macro">!</span>(),
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
@@ -6309,28 +6310,28 @@
     <span class="ident">V</span>: <span class="ident">Visit</span><span class="op">&lt;</span><span class="lifetime">&#39;ast</span><span class="op">&gt;</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span>,
 {
     <span class="kw">match</span> <span class="ident">node</span> {
-        <span class="ident">Lit</span>::<span class="ident">Str</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Lit</span>::<span class="ident">Str</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="ident">v</span>.<span class="ident">visit_lit_str</span>(<span class="ident">_binding_0</span>);
         }
-        <span class="ident">Lit</span>::<span class="ident">ByteStr</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Lit</span>::<span class="ident">ByteStr</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="ident">v</span>.<span class="ident">visit_lit_byte_str</span>(<span class="ident">_binding_0</span>);
         }
-        <span class="ident">Lit</span>::<span class="ident">Byte</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Lit</span>::<span class="ident">Byte</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="ident">v</span>.<span class="ident">visit_lit_byte</span>(<span class="ident">_binding_0</span>);
         }
-        <span class="ident">Lit</span>::<span class="ident">Char</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Lit</span>::<span class="ident">Char</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="ident">v</span>.<span class="ident">visit_lit_char</span>(<span class="ident">_binding_0</span>);
         }
-        <span class="ident">Lit</span>::<span class="ident">Int</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Lit</span>::<span class="ident">Int</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="ident">v</span>.<span class="ident">visit_lit_int</span>(<span class="ident">_binding_0</span>);
         }
-        <span class="ident">Lit</span>::<span class="ident">Float</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Lit</span>::<span class="ident">Float</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="ident">v</span>.<span class="ident">visit_lit_float</span>(<span class="ident">_binding_0</span>);
         }
-        <span class="ident">Lit</span>::<span class="ident">Bool</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Lit</span>::<span class="ident">Bool</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="ident">v</span>.<span class="ident">visit_lit_bool</span>(<span class="ident">_binding_0</span>);
         }
-        <span class="ident">Lit</span>::<span class="ident">Verbatim</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Lit</span>::<span class="ident">Verbatim</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="macro">skip</span><span class="macro">!</span>(<span class="ident">_binding_0</span>);
         }
     }
@@ -6404,13 +6405,13 @@
     <span class="ident">V</span>: <span class="ident">Visit</span><span class="op">&lt;</span><span class="lifetime">&#39;ast</span><span class="op">&gt;</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span>,
 {
     <span class="kw">match</span> <span class="ident">node</span> {
-        <span class="ident">MacroDelimiter</span>::<span class="ident">Paren</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">MacroDelimiter</span>::<span class="ident">Paren</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="ident">tokens_helper</span>(<span class="ident">v</span>, <span class="kw-2">&amp;</span><span class="ident">_binding_0</span>.<span class="ident">span</span>);
         }
-        <span class="ident">MacroDelimiter</span>::<span class="ident">Brace</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">MacroDelimiter</span>::<span class="ident">Brace</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="ident">tokens_helper</span>(<span class="ident">v</span>, <span class="kw-2">&amp;</span><span class="ident">_binding_0</span>.<span class="ident">span</span>);
         }
-        <span class="ident">MacroDelimiter</span>::<span class="ident">Bracket</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">MacroDelimiter</span>::<span class="ident">Bracket</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="ident">tokens_helper</span>(<span class="ident">v</span>, <span class="kw-2">&amp;</span><span class="ident">_binding_0</span>.<span class="ident">span</span>);
         }
     }
@@ -6421,10 +6422,10 @@
     <span class="ident">V</span>: <span class="ident">Visit</span><span class="op">&lt;</span><span class="lifetime">&#39;ast</span><span class="op">&gt;</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span>,
 {
     <span class="kw">match</span> <span class="ident">node</span> {
-        <span class="ident">Member</span>::<span class="ident">Named</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Member</span>::<span class="ident">Named</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="ident">v</span>.<span class="ident">visit_ident</span>(<span class="ident">_binding_0</span>);
         }
-        <span class="ident">Member</span>::<span class="ident">Unnamed</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Member</span>::<span class="ident">Unnamed</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="ident">v</span>.<span class="ident">visit_index</span>(<span class="ident">_binding_0</span>);
         }
     }
@@ -6435,13 +6436,13 @@
     <span class="ident">V</span>: <span class="ident">Visit</span><span class="op">&lt;</span><span class="lifetime">&#39;ast</span><span class="op">&gt;</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span>,
 {
     <span class="kw">match</span> <span class="ident">node</span> {
-        <span class="ident">Meta</span>::<span class="ident">Path</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Meta</span>::<span class="ident">Path</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="ident">v</span>.<span class="ident">visit_path</span>(<span class="ident">_binding_0</span>);
         }
-        <span class="ident">Meta</span>::<span class="ident">List</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Meta</span>::<span class="ident">List</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="ident">v</span>.<span class="ident">visit_meta_list</span>(<span class="ident">_binding_0</span>);
         }
-        <span class="ident">Meta</span>::<span class="ident">NameValue</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Meta</span>::<span class="ident">NameValue</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="ident">v</span>.<span class="ident">visit_meta_name_value</span>(<span class="ident">_binding_0</span>);
         }
     }
@@ -6492,10 +6493,10 @@
     <span class="ident">V</span>: <span class="ident">Visit</span><span class="op">&lt;</span><span class="lifetime">&#39;ast</span><span class="op">&gt;</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span>,
 {
     <span class="kw">match</span> <span class="ident">node</span> {
-        <span class="ident">NestedMeta</span>::<span class="ident">Meta</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">NestedMeta</span>::<span class="ident">Meta</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="ident">v</span>.<span class="ident">visit_meta</span>(<span class="ident">_binding_0</span>);
         }
-        <span class="ident">NestedMeta</span>::<span class="ident">Lit</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">NestedMeta</span>::<span class="ident">Lit</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="ident">v</span>.<span class="ident">visit_lit</span>(<span class="ident">_binding_0</span>);
         }
     }
@@ -6523,55 +6524,55 @@
     <span class="ident">V</span>: <span class="ident">Visit</span><span class="op">&lt;</span><span class="lifetime">&#39;ast</span><span class="op">&gt;</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span>,
 {
     <span class="kw">match</span> <span class="ident">node</span> {
-        <span class="ident">Pat</span>::<span class="ident">Box</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Pat</span>::<span class="ident">Box</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="ident">v</span>.<span class="ident">visit_pat_box</span>(<span class="ident">_binding_0</span>);
         }
-        <span class="ident">Pat</span>::<span class="ident">Ident</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Pat</span>::<span class="ident">Ident</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="ident">v</span>.<span class="ident">visit_pat_ident</span>(<span class="ident">_binding_0</span>);
         }
-        <span class="ident">Pat</span>::<span class="ident">Lit</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Pat</span>::<span class="ident">Lit</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="ident">v</span>.<span class="ident">visit_pat_lit</span>(<span class="ident">_binding_0</span>);
         }
-        <span class="ident">Pat</span>::<span class="ident">Macro</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Pat</span>::<span class="ident">Macro</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="ident">v</span>.<span class="ident">visit_pat_macro</span>(<span class="ident">_binding_0</span>);
         }
-        <span class="ident">Pat</span>::<span class="ident">Or</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Pat</span>::<span class="ident">Or</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="ident">v</span>.<span class="ident">visit_pat_or</span>(<span class="ident">_binding_0</span>);
         }
-        <span class="ident">Pat</span>::<span class="ident">Path</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Pat</span>::<span class="ident">Path</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="ident">v</span>.<span class="ident">visit_pat_path</span>(<span class="ident">_binding_0</span>);
         }
-        <span class="ident">Pat</span>::<span class="ident">Range</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Pat</span>::<span class="ident">Range</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="ident">v</span>.<span class="ident">visit_pat_range</span>(<span class="ident">_binding_0</span>);
         }
-        <span class="ident">Pat</span>::<span class="ident">Reference</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Pat</span>::<span class="ident">Reference</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="ident">v</span>.<span class="ident">visit_pat_reference</span>(<span class="ident">_binding_0</span>);
         }
-        <span class="ident">Pat</span>::<span class="ident">Rest</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Pat</span>::<span class="ident">Rest</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="ident">v</span>.<span class="ident">visit_pat_rest</span>(<span class="ident">_binding_0</span>);
         }
-        <span class="ident">Pat</span>::<span class="ident">Slice</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Pat</span>::<span class="ident">Slice</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="ident">v</span>.<span class="ident">visit_pat_slice</span>(<span class="ident">_binding_0</span>);
         }
-        <span class="ident">Pat</span>::<span class="ident">Struct</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Pat</span>::<span class="ident">Struct</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="ident">v</span>.<span class="ident">visit_pat_struct</span>(<span class="ident">_binding_0</span>);
         }
-        <span class="ident">Pat</span>::<span class="ident">Tuple</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Pat</span>::<span class="ident">Tuple</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="ident">v</span>.<span class="ident">visit_pat_tuple</span>(<span class="ident">_binding_0</span>);
         }
-        <span class="ident">Pat</span>::<span class="ident">TupleStruct</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Pat</span>::<span class="ident">TupleStruct</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="ident">v</span>.<span class="ident">visit_pat_tuple_struct</span>(<span class="ident">_binding_0</span>);
         }
-        <span class="ident">Pat</span>::<span class="ident">Type</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Pat</span>::<span class="ident">Type</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="ident">v</span>.<span class="ident">visit_pat_type</span>(<span class="ident">_binding_0</span>);
         }
-        <span class="ident">Pat</span>::<span class="ident">Verbatim</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Pat</span>::<span class="ident">Verbatim</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="macro">skip</span><span class="macro">!</span>(<span class="ident">_binding_0</span>);
         }
-        <span class="ident">Pat</span>::<span class="ident">Wild</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Pat</span>::<span class="ident">Wild</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="ident">v</span>.<span class="ident">visit_pat_wild</span>(<span class="ident">_binding_0</span>);
         }
-        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable</span><span class="macro">!</span>(),
+        <span class="kw">_</span> <span class="op">=&gt;</span> <span class="macro">unreachable</span><span class="macro">!</span>(),
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
@@ -6803,11 +6804,11 @@
     <span class="ident">V</span>: <span class="ident">Visit</span><span class="op">&lt;</span><span class="lifetime">&#39;ast</span><span class="op">&gt;</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span>,
 {
     <span class="kw">match</span> <span class="ident">node</span> {
-        <span class="ident">PathArguments</span>::<span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> {}
-        <span class="ident">PathArguments</span>::<span class="ident">AngleBracketed</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">PathArguments</span>::<span class="prelude-val">None</span> <span class="op">=&gt;</span> {}
+        <span class="ident">PathArguments</span>::<span class="ident">AngleBracketed</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="ident">v</span>.<span class="ident">visit_angle_bracketed_generic_arguments</span>(<span class="ident">_binding_0</span>);
         }
-        <span class="ident">PathArguments</span>::<span class="ident">Parenthesized</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">PathArguments</span>::<span class="ident">Parenthesized</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="ident">v</span>.<span class="ident">visit_parenthesized_generic_arguments</span>(<span class="ident">_binding_0</span>);
         }
     }
@@ -6881,10 +6882,10 @@
     <span class="ident">V</span>: <span class="ident">Visit</span><span class="op">&lt;</span><span class="lifetime">&#39;ast</span><span class="op">&gt;</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span>,
 {
     <span class="kw">match</span> <span class="ident">node</span> {
-        <span class="ident">RangeLimits</span>::<span class="ident">HalfOpen</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">RangeLimits</span>::<span class="ident">HalfOpen</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="ident">tokens_helper</span>(<span class="ident">v</span>, <span class="kw-2">&amp;</span><span class="ident">_binding_0</span>.<span class="ident">spans</span>);
         }
-        <span class="ident">RangeLimits</span>::<span class="ident">Closed</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">RangeLimits</span>::<span class="ident">Closed</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="ident">tokens_helper</span>(<span class="ident">v</span>, <span class="kw-2">&amp;</span><span class="ident">_binding_0</span>.<span class="ident">spans</span>);
         }
     }
@@ -6914,8 +6915,8 @@
     <span class="ident">V</span>: <span class="ident">Visit</span><span class="op">&lt;</span><span class="lifetime">&#39;ast</span><span class="op">&gt;</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span>,
 {
     <span class="kw">match</span> <span class="ident">node</span> {
-        <span class="ident">ReturnType</span>::<span class="ident">Default</span> <span class="op">=</span><span class="op">&gt;</span> {}
-        <span class="ident">ReturnType</span>::<span class="ident">Type</span>(<span class="ident">_binding_0</span>, <span class="ident">_binding_1</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">ReturnType</span>::<span class="ident">Default</span> <span class="op">=&gt;</span> {}
+        <span class="ident">ReturnType</span>::<span class="ident">Type</span>(<span class="ident">_binding_0</span>, <span class="ident">_binding_1</span>) <span class="op">=&gt;</span> {
             <span class="ident">tokens_helper</span>(<span class="ident">v</span>, <span class="kw-2">&amp;</span><span class="ident">_binding_0</span>.<span class="ident">spans</span>);
             <span class="ident">v</span>.<span class="ident">visit_type</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="kw-2">*</span><span class="ident">_binding_1</span>);
         }
@@ -6965,16 +6966,16 @@
     <span class="ident">V</span>: <span class="ident">Visit</span><span class="op">&lt;</span><span class="lifetime">&#39;ast</span><span class="op">&gt;</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span>,
 {
     <span class="kw">match</span> <span class="ident">node</span> {
-        <span class="ident">Stmt</span>::<span class="ident">Local</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Stmt</span>::<span class="ident">Local</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="ident">v</span>.<span class="ident">visit_local</span>(<span class="ident">_binding_0</span>);
         }
-        <span class="ident">Stmt</span>::<span class="ident">Item</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Stmt</span>::<span class="ident">Item</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="ident">v</span>.<span class="ident">visit_item</span>(<span class="ident">_binding_0</span>);
         }
-        <span class="ident">Stmt</span>::<span class="ident">Expr</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Stmt</span>::<span class="ident">Expr</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="ident">v</span>.<span class="ident">visit_expr</span>(<span class="ident">_binding_0</span>);
         }
-        <span class="ident">Stmt</span>::<span class="ident">Semi</span>(<span class="ident">_binding_0</span>, <span class="ident">_binding_1</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Stmt</span>::<span class="ident">Semi</span>(<span class="ident">_binding_0</span>, <span class="ident">_binding_1</span>) <span class="op">=&gt;</span> {
             <span class="ident">v</span>.<span class="ident">visit_expr</span>(<span class="ident">_binding_0</span>);
             <span class="ident">tokens_helper</span>(<span class="ident">v</span>, <span class="kw-2">&amp;</span><span class="ident">_binding_1</span>.<span class="ident">spans</span>);
         }
@@ -7000,8 +7001,8 @@
     <span class="ident">V</span>: <span class="ident">Visit</span><span class="op">&lt;</span><span class="lifetime">&#39;ast</span><span class="op">&gt;</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span>,
 {
     <span class="kw">match</span> <span class="ident">node</span> {
-        <span class="ident">TraitBoundModifier</span>::<span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> {}
-        <span class="ident">TraitBoundModifier</span>::<span class="ident">Maybe</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">TraitBoundModifier</span>::<span class="prelude-val">None</span> <span class="op">=&gt;</span> {}
+        <span class="ident">TraitBoundModifier</span>::<span class="ident">Maybe</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="ident">tokens_helper</span>(<span class="ident">v</span>, <span class="kw-2">&amp;</span><span class="ident">_binding_0</span>.<span class="ident">spans</span>);
         }
     }
@@ -7012,22 +7013,22 @@
     <span class="ident">V</span>: <span class="ident">Visit</span><span class="op">&lt;</span><span class="lifetime">&#39;ast</span><span class="op">&gt;</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span>,
 {
     <span class="kw">match</span> <span class="ident">node</span> {
-        <span class="ident">TraitItem</span>::<span class="ident">Const</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">TraitItem</span>::<span class="ident">Const</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="ident">v</span>.<span class="ident">visit_trait_item_const</span>(<span class="ident">_binding_0</span>);
         }
-        <span class="ident">TraitItem</span>::<span class="ident">Method</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">TraitItem</span>::<span class="ident">Method</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="ident">v</span>.<span class="ident">visit_trait_item_method</span>(<span class="ident">_binding_0</span>);
         }
-        <span class="ident">TraitItem</span>::<span class="ident">Type</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">TraitItem</span>::<span class="ident">Type</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="ident">v</span>.<span class="ident">visit_trait_item_type</span>(<span class="ident">_binding_0</span>);
         }
-        <span class="ident">TraitItem</span>::<span class="ident">Macro</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">TraitItem</span>::<span class="ident">Macro</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="ident">v</span>.<span class="ident">visit_trait_item_macro</span>(<span class="ident">_binding_0</span>);
         }
-        <span class="ident">TraitItem</span>::<span class="ident">Verbatim</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">TraitItem</span>::<span class="ident">Verbatim</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="macro">skip</span><span class="macro">!</span>(<span class="ident">_binding_0</span>);
         }
-        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable</span><span class="macro">!</span>(),
+        <span class="kw">_</span> <span class="op">=&gt;</span> <span class="macro">unreachable</span><span class="macro">!</span>(),
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
@@ -7110,52 +7111,52 @@
     <span class="ident">V</span>: <span class="ident">Visit</span><span class="op">&lt;</span><span class="lifetime">&#39;ast</span><span class="op">&gt;</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span>,
 {
     <span class="kw">match</span> <span class="ident">node</span> {
-        <span class="ident">Type</span>::<span class="ident">Array</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Type</span>::<span class="ident">Array</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="ident">v</span>.<span class="ident">visit_type_array</span>(<span class="ident">_binding_0</span>);
         }
-        <span class="ident">Type</span>::<span class="ident">BareFn</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Type</span>::<span class="ident">BareFn</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="ident">v</span>.<span class="ident">visit_type_bare_fn</span>(<span class="ident">_binding_0</span>);
         }
-        <span class="ident">Type</span>::<span class="ident">Group</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Type</span>::<span class="ident">Group</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="ident">v</span>.<span class="ident">visit_type_group</span>(<span class="ident">_binding_0</span>);
         }
-        <span class="ident">Type</span>::<span class="ident">ImplTrait</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Type</span>::<span class="ident">ImplTrait</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="ident">v</span>.<span class="ident">visit_type_impl_trait</span>(<span class="ident">_binding_0</span>);
         }
-        <span class="ident">Type</span>::<span class="ident">Infer</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Type</span>::<span class="ident">Infer</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="ident">v</span>.<span class="ident">visit_type_infer</span>(<span class="ident">_binding_0</span>);
         }
-        <span class="ident">Type</span>::<span class="ident">Macro</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Type</span>::<span class="ident">Macro</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="ident">v</span>.<span class="ident">visit_type_macro</span>(<span class="ident">_binding_0</span>);
         }
-        <span class="ident">Type</span>::<span class="ident">Never</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Type</span>::<span class="ident">Never</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="ident">v</span>.<span class="ident">visit_type_never</span>(<span class="ident">_binding_0</span>);
         }
-        <span class="ident">Type</span>::<span class="ident">Paren</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Type</span>::<span class="ident">Paren</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="ident">v</span>.<span class="ident">visit_type_paren</span>(<span class="ident">_binding_0</span>);
         }
-        <span class="ident">Type</span>::<span class="ident">Path</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Type</span>::<span class="ident">Path</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="ident">v</span>.<span class="ident">visit_type_path</span>(<span class="ident">_binding_0</span>);
         }
-        <span class="ident">Type</span>::<span class="ident">Ptr</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Type</span>::<span class="ident">Ptr</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="ident">v</span>.<span class="ident">visit_type_ptr</span>(<span class="ident">_binding_0</span>);
         }
-        <span class="ident">Type</span>::<span class="ident">Reference</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Type</span>::<span class="ident">Reference</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="ident">v</span>.<span class="ident">visit_type_reference</span>(<span class="ident">_binding_0</span>);
         }
-        <span class="ident">Type</span>::<span class="ident">Slice</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Type</span>::<span class="ident">Slice</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="ident">v</span>.<span class="ident">visit_type_slice</span>(<span class="ident">_binding_0</span>);
         }
-        <span class="ident">Type</span>::<span class="ident">TraitObject</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Type</span>::<span class="ident">TraitObject</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="ident">v</span>.<span class="ident">visit_type_trait_object</span>(<span class="ident">_binding_0</span>);
         }
-        <span class="ident">Type</span>::<span class="ident">Tuple</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Type</span>::<span class="ident">Tuple</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="ident">v</span>.<span class="ident">visit_type_tuple</span>(<span class="ident">_binding_0</span>);
         }
-        <span class="ident">Type</span>::<span class="ident">Verbatim</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Type</span>::<span class="ident">Verbatim</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="macro">skip</span><span class="macro">!</span>(<span class="ident">_binding_0</span>);
         }
-        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable</span><span class="macro">!</span>(),
+        <span class="kw">_</span> <span class="op">=&gt;</span> <span class="macro">unreachable</span><span class="macro">!</span>(),
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
@@ -7271,10 +7272,10 @@
     <span class="ident">V</span>: <span class="ident">Visit</span><span class="op">&lt;</span><span class="lifetime">&#39;ast</span><span class="op">&gt;</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span>,
 {
     <span class="kw">match</span> <span class="ident">node</span> {
-        <span class="ident">TypeParamBound</span>::<span class="ident">Trait</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">TypeParamBound</span>::<span class="ident">Trait</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="ident">v</span>.<span class="ident">visit_trait_bound</span>(<span class="ident">_binding_0</span>);
         }
-        <span class="ident">TypeParamBound</span>::<span class="ident">Lifetime</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">TypeParamBound</span>::<span class="ident">Lifetime</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="ident">v</span>.<span class="ident">visit_lifetime</span>(<span class="ident">_binding_0</span>);
         }
     }
@@ -7369,13 +7370,13 @@
     <span class="ident">V</span>: <span class="ident">Visit</span><span class="op">&lt;</span><span class="lifetime">&#39;ast</span><span class="op">&gt;</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span>,
 {
     <span class="kw">match</span> <span class="ident">node</span> {
-        <span class="ident">UnOp</span>::<span class="ident">Deref</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">UnOp</span>::<span class="ident">Deref</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="ident">tokens_helper</span>(<span class="ident">v</span>, <span class="kw-2">&amp;</span><span class="ident">_binding_0</span>.<span class="ident">spans</span>);
         }
-        <span class="ident">UnOp</span>::<span class="ident">Not</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">UnOp</span>::<span class="ident">Not</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="ident">tokens_helper</span>(<span class="ident">v</span>, <span class="kw-2">&amp;</span><span class="ident">_binding_0</span>.<span class="ident">spans</span>);
         }
-        <span class="ident">UnOp</span>::<span class="ident">Neg</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">UnOp</span>::<span class="ident">Neg</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="ident">tokens_helper</span>(<span class="ident">v</span>, <span class="kw-2">&amp;</span><span class="ident">_binding_0</span>.<span class="ident">spans</span>);
         }
     }
@@ -7432,19 +7433,19 @@
     <span class="ident">V</span>: <span class="ident">Visit</span><span class="op">&lt;</span><span class="lifetime">&#39;ast</span><span class="op">&gt;</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span>,
 {
     <span class="kw">match</span> <span class="ident">node</span> {
-        <span class="ident">UseTree</span>::<span class="ident">Path</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">UseTree</span>::<span class="ident">Path</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="ident">v</span>.<span class="ident">visit_use_path</span>(<span class="ident">_binding_0</span>);
         }
-        <span class="ident">UseTree</span>::<span class="ident">Name</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">UseTree</span>::<span class="ident">Name</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="ident">v</span>.<span class="ident">visit_use_name</span>(<span class="ident">_binding_0</span>);
         }
-        <span class="ident">UseTree</span>::<span class="ident">Rename</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">UseTree</span>::<span class="ident">Rename</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="ident">v</span>.<span class="ident">visit_use_rename</span>(<span class="ident">_binding_0</span>);
         }
-        <span class="ident">UseTree</span>::<span class="ident">Glob</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">UseTree</span>::<span class="ident">Glob</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="ident">v</span>.<span class="ident">visit_use_glob</span>(<span class="ident">_binding_0</span>);
         }
-        <span class="ident">UseTree</span>::<span class="ident">Group</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">UseTree</span>::<span class="ident">Group</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="ident">v</span>.<span class="ident">visit_use_group</span>(<span class="ident">_binding_0</span>);
         }
     }
@@ -7506,16 +7507,16 @@
     <span class="ident">V</span>: <span class="ident">Visit</span><span class="op">&lt;</span><span class="lifetime">&#39;ast</span><span class="op">&gt;</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span>,
 {
     <span class="kw">match</span> <span class="ident">node</span> {
-        <span class="ident">Visibility</span>::<span class="ident">Public</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Visibility</span>::<span class="ident">Public</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="ident">v</span>.<span class="ident">visit_vis_public</span>(<span class="ident">_binding_0</span>);
         }
-        <span class="ident">Visibility</span>::<span class="ident">Crate</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Visibility</span>::<span class="ident">Crate</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="ident">v</span>.<span class="ident">visit_vis_crate</span>(<span class="ident">_binding_0</span>);
         }
-        <span class="ident">Visibility</span>::<span class="ident">Restricted</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Visibility</span>::<span class="ident">Restricted</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="ident">v</span>.<span class="ident">visit_vis_restricted</span>(<span class="ident">_binding_0</span>);
         }
-        <span class="ident">Visibility</span>::<span class="ident">Inherited</span> <span class="op">=</span><span class="op">&gt;</span> {}
+        <span class="ident">Visibility</span>::<span class="ident">Inherited</span> <span class="op">=&gt;</span> {}
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
@@ -7538,13 +7539,13 @@
     <span class="ident">V</span>: <span class="ident">Visit</span><span class="op">&lt;</span><span class="lifetime">&#39;ast</span><span class="op">&gt;</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span>,
 {
     <span class="kw">match</span> <span class="ident">node</span> {
-        <span class="ident">WherePredicate</span>::<span class="ident">Type</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">WherePredicate</span>::<span class="ident">Type</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="ident">v</span>.<span class="ident">visit_predicate_type</span>(<span class="ident">_binding_0</span>);
         }
-        <span class="ident">WherePredicate</span>::<span class="ident">Lifetime</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">WherePredicate</span>::<span class="ident">Lifetime</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="ident">v</span>.<span class="ident">visit_predicate_lifetime</span>(<span class="ident">_binding_0</span>);
         }
-        <span class="ident">WherePredicate</span>::<span class="ident">Eq</span>(<span class="ident">_binding_0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">WherePredicate</span>::<span class="ident">Eq</span>(<span class="ident">_binding_0</span>) <span class="op">=&gt;</span> {
             <span class="ident">v</span>.<span class="ident">visit_predicate_eq</span>(<span class="ident">_binding_0</span>);
         }
     }

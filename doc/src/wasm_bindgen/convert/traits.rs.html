@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/wasm-bindgen-0.2.68/src/convert/traits.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>traits.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css"><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script src="../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="shortcut icon" href="../../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../wasm_bindgen/index.html'><div class='logo-container'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/wasm-bindgen-0.2.68/src/convert/traits.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>traits.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script src="../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="shortcut icon" href="../../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../wasm_bindgen/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
+                <a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -143,7 +144,7 @@
 
     <span class="doccomment">/// Convert `self` into `Self::Abi` so that it can be sent across the wasm</span>
     <span class="doccomment">/// ABI boundary.</span>
-    <span class="kw">fn</span> <span class="ident">into_abi</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">Abi</span>;
+    <span class="kw">fn</span> <span class="ident">into_abi</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span>::<span class="ident">Abi</span>;
 }
 
 <span class="doccomment">/// A trait for anything that can be recovered by-value from the wasm ABI</span>
@@ -162,7 +163,7 @@
     <span class="doccomment">/// This is only safe to call when -- and implementations may assume that --</span>
     <span class="doccomment">/// the supplied `Self::Abi` was previously generated by a call to `&lt;Self as</span>
     <span class="doccomment">/// IntoWasmAbi&gt;::into_abi()` or the moral equivalent in JS.</span>
-    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">from_abi</span>(<span class="ident">js</span>: <span class="self">Self</span>::<span class="ident">Abi</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
+    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">from_abi</span>(<span class="ident">js</span>: <span class="self">Self</span>::<span class="ident">Abi</span>) <span class="op">-&gt;</span> <span class="self">Self</span>;
 }
 
 <span class="doccomment">/// A trait for anything that can be recovered as some sort of shared reference</span>
@@ -185,7 +186,7 @@
     <span class="doccomment">/// # Safety</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Same as `FromWasmAbi::from_abi`.</span>
-    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">ref_from_abi</span>(<span class="ident">js</span>: <span class="self">Self</span>::<span class="ident">Abi</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">Anchor</span>;
+    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">ref_from_abi</span>(<span class="ident">js</span>: <span class="self">Self</span>::<span class="ident">Abi</span>) <span class="op">-&gt;</span> <span class="self">Self</span>::<span class="ident">Anchor</span>;
 }
 
 <span class="doccomment">/// Dual of the `RefFromWasmAbi` trait, except for mutable references.</span>
@@ -195,7 +196,7 @@
     <span class="doccomment">/// Same as `RefFromWasmAbi::Anchor`</span>
     <span class="kw">type</span> <span class="ident">Anchor</span>: <span class="ident">DerefMut</span><span class="op">&lt;</span><span class="ident">Target</span> <span class="op">=</span> <span class="self">Self</span><span class="op">&gt;</span>;
     <span class="doccomment">/// Same as `RefFromWasmAbi::ref_from_abi`</span>
-    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">ref_mut_from_abi</span>(<span class="ident">js</span>: <span class="self">Self</span>::<span class="ident">Abi</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">Anchor</span>;
+    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">ref_mut_from_abi</span>(<span class="ident">js</span>: <span class="self">Self</span>::<span class="ident">Abi</span>) <span class="op">-&gt;</span> <span class="self">Self</span>::<span class="ident">Anchor</span>;
 }
 
 <span class="doccomment">/// Indicates that this type can be passed to JS as `Option&lt;Self&gt;`.</span>
@@ -207,7 +208,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// It should be guaranteed that the `IntoWasmAbi` can never produce the ABI</span>
     <span class="doccomment">/// value returned here.</span>
-    <span class="kw">fn</span> <span class="ident">none</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">Abi</span>;
+    <span class="kw">fn</span> <span class="ident">none</span>() <span class="op">-&gt;</span> <span class="self">Self</span>::<span class="ident">Abi</span>;
 }
 
 <span class="doccomment">/// Indicates that this type can be received from JS as `Option&lt;Self&gt;`.</span>
@@ -217,7 +218,7 @@
     <span class="doccomment">/// Tests whether the argument is a &quot;none&quot; instance. If so it will be</span>
     <span class="doccomment">/// deserialized as `None`, and otherwise it will be passed to</span>
     <span class="doccomment">/// `FromWasmAbi`.</span>
-    <span class="kw">fn</span> <span class="ident">is_none</span>(<span class="ident">abi</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>::<span class="ident">Abi</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span>;
+    <span class="kw">fn</span> <span class="ident">is_none</span>(<span class="ident">abi</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>::<span class="ident">Abi</span>) <span class="op">-&gt;</span> <span class="ident">bool</span>;
 }
 
 <span class="doccomment">/// An unsafe trait which represents types that are ABI-safe to pass via wasm</span>
@@ -246,14 +247,14 @@
 
     <span class="doccomment">/// Same as `IntoWasmAbi::into_abi`, except that it may throw and never</span>
     <span class="doccomment">/// return in the case of `Err`.</span>
-    <span class="kw">fn</span> <span class="ident">return_abi</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">Abi</span>;
+    <span class="kw">fn</span> <span class="ident">return_abi</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span>::<span class="ident">Abi</span>;
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">IntoWasmAbi</span><span class="op">&gt;</span> <span class="ident">ReturnWasmAbi</span> <span class="kw">for</span> <span class="ident">T</span> {
     <span class="kw">type</span> <span class="ident">Abi</span> <span class="op">=</span> <span class="ident">T</span>::<span class="ident">Abi</span>;
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">return_abi</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">Abi</span> {
+    <span class="kw">fn</span> <span class="ident">return_abi</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span>::<span class="ident">Abi</span> {
         <span class="self">self</span>.<span class="ident">into_abi</span>()
     }
 }

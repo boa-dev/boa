@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/serde_yaml-0.8.13/src/number.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>number.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../serde_yaml/index.html'><div class='logo-container'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/serde_yaml-0.8.13/src/number.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>number.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../serde_yaml/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
+                <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -554,11 +555,11 @@
     <span class="doccomment">/// ```</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy</span>::<span class="ident">cast_sign_loss</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_i64</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_i64</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">n</span> {
-            <span class="ident">N</span>::<span class="ident">PosInt</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">v</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">i64</span>::<span class="ident">max_value</span>() <span class="kw">as</span> <span class="ident">u64</span>,
-            <span class="ident">N</span>::<span class="ident">NegInt</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
-            <span class="ident">N</span>::<span class="ident">Float</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
+            <span class="ident">N</span>::<span class="ident">PosInt</span>(<span class="ident">v</span>) <span class="op">=&gt;</span> <span class="ident">v</span> <span class="op">&lt;=</span> <span class="ident">i64</span>::<span class="ident">max_value</span>() <span class="kw">as</span> <span class="ident">u64</span>,
+            <span class="ident">N</span>::<span class="ident">NegInt</span>(<span class="kw">_</span>) <span class="op">=&gt;</span> <span class="bool-val">true</span>,
+            <span class="ident">N</span>::<span class="ident">Float</span>(<span class="kw">_</span>) <span class="op">=&gt;</span> <span class="bool-val">false</span>,
         }
     }
 
@@ -585,10 +586,10 @@
     <span class="doccomment">/// assert!(!v[&quot;c&quot;].is_u64());</span>
     <span class="doccomment">/// ```</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_u64</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_u64</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">n</span> {
-            <span class="ident">N</span>::<span class="ident">PosInt</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
-            <span class="ident">N</span>::<span class="ident">NegInt</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="ident">N</span>::<span class="ident">Float</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
+            <span class="ident">N</span>::<span class="ident">PosInt</span>(<span class="kw">_</span>) <span class="op">=&gt;</span> <span class="bool-val">true</span>,
+            <span class="ident">N</span>::<span class="ident">NegInt</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="ident">N</span>::<span class="ident">Float</span>(<span class="kw">_</span>) <span class="op">=&gt;</span> <span class="bool-val">false</span>,
         }
     }
 
@@ -617,10 +618,10 @@
     <span class="doccomment">/// assert!(!v[&quot;c&quot;].is_f64());</span>
     <span class="doccomment">/// ```</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_f64</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_f64</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">n</span> {
-            <span class="ident">N</span>::<span class="ident">Float</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
-            <span class="ident">N</span>::<span class="ident">PosInt</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="ident">N</span>::<span class="ident">NegInt</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
+            <span class="ident">N</span>::<span class="ident">Float</span>(<span class="kw">_</span>) <span class="op">=&gt;</span> <span class="bool-val">true</span>,
+            <span class="ident">N</span>::<span class="ident">PosInt</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="ident">N</span>::<span class="ident">NegInt</span>(<span class="kw">_</span>) <span class="op">=&gt;</span> <span class="bool-val">false</span>,
         }
     }
 
@@ -645,17 +646,17 @@
     <span class="doccomment">/// assert_eq!(v[&quot;c&quot;].as_i64(), None);</span>
     <span class="doccomment">/// ```</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_i64</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">i64</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_i64</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">i64</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">n</span> {
-            <span class="ident">N</span>::<span class="ident">PosInt</span>(<span class="ident">n</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="kw">if</span> <span class="ident">n</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">i64</span>::<span class="ident">max_value</span>() <span class="kw">as</span> <span class="ident">u64</span> {
+            <span class="ident">N</span>::<span class="ident">PosInt</span>(<span class="ident">n</span>) <span class="op">=&gt;</span> {
+                <span class="kw">if</span> <span class="ident">n</span> <span class="op">&lt;=</span> <span class="ident">i64</span>::<span class="ident">max_value</span>() <span class="kw">as</span> <span class="ident">u64</span> {
                     <span class="prelude-val">Some</span>(<span class="ident">n</span> <span class="kw">as</span> <span class="ident">i64</span>)
                 } <span class="kw">else</span> {
                     <span class="prelude-val">None</span>
                 }
             }
-            <span class="ident">N</span>::<span class="ident">NegInt</span>(<span class="ident">n</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">n</span>),
-            <span class="ident">N</span>::<span class="ident">Float</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
+            <span class="ident">N</span>::<span class="ident">NegInt</span>(<span class="ident">n</span>) <span class="op">=&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">n</span>),
+            <span class="ident">N</span>::<span class="ident">Float</span>(<span class="kw">_</span>) <span class="op">=&gt;</span> <span class="prelude-val">None</span>,
         }
     }
 
@@ -677,10 +678,10 @@
     <span class="doccomment">/// assert_eq!(v[&quot;c&quot;].as_u64(), None);</span>
     <span class="doccomment">/// ```</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_u64</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_u64</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">n</span> {
-            <span class="ident">N</span>::<span class="ident">PosInt</span>(<span class="ident">n</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">n</span>),
-            <span class="ident">N</span>::<span class="ident">NegInt</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="ident">N</span>::<span class="ident">Float</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
+            <span class="ident">N</span>::<span class="ident">PosInt</span>(<span class="ident">n</span>) <span class="op">=&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">n</span>),
+            <span class="ident">N</span>::<span class="ident">NegInt</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="ident">N</span>::<span class="ident">Float</span>(<span class="kw">_</span>) <span class="op">=&gt;</span> <span class="prelude-val">None</span>,
         }
     }
 
@@ -709,11 +710,11 @@
     <span class="doccomment">/// assert!(yaml(&quot;.nan&quot;).as_f64().unwrap().is_nan());</span>
     <span class="doccomment">/// ```</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_f64</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">f64</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_f64</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">f64</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">n</span> {
-            <span class="ident">N</span>::<span class="ident">PosInt</span>(<span class="ident">n</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">n</span> <span class="kw">as</span> <span class="ident">f64</span>),
-            <span class="ident">N</span>::<span class="ident">NegInt</span>(<span class="ident">n</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">n</span> <span class="kw">as</span> <span class="ident">f64</span>),
-            <span class="ident">N</span>::<span class="ident">Float</span>(<span class="ident">n</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">n</span>),
+            <span class="ident">N</span>::<span class="ident">PosInt</span>(<span class="ident">n</span>) <span class="op">=&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">n</span> <span class="kw">as</span> <span class="ident">f64</span>),
+            <span class="ident">N</span>::<span class="ident">NegInt</span>(<span class="ident">n</span>) <span class="op">=&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">n</span> <span class="kw">as</span> <span class="ident">f64</span>),
+            <span class="ident">N</span>::<span class="ident">Float</span>(<span class="ident">n</span>) <span class="op">=&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">n</span>),
         }
     }
 
@@ -735,10 +736,10 @@
     <span class="doccomment">/// assert!(!Number::from(1).is_nan());</span>
     <span class="doccomment">/// ```</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_nan</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_nan</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">n</span> {
-            <span class="ident">N</span>::<span class="ident">PosInt</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="ident">N</span>::<span class="ident">NegInt</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
-            <span class="ident">N</span>::<span class="ident">Float</span>(<span class="ident">f</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">f</span>.<span class="ident">is_nan</span>(),
+            <span class="ident">N</span>::<span class="ident">PosInt</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="ident">N</span>::<span class="ident">NegInt</span>(<span class="kw">_</span>) <span class="op">=&gt;</span> <span class="bool-val">false</span>,
+            <span class="ident">N</span>::<span class="ident">Float</span>(<span class="ident">f</span>) <span class="op">=&gt;</span> <span class="ident">f</span>.<span class="ident">is_nan</span>(),
         }
     }
 
@@ -761,10 +762,10 @@
     <span class="doccomment">/// assert!(!Number::from(1).is_infinite());</span>
     <span class="doccomment">/// ```</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_infinite</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_infinite</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">n</span> {
-            <span class="ident">N</span>::<span class="ident">PosInt</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="ident">N</span>::<span class="ident">NegInt</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
-            <span class="ident">N</span>::<span class="ident">Float</span>(<span class="ident">f</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">f</span>.<span class="ident">is_infinite</span>(),
+            <span class="ident">N</span>::<span class="ident">PosInt</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="ident">N</span>::<span class="ident">NegInt</span>(<span class="kw">_</span>) <span class="op">=&gt;</span> <span class="bool-val">false</span>,
+            <span class="ident">N</span>::<span class="ident">Float</span>(<span class="ident">f</span>) <span class="op">=&gt;</span> <span class="ident">f</span>.<span class="ident">is_infinite</span>(),
         }
     }
 
@@ -786,74 +787,74 @@
     <span class="doccomment">/// assert!(Number::from(1).is_finite());</span>
     <span class="doccomment">/// ```</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_finite</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_finite</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">n</span> {
-            <span class="ident">N</span>::<span class="ident">PosInt</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="ident">N</span>::<span class="ident">NegInt</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
-            <span class="ident">N</span>::<span class="ident">Float</span>(<span class="ident">f</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">f</span>.<span class="ident">is_finite</span>(),
+            <span class="ident">N</span>::<span class="ident">PosInt</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="ident">N</span>::<span class="ident">NegInt</span>(<span class="kw">_</span>) <span class="op">=&gt;</span> <span class="bool-val">true</span>,
+            <span class="ident">N</span>::<span class="ident">Float</span>(<span class="ident">f</span>) <span class="op">=&gt;</span> <span class="ident">f</span>.<span class="ident">is_finite</span>(),
         }
     }
 }
 
 <span class="kw">impl</span> <span class="ident">fmt</span>::<span class="ident">Display</span> <span class="kw">for</span> <span class="ident">Number</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">formatter</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">formatter</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span>) <span class="op">-&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">n</span> {
-            <span class="ident">N</span>::<span class="ident">PosInt</span>(<span class="ident">i</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Display</span>::<span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="ident">i</span>, <span class="ident">formatter</span>),
-            <span class="ident">N</span>::<span class="ident">NegInt</span>(<span class="ident">i</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Display</span>::<span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="ident">i</span>, <span class="ident">formatter</span>),
-            <span class="ident">N</span>::<span class="ident">Float</span>(<span class="ident">f</span>) <span class="kw">if</span> <span class="ident">f</span>.<span class="ident">is_nan</span>() <span class="op">=</span><span class="op">&gt;</span> <span class="ident">formatter</span>.<span class="ident">write_str</span>(<span class="string">&quot;.nan&quot;</span>),
-            <span class="ident">N</span>::<span class="ident">Float</span>(<span class="ident">f</span>) <span class="kw">if</span> <span class="ident">f</span>.<span class="ident">is_infinite</span>() <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">N</span>::<span class="ident">PosInt</span>(<span class="ident">i</span>) <span class="op">=&gt;</span> <span class="ident">Display</span>::<span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="ident">i</span>, <span class="ident">formatter</span>),
+            <span class="ident">N</span>::<span class="ident">NegInt</span>(<span class="ident">i</span>) <span class="op">=&gt;</span> <span class="ident">Display</span>::<span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="ident">i</span>, <span class="ident">formatter</span>),
+            <span class="ident">N</span>::<span class="ident">Float</span>(<span class="ident">f</span>) <span class="kw">if</span> <span class="ident">f</span>.<span class="ident">is_nan</span>() <span class="op">=&gt;</span> <span class="ident">formatter</span>.<span class="ident">write_str</span>(<span class="string">&quot;.nan&quot;</span>),
+            <span class="ident">N</span>::<span class="ident">Float</span>(<span class="ident">f</span>) <span class="kw">if</span> <span class="ident">f</span>.<span class="ident">is_infinite</span>() <span class="op">=&gt;</span> {
                 <span class="kw">if</span> <span class="ident">f</span>.<span class="ident">is_sign_negative</span>() {
                     <span class="ident">formatter</span>.<span class="ident">write_str</span>(<span class="string">&quot;-.inf&quot;</span>)
                 } <span class="kw">else</span> {
                     <span class="ident">formatter</span>.<span class="ident">write_str</span>(<span class="string">&quot;.inf&quot;</span>)
                 }
             }
-            <span class="ident">N</span>::<span class="ident">Float</span>(<span class="ident">f</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Display</span>::<span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="ident">f</span>, <span class="ident">formatter</span>),
+            <span class="ident">N</span>::<span class="ident">Float</span>(<span class="ident">f</span>) <span class="op">=&gt;</span> <span class="ident">Display</span>::<span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="ident">f</span>, <span class="ident">formatter</span>),
         }
     }
 }
 
 <span class="kw">impl</span> <span class="ident">Debug</span> <span class="kw">for</span> <span class="ident">Number</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">formatter</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">formatter</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span>) <span class="op">-&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
         <span class="ident">Debug</span>::<span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">n</span>, <span class="ident">formatter</span>)
     }
 }
 
 <span class="kw">impl</span> <span class="ident">PartialEq</span> <span class="kw">for</span> <span class="ident">N</span> {
-    <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="ident">N</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="ident">N</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
         <span class="kw">match</span> (<span class="kw-2">*</span><span class="self">self</span>, <span class="kw-2">*</span><span class="ident">other</span>) {
-            (<span class="ident">N</span>::<span class="ident">PosInt</span>(<span class="ident">a</span>), <span class="ident">N</span>::<span class="ident">PosInt</span>(<span class="ident">b</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">a</span> <span class="op">=</span><span class="op">=</span> <span class="ident">b</span>,
-            (<span class="ident">N</span>::<span class="ident">NegInt</span>(<span class="ident">a</span>), <span class="ident">N</span>::<span class="ident">NegInt</span>(<span class="ident">b</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">a</span> <span class="op">=</span><span class="op">=</span> <span class="ident">b</span>,
-            (<span class="ident">N</span>::<span class="ident">Float</span>(<span class="ident">a</span>), <span class="ident">N</span>::<span class="ident">Float</span>(<span class="ident">b</span>)) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="kw">if</span> <span class="ident">a</span>.<span class="ident">is_nan</span>() <span class="kw-2">&amp;</span><span class="op">&amp;</span> <span class="ident">b</span>.<span class="ident">is_nan</span>() {
+            (<span class="ident">N</span>::<span class="ident">PosInt</span>(<span class="ident">a</span>), <span class="ident">N</span>::<span class="ident">PosInt</span>(<span class="ident">b</span>)) <span class="op">=&gt;</span> <span class="ident">a</span> <span class="op">==</span> <span class="ident">b</span>,
+            (<span class="ident">N</span>::<span class="ident">NegInt</span>(<span class="ident">a</span>), <span class="ident">N</span>::<span class="ident">NegInt</span>(<span class="ident">b</span>)) <span class="op">=&gt;</span> <span class="ident">a</span> <span class="op">==</span> <span class="ident">b</span>,
+            (<span class="ident">N</span>::<span class="ident">Float</span>(<span class="ident">a</span>), <span class="ident">N</span>::<span class="ident">Float</span>(<span class="ident">b</span>)) <span class="op">=&gt;</span> {
+                <span class="kw">if</span> <span class="ident">a</span>.<span class="ident">is_nan</span>() <span class="op">&amp;&amp;</span> <span class="ident">b</span>.<span class="ident">is_nan</span>() {
                     <span class="comment">// YAML only has one NaN;</span>
                     <span class="comment">// the bit representation isn&#39;t preserved</span>
                     <span class="bool-val">true</span>
                 } <span class="kw">else</span> {
-                    <span class="ident">a</span> <span class="op">=</span><span class="op">=</span> <span class="ident">b</span>
+                    <span class="ident">a</span> <span class="op">==</span> <span class="ident">b</span>
                 }
             }
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
+            <span class="kw">_</span> <span class="op">=&gt;</span> <span class="bool-val">false</span>,
         }
     }
 }
 
 <span class="kw">impl</span> <span class="ident">Serialize</span> <span class="kw">for</span> <span class="ident">Number</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">serialize</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">serializer</span>: <span class="ident">S</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">S</span>::<span class="prelude-val">Ok</span>, <span class="ident">S</span>::<span class="ident">Error</span><span class="op">&gt;</span>
+    <span class="kw">fn</span> <span class="ident">serialize</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">serializer</span>: <span class="ident">S</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">S</span>::<span class="prelude-val">Ok</span>, <span class="ident">S</span>::<span class="ident">Error</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">S</span>: <span class="ident">Serializer</span>,
     {
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">n</span> {
-            <span class="ident">N</span>::<span class="ident">PosInt</span>(<span class="ident">i</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">serializer</span>.<span class="ident">serialize_u64</span>(<span class="ident">i</span>),
-            <span class="ident">N</span>::<span class="ident">NegInt</span>(<span class="ident">i</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">serializer</span>.<span class="ident">serialize_i64</span>(<span class="ident">i</span>),
-            <span class="ident">N</span>::<span class="ident">Float</span>(<span class="ident">f</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">serializer</span>.<span class="ident">serialize_f64</span>(<span class="ident">f</span>),
+            <span class="ident">N</span>::<span class="ident">PosInt</span>(<span class="ident">i</span>) <span class="op">=&gt;</span> <span class="ident">serializer</span>.<span class="ident">serialize_u64</span>(<span class="ident">i</span>),
+            <span class="ident">N</span>::<span class="ident">NegInt</span>(<span class="ident">i</span>) <span class="op">=&gt;</span> <span class="ident">serializer</span>.<span class="ident">serialize_i64</span>(<span class="ident">i</span>),
+            <span class="ident">N</span>::<span class="ident">Float</span>(<span class="ident">f</span>) <span class="op">=&gt;</span> <span class="ident">serializer</span>.<span class="ident">serialize_f64</span>(<span class="ident">f</span>),
         }
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="ident">Deserialize</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Number</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">deserialize</span><span class="op">&lt;</span><span class="ident">D</span><span class="op">&gt;</span>(<span class="ident">deserializer</span>: <span class="ident">D</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Number</span>, <span class="ident">D</span>::<span class="ident">Error</span><span class="op">&gt;</span>
+    <span class="kw">fn</span> <span class="ident">deserialize</span><span class="op">&lt;</span><span class="ident">D</span><span class="op">&gt;</span>(<span class="ident">deserializer</span>: <span class="ident">D</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Number</span>, <span class="ident">D</span>::<span class="ident">Error</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">D</span>: <span class="ident">Deserializer</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span>,
     {
@@ -862,22 +863,22 @@
         <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="ident">Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">NumberVisitor</span> {
             <span class="kw">type</span> <span class="ident">Value</span> <span class="op">=</span> <span class="ident">Number</span>;
 
-            <span class="kw">fn</span> <span class="ident">expecting</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">formatter</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
+            <span class="kw">fn</span> <span class="ident">expecting</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">formatter</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span>) <span class="op">-&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
                 <span class="ident">formatter</span>.<span class="ident">write_str</span>(<span class="string">&quot;a number&quot;</span>)
             }
 
             <span class="attribute">#[<span class="ident">inline</span>]</span>
-            <span class="kw">fn</span> <span class="ident">visit_i64</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">value</span>: <span class="ident">i64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Number</span>, <span class="ident">E</span><span class="op">&gt;</span> {
+            <span class="kw">fn</span> <span class="ident">visit_i64</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">value</span>: <span class="ident">i64</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Number</span>, <span class="ident">E</span><span class="op">&gt;</span> {
                 <span class="prelude-val">Ok</span>(<span class="ident">value</span>.<span class="ident">into</span>())
             }
 
             <span class="attribute">#[<span class="ident">inline</span>]</span>
-            <span class="kw">fn</span> <span class="ident">visit_u64</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">value</span>: <span class="ident">u64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Number</span>, <span class="ident">E</span><span class="op">&gt;</span> {
+            <span class="kw">fn</span> <span class="ident">visit_u64</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">value</span>: <span class="ident">u64</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Number</span>, <span class="ident">E</span><span class="op">&gt;</span> {
                 <span class="prelude-val">Ok</span>(<span class="ident">value</span>.<span class="ident">into</span>())
             }
 
             <span class="attribute">#[<span class="ident">inline</span>]</span>
-            <span class="kw">fn</span> <span class="ident">visit_f64</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">value</span>: <span class="ident">f64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Number</span>, <span class="ident">E</span><span class="op">&gt;</span> {
+            <span class="kw">fn</span> <span class="ident">visit_f64</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">value</span>: <span class="ident">f64</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Number</span>, <span class="ident">E</span><span class="op">&gt;</span> {
                 <span class="prelude-val">Ok</span>(<span class="ident">value</span>.<span class="ident">into</span>())
             }
         }
@@ -890,14 +891,14 @@
     <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <span class="ident">Error</span>;
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">deserialize_any</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">visitor</span>: <span class="ident">V</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">V</span>::<span class="ident">Value</span>, <span class="ident">Error</span><span class="op">&gt;</span>
+    <span class="kw">fn</span> <span class="ident">deserialize_any</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">visitor</span>: <span class="ident">V</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">V</span>::<span class="ident">Value</span>, <span class="ident">Error</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">V</span>: <span class="ident">Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span>,
     {
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">n</span> {
-            <span class="ident">N</span>::<span class="ident">PosInt</span>(<span class="ident">i</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">visitor</span>.<span class="ident">visit_u64</span>(<span class="ident">i</span>),
-            <span class="ident">N</span>::<span class="ident">NegInt</span>(<span class="ident">i</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">visitor</span>.<span class="ident">visit_i64</span>(<span class="ident">i</span>),
-            <span class="ident">N</span>::<span class="ident">Float</span>(<span class="ident">f</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">visitor</span>.<span class="ident">visit_f64</span>(<span class="ident">f</span>),
+            <span class="ident">N</span>::<span class="ident">PosInt</span>(<span class="ident">i</span>) <span class="op">=&gt;</span> <span class="ident">visitor</span>.<span class="ident">visit_u64</span>(<span class="ident">i</span>),
+            <span class="ident">N</span>::<span class="ident">NegInt</span>(<span class="ident">i</span>) <span class="op">=&gt;</span> <span class="ident">visitor</span>.<span class="ident">visit_i64</span>(<span class="ident">i</span>),
+            <span class="ident">N</span>::<span class="ident">Float</span>(<span class="ident">f</span>) <span class="op">=&gt;</span> <span class="ident">visitor</span>.<span class="ident">visit_f64</span>(<span class="ident">f</span>),
         }
     }
 
@@ -912,14 +913,14 @@
     <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <span class="ident">Error</span>;
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">deserialize_any</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">visitor</span>: <span class="ident">V</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">V</span>::<span class="ident">Value</span>, <span class="ident">Error</span><span class="op">&gt;</span>
+    <span class="kw">fn</span> <span class="ident">deserialize_any</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">visitor</span>: <span class="ident">V</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">V</span>::<span class="ident">Value</span>, <span class="ident">Error</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">V</span>: <span class="ident">Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span>,
     {
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">n</span> {
-            <span class="ident">N</span>::<span class="ident">PosInt</span>(<span class="ident">i</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">visitor</span>.<span class="ident">visit_u64</span>(<span class="ident">i</span>),
-            <span class="ident">N</span>::<span class="ident">NegInt</span>(<span class="ident">i</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">visitor</span>.<span class="ident">visit_i64</span>(<span class="ident">i</span>),
-            <span class="ident">N</span>::<span class="ident">Float</span>(<span class="ident">f</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">visitor</span>.<span class="ident">visit_f64</span>(<span class="ident">f</span>),
+            <span class="ident">N</span>::<span class="ident">PosInt</span>(<span class="ident">i</span>) <span class="op">=&gt;</span> <span class="ident">visitor</span>.<span class="ident">visit_u64</span>(<span class="ident">i</span>),
+            <span class="ident">N</span>::<span class="ident">NegInt</span>(<span class="ident">i</span>) <span class="op">=&gt;</span> <span class="ident">visitor</span>.<span class="ident">visit_i64</span>(<span class="ident">i</span>),
+            <span class="ident">N</span>::<span class="ident">Float</span>(<span class="ident">f</span>) <span class="op">=&gt;</span> <span class="ident">visitor</span>.<span class="ident">visit_f64</span>(<span class="ident">f</span>),
         }
     }
 
@@ -931,12 +932,12 @@
 }
 
 <span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">from_signed</span> {
-    ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">signed_ty</span>:<span class="ident">ident</span>)<span class="kw-2">*</span>) <span class="op">=</span><span class="op">&gt;</span> {
+    ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">signed_ty</span>:<span class="ident">ident</span>)<span class="kw-2">*</span>) <span class="op">=&gt;</span> {
         $(
             <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">signed_ty</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Number</span> {
                 <span class="attribute">#[<span class="ident">inline</span>]</span>
                 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy</span>::<span class="ident">cast_sign_loss</span>)]</span>
-                <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">i</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">signed_ty</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+                <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">i</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">signed_ty</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
                     <span class="kw">if</span> <span class="ident">i</span> <span class="op">&lt;</span> <span class="number">0</span> {
                         <span class="ident">Number</span> { <span class="ident">n</span>: <span class="ident">N</span>::<span class="ident">NegInt</span>(<span class="ident">i</span> <span class="kw">as</span> <span class="ident">i64</span>) }
                     } <span class="kw">else</span> {
@@ -949,11 +950,11 @@
 }
 
 <span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">from_unsigned</span> {
-    ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">unsigned_ty</span>:<span class="ident">ident</span>)<span class="kw-2">*</span>) <span class="op">=</span><span class="op">&gt;</span> {
+    ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">unsigned_ty</span>:<span class="ident">ident</span>)<span class="kw-2">*</span>) <span class="op">=&gt;</span> {
         $(
             <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">unsigned_ty</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Number</span> {
                 <span class="attribute">#[<span class="ident">inline</span>]</span>
-                <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">u</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">unsigned_ty</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+                <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">u</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">unsigned_ty</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
                     <span class="ident">Number</span> { <span class="ident">n</span>: <span class="ident">N</span>::<span class="ident">PosInt</span>(<span class="ident">u</span> <span class="kw">as</span> <span class="ident">u64</span>) }
                 }
             }
@@ -962,11 +963,11 @@
 }
 
 <span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">from_float</span> {
-    ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">float_ty</span>:<span class="ident">ident</span>)<span class="kw-2">*</span>) <span class="op">=</span><span class="op">&gt;</span> {
+    ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">float_ty</span>:<span class="ident">ident</span>)<span class="kw-2">*</span>) <span class="op">=&gt;</span> {
         $(
             <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">float_ty</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Number</span> {
                 <span class="attribute">#[<span class="ident">inline</span>]</span>
-                <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">f</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">float_ty</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+                <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">f</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">float_ty</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
                     <span class="ident">Number</span> { <span class="ident">n</span>: <span class="ident">N</span>::<span class="ident">Float</span>(<span class="ident">f</span> <span class="kw">as</span> <span class="ident">f64</span>) }
                 }
             }
@@ -984,21 +985,21 @@
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">Number</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span>: <span class="ident">Hasher</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>) {
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">n</span> {
-            <span class="ident">N</span>::<span class="ident">Float</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">N</span>::<span class="ident">Float</span>(<span class="kw">_</span>) <span class="op">=&gt;</span> {
                 <span class="comment">// you should feel bad for using f64 as a map key</span>
                 <span class="number">3</span>.<span class="ident">hash</span>(<span class="ident">state</span>)
             }
-            <span class="ident">N</span>::<span class="ident">PosInt</span>(<span class="ident">u</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">u</span>.<span class="ident">hash</span>(<span class="ident">state</span>),
-            <span class="ident">N</span>::<span class="ident">NegInt</span>(<span class="ident">i</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">i</span>.<span class="ident">hash</span>(<span class="ident">state</span>),
+            <span class="ident">N</span>::<span class="ident">PosInt</span>(<span class="ident">u</span>) <span class="op">=&gt;</span> <span class="ident">u</span>.<span class="ident">hash</span>(<span class="ident">state</span>),
+            <span class="ident">N</span>::<span class="ident">NegInt</span>(<span class="ident">i</span>) <span class="op">=&gt;</span> <span class="ident">i</span>.<span class="ident">hash</span>(<span class="ident">state</span>),
         }
     }
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">unexpected</span>(<span class="ident">number</span>: <span class="kw-2">&amp;</span><span class="ident">Number</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Unexpected</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">unexpected</span>(<span class="ident">number</span>: <span class="kw-2">&amp;</span><span class="ident">Number</span>) <span class="op">-&gt;</span> <span class="ident">Unexpected</span> {
     <span class="kw">match</span> <span class="ident">number</span>.<span class="ident">n</span> {
-        <span class="ident">N</span>::<span class="ident">PosInt</span>(<span class="ident">u</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Unexpected</span>::<span class="ident">Unsigned</span>(<span class="ident">u</span>),
-        <span class="ident">N</span>::<span class="ident">NegInt</span>(<span class="ident">i</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Unexpected</span>::<span class="ident">Signed</span>(<span class="ident">i</span>),
-        <span class="ident">N</span>::<span class="ident">Float</span>(<span class="ident">f</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Unexpected</span>::<span class="ident">Float</span>(<span class="ident">f</span>),
+        <span class="ident">N</span>::<span class="ident">PosInt</span>(<span class="ident">u</span>) <span class="op">=&gt;</span> <span class="ident">Unexpected</span>::<span class="ident">Unsigned</span>(<span class="ident">u</span>),
+        <span class="ident">N</span>::<span class="ident">NegInt</span>(<span class="ident">i</span>) <span class="op">=&gt;</span> <span class="ident">Unexpected</span>::<span class="ident">Signed</span>(<span class="ident">i</span>),
+        <span class="ident">N</span>::<span class="ident">Float</span>(<span class="ident">f</span>) <span class="op">=&gt;</span> <span class="ident">Unexpected</span>::<span class="ident">Float</span>(<span class="ident">f</span>),
     }
 }
 </pre></div>

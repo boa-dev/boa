@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/aho-corasick-0.7.13/src/prefilter.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>prefilter.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../aho_corasick/index.html'><div class='logo-container'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/aho-corasick-0.7.13/src/prefilter.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>prefilter.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../aho_corasick/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
+                <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -1033,11 +1034,11 @@
     <span class="doccomment">/// do not distinguish between true positives and false positives (i.e.,</span>
     <span class="doccomment">/// the caller must always confirm the match in order to update some other</span>
     <span class="doccomment">/// state).</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_option</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_option</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Candidate</span>::<span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
-            <span class="ident">Candidate</span>::<span class="ident">Match</span>(<span class="kw-2">ref</span> <span class="ident">m</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">m</span>.<span class="ident">start</span>()),
-            <span class="ident">Candidate</span>::<span class="ident">PossibleStartOfMatch</span>(<span class="ident">start</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">start</span>),
+            <span class="ident">Candidate</span>::<span class="prelude-val">None</span> <span class="op">=&gt;</span> <span class="prelude-val">None</span>,
+            <span class="ident">Candidate</span>::<span class="ident">Match</span>(<span class="kw-2">ref</span> <span class="ident">m</span>) <span class="op">=&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">m</span>.<span class="ident">start</span>()),
+            <span class="ident">Candidate</span>::<span class="ident">PossibleStartOfMatch</span>(<span class="ident">start</span>) <span class="op">=&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">start</span>),
         }
     }
 }
@@ -1058,15 +1059,15 @@
         <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">PrefilterState</span>,
         <span class="ident">haystack</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
         <span class="ident">at</span>: <span class="ident">usize</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Candidate</span>;
+    ) <span class="op">-&gt;</span> <span class="ident">Candidate</span>;
 
     <span class="doccomment">/// A method for cloning a prefilter, to work-around the fact that Clone</span>
     <span class="doccomment">/// is not object-safe.</span>
-    <span class="kw">fn</span> <span class="ident">clone_prefilter</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">dyn</span> <span class="ident">Prefilter</span><span class="op">&gt;</span>;
+    <span class="kw">fn</span> <span class="ident">clone_prefilter</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">dyn</span> <span class="ident">Prefilter</span><span class="op">&gt;</span>;
 
     <span class="doccomment">/// Returns the approximate total amount of heap used by this prefilter, in</span>
     <span class="doccomment">/// units of bytes.</span>
-    <span class="kw">fn</span> <span class="ident">heap_bytes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span>;
+    <span class="kw">fn</span> <span class="ident">heap_bytes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">usize</span>;
 
     <span class="doccomment">/// Returns true if and only if this prefilter never returns false</span>
     <span class="doccomment">/// positives. This is useful for completely avoiding the automaton</span>
@@ -1075,7 +1076,7 @@
     <span class="doccomment">/// By default, this returns true, which is conservative; it is always</span>
     <span class="doccomment">/// correct to return `true`. Returning `false` here and reporting a false</span>
     <span class="doccomment">/// positive will result in incorrect searches.</span>
-    <span class="kw">fn</span> <span class="ident">reports_false_positives</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">reports_false_positives</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
         <span class="bool-val">true</span>
     }
 }
@@ -1087,19 +1088,19 @@
         <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">PrefilterState</span>,
         <span class="ident">haystack</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
         <span class="ident">at</span>: <span class="ident">usize</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Candidate</span> {
+    ) <span class="op">-&gt;</span> <span class="ident">Candidate</span> {
         (<span class="kw-2">*</span><span class="kw-2">*</span><span class="self">self</span>).<span class="ident">next_candidate</span>(<span class="ident">state</span>, <span class="ident">haystack</span>, <span class="ident">at</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">clone_prefilter</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">dyn</span> <span class="ident">Prefilter</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">clone_prefilter</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">dyn</span> <span class="ident">Prefilter</span><span class="op">&gt;</span> {
         (<span class="kw-2">*</span><span class="kw-2">*</span><span class="self">self</span>).<span class="ident">clone_prefilter</span>()
     }
 
-    <span class="kw">fn</span> <span class="ident">heap_bytes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+    <span class="kw">fn</span> <span class="ident">heap_bytes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">usize</span> {
         (<span class="kw-2">*</span><span class="kw-2">*</span><span class="self">self</span>).<span class="ident">heap_bytes</span>()
     }
 
-    <span class="kw">fn</span> <span class="ident">reports_false_positives</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">reports_false_positives</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
         (<span class="kw-2">*</span><span class="kw-2">*</span><span class="self">self</span>).<span class="ident">reports_false_positives</span>()
     }
 }
@@ -1110,19 +1111,19 @@
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">PrefilterObj</span>(<span class="ident">Box</span><span class="op">&lt;</span><span class="ident">dyn</span> <span class="ident">Prefilter</span><span class="op">&gt;</span>);
 
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">PrefilterObj</span> {
-    <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
         <span class="ident">PrefilterObj</span>(<span class="self">self</span>.<span class="number">0</span>.<span class="ident">clone_prefilter</span>())
     }
 }
 
 <span class="kw">impl</span> <span class="ident">PrefilterObj</span> {
     <span class="doccomment">/// Create a new prefilter object.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Prefilter</span> <span class="op">+</span> <span class="lifetime">&#39;static</span><span class="op">&gt;</span>(<span class="ident">t</span>: <span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PrefilterObj</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Prefilter</span> <span class="op">+</span> <span class="lifetime">&#39;static</span><span class="op">&gt;</span>(<span class="ident">t</span>: <span class="ident">T</span>) <span class="op">-&gt;</span> <span class="ident">PrefilterObj</span> {
         <span class="ident">PrefilterObj</span>(<span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">t</span>))
     }
 
     <span class="doccomment">/// Return the underlying prefilter trait object.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">dyn</span> <span class="ident">Prefilter</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="ident">dyn</span> <span class="ident">Prefilter</span> {
         <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="self">self</span>.<span class="number">0</span>
     }
 }
@@ -1179,7 +1180,7 @@
     <span class="kw">const</span> <span class="ident">MIN_AVG_FACTOR</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">2</span>;
 
     <span class="doccomment">/// Create a fresh prefilter state.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">max_match_len</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PrefilterState</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">max_match_len</span>: <span class="ident">usize</span>) <span class="op">-&gt;</span> <span class="ident">PrefilterState</span> {
         <span class="ident">PrefilterState</span> {
             <span class="ident">skips</span>: <span class="number">0</span>,
             <span class="ident">skipped</span>: <span class="number">0</span>,
@@ -1193,8 +1194,8 @@
     <span class="doccomment">/// invocation of the prefilter.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">update_skipped_bytes</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">skipped</span>: <span class="ident">usize</span>) {
-        <span class="self">self</span>.<span class="ident">skips</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
-        <span class="self">self</span>.<span class="ident">skipped</span> <span class="op">+</span><span class="op">=</span> <span class="ident">skipped</span>;
+        <span class="self">self</span>.<span class="ident">skips</span> <span class="op">+=</span> <span class="number">1</span>;
+        <span class="self">self</span>.<span class="ident">skipped</span> <span class="op">+=</span> <span class="ident">skipped</span>;
     }
 
     <span class="doccomment">/// Updates the position at which the last scan stopped. This may be</span>
@@ -1220,7 +1221,7 @@
     <span class="doccomment">/// The given pos should correspond to the current starting position of the</span>
     <span class="doccomment">/// search.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_effective</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">at</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_effective</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">at</span>: <span class="ident">usize</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">inert</span> {
             <span class="kw">return</span> <span class="bool-val">false</span>;
         }
@@ -1232,7 +1233,7 @@
         }
 
         <span class="kw">let</span> <span class="ident">min_avg</span> <span class="op">=</span> <span class="ident">PrefilterState</span>::<span class="ident">MIN_AVG_FACTOR</span> <span class="op">*</span> <span class="self">self</span>.<span class="ident">max_match_len</span>;
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">skipped</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">min_avg</span> <span class="op">*</span> <span class="self">self</span>.<span class="ident">skips</span> {
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">skipped</span> <span class="op">&gt;=</span> <span class="ident">min_avg</span> <span class="op">*</span> <span class="self">self</span>.<span class="ident">skips</span> {
             <span class="kw">return</span> <span class="bool-val">true</span>;
         }
 
@@ -1256,7 +1257,7 @@
 
 <span class="kw">impl</span> <span class="ident">Builder</span> {
     <span class="doccomment">/// Create a new builder for constructing the best possible prefilter.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">kind</span>: <span class="ident">MatchKind</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Builder</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">kind</span>: <span class="ident">MatchKind</span>) <span class="op">-&gt;</span> <span class="ident">Builder</span> {
         <span class="kw">let</span> <span class="ident">pbuilder</span> <span class="op">=</span> <span class="ident">kind</span>
             .<span class="ident">as_packed</span>()
             .<span class="ident">map</span>(<span class="op">|</span><span class="ident">kind</span><span class="op">|</span> <span class="ident">packed</span>::<span class="ident">Config</span>::<span class="ident">new</span>().<span class="ident">match_kind</span>(<span class="ident">kind</span>).<span class="ident">builder</span>());
@@ -1271,7 +1272,7 @@
 
     <span class="doccomment">/// Enable ASCII case insensitivity. When set, byte strings added to this</span>
     <span class="doccomment">/// builder will be interpreted without respect to ASCII case.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ascii_case_insensitive</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">yes</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Builder</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ascii_case_insensitive</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">yes</span>: <span class="ident">bool</span>) <span class="op">-&gt;</span> <span class="ident">Builder</span> {
         <span class="self">self</span>.<span class="ident">ascii_case_insensitive</span> <span class="op">=</span> <span class="ident">yes</span>;
         <span class="self">self</span>.<span class="ident">start_bytes</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">start_bytes</span>.<span class="ident">ascii_case_insensitive</span>(<span class="ident">yes</span>);
         <span class="self">self</span>.<span class="ident">rare_bytes</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">rare_bytes</span>.<span class="ident">ascii_case_insensitive</span>(<span class="ident">yes</span>);
@@ -1282,13 +1283,13 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// All patterns added to an Aho-Corasick automaton should be added to this</span>
     <span class="doccomment">/// builder before attempting to construct the prefilter.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">build</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">PrefilterObj</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">build</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">PrefilterObj</span><span class="op">&gt;</span> {
         <span class="kw">match</span> (<span class="self">self</span>.<span class="ident">start_bytes</span>.<span class="ident">build</span>(), <span class="self">self</span>.<span class="ident">rare_bytes</span>.<span class="ident">build</span>()) {
             <span class="comment">// If we could build both start and rare prefilters, then there are</span>
             <span class="comment">// a few cases in which we&#39;d want to use the start-byte prefilter</span>
             <span class="comment">// over the rare-byte prefilter, since the former has lower</span>
             <span class="comment">// overhead.</span>
-            (<span class="ident">prestart</span> @ <span class="prelude-val">Some</span>(<span class="kw">_</span>), <span class="ident">prerare</span> @ <span class="prelude-val">Some</span>(<span class="kw">_</span>)) <span class="op">=</span><span class="op">&gt;</span> {
+            (<span class="ident">prestart</span> @ <span class="prelude-val">Some</span>(<span class="kw">_</span>), <span class="ident">prerare</span> @ <span class="prelude-val">Some</span>(<span class="kw">_</span>)) <span class="op">=&gt;</span> {
                 <span class="comment">// If the start-byte prefilter can scan for a smaller number</span>
                 <span class="comment">// of bytes than the rare-byte prefilter, then it&#39;s probably</span>
                 <span class="comment">// faster.</span>
@@ -1302,17 +1303,17 @@
                 <span class="comment">// rare-byte prefilter has higher constant costs, so we tend to</span>
                 <span class="comment">// prefer the start-byte prefilter when we can.</span>
                 <span class="kw">let</span> <span class="ident">has_rarer_bytes</span> <span class="op">=</span>
-                    <span class="self">self</span>.<span class="ident">start_bytes</span>.<span class="ident">rank_sum</span> <span class="op">&lt;</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">rare_bytes</span>.<span class="ident">rank_sum</span> <span class="op">+</span> <span class="number">50</span>;
-                <span class="kw">if</span> <span class="ident">has_fewer_bytes</span> <span class="op">|</span><span class="op">|</span> <span class="ident">has_rarer_bytes</span> {
+                    <span class="self">self</span>.<span class="ident">start_bytes</span>.<span class="ident">rank_sum</span> <span class="op">&lt;=</span> <span class="self">self</span>.<span class="ident">rare_bytes</span>.<span class="ident">rank_sum</span> <span class="op">+</span> <span class="number">50</span>;
+                <span class="kw">if</span> <span class="ident">has_fewer_bytes</span> <span class="op">||</span> <span class="ident">has_rarer_bytes</span> {
                     <span class="ident">prestart</span>
                 } <span class="kw">else</span> {
                     <span class="ident">prerare</span>
                 }
             }
-            (<span class="ident">prestart</span> @ <span class="prelude-val">Some</span>(<span class="kw">_</span>), <span class="prelude-val">None</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">prestart</span>,
-            (<span class="prelude-val">None</span>, <span class="ident">prerare</span> @ <span class="prelude-val">Some</span>(<span class="kw">_</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">prerare</span>,
-            (<span class="prelude-val">None</span>, <span class="prelude-val">None</span>) <span class="kw">if</span> <span class="self">self</span>.<span class="ident">ascii_case_insensitive</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
-            (<span class="prelude-val">None</span>, <span class="prelude-val">None</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>
+            (<span class="ident">prestart</span> @ <span class="prelude-val">Some</span>(<span class="kw">_</span>), <span class="prelude-val">None</span>) <span class="op">=&gt;</span> <span class="ident">prestart</span>,
+            (<span class="prelude-val">None</span>, <span class="ident">prerare</span> @ <span class="prelude-val">Some</span>(<span class="kw">_</span>)) <span class="op">=&gt;</span> <span class="ident">prerare</span>,
+            (<span class="prelude-val">None</span>, <span class="prelude-val">None</span>) <span class="kw">if</span> <span class="self">self</span>.<span class="ident">ascii_case_insensitive</span> <span class="op">=&gt;</span> <span class="prelude-val">None</span>,
+            (<span class="prelude-val">None</span>, <span class="prelude-val">None</span>) <span class="op">=&gt;</span> <span class="self">self</span>
                 .<span class="ident">packed</span>
                 .<span class="ident">as_ref</span>()
                 .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">b</span><span class="op">|</span> <span class="ident">b</span>.<span class="ident">build</span>())
@@ -1322,7 +1323,7 @@
 
     <span class="doccomment">/// Add a literal string to this prefilter builder.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">bytes</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) {
-        <span class="self">self</span>.<span class="ident">count</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+        <span class="self">self</span>.<span class="ident">count</span> <span class="op">+=</span> <span class="number">1</span>;
         <span class="self">self</span>.<span class="ident">start_bytes</span>.<span class="ident">add</span>(<span class="ident">bytes</span>);
         <span class="self">self</span>.<span class="ident">rare_bytes</span>.<span class="ident">add</span>(<span class="ident">bytes</span>);
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">pbuilder</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">packed</span> {
@@ -1342,19 +1343,19 @@
         <span class="ident">_state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">PrefilterState</span>,
         <span class="ident">haystack</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
         <span class="ident">at</span>: <span class="ident">usize</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Candidate</span> {
+    ) <span class="op">-&gt;</span> <span class="ident">Candidate</span> {
         <span class="self">self</span>.<span class="number">0</span>.<span class="ident">find_at</span>(<span class="ident">haystack</span>, <span class="ident">at</span>).<span class="ident">map_or</span>(<span class="ident">Candidate</span>::<span class="prelude-val">None</span>, <span class="ident">Candidate</span>::<span class="ident">Match</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">clone_prefilter</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">dyn</span> <span class="ident">Prefilter</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">clone_prefilter</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">dyn</span> <span class="ident">Prefilter</span><span class="op">&gt;</span> {
         <span class="ident">Box</span>::<span class="ident">new</span>(<span class="self">self</span>.<span class="ident">clone</span>())
     }
 
-    <span class="kw">fn</span> <span class="ident">heap_bytes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+    <span class="kw">fn</span> <span class="ident">heap_bytes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">usize</span> {
         <span class="self">self</span>.<span class="number">0</span>.<span class="ident">heap_bytes</span>()
     }
 
-    <span class="kw">fn</span> <span class="ident">reports_false_positives</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">reports_false_positives</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
         <span class="bool-val">false</span>
     }
 }
@@ -1394,23 +1395,23 @@
 <span class="kw">struct</span> <span class="ident">ByteSet</span>([<span class="ident">bool</span>; <span class="number">256</span>]);
 
 <span class="kw">impl</span> <span class="ident">ByteSet</span> {
-    <span class="kw">fn</span> <span class="ident">empty</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ByteSet</span> {
+    <span class="kw">fn</span> <span class="ident">empty</span>() <span class="op">-&gt;</span> <span class="ident">ByteSet</span> {
         <span class="ident">ByteSet</span>([<span class="bool-val">false</span>; <span class="number">256</span>])
     }
 
-    <span class="kw">fn</span> <span class="ident">insert</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">b</span>: <span class="ident">u8</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">insert</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">b</span>: <span class="ident">u8</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
         <span class="kw">let</span> <span class="ident">new</span> <span class="op">=</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">contains</span>(<span class="ident">b</span>);
         <span class="self">self</span>.<span class="number">0</span>[<span class="ident">b</span> <span class="kw">as</span> <span class="ident">usize</span>] <span class="op">=</span> <span class="bool-val">true</span>;
         <span class="ident">new</span>
     }
 
-    <span class="kw">fn</span> <span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">b</span>: <span class="ident">u8</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">b</span>: <span class="ident">u8</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
         <span class="self">self</span>.<span class="number">0</span>[<span class="ident">b</span> <span class="kw">as</span> <span class="ident">usize</span>]
     }
 }
 
 <span class="kw">impl</span> <span class="ident">fmt</span>::<span class="ident">Debug</span> <span class="kw">for</span> <span class="ident">ByteSet</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span>) <span class="op">-&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">bytes</span> <span class="op">=</span> <span class="macro">vec</span><span class="macro">!</span>[];
         <span class="kw">for</span> <span class="ident">b</span> <span class="kw">in</span> <span class="number">0</span>..<span class="op">=</span><span class="number">255</span> {
             <span class="kw">if</span> <span class="self">self</span>.<span class="ident">contains</span>(<span class="ident">b</span>) {
@@ -1431,7 +1432,7 @@
 
 <span class="kw">impl</span> <span class="ident">RareByteOffsets</span> {
     <span class="doccomment">/// Create a new empty set of rare byte offsets.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">empty</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">RareByteOffsets</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">empty</span>() <span class="op">-&gt;</span> <span class="ident">RareByteOffsets</span> {
         <span class="ident">RareByteOffsets</span> { <span class="ident">set</span>: [<span class="ident">RareByteOffset</span>::<span class="ident">default</span>(); <span class="number">256</span>] }
     }
 
@@ -1446,7 +1447,7 @@
 }
 
 <span class="kw">impl</span> <span class="ident">fmt</span>::<span class="ident">Debug</span> <span class="kw">for</span> <span class="ident">RareByteOffsets</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span>) <span class="op">-&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">offsets</span> <span class="op">=</span> <span class="macro">vec</span><span class="macro">!</span>[];
         <span class="kw">for</span> <span class="ident">off</span> <span class="kw">in</span> <span class="self">self</span>.<span class="ident">set</span>.<span class="ident">iter</span>() {
             <span class="kw">if</span> <span class="ident">off</span>.<span class="ident">max</span> <span class="op">&gt;</span> <span class="number">0</span> {
@@ -1478,7 +1479,7 @@
 }
 
 <span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">RareByteOffset</span> {
-    <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">RareByteOffset</span> {
+    <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-&gt;</span> <span class="ident">RareByteOffset</span> {
         <span class="ident">RareByteOffset</span> { <span class="ident">max</span>: <span class="number">0</span> }
     }
 }
@@ -1487,7 +1488,7 @@
     <span class="doccomment">/// Create a new rare byte offset. If the given offset is too big, then</span>
     <span class="doccomment">/// None is returned. In that case, callers should render the rare bytes</span>
     <span class="doccomment">/// prefilter inert.</span>
-    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">max</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">RareByteOffset</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">max</span>: <span class="ident">usize</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">RareByteOffset</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="ident">max</span> <span class="op">&gt;</span> <span class="ident">u8</span>::<span class="ident">MAX</span> <span class="kw">as</span> <span class="ident">usize</span> {
             <span class="prelude-val">None</span>
         } <span class="kw">else</span> {
@@ -1498,7 +1499,7 @@
 
 <span class="kw">impl</span> <span class="ident">RareBytesBuilder</span> {
     <span class="doccomment">/// Create a new builder for constructing a rare byte prefilter.</span>
-    <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">RareBytesBuilder</span> {
+    <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-&gt;</span> <span class="ident">RareBytesBuilder</span> {
         <span class="ident">RareBytesBuilder</span> {
             <span class="ident">ascii_case_insensitive</span>: <span class="bool-val">false</span>,
             <span class="ident">rare_set</span>: <span class="ident">ByteSet</span>::<span class="ident">empty</span>(),
@@ -1511,7 +1512,7 @@
 
     <span class="doccomment">/// Enable ASCII case insensitivity. When set, byte strings added to this</span>
     <span class="doccomment">/// builder will be interpreted without respect to ASCII case.</span>
-    <span class="kw">fn</span> <span class="ident">ascii_case_insensitive</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">yes</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">RareBytesBuilder</span> {
+    <span class="kw">fn</span> <span class="ident">ascii_case_insensitive</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">yes</span>: <span class="ident">bool</span>) <span class="op">-&gt;</span> <span class="ident">RareBytesBuilder</span> {
         <span class="self">self</span>.<span class="ident">ascii_case_insensitive</span> <span class="op">=</span> <span class="ident">yes</span>;
         <span class="self">self</span>
     }
@@ -1521,35 +1522,35 @@
     <span class="doccomment">/// If there are more than 3 distinct starting bytes, or if heuristics</span>
     <span class="doccomment">/// otherwise determine that this prefilter should not be used, then `None`</span>
     <span class="doccomment">/// is returned.</span>
-    <span class="kw">fn</span> <span class="ident">build</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">PrefilterObj</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">available</span> <span class="op">|</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">count</span> <span class="op">&gt;</span> <span class="number">3</span> {
+    <span class="kw">fn</span> <span class="ident">build</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">PrefilterObj</span><span class="op">&gt;</span> {
+        <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">available</span> <span class="op">||</span> <span class="self">self</span>.<span class="ident">count</span> <span class="op">&gt;</span> <span class="number">3</span> {
             <span class="kw">return</span> <span class="prelude-val">None</span>;
         }
         <span class="kw">let</span> (<span class="kw-2">mut</span> <span class="ident">bytes</span>, <span class="kw-2">mut</span> <span class="ident">len</span>) <span class="op">=</span> ([<span class="number">0</span>; <span class="number">3</span>], <span class="number">0</span>);
         <span class="kw">for</span> <span class="ident">b</span> <span class="kw">in</span> <span class="number">0</span>..<span class="op">=</span><span class="number">255</span> {
             <span class="kw">if</span> <span class="self">self</span>.<span class="ident">rare_set</span>.<span class="ident">contains</span>(<span class="ident">b</span>) {
                 <span class="ident">bytes</span>[<span class="ident">len</span>] <span class="op">=</span> <span class="ident">b</span> <span class="kw">as</span> <span class="ident">u8</span>;
-                <span class="ident">len</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+                <span class="ident">len</span> <span class="op">+=</span> <span class="number">1</span>;
             }
         }
         <span class="kw">match</span> <span class="ident">len</span> {
-            <span class="number">0</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
-            <span class="number">1</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">PrefilterObj</span>::<span class="ident">new</span>(<span class="ident">RareBytesOne</span> {
+            <span class="number">0</span> <span class="op">=&gt;</span> <span class="prelude-val">None</span>,
+            <span class="number">1</span> <span class="op">=&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">PrefilterObj</span>::<span class="ident">new</span>(<span class="ident">RareBytesOne</span> {
                 <span class="ident">byte1</span>: <span class="ident">bytes</span>[<span class="number">0</span>],
                 <span class="ident">offset</span>: <span class="self">self</span>.<span class="ident">byte_offsets</span>.<span class="ident">set</span>[<span class="ident">bytes</span>[<span class="number">0</span>] <span class="kw">as</span> <span class="ident">usize</span>],
             })),
-            <span class="number">2</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">PrefilterObj</span>::<span class="ident">new</span>(<span class="ident">RareBytesTwo</span> {
+            <span class="number">2</span> <span class="op">=&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">PrefilterObj</span>::<span class="ident">new</span>(<span class="ident">RareBytesTwo</span> {
                 <span class="ident">offsets</span>: <span class="self">self</span>.<span class="ident">byte_offsets</span>,
                 <span class="ident">byte1</span>: <span class="ident">bytes</span>[<span class="number">0</span>],
                 <span class="ident">byte2</span>: <span class="ident">bytes</span>[<span class="number">1</span>],
             })),
-            <span class="number">3</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">PrefilterObj</span>::<span class="ident">new</span>(<span class="ident">RareBytesThree</span> {
+            <span class="number">3</span> <span class="op">=&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">PrefilterObj</span>::<span class="ident">new</span>(<span class="ident">RareBytesThree</span> {
                 <span class="ident">offsets</span>: <span class="self">self</span>.<span class="ident">byte_offsets</span>,
                 <span class="ident">byte1</span>: <span class="ident">bytes</span>[<span class="number">0</span>],
                 <span class="ident">byte2</span>: <span class="ident">bytes</span>[<span class="number">1</span>],
                 <span class="ident">byte3</span>: <span class="ident">bytes</span>[<span class="number">2</span>],
             })),
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable</span><span class="macro">!</span>(),
+            <span class="kw">_</span> <span class="op">=&gt;</span> <span class="macro">unreachable</span><span class="macro">!</span>(),
         }
     }
 
@@ -1570,13 +1571,13 @@
         }
         <span class="comment">// If the pattern is too long, then our offset table is bunk, so</span>
         <span class="comment">// give up.</span>
-        <span class="kw">if</span> <span class="ident">bytes</span>.<span class="ident">len</span>() <span class="op">&gt;</span><span class="op">=</span> <span class="number">256</span> {
+        <span class="kw">if</span> <span class="ident">bytes</span>.<span class="ident">len</span>() <span class="op">&gt;=</span> <span class="number">256</span> {
             <span class="self">self</span>.<span class="ident">available</span> <span class="op">=</span> <span class="bool-val">false</span>;
             <span class="kw">return</span>;
         }
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rarest</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">bytes</span>.<span class="ident">get</span>(<span class="number">0</span>) {
-            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span>,
-            <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="ident">b</span>) <span class="op">=</span><span class="op">&gt;</span> (<span class="ident">b</span>, <span class="ident">freq_rank</span>(<span class="ident">b</span>)),
+            <span class="prelude-val">None</span> <span class="op">=&gt;</span> <span class="kw">return</span>,
+            <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="ident">b</span>) <span class="op">=&gt;</span> (<span class="ident">b</span>, <span class="ident">freq_rank</span>(<span class="ident">b</span>)),
         };
         <span class="comment">// The idea here is to look for the rarest byte in each pattern, and</span>
         <span class="comment">// add that to our set. As a special exception, if we see a byte that</span>
@@ -1625,8 +1626,8 @@
 
     <span class="kw">fn</span> <span class="ident">add_one_rare_byte</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">byte</span>: <span class="ident">u8</span>) {
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">rare_set</span>.<span class="ident">insert</span>(<span class="ident">byte</span>) {
-            <span class="self">self</span>.<span class="ident">count</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
-            <span class="self">self</span>.<span class="ident">rank_sum</span> <span class="op">+</span><span class="op">=</span> <span class="ident">freq_rank</span>(<span class="ident">byte</span>) <span class="kw">as</span> <span class="ident">u16</span>;
+            <span class="self">self</span>.<span class="ident">count</span> <span class="op">+=</span> <span class="number">1</span>;
+            <span class="self">self</span>.<span class="ident">rank_sum</span> <span class="op">+=</span> <span class="ident">freq_rank</span>(<span class="ident">byte</span>) <span class="kw">as</span> <span class="ident">u16</span>;
         }
     }
 }
@@ -1644,7 +1645,7 @@
         <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">PrefilterState</span>,
         <span class="ident">haystack</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
         <span class="ident">at</span>: <span class="ident">usize</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Candidate</span> {
+    ) <span class="op">-&gt;</span> <span class="ident">Candidate</span> {
         <span class="ident">memchr</span>(<span class="self">self</span>.<span class="ident">byte1</span>, <span class="kw-2">&amp;</span><span class="ident">haystack</span>[<span class="ident">at</span>..])
             .<span class="ident">map</span>(<span class="op">|</span><span class="ident">i</span><span class="op">|</span> {
                 <span class="kw">let</span> <span class="ident">pos</span> <span class="op">=</span> <span class="ident">at</span> <span class="op">+</span> <span class="ident">i</span>;
@@ -1654,11 +1655,11 @@
             .<span class="ident">map_or</span>(<span class="ident">Candidate</span>::<span class="prelude-val">None</span>, <span class="ident">Candidate</span>::<span class="ident">PossibleStartOfMatch</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">clone_prefilter</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">dyn</span> <span class="ident">Prefilter</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">clone_prefilter</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">dyn</span> <span class="ident">Prefilter</span><span class="op">&gt;</span> {
         <span class="ident">Box</span>::<span class="ident">new</span>(<span class="self">self</span>.<span class="ident">clone</span>())
     }
 
-    <span class="kw">fn</span> <span class="ident">heap_bytes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+    <span class="kw">fn</span> <span class="ident">heap_bytes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">usize</span> {
         <span class="number">0</span>
     }
 }
@@ -1677,7 +1678,7 @@
         <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">PrefilterState</span>,
         <span class="ident">haystack</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
         <span class="ident">at</span>: <span class="ident">usize</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Candidate</span> {
+    ) <span class="op">-&gt;</span> <span class="ident">Candidate</span> {
         <span class="ident">memchr2</span>(<span class="self">self</span>.<span class="ident">byte1</span>, <span class="self">self</span>.<span class="ident">byte2</span>, <span class="kw-2">&amp;</span><span class="ident">haystack</span>[<span class="ident">at</span>..])
             .<span class="ident">map</span>(<span class="op">|</span><span class="ident">i</span><span class="op">|</span> {
                 <span class="kw">let</span> <span class="ident">pos</span> <span class="op">=</span> <span class="ident">at</span> <span class="op">+</span> <span class="ident">i</span>;
@@ -1688,11 +1689,11 @@
             .<span class="ident">map_or</span>(<span class="ident">Candidate</span>::<span class="prelude-val">None</span>, <span class="ident">Candidate</span>::<span class="ident">PossibleStartOfMatch</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">clone_prefilter</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">dyn</span> <span class="ident">Prefilter</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">clone_prefilter</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">dyn</span> <span class="ident">Prefilter</span><span class="op">&gt;</span> {
         <span class="ident">Box</span>::<span class="ident">new</span>(<span class="self">self</span>.<span class="ident">clone</span>())
     }
 
-    <span class="kw">fn</span> <span class="ident">heap_bytes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+    <span class="kw">fn</span> <span class="ident">heap_bytes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">usize</span> {
         <span class="number">0</span>
     }
 }
@@ -1712,7 +1713,7 @@
         <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">PrefilterState</span>,
         <span class="ident">haystack</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
         <span class="ident">at</span>: <span class="ident">usize</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Candidate</span> {
+    ) <span class="op">-&gt;</span> <span class="ident">Candidate</span> {
         <span class="ident">memchr3</span>(<span class="self">self</span>.<span class="ident">byte1</span>, <span class="self">self</span>.<span class="ident">byte2</span>, <span class="self">self</span>.<span class="ident">byte3</span>, <span class="kw-2">&amp;</span><span class="ident">haystack</span>[<span class="ident">at</span>..])
             .<span class="ident">map</span>(<span class="op">|</span><span class="ident">i</span><span class="op">|</span> {
                 <span class="kw">let</span> <span class="ident">pos</span> <span class="op">=</span> <span class="ident">at</span> <span class="op">+</span> <span class="ident">i</span>;
@@ -1723,11 +1724,11 @@
             .<span class="ident">map_or</span>(<span class="ident">Candidate</span>::<span class="prelude-val">None</span>, <span class="ident">Candidate</span>::<span class="ident">PossibleStartOfMatch</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">clone_prefilter</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">dyn</span> <span class="ident">Prefilter</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">clone_prefilter</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">dyn</span> <span class="ident">Prefilter</span><span class="op">&gt;</span> {
         <span class="ident">Box</span>::<span class="ident">new</span>(<span class="self">self</span>.<span class="ident">clone</span>())
     }
 
-    <span class="kw">fn</span> <span class="ident">heap_bytes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+    <span class="kw">fn</span> <span class="ident">heap_bytes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">usize</span> {
         <span class="number">0</span>
     }
 }
@@ -1760,7 +1761,7 @@
 
 <span class="kw">impl</span> <span class="ident">StartBytesBuilder</span> {
     <span class="doccomment">/// Create a new builder for constructing a start byte prefilter.</span>
-    <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">StartBytesBuilder</span> {
+    <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-&gt;</span> <span class="ident">StartBytesBuilder</span> {
         <span class="ident">StartBytesBuilder</span> {
             <span class="ident">ascii_case_insensitive</span>: <span class="bool-val">false</span>,
             <span class="ident">byteset</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="bool-val">false</span>; <span class="number">256</span>],
@@ -1771,7 +1772,7 @@
 
     <span class="doccomment">/// Enable ASCII case insensitivity. When set, byte strings added to this</span>
     <span class="doccomment">/// builder will be interpreted without respect to ASCII case.</span>
-    <span class="kw">fn</span> <span class="ident">ascii_case_insensitive</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">yes</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">StartBytesBuilder</span> {
+    <span class="kw">fn</span> <span class="ident">ascii_case_insensitive</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">yes</span>: <span class="ident">bool</span>) <span class="op">-&gt;</span> <span class="ident">StartBytesBuilder</span> {
         <span class="self">self</span>.<span class="ident">ascii_case_insensitive</span> <span class="op">=</span> <span class="ident">yes</span>;
         <span class="self">self</span>
     }
@@ -1781,7 +1782,7 @@
     <span class="doccomment">/// If there are more than 3 distinct starting bytes, or if heuristics</span>
     <span class="doccomment">/// otherwise determine that this prefilter should not be used, then `None`</span>
     <span class="doccomment">/// is returned.</span>
-    <span class="kw">fn</span> <span class="ident">build</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">PrefilterObj</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">build</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">PrefilterObj</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">count</span> <span class="op">&gt;</span> <span class="number">3</span> {
             <span class="kw">return</span> <span class="prelude-val">None</span>;
         }
@@ -1800,21 +1801,21 @@
                 <span class="kw">return</span> <span class="prelude-val">None</span>;
             }
             <span class="ident">bytes</span>[<span class="ident">len</span>] <span class="op">=</span> <span class="ident">b</span> <span class="kw">as</span> <span class="ident">u8</span>;
-            <span class="ident">len</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+            <span class="ident">len</span> <span class="op">+=</span> <span class="number">1</span>;
         }
         <span class="kw">match</span> <span class="ident">len</span> {
-            <span class="number">0</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
-            <span class="number">1</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">PrefilterObj</span>::<span class="ident">new</span>(<span class="ident">StartBytesOne</span> { <span class="ident">byte1</span>: <span class="ident">bytes</span>[<span class="number">0</span>] })),
-            <span class="number">2</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">PrefilterObj</span>::<span class="ident">new</span>(<span class="ident">StartBytesTwo</span> {
+            <span class="number">0</span> <span class="op">=&gt;</span> <span class="prelude-val">None</span>,
+            <span class="number">1</span> <span class="op">=&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">PrefilterObj</span>::<span class="ident">new</span>(<span class="ident">StartBytesOne</span> { <span class="ident">byte1</span>: <span class="ident">bytes</span>[<span class="number">0</span>] })),
+            <span class="number">2</span> <span class="op">=&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">PrefilterObj</span>::<span class="ident">new</span>(<span class="ident">StartBytesTwo</span> {
                 <span class="ident">byte1</span>: <span class="ident">bytes</span>[<span class="number">0</span>],
                 <span class="ident">byte2</span>: <span class="ident">bytes</span>[<span class="number">1</span>],
             })),
-            <span class="number">3</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">PrefilterObj</span>::<span class="ident">new</span>(<span class="ident">StartBytesThree</span> {
+            <span class="number">3</span> <span class="op">=&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">PrefilterObj</span>::<span class="ident">new</span>(<span class="ident">StartBytesThree</span> {
                 <span class="ident">byte1</span>: <span class="ident">bytes</span>[<span class="number">0</span>],
                 <span class="ident">byte2</span>: <span class="ident">bytes</span>[<span class="number">1</span>],
                 <span class="ident">byte3</span>: <span class="ident">bytes</span>[<span class="number">2</span>],
             })),
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable</span><span class="macro">!</span>(),
+            <span class="kw">_</span> <span class="op">=&gt;</span> <span class="macro">unreachable</span><span class="macro">!</span>(),
         }
     }
 
@@ -1837,8 +1838,8 @@
     <span class="kw">fn</span> <span class="ident">add_one_byte</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">byte</span>: <span class="ident">u8</span>) {
         <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">byteset</span>[<span class="ident">byte</span> <span class="kw">as</span> <span class="ident">usize</span>] {
             <span class="self">self</span>.<span class="ident">byteset</span>[<span class="ident">byte</span> <span class="kw">as</span> <span class="ident">usize</span>] <span class="op">=</span> <span class="bool-val">true</span>;
-            <span class="self">self</span>.<span class="ident">count</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
-            <span class="self">self</span>.<span class="ident">rank_sum</span> <span class="op">+</span><span class="op">=</span> <span class="ident">freq_rank</span>(<span class="ident">byte</span>) <span class="kw">as</span> <span class="ident">u16</span>;
+            <span class="self">self</span>.<span class="ident">count</span> <span class="op">+=</span> <span class="number">1</span>;
+            <span class="self">self</span>.<span class="ident">rank_sum</span> <span class="op">+=</span> <span class="ident">freq_rank</span>(<span class="ident">byte</span>) <span class="kw">as</span> <span class="ident">u16</span>;
         }
     }
 }
@@ -1855,17 +1856,17 @@
         <span class="ident">_state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">PrefilterState</span>,
         <span class="ident">haystack</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
         <span class="ident">at</span>: <span class="ident">usize</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Candidate</span> {
+    ) <span class="op">-&gt;</span> <span class="ident">Candidate</span> {
         <span class="ident">memchr</span>(<span class="self">self</span>.<span class="ident">byte1</span>, <span class="kw-2">&amp;</span><span class="ident">haystack</span>[<span class="ident">at</span>..])
             .<span class="ident">map</span>(<span class="op">|</span><span class="ident">i</span><span class="op">|</span> <span class="ident">at</span> <span class="op">+</span> <span class="ident">i</span>)
             .<span class="ident">map_or</span>(<span class="ident">Candidate</span>::<span class="prelude-val">None</span>, <span class="ident">Candidate</span>::<span class="ident">PossibleStartOfMatch</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">clone_prefilter</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">dyn</span> <span class="ident">Prefilter</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">clone_prefilter</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">dyn</span> <span class="ident">Prefilter</span><span class="op">&gt;</span> {
         <span class="ident">Box</span>::<span class="ident">new</span>(<span class="self">self</span>.<span class="ident">clone</span>())
     }
 
-    <span class="kw">fn</span> <span class="ident">heap_bytes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+    <span class="kw">fn</span> <span class="ident">heap_bytes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">usize</span> {
         <span class="number">0</span>
     }
 }
@@ -1883,17 +1884,17 @@
         <span class="ident">_state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">PrefilterState</span>,
         <span class="ident">haystack</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
         <span class="ident">at</span>: <span class="ident">usize</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Candidate</span> {
+    ) <span class="op">-&gt;</span> <span class="ident">Candidate</span> {
         <span class="ident">memchr2</span>(<span class="self">self</span>.<span class="ident">byte1</span>, <span class="self">self</span>.<span class="ident">byte2</span>, <span class="kw-2">&amp;</span><span class="ident">haystack</span>[<span class="ident">at</span>..])
             .<span class="ident">map</span>(<span class="op">|</span><span class="ident">i</span><span class="op">|</span> <span class="ident">at</span> <span class="op">+</span> <span class="ident">i</span>)
             .<span class="ident">map_or</span>(<span class="ident">Candidate</span>::<span class="prelude-val">None</span>, <span class="ident">Candidate</span>::<span class="ident">PossibleStartOfMatch</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">clone_prefilter</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">dyn</span> <span class="ident">Prefilter</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">clone_prefilter</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">dyn</span> <span class="ident">Prefilter</span><span class="op">&gt;</span> {
         <span class="ident">Box</span>::<span class="ident">new</span>(<span class="self">self</span>.<span class="ident">clone</span>())
     }
 
-    <span class="kw">fn</span> <span class="ident">heap_bytes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+    <span class="kw">fn</span> <span class="ident">heap_bytes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">usize</span> {
         <span class="number">0</span>
     }
 }
@@ -1912,17 +1913,17 @@
         <span class="ident">_state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">PrefilterState</span>,
         <span class="ident">haystack</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
         <span class="ident">at</span>: <span class="ident">usize</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Candidate</span> {
+    ) <span class="op">-&gt;</span> <span class="ident">Candidate</span> {
         <span class="ident">memchr3</span>(<span class="self">self</span>.<span class="ident">byte1</span>, <span class="self">self</span>.<span class="ident">byte2</span>, <span class="self">self</span>.<span class="ident">byte3</span>, <span class="kw-2">&amp;</span><span class="ident">haystack</span>[<span class="ident">at</span>..])
             .<span class="ident">map</span>(<span class="op">|</span><span class="ident">i</span><span class="op">|</span> <span class="ident">at</span> <span class="op">+</span> <span class="ident">i</span>)
             .<span class="ident">map_or</span>(<span class="ident">Candidate</span>::<span class="prelude-val">None</span>, <span class="ident">Candidate</span>::<span class="ident">PossibleStartOfMatch</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">clone_prefilter</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">dyn</span> <span class="ident">Prefilter</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">clone_prefilter</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">dyn</span> <span class="ident">Prefilter</span><span class="op">&gt;</span> {
         <span class="ident">Box</span>::<span class="ident">new</span>(<span class="self">self</span>.<span class="ident">clone</span>())
     }
 
-    <span class="kw">fn</span> <span class="ident">heap_bytes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+    <span class="kw">fn</span> <span class="ident">heap_bytes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">usize</span> {
         <span class="number">0</span>
     }
 }
@@ -1938,16 +1939,16 @@
     <span class="ident">prefilter</span>: <span class="ident">P</span>,
     <span class="ident">haystack</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
     <span class="ident">at</span>: <span class="ident">usize</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Candidate</span> {
+) <span class="op">-&gt;</span> <span class="ident">Candidate</span> {
     <span class="kw">let</span> <span class="ident">cand</span> <span class="op">=</span> <span class="ident">prefilter</span>.<span class="ident">next_candidate</span>(<span class="ident">prestate</span>, <span class="ident">haystack</span>, <span class="ident">at</span>);
     <span class="kw">match</span> <span class="ident">cand</span> {
-        <span class="ident">Candidate</span>::<span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Candidate</span>::<span class="prelude-val">None</span> <span class="op">=&gt;</span> {
             <span class="ident">prestate</span>.<span class="ident">update_skipped_bytes</span>(<span class="ident">haystack</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="ident">at</span>);
         }
-        <span class="ident">Candidate</span>::<span class="ident">Match</span>(<span class="kw-2">ref</span> <span class="ident">m</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Candidate</span>::<span class="ident">Match</span>(<span class="kw-2">ref</span> <span class="ident">m</span>) <span class="op">=&gt;</span> {
             <span class="ident">prestate</span>.<span class="ident">update_skipped_bytes</span>(<span class="ident">m</span>.<span class="ident">start</span>() <span class="op">-</span> <span class="ident">at</span>);
         }
-        <span class="ident">Candidate</span>::<span class="ident">PossibleStartOfMatch</span>(<span class="ident">i</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Candidate</span>::<span class="ident">PossibleStartOfMatch</span>(<span class="ident">i</span>) <span class="op">=&gt;</span> {
             <span class="ident">prestate</span>.<span class="ident">update_skipped_bytes</span>(<span class="ident">i</span> <span class="op">-</span> <span class="ident">at</span>);
         }
     }
@@ -1957,10 +1958,10 @@
 <span class="doccomment">/// If the given byte is an ASCII letter, then return it in the opposite case.</span>
 <span class="doccomment">/// e.g., Given `b&#39;A&#39;`, this returns `b&#39;a&#39;`, and given `b&#39;a&#39;`, this returns</span>
 <span class="doccomment">/// `b&#39;A&#39;`. If a non-ASCII letter is given, then the given byte is returned.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">opposite_ascii_case</span>(<span class="ident">b</span>: <span class="ident">u8</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u8</span> {
-    <span class="kw">if</span> <span class="string">b&#39;A&#39;</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">b</span> <span class="kw-2">&amp;</span><span class="op">&amp;</span> <span class="ident">b</span> <span class="op">&lt;</span><span class="op">=</span> <span class="string">b&#39;Z&#39;</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">opposite_ascii_case</span>(<span class="ident">b</span>: <span class="ident">u8</span>) <span class="op">-&gt;</span> <span class="ident">u8</span> {
+    <span class="kw">if</span> <span class="string">b&#39;A&#39;</span> <span class="op">&lt;=</span> <span class="ident">b</span> <span class="op">&amp;&amp;</span> <span class="ident">b</span> <span class="op">&lt;=</span> <span class="string">b&#39;Z&#39;</span> {
         <span class="ident">b</span>.<span class="ident">to_ascii_lowercase</span>()
-    } <span class="kw">else</span> <span class="kw">if</span> <span class="string">b&#39;a&#39;</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">b</span> <span class="kw-2">&amp;</span><span class="op">&amp;</span> <span class="ident">b</span> <span class="op">&lt;</span><span class="op">=</span> <span class="string">b&#39;z&#39;</span> {
+    } <span class="kw">else</span> <span class="kw">if</span> <span class="string">b&#39;a&#39;</span> <span class="op">&lt;=</span> <span class="ident">b</span> <span class="op">&amp;&amp;</span> <span class="ident">b</span> <span class="op">&lt;=</span> <span class="string">b&#39;z&#39;</span> {
         <span class="ident">b</span>.<span class="ident">to_ascii_uppercase</span>()
     } <span class="kw">else</span> {
         <span class="ident">b</span>
@@ -1969,7 +1970,7 @@
 
 <span class="doccomment">/// Return the frequency rank of the given byte. The higher the rank, the more</span>
 <span class="doccomment">/// common the byte (heuristically speaking).</span>
-<span class="kw">fn</span> <span class="ident">freq_rank</span>(<span class="ident">b</span>: <span class="ident">u8</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u8</span> {
+<span class="kw">fn</span> <span class="ident">freq_rank</span>(<span class="ident">b</span>: <span class="ident">u8</span>) <span class="op">-&gt;</span> <span class="ident">u8</span> {
     <span class="kw">use</span> <span class="ident">byte_frequencies</span>::<span class="ident">BYTE_FREQUENCIES</span>;
     <span class="ident">BYTE_FREQUENCIES</span>[<span class="ident">b</span> <span class="kw">as</span> <span class="ident">usize</span>]
 }

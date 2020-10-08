@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/colored-2.0.0/src/style.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>style.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../colored/index.html'><div class='logo-container'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/colored-2.0.0/src/style.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>style.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../colored/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
+                <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -334,42 +335,42 @@
 }
 
 <span class="kw">impl</span> <span class="ident">Styles</span> {
-    <span class="kw">fn</span> <span class="ident">to_str</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span> {
+    <span class="kw">fn</span> <span class="ident">to_str</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Styles</span>::<span class="ident">Clear</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;&quot;</span>, <span class="comment">// unreachable, but we don&#39;t want to panic</span>
-            <span class="ident">Styles</span>::<span class="ident">Bold</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;1&quot;</span>,
-            <span class="ident">Styles</span>::<span class="ident">Dimmed</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;2&quot;</span>,
-            <span class="ident">Styles</span>::<span class="ident">Italic</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;3&quot;</span>,
-            <span class="ident">Styles</span>::<span class="ident">Underline</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;4&quot;</span>,
-            <span class="ident">Styles</span>::<span class="ident">Blink</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;5&quot;</span>,
-            <span class="ident">Styles</span>::<span class="ident">Reversed</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;7&quot;</span>,
-            <span class="ident">Styles</span>::<span class="ident">Hidden</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;8&quot;</span>,
-            <span class="ident">Styles</span>::<span class="ident">Strikethrough</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;9&quot;</span>,
+            <span class="ident">Styles</span>::<span class="ident">Clear</span> <span class="op">=&gt;</span> <span class="string">&quot;&quot;</span>, <span class="comment">// unreachable, but we don&#39;t want to panic</span>
+            <span class="ident">Styles</span>::<span class="ident">Bold</span> <span class="op">=&gt;</span> <span class="string">&quot;1&quot;</span>,
+            <span class="ident">Styles</span>::<span class="ident">Dimmed</span> <span class="op">=&gt;</span> <span class="string">&quot;2&quot;</span>,
+            <span class="ident">Styles</span>::<span class="ident">Italic</span> <span class="op">=&gt;</span> <span class="string">&quot;3&quot;</span>,
+            <span class="ident">Styles</span>::<span class="ident">Underline</span> <span class="op">=&gt;</span> <span class="string">&quot;4&quot;</span>,
+            <span class="ident">Styles</span>::<span class="ident">Blink</span> <span class="op">=&gt;</span> <span class="string">&quot;5&quot;</span>,
+            <span class="ident">Styles</span>::<span class="ident">Reversed</span> <span class="op">=&gt;</span> <span class="string">&quot;7&quot;</span>,
+            <span class="ident">Styles</span>::<span class="ident">Hidden</span> <span class="op">=&gt;</span> <span class="string">&quot;8&quot;</span>,
+            <span class="ident">Styles</span>::<span class="ident">Strikethrough</span> <span class="op">=&gt;</span> <span class="string">&quot;9&quot;</span>,
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">to_u8</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u8</span> {
+    <span class="kw">fn</span> <span class="ident">to_u8</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">u8</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Styles</span>::<span class="ident">Clear</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">CLEARV</span>,
-            <span class="ident">Styles</span>::<span class="ident">Bold</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">BOLD</span>,
-            <span class="ident">Styles</span>::<span class="ident">Dimmed</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">DIMMED</span>,
-            <span class="ident">Styles</span>::<span class="ident">Italic</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ITALIC</span>,
-            <span class="ident">Styles</span>::<span class="ident">Underline</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">UNDERLINE</span>,
-            <span class="ident">Styles</span>::<span class="ident">Blink</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">BLINK</span>,
-            <span class="ident">Styles</span>::<span class="ident">Reversed</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">REVERSED</span>,
-            <span class="ident">Styles</span>::<span class="ident">Hidden</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">HIDDEN</span>,
-            <span class="ident">Styles</span>::<span class="ident">Strikethrough</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">STRIKETHROUGH</span>,
+            <span class="ident">Styles</span>::<span class="ident">Clear</span> <span class="op">=&gt;</span> <span class="ident">CLEARV</span>,
+            <span class="ident">Styles</span>::<span class="ident">Bold</span> <span class="op">=&gt;</span> <span class="ident">BOLD</span>,
+            <span class="ident">Styles</span>::<span class="ident">Dimmed</span> <span class="op">=&gt;</span> <span class="ident">DIMMED</span>,
+            <span class="ident">Styles</span>::<span class="ident">Italic</span> <span class="op">=&gt;</span> <span class="ident">ITALIC</span>,
+            <span class="ident">Styles</span>::<span class="ident">Underline</span> <span class="op">=&gt;</span> <span class="ident">UNDERLINE</span>,
+            <span class="ident">Styles</span>::<span class="ident">Blink</span> <span class="op">=&gt;</span> <span class="ident">BLINK</span>,
+            <span class="ident">Styles</span>::<span class="ident">Reversed</span> <span class="op">=&gt;</span> <span class="ident">REVERSED</span>,
+            <span class="ident">Styles</span>::<span class="ident">Hidden</span> <span class="op">=&gt;</span> <span class="ident">HIDDEN</span>,
+            <span class="ident">Styles</span>::<span class="ident">Strikethrough</span> <span class="op">=&gt;</span> <span class="ident">STRIKETHROUGH</span>,
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">from_u8</span>(<span class="ident">u</span>: <span class="ident">u8</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Styles</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="ident">u</span> <span class="op">=</span><span class="op">=</span> <span class="ident">CLEARV</span> {
+    <span class="kw">fn</span> <span class="ident">from_u8</span>(<span class="ident">u</span>: <span class="ident">u8</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Styles</span><span class="op">&gt;&gt;</span> {
+        <span class="kw">if</span> <span class="ident">u</span> <span class="op">==</span> <span class="ident">CLEARV</span> {
             <span class="kw">return</span> <span class="prelude-val">None</span>;
         }
 
         <span class="kw">let</span> <span class="ident">res</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Styles</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">STYLES</span>
             .<span class="ident">iter</span>()
-            .<span class="ident">filter</span>(<span class="op">|</span><span class="kw-2">&amp;</span><span class="kw-2">&amp;</span>(<span class="kw-2">ref</span> <span class="ident">mask</span>, <span class="kw">_</span>)<span class="op">|</span> (<span class="number">0</span> <span class="op">!</span><span class="op">=</span> (<span class="ident">u</span> <span class="op">&amp;</span> <span class="ident">mask</span>)))
+            .<span class="ident">filter</span>(<span class="op">|</span><span class="op">&amp;&amp;</span>(<span class="kw-2">ref</span> <span class="ident">mask</span>, <span class="kw">_</span>)<span class="op">|</span> (<span class="number">0</span> <span class="op">!=</span> (<span class="ident">u</span> <span class="op">&amp;</span> <span class="ident">mask</span>)))
             .<span class="ident">map</span>(<span class="op">|</span><span class="kw-2">&amp;</span>(<span class="kw">_</span>, <span class="ident">value</span>)<span class="op">|</span> <span class="ident">value</span>)
             .<span class="ident">collect</span>();
         <span class="kw">if</span> <span class="ident">res</span>.<span class="ident">is_empty</span>() {
@@ -390,22 +391,22 @@
     <span class="doccomment">/// assert_eq!(colored.style().contains(Styles::Italic), true);</span>
     <span class="doccomment">/// assert_eq!(colored.style().contains(Styles::Dimmed), false);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">contains</span>(<span class="self">self</span>, <span class="ident">style</span>: <span class="ident">Styles</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">contains</span>(<span class="self">self</span>, <span class="ident">style</span>: <span class="ident">Styles</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
         <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">style</span>.<span class="ident">to_u8</span>();
-        <span class="self">self</span>.<span class="number">0</span> <span class="op">&amp;</span> <span class="ident">s</span> <span class="op">=</span><span class="op">=</span> <span class="ident">s</span>
+        <span class="self">self</span>.<span class="number">0</span> <span class="op">&amp;</span> <span class="ident">s</span> <span class="op">==</span> <span class="ident">s</span>
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">to_str</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">String</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">to_str</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">String</span> {
         <span class="kw">let</span> <span class="ident">styles</span> <span class="op">=</span> <span class="ident">Styles</span>::<span class="ident">from_u8</span>(<span class="self">self</span>.<span class="number">0</span>).<span class="ident">unwrap_or_default</span>();
         <span class="ident">styles</span>
             .<span class="ident">iter</span>()
             .<span class="ident">map</span>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> <span class="ident">s</span>.<span class="ident">to_str</span>())
-            .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>()
+            .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;&gt;</span>()
             .<span class="ident">join</span>(<span class="string">&quot;;&quot;</span>)
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">add</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">two</span>: <span class="ident">Styles</span>) {
-        <span class="self">self</span>.<span class="number">0</span> <span class="op">|</span><span class="op">=</span> <span class="ident">two</span>.<span class="ident">to_u8</span>();
+        <span class="self">self</span>.<span class="number">0</span> <span class="op">|=</span> <span class="ident">two</span>.<span class="ident">to_u8</span>();
     }
 }
 
@@ -430,7 +431,7 @@
         };
 
         <span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">value_isomorph</span> {
-            (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">value</span>:<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">value</span>:<span class="ident">expr</span>) <span class="op">=&gt;</span> {
                 <span class="attribute">#[<span class="ident">test</span>]</span>
                 <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>() {
                     <span class="kw">let</span> <span class="ident">u</span> <span class="op">=</span> <span class="ident">Styles</span>::<span class="ident">from_u8</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">value</span>);
@@ -441,13 +442,13 @@
                     );
                     <span class="kw">let</span> <span class="ident">u</span> <span class="op">=</span> <span class="ident">u</span>.<span class="ident">unwrap</span>();
                     <span class="macro">assert</span><span class="macro">!</span>(
-                        <span class="ident">u</span>.<span class="ident">len</span>() <span class="op">=</span><span class="op">=</span> <span class="number">1</span>,
+                        <span class="ident">u</span>.<span class="ident">len</span>() <span class="op">==</span> <span class="number">1</span>,
                         <span class="string">&quot;{}: Styles::from_u8 found {} styles (expected 1)&quot;</span>,
                         <span class="macro">stringify</span><span class="macro">!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">value</span>),
                         <span class="ident">u</span>.<span class="ident">len</span>()
                     );
                     <span class="macro">assert</span><span class="macro">!</span>(
-                        <span class="ident">u</span>[<span class="number">0</span>].<span class="ident">to_u8</span>() <span class="op">=</span><span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">value</span>,
+                        <span class="ident">u</span>[<span class="number">0</span>].<span class="ident">to_u8</span>() <span class="op">==</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">value</span>,
                         <span class="string">&quot;{}: to_u8() doesn&#39;t match its const value&quot;</span>,
                         <span class="macro">stringify</span><span class="macro">!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">value</span>)
                     );
@@ -469,7 +470,7 @@
         <span class="kw">use</span> <span class="kw">super</span>::<span class="kw">super</span>::<span class="ident">Styles</span>::<span class="kw-2">*</span>;
         <span class="kw">use</span> <span class="kw">super</span>::<span class="kw">super</span>::{<span class="ident">Style</span>, <span class="ident">Styles</span>};
 
-        <span class="kw">fn</span> <span class="ident">style_from_multiples</span>(<span class="ident">styles</span>: <span class="kw-2">&amp;</span>[<span class="ident">Styles</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Style</span> {
+        <span class="kw">fn</span> <span class="ident">style_from_multiples</span>(<span class="ident">styles</span>: <span class="kw-2">&amp;</span>[<span class="ident">Styles</span>]) <span class="op">-&gt;</span> <span class="ident">Style</span> {
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">Style</span>(<span class="ident">styles</span>[<span class="number">0</span>].<span class="ident">to_u8</span>());
             <span class="kw">for</span> <span class="ident">s</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">styles</span>[<span class="number">1</span>..] {
                 <span class="ident">res</span> <span class="op">=</span> <span class="ident">Style</span>(<span class="ident">res</span>.<span class="number">0</span> <span class="op">|</span> <span class="ident">s</span>.<span class="ident">to_u8</span>());
@@ -478,7 +479,7 @@
         }
 
         <span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">test_aggreg</span> {
-            (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">styles</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">expect</span>:<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> {{
+            (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">styles</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">expect</span>:<span class="ident">expr</span>) <span class="op">=&gt;</span> {{
                 <span class="kw">let</span> <span class="ident">v</span> <span class="op">=</span> <span class="ident">style_from_multiples</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">styles</span>);
                 <span class="kw">let</span> <span class="ident">r</span> <span class="op">=</span> <span class="ident">Styles</span>::<span class="ident">from_u8</span>(<span class="ident">v</span>.<span class="number">0</span>).<span class="ident">expect</span>(<span class="string">&quot;should find styles&quot;</span>);
                 <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="kw-2">&amp;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">expect</span> <span class="kw">as</span> <span class="kw-2">&amp;</span>[<span class="ident">Styles</span>], <span class="kw-2">&amp;</span><span class="ident">r</span>[..])
@@ -504,7 +505,7 @@
         }
 
         <span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">test_combine</span> {
-            (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">styles</span>:<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> {{
+            (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">styles</span>:<span class="ident">expr</span>) <span class="op">=&gt;</span> {{
                 <span class="kw">let</span> <span class="ident">v</span> <span class="op">=</span> <span class="ident">style_from_multiples</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">styles</span>);
                 <span class="kw">let</span> <span class="ident">r</span> <span class="op">=</span> <span class="ident">Styles</span>::<span class="ident">from_u8</span>(<span class="ident">v</span>.<span class="number">0</span>).<span class="ident">expect</span>(<span class="string">&quot;should find styles&quot;</span>);
                 <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">styles</span>, <span class="kw-2">&amp;</span><span class="ident">r</span>[..])

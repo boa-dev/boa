@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/clap-2.33.3/src/errors.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>errors.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../clap/index.html'><div class='logo-container'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/clap-2.33.3/src/errors.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>errors.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../clap/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
+                <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -1298,20 +1299,20 @@
     <span class="doccomment">/// The type of error</span>
     <span class="kw">pub</span> <span class="ident">kind</span>: <span class="ident">ErrorKind</span>,
     <span class="doccomment">/// Any additional information passed along, such as the argument name that caused the error</span>
-    <span class="kw">pub</span> <span class="ident">info</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="kw">pub</span> <span class="ident">info</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;&gt;</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">Error</span> {
     <span class="doccomment">/// Should the message be written to `stdout` or not</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">use_stderr</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">use_stderr</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">kind</span> {
-            <span class="ident">ErrorKind</span>::<span class="ident">HelpDisplayed</span> <span class="op">|</span> <span class="ident">ErrorKind</span>::<span class="ident">VersionDisplayed</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
+            <span class="ident">ErrorKind</span>::<span class="ident">HelpDisplayed</span> <span class="op">|</span> <span class="ident">ErrorKind</span>::<span class="ident">VersionDisplayed</span> <span class="op">=&gt;</span> <span class="bool-val">false</span>,
+            <span class="kw">_</span> <span class="op">=&gt;</span> <span class="bool-val">true</span>,
         }
     }
 
     <span class="doccomment">/// Prints the error to `stderr` and exits with a status of `1`</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">exit</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="op">!</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">exit</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="op">!</span> {
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">use_stderr</span>() {
             <span class="macro">wlnerr</span><span class="macro">!</span>(<span class="string">&quot;{}&quot;</span>, <span class="self">self</span>.<span class="ident">message</span>);
             <span class="ident">process</span>::<span class="ident">exit</span>(<span class="number">1</span>);
@@ -1322,7 +1323,7 @@
     }
 
     <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">write_to</span><span class="op">&lt;</span><span class="ident">W</span>: <span class="ident">Write</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">w</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">W</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">write_to</span><span class="op">&lt;</span><span class="ident">W</span>: <span class="ident">Write</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">w</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">W</span>) <span class="op">-&gt;</span> <span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="macro">write</span><span class="macro">!</span>(<span class="ident">w</span>, <span class="string">&quot;{}&quot;</span>, <span class="self">self</span>.<span class="ident">message</span>)
     }
 
@@ -1332,7 +1333,7 @@
         <span class="ident">other</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">O</span><span class="op">&gt;</span>,
         <span class="ident">usage</span>: <span class="ident">U</span>,
         <span class="ident">color</span>: <span class="ident">ColorWhen</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>
+    ) <span class="op">-&gt;</span> <span class="self">Self</span>
     <span class="kw">where</span>
         <span class="ident">O</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
         <span class="ident">U</span>: <span class="ident">Display</span>,
@@ -1350,12 +1351,12 @@
                 <span class="ident">c</span>.<span class="ident">error</span>(<span class="string">&quot;error:&quot;</span>),
                 <span class="ident">c</span>.<span class="ident">warning</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">arg</span>.<span class="ident">to_string</span>()),
                 <span class="kw">match</span> <span class="ident">other</span> {
-                    <span class="prelude-val">Some</span>(<span class="ident">name</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="prelude-val">Some</span>(<span class="ident">name</span>) <span class="op">=&gt;</span> {
                         <span class="kw">let</span> <span class="ident">n</span> <span class="op">=</span> <span class="ident">name</span>.<span class="ident">into</span>();
                         <span class="ident">v</span>.<span class="ident">push</span>(<span class="ident">n</span>.<span class="ident">clone</span>());
                         <span class="ident">c</span>.<span class="ident">warning</span>(<span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;&#39;{}&#39;&quot;</span>, <span class="ident">n</span>))
                     }
-                    <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">c</span>.<span class="ident">none</span>(<span class="string">&quot;one or more of the other specified arguments&quot;</span>.<span class="ident">to_owned</span>()),
+                    <span class="prelude-val">None</span> <span class="op">=&gt;</span> <span class="ident">c</span>.<span class="ident">none</span>(<span class="string">&quot;one or more of the other specified arguments&quot;</span>.<span class="ident">to_owned</span>()),
                 },
                 <span class="ident">usage</span>,
                 <span class="ident">c</span>.<span class="ident">good</span>(<span class="string">&quot;--help&quot;</span>)
@@ -1366,7 +1367,7 @@
     }
 
     <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">empty_value</span><span class="op">&lt;</span><span class="ident">U</span><span class="op">&gt;</span>(<span class="ident">arg</span>: <span class="kw-2">&amp;</span><span class="ident">AnyArg</span>, <span class="ident">usage</span>: <span class="ident">U</span>, <span class="ident">color</span>: <span class="ident">ColorWhen</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">empty_value</span><span class="op">&lt;</span><span class="ident">U</span><span class="op">&gt;</span>(<span class="ident">arg</span>: <span class="kw-2">&amp;</span><span class="ident">AnyArg</span>, <span class="ident">usage</span>: <span class="ident">U</span>, <span class="ident">color</span>: <span class="ident">ColorWhen</span>) <span class="op">-&gt;</span> <span class="self">Self</span>
     <span class="kw">where</span>
         <span class="ident">U</span>: <span class="ident">Display</span>,
     {
@@ -1397,7 +1398,7 @@
         <span class="ident">arg</span>: <span class="kw-2">&amp;</span><span class="ident">AnyArg</span>,
         <span class="ident">usage</span>: <span class="ident">U</span>,
         <span class="ident">color</span>: <span class="ident">ColorWhen</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>
+    ) <span class="op">-&gt;</span> <span class="self">Self</span>
     <span class="kw">where</span>
         <span class="ident">B</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span>,
         <span class="ident">G</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Display</span>,
@@ -1443,7 +1444,7 @@
         <span class="ident">name</span>: <span class="ident">N</span>,
         <span class="ident">usage</span>: <span class="ident">U</span>,
         <span class="ident">color</span>: <span class="ident">ColorWhen</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>
+    ) <span class="op">-&gt;</span> <span class="self">Self</span>
     <span class="kw">where</span>
         <span class="ident">S</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
         <span class="ident">D</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Display</span>,
@@ -1478,7 +1479,7 @@
     }
 
     <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">unrecognized_subcommand</span><span class="op">&lt;</span><span class="ident">S</span>, <span class="ident">N</span><span class="op">&gt;</span>(<span class="ident">subcmd</span>: <span class="ident">S</span>, <span class="ident">name</span>: <span class="ident">N</span>, <span class="ident">color</span>: <span class="ident">ColorWhen</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">unrecognized_subcommand</span><span class="op">&lt;</span><span class="ident">S</span>, <span class="ident">N</span><span class="op">&gt;</span>(<span class="ident">subcmd</span>: <span class="ident">S</span>, <span class="ident">name</span>: <span class="ident">N</span>, <span class="ident">color</span>: <span class="ident">ColorWhen</span>) <span class="op">-&gt;</span> <span class="self">Self</span>
     <span class="kw">where</span>
         <span class="ident">S</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
         <span class="ident">N</span>: <span class="ident">Display</span>,
@@ -1506,7 +1507,7 @@
     }
 
     <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">missing_required_argument</span><span class="op">&lt;</span><span class="ident">R</span>, <span class="ident">U</span><span class="op">&gt;</span>(<span class="ident">required</span>: <span class="ident">R</span>, <span class="ident">usage</span>: <span class="ident">U</span>, <span class="ident">color</span>: <span class="ident">ColorWhen</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">missing_required_argument</span><span class="op">&lt;</span><span class="ident">R</span>, <span class="ident">U</span><span class="op">&gt;</span>(<span class="ident">required</span>: <span class="ident">R</span>, <span class="ident">usage</span>: <span class="ident">U</span>, <span class="ident">color</span>: <span class="ident">ColorWhen</span>) <span class="op">-&gt;</span> <span class="self">Self</span>
     <span class="kw">where</span>
         <span class="ident">R</span>: <span class="ident">Display</span>,
         <span class="ident">U</span>: <span class="ident">Display</span>,
@@ -1531,7 +1532,7 @@
     }
 
     <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">missing_subcommand</span><span class="op">&lt;</span><span class="ident">N</span>, <span class="ident">U</span><span class="op">&gt;</span>(<span class="ident">name</span>: <span class="ident">N</span>, <span class="ident">usage</span>: <span class="ident">U</span>, <span class="ident">color</span>: <span class="ident">ColorWhen</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">missing_subcommand</span><span class="op">&lt;</span><span class="ident">N</span>, <span class="ident">U</span><span class="op">&gt;</span>(<span class="ident">name</span>: <span class="ident">N</span>, <span class="ident">usage</span>: <span class="ident">U</span>, <span class="ident">color</span>: <span class="ident">ColorWhen</span>) <span class="op">-&gt;</span> <span class="self">Self</span>
     <span class="kw">where</span>
         <span class="ident">N</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Display</span>,
         <span class="ident">U</span>: <span class="ident">Display</span>,
@@ -1556,7 +1557,7 @@
     }
 
     <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">invalid_utf8</span><span class="op">&lt;</span><span class="ident">U</span><span class="op">&gt;</span>(<span class="ident">usage</span>: <span class="ident">U</span>, <span class="ident">color</span>: <span class="ident">ColorWhen</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">invalid_utf8</span><span class="op">&lt;</span><span class="ident">U</span><span class="op">&gt;</span>(<span class="ident">usage</span>: <span class="ident">U</span>, <span class="ident">color</span>: <span class="ident">ColorWhen</span>) <span class="op">-&gt;</span> <span class="self">Self</span>
     <span class="kw">where</span>
         <span class="ident">U</span>: <span class="ident">Display</span>,
     {
@@ -1579,7 +1580,7 @@
     }
 
     <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">too_many_values</span><span class="op">&lt;</span><span class="ident">V</span>, <span class="ident">U</span><span class="op">&gt;</span>(<span class="ident">val</span>: <span class="ident">V</span>, <span class="ident">arg</span>: <span class="kw-2">&amp;</span><span class="ident">AnyArg</span>, <span class="ident">usage</span>: <span class="ident">U</span>, <span class="ident">color</span>: <span class="ident">ColorWhen</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">too_many_values</span><span class="op">&lt;</span><span class="ident">V</span>, <span class="ident">U</span><span class="op">&gt;</span>(<span class="ident">val</span>: <span class="ident">V</span>, <span class="ident">arg</span>: <span class="kw-2">&amp;</span><span class="ident">AnyArg</span>, <span class="ident">usage</span>: <span class="ident">U</span>, <span class="ident">color</span>: <span class="ident">ColorWhen</span>) <span class="op">-&gt;</span> <span class="self">Self</span>
     <span class="kw">where</span>
         <span class="ident">V</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Display</span> <span class="op">+</span> <span class="ident">ToOwned</span>,
         <span class="ident">U</span>: <span class="ident">Display</span>,
@@ -1613,7 +1614,7 @@
         <span class="ident">curr_vals</span>: <span class="ident">usize</span>,
         <span class="ident">usage</span>: <span class="ident">U</span>,
         <span class="ident">color</span>: <span class="ident">ColorWhen</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>
+    ) <span class="op">-&gt;</span> <span class="self">Self</span>
     <span class="kw">where</span>
         <span class="ident">U</span>: <span class="ident">Display</span>,
     {
@@ -1641,7 +1642,7 @@
     }
 
     <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">value_validation</span>(<span class="ident">arg</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">AnyArg</span><span class="op">&gt;</span>, <span class="ident">err</span>: <span class="ident">String</span>, <span class="ident">color</span>: <span class="ident">ColorWhen</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">value_validation</span>(<span class="ident">arg</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">AnyArg</span><span class="op">&gt;</span>, <span class="ident">err</span>: <span class="ident">String</span>, <span class="ident">color</span>: <span class="ident">ColorWhen</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
         <span class="kw">let</span> <span class="ident">c</span> <span class="op">=</span> <span class="ident">Colorizer</span>::<span class="ident">new</span>(<span class="ident">ColorizerOption</span> {
             <span class="ident">use_stderr</span>: <span class="bool-val">true</span>,
             <span class="ident">when</span>: <span class="ident">color</span>,
@@ -1663,7 +1664,7 @@
     }
 
     <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">value_validation_auto</span>(<span class="ident">err</span>: <span class="ident">String</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">value_validation_auto</span>(<span class="ident">err</span>: <span class="ident">String</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
         <span class="kw">let</span> <span class="ident">n</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">AnyArg</span><span class="op">&gt;</span> <span class="op">=</span> <span class="prelude-val">None</span>;
         <span class="ident">Error</span>::<span class="ident">value_validation</span>(<span class="ident">n</span>, <span class="ident">err</span>, <span class="ident">ColorWhen</span>::<span class="ident">Auto</span>)
     }
@@ -1676,7 +1677,7 @@
         <span class="ident">suffix</span>: <span class="ident">S</span>,
         <span class="ident">usage</span>: <span class="ident">U</span>,
         <span class="ident">color</span>: <span class="ident">ColorWhen</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>
+    ) <span class="op">-&gt;</span> <span class="self">Self</span>
     <span class="kw">where</span>
         <span class="ident">S</span>: <span class="ident">Display</span>,
         <span class="ident">U</span>: <span class="ident">Display</span>,
@@ -1705,7 +1706,7 @@
     }
 
     <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">unexpected_multiple_usage</span><span class="op">&lt;</span><span class="ident">U</span><span class="op">&gt;</span>(<span class="ident">arg</span>: <span class="kw-2">&amp;</span><span class="ident">AnyArg</span>, <span class="ident">usage</span>: <span class="ident">U</span>, <span class="ident">color</span>: <span class="ident">ColorWhen</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">unexpected_multiple_usage</span><span class="op">&lt;</span><span class="ident">U</span><span class="op">&gt;</span>(<span class="ident">arg</span>: <span class="kw-2">&amp;</span><span class="ident">AnyArg</span>, <span class="ident">usage</span>: <span class="ident">U</span>, <span class="ident">color</span>: <span class="ident">ColorWhen</span>) <span class="op">-&gt;</span> <span class="self">Self</span>
     <span class="kw">where</span>
         <span class="ident">U</span>: <span class="ident">Display</span>,
     {
@@ -1730,7 +1731,7 @@
     }
 
     <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">unknown_argument</span><span class="op">&lt;</span><span class="ident">A</span>, <span class="ident">U</span><span class="op">&gt;</span>(<span class="ident">arg</span>: <span class="ident">A</span>, <span class="ident">did_you_mean</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">usage</span>: <span class="ident">U</span>, <span class="ident">color</span>: <span class="ident">ColorWhen</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">unknown_argument</span><span class="op">&lt;</span><span class="ident">A</span>, <span class="ident">U</span><span class="op">&gt;</span>(<span class="ident">arg</span>: <span class="ident">A</span>, <span class="ident">did_you_mean</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">usage</span>: <span class="ident">U</span>, <span class="ident">color</span>: <span class="ident">ColorWhen</span>) <span class="op">-&gt;</span> <span class="self">Self</span>
     <span class="kw">where</span>
         <span class="ident">A</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
         <span class="ident">U</span>: <span class="ident">Display</span>,
@@ -1762,7 +1763,7 @@
     }
 
     <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">io_error</span>(<span class="ident">e</span>: <span class="kw-2">&amp;</span><span class="ident">Error</span>, <span class="ident">color</span>: <span class="ident">ColorWhen</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">io_error</span>(<span class="ident">e</span>: <span class="kw-2">&amp;</span><span class="ident">Error</span>, <span class="ident">color</span>: <span class="ident">ColorWhen</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
         <span class="kw">let</span> <span class="ident">c</span> <span class="op">=</span> <span class="ident">Colorizer</span>::<span class="ident">new</span>(<span class="ident">ColorizerOption</span> {
             <span class="ident">use_stderr</span>: <span class="bool-val">true</span>,
             <span class="ident">when</span>: <span class="ident">color</span>,
@@ -1775,7 +1776,7 @@
     }
 
     <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">argument_not_found_auto</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span>(<span class="ident">arg</span>: <span class="ident">A</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">argument_not_found_auto</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span>(<span class="ident">arg</span>: <span class="ident">A</span>) <span class="op">-&gt;</span> <span class="self">Self</span>
     <span class="kw">where</span>
         <span class="ident">A</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
     {
@@ -1799,7 +1800,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// This can be used in combination with `Error::exit` to exit your program</span>
     <span class="doccomment">/// with a custom error message.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">with_description</span>(<span class="ident">description</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">kind</span>: <span class="ident">ErrorKind</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">with_description</span>(<span class="ident">description</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">kind</span>: <span class="ident">ErrorKind</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
         <span class="kw">let</span> <span class="ident">c</span> <span class="op">=</span> <span class="ident">Colorizer</span>::<span class="ident">new</span>(<span class="ident">ColorizerOption</span> {
             <span class="ident">use_stderr</span>: <span class="bool-val">true</span>,
             <span class="ident">when</span>: <span class="ident">ColorWhen</span>::<span class="ident">Auto</span>,
@@ -1813,25 +1814,25 @@
 }
 
 <span class="kw">impl</span> <span class="ident">StdError</span> <span class="kw">for</span> <span class="ident">Error</span> {
-    <span class="kw">fn</span> <span class="ident">description</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">str</span> {
+    <span class="kw">fn</span> <span class="ident">description</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="ident">str</span> {
         <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="self">self</span>.<span class="ident">message</span>
     }
 }
 
 <span class="kw">impl</span> <span class="ident">Display</span> <span class="kw">for</span> <span class="ident">Error</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">std_fmt</span>::<span class="ident">Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">std_fmt</span>::<span class="prelude-ty">Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">std_fmt</span>::<span class="ident">Formatter</span>) <span class="op">-&gt;</span> <span class="ident">std_fmt</span>::<span class="prelude-ty">Result</span> {
         <span class="macro">writeln</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;{}&quot;</span>, <span class="self">self</span>.<span class="ident">message</span>)
     }
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">io</span>::<span class="ident">Error</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Error</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">e</span>: <span class="ident">io</span>::<span class="ident">Error</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">e</span>: <span class="ident">io</span>::<span class="ident">Error</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
         <span class="ident">Error</span>::<span class="ident">with_description</span>(<span class="ident">e</span>.<span class="ident">description</span>(), <span class="ident">ErrorKind</span>::<span class="ident">Io</span>)
     }
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">std_fmt</span>::<span class="ident">Error</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Error</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">e</span>: <span class="ident">std_fmt</span>::<span class="ident">Error</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">e</span>: <span class="ident">std_fmt</span>::<span class="ident">Error</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
         <span class="ident">Error</span>::<span class="ident">with_description</span>(<span class="ident">e</span>.<span class="ident">description</span>(), <span class="ident">ErrorKind</span>::<span class="ident">Format</span>)
     }
 }

@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `boa/src/builtins/symbol/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../dark.css"><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script src="../../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="shortcut icon" href="https://raw.githubusercontent.com/jasonwilliams/boa/master/assets/logo.svg"><style type="text/css">#crate-search{background-image:url("../../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../../boa/index.html'><div class='logo-container'><img src='https://raw.githubusercontent.com/jasonwilliams/boa/master/assets/logo.svg' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../../../settings.html"><img src="../../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `boa/src/builtins/symbol/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled ><script src="../../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="shortcut icon" href="https://raw.githubusercontent.com/jasonwilliams/boa/master/assets/logo.svg"><style type="text/css">#crate-search{background-image:url("../../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../../boa/index.html'><div class='logo-container'><img src='https://raw.githubusercontent.com/jasonwilliams/boa/master/assets/logo.svg' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
+                <a id="settings-menu" href="../../../../settings.html"><img src="../../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -405,36 +406,36 @@
 }
 
 <span class="kw">impl</span> <span class="ident">WellKnownSymbols</span> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-</span><span class="op">&gt;</span> (<span class="self">Self</span>, <span class="ident">u32</span>) {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-&gt;</span> (<span class="self">Self</span>, <span class="ident">u32</span>) {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">count</span> <span class="op">=</span> <span class="number">0</span>;
 
         <span class="kw">let</span> <span class="ident">async_iterator</span> <span class="op">=</span> <span class="ident">Symbol</span>::<span class="ident">new</span>(<span class="ident">count</span>, <span class="prelude-val">Some</span>(<span class="string">&quot;Symbol.asyncIterator&quot;</span>.<span class="ident">into</span>())).<span class="ident">into</span>();
-        <span class="ident">count</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+        <span class="ident">count</span> <span class="op">+=</span> <span class="number">1</span>;
         <span class="kw">let</span> <span class="ident">has_instance</span> <span class="op">=</span> <span class="ident">Symbol</span>::<span class="ident">new</span>(<span class="ident">count</span>, <span class="prelude-val">Some</span>(<span class="string">&quot;Symbol.hasInstance&quot;</span>.<span class="ident">into</span>())).<span class="ident">into</span>();
-        <span class="ident">count</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+        <span class="ident">count</span> <span class="op">+=</span> <span class="number">1</span>;
         <span class="kw">let</span> <span class="ident">is_concat_spreadable</span> <span class="op">=</span>
             <span class="ident">Symbol</span>::<span class="ident">new</span>(<span class="ident">count</span>, <span class="prelude-val">Some</span>(<span class="string">&quot;Symbol.isConcatSpreadable&quot;</span>.<span class="ident">into</span>())).<span class="ident">into</span>();
-        <span class="ident">count</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+        <span class="ident">count</span> <span class="op">+=</span> <span class="number">1</span>;
         <span class="kw">let</span> <span class="ident">iterator</span> <span class="op">=</span> <span class="ident">Symbol</span>::<span class="ident">new</span>(<span class="ident">count</span>, <span class="prelude-val">Some</span>(<span class="string">&quot;Symbol.iterator&quot;</span>.<span class="ident">into</span>())).<span class="ident">into</span>();
-        <span class="ident">count</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+        <span class="ident">count</span> <span class="op">+=</span> <span class="number">1</span>;
         <span class="kw">let</span> <span class="ident">match_</span> <span class="op">=</span> <span class="ident">Symbol</span>::<span class="ident">new</span>(<span class="ident">count</span>, <span class="prelude-val">Some</span>(<span class="string">&quot;Symbol.match&quot;</span>.<span class="ident">into</span>())).<span class="ident">into</span>();
-        <span class="ident">count</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+        <span class="ident">count</span> <span class="op">+=</span> <span class="number">1</span>;
         <span class="kw">let</span> <span class="ident">match_all</span> <span class="op">=</span> <span class="ident">Symbol</span>::<span class="ident">new</span>(<span class="ident">count</span>, <span class="prelude-val">Some</span>(<span class="string">&quot;Symbol.matchAll&quot;</span>.<span class="ident">into</span>())).<span class="ident">into</span>();
-        <span class="ident">count</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+        <span class="ident">count</span> <span class="op">+=</span> <span class="number">1</span>;
         <span class="kw">let</span> <span class="ident">replace</span> <span class="op">=</span> <span class="ident">Symbol</span>::<span class="ident">new</span>(<span class="ident">count</span>, <span class="prelude-val">Some</span>(<span class="string">&quot;Symbol.replace&quot;</span>.<span class="ident">into</span>())).<span class="ident">into</span>();
-        <span class="ident">count</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+        <span class="ident">count</span> <span class="op">+=</span> <span class="number">1</span>;
         <span class="kw">let</span> <span class="ident">search</span> <span class="op">=</span> <span class="ident">Symbol</span>::<span class="ident">new</span>(<span class="ident">count</span>, <span class="prelude-val">Some</span>(<span class="string">&quot;Symbol.search&quot;</span>.<span class="ident">into</span>())).<span class="ident">into</span>();
-        <span class="ident">count</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+        <span class="ident">count</span> <span class="op">+=</span> <span class="number">1</span>;
         <span class="kw">let</span> <span class="ident">species</span> <span class="op">=</span> <span class="ident">Symbol</span>::<span class="ident">new</span>(<span class="ident">count</span>, <span class="prelude-val">Some</span>(<span class="string">&quot;Symbol.species&quot;</span>.<span class="ident">into</span>())).<span class="ident">into</span>();
-        <span class="ident">count</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+        <span class="ident">count</span> <span class="op">+=</span> <span class="number">1</span>;
         <span class="kw">let</span> <span class="ident">split</span> <span class="op">=</span> <span class="ident">Symbol</span>::<span class="ident">new</span>(<span class="ident">count</span>, <span class="prelude-val">Some</span>(<span class="string">&quot;Symbol.split&quot;</span>.<span class="ident">into</span>())).<span class="ident">into</span>();
-        <span class="ident">count</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+        <span class="ident">count</span> <span class="op">+=</span> <span class="number">1</span>;
         <span class="kw">let</span> <span class="ident">to_primitive</span> <span class="op">=</span> <span class="ident">Symbol</span>::<span class="ident">new</span>(<span class="ident">count</span>, <span class="prelude-val">Some</span>(<span class="string">&quot;Symbol.toPrimitive&quot;</span>.<span class="ident">into</span>())).<span class="ident">into</span>();
-        <span class="ident">count</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+        <span class="ident">count</span> <span class="op">+=</span> <span class="number">1</span>;
         <span class="kw">let</span> <span class="ident">to_string_tag</span> <span class="op">=</span> <span class="ident">Symbol</span>::<span class="ident">new</span>(<span class="ident">count</span>, <span class="prelude-val">Some</span>(<span class="string">&quot;Symbol.toStringTag&quot;</span>.<span class="ident">into</span>())).<span class="ident">into</span>();
-        <span class="ident">count</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+        <span class="ident">count</span> <span class="op">+=</span> <span class="number">1</span>;
         <span class="kw">let</span> <span class="ident">unscopables</span> <span class="op">=</span> <span class="ident">Symbol</span>::<span class="ident">new</span>(<span class="ident">count</span>, <span class="prelude-val">Some</span>(<span class="string">&quot;Symbol.unscopables&quot;</span>.<span class="ident">into</span>())).<span class="ident">into</span>();
-        <span class="ident">count</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+        <span class="ident">count</span> <span class="op">+=</span> <span class="number">1</span>;
 
         (
             <span class="self">Self</span> {
@@ -461,7 +462,7 @@
     <span class="doccomment">/// A method that returns the default AsyncIterator for an object.</span>
     <span class="doccomment">/// Called by the semantics of the `for-await-of` statement.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">async_iterator_symbol</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">RcSymbol</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">async_iterator_symbol</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">RcSymbol</span> {
         <span class="self">self</span>.<span class="ident">async_iterator</span>.<span class="ident">clone</span>()
     }
 
@@ -471,7 +472,7 @@
     <span class="doccomment">/// recognizes an object as one of the `constructor`&#39;s instances.</span>
     <span class="doccomment">/// Called by the semantics of the instanceof operator.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">has_instance_symbol</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">RcSymbol</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">has_instance_symbol</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">RcSymbol</span> {
         <span class="self">self</span>.<span class="ident">async_iterator</span>.<span class="ident">clone</span>()
     }
 
@@ -481,7 +482,7 @@
     <span class="doccomment">/// an object should be flattened to its array elements</span>
     <span class="doccomment">/// by `Array.prototype.concat`.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_concat_spreadable_symbol</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">RcSymbol</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_concat_spreadable_symbol</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">RcSymbol</span> {
         <span class="self">self</span>.<span class="ident">is_concat_spreadable</span>.<span class="ident">clone</span>()
     }
 
@@ -490,7 +491,7 @@
     <span class="doccomment">/// A method that returns the default Iterator for an object.</span>
     <span class="doccomment">/// Called by the semantics of the `for-of` statement.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">iterator_symbol</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">RcSymbol</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">iterator_symbol</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">RcSymbol</span> {
         <span class="self">self</span>.<span class="ident">iterator</span>.<span class="ident">clone</span>()
     }
 
@@ -499,7 +500,7 @@
     <span class="doccomment">/// A regular expression method that matches the regular expression</span>
     <span class="doccomment">/// against a string. Called by the `String.prototype.match` method.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">match_symbol</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">RcSymbol</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">match_symbol</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">RcSymbol</span> {
         <span class="self">self</span>.<span class="ident">match_</span>.<span class="ident">clone</span>()
     }
 
@@ -509,7 +510,7 @@
     <span class="doccomment">/// matches of the regular expression against a string.</span>
     <span class="doccomment">/// Called by the `String.prototype.matchAll` method.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">match_all_symbol</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">RcSymbol</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">match_all_symbol</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">RcSymbol</span> {
         <span class="self">self</span>.<span class="ident">match_all</span>.<span class="ident">clone</span>()
     }
 
@@ -518,7 +519,7 @@
     <span class="doccomment">/// A regular expression method that replaces matched substrings</span>
     <span class="doccomment">/// of a string. Called by the `String.prototype.replace` method.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">replace_symbol</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">RcSymbol</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">replace_symbol</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">RcSymbol</span> {
         <span class="self">self</span>.<span class="ident">replace</span>.<span class="ident">clone</span>()
     }
 
@@ -528,7 +529,7 @@
     <span class="doccomment">/// string that matches the regular expression.</span>
     <span class="doccomment">/// Called by the `String.prototype.search` method.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">search_symbol</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">RcSymbol</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">search_symbol</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">RcSymbol</span> {
         <span class="self">self</span>.<span class="ident">search</span>.<span class="ident">clone</span>()
     }
 
@@ -537,7 +538,7 @@
     <span class="doccomment">/// A function valued property that is the `constructor` function</span>
     <span class="doccomment">/// that is used to create derived objects.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">species_symbol</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">RcSymbol</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">species_symbol</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">RcSymbol</span> {
         <span class="self">self</span>.<span class="ident">species</span>.<span class="ident">clone</span>()
     }
 
@@ -547,7 +548,7 @@
     <span class="doccomment">/// that match the regular expression.</span>
     <span class="doccomment">/// Called by the `String.prototype.split` method.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">split_symbol</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">RcSymbol</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">split_symbol</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">RcSymbol</span> {
         <span class="self">self</span>.<span class="ident">split</span>.<span class="ident">clone</span>()
     }
 
@@ -556,7 +557,7 @@
     <span class="doccomment">/// A method that converts an object to a corresponding primitive value.</span>
     <span class="doccomment">/// Called by the `ToPrimitive` (`Value::to_primitve`) abstract operation.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_primitive_symbol</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">RcSymbol</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_primitive_symbol</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">RcSymbol</span> {
         <span class="self">self</span>.<span class="ident">to_primitive</span>.<span class="ident">clone</span>()
     }
 
@@ -566,7 +567,7 @@
     <span class="doccomment">/// string description of an object.</span>
     <span class="doccomment">/// Accessed by the built-in method `Object.prototype.toString`.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_string_tag_symbol</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">RcSymbol</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_string_tag_symbol</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">RcSymbol</span> {
         <span class="self">self</span>.<span class="ident">to_string_tag</span>.<span class="ident">clone</span>()
     }
 
@@ -575,7 +576,7 @@
     <span class="doccomment">/// An object valued property whose own and inherited property names are property</span>
     <span class="doccomment">/// names that are excluded from the `with` environment bindings of the associated object.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">unscopables_symbol</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">RcSymbol</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">unscopables_symbol</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">RcSymbol</span> {
         <span class="self">self</span>.<span class="ident">unscopables</span>.<span class="ident">clone</span>()
     }
 }
@@ -587,7 +588,7 @@
 }
 
 <span class="kw">impl</span> <span class="ident">Symbol</span> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">hash</span>: <span class="ident">u32</span>, <span class="ident">description</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">RcString</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">hash</span>: <span class="ident">u32</span>, <span class="ident">description</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">RcString</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
         <span class="self">Self</span> { <span class="ident">hash</span>, <span class="ident">description</span> }
     }
 }
@@ -595,11 +596,11 @@
 <span class="kw">impl</span> <span class="ident">BuiltIn</span> <span class="kw">for</span> <span class="ident">Symbol</span> {
     <span class="kw">const</span> <span class="ident">NAME</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;Symbol&quot;</span>;
 
-    <span class="kw">fn</span> <span class="ident">attribute</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Attribute</span> {
+    <span class="kw">fn</span> <span class="ident">attribute</span>() <span class="op">-&gt;</span> <span class="ident">Attribute</span> {
         <span class="ident">Attribute</span>::<span class="ident">WRITABLE</span> <span class="op">|</span> <span class="ident">Attribute</span>::<span class="ident">NON_ENUMERABLE</span> <span class="op">|</span> <span class="ident">Attribute</span>::<span class="ident">CONFIGURABLE</span>
     }
 
-    <span class="kw">fn</span> <span class="ident">init</span>(<span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>, <span class="ident">Value</span>, <span class="ident">Attribute</span>) {
+    <span class="kw">fn</span> <span class="ident">init</span>(<span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-&gt;</span> (<span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>, <span class="ident">Value</span>, <span class="ident">Attribute</span>) {
         <span class="comment">// https://tc39.es/ecma262/#sec-well-known-symbols</span>
         <span class="kw">let</span> <span class="ident">well_known_symbols</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">well_known_symbols</span>();
 
@@ -654,12 +655,12 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const</span> <span class="ident">LENGTH</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">0</span>;
 
     <span class="doccomment">/// Returns the `Symbol`s description.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">description</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">description</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">description</span>.<span class="ident">as_deref</span>()
     }
 
     <span class="doccomment">/// Returns the `Symbol`s hash.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">hash</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">hash</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">u32</span> {
         <span class="self">self</span>.<span class="ident">hash</span>
     }
 
@@ -674,25 +675,25 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-symbol-description</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol/Symbol</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">constructor</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">constructor</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">description</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>) {
-            <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">value</span>) <span class="kw">if</span> <span class="op">!</span><span class="ident">value</span>.<span class="ident">is_undefined</span>() <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">value</span>.<span class="ident">to_string</span>(<span class="ident">ctx</span>)<span class="question-mark">?</span>),
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
+            <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">value</span>) <span class="kw">if</span> <span class="op">!</span><span class="ident">value</span>.<span class="ident">is_undefined</span>() <span class="op">=&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">value</span>.<span class="ident">to_string</span>(<span class="ident">ctx</span>)<span class="question-mark">?</span>),
+            <span class="kw">_</span> <span class="op">=&gt;</span> <span class="prelude-val">None</span>,
         };
 
         <span class="prelude-val">Ok</span>(<span class="ident">ctx</span>.<span class="ident">construct_symbol</span>(<span class="ident">description</span>).<span class="ident">into</span>())
     }
 
-    <span class="kw">fn</span> <span class="ident">this_symbol_value</span>(<span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">RcSymbol</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">this_symbol_value</span>(<span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">RcSymbol</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="ident">value</span> {
-            <span class="ident">Value</span>::<span class="ident">Symbol</span>(<span class="kw-2">ref</span> <span class="ident">symbol</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">symbol</span>.<span class="ident">clone</span>()),
-            <span class="ident">Value</span>::<span class="ident">Object</span>(<span class="kw-2">ref</span> <span class="ident">object</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Value</span>::<span class="ident">Symbol</span>(<span class="kw-2">ref</span> <span class="ident">symbol</span>) <span class="op">=&gt;</span> <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">symbol</span>.<span class="ident">clone</span>()),
+            <span class="ident">Value</span>::<span class="ident">Object</span>(<span class="kw-2">ref</span> <span class="ident">object</span>) <span class="op">=&gt;</span> {
                 <span class="kw">let</span> <span class="ident">object</span> <span class="op">=</span> <span class="ident">object</span>.<span class="ident">borrow</span>();
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">symbol</span>) <span class="op">=</span> <span class="ident">object</span>.<span class="ident">as_symbol</span>() {
                     <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">symbol</span>);
                 }
             }
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {}
+            <span class="kw">_</span> <span class="op">=&gt;</span> {}
         }
 
         <span class="prelude-val">Err</span>(<span class="ident">ctx</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;&#39;this&#39; is not a Symbol&quot;</span>))
@@ -709,7 +710,7 @@
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-symbol.prototype.tostring</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol/toString</span>
     <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy</span>::<span class="ident">wrong_self_convention</span>)]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">to_string</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">to_string</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">symbol</span> <span class="op">=</span> <span class="self">Self</span>::<span class="ident">this_symbol_value</span>(<span class="ident">this</span>, <span class="ident">ctx</span>)<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">description</span> <span class="op">=</span> <span class="ident">symbol</span>.<span class="ident">description</span>().<span class="ident">unwrap_or</span>(<span class="string">&quot;&quot;</span>);
         <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Symbol({})&quot;</span>, <span class="ident">description</span>)))

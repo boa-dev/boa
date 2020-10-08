@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/syn-1.0.42/src/token.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>token.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../syn/index.html'><div class='logo-container'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/syn-1.0.42/src/token.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>token.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../syn/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
+                <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -1116,11 +1117,11 @@
 <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">Token</span>: <span class="ident">private</span>::<span class="ident">Sealed</span> {
     <span class="comment">// Not public API.</span>
     <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">peek</span>(<span class="ident">cursor</span>: <span class="ident">Cursor</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span>;
+    <span class="kw">fn</span> <span class="ident">peek</span>(<span class="ident">cursor</span>: <span class="ident">Cursor</span>) <span class="op">-&gt;</span> <span class="ident">bool</span>;
 
     <span class="comment">// Not public API.</span>
     <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">display</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>;
+    <span class="kw">fn</span> <span class="ident">display</span>() <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>;
 }
 
 <span class="kw">mod</span> <span class="ident">private</span> {
@@ -1141,7 +1142,7 @@
 <span class="kw">impl</span> <span class="ident">private</span>::<span class="ident">Sealed</span> <span class="kw">for</span> <span class="ident">Ident</span> {}
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;parsing&quot;</span>)]</span>
-<span class="kw">fn</span> <span class="ident">peek_impl</span>(<span class="ident">cursor</span>: <span class="ident">Cursor</span>, <span class="ident">peek</span>: <span class="kw">fn</span>(<span class="ident">ParseStream</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+<span class="kw">fn</span> <span class="ident">peek_impl</span>(<span class="ident">cursor</span>: <span class="ident">Cursor</span>, <span class="ident">peek</span>: <span class="kw">fn</span>(<span class="ident">ParseStream</span>) <span class="op">-&gt;</span> <span class="ident">bool</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
     <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">parse</span>::<span class="ident">Unexpected</span>;
     <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">cell</span>::<span class="ident">Cell</span>;
     <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">rc</span>::<span class="ident">Rc</span>;
@@ -1153,17 +1154,17 @@
 }
 
 <span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">impl_token</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">display</span>:<span class="ident">tt</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">ty</span>) <span class="op">=</span><span class="op">&gt;</span> {
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">display</span>:<span class="ident">tt</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">ty</span>) <span class="op">=&gt;</span> {
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;parsing&quot;</span>)]</span>
         <span class="kw">impl</span> <span class="ident">Token</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span> {
-            <span class="kw">fn</span> <span class="ident">peek</span>(<span class="ident">cursor</span>: <span class="ident">Cursor</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-                <span class="kw">fn</span> <span class="ident">peek</span>(<span class="ident">input</span>: <span class="ident">ParseStream</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+            <span class="kw">fn</span> <span class="ident">peek</span>(<span class="ident">cursor</span>: <span class="ident">Cursor</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
+                <span class="kw">fn</span> <span class="ident">peek</span>(<span class="ident">input</span>: <span class="ident">ParseStream</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
                     <span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span> <span class="kw">as</span> <span class="ident">Parse</span><span class="op">&gt;</span>::<span class="ident">parse</span>(<span class="ident">input</span>).<span class="ident">is_ok</span>()
                 }
                 <span class="ident">peek_impl</span>(<span class="ident">cursor</span>, <span class="ident">peek</span>)
             }
 
-            <span class="kw">fn</span> <span class="ident">display</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> {
+            <span class="kw">fn</span> <span class="ident">display</span>() <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> {
                 <span class="macro-nonterminal">$</span><span class="macro-nonterminal">display</span>
             }
         }
@@ -1185,14 +1186,14 @@
 <span class="macro">impl_token</span><span class="macro">!</span>(<span class="string">&quot;group token&quot;</span> <span class="ident">proc_macro2</span>::<span class="ident">Group</span>);
 
 <span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">impl_low_level_token</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">display</span>:<span class="ident">tt</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span>:<span class="ident">ident</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">get</span>:<span class="ident">ident</span>) <span class="op">=</span><span class="op">&gt;</span> {
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">display</span>:<span class="ident">tt</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span>:<span class="ident">ident</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">get</span>:<span class="ident">ident</span>) <span class="op">=&gt;</span> {
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;parsing&quot;</span>)]</span>
         <span class="kw">impl</span> <span class="ident">Token</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span> {
-            <span class="kw">fn</span> <span class="ident">peek</span>(<span class="ident">cursor</span>: <span class="ident">Cursor</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+            <span class="kw">fn</span> <span class="ident">peek</span>(<span class="ident">cursor</span>: <span class="ident">Cursor</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
                 <span class="ident">cursor</span>.<span class="macro-nonterminal">$</span><span class="macro-nonterminal">get</span>().<span class="ident">is_some</span>()
             }
 
-            <span class="kw">fn</span> <span class="ident">display</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> {
+            <span class="kw">fn</span> <span class="ident">display</span>() <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> {
                 <span class="macro-nonterminal">$</span><span class="macro-nonterminal">display</span>
             }
         }
@@ -1210,8 +1211,8 @@
 <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;parsing&quot;</span>)]</span>
 <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">CustomToken</span> {
-    <span class="kw">fn</span> <span class="ident">peek</span>(<span class="ident">cursor</span>: <span class="ident">Cursor</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span>;
-    <span class="kw">fn</span> <span class="ident">display</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>;
+    <span class="kw">fn</span> <span class="ident">peek</span>(<span class="ident">cursor</span>: <span class="ident">Cursor</span>) <span class="op">-&gt;</span> <span class="ident">bool</span>;
+    <span class="kw">fn</span> <span class="ident">display</span>() <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>;
 }
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;parsing&quot;</span>)]</span>
@@ -1219,17 +1220,17 @@
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;parsing&quot;</span>)]</span>
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">CustomToken</span><span class="op">&gt;</span> <span class="ident">Token</span> <span class="kw">for</span> <span class="ident">T</span> {
-    <span class="kw">fn</span> <span class="ident">peek</span>(<span class="ident">cursor</span>: <span class="ident">Cursor</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">peek</span>(<span class="ident">cursor</span>: <span class="ident">Cursor</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
         <span class="op">&lt;</span><span class="self">Self</span> <span class="kw">as</span> <span class="ident">CustomToken</span><span class="op">&gt;</span>::<span class="ident">peek</span>(<span class="ident">cursor</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">display</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> {
+    <span class="kw">fn</span> <span class="ident">display</span>() <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> {
         <span class="op">&lt;</span><span class="self">Self</span> <span class="kw">as</span> <span class="ident">CustomToken</span><span class="op">&gt;</span>::<span class="ident">display</span>()
     }
 }
 
 <span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">define_keywords</span> {
-    ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">token</span>:<span class="ident">tt</span> <span class="kw">pub</span> <span class="kw">struct</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">ident</span> <span class="attribute">#[<span class="macro-nonterminal">$</span><span class="macro-nonterminal">doc</span>:<span class="ident">meta</span>]</span>)<span class="kw-2">*</span>) <span class="op">=</span><span class="op">&gt;</span> {
+    ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">token</span>:<span class="ident">tt</span> <span class="kw">pub</span> <span class="kw">struct</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">ident</span> <span class="attribute">#[<span class="macro-nonterminal">$</span><span class="macro-nonterminal">doc</span>:<span class="ident">meta</span>]</span>)<span class="kw-2">*</span>) <span class="op">=&gt;</span> {
         $(
             <span class="attribute">#[<span class="macro-nonterminal">$</span><span class="macro-nonterminal">doc</span>]</span>
             <span class="doccomment">///</span>
@@ -1243,14 +1244,14 @@
 
             <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
             <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">non_snake_case</span>)]</span>
-            <span class="kw">pub</span> <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span><span class="op">&lt;</span><span class="ident">S</span>: <span class="ident">IntoSpans</span><span class="op">&lt;</span>[<span class="ident">Span</span>; <span class="number">1</span>]<span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">span</span>: <span class="ident">S</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span> {
+            <span class="kw">pub</span> <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span><span class="op">&lt;</span><span class="ident">S</span>: <span class="ident">IntoSpans</span><span class="op">&lt;</span>[<span class="ident">Span</span>; <span class="number">1</span>]<span class="op">&gt;&gt;</span>(<span class="ident">span</span>: <span class="ident">S</span>) <span class="op">-&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span> {
                 <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span> {
                     <span class="ident">span</span>: <span class="ident">span</span>.<span class="ident">into_spans</span>()[<span class="number">0</span>],
                 }
             }
 
             <span class="kw">impl</span> <span class="ident">std</span>::<span class="ident">default</span>::<span class="ident">Default</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span> {
-                <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+                <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-&gt;</span> <span class="self">Self</span> {
                     <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span> {
                         <span class="ident">span</span>: <span class="ident">Span</span>::<span class="ident">call_site</span>(),
                     }
@@ -1262,14 +1263,14 @@
 
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)]</span>
             <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span> {
-                <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+                <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
                     <span class="kw-2">*</span><span class="self">self</span>
                 }
             }
 
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)]</span>
             <span class="kw">impl</span> <span class="ident">Debug</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span> {
-                <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
+                <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span>) <span class="op">-&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
                     <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="macro">stringify</span><span class="macro">!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>))
                 }
             }
@@ -1279,7 +1280,7 @@
 
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)]</span>
             <span class="kw">impl</span> <span class="ident">PartialEq</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span> {
-                <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">_other</span>: <span class="kw-2">&amp;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+                <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">_other</span>: <span class="kw-2">&amp;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
                     <span class="bool-val">true</span>
                 }
             }
@@ -1298,7 +1299,7 @@
 
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;parsing&quot;</span>)]</span>
             <span class="kw">impl</span> <span class="ident">Parse</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span> {
-                <span class="kw">fn</span> <span class="ident">parse</span>(<span class="ident">input</span>: <span class="ident">ParseStream</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
+                <span class="kw">fn</span> <span class="ident">parse</span>(<span class="ident">input</span>: <span class="ident">ParseStream</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
                     <span class="prelude-val">Ok</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span> {
                         <span class="ident">span</span>: <span class="ident">parsing</span>::<span class="ident">keyword</span>(<span class="ident">input</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">token</span>)<span class="question-mark">?</span>,
                     })
@@ -1307,11 +1308,11 @@
 
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;parsing&quot;</span>)]</span>
             <span class="kw">impl</span> <span class="ident">Token</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span> {
-                <span class="kw">fn</span> <span class="ident">peek</span>(<span class="ident">cursor</span>: <span class="ident">Cursor</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+                <span class="kw">fn</span> <span class="ident">peek</span>(<span class="ident">cursor</span>: <span class="ident">Cursor</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
                     <span class="ident">parsing</span>::<span class="ident">peek_keyword</span>(<span class="ident">cursor</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">token</span>)
                 }
 
-                <span class="kw">fn</span> <span class="ident">display</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> {
+                <span class="kw">fn</span> <span class="ident">display</span>() <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> {
                     <span class="macro">concat</span><span class="macro">!</span>(<span class="string">&quot;`&quot;</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">token</span>, <span class="string">&quot;`&quot;</span>)
                 }
             }
@@ -1323,27 +1324,27 @@
 }
 
 <span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">impl_deref_if_len_is_1</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">ident</span><span class="op">/</span><span class="number">1</span>) <span class="op">=</span><span class="op">&gt;</span> {
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">ident</span><span class="op">/</span><span class="number">1</span>) <span class="op">=&gt;</span> {
         <span class="kw">impl</span> <span class="ident">Deref</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span> {
             <span class="kw">type</span> <span class="ident">Target</span> <span class="op">=</span> <span class="ident">WithSpan</span>;
 
-            <span class="kw">fn</span> <span class="ident">deref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="self">Self</span>::<span class="ident">Target</span> {
+            <span class="kw">fn</span> <span class="ident">deref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="self">Self</span>::<span class="ident">Target</span> {
                 <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">*</span>(<span class="self">self</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="self">Self</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">WithSpan</span>) }
             }
         }
 
         <span class="kw">impl</span> <span class="ident">DerefMut</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span> {
-            <span class="kw">fn</span> <span class="ident">deref_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span>::<span class="ident">Target</span> {
+            <span class="kw">fn</span> <span class="ident">deref_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span>::<span class="ident">Target</span> {
                 <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span>(<span class="self">self</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="self">Self</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">WithSpan</span>) }
             }
         }
     };
 
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">ident</span><span class="op">/</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">len</span>:<span class="ident">tt</span>) <span class="op">=</span><span class="op">&gt;</span> {};
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">ident</span><span class="op">/</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">len</span>:<span class="ident">tt</span>) <span class="op">=&gt;</span> {};
 }
 
 <span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">define_punctuation_structs</span> {
-    ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">token</span>:<span class="ident">tt</span> <span class="kw">pub</span> <span class="kw">struct</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">ident</span><span class="op">/</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">len</span>:<span class="ident">tt</span> <span class="attribute">#[<span class="macro-nonterminal">$</span><span class="macro-nonterminal">doc</span>:<span class="ident">meta</span>]</span>)<span class="kw-2">*</span>) <span class="op">=</span><span class="op">&gt;</span> {
+    ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">token</span>:<span class="ident">tt</span> <span class="kw">pub</span> <span class="kw">struct</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">ident</span><span class="op">/</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">len</span>:<span class="ident">tt</span> <span class="attribute">#[<span class="macro-nonterminal">$</span><span class="macro-nonterminal">doc</span>:<span class="ident">meta</span>]</span>)<span class="kw-2">*</span>) <span class="op">=&gt;</span> {
         $(
             <span class="attribute">#[<span class="ident">repr</span>(<span class="ident">C</span>)]</span>
             <span class="attribute">#[<span class="macro-nonterminal">$</span><span class="macro-nonterminal">doc</span>]</span>
@@ -1358,14 +1359,14 @@
 
             <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
             <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">non_snake_case</span>)]</span>
-            <span class="kw">pub</span> <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span><span class="op">&lt;</span><span class="ident">S</span>: <span class="ident">IntoSpans</span><span class="op">&lt;</span>[<span class="ident">Span</span>; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">len</span>]<span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">spans</span>: <span class="ident">S</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span> {
+            <span class="kw">pub</span> <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span><span class="op">&lt;</span><span class="ident">S</span>: <span class="ident">IntoSpans</span><span class="op">&lt;</span>[<span class="ident">Span</span>; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">len</span>]<span class="op">&gt;&gt;</span>(<span class="ident">spans</span>: <span class="ident">S</span>) <span class="op">-&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span> {
                 <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span> {
                     <span class="ident">spans</span>: <span class="ident">spans</span>.<span class="ident">into_spans</span>(),
                 }
             }
 
             <span class="kw">impl</span> <span class="ident">std</span>::<span class="ident">default</span>::<span class="ident">Default</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span> {
-                <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+                <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-&gt;</span> <span class="self">Self</span> {
                     <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span> {
                         <span class="ident">spans</span>: [<span class="ident">Span</span>::<span class="ident">call_site</span>(); <span class="macro-nonterminal">$</span><span class="macro-nonterminal">len</span>],
                     }
@@ -1377,14 +1378,14 @@
 
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)]</span>
             <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span> {
-                <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+                <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
                     <span class="kw-2">*</span><span class="self">self</span>
                 }
             }
 
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)]</span>
             <span class="kw">impl</span> <span class="ident">Debug</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span> {
-                <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
+                <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span>) <span class="op">-&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
                     <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="macro">stringify</span><span class="macro">!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>))
                 }
             }
@@ -1394,7 +1395,7 @@
 
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)]</span>
             <span class="kw">impl</span> <span class="ident">PartialEq</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span> {
-                <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">_other</span>: <span class="kw-2">&amp;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+                <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">_other</span>: <span class="kw-2">&amp;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
                     <span class="bool-val">true</span>
                 }
             }
@@ -1410,7 +1411,7 @@
 }
 
 <span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">define_punctuation</span> {
-    ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">token</span>:<span class="ident">tt</span> <span class="kw">pub</span> <span class="kw">struct</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">ident</span><span class="op">/</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">len</span>:<span class="ident">tt</span> <span class="attribute">#[<span class="macro-nonterminal">$</span><span class="macro-nonterminal">doc</span>:<span class="ident">meta</span>]</span>)<span class="kw-2">*</span>) <span class="op">=</span><span class="op">&gt;</span> {
+    ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">token</span>:<span class="ident">tt</span> <span class="kw">pub</span> <span class="kw">struct</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">ident</span><span class="op">/</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">len</span>:<span class="ident">tt</span> <span class="attribute">#[<span class="macro-nonterminal">$</span><span class="macro-nonterminal">doc</span>:<span class="ident">meta</span>]</span>)<span class="kw-2">*</span>) <span class="op">=&gt;</span> {
         $(
             <span class="macro">define_punctuation_structs</span><span class="macro">!</span> {
                 <span class="macro-nonterminal">$</span><span class="macro-nonterminal">token</span> <span class="kw">pub</span> <span class="kw">struct</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span><span class="op">/</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">len</span> <span class="attribute">#[<span class="macro-nonterminal">$</span><span class="macro-nonterminal">doc</span>]</span>
@@ -1425,7 +1426,7 @@
 
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;parsing&quot;</span>)]</span>
             <span class="kw">impl</span> <span class="ident">Parse</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span> {
-                <span class="kw">fn</span> <span class="ident">parse</span>(<span class="ident">input</span>: <span class="ident">ParseStream</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
+                <span class="kw">fn</span> <span class="ident">parse</span>(<span class="ident">input</span>: <span class="ident">ParseStream</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
                     <span class="prelude-val">Ok</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span> {
                         <span class="ident">spans</span>: <span class="ident">parsing</span>::<span class="ident">punct</span>(<span class="ident">input</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">token</span>)<span class="question-mark">?</span>,
                     })
@@ -1434,11 +1435,11 @@
 
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;parsing&quot;</span>)]</span>
             <span class="kw">impl</span> <span class="ident">Token</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span> {
-                <span class="kw">fn</span> <span class="ident">peek</span>(<span class="ident">cursor</span>: <span class="ident">Cursor</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+                <span class="kw">fn</span> <span class="ident">peek</span>(<span class="ident">cursor</span>: <span class="ident">Cursor</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
                     <span class="ident">parsing</span>::<span class="ident">peek_punct</span>(<span class="ident">cursor</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">token</span>)
                 }
 
-                <span class="kw">fn</span> <span class="ident">display</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> {
+                <span class="kw">fn</span> <span class="ident">display</span>() <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> {
                     <span class="macro">concat</span><span class="macro">!</span>(<span class="string">&quot;`&quot;</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">token</span>, <span class="string">&quot;`&quot;</span>)
                 }
             }
@@ -1450,7 +1451,7 @@
 }
 
 <span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">define_delimiters</span> {
-    ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">token</span>:<span class="ident">tt</span> <span class="kw">pub</span> <span class="kw">struct</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">ident</span> <span class="attribute">#[<span class="macro-nonterminal">$</span><span class="macro-nonterminal">doc</span>:<span class="ident">meta</span>]</span>)<span class="kw-2">*</span>) <span class="op">=</span><span class="op">&gt;</span> {
+    ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">token</span>:<span class="ident">tt</span> <span class="kw">pub</span> <span class="kw">struct</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">ident</span> <span class="attribute">#[<span class="macro-nonterminal">$</span><span class="macro-nonterminal">doc</span>:<span class="ident">meta</span>]</span>)<span class="kw-2">*</span>) <span class="op">=&gt;</span> {
         $(
             <span class="attribute">#[<span class="macro-nonterminal">$</span><span class="macro-nonterminal">doc</span>]</span>
             <span class="kw">pub</span> <span class="kw">struct</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span> {
@@ -1459,14 +1460,14 @@
 
             <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
             <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">non_snake_case</span>)]</span>
-            <span class="kw">pub</span> <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span><span class="op">&lt;</span><span class="ident">S</span>: <span class="ident">IntoSpans</span><span class="op">&lt;</span>[<span class="ident">Span</span>; <span class="number">1</span>]<span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">span</span>: <span class="ident">S</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span> {
+            <span class="kw">pub</span> <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span><span class="op">&lt;</span><span class="ident">S</span>: <span class="ident">IntoSpans</span><span class="op">&lt;</span>[<span class="ident">Span</span>; <span class="number">1</span>]<span class="op">&gt;&gt;</span>(<span class="ident">span</span>: <span class="ident">S</span>) <span class="op">-&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span> {
                 <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span> {
                     <span class="ident">span</span>: <span class="ident">span</span>.<span class="ident">into_spans</span>()[<span class="number">0</span>],
                 }
             }
 
             <span class="kw">impl</span> <span class="ident">std</span>::<span class="ident">default</span>::<span class="ident">Default</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span> {
-                <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+                <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-&gt;</span> <span class="self">Self</span> {
                     <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span> {
                         <span class="ident">span</span>: <span class="ident">Span</span>::<span class="ident">call_site</span>(),
                     }
@@ -1478,14 +1479,14 @@
 
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)]</span>
             <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span> {
-                <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+                <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
                     <span class="kw-2">*</span><span class="self">self</span>
                 }
             }
 
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)]</span>
             <span class="kw">impl</span> <span class="ident">Debug</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span> {
-                <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
+                <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span>) <span class="op">-&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
                     <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="macro">stringify</span><span class="macro">!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>))
                 }
             }
@@ -1495,7 +1496,7 @@
 
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)]</span>
             <span class="kw">impl</span> <span class="ident">PartialEq</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span> {
-                <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">_other</span>: <span class="kw-2">&amp;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+                <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">_other</span>: <span class="kw-2">&amp;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
                     <span class="bool-val">true</span>
                 }
             }
@@ -1534,15 +1535,15 @@
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;parsing&quot;</span>)]</span>
 <span class="kw">impl</span> <span class="ident">Parse</span> <span class="kw">for</span> <span class="ident">Underscore</span> {
-    <span class="kw">fn</span> <span class="ident">parse</span>(<span class="ident">input</span>: <span class="ident">ParseStream</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">parse</span>(<span class="ident">input</span>: <span class="ident">ParseStream</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
         <span class="ident">input</span>.<span class="ident">step</span>(<span class="op">|</span><span class="ident">cursor</span><span class="op">|</span> {
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">ident</span>, <span class="ident">rest</span>)) <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">ident</span>() {
-                <span class="kw">if</span> <span class="ident">ident</span> <span class="op">=</span><span class="op">=</span> <span class="string">&quot;_&quot;</span> {
+                <span class="kw">if</span> <span class="ident">ident</span> <span class="op">==</span> <span class="string">&quot;_&quot;</span> {
                     <span class="kw">return</span> <span class="prelude-val">Ok</span>((<span class="ident">Underscore</span>(<span class="ident">ident</span>.<span class="ident">span</span>()), <span class="ident">rest</span>));
                 }
             }
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">punct</span>, <span class="ident">rest</span>)) <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">punct</span>() {
-                <span class="kw">if</span> <span class="ident">punct</span>.<span class="ident">as_char</span>() <span class="op">=</span><span class="op">=</span> <span class="string">&#39;_&#39;</span> {
+                <span class="kw">if</span> <span class="ident">punct</span>.<span class="ident">as_char</span>() <span class="op">==</span> <span class="string">&#39;_&#39;</span> {
                     <span class="kw">return</span> <span class="prelude-val">Ok</span>((<span class="ident">Underscore</span>(<span class="ident">punct</span>.<span class="ident">span</span>()), <span class="ident">rest</span>));
                 }
             }
@@ -1553,17 +1554,17 @@
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;parsing&quot;</span>)]</span>
 <span class="kw">impl</span> <span class="ident">Token</span> <span class="kw">for</span> <span class="ident">Underscore</span> {
-    <span class="kw">fn</span> <span class="ident">peek</span>(<span class="ident">cursor</span>: <span class="ident">Cursor</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">peek</span>(<span class="ident">cursor</span>: <span class="ident">Cursor</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">ident</span>, <span class="ident">_rest</span>)) <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">ident</span>() {
-            <span class="kw">return</span> <span class="ident">ident</span> <span class="op">=</span><span class="op">=</span> <span class="string">&quot;_&quot;</span>;
+            <span class="kw">return</span> <span class="ident">ident</span> <span class="op">==</span> <span class="string">&quot;_&quot;</span>;
         }
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">punct</span>, <span class="ident">_rest</span>)) <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">punct</span>() {
-            <span class="kw">return</span> <span class="ident">punct</span>.<span class="ident">as_char</span>() <span class="op">=</span><span class="op">=</span> <span class="string">&#39;_&#39;</span>;
+            <span class="kw">return</span> <span class="ident">punct</span>.<span class="ident">as_char</span>() <span class="op">==</span> <span class="string">&#39;_&#39;</span>;
         }
         <span class="bool-val">false</span>
     }
 
-    <span class="kw">fn</span> <span class="ident">display</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> {
+    <span class="kw">fn</span> <span class="ident">display</span>() <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> {
         <span class="string">&quot;`_`&quot;</span>
     }
 }
@@ -1573,44 +1574,44 @@
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;parsing&quot;</span>)]</span>
 <span class="kw">impl</span> <span class="ident">Token</span> <span class="kw">for</span> <span class="ident">Paren</span> {
-    <span class="kw">fn</span> <span class="ident">peek</span>(<span class="ident">cursor</span>: <span class="ident">Cursor</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">peek</span>(<span class="ident">cursor</span>: <span class="ident">Cursor</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
         <span class="ident">lookahead</span>::<span class="ident">is_delimiter</span>(<span class="ident">cursor</span>, <span class="ident">Delimiter</span>::<span class="ident">Parenthesis</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">display</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> {
+    <span class="kw">fn</span> <span class="ident">display</span>() <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> {
         <span class="string">&quot;parentheses&quot;</span>
     }
 }
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;parsing&quot;</span>)]</span>
 <span class="kw">impl</span> <span class="ident">Token</span> <span class="kw">for</span> <span class="ident">Brace</span> {
-    <span class="kw">fn</span> <span class="ident">peek</span>(<span class="ident">cursor</span>: <span class="ident">Cursor</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">peek</span>(<span class="ident">cursor</span>: <span class="ident">Cursor</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
         <span class="ident">lookahead</span>::<span class="ident">is_delimiter</span>(<span class="ident">cursor</span>, <span class="ident">Delimiter</span>::<span class="ident">Brace</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">display</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> {
+    <span class="kw">fn</span> <span class="ident">display</span>() <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> {
         <span class="string">&quot;curly braces&quot;</span>
     }
 }
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;parsing&quot;</span>)]</span>
 <span class="kw">impl</span> <span class="ident">Token</span> <span class="kw">for</span> <span class="ident">Bracket</span> {
-    <span class="kw">fn</span> <span class="ident">peek</span>(<span class="ident">cursor</span>: <span class="ident">Cursor</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">peek</span>(<span class="ident">cursor</span>: <span class="ident">Cursor</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
         <span class="ident">lookahead</span>::<span class="ident">is_delimiter</span>(<span class="ident">cursor</span>, <span class="ident">Delimiter</span>::<span class="ident">Bracket</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">display</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> {
+    <span class="kw">fn</span> <span class="ident">display</span>() <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> {
         <span class="string">&quot;square brackets&quot;</span>
     }
 }
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;parsing&quot;</span>)]</span>
 <span class="kw">impl</span> <span class="ident">Token</span> <span class="kw">for</span> <span class="ident">Group</span> {
-    <span class="kw">fn</span> <span class="ident">peek</span>(<span class="ident">cursor</span>: <span class="ident">Cursor</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">peek</span>(<span class="ident">cursor</span>: <span class="ident">Cursor</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
         <span class="ident">lookahead</span>::<span class="ident">is_delimiter</span>(<span class="ident">cursor</span>, <span class="ident">Delimiter</span>::<span class="prelude-val">None</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">display</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> {
+    <span class="kw">fn</span> <span class="ident">display</span>() <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> {
         <span class="string">&quot;invisible group&quot;</span>
     }
 }
@@ -1727,7 +1728,7 @@
 }
 
 <span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">export_token_macro</span> {
-    ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">await_rule</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) <span class="op">=</span><span class="op">&gt;</span> {
+    ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">await_rule</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) <span class="op">=&gt;</span> {
         <span class="doccomment">/// A type-macro that expands to the name of the Rust type representation of a</span>
         <span class="doccomment">/// given token.</span>
         <span class="doccomment">///</span>
@@ -1738,105 +1739,105 @@
         <span class="comment">// https://github.com/rust-lang/rust/issues/45939</span>
         <span class="attribute">#[<span class="ident">macro_export</span>]</span>
         <span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">Token</span> {
-            (<span class="kw">abstract</span>)    <span class="op">=</span><span class="op">&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">Abstract</span> };
-            (<span class="kw">as</span>)          <span class="op">=</span><span class="op">&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">As</span> };
-            (<span class="kw">async</span>)       <span class="op">=</span><span class="op">&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">Async</span> };
-            (<span class="ident">auto</span>)        <span class="op">=</span><span class="op">&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">Auto</span> };
-            $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">await_rule</span> <span class="op">=</span><span class="op">&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">Await</span> };)<span class="op">*</span>
-            (<span class="kw">become</span>)      <span class="op">=</span><span class="op">&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">Become</span> };
-            (<span class="kw">box</span>)         <span class="op">=</span><span class="op">&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">Box</span> };
-            (<span class="kw">break</span>)       <span class="op">=</span><span class="op">&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">Break</span> };
-            (<span class="kw">const</span>)       <span class="op">=</span><span class="op">&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">Const</span> };
-            (<span class="kw">continue</span>)    <span class="op">=</span><span class="op">&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">Continue</span> };
-            (<span class="kw">crate</span>)       <span class="op">=</span><span class="op">&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">Crate</span> };
-            (<span class="ident">default</span>)     <span class="op">=</span><span class="op">&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">Default</span> };
-            (<span class="kw">do</span>)          <span class="op">=</span><span class="op">&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">Do</span> };
-            (<span class="kw">dyn</span>)         <span class="op">=</span><span class="op">&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">Dyn</span> };
-            (<span class="kw">else</span>)        <span class="op">=</span><span class="op">&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">Else</span> };
-            (<span class="kw">enum</span>)        <span class="op">=</span><span class="op">&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">Enum</span> };
-            (<span class="kw">extern</span>)      <span class="op">=</span><span class="op">&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">Extern</span> };
-            (<span class="kw">final</span>)       <span class="op">=</span><span class="op">&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">Final</span> };
-            (<span class="kw">fn</span>)          <span class="op">=</span><span class="op">&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">Fn</span> };
-            (<span class="kw">for</span>)         <span class="op">=</span><span class="op">&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">For</span> };
-            (<span class="kw">if</span>)          <span class="op">=</span><span class="op">&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">If</span> };
-            (<span class="kw">impl</span>)        <span class="op">=</span><span class="op">&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">Impl</span> };
-            (<span class="kw">in</span>)          <span class="op">=</span><span class="op">&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">In</span> };
-            (<span class="kw">let</span>)         <span class="op">=</span><span class="op">&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">Let</span> };
-            (<span class="kw">loop</span>)        <span class="op">=</span><span class="op">&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">Loop</span> };
-            (<span class="kw">macro</span>)       <span class="op">=</span><span class="op">&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">Macro</span> };
-            (<span class="kw">match</span>)       <span class="op">=</span><span class="op">&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">Match</span> };
-            (<span class="kw">mod</span>)         <span class="op">=</span><span class="op">&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">Mod</span> };
-            (<span class="kw">move</span>)        <span class="op">=</span><span class="op">&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">Move</span> };
-            (<span class="kw-2">mut</span>)         <span class="op">=</span><span class="op">&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">Mut</span> };
-            (<span class="kw">override</span>)    <span class="op">=</span><span class="op">&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">Override</span> };
-            (<span class="kw">priv</span>)        <span class="op">=</span><span class="op">&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">Priv</span> };
-            (<span class="kw">pub</span>)         <span class="op">=</span><span class="op">&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">Pub</span> };
-            (<span class="kw-2">ref</span>)         <span class="op">=</span><span class="op">&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">Ref</span> };
-            (<span class="kw">return</span>)      <span class="op">=</span><span class="op">&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">Return</span> };
-            (<span class="self">Self</span>)        <span class="op">=</span><span class="op">&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">SelfType</span> };
-            (<span class="self">self</span>)        <span class="op">=</span><span class="op">&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">SelfValue</span> };
-            (<span class="kw">static</span>)      <span class="op">=</span><span class="op">&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">Static</span> };
-            (<span class="kw">struct</span>)      <span class="op">=</span><span class="op">&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">Struct</span> };
-            (<span class="kw">super</span>)       <span class="op">=</span><span class="op">&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">Super</span> };
-            (<span class="kw">trait</span>)       <span class="op">=</span><span class="op">&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">Trait</span> };
-            (<span class="kw">try</span>)         <span class="op">=</span><span class="op">&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">Try</span> };
-            (<span class="kw">type</span>)        <span class="op">=</span><span class="op">&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">Type</span> };
-            (<span class="kw">typeof</span>)      <span class="op">=</span><span class="op">&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">Typeof</span> };
-            (<span class="ident">union</span>)       <span class="op">=</span><span class="op">&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">Union</span> };
-            (<span class="kw">unsafe</span>)      <span class="op">=</span><span class="op">&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">Unsafe</span> };
-            (<span class="kw">unsized</span>)     <span class="op">=</span><span class="op">&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">Unsized</span> };
-            (<span class="kw">use</span>)         <span class="op">=</span><span class="op">&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">Use</span> };
-            (<span class="kw">virtual</span>)     <span class="op">=</span><span class="op">&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">Virtual</span> };
-            (<span class="kw">where</span>)       <span class="op">=</span><span class="op">&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">Where</span> };
-            (<span class="kw">while</span>)       <span class="op">=</span><span class="op">&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">While</span> };
-            (<span class="kw">yield</span>)       <span class="op">=</span><span class="op">&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">Yield</span> };
-            (<span class="op">+</span>)           <span class="op">=</span><span class="op">&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">Add</span> };
-            (<span class="op">+</span><span class="op">=</span>)          <span class="op">=</span><span class="op">&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">AddEq</span> };
-            (<span class="kw-2">&amp;</span>)           <span class="op">=</span><span class="op">&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">And</span> };
-            (<span class="kw-2">&amp;</span><span class="kw-2">&amp;</span>)          <span class="op">=</span><span class="op">&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">AndAnd</span> };
-            (<span class="kw-2">&amp;</span><span class="op">=</span>)          <span class="op">=</span><span class="op">&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">AndEq</span> };
-            (@)           <span class="op">=</span><span class="op">&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">At</span> };
-            (<span class="op">!</span>)           <span class="op">=</span><span class="op">&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">Bang</span> };
-            (<span class="op">^</span>)           <span class="op">=</span><span class="op">&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">Caret</span> };
-            (<span class="op">^</span><span class="op">=</span>)          <span class="op">=</span><span class="op">&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">CaretEq</span> };
-            (:)           <span class="op">=</span><span class="op">&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">Colon</span> };
-            (::)          <span class="op">=</span><span class="op">&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">Colon2</span> };
-            (,)           <span class="op">=</span><span class="op">&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">Comma</span> };
-            (<span class="op">/</span>)           <span class="op">=</span><span class="op">&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">Div</span> };
-            (<span class="op">/</span><span class="op">=</span>)          <span class="op">=</span><span class="op">&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">DivEq</span> };
-            ($)           <span class="op">=</span><span class="op">&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">Dollar</span> };
-            (.)           <span class="op">=</span><span class="op">&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">Dot</span> };
-            (..)          <span class="op">=</span><span class="op">&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">Dot2</span> };
-            (...)         <span class="op">=</span><span class="op">&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">Dot3</span> };
-            (..<span class="op">=</span>)         <span class="op">=</span><span class="op">&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">DotDotEq</span> };
-            (<span class="op">=</span>)           <span class="op">=</span><span class="op">&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">Eq</span> };
-            (<span class="op">=</span><span class="op">=</span>)          <span class="op">=</span><span class="op">&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">EqEq</span> };
-            (<span class="op">&gt;</span><span class="op">=</span>)          <span class="op">=</span><span class="op">&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">Ge</span> };
-            (<span class="op">&gt;</span>)           <span class="op">=</span><span class="op">&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">Gt</span> };
-            (<span class="op">&lt;</span><span class="op">=</span>)          <span class="op">=</span><span class="op">&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">Le</span> };
-            (<span class="op">&lt;</span>)           <span class="op">=</span><span class="op">&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">Lt</span> };
-            (<span class="kw-2">*</span><span class="op">=</span>)          <span class="op">=</span><span class="op">&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">MulEq</span> };
-            (<span class="op">!</span><span class="op">=</span>)          <span class="op">=</span><span class="op">&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">Ne</span> };
-            (<span class="op">|</span>)           <span class="op">=</span><span class="op">&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">Or</span> };
-            (<span class="op">|</span><span class="op">=</span>)          <span class="op">=</span><span class="op">&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">OrEq</span> };
-            (<span class="op">|</span><span class="op">|</span>)          <span class="op">=</span><span class="op">&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">OrOr</span> };
-            (#)           <span class="op">=</span><span class="op">&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">Pound</span> };
-            (<span class="question-mark">?</span>)           <span class="op">=</span><span class="op">&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">Question</span> };
-            (<span class="op">-</span><span class="op">&gt;</span>)          <span class="op">=</span><span class="op">&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">RArrow</span> };
-            (<span class="op">&lt;</span><span class="op">-</span>)          <span class="op">=</span><span class="op">&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">LArrow</span> };
-            (<span class="op">%</span>)           <span class="op">=</span><span class="op">&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">Rem</span> };
-            (<span class="op">%</span><span class="op">=</span>)          <span class="op">=</span><span class="op">&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">RemEq</span> };
-            (<span class="op">=</span><span class="op">&gt;</span>)          <span class="op">=</span><span class="op">&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">FatArrow</span> };
-            (;)           <span class="op">=</span><span class="op">&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">Semi</span> };
-            (<span class="op">&lt;</span><span class="op">&lt;</span>)          <span class="op">=</span><span class="op">&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">Shl</span> };
-            (<span class="op">&lt;</span><span class="op">&lt;</span><span class="op">=</span>)         <span class="op">=</span><span class="op">&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">ShlEq</span> };
-            (<span class="op">&gt;</span><span class="op">&gt;</span>)          <span class="op">=</span><span class="op">&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">Shr</span> };
-            (<span class="op">&gt;</span><span class="op">&gt;</span><span class="op">=</span>)         <span class="op">=</span><span class="op">&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">ShrEq</span> };
-            (<span class="kw-2">*</span>)           <span class="op">=</span><span class="op">&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">Star</span> };
-            (<span class="op">-</span>)           <span class="op">=</span><span class="op">&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">Sub</span> };
-            (<span class="op">-</span><span class="op">=</span>)          <span class="op">=</span><span class="op">&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">SubEq</span> };
-            (~)           <span class="op">=</span><span class="op">&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">Tilde</span> };
-            (<span class="kw">_</span>)           <span class="op">=</span><span class="op">&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">Underscore</span> };
+            (<span class="kw">abstract</span>)    <span class="op">=&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">Abstract</span> };
+            (<span class="kw">as</span>)          <span class="op">=&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">As</span> };
+            (<span class="kw">async</span>)       <span class="op">=&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">Async</span> };
+            (<span class="ident">auto</span>)        <span class="op">=&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">Auto</span> };
+            $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">await_rule</span> <span class="op">=&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">Await</span> };)<span class="op">*</span>
+            (<span class="kw">become</span>)      <span class="op">=&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">Become</span> };
+            (<span class="kw">box</span>)         <span class="op">=&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">Box</span> };
+            (<span class="kw">break</span>)       <span class="op">=&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">Break</span> };
+            (<span class="kw">const</span>)       <span class="op">=&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">Const</span> };
+            (<span class="kw">continue</span>)    <span class="op">=&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">Continue</span> };
+            (<span class="kw">crate</span>)       <span class="op">=&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">Crate</span> };
+            (<span class="ident">default</span>)     <span class="op">=&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">Default</span> };
+            (<span class="kw">do</span>)          <span class="op">=&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">Do</span> };
+            (<span class="kw">dyn</span>)         <span class="op">=&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">Dyn</span> };
+            (<span class="kw">else</span>)        <span class="op">=&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">Else</span> };
+            (<span class="kw">enum</span>)        <span class="op">=&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">Enum</span> };
+            (<span class="kw">extern</span>)      <span class="op">=&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">Extern</span> };
+            (<span class="kw">final</span>)       <span class="op">=&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">Final</span> };
+            (<span class="kw">fn</span>)          <span class="op">=&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">Fn</span> };
+            (<span class="kw">for</span>)         <span class="op">=&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">For</span> };
+            (<span class="kw">if</span>)          <span class="op">=&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">If</span> };
+            (<span class="kw">impl</span>)        <span class="op">=&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">Impl</span> };
+            (<span class="kw">in</span>)          <span class="op">=&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">In</span> };
+            (<span class="kw">let</span>)         <span class="op">=&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">Let</span> };
+            (<span class="kw">loop</span>)        <span class="op">=&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">Loop</span> };
+            (<span class="kw">macro</span>)       <span class="op">=&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">Macro</span> };
+            (<span class="kw">match</span>)       <span class="op">=&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">Match</span> };
+            (<span class="kw">mod</span>)         <span class="op">=&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">Mod</span> };
+            (<span class="kw">move</span>)        <span class="op">=&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">Move</span> };
+            (<span class="kw-2">mut</span>)         <span class="op">=&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">Mut</span> };
+            (<span class="kw">override</span>)    <span class="op">=&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">Override</span> };
+            (<span class="kw">priv</span>)        <span class="op">=&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">Priv</span> };
+            (<span class="kw">pub</span>)         <span class="op">=&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">Pub</span> };
+            (<span class="kw-2">ref</span>)         <span class="op">=&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">Ref</span> };
+            (<span class="kw">return</span>)      <span class="op">=&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">Return</span> };
+            (<span class="self">Self</span>)        <span class="op">=&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">SelfType</span> };
+            (<span class="self">self</span>)        <span class="op">=&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">SelfValue</span> };
+            (<span class="kw">static</span>)      <span class="op">=&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">Static</span> };
+            (<span class="kw">struct</span>)      <span class="op">=&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">Struct</span> };
+            (<span class="kw">super</span>)       <span class="op">=&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">Super</span> };
+            (<span class="kw">trait</span>)       <span class="op">=&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">Trait</span> };
+            (<span class="kw">try</span>)         <span class="op">=&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">Try</span> };
+            (<span class="kw">type</span>)        <span class="op">=&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">Type</span> };
+            (<span class="kw">typeof</span>)      <span class="op">=&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">Typeof</span> };
+            (<span class="ident">union</span>)       <span class="op">=&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">Union</span> };
+            (<span class="kw">unsafe</span>)      <span class="op">=&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">Unsafe</span> };
+            (<span class="kw">unsized</span>)     <span class="op">=&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">Unsized</span> };
+            (<span class="kw">use</span>)         <span class="op">=&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">Use</span> };
+            (<span class="kw">virtual</span>)     <span class="op">=&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">Virtual</span> };
+            (<span class="kw">where</span>)       <span class="op">=&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">Where</span> };
+            (<span class="kw">while</span>)       <span class="op">=&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">While</span> };
+            (<span class="kw">yield</span>)       <span class="op">=&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">Yield</span> };
+            (<span class="op">+</span>)           <span class="op">=&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">Add</span> };
+            (<span class="op">+=</span>)          <span class="op">=&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">AddEq</span> };
+            (<span class="kw-2">&amp;</span>)           <span class="op">=&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">And</span> };
+            (<span class="op">&amp;&amp;</span>)          <span class="op">=&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">AndAnd</span> };
+            (<span class="op">&amp;=</span>)          <span class="op">=&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">AndEq</span> };
+            (@)           <span class="op">=&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">At</span> };
+            (<span class="op">!</span>)           <span class="op">=&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">Bang</span> };
+            (<span class="op">^</span>)           <span class="op">=&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">Caret</span> };
+            (<span class="op">^=</span>)          <span class="op">=&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">CaretEq</span> };
+            (:)           <span class="op">=&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">Colon</span> };
+            (::)          <span class="op">=&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">Colon2</span> };
+            (,)           <span class="op">=&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">Comma</span> };
+            (<span class="op">/</span>)           <span class="op">=&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">Div</span> };
+            (<span class="op">/=</span>)          <span class="op">=&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">DivEq</span> };
+            ($)           <span class="op">=&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">Dollar</span> };
+            (.)           <span class="op">=&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">Dot</span> };
+            (..)          <span class="op">=&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">Dot2</span> };
+            (...)         <span class="op">=&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">Dot3</span> };
+            (..<span class="op">=</span>)         <span class="op">=&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">DotDotEq</span> };
+            (<span class="op">=</span>)           <span class="op">=&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">Eq</span> };
+            (<span class="op">==</span>)          <span class="op">=&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">EqEq</span> };
+            (<span class="op">&gt;=</span>)          <span class="op">=&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">Ge</span> };
+            (<span class="op">&gt;</span>)           <span class="op">=&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">Gt</span> };
+            (<span class="op">&lt;=</span>)          <span class="op">=&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">Le</span> };
+            (<span class="op">&lt;</span>)           <span class="op">=&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">Lt</span> };
+            (<span class="op">*=</span>)          <span class="op">=&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">MulEq</span> };
+            (<span class="op">!=</span>)          <span class="op">=&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">Ne</span> };
+            (<span class="op">|</span>)           <span class="op">=&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">Or</span> };
+            (<span class="op">|=</span>)          <span class="op">=&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">OrEq</span> };
+            (<span class="op">||</span>)          <span class="op">=&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">OrOr</span> };
+            (#)           <span class="op">=&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">Pound</span> };
+            (<span class="question-mark">?</span>)           <span class="op">=&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">Question</span> };
+            (<span class="op">-&gt;</span>)          <span class="op">=&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">RArrow</span> };
+            (&lt;-)          <span class="op">=&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">LArrow</span> };
+            (<span class="op">%</span>)           <span class="op">=&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">Rem</span> };
+            (<span class="op">%=</span>)          <span class="op">=&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">RemEq</span> };
+            (<span class="op">=&gt;</span>)          <span class="op">=&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">FatArrow</span> };
+            (;)           <span class="op">=&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">Semi</span> };
+            (<span class="op">&lt;&lt;</span>)          <span class="op">=&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">Shl</span> };
+            (<span class="op">&lt;&lt;</span><span class="op">=</span>)         <span class="op">=&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">ShlEq</span> };
+            (<span class="op">&gt;&gt;</span>)          <span class="op">=&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">Shr</span> };
+            (<span class="op">&gt;&gt;</span><span class="op">=</span>)         <span class="op">=&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">ShrEq</span> };
+            (<span class="kw-2">*</span>)           <span class="op">=&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">Star</span> };
+            (<span class="op">-</span>)           <span class="op">=&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">Sub</span> };
+            (<span class="op">-=</span>)          <span class="op">=&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">SubEq</span> };
+            (~)           <span class="op">=&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">Tilde</span> };
+            (<span class="kw">_</span>)           <span class="op">=&gt;</span> { <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">token</span>::<span class="ident">Underscore</span> };
         }
     };
 }
@@ -1859,10 +1860,10 @@
     <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">span</span>::<span class="ident">FromSpans</span>;
     <span class="kw">use</span> <span class="ident">proc_macro2</span>::{<span class="ident">Spacing</span>, <span class="ident">Span</span>};
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">keyword</span>(<span class="ident">input</span>: <span class="ident">ParseStream</span>, <span class="ident">token</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Span</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">keyword</span>(<span class="ident">input</span>: <span class="ident">ParseStream</span>, <span class="ident">token</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Span</span><span class="op">&gt;</span> {
         <span class="ident">input</span>.<span class="ident">step</span>(<span class="op">|</span><span class="ident">cursor</span><span class="op">|</span> {
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">ident</span>, <span class="ident">rest</span>)) <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">ident</span>() {
-                <span class="kw">if</span> <span class="ident">ident</span> <span class="op">=</span><span class="op">=</span> <span class="ident">token</span> {
+                <span class="kw">if</span> <span class="ident">ident</span> <span class="op">==</span> <span class="ident">token</span> {
                     <span class="kw">return</span> <span class="prelude-val">Ok</span>((<span class="ident">ident</span>.<span class="ident">span</span>(), <span class="ident">rest</span>));
                 }
             }
@@ -1870,39 +1871,39 @@
         })
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">peek_keyword</span>(<span class="ident">cursor</span>: <span class="ident">Cursor</span>, <span class="ident">token</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">peek_keyword</span>(<span class="ident">cursor</span>: <span class="ident">Cursor</span>, <span class="ident">token</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">ident</span>, <span class="ident">_rest</span>)) <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">ident</span>() {
-            <span class="ident">ident</span> <span class="op">=</span><span class="op">=</span> <span class="ident">token</span>
+            <span class="ident">ident</span> <span class="op">==</span> <span class="ident">token</span>
         } <span class="kw">else</span> {
             <span class="bool-val">false</span>
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">punct</span><span class="op">&lt;</span><span class="ident">S</span>: <span class="ident">FromSpans</span><span class="op">&gt;</span>(<span class="ident">input</span>: <span class="ident">ParseStream</span>, <span class="ident">token</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">punct</span><span class="op">&lt;</span><span class="ident">S</span>: <span class="ident">FromSpans</span><span class="op">&gt;</span>(<span class="ident">input</span>: <span class="ident">ParseStream</span>, <span class="ident">token</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">spans</span> <span class="op">=</span> [<span class="ident">input</span>.<span class="ident">span</span>(); <span class="number">3</span>];
         <span class="ident">punct_helper</span>(<span class="ident">input</span>, <span class="ident">token</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">spans</span>)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(<span class="ident">S</span>::<span class="ident">from_spans</span>(<span class="kw-2">&amp;</span><span class="ident">spans</span>))
     }
 
-    <span class="kw">fn</span> <span class="ident">punct_helper</span>(<span class="ident">input</span>: <span class="ident">ParseStream</span>, <span class="ident">token</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">spans</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">Span</span>; <span class="number">3</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">punct_helper</span>(<span class="ident">input</span>: <span class="ident">ParseStream</span>, <span class="ident">token</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">spans</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">Span</span>; <span class="number">3</span>]) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="ident">input</span>.<span class="ident">step</span>(<span class="op">|</span><span class="ident">cursor</span><span class="op">|</span> {
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">cursor</span> <span class="op">=</span> <span class="kw-2">*</span><span class="ident">cursor</span>;
-            <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">token</span>.<span class="ident">len</span>() <span class="op">&lt;</span><span class="op">=</span> <span class="ident">spans</span>.<span class="ident">len</span>());
+            <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">token</span>.<span class="ident">len</span>() <span class="op">&lt;=</span> <span class="ident">spans</span>.<span class="ident">len</span>());
 
             <span class="kw">for</span> (<span class="ident">i</span>, <span class="ident">ch</span>) <span class="kw">in</span> <span class="ident">token</span>.<span class="ident">chars</span>().<span class="ident">enumerate</span>() {
                 <span class="kw">match</span> <span class="ident">cursor</span>.<span class="ident">punct</span>() {
-                    <span class="prelude-val">Some</span>((<span class="ident">punct</span>, <span class="ident">rest</span>)) <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="prelude-val">Some</span>((<span class="ident">punct</span>, <span class="ident">rest</span>)) <span class="op">=&gt;</span> {
                         <span class="ident">spans</span>[<span class="ident">i</span>] <span class="op">=</span> <span class="ident">punct</span>.<span class="ident">span</span>();
-                        <span class="kw">if</span> <span class="ident">punct</span>.<span class="ident">as_char</span>() <span class="op">!</span><span class="op">=</span> <span class="ident">ch</span> {
+                        <span class="kw">if</span> <span class="ident">punct</span>.<span class="ident">as_char</span>() <span class="op">!=</span> <span class="ident">ch</span> {
                             <span class="kw">break</span>;
-                        } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">i</span> <span class="op">=</span><span class="op">=</span> <span class="ident">token</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="number">1</span> {
+                        } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">i</span> <span class="op">==</span> <span class="ident">token</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="number">1</span> {
                             <span class="kw">return</span> <span class="prelude-val">Ok</span>(((), <span class="ident">rest</span>));
-                        } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">punct</span>.<span class="ident">spacing</span>() <span class="op">!</span><span class="op">=</span> <span class="ident">Spacing</span>::<span class="ident">Joint</span> {
+                        } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">punct</span>.<span class="ident">spacing</span>() <span class="op">!=</span> <span class="ident">Spacing</span>::<span class="ident">Joint</span> {
                             <span class="kw">break</span>;
                         }
                         <span class="ident">cursor</span> <span class="op">=</span> <span class="ident">rest</span>;
                     }
-                    <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">break</span>,
+                    <span class="prelude-val">None</span> <span class="op">=&gt;</span> <span class="kw">break</span>,
                 }
             }
 
@@ -1910,20 +1911,20 @@
         })
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">peek_punct</span>(<span class="kw-2">mut</span> <span class="ident">cursor</span>: <span class="ident">Cursor</span>, <span class="ident">token</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">peek_punct</span>(<span class="kw-2">mut</span> <span class="ident">cursor</span>: <span class="ident">Cursor</span>, <span class="ident">token</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
         <span class="kw">for</span> (<span class="ident">i</span>, <span class="ident">ch</span>) <span class="kw">in</span> <span class="ident">token</span>.<span class="ident">chars</span>().<span class="ident">enumerate</span>() {
             <span class="kw">match</span> <span class="ident">cursor</span>.<span class="ident">punct</span>() {
-                <span class="prelude-val">Some</span>((<span class="ident">punct</span>, <span class="ident">rest</span>)) <span class="op">=</span><span class="op">&gt;</span> {
-                    <span class="kw">if</span> <span class="ident">punct</span>.<span class="ident">as_char</span>() <span class="op">!</span><span class="op">=</span> <span class="ident">ch</span> {
+                <span class="prelude-val">Some</span>((<span class="ident">punct</span>, <span class="ident">rest</span>)) <span class="op">=&gt;</span> {
+                    <span class="kw">if</span> <span class="ident">punct</span>.<span class="ident">as_char</span>() <span class="op">!=</span> <span class="ident">ch</span> {
                         <span class="kw">break</span>;
-                    } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">i</span> <span class="op">=</span><span class="op">=</span> <span class="ident">token</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="number">1</span> {
+                    } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">i</span> <span class="op">==</span> <span class="ident">token</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="number">1</span> {
                         <span class="kw">return</span> <span class="bool-val">true</span>;
-                    } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">punct</span>.<span class="ident">spacing</span>() <span class="op">!</span><span class="op">=</span> <span class="ident">Spacing</span>::<span class="ident">Joint</span> {
+                    } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">punct</span>.<span class="ident">spacing</span>() <span class="op">!=</span> <span class="ident">Spacing</span>::<span class="ident">Joint</span> {
                         <span class="kw">break</span>;
                     }
                     <span class="ident">cursor</span> <span class="op">=</span> <span class="ident">rest</span>;
                 }
-                <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">break</span>,
+                <span class="prelude-val">None</span> <span class="op">=&gt;</span> <span class="kw">break</span>,
             }
         }
         <span class="bool-val">false</span>
@@ -1964,11 +1965,11 @@
         <span class="ident">F</span>: <span class="ident">FnOnce</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">TokenStream</span>),
     {
         <span class="kw">let</span> <span class="ident">delim</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">s</span> {
-            <span class="string">&quot;(&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Delimiter</span>::<span class="ident">Parenthesis</span>,
-            <span class="string">&quot;[&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Delimiter</span>::<span class="ident">Bracket</span>,
-            <span class="string">&quot;{&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Delimiter</span>::<span class="ident">Brace</span>,
-            <span class="string">&quot; &quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Delimiter</span>::<span class="prelude-val">None</span>,
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;unknown delimiter: {}&quot;</span>, <span class="ident">s</span>),
+            <span class="string">&quot;(&quot;</span> <span class="op">=&gt;</span> <span class="ident">Delimiter</span>::<span class="ident">Parenthesis</span>,
+            <span class="string">&quot;[&quot;</span> <span class="op">=&gt;</span> <span class="ident">Delimiter</span>::<span class="ident">Bracket</span>,
+            <span class="string">&quot;{&quot;</span> <span class="op">=&gt;</span> <span class="ident">Delimiter</span>::<span class="ident">Brace</span>,
+            <span class="string">&quot; &quot;</span> <span class="op">=&gt;</span> <span class="ident">Delimiter</span>::<span class="prelude-val">None</span>,
+            <span class="kw">_</span> <span class="op">=&gt;</span> <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;unknown delimiter: {}&quot;</span>, <span class="ident">s</span>),
         };
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">inner</span> <span class="op">=</span> <span class="ident">TokenStream</span>::<span class="ident">new</span>();
         <span class="ident">f</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">inner</span>);

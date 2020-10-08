@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `boa/src/builtins/date/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../dark.css"><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script src="../../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="shortcut icon" href="https://raw.githubusercontent.com/jasonwilliams/boa/master/assets/logo.svg"><style type="text/css">#crate-search{background-image:url("../../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../../boa/index.html'><div class='logo-container'><img src='https://raw.githubusercontent.com/jasonwilliams/boa/master/assets/logo.svg' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../../../settings.html"><img src="../../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `boa/src/builtins/date/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled ><script src="../../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="shortcut icon" href="https://raw.githubusercontent.com/jasonwilliams/boa/master/assets/logo.svg"><style type="text/css">#crate-search{background-image:url("../../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../../boa/index.html'><div class='logo-container'><img src='https://raw.githubusercontent.com/jasonwilliams/boa/master/assets/logo.svg' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
+                <a id="settings-menu" href="../../../../settings.html"><img src="../../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
 <span id="3">   3</span>
 <span id="4">   4</span>
@@ -1357,36 +1358,36 @@
 <span class="kw">const</span> <span class="ident">NANOS_IN_MS</span>: <span class="ident">f64</span> <span class="op">=</span> <span class="number">1_000_000f64</span>;
 
 <span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">fn</span> <span class="ident">is_zero_or_normal_opt</span>(<span class="ident">value</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">f64</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+<span class="kw">fn</span> <span class="ident">is_zero_or_normal_opt</span>(<span class="ident">value</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">f64</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
     <span class="ident">value</span>
-        .<span class="ident">map</span>(<span class="op">|</span><span class="ident">value</span><span class="op">|</span> <span class="ident">value</span> <span class="op">=</span><span class="op">=</span> <span class="number">0f64</span> <span class="op">|</span><span class="op">|</span> <span class="ident">value</span>.<span class="ident">is_normal</span>())
+        .<span class="ident">map</span>(<span class="op">|</span><span class="ident">value</span><span class="op">|</span> <span class="ident">value</span> <span class="op">==</span> <span class="number">0f64</span> <span class="op">||</span> <span class="ident">value</span>.<span class="ident">is_normal</span>())
         .<span class="ident">unwrap_or</span>(<span class="bool-val">true</span>)
 }
 
 <span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">check_normal_opt</span> {
-    ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">v</span>:<span class="ident">expr</span>),<span class="op">+</span>) <span class="op">=</span><span class="op">&gt;</span> {
-        $(<span class="ident">is_zero_or_normal_opt</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">v</span>.<span class="ident">into</span>()) <span class="kw-2">&amp;</span><span class="kw-2">&amp;</span>)<span class="op">+</span> <span class="bool-val">true</span>
+    ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">v</span>:<span class="ident">expr</span>),<span class="op">+</span>) <span class="op">=&gt;</span> {
+        $(<span class="ident">is_zero_or_normal_opt</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">v</span>.<span class="ident">into</span>()) <span class="op">&amp;&amp;</span>)<span class="op">+</span> <span class="bool-val">true</span>
     };
 }
 
 <span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">fn</span> <span class="ident">ignore_ambiguity</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">result</span>: <span class="ident">LocalResult</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">ignore_ambiguity</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">result</span>: <span class="ident">LocalResult</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
     <span class="kw">match</span> <span class="ident">result</span> {
-        <span class="ident">LocalResult</span>::<span class="ident">Ambiguous</span>(<span class="ident">v</span>, <span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">v</span>),
-        <span class="ident">LocalResult</span>::<span class="ident">Single</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">v</span>),
-        <span class="ident">LocalResult</span>::<span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
+        <span class="ident">LocalResult</span>::<span class="ident">Ambiguous</span>(<span class="ident">v</span>, <span class="kw">_</span>) <span class="op">=&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">v</span>),
+        <span class="ident">LocalResult</span>::<span class="ident">Single</span>(<span class="ident">v</span>) <span class="op">=&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">v</span>),
+        <span class="ident">LocalResult</span>::<span class="prelude-val">None</span> <span class="op">=&gt;</span> <span class="prelude-val">None</span>,
     }
 }
 
 <span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">getter_method</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">ident</span>) <span class="op">=</span><span class="op">&gt;</span> {{
-        <span class="kw">fn</span> <span class="ident">get_value</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">ident</span>) <span class="op">=&gt;</span> {{
+        <span class="kw">fn</span> <span class="ident">get_value</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
             <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">this_time_value</span>(<span class="ident">this</span>, <span class="ident">ctx</span>)<span class="question-mark">?</span>.<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>()))
         }
         <span class="ident">get_value</span>
     }};
-    (<span class="self">Self</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">ident</span>) <span class="op">=</span><span class="op">&gt;</span> {{
-        <span class="kw">fn</span> <span class="ident">get_value</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
+    (<span class="self">Self</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">ident</span>) <span class="op">=&gt;</span> {{
+        <span class="kw">fn</span> <span class="ident">get_value</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
             <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">Date</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>()))
         }
         <span class="ident">get_value</span>
@@ -1394,8 +1395,8 @@
 }
 
 <span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">setter_method</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">ident</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">e</span>:<span class="ident">expr</span>),<span class="op">*</span> $(,)<span class="question-mark">?</span>)) <span class="op">=</span><span class="op">&gt;</span> {{
-        <span class="kw">fn</span> <span class="ident">set_value</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">ident</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">e</span>:<span class="ident">expr</span>),<span class="op">*</span> $(,)<span class="question-mark">?</span>)) <span class="op">=&gt;</span> {{
+        <span class="kw">fn</span> <span class="ident">set_value</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">this_time_value</span>(<span class="ident">this</span>, <span class="ident">ctx</span>)<span class="question-mark">?</span>;
             <span class="ident">result</span>.<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>(
                 $(
@@ -1405,7 +1406,7 @@
                             <span class="ident">value</span>.<span class="ident">to_numeric_number</span>(<span class="ident">ctx</span>).<span class="ident">map_or_else</span>(
                                 <span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="prelude-val">None</span>,
                                 <span class="op">|</span><span class="ident">value</span><span class="op">|</span> {
-                                    <span class="kw">if</span> <span class="ident">value</span> <span class="op">=</span><span class="op">=</span> <span class="number">0f64</span> <span class="op">|</span><span class="op">|</span> <span class="ident">value</span>.<span class="ident">is_normal</span>() {
+                                    <span class="kw">if</span> <span class="ident">value</span> <span class="op">==</span> <span class="number">0f64</span> <span class="op">||</span> <span class="ident">value</span>.<span class="ident">is_normal</span>() {
                                         <span class="prelude-val">Some</span>(<span class="ident">value</span>)
                                     } <span class="kw">else</span> {
                                         <span class="prelude-val">None</span>
@@ -1427,10 +1428,10 @@
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Date</span>(<span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">NaiveDateTime</span><span class="op">&gt;</span>);
 
 <span class="kw">impl</span> <span class="ident">Display</span> <span class="kw">for</span> <span class="ident">Date</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">std</span>::<span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">std</span>::<span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">std</span>::<span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="ident">std</span>::<span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">to_local</span>() {
-            <span class="prelude-val">Some</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;{}&quot;</span>, <span class="ident">v</span>.<span class="ident">format</span>(<span class="string">&quot;%a %b %d %Y %H:%M:%S GMT%:z&quot;</span>)),
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;Invalid Date&quot;</span>),
+            <span class="prelude-val">Some</span>(<span class="ident">v</span>) <span class="op">=&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;{}&quot;</span>, <span class="ident">v</span>.<span class="ident">format</span>(<span class="string">&quot;%a %b %d %Y %H:%M:%S GMT%:z&quot;</span>)),
+            <span class="kw">_</span> <span class="op">=&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;Invalid Date&quot;</span>),
         }
     }
 }
@@ -1442,7 +1443,7 @@
 }
 
 <span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">Date</span> {
-    <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-&gt;</span> <span class="self">Self</span> {
         <span class="self">Self</span>(<span class="prelude-val">Some</span>(<span class="ident">Utc</span>::<span class="ident">now</span>().<span class="ident">naive_utc</span>()))
     }
 }
@@ -1450,11 +1451,11 @@
 <span class="kw">impl</span> <span class="ident">BuiltIn</span> <span class="kw">for</span> <span class="ident">Date</span> {
     <span class="kw">const</span> <span class="ident">NAME</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;Date&quot;</span>;
 
-    <span class="kw">fn</span> <span class="ident">attribute</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Attribute</span> {
+    <span class="kw">fn</span> <span class="ident">attribute</span>() <span class="op">-&gt;</span> <span class="ident">Attribute</span> {
         <span class="ident">Attribute</span>::<span class="ident">WRITABLE</span> <span class="op">|</span> <span class="ident">Attribute</span>::<span class="ident">NON_ENUMERABLE</span> <span class="op">|</span> <span class="ident">Attribute</span>::<span class="ident">CONFIGURABLE</span>
     }
 
-    <span class="kw">fn</span> <span class="ident">init</span>(<span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>, <span class="ident">Value</span>, <span class="ident">Attribute</span>) {
+    <span class="kw">fn</span> <span class="ident">init</span>(<span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-&gt;</span> (<span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>, <span class="ident">Value</span>, <span class="ident">Attribute</span>) {
         <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">BoaProfiler</span>::<span class="ident">global</span>().<span class="ident">start_event</span>(<span class="self">Self</span>::<span class="ident">NAME</span>, <span class="string">&quot;init&quot;</span>);
 
         <span class="kw">let</span> <span class="ident">date_object</span> <span class="op">=</span> <span class="ident">ConstructorBuilder</span>::<span class="ident">new</span>(<span class="ident">context</span>, <span class="self">Self</span>::<span class="ident">constructor</span>)
@@ -1536,7 +1537,7 @@
     <span class="doccomment">/// Converts the `Date` to a local `DateTime`.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// If the `Date` is invalid (i.e. NAN), this function will return `None`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_local</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">DateTime</span><span class="op">&lt;</span><span class="ident">Local</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_local</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">DateTime</span><span class="op">&lt;</span><span class="ident">Local</span><span class="op">&gt;&gt;</span> {
         <span class="self">self</span>.<span class="number">0</span>
             .<span class="ident">map</span>(<span class="op">|</span><span class="ident">utc</span><span class="op">|</span> <span class="ident">Local</span>::<span class="ident">now</span>().<span class="ident">timezone</span>().<span class="ident">from_utc_datetime</span>(<span class="kw-2">&amp;</span><span class="ident">utc</span>))
     }
@@ -1544,7 +1545,7 @@
     <span class="doccomment">/// Converts the `Date` to a UTC `DateTime`.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// If the `Date` is invalid (i.e. NAN), this function will return `None`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_utc</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">DateTime</span><span class="op">&lt;</span><span class="ident">Utc</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_utc</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">DateTime</span><span class="op">&lt;</span><span class="ident">Utc</span><span class="op">&gt;&gt;</span> {
         <span class="self">self</span>.<span class="number">0</span>
             .<span class="ident">map</span>(<span class="op">|</span><span class="ident">utc</span><span class="op">|</span> <span class="ident">Utc</span>::<span class="ident">now</span>().<span class="ident">timezone</span>().<span class="ident">from_utc_datetime</span>(<span class="kw-2">&amp;</span><span class="ident">utc</span>))
     }
@@ -1566,16 +1567,16 @@
         <span class="ident">millisecond</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">f64</span><span class="op">&gt;</span>,
     ) {
         <span class="attribute">#[<span class="ident">inline</span>]</span>
-        <span class="kw">fn</span> <span class="ident">num_days_in</span>(<span class="ident">year</span>: <span class="ident">i32</span>, <span class="ident">month</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">i32</span> {
+        <span class="kw">fn</span> <span class="ident">num_days_in</span>(<span class="ident">year</span>: <span class="ident">i32</span>, <span class="ident">month</span>: <span class="ident">u32</span>) <span class="op">-&gt;</span> <span class="ident">i32</span> {
             <span class="kw">let</span> <span class="ident">month</span> <span class="op">=</span> <span class="ident">month</span> <span class="op">+</span> <span class="number">1</span>; <span class="comment">// zero-based for calculations</span>
             <span class="ident">NaiveDate</span>::<span class="ident">from_ymd</span>(
                 <span class="kw">match</span> <span class="ident">month</span> {
-                    <span class="number">12</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">year</span> <span class="op">+</span> <span class="number">1</span>,
-                    <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">year</span>,
+                    <span class="number">12</span> <span class="op">=&gt;</span> <span class="ident">year</span> <span class="op">+</span> <span class="number">1</span>,
+                    <span class="kw">_</span> <span class="op">=&gt;</span> <span class="ident">year</span>,
                 },
                 <span class="kw">match</span> <span class="ident">month</span> {
-                    <span class="number">12</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">1</span>,
-                    <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">month</span> <span class="op">+</span> <span class="number">1</span>,
+                    <span class="number">12</span> <span class="op">=&gt;</span> <span class="number">1</span>,
+                    <span class="kw">_</span> <span class="op">=&gt;</span> <span class="ident">month</span> <span class="op">+</span> <span class="number">1</span>,
                 },
                 <span class="number">1</span>,
             )
@@ -1585,9 +1586,9 @@
 
         <span class="attribute">#[<span class="ident">inline</span>]</span>
         <span class="kw">fn</span> <span class="ident">fix_month</span>(<span class="ident">year</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">i32</span>, <span class="ident">month</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">i32</span>) {
-            <span class="kw-2">*</span><span class="ident">year</span> <span class="op">+</span><span class="op">=</span> <span class="kw-2">*</span><span class="ident">month</span> <span class="op">/</span> <span class="number">12</span>;
+            <span class="kw-2">*</span><span class="ident">year</span> <span class="op">+=</span> <span class="kw-2">*</span><span class="ident">month</span> <span class="op">/</span> <span class="number">12</span>;
             <span class="kw-2">*</span><span class="ident">month</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw-2">*</span><span class="ident">month</span> <span class="op">&lt;</span> <span class="number">0</span> {
-                <span class="kw-2">*</span><span class="ident">year</span> <span class="op">-</span><span class="op">=</span> <span class="number">1</span>;
+                <span class="kw-2">*</span><span class="ident">year</span> <span class="op">-=</span> <span class="number">1</span>;
                 <span class="number">11</span> <span class="op">+</span> (<span class="kw-2">*</span><span class="ident">month</span> <span class="op">+</span> <span class="number">1</span>) <span class="op">%</span> <span class="number">12</span>
             } <span class="kw">else</span> {
                 <span class="kw-2">*</span><span class="ident">month</span> <span class="op">%</span> <span class="number">12</span>
@@ -1599,14 +1600,14 @@
             <span class="ident">fix_month</span>(<span class="ident">year</span>, <span class="ident">month</span>);
             <span class="kw">loop</span> {
                 <span class="kw">if</span> <span class="kw-2">*</span><span class="ident">day</span> <span class="op">&lt;</span> <span class="number">0</span> {
-                    <span class="kw-2">*</span><span class="ident">month</span> <span class="op">-</span><span class="op">=</span> <span class="number">1</span>;
+                    <span class="kw-2">*</span><span class="ident">month</span> <span class="op">-=</span> <span class="number">1</span>;
                     <span class="ident">fix_month</span>(<span class="ident">year</span>, <span class="ident">month</span>);
-                    <span class="kw-2">*</span><span class="ident">day</span> <span class="op">+</span><span class="op">=</span> <span class="ident">num_days_in</span>(<span class="kw-2">*</span><span class="ident">year</span>, <span class="kw-2">*</span><span class="ident">month</span> <span class="kw">as</span> <span class="ident">u32</span>);
+                    <span class="kw-2">*</span><span class="ident">day</span> <span class="op">+=</span> <span class="ident">num_days_in</span>(<span class="kw-2">*</span><span class="ident">year</span>, <span class="kw-2">*</span><span class="ident">month</span> <span class="kw">as</span> <span class="ident">u32</span>);
                 } <span class="kw">else</span> {
                     <span class="kw">let</span> <span class="ident">num_days</span> <span class="op">=</span> <span class="ident">num_days_in</span>(<span class="kw-2">*</span><span class="ident">year</span>, <span class="kw-2">*</span><span class="ident">month</span> <span class="kw">as</span> <span class="ident">u32</span>);
-                    <span class="kw">if</span> <span class="kw-2">*</span><span class="ident">day</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">num_days</span> {
-                        <span class="kw-2">*</span><span class="ident">day</span> <span class="op">-</span><span class="op">=</span> <span class="ident">num_days_in</span>(<span class="kw-2">*</span><span class="ident">year</span>, <span class="kw-2">*</span><span class="ident">month</span> <span class="kw">as</span> <span class="ident">u32</span>);
-                        <span class="kw-2">*</span><span class="ident">month</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+                    <span class="kw">if</span> <span class="kw-2">*</span><span class="ident">day</span> <span class="op">&gt;=</span> <span class="ident">num_days</span> {
+                        <span class="kw-2">*</span><span class="ident">day</span> <span class="op">-=</span> <span class="ident">num_days_in</span>(<span class="kw-2">*</span><span class="ident">year</span>, <span class="kw-2">*</span><span class="ident">month</span> <span class="kw">as</span> <span class="ident">u32</span>);
+                        <span class="kw-2">*</span><span class="ident">month</span> <span class="op">+=</span> <span class="number">1</span>;
                         <span class="ident">fix_month</span>(<span class="ident">year</span>, <span class="ident">month</span>);
                     } <span class="kw">else</span> {
                         <span class="kw">break</span>;
@@ -1628,14 +1629,14 @@
         };
 
         <span class="self">self</span>.<span class="number">0</span> <span class="op">=</span> <span class="ident">naive</span>.<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">naive</span><span class="op">|</span> {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">year</span> <span class="op">=</span> <span class="ident">year</span>.<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">naive</span>.<span class="ident">year</span>() <span class="kw">as</span> <span class="ident">f64</span>) <span class="kw">as</span> <span class="ident">i32</span>;
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">month</span> <span class="op">=</span> <span class="ident">month</span>.<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">naive</span>.<span class="ident">month0</span>() <span class="kw">as</span> <span class="ident">f64</span>) <span class="kw">as</span> <span class="ident">i32</span>;
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">day</span> <span class="op">=</span> <span class="ident">day</span>.<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">naive</span>.<span class="ident">day</span>() <span class="kw">as</span> <span class="ident">f64</span>) <span class="kw">as</span> <span class="ident">i32</span> <span class="op">-</span> <span class="number">1</span>;
-            <span class="kw">let</span> <span class="ident">hour</span> <span class="op">=</span> <span class="ident">hour</span>.<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">naive</span>.<span class="ident">hour</span>() <span class="kw">as</span> <span class="ident">f64</span>) <span class="kw">as</span> <span class="ident">i64</span>;
-            <span class="kw">let</span> <span class="ident">minute</span> <span class="op">=</span> <span class="ident">minute</span>.<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">naive</span>.<span class="ident">minute</span>() <span class="kw">as</span> <span class="ident">f64</span>) <span class="kw">as</span> <span class="ident">i64</span>;
-            <span class="kw">let</span> <span class="ident">second</span> <span class="op">=</span> <span class="ident">second</span>.<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">naive</span>.<span class="ident">second</span>() <span class="kw">as</span> <span class="ident">f64</span>) <span class="kw">as</span> <span class="ident">i64</span>;
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">year</span> <span class="op">=</span> <span class="ident">year</span>.<span class="ident">unwrap_or_else</span>(<span class="op">||</span> <span class="ident">naive</span>.<span class="ident">year</span>() <span class="kw">as</span> <span class="ident">f64</span>) <span class="kw">as</span> <span class="ident">i32</span>;
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">month</span> <span class="op">=</span> <span class="ident">month</span>.<span class="ident">unwrap_or_else</span>(<span class="op">||</span> <span class="ident">naive</span>.<span class="ident">month0</span>() <span class="kw">as</span> <span class="ident">f64</span>) <span class="kw">as</span> <span class="ident">i32</span>;
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">day</span> <span class="op">=</span> <span class="ident">day</span>.<span class="ident">unwrap_or_else</span>(<span class="op">||</span> <span class="ident">naive</span>.<span class="ident">day</span>() <span class="kw">as</span> <span class="ident">f64</span>) <span class="kw">as</span> <span class="ident">i32</span> <span class="op">-</span> <span class="number">1</span>;
+            <span class="kw">let</span> <span class="ident">hour</span> <span class="op">=</span> <span class="ident">hour</span>.<span class="ident">unwrap_or_else</span>(<span class="op">||</span> <span class="ident">naive</span>.<span class="ident">hour</span>() <span class="kw">as</span> <span class="ident">f64</span>) <span class="kw">as</span> <span class="ident">i64</span>;
+            <span class="kw">let</span> <span class="ident">minute</span> <span class="op">=</span> <span class="ident">minute</span>.<span class="ident">unwrap_or_else</span>(<span class="op">||</span> <span class="ident">naive</span>.<span class="ident">minute</span>() <span class="kw">as</span> <span class="ident">f64</span>) <span class="kw">as</span> <span class="ident">i64</span>;
+            <span class="kw">let</span> <span class="ident">second</span> <span class="op">=</span> <span class="ident">second</span>.<span class="ident">unwrap_or_else</span>(<span class="op">||</span> <span class="ident">naive</span>.<span class="ident">second</span>() <span class="kw">as</span> <span class="ident">f64</span>) <span class="kw">as</span> <span class="ident">i64</span>;
             <span class="kw">let</span> <span class="ident">millisecond</span> <span class="op">=</span>
-                <span class="ident">millisecond</span>.<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">naive</span>.<span class="ident">nanosecond</span>() <span class="kw">as</span> <span class="ident">f64</span> <span class="op">/</span> <span class="ident">NANOS_IN_MS</span>) <span class="kw">as</span> <span class="ident">i64</span>;
+                <span class="ident">millisecond</span>.<span class="ident">unwrap_or_else</span>(<span class="op">||</span> <span class="ident">naive</span>.<span class="ident">nanosecond</span>() <span class="kw">as</span> <span class="ident">f64</span> <span class="op">/</span> <span class="ident">NANOS_IN_MS</span>) <span class="kw">as</span> <span class="ident">i64</span>;
 
             <span class="ident">fix_day</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">year</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">month</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">day</span>);
 
@@ -1665,12 +1666,12 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-date-constructor</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/Date</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">constructor</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">constructor</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="ident">this</span>.<span class="ident">is_global</span>() {
             <span class="self">Self</span>::<span class="ident">make_date_string</span>()
         } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">args</span>.<span class="ident">is_empty</span>() {
             <span class="self">Self</span>::<span class="ident">make_date_now</span>(<span class="ident">this</span>)
-        } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">args</span>.<span class="ident">len</span>() <span class="op">=</span><span class="op">=</span> <span class="number">1</span> {
+        } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">args</span>.<span class="ident">len</span>() <span class="op">==</span> <span class="number">1</span> {
             <span class="self">Self</span>::<span class="ident">make_date_single</span>(<span class="ident">this</span>, <span class="ident">args</span>, <span class="ident">ctx</span>)
         } <span class="kw">else</span> {
             <span class="self">Self</span>::<span class="ident">make_date_multiple</span>(<span class="ident">this</span>, <span class="ident">args</span>, <span class="ident">ctx</span>)
@@ -1687,7 +1688,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-date-constructor</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/Date</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">make_date_string</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">make_date_string</span>() <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
         <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">Local</span>::<span class="ident">now</span>().<span class="ident">to_rfc3339</span>()))
     }
 
@@ -1701,7 +1702,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-date-constructor</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/Date</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">make_date_now</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">make_date_now</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">date</span> <span class="op">=</span> <span class="ident">Date</span>::<span class="ident">default</span>();
         <span class="ident">this</span>.<span class="ident">set_data</span>(<span class="ident">ObjectData</span>::<span class="ident">Date</span>(<span class="ident">date</span>));
         <span class="prelude-val">Ok</span>(<span class="ident">this</span>.<span class="ident">clone</span>())
@@ -1721,16 +1722,16 @@
         <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>,
         <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>],
         <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
+    ) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">args</span>[<span class="number">0</span>];
         <span class="kw">let</span> <span class="ident">tv</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">this_time_value</span>(<span class="ident">value</span>, <span class="ident">ctx</span>) {
-            <span class="prelude-val">Ok</span>(<span class="ident">dt</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">dt</span>.<span class="number">0</span>,
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">value</span>.<span class="ident">to_primitive</span>(<span class="ident">ctx</span>, <span class="ident">PreferredType</span>::<span class="ident">Default</span>)<span class="question-mark">?</span> {
-                <span class="ident">Value</span>::<span class="ident">String</span>(<span class="kw-2">ref</span> <span class="ident">str</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">chrono</span>::<span class="ident">DateTime</span>::<span class="ident">parse_from_rfc3339</span>(<span class="kw-2">&amp;</span><span class="ident">str</span>) {
-                    <span class="prelude-val">Ok</span>(<span class="ident">dt</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">dt</span>.<span class="ident">naive_utc</span>()),
-                    <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
+            <span class="prelude-val">Ok</span>(<span class="ident">dt</span>) <span class="op">=&gt;</span> <span class="ident">dt</span>.<span class="number">0</span>,
+            <span class="kw">_</span> <span class="op">=&gt;</span> <span class="kw">match</span> <span class="ident">value</span>.<span class="ident">to_primitive</span>(<span class="ident">ctx</span>, <span class="ident">PreferredType</span>::<span class="ident">Default</span>)<span class="question-mark">?</span> {
+                <span class="ident">Value</span>::<span class="ident">String</span>(<span class="kw-2">ref</span> <span class="ident">str</span>) <span class="op">=&gt;</span> <span class="kw">match</span> <span class="ident">chrono</span>::<span class="ident">DateTime</span>::<span class="ident">parse_from_rfc3339</span>(<span class="kw-2">&amp;</span><span class="ident">str</span>) {
+                    <span class="prelude-val">Ok</span>(<span class="ident">dt</span>) <span class="op">=&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">dt</span>.<span class="ident">naive_utc</span>()),
+                    <span class="kw">_</span> <span class="op">=&gt;</span> <span class="prelude-val">None</span>,
                 },
-                <span class="ident">tv</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">tv</span> <span class="op">=&gt;</span> {
                     <span class="kw">let</span> <span class="ident">tv</span> <span class="op">=</span> <span class="ident">tv</span>.<span class="ident">to_number</span>(<span class="ident">ctx</span>)<span class="question-mark">?</span>;
                     <span class="kw">let</span> <span class="ident">secs</span> <span class="op">=</span> (<span class="ident">tv</span> <span class="op">/</span> <span class="number">1_000f64</span>) <span class="kw">as</span> <span class="ident">i64</span>;
                     <span class="kw">let</span> <span class="ident">nsecs</span> <span class="op">=</span> ((<span class="ident">tv</span> <span class="op">%</span> <span class="number">1_000f64</span>) <span class="op">*</span> <span class="number">1_000_000f64</span>) <span class="kw">as</span> <span class="ident">u32</span>;
@@ -1758,7 +1759,7 @@
         <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>,
         <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>],
         <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
+    ) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">year</span> <span class="op">=</span> <span class="ident">args</span>[<span class="number">0</span>].<span class="ident">to_number</span>(<span class="ident">ctx</span>)<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">month</span> <span class="op">=</span> <span class="ident">args</span>[<span class="number">1</span>].<span class="ident">to_number</span>(<span class="ident">ctx</span>)<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">day</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">2</span>).<span class="ident">map_or</span>(<span class="prelude-val">Ok</span>(<span class="number">1f64</span>), <span class="op">|</span><span class="ident">value</span><span class="op">|</span> <span class="ident">value</span>.<span class="ident">to_number</span>(<span class="ident">ctx</span>))<span class="question-mark">?</span>;
@@ -1782,7 +1783,7 @@
         <span class="kw">let</span> <span class="ident">sec</span> <span class="op">=</span> <span class="ident">sec</span> <span class="kw">as</span> <span class="ident">u32</span>;
         <span class="kw">let</span> <span class="ident">milli</span> <span class="op">=</span> <span class="ident">milli</span> <span class="kw">as</span> <span class="ident">u32</span>;
 
-        <span class="kw">let</span> <span class="ident">year</span> <span class="op">=</span> <span class="kw">if</span> <span class="number">0</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">year</span> <span class="kw-2">&amp;</span><span class="op">&amp;</span> <span class="ident">year</span> <span class="op">&lt;</span><span class="op">=</span> <span class="number">99</span> {
+        <span class="kw">let</span> <span class="ident">year</span> <span class="op">=</span> <span class="kw">if</span> <span class="number">0</span> <span class="op">&lt;=</span> <span class="ident">year</span> <span class="op">&amp;&amp;</span> <span class="ident">year</span> <span class="op">&lt;=</span> <span class="number">99</span> {
             <span class="number">1900</span> <span class="op">+</span> <span class="ident">year</span>
         } <span class="kw">else</span> {
             <span class="ident">year</span>
@@ -1808,7 +1809,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-date.prototype.getdate</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/getDate</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_date</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">f64</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_date</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">f64</span> {
         <span class="self">self</span>.<span class="ident">to_local</span>().<span class="ident">map_or</span>(<span class="ident">f64</span>::<span class="ident">NAN</span>, <span class="op">|</span><span class="ident">dt</span><span class="op">|</span> <span class="ident">dt</span>.<span class="ident">day</span>() <span class="kw">as</span> <span class="ident">f64</span>)
     }
 
@@ -1823,7 +1824,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-date.prototype.getday</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/getDay</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_day</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">f64</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_day</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">f64</span> {
         <span class="self">self</span>.<span class="ident">to_local</span>().<span class="ident">map_or</span>(<span class="ident">f64</span>::<span class="ident">NAN</span>, <span class="op">|</span><span class="ident">dt</span><span class="op">|</span> {
             <span class="kw">let</span> <span class="ident">weekday</span> <span class="op">=</span> <span class="ident">dt</span>.<span class="ident">weekday</span>() <span class="kw">as</span> <span class="ident">u32</span>;
             <span class="kw">let</span> <span class="ident">weekday</span> <span class="op">=</span> (<span class="ident">weekday</span> <span class="op">+</span> <span class="number">1</span>) <span class="op">%</span> <span class="number">7</span>; <span class="comment">// 0 represents Monday in Chrono</span>
@@ -1841,7 +1842,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-date.prototype.getfullyear</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/getFullYear</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_full_year</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">f64</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_full_year</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">f64</span> {
         <span class="self">self</span>.<span class="ident">to_local</span>().<span class="ident">map_or</span>(<span class="ident">f64</span>::<span class="ident">NAN</span>, <span class="op">|</span><span class="ident">dt</span><span class="op">|</span> <span class="ident">dt</span>.<span class="ident">year</span>() <span class="kw">as</span> <span class="ident">f64</span>)
     }
 
@@ -1855,7 +1856,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-date.prototype.gethours</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/getHours</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_hours</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">f64</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_hours</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">f64</span> {
         <span class="self">self</span>.<span class="ident">to_local</span>().<span class="ident">map_or</span>(<span class="ident">f64</span>::<span class="ident">NAN</span>, <span class="op">|</span><span class="ident">dt</span><span class="op">|</span> <span class="ident">dt</span>.<span class="ident">hour</span>() <span class="kw">as</span> <span class="ident">f64</span>)
     }
 
@@ -1869,7 +1870,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-date.prototype.getmilliseconds</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/getMilliseconds</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_milliseconds</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">f64</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_milliseconds</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">f64</span> {
         <span class="self">self</span>.<span class="ident">to_local</span>()
             .<span class="ident">map_or</span>(<span class="ident">f64</span>::<span class="ident">NAN</span>, <span class="op">|</span><span class="ident">dt</span><span class="op">|</span> <span class="ident">dt</span>.<span class="ident">nanosecond</span>() <span class="kw">as</span> <span class="ident">f64</span> <span class="op">/</span> <span class="ident">NANOS_IN_MS</span>)
     }
@@ -1884,7 +1885,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-date.prototype.getminutes</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/getMinutes</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_minutes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">f64</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_minutes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">f64</span> {
         <span class="self">self</span>.<span class="ident">to_local</span>().<span class="ident">map_or</span>(<span class="ident">f64</span>::<span class="ident">NAN</span>, <span class="op">|</span><span class="ident">dt</span><span class="op">|</span> <span class="ident">dt</span>.<span class="ident">minute</span>() <span class="kw">as</span> <span class="ident">f64</span>)
     }
 
@@ -1899,7 +1900,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-date.prototype.getmonth</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/getMonth</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_month</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">f64</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_month</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">f64</span> {
         <span class="self">self</span>.<span class="ident">to_local</span>().<span class="ident">map_or</span>(<span class="ident">f64</span>::<span class="ident">NAN</span>, <span class="op">|</span><span class="ident">dt</span><span class="op">|</span> <span class="ident">dt</span>.<span class="ident">month0</span>() <span class="kw">as</span> <span class="ident">f64</span>)
     }
 
@@ -1913,7 +1914,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-date.prototype.getseconds</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/getSeconds</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_seconds</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">f64</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_seconds</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">f64</span> {
         <span class="self">self</span>.<span class="ident">to_local</span>().<span class="ident">map_or</span>(<span class="ident">f64</span>::<span class="ident">NAN</span>, <span class="op">|</span><span class="ident">dt</span><span class="op">|</span> <span class="ident">dt</span>.<span class="ident">second</span>() <span class="kw">as</span> <span class="ident">f64</span>)
     }
 
@@ -1928,7 +1929,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-date.prototype.getyear</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/getYear</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_year</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">f64</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_year</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">f64</span> {
         <span class="self">self</span>.<span class="ident">to_local</span>()
             .<span class="ident">map_or</span>(<span class="ident">f64</span>::<span class="ident">NAN</span>, <span class="op">|</span><span class="ident">dt</span><span class="op">|</span> <span class="ident">dt</span>.<span class="ident">year</span>() <span class="kw">as</span> <span class="ident">f64</span> <span class="op">-</span> <span class="number">1900f64</span>)
     }
@@ -1943,7 +1944,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-date.prototype.gettime</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/getTime</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_time</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">f64</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_time</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">f64</span> {
         <span class="self">self</span>.<span class="ident">to_utc</span>()
             .<span class="ident">map_or</span>(<span class="ident">f64</span>::<span class="ident">NAN</span>, <span class="op">|</span><span class="ident">dt</span><span class="op">|</span> <span class="ident">dt</span>.<span class="ident">timestamp_millis</span>() <span class="kw">as</span> <span class="ident">f64</span>)
     }
@@ -1960,7 +1961,7 @@
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-date.prototype.gettimezoneoffset</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/getTimezoneOffset</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_timezone_offset</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">f64</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_timezone_offset</span>() <span class="op">-&gt;</span> <span class="ident">f64</span> {
         <span class="kw">let</span> <span class="ident">offset_seconds</span> <span class="op">=</span> <span class="ident">chrono</span>::<span class="ident">Local</span>::<span class="ident">now</span>().<span class="ident">offset</span>().<span class="ident">local_minus_utc</span>() <span class="kw">as</span> <span class="ident">f64</span>;
         <span class="ident">offset_seconds</span> <span class="op">/</span> <span class="number">60f64</span>
     }
@@ -1975,7 +1976,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-date.prototype.getutcdate</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/getUTCDate</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_utc_date</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">f64</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_utc_date</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">f64</span> {
         <span class="self">self</span>.<span class="ident">to_utc</span>().<span class="ident">map_or</span>(<span class="ident">f64</span>::<span class="ident">NAN</span>, <span class="op">|</span><span class="ident">dt</span><span class="op">|</span> <span class="ident">dt</span>.<span class="ident">day</span>() <span class="kw">as</span> <span class="ident">f64</span>)
     }
 
@@ -1990,7 +1991,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-date.prototype.getutcday</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/getUTCDay</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_utc_day</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">f64</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_utc_day</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">f64</span> {
         <span class="self">self</span>.<span class="ident">to_utc</span>().<span class="ident">map_or</span>(<span class="ident">f64</span>::<span class="ident">NAN</span>, <span class="op">|</span><span class="ident">dt</span><span class="op">|</span> {
             <span class="kw">let</span> <span class="ident">weekday</span> <span class="op">=</span> <span class="ident">dt</span>.<span class="ident">weekday</span>() <span class="kw">as</span> <span class="ident">u32</span>;
             <span class="kw">let</span> <span class="ident">weekday</span> <span class="op">=</span> (<span class="ident">weekday</span> <span class="op">+</span> <span class="number">1</span>) <span class="op">%</span> <span class="number">7</span>; <span class="comment">// 0 represents Monday in Chrono</span>
@@ -2008,7 +2009,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-date.prototype.getutcfullyear</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/getUTCFullYear</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_utc_full_year</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">f64</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_utc_full_year</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">f64</span> {
         <span class="self">self</span>.<span class="ident">to_utc</span>().<span class="ident">map_or</span>(<span class="ident">f64</span>::<span class="ident">NAN</span>, <span class="op">|</span><span class="ident">dt</span><span class="op">|</span> <span class="ident">dt</span>.<span class="ident">year</span>() <span class="kw">as</span> <span class="ident">f64</span>)
     }
 
@@ -2022,7 +2023,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-date.prototype.getutchours</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/getUTCHours</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_utc_hours</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">f64</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_utc_hours</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">f64</span> {
         <span class="self">self</span>.<span class="ident">to_utc</span>().<span class="ident">map_or</span>(<span class="ident">f64</span>::<span class="ident">NAN</span>, <span class="op">|</span><span class="ident">dt</span><span class="op">|</span> <span class="ident">dt</span>.<span class="ident">hour</span>() <span class="kw">as</span> <span class="ident">f64</span>)
     }
 
@@ -2036,7 +2037,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-date.prototype.getutcmilliseconds</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/getUTCMilliseconds</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_utc_milliseconds</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">f64</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_utc_milliseconds</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">f64</span> {
         <span class="self">self</span>.<span class="ident">to_utc</span>()
             .<span class="ident">map_or</span>(<span class="ident">f64</span>::<span class="ident">NAN</span>, <span class="op">|</span><span class="ident">dt</span><span class="op">|</span> <span class="ident">dt</span>.<span class="ident">nanosecond</span>() <span class="kw">as</span> <span class="ident">f64</span> <span class="op">/</span> <span class="ident">NANOS_IN_MS</span>)
     }
@@ -2051,7 +2052,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-date.prototype.getutcminutes</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/getUTCMinutes</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_utc_minutes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">f64</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_utc_minutes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">f64</span> {
         <span class="self">self</span>.<span class="ident">to_utc</span>().<span class="ident">map_or</span>(<span class="ident">f64</span>::<span class="ident">NAN</span>, <span class="op">|</span><span class="ident">dt</span><span class="op">|</span> <span class="ident">dt</span>.<span class="ident">minute</span>() <span class="kw">as</span> <span class="ident">f64</span>)
     }
 
@@ -2066,7 +2067,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-date.prototype.getutcmonth</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/getUTCMonth</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_utc_month</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">f64</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_utc_month</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">f64</span> {
         <span class="self">self</span>.<span class="ident">to_utc</span>().<span class="ident">map_or</span>(<span class="ident">f64</span>::<span class="ident">NAN</span>, <span class="op">|</span><span class="ident">dt</span><span class="op">|</span> <span class="ident">dt</span>.<span class="ident">month0</span>() <span class="kw">as</span> <span class="ident">f64</span>)
     }
 
@@ -2080,7 +2081,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-date.prototype.getutcseconds</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/getUTCSeconds</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_utc_seconds</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">f64</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_utc_seconds</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">f64</span> {
         <span class="self">self</span>.<span class="ident">to_utc</span>().<span class="ident">map_or</span>(<span class="ident">f64</span>::<span class="ident">NAN</span>, <span class="op">|</span><span class="ident">dt</span><span class="op">|</span> <span class="ident">dt</span>.<span class="ident">second</span>() <span class="kw">as</span> <span class="ident">f64</span>)
     }
 
@@ -2264,7 +2265,7 @@
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/setYear</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_year</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">year</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">f64</span><span class="op">&gt;</span>, <span class="ident">month</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">f64</span><span class="op">&gt;</span>, <span class="ident">day</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">f64</span><span class="op">&gt;</span>) {
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">mut</span> <span class="ident">year</span>) <span class="op">=</span> <span class="ident">year</span> {
-            <span class="ident">year</span> <span class="op">+</span><span class="op">=</span> <span class="kw">if</span> <span class="number">0f64</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">year</span> <span class="kw-2">&amp;</span><span class="op">&amp;</span> <span class="ident">year</span> <span class="op">&lt;</span> <span class="number">100f64</span> {
+            <span class="ident">year</span> <span class="op">+=</span> <span class="kw">if</span> <span class="number">0f64</span> <span class="op">&lt;=</span> <span class="ident">year</span> <span class="op">&amp;&amp;</span> <span class="ident">year</span> <span class="op">&lt;</span> <span class="number">100f64</span> {
                 <span class="number">1900f64</span>
             } <span class="kw">else</span> {
                 <span class="number">0f64</span>
@@ -2473,10 +2474,10 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-date.prototype.todatestring</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/toDateString</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_date_string</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">String</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_date_string</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">String</span> {
         <span class="self">self</span>.<span class="ident">to_local</span>()
             .<span class="ident">map</span>(<span class="op">|</span><span class="ident">date_time</span><span class="op">|</span> <span class="ident">date_time</span>.<span class="ident">format</span>(<span class="string">&quot;%a %b %d %Y&quot;</span>).<span class="ident">to_string</span>())
-            .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="string">&quot;Invalid Date&quot;</span>.<span class="ident">to_string</span>())
+            .<span class="ident">unwrap_or_else</span>(<span class="op">||</span> <span class="string">&quot;Invalid Date&quot;</span>.<span class="ident">to_string</span>())
     }
 
     <span class="doccomment">/// `Date.prototype.toGMTString()`</span>
@@ -2489,7 +2490,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-date.prototype.togmtstring</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/toGMTString</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_gmt_string</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">String</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_gmt_string</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">String</span> {
         <span class="self">self</span>.<span class="ident">to_utc_string</span>()
     }
 
@@ -2505,11 +2506,11 @@
     <span class="doccomment">/// [iso8601]: http://en.wikipedia.org/wiki/ISO_8601</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-date.prototype.toisostring</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/toISOString</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_iso_string</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">String</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_iso_string</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">String</span> {
         <span class="self">self</span>.<span class="ident">to_utc</span>()
             <span class="comment">// RFC 3389 uses +0.00 for UTC, where JS expects Z, so we can&#39;t use the built-in chrono function.</span>
             .<span class="ident">map</span>(<span class="op">|</span><span class="ident">f</span><span class="op">|</span> <span class="ident">f</span>.<span class="ident">format</span>(<span class="string">&quot;%Y-%m-%dT%H:%M:%S.%3fZ&quot;</span>).<span class="ident">to_string</span>())
-            .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="string">&quot;Invalid Date&quot;</span>.<span class="ident">to_string</span>())
+            .<span class="ident">unwrap_or_else</span>(<span class="op">||</span> <span class="string">&quot;Invalid Date&quot;</span>.<span class="ident">to_string</span>())
     }
 
     <span class="doccomment">/// `Date.prototype.toJSON()`</span>
@@ -2522,7 +2523,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-date.prototype.tojson</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/toJSON</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_json</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">String</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_json</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">String</span> {
         <span class="self">self</span>.<span class="ident">to_iso_string</span>()
     }
 
@@ -2537,10 +2538,10 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-date.prototype.totimestring</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/toTimeString</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_time_string</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">String</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_time_string</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">String</span> {
         <span class="self">self</span>.<span class="ident">to_local</span>()
             .<span class="ident">map</span>(<span class="op">|</span><span class="ident">date_time</span><span class="op">|</span> <span class="ident">date_time</span>.<span class="ident">format</span>(<span class="string">&quot;%H:%M:%S GMT%:z&quot;</span>).<span class="ident">to_string</span>())
-            .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="string">&quot;Invalid Date&quot;</span>.<span class="ident">to_string</span>())
+            .<span class="ident">unwrap_or_else</span>(<span class="op">||</span> <span class="string">&quot;Invalid Date&quot;</span>.<span class="ident">to_string</span>())
     }
 
     <span class="doccomment">/// `Date.prototype.toUTCString()`</span>
@@ -2553,10 +2554,10 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-date.prototype.toutcstring</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/toUTCString</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_utc_string</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">String</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_utc_string</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">String</span> {
         <span class="self">self</span>.<span class="ident">to_utc</span>()
             .<span class="ident">map</span>(<span class="op">|</span><span class="ident">date_time</span><span class="op">|</span> <span class="ident">date_time</span>.<span class="ident">format</span>(<span class="string">&quot;%a, %d %b %Y %H:%M:%S GMT&quot;</span>).<span class="ident">to_string</span>())
-            .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="string">&quot;Invalid Date&quot;</span>.<span class="ident">to_string</span>())
+            .<span class="ident">unwrap_or_else</span>(<span class="op">||</span> <span class="string">&quot;Invalid Date&quot;</span>.<span class="ident">to_string</span>())
     }
 
     <span class="doccomment">/// `Date.prototype.valueOf()`</span>
@@ -2569,7 +2570,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-date.prototype.valueof</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/valueOf</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">value_of</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">f64</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">value_of</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">f64</span> {
         <span class="self">self</span>.<span class="ident">get_time</span>()
     }
 
@@ -2583,7 +2584,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-date.now</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/now</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">now</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">now</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
         <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">Utc</span>::<span class="ident">now</span>().<span class="ident">timestamp_millis</span>() <span class="kw">as</span> <span class="ident">f64</span>))
     }
 
@@ -2599,7 +2600,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-date.parse</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/parse</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">parse</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">parse</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
         <span class="comment">// This method is implementation-defined and discouraged, so we just require the same format as the string</span>
         <span class="comment">// constructor.</span>
 
@@ -2608,8 +2609,8 @@
         }
 
         <span class="kw">match</span> <span class="ident">DateTime</span>::<span class="ident">parse_from_rfc3339</span>(<span class="kw-2">&amp;</span><span class="ident">args</span>[<span class="number">0</span>].<span class="ident">to_string</span>(<span class="ident">ctx</span>)<span class="question-mark">?</span>) {
-            <span class="prelude-val">Ok</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">number</span>(<span class="ident">v</span>.<span class="ident">naive_utc</span>().<span class="ident">timestamp_millis</span>() <span class="kw">as</span> <span class="ident">f64</span>)),
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">number</span>(<span class="ident">f64</span>::<span class="ident">NAN</span>)),
+            <span class="prelude-val">Ok</span>(<span class="ident">v</span>) <span class="op">=&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">number</span>(<span class="ident">v</span>.<span class="ident">naive_utc</span>().<span class="ident">timestamp_millis</span>() <span class="kw">as</span> <span class="ident">f64</span>)),
+            <span class="kw">_</span> <span class="op">=&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">number</span>(<span class="ident">f64</span>::<span class="ident">NAN</span>)),
         }
     }
 
@@ -2623,7 +2624,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-date.utc</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/UTC</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">utc</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">utc</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">year</span> <span class="op">=</span> <span class="ident">args</span>
             .<span class="ident">get</span>(<span class="number">0</span>)
             .<span class="ident">map_or</span>(<span class="prelude-val">Ok</span>(<span class="ident">f64</span>::<span class="ident">NAN</span>), <span class="op">|</span><span class="ident">value</span><span class="op">|</span> <span class="ident">value</span>.<span class="ident">to_number</span>(<span class="ident">ctx</span>))<span class="question-mark">?</span>;
@@ -2646,7 +2647,7 @@
         <span class="kw">let</span> <span class="ident">sec</span> <span class="op">=</span> <span class="ident">sec</span> <span class="kw">as</span> <span class="ident">u32</span>;
         <span class="kw">let</span> <span class="ident">milli</span> <span class="op">=</span> <span class="ident">milli</span> <span class="kw">as</span> <span class="ident">u32</span>;
 
-        <span class="kw">let</span> <span class="ident">year</span> <span class="op">=</span> <span class="kw">if</span> <span class="number">0</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">year</span> <span class="kw-2">&amp;</span><span class="op">&amp;</span> <span class="ident">year</span> <span class="op">&lt;</span><span class="op">=</span> <span class="number">99</span> {
+        <span class="kw">let</span> <span class="ident">year</span> <span class="op">=</span> <span class="kw">if</span> <span class="number">0</span> <span class="op">&lt;=</span> <span class="ident">year</span> <span class="op">&amp;&amp;</span> <span class="ident">year</span> <span class="op">&lt;=</span> <span class="number">99</span> {
             <span class="number">1900</span> <span class="op">+</span> <span class="ident">year</span>
         } <span class="kw">else</span> {
             <span class="ident">year</span>
@@ -2673,7 +2674,7 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-thistimevalue</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">this_time_value</span>(<span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Date</span><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">this_time_value</span>(<span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Date</span><span class="op">&gt;</span> {
     <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Value</span>::<span class="ident">Object</span>(<span class="kw-2">ref</span> <span class="ident">object</span>) <span class="op">=</span> <span class="ident">value</span> {
         <span class="kw">if</span> <span class="kw">let</span> <span class="ident">ObjectData</span>::<span class="ident">Date</span>(<span class="kw-2">ref</span> <span class="ident">date</span>) <span class="op">=</span> <span class="ident">object</span>.<span class="ident">borrow</span>().<span class="ident">data</span> {
             <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="kw-2">*</span><span class="ident">date</span>);

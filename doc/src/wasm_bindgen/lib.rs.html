@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/wasm-bindgen-0.2.68/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../wasm_bindgen/index.html'><div class='logo-container'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/wasm-bindgen-0.2.68/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../wasm_bindgen/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
+                <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
 <span id="3">   3</span>
 <span id="4">   4</span>
@@ -1192,23 +1193,23 @@
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">convert</span>::{<span class="ident">FromWasmAbi</span>, <span class="ident">WasmOptionalF64</span>, <span class="ident">WasmSlice</span>};
 
 <span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">if_std</span> {
-    ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">i</span>:<span class="ident">item</span>)<span class="kw-2">*</span>) <span class="op">=</span><span class="op">&gt;</span> ($(
+    ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">i</span>:<span class="ident">item</span>)<span class="kw-2">*</span>) <span class="op">=&gt;</span> ($(
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">i</span>
     )<span class="kw-2">*</span>)
 }
 
 <span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">externs</span> {
-    ($(<span class="attribute">#[<span class="macro-nonterminal">$</span><span class="macro-nonterminal">attr</span>:<span class="ident">meta</span>]</span>)<span class="op">*</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> { $(<span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">ident</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ret</span>:<span class="ident">ty</span>;)<span class="op">*</span> }) <span class="op">=</span><span class="op">&gt;</span> (
+    ($(<span class="attribute">#[<span class="macro-nonterminal">$</span><span class="macro-nonterminal">attr</span>:<span class="ident">meta</span>]</span>)<span class="op">*</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> { $(<span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">ident</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) <span class="op">-&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ret</span>:<span class="ident">ty</span>;)<span class="op">*</span> }) <span class="op">=&gt;</span> (
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;wasm32&quot;</span>, <span class="ident">not</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;emscripten&quot;</span>)))]</span>
         $(<span class="attribute">#[<span class="macro-nonterminal">$</span><span class="macro-nonterminal">attr</span>]</span>)<span class="op">*</span>
         <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
-            $(<span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>)<span class="kw-2">*</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ret</span>;)<span class="op">*</span>
+            $(<span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>)<span class="kw-2">*</span>) <span class="op">-&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ret</span>;)<span class="op">*</span>
         }
 
         $(
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">all</span>(<span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;wasm32&quot;</span>, <span class="ident">not</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;emscripten&quot;</span>))))]</span>
             <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unused_variables</span>)]</span>
-            <span class="kw">unsafe</span> <span class="kw">extern</span> <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>)<span class="kw-2">*</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ret</span> {
+            <span class="kw">unsafe</span> <span class="kw">extern</span> <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>)<span class="kw-2">*</span>) <span class="op">-&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ret</span> {
                 <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;function not implemented on non-wasm32 targets&quot;</span>)
             }
         )<span class="op">*</span>
@@ -1292,7 +1293,7 @@
     };
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">_new</span>(<span class="ident">idx</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsValue</span> {
+    <span class="kw">fn</span> <span class="ident">_new</span>(<span class="ident">idx</span>: <span class="ident">u32</span>) <span class="op">-&gt;</span> <span class="ident">JsValue</span> {
         <span class="ident">JsValue</span> {
             <span class="ident">idx</span>,
             <span class="ident">_marker</span>: <span class="ident">marker</span>::<span class="ident">PhantomData</span>,
@@ -1304,7 +1305,7 @@
     <span class="doccomment">/// The utf-8 string provided is copied to the JS heap and the string will</span>
     <span class="doccomment">/// be owned by the JS garbage collector.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_str</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsValue</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_str</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-&gt;</span> <span class="ident">JsValue</span> {
         <span class="kw">unsafe</span> { <span class="ident">JsValue</span>::<span class="ident">_new</span>(<span class="ident">__wbindgen_string_new</span>(<span class="ident">s</span>.<span class="ident">as_ptr</span>(), <span class="ident">s</span>.<span class="ident">len</span>())) }
     }
 
@@ -1313,7 +1314,7 @@
     <span class="doccomment">/// This function creates a JS value representing a number (a heap</span>
     <span class="doccomment">/// allocated number) and returns a handle to the JS version of it.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_f64</span>(<span class="ident">n</span>: <span class="ident">f64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsValue</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_f64</span>(<span class="ident">n</span>: <span class="ident">f64</span>) <span class="op">-&gt;</span> <span class="ident">JsValue</span> {
         <span class="kw">unsafe</span> { <span class="ident">JsValue</span>::<span class="ident">_new</span>(<span class="ident">__wbindgen_number_new</span>(<span class="ident">n</span>)) }
     }
 
@@ -1322,7 +1323,7 @@
     <span class="doccomment">/// This function creates a JS object representing a boolean (a heap</span>
     <span class="doccomment">/// allocated boolean) and returns a handle to the JS version of it.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_bool</span>(<span class="ident">b</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsValue</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_bool</span>(<span class="ident">b</span>: <span class="ident">bool</span>) <span class="op">-&gt;</span> <span class="ident">JsValue</span> {
         <span class="kw">if</span> <span class="ident">b</span> {
             <span class="ident">JsValue</span>::<span class="ident">TRUE</span>
         } <span class="kw">else</span> {
@@ -1332,13 +1333,13 @@
 
     <span class="doccomment">/// Creates a new JS value representing `undefined`.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">undefined</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsValue</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">undefined</span>() <span class="op">-&gt;</span> <span class="ident">JsValue</span> {
         <span class="ident">JsValue</span>::<span class="ident">UNDEFINED</span>
     }
 
     <span class="doccomment">/// Creates a new JS value representing `null`.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">null</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsValue</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">null</span>() <span class="op">-&gt;</span> <span class="ident">JsValue</span> {
         <span class="ident">JsValue</span>::<span class="ident">NULL</span>
     }
 
@@ -1346,14 +1347,14 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// This function will invoke the `Symbol` constructor in JS and return the</span>
     <span class="doccomment">/// JS object corresponding to the symbol created.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">symbol</span>(<span class="ident">description</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsValue</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">symbol</span>(<span class="ident">description</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="ident">JsValue</span> {
         <span class="kw">unsafe</span> {
             <span class="kw">match</span> <span class="ident">description</span> {
-                <span class="prelude-val">Some</span>(<span class="ident">description</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">JsValue</span>::<span class="ident">_new</span>(<span class="ident">__wbindgen_symbol_named_new</span>(
+                <span class="prelude-val">Some</span>(<span class="ident">description</span>) <span class="op">=&gt;</span> <span class="ident">JsValue</span>::<span class="ident">_new</span>(<span class="ident">__wbindgen_symbol_named_new</span>(
                     <span class="ident">description</span>.<span class="ident">as_ptr</span>(),
                     <span class="ident">description</span>.<span class="ident">len</span>(),
                 )),
-                <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">JsValue</span>::<span class="ident">_new</span>(<span class="ident">__wbindgen_symbol_anonymous_new</span>()),
+                <span class="prelude-val">None</span> <span class="op">=&gt;</span> <span class="ident">JsValue</span>::<span class="ident">_new</span>(<span class="ident">__wbindgen_symbol_anonymous_new</span>()),
             }
         }
     }
@@ -1374,7 +1375,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// Returns any error encountered when serializing `T` into JSON.</span>
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde-serialize&quot;</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_serde</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">t</span>: <span class="kw-2">&amp;</span><span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">serde_json</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_serde</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">t</span>: <span class="kw-2">&amp;</span><span class="ident">T</span>) <span class="op">-&gt;</span> <span class="ident">serde_json</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">T</span>: <span class="ident">serde</span>::<span class="ident">ser</span>::<span class="ident">Serialize</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span>,
     {
@@ -1396,7 +1397,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// Returns any error encountered when parsing the JSON into a `T`.</span>
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde-serialize&quot;</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_serde</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">serde_json</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_serde</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">serde_json</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">T</span>: <span class="kw">for</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">serde</span>::<span class="ident">de</span>::<span class="ident">Deserialize</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
     {
@@ -1412,13 +1413,13 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// If this JS value is not an instance of a number then this returns</span>
     <span class="doccomment">/// `None`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_f64</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">f64</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_f64</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">f64</span><span class="op">&gt;</span> {
         <span class="kw">unsafe</span> { <span class="ident">FromWasmAbi</span>::<span class="ident">from_abi</span>(<span class="ident">__wbindgen_number_get</span>(<span class="self">self</span>.<span class="ident">idx</span>)) }
     }
 
     <span class="doccomment">/// Tests whether this JS value is a JS string.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_string</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="kw">unsafe</span> { <span class="ident">__wbindgen_is_string</span>(<span class="self">self</span>.<span class="ident">idx</span>) <span class="op">=</span><span class="op">=</span> <span class="number">1</span> }
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_string</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
+        <span class="kw">unsafe</span> { <span class="ident">__wbindgen_is_string</span>(<span class="self">self</span>.<span class="ident">idx</span>) <span class="op">==</span> <span class="number">1</span> }
     }
 
     <span class="doccomment">/// If this JS value is a string value, this function copies the JS string</span>
@@ -1442,7 +1443,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [caveats]: https://rustwasm.github.io/docs/wasm-bindgen/reference/types/str.html</span>
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_string</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_string</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span> {
         <span class="kw">unsafe</span> { <span class="ident">FromWasmAbi</span>::<span class="ident">from_abi</span>(<span class="ident">__wbindgen_string_get</span>(<span class="self">self</span>.<span class="ident">idx</span>)) }
     }
 
@@ -1451,51 +1452,51 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// If this JS value is not an instance of a boolean then this returns</span>
     <span class="doccomment">/// `None`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_bool</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_bool</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> {
         <span class="kw">unsafe</span> {
             <span class="kw">match</span> <span class="ident">__wbindgen_boolean_get</span>(<span class="self">self</span>.<span class="ident">idx</span>) {
-                <span class="number">0</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="bool-val">false</span>),
-                <span class="number">1</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="bool-val">true</span>),
-                <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
+                <span class="number">0</span> <span class="op">=&gt;</span> <span class="prelude-val">Some</span>(<span class="bool-val">false</span>),
+                <span class="number">1</span> <span class="op">=&gt;</span> <span class="prelude-val">Some</span>(<span class="bool-val">true</span>),
+                <span class="kw">_</span> <span class="op">=&gt;</span> <span class="prelude-val">None</span>,
             }
         }
     }
 
     <span class="doccomment">/// Tests whether this JS value is `null`</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_null</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="kw">unsafe</span> { <span class="ident">__wbindgen_is_null</span>(<span class="self">self</span>.<span class="ident">idx</span>) <span class="op">=</span><span class="op">=</span> <span class="number">1</span> }
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_null</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
+        <span class="kw">unsafe</span> { <span class="ident">__wbindgen_is_null</span>(<span class="self">self</span>.<span class="ident">idx</span>) <span class="op">==</span> <span class="number">1</span> }
     }
 
     <span class="doccomment">/// Tests whether this JS value is `undefined`</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_undefined</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="kw">unsafe</span> { <span class="ident">__wbindgen_is_undefined</span>(<span class="self">self</span>.<span class="ident">idx</span>) <span class="op">=</span><span class="op">=</span> <span class="number">1</span> }
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_undefined</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
+        <span class="kw">unsafe</span> { <span class="ident">__wbindgen_is_undefined</span>(<span class="self">self</span>.<span class="ident">idx</span>) <span class="op">==</span> <span class="number">1</span> }
     }
 
     <span class="doccomment">/// Tests whether the type of this JS value is `symbol`</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_symbol</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="kw">unsafe</span> { <span class="ident">__wbindgen_is_symbol</span>(<span class="self">self</span>.<span class="ident">idx</span>) <span class="op">=</span><span class="op">=</span> <span class="number">1</span> }
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_symbol</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
+        <span class="kw">unsafe</span> { <span class="ident">__wbindgen_is_symbol</span>(<span class="self">self</span>.<span class="ident">idx</span>) <span class="op">==</span> <span class="number">1</span> }
     }
 
     <span class="doccomment">/// Tests whether `typeof self == &quot;object&quot; &amp;&amp; self !== null`.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_object</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="kw">unsafe</span> { <span class="ident">__wbindgen_is_object</span>(<span class="self">self</span>.<span class="ident">idx</span>) <span class="op">=</span><span class="op">=</span> <span class="number">1</span> }
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_object</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
+        <span class="kw">unsafe</span> { <span class="ident">__wbindgen_is_object</span>(<span class="self">self</span>.<span class="ident">idx</span>) <span class="op">==</span> <span class="number">1</span> }
     }
 
     <span class="doccomment">/// Tests whether the type of this JS value is `function`.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_function</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="kw">unsafe</span> { <span class="ident">__wbindgen_is_function</span>(<span class="self">self</span>.<span class="ident">idx</span>) <span class="op">=</span><span class="op">=</span> <span class="number">1</span> }
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_function</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
+        <span class="kw">unsafe</span> { <span class="ident">__wbindgen_is_function</span>(<span class="self">self</span>.<span class="ident">idx</span>) <span class="op">==</span> <span class="number">1</span> }
     }
 
     <span class="doccomment">/// Tests whether the value is [&quot;truthy&quot;].</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [&quot;truthy&quot;]: https://developer.mozilla.org/en-US/docs/Glossary/Truthy</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_truthy</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_truthy</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
         <span class="op">!</span><span class="self">self</span>.<span class="ident">is_falsy</span>()
     }
 
@@ -1503,13 +1504,13 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [&quot;falsy&quot;]: https://developer.mozilla.org/en-US/docs/Glossary/Falsy</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_falsy</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="kw">unsafe</span> { <span class="ident">__wbindgen_is_falsy</span>(<span class="self">self</span>.<span class="ident">idx</span>) <span class="op">=</span><span class="op">=</span> <span class="number">1</span> }
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_falsy</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
+        <span class="kw">unsafe</span> { <span class="ident">__wbindgen_is_falsy</span>(<span class="self">self</span>.<span class="ident">idx</span>) <span class="op">==</span> <span class="number">1</span> }
     }
 
     <span class="doccomment">/// Get a string representation of the JavaScript object for debugging</span>
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">as_debug_string</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">String</span> {
+    <span class="kw">fn</span> <span class="ident">as_debug_string</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">String</span> {
         <span class="kw">unsafe</span> {
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">ret</span> <span class="op">=</span> [<span class="number">0</span>; <span class="number">2</span>];
             <span class="ident">__wbindgen_debug_string</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ret</span>, <span class="self">self</span>.<span class="ident">idx</span>);
@@ -1521,50 +1522,50 @@
 
 <span class="kw">impl</span> <span class="ident">PartialEq</span> <span class="kw">for</span> <span class="ident">JsValue</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="kw">unsafe</span> { <span class="ident">__wbindgen_jsval_eq</span>(<span class="self">self</span>.<span class="ident">idx</span>, <span class="ident">other</span>.<span class="ident">idx</span>) <span class="op">!</span><span class="op">=</span> <span class="number">0</span> }
+    <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
+        <span class="kw">unsafe</span> { <span class="ident">__wbindgen_jsval_eq</span>(<span class="self">self</span>.<span class="ident">idx</span>, <span class="ident">other</span>.<span class="ident">idx</span>) <span class="op">!=</span> <span class="number">0</span> }
     }
 }
 
 <span class="kw">impl</span> <span class="ident">PartialEq</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">JsValue</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">as_bool</span>() <span class="op">=</span><span class="op">=</span> <span class="prelude-val">Some</span>(<span class="kw-2">*</span><span class="ident">other</span>)
+    <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="ident">bool</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
+        <span class="self">self</span>.<span class="ident">as_bool</span>() <span class="op">==</span> <span class="prelude-val">Some</span>(<span class="kw-2">*</span><span class="ident">other</span>)
     }
 }
 
 <span class="kw">impl</span> <span class="ident">PartialEq</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">JsValue</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="kw-2">*</span><span class="self">self</span> <span class="op">=</span><span class="op">=</span> <span class="ident">JsValue</span>::<span class="ident">from_str</span>(<span class="ident">other</span>)
+    <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
+        <span class="kw-2">*</span><span class="self">self</span> <span class="op">==</span> <span class="ident">JsValue</span>::<span class="ident">from_str</span>(<span class="ident">other</span>)
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">PartialEq</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">JsValue</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="op">&lt;</span><span class="ident">JsValue</span> <span class="kw">as</span> <span class="ident">PartialEq</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>::<span class="ident">eq</span>(<span class="self">self</span>, <span class="ident">other</span>)
+    <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="op">&amp;&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
+        <span class="op">&lt;</span><span class="ident">JsValue</span> <span class="kw">as</span> <span class="ident">PartialEq</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;&gt;</span>::<span class="ident">eq</span>(<span class="self">self</span>, <span class="ident">other</span>)
     }
 }
 
 <span class="macro">if_std</span><span class="macro">!</span> {
     <span class="kw">impl</span> <span class="ident">PartialEq</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">JsValue</span> {
         <span class="attribute">#[<span class="ident">inline</span>]</span>
-        <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="ident">String</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-            <span class="op">&lt;</span><span class="ident">JsValue</span> <span class="kw">as</span> <span class="ident">PartialEq</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>::<span class="ident">eq</span>(<span class="self">self</span>, <span class="ident">other</span>)
+        <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="ident">String</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
+            <span class="op">&lt;</span><span class="ident">JsValue</span> <span class="kw">as</span> <span class="ident">PartialEq</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;&gt;</span>::<span class="ident">eq</span>(<span class="self">self</span>, <span class="ident">other</span>)
         }
     }
     <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">PartialEq</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">String</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">JsValue</span> {
         <span class="attribute">#[<span class="ident">inline</span>]</span>
-        <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">String</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-            <span class="op">&lt;</span><span class="ident">JsValue</span> <span class="kw">as</span> <span class="ident">PartialEq</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>::<span class="ident">eq</span>(<span class="self">self</span>, <span class="ident">other</span>)
+        <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="op">&amp;&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">String</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
+            <span class="op">&lt;</span><span class="ident">JsValue</span> <span class="kw">as</span> <span class="ident">PartialEq</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;&gt;</span>::<span class="ident">eq</span>(<span class="self">self</span>, <span class="ident">other</span>)
         }
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">JsValue</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsValue</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>) <span class="op">-&gt;</span> <span class="ident">JsValue</span> {
         <span class="ident">JsValue</span>::<span class="ident">from_str</span>(<span class="ident">s</span>)
     }
 }
@@ -1572,14 +1573,14 @@
 <span class="macro">if_std</span><span class="macro">!</span> {
     <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">String</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">JsValue</span> {
         <span class="attribute">#[<span class="ident">inline</span>]</span>
-        <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">String</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsValue</span> {
+        <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">String</span>) <span class="op">-&gt;</span> <span class="ident">JsValue</span> {
             <span class="ident">JsValue</span>::<span class="ident">from_str</span>(<span class="ident">s</span>)
         }
     }
 
     <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">JsValue</span> {
         <span class="attribute">#[<span class="ident">inline</span>]</span>
-        <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">s</span>: <span class="ident">String</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsValue</span> {
+        <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">s</span>: <span class="ident">String</span>) <span class="op">-&gt;</span> <span class="ident">JsValue</span> {
             <span class="ident">JsValue</span>::<span class="ident">from_str</span>(<span class="kw-2">&amp;</span><span class="ident">s</span>)
         }
     }
@@ -1587,7 +1588,7 @@
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">JsValue</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">s</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsValue</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">s</span>: <span class="ident">bool</span>) <span class="op">-&gt;</span> <span class="ident">JsValue</span> {
         <span class="ident">JsValue</span>::<span class="ident">from_bool</span>(<span class="ident">s</span>)
     }
 }
@@ -1597,20 +1598,20 @@
     <span class="ident">T</span>: <span class="ident">JsCast</span>,
 {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsValue</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">T</span>) <span class="op">-&gt;</span> <span class="ident">JsValue</span> {
         <span class="ident">s</span>.<span class="ident">as_ref</span>().<span class="ident">clone</span>()
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">JsValue</span>
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;&gt;</span> <span class="kw">for</span> <span class="ident">JsValue</span>
 <span class="kw">where</span>
     <span class="ident">JsValue</span>: <span class="ident">From</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
 {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">s</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsValue</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">s</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="ident">JsValue</span> {
         <span class="kw">match</span> <span class="ident">s</span> {
-            <span class="prelude-val">Some</span>(<span class="ident">s</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">s</span>.<span class="ident">into</span>(),
-            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">JsValue</span>::<span class="ident">undefined</span>(),
+            <span class="prelude-val">Some</span>(<span class="ident">s</span>) <span class="op">=&gt;</span> <span class="ident">s</span>.<span class="ident">into</span>(),
+            <span class="prelude-val">None</span> <span class="op">=&gt;</span> <span class="ident">JsValue</span>::<span class="ident">undefined</span>(),
         }
     }
 }
@@ -1618,38 +1619,38 @@
 <span class="kw">impl</span> <span class="ident">JsCast</span> <span class="kw">for</span> <span class="ident">JsValue</span> {
     <span class="comment">// everything is a `JsValue`!</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">instanceof</span>(<span class="ident">_val</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">instanceof</span>(<span class="ident">_val</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
         <span class="bool-val">true</span>
     }
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">unchecked_from_js</span>(<span class="ident">val</span>: <span class="ident">JsValue</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">unchecked_from_js</span>(<span class="ident">val</span>: <span class="ident">JsValue</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
         <span class="ident">val</span>
     }
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">unchecked_from_js_ref</span>(<span class="ident">val</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">unchecked_from_js_ref</span>(<span class="ident">val</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="self">Self</span> {
         <span class="ident">val</span>
     }
 }
 
 <span class="kw">impl</span> <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">JsValue</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">as_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">JsValue</span> {
+    <span class="kw">fn</span> <span class="ident">as_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="ident">JsValue</span> {
         <span class="self">self</span>
     }
 }
 
 <span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">numbers</span> {
-    ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">n</span>:<span class="ident">ident</span>)<span class="kw-2">*</span>) <span class="op">=</span><span class="op">&gt;</span> ($(
+    ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">n</span>:<span class="ident">ident</span>)<span class="kw-2">*</span>) <span class="op">=&gt;</span> ($(
         <span class="kw">impl</span> <span class="ident">PartialEq</span><span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">n</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">JsValue</span> {
             <span class="attribute">#[<span class="ident">inline</span>]</span>
-            <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">n</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-                <span class="self">self</span>.<span class="ident">as_f64</span>() <span class="op">=</span><span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">f64</span>::<span class="ident">from</span>(<span class="kw-2">*</span><span class="ident">other</span>))
+            <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">n</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
+                <span class="self">self</span>.<span class="ident">as_f64</span>() <span class="op">==</span> <span class="prelude-val">Some</span>(<span class="ident">f64</span>::<span class="ident">from</span>(<span class="kw-2">*</span><span class="ident">other</span>))
             }
         }
 
         <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">n</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">JsValue</span> {
             <span class="attribute">#[<span class="ident">inline</span>]</span>
-            <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">n</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">n</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsValue</span> {
+            <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">n</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">n</span>) <span class="op">-&gt;</span> <span class="ident">JsValue</span> {
                 <span class="ident">JsValue</span>::<span class="ident">from_f64</span>(<span class="ident">n</span>.<span class="ident">into</span>())
             }
         }
@@ -1661,51 +1662,51 @@
 <span class="macro">externs</span><span class="macro">!</span> {
     <span class="attribute">#[<span class="ident">link</span>(<span class="ident">wasm_import_module</span> <span class="op">=</span> <span class="string">&quot;__wbindgen_placeholder__&quot;</span>)]</span>
     <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
-        <span class="kw">fn</span> <span class="ident">__wbindgen_object_clone_ref</span>(<span class="ident">idx</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span>;
-        <span class="kw">fn</span> <span class="ident">__wbindgen_object_drop_ref</span>(<span class="ident">idx</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> ();
+        <span class="kw">fn</span> <span class="ident">__wbindgen_object_clone_ref</span>(<span class="ident">idx</span>: <span class="ident">u32</span>) <span class="op">-&gt;</span> <span class="ident">u32</span>;
+        <span class="kw">fn</span> <span class="ident">__wbindgen_object_drop_ref</span>(<span class="ident">idx</span>: <span class="ident">u32</span>) <span class="op">-&gt;</span> ();
 
-        <span class="kw">fn</span> <span class="ident">__wbindgen_string_new</span>(<span class="ident">ptr</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">u8</span>, <span class="ident">len</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span>;
-        <span class="kw">fn</span> <span class="ident">__wbindgen_number_new</span>(<span class="ident">f</span>: <span class="ident">f64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span>;
-        <span class="kw">fn</span> <span class="ident">__wbindgen_symbol_named_new</span>(<span class="ident">ptr</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">u8</span>, <span class="ident">len</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span>;
-        <span class="kw">fn</span> <span class="ident">__wbindgen_symbol_anonymous_new</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span>;
+        <span class="kw">fn</span> <span class="ident">__wbindgen_string_new</span>(<span class="ident">ptr</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">u8</span>, <span class="ident">len</span>: <span class="ident">usize</span>) <span class="op">-&gt;</span> <span class="ident">u32</span>;
+        <span class="kw">fn</span> <span class="ident">__wbindgen_number_new</span>(<span class="ident">f</span>: <span class="ident">f64</span>) <span class="op">-&gt;</span> <span class="ident">u32</span>;
+        <span class="kw">fn</span> <span class="ident">__wbindgen_symbol_named_new</span>(<span class="ident">ptr</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">u8</span>, <span class="ident">len</span>: <span class="ident">usize</span>) <span class="op">-&gt;</span> <span class="ident">u32</span>;
+        <span class="kw">fn</span> <span class="ident">__wbindgen_symbol_anonymous_new</span>() <span class="op">-&gt;</span> <span class="ident">u32</span>;
 
-        <span class="kw">fn</span> <span class="ident">__wbindgen_externref_heap_live_count</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span>;
+        <span class="kw">fn</span> <span class="ident">__wbindgen_externref_heap_live_count</span>() <span class="op">-&gt;</span> <span class="ident">u32</span>;
 
-        <span class="kw">fn</span> <span class="ident">__wbindgen_is_null</span>(<span class="ident">idx</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span>;
-        <span class="kw">fn</span> <span class="ident">__wbindgen_is_undefined</span>(<span class="ident">idx</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span>;
-        <span class="kw">fn</span> <span class="ident">__wbindgen_is_symbol</span>(<span class="ident">idx</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span>;
-        <span class="kw">fn</span> <span class="ident">__wbindgen_is_object</span>(<span class="ident">idx</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span>;
-        <span class="kw">fn</span> <span class="ident">__wbindgen_is_function</span>(<span class="ident">idx</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span>;
-        <span class="kw">fn</span> <span class="ident">__wbindgen_is_string</span>(<span class="ident">idx</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span>;
-        <span class="kw">fn</span> <span class="ident">__wbindgen_is_falsy</span>(<span class="ident">idx</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span>;
+        <span class="kw">fn</span> <span class="ident">__wbindgen_is_null</span>(<span class="ident">idx</span>: <span class="ident">u32</span>) <span class="op">-&gt;</span> <span class="ident">u32</span>;
+        <span class="kw">fn</span> <span class="ident">__wbindgen_is_undefined</span>(<span class="ident">idx</span>: <span class="ident">u32</span>) <span class="op">-&gt;</span> <span class="ident">u32</span>;
+        <span class="kw">fn</span> <span class="ident">__wbindgen_is_symbol</span>(<span class="ident">idx</span>: <span class="ident">u32</span>) <span class="op">-&gt;</span> <span class="ident">u32</span>;
+        <span class="kw">fn</span> <span class="ident">__wbindgen_is_object</span>(<span class="ident">idx</span>: <span class="ident">u32</span>) <span class="op">-&gt;</span> <span class="ident">u32</span>;
+        <span class="kw">fn</span> <span class="ident">__wbindgen_is_function</span>(<span class="ident">idx</span>: <span class="ident">u32</span>) <span class="op">-&gt;</span> <span class="ident">u32</span>;
+        <span class="kw">fn</span> <span class="ident">__wbindgen_is_string</span>(<span class="ident">idx</span>: <span class="ident">u32</span>) <span class="op">-&gt;</span> <span class="ident">u32</span>;
+        <span class="kw">fn</span> <span class="ident">__wbindgen_is_falsy</span>(<span class="ident">idx</span>: <span class="ident">u32</span>) <span class="op">-&gt;</span> <span class="ident">u32</span>;
 
-        <span class="kw">fn</span> <span class="ident">__wbindgen_number_get</span>(<span class="ident">idx</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">WasmOptionalF64</span>;
-        <span class="kw">fn</span> <span class="ident">__wbindgen_boolean_get</span>(<span class="ident">idx</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span>;
-        <span class="kw">fn</span> <span class="ident">__wbindgen_string_get</span>(<span class="ident">idx</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">WasmSlice</span>;
+        <span class="kw">fn</span> <span class="ident">__wbindgen_number_get</span>(<span class="ident">idx</span>: <span class="ident">u32</span>) <span class="op">-&gt;</span> <span class="ident">WasmOptionalF64</span>;
+        <span class="kw">fn</span> <span class="ident">__wbindgen_boolean_get</span>(<span class="ident">idx</span>: <span class="ident">u32</span>) <span class="op">-&gt;</span> <span class="ident">u32</span>;
+        <span class="kw">fn</span> <span class="ident">__wbindgen_string_get</span>(<span class="ident">idx</span>: <span class="ident">u32</span>) <span class="op">-&gt;</span> <span class="ident">WasmSlice</span>;
 
-        <span class="kw">fn</span> <span class="ident">__wbindgen_debug_string</span>(<span class="ident">ret</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> [<span class="ident">usize</span>; <span class="number">2</span>], <span class="ident">idx</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> ();
+        <span class="kw">fn</span> <span class="ident">__wbindgen_debug_string</span>(<span class="ident">ret</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> [<span class="ident">usize</span>; <span class="number">2</span>], <span class="ident">idx</span>: <span class="ident">u32</span>) <span class="op">-&gt;</span> ();
 
-        <span class="kw">fn</span> <span class="ident">__wbindgen_throw</span>(<span class="ident">a</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">u8</span>, <span class="ident">b</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="op">!</span>;
-        <span class="kw">fn</span> <span class="ident">__wbindgen_rethrow</span>(<span class="ident">a</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="op">!</span>;
+        <span class="kw">fn</span> <span class="ident">__wbindgen_throw</span>(<span class="ident">a</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">u8</span>, <span class="ident">b</span>: <span class="ident">usize</span>) <span class="op">-&gt;</span> <span class="op">!</span>;
+        <span class="kw">fn</span> <span class="ident">__wbindgen_rethrow</span>(<span class="ident">a</span>: <span class="ident">u32</span>) <span class="op">-&gt;</span> <span class="op">!</span>;
 
-        <span class="kw">fn</span> <span class="ident">__wbindgen_cb_drop</span>(<span class="ident">idx</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span>;
+        <span class="kw">fn</span> <span class="ident">__wbindgen_cb_drop</span>(<span class="ident">idx</span>: <span class="ident">u32</span>) <span class="op">-&gt;</span> <span class="ident">u32</span>;
 
-        <span class="kw">fn</span> <span class="ident">__wbindgen_describe</span>(<span class="ident">v</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> ();
-        <span class="kw">fn</span> <span class="ident">__wbindgen_describe_closure</span>(<span class="ident">a</span>: <span class="ident">u32</span>, <span class="ident">b</span>: <span class="ident">u32</span>, <span class="ident">c</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span>;
+        <span class="kw">fn</span> <span class="ident">__wbindgen_describe</span>(<span class="ident">v</span>: <span class="ident">u32</span>) <span class="op">-&gt;</span> ();
+        <span class="kw">fn</span> <span class="ident">__wbindgen_describe_closure</span>(<span class="ident">a</span>: <span class="ident">u32</span>, <span class="ident">b</span>: <span class="ident">u32</span>, <span class="ident">c</span>: <span class="ident">u32</span>) <span class="op">-&gt;</span> <span class="ident">u32</span>;
 
-        <span class="kw">fn</span> <span class="ident">__wbindgen_json_parse</span>(<span class="ident">ptr</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">u8</span>, <span class="ident">len</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span>;
-        <span class="kw">fn</span> <span class="ident">__wbindgen_json_serialize</span>(<span class="ident">idx</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">WasmSlice</span>;
-        <span class="kw">fn</span> <span class="ident">__wbindgen_jsval_eq</span>(<span class="ident">a</span>: <span class="ident">u32</span>, <span class="ident">b</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span>;
+        <span class="kw">fn</span> <span class="ident">__wbindgen_json_parse</span>(<span class="ident">ptr</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">u8</span>, <span class="ident">len</span>: <span class="ident">usize</span>) <span class="op">-&gt;</span> <span class="ident">u32</span>;
+        <span class="kw">fn</span> <span class="ident">__wbindgen_json_serialize</span>(<span class="ident">idx</span>: <span class="ident">u32</span>) <span class="op">-&gt;</span> <span class="ident">WasmSlice</span>;
+        <span class="kw">fn</span> <span class="ident">__wbindgen_jsval_eq</span>(<span class="ident">a</span>: <span class="ident">u32</span>, <span class="ident">b</span>: <span class="ident">u32</span>) <span class="op">-&gt;</span> <span class="ident">u32</span>;
 
-        <span class="kw">fn</span> <span class="ident">__wbindgen_memory</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span>;
-        <span class="kw">fn</span> <span class="ident">__wbindgen_module</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span>;
-        <span class="kw">fn</span> <span class="ident">__wbindgen_function_table</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span>;
+        <span class="kw">fn</span> <span class="ident">__wbindgen_memory</span>() <span class="op">-&gt;</span> <span class="ident">u32</span>;
+        <span class="kw">fn</span> <span class="ident">__wbindgen_module</span>() <span class="op">-&gt;</span> <span class="ident">u32</span>;
+        <span class="kw">fn</span> <span class="ident">__wbindgen_function_table</span>() <span class="op">-&gt;</span> <span class="ident">u32</span>;
     }
 }
 
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">JsValue</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsValue</span> {
+    <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">JsValue</span> {
         <span class="kw">unsafe</span> {
             <span class="kw">let</span> <span class="ident">idx</span> <span class="op">=</span> <span class="ident">__wbindgen_object_clone_ref</span>(<span class="self">self</span>.<span class="ident">idx</span>);
             <span class="ident">JsValue</span>::<span class="ident">_new</span>(<span class="ident">idx</span>)
@@ -1715,14 +1716,14 @@
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span>
 <span class="kw">impl</span> <span class="ident">fmt</span>::<span class="ident">Debug</span> <span class="kw">for</span> <span class="ident">JsValue</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span>) <span class="op">-&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
         <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;JsValue({})&quot;</span>, <span class="self">self</span>.<span class="ident">as_debug_string</span>())
     }
 }
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>))]</span>
 <span class="kw">impl</span> <span class="ident">fmt</span>::<span class="ident">Debug</span> <span class="kw">for</span> <span class="ident">JsValue</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span>) <span class="op">-&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
         <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="string">&quot;JsValue&quot;</span>)
     }
 }
@@ -1732,12 +1733,12 @@
     <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
         <span class="kw">unsafe</span> {
             <span class="comment">// We definitely should never drop anything in the stack area</span>
-            <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="self">self</span>.<span class="ident">idx</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">JSIDX_OFFSET</span>, <span class="string">&quot;free of stack slot {}&quot;</span>, <span class="self">self</span>.<span class="ident">idx</span>);
+            <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="self">self</span>.<span class="ident">idx</span> <span class="op">&gt;=</span> <span class="ident">JSIDX_OFFSET</span>, <span class="string">&quot;free of stack slot {}&quot;</span>, <span class="self">self</span>.<span class="ident">idx</span>);
 
             <span class="comment">// Otherwise if we&#39;re not dropping one of our reserved values,</span>
             <span class="comment">// actually call the intrinsic. See #1054 for eventually removing</span>
             <span class="comment">// this branch.</span>
-            <span class="kw">if</span> <span class="self">self</span>.<span class="ident">idx</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">JSIDX_RESERVED</span> {
+            <span class="kw">if</span> <span class="self">self</span>.<span class="ident">idx</span> <span class="op">&gt;=</span> <span class="ident">JSIDX_RESERVED</span> {
                 <span class="ident">__wbindgen_object_drop_ref</span>(<span class="self">self</span>.<span class="ident">idx</span>);
             }
         }
@@ -1773,7 +1774,7 @@
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span>
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">FromWasmAbi</span> <span class="op">+</span> <span class="lifetime">&#39;static</span><span class="op">&gt;</span> <span class="ident">Deref</span> <span class="kw">for</span> <span class="ident">JsStatic</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
     <span class="kw">type</span> <span class="ident">Target</span> <span class="op">=</span> <span class="ident">T</span>;
-    <span class="kw">fn</span> <span class="ident">deref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">T</span> {
+    <span class="kw">fn</span> <span class="ident">deref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="ident">T</span> {
         <span class="comment">// We know that our tls key is never overwritten after initialization,</span>
         <span class="comment">// so it should be safe (on that axis at least) to hand out a reference</span>
         <span class="comment">// that lives longer than the closure below.</span>
@@ -1790,7 +1791,7 @@
 <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">never</span>)]</span>
 <span class="attribute">#[<span class="ident">deprecated</span>(<span class="ident">note</span> <span class="op">=</span> <span class="string">&quot;renamed to `throw_str`&quot;</span>)]</span>
 <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">throw</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="op">!</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">throw</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-&gt;</span> <span class="op">!</span> {
     <span class="ident">throw_str</span>(<span class="ident">s</span>)
 }
 
@@ -1806,7 +1807,7 @@
 <span class="doccomment">/// leaks.</span>
 <span class="attribute">#[<span class="ident">cold</span>]</span>
 <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">never</span>)]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">throw_str</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="op">!</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">throw_str</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-&gt;</span> <span class="op">!</span> {
     <span class="kw">unsafe</span> {
         <span class="ident">__wbindgen_throw</span>(<span class="ident">s</span>.<span class="ident">as_ptr</span>(), <span class="ident">s</span>.<span class="ident">len</span>());
     }
@@ -1824,7 +1825,7 @@
 <span class="doccomment">/// leaks.</span>
 <span class="attribute">#[<span class="ident">cold</span>]</span>
 <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">never</span>)]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">throw_val</span>(<span class="ident">s</span>: <span class="ident">JsValue</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="op">!</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">throw_val</span>(<span class="ident">s</span>: <span class="ident">JsValue</span>) <span class="op">-&gt;</span> <span class="op">!</span> {
     <span class="kw">unsafe</span> {
         <span class="kw">let</span> <span class="ident">idx</span> <span class="op">=</span> <span class="ident">s</span>.<span class="ident">idx</span>;
         <span class="ident">mem</span>::<span class="ident">forget</span>(<span class="ident">s</span>);
@@ -1876,12 +1877,12 @@
 <span class="doccomment">///     // ...</span>
 <span class="doccomment">/// }</span>
 <span class="doccomment">/// ```</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">externref_heap_live_count</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">externref_heap_live_count</span>() <span class="op">-&gt;</span> <span class="ident">u32</span> {
     <span class="kw">unsafe</span> { <span class="ident">__wbindgen_externref_heap_live_count</span>() }
 }
 
 <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">anyref_heap_live_count</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">anyref_heap_live_count</span>() <span class="op">-&gt;</span> <span class="ident">u32</span> {
     <span class="ident">externref_heap_live_count</span>()
 }
 
@@ -1917,22 +1918,22 @@
 <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">UnwrapThrowExt</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>: <span class="ident">Sized</span> {
     <span class="doccomment">/// Unwrap this `Option` or `Result`, but instead of panicking on failure,</span>
     <span class="doccomment">/// throw an exception to JavaScript.</span>
-    <span class="kw">fn</span> <span class="ident">unwrap_throw</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">T</span> {
+    <span class="kw">fn</span> <span class="ident">unwrap_throw</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">T</span> {
         <span class="self">self</span>.<span class="ident">expect_throw</span>(<span class="string">&quot;`unwrap_throw` failed&quot;</span>)
     }
 
     <span class="doccomment">/// Unwrap this container&#39;s `T` value, or throw an error to JS with the</span>
     <span class="doccomment">/// given message if the `T` value is unavailable (e.g. an `Option&lt;T&gt;` is</span>
     <span class="doccomment">/// `None`).</span>
-    <span class="kw">fn</span> <span class="ident">expect_throw</span>(<span class="self">self</span>, <span class="ident">message</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">T</span>;
+    <span class="kw">fn</span> <span class="ident">expect_throw</span>(<span class="self">self</span>, <span class="ident">message</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-&gt;</span> <span class="ident">T</span>;
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">UnwrapThrowExt</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">expect_throw</span>(<span class="self">self</span>, <span class="ident">message</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">T</span> {
+    <span class="kw">fn</span> <span class="ident">expect_throw</span>(<span class="self">self</span>, <span class="ident">message</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-&gt;</span> <span class="ident">T</span> {
         <span class="kw">if</span> <span class="macro">cfg</span><span class="macro">!</span>(<span class="ident">all</span>(<span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;wasm32&quot;</span>, <span class="ident">not</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;emscripten&quot;</span>))) {
             <span class="kw">match</span> <span class="self">self</span> {
-                <span class="prelude-val">Some</span>(<span class="ident">val</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">val</span>,
-                <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">throw_str</span>(<span class="ident">message</span>),
+                <span class="prelude-val">Some</span>(<span class="ident">val</span>) <span class="op">=&gt;</span> <span class="ident">val</span>,
+                <span class="prelude-val">None</span> <span class="op">=&gt;</span> <span class="ident">throw_str</span>(<span class="ident">message</span>),
             }
         } <span class="kw">else</span> {
             <span class="self">self</span>.<span class="ident">expect</span>(<span class="ident">message</span>)
@@ -1944,11 +1945,11 @@
 <span class="kw">where</span>
     <span class="ident">E</span>: <span class="ident">core</span>::<span class="ident">fmt</span>::<span class="ident">Debug</span>,
 {
-    <span class="kw">fn</span> <span class="ident">expect_throw</span>(<span class="self">self</span>, <span class="ident">message</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">T</span> {
+    <span class="kw">fn</span> <span class="ident">expect_throw</span>(<span class="self">self</span>, <span class="ident">message</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-&gt;</span> <span class="ident">T</span> {
         <span class="kw">if</span> <span class="macro">cfg</span><span class="macro">!</span>(<span class="ident">all</span>(<span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;wasm32&quot;</span>, <span class="ident">not</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;emscripten&quot;</span>))) {
             <span class="kw">match</span> <span class="self">self</span> {
-                <span class="prelude-val">Ok</span>(<span class="ident">val</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">val</span>,
-                <span class="prelude-val">Err</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">throw_str</span>(<span class="ident">message</span>),
+                <span class="prelude-val">Ok</span>(<span class="ident">val</span>) <span class="op">=&gt;</span> <span class="ident">val</span>,
+                <span class="prelude-val">Err</span>(<span class="kw">_</span>) <span class="op">=&gt;</span> <span class="ident">throw_str</span>(<span class="ident">message</span>),
             }
         } <span class="kw">else</span> {
             <span class="self">self</span>.<span class="ident">expect</span>(<span class="ident">message</span>)
@@ -1963,18 +1964,18 @@
 <span class="doccomment">/// largely just an experimental addition to enable threading demos. Using this</span>
 <span class="doccomment">/// may prevent your wasm module from building down the road.</span>
 <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">module</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsValue</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">module</span>() <span class="op">-&gt;</span> <span class="ident">JsValue</span> {
     <span class="kw">unsafe</span> { <span class="ident">JsValue</span>::<span class="ident">_new</span>(<span class="ident">__wbindgen_module</span>()) }
 }
 
 <span class="doccomment">/// Returns a handle to this wasm instance&#39;s `WebAssembly.Memory`</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">memory</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsValue</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">memory</span>() <span class="op">-&gt;</span> <span class="ident">JsValue</span> {
     <span class="kw">unsafe</span> { <span class="ident">JsValue</span>::<span class="ident">_new</span>(<span class="ident">__wbindgen_memory</span>()) }
 }
 
 <span class="doccomment">/// Returns a handle to this wasm instance&#39;s `WebAssembly.Table` which is the</span>
 <span class="doccomment">/// indirect function table used by Rust</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">function_table</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsValue</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">function_table</span>() <span class="op">-&gt;</span> <span class="ident">JsValue</span> {
     <span class="kw">unsafe</span> { <span class="ident">JsValue</span>::<span class="ident">_new</span>(<span class="ident">__wbindgen_function_table</span>()) }
 }
 
@@ -1992,14 +1993,14 @@
     <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span>
     <span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">__wbindgen_if_not_std</span> {
-        ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">i</span>:<span class="ident">item</span>)<span class="kw-2">*</span>) <span class="op">=</span><span class="op">&gt;</span> {};
+        ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">i</span>:<span class="ident">item</span>)<span class="kw-2">*</span>) <span class="op">=&gt;</span> {};
     }
 
     <span class="attribute">#[<span class="ident">macro_export</span>]</span>
     <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>))]</span>
     <span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">__wbindgen_if_not_std</span> {
-        ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">i</span>:<span class="ident">item</span>)<span class="kw-2">*</span>) <span class="op">=</span><span class="op">&gt;</span> ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">i</span>)<span class="kw-2">*</span>)
+        ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">i</span>:<span class="ident">item</span>)<span class="kw-2">*</span>) <span class="op">=&gt;</span> ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">i</span>)<span class="kw-2">*</span>)
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
@@ -2011,7 +2012,7 @@
 
     <span class="attribute">#[<span class="ident">cold</span>]</span>
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">never</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">throw_null</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="op">!</span> {
+    <span class="kw">fn</span> <span class="ident">throw_null</span>() <span class="op">-&gt;</span> <span class="op">!</span> {
         <span class="kw">super</span>::<span class="ident">throw_str</span>(<span class="string">&quot;null pointer passed to rust&quot;</span>);
     }
 
@@ -2038,7 +2039,7 @@
     }
 
     <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="question-mark">?</span><span class="ident">Sized</span><span class="op">&gt;</span> <span class="ident">WasmRefCell</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">value</span>: <span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">WasmRefCell</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>
+        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">value</span>: <span class="ident">T</span>) <span class="op">-&gt;</span> <span class="ident">WasmRefCell</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>
         <span class="kw">where</span>
             <span class="ident">T</span>: <span class="ident">Sized</span>,
         {
@@ -2048,13 +2049,13 @@
             }
         }
 
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">T</span> {
+        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">T</span> {
             <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="self">self</span>.<span class="ident">value</span>.<span class="ident">get</span>() }
         }
 
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">borrow</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Ref</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">borrow</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">Ref</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
             <span class="kw">unsafe</span> {
-                <span class="kw">if</span> <span class="self">self</span>.<span class="ident">borrow</span>.<span class="ident">get</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">usize</span>::<span class="ident">max_value</span>() {
+                <span class="kw">if</span> <span class="self">self</span>.<span class="ident">borrow</span>.<span class="ident">get</span>() <span class="op">==</span> <span class="ident">usize</span>::<span class="ident">max_value</span>() {
                     <span class="ident">borrow_fail</span>();
                 }
                 <span class="self">self</span>.<span class="ident">borrow</span>.<span class="ident">set</span>(<span class="self">self</span>.<span class="ident">borrow</span>.<span class="ident">get</span>() <span class="op">+</span> <span class="number">1</span>);
@@ -2065,9 +2066,9 @@
             }
         }
 
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">borrow_mut</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">RefMut</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">borrow_mut</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">RefMut</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
             <span class="kw">unsafe</span> {
-                <span class="kw">if</span> <span class="self">self</span>.<span class="ident">borrow</span>.<span class="ident">get</span>() <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
+                <span class="kw">if</span> <span class="self">self</span>.<span class="ident">borrow</span>.<span class="ident">get</span>() <span class="op">!=</span> <span class="number">0</span> {
                     <span class="ident">borrow_fail</span>();
                 }
                 <span class="self">self</span>.<span class="ident">borrow</span>.<span class="ident">set</span>(<span class="ident">usize</span>::<span class="ident">max_value</span>());
@@ -2078,7 +2079,7 @@
             }
         }
 
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_inner</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">T</span>
+        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_inner</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">T</span>
         <span class="kw">where</span>
             <span class="ident">T</span>: <span class="ident">Sized</span>,
         {
@@ -2095,7 +2096,7 @@
         <span class="kw">type</span> <span class="ident">Target</span> <span class="op">=</span> <span class="ident">T</span>;
 
         <span class="attribute">#[<span class="ident">inline</span>]</span>
-        <span class="kw">fn</span> <span class="ident">deref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">T</span> {
+        <span class="kw">fn</span> <span class="ident">deref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="ident">T</span> {
             <span class="self">self</span>.<span class="ident">value</span>
         }
     }
@@ -2115,14 +2116,14 @@
         <span class="kw">type</span> <span class="ident">Target</span> <span class="op">=</span> <span class="ident">T</span>;
 
         <span class="attribute">#[<span class="ident">inline</span>]</span>
-        <span class="kw">fn</span> <span class="ident">deref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">T</span> {
+        <span class="kw">fn</span> <span class="ident">deref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="ident">T</span> {
             <span class="self">self</span>.<span class="ident">value</span>
         }
     }
 
     <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span>, <span class="ident">T</span>: <span class="question-mark">?</span><span class="ident">Sized</span><span class="op">&gt;</span> <span class="ident">DerefMut</span> <span class="kw">for</span> <span class="ident">RefMut</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span>, <span class="ident">T</span><span class="op">&gt;</span> {
         <span class="attribute">#[<span class="ident">inline</span>]</span>
-        <span class="kw">fn</span> <span class="ident">deref_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">T</span> {
+        <span class="kw">fn</span> <span class="ident">deref_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">T</span> {
             <span class="self">self</span>.<span class="ident">value</span>
         }
     }
@@ -2133,7 +2134,7 @@
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">borrow_fail</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="op">!</span> {
+    <span class="kw">fn</span> <span class="ident">borrow_fail</span>() <span class="op">-&gt;</span> <span class="op">!</span> {
         <span class="kw">super</span>::<span class="ident">throw_str</span>(
             <span class="string">&quot;recursive use of an object detected which would lead to \
              unsafe aliasing in rust&quot;</span>,
@@ -2145,7 +2146,7 @@
         <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">mem</span>;
 
         <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
-        <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">__wbindgen_malloc</span>(<span class="ident">size</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">u8</span> {
+        <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">__wbindgen_malloc</span>(<span class="ident">size</span>: <span class="ident">usize</span>) <span class="op">-&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">u8</span> {
             <span class="kw">let</span> <span class="ident">align</span> <span class="op">=</span> <span class="ident">mem</span>::<span class="ident">align_of</span>::<span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>();
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">layout</span>) <span class="op">=</span> <span class="ident">Layout</span>::<span class="ident">from_size_align</span>(<span class="ident">size</span>, <span class="ident">align</span>) {
                 <span class="kw">unsafe</span> {
@@ -2164,7 +2165,7 @@
         }
 
         <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
-        <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">__wbindgen_realloc</span>(<span class="ident">ptr</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">u8</span>, <span class="ident">old_size</span>: <span class="ident">usize</span>, <span class="ident">new_size</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">u8</span> {
+        <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">__wbindgen_realloc</span>(<span class="ident">ptr</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">u8</span>, <span class="ident">old_size</span>: <span class="ident">usize</span>, <span class="ident">new_size</span>: <span class="ident">usize</span>) <span class="op">-&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">u8</span> {
             <span class="kw">let</span> <span class="ident">align</span> <span class="op">=</span> <span class="ident">mem</span>::<span class="ident">align_of</span>::<span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>();
             <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="ident">old_size</span> <span class="op">&gt;</span> <span class="number">0</span>);
             <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="ident">new_size</span> <span class="op">&gt;</span> <span class="number">0</span>);
@@ -2178,7 +2179,7 @@
         }
 
         <span class="attribute">#[<span class="ident">cold</span>]</span>
-        <span class="kw">fn</span> <span class="ident">malloc_failure</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="op">!</span> {
+        <span class="kw">fn</span> <span class="ident">malloc_failure</span>() <span class="op">-&gt;</span> <span class="op">!</span> {
             <span class="kw">if</span> <span class="macro">cfg</span><span class="macro">!</span>(<span class="ident">debug_assertions</span>) {
                 <span class="kw">super</span>::<span class="ident">throw_str</span>(<span class="string">&quot;invalid malloc request&quot;</span>)
             } <span class="kw">else</span> {
@@ -2190,7 +2191,7 @@
         <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">__wbindgen_free</span>(<span class="ident">ptr</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">u8</span>, <span class="ident">size</span>: <span class="ident">usize</span>) {
             <span class="comment">// This happens for zero-length slices, and in that case `ptr` is</span>
             <span class="comment">// likely bogus so don&#39;t actually send this to the system allocator</span>
-            <span class="kw">if</span> <span class="ident">size</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+            <span class="kw">if</span> <span class="ident">size</span> <span class="op">==</span> <span class="number">0</span> {
                 <span class="kw">return</span>
             }
             <span class="kw">let</span> <span class="ident">align</span> <span class="op">=</span> <span class="ident">mem</span>::<span class="ident">align_of</span>::<span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>();
@@ -2245,9 +2246,9 @@
         <span class="ident">GLOBAL_EXNDATA</span>[<span class="number">1</span>] <span class="op">=</span> <span class="ident">idx</span>;
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">take_last_exception</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="kw">super</span>::<span class="ident">JsValue</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">take_last_exception</span>() <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="kw">super</span>::<span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="kw">unsafe</span> {
-            <span class="kw">let</span> <span class="ident">ret</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">GLOBAL_EXNDATA</span>[<span class="number">0</span>] <span class="op">=</span><span class="op">=</span> <span class="number">1</span> {
+            <span class="kw">let</span> <span class="ident">ret</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">GLOBAL_EXNDATA</span>[<span class="number">0</span>] <span class="op">==</span> <span class="number">1</span> {
                 <span class="prelude-val">Err</span>(<span class="kw">super</span>::<span class="ident">JsValue</span>::<span class="ident">_new</span>(<span class="ident">GLOBAL_EXNDATA</span>[<span class="number">1</span>]))
             } <span class="kw">else</span> {
                 <span class="prelude-val">Ok</span>(())
@@ -2263,35 +2264,35 @@
     <span class="doccomment">/// `Result&lt;JsValue, JsValue&gt;` which is what we&#39;ll return to JS (where an</span>
     <span class="doccomment">/// error is a failed future).</span>
     <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">IntoJsResult</span> {
-        <span class="kw">fn</span> <span class="ident">into_js_result</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">JsValue</span>, <span class="ident">JsValue</span><span class="op">&gt;</span>;
+        <span class="kw">fn</span> <span class="ident">into_js_result</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">JsValue</span>, <span class="ident">JsValue</span><span class="op">&gt;</span>;
     }
 
     <span class="kw">impl</span> <span class="ident">IntoJsResult</span> <span class="kw">for</span> () {
-        <span class="kw">fn</span> <span class="ident">into_js_result</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">JsValue</span>, <span class="ident">JsValue</span><span class="op">&gt;</span> {
+        <span class="kw">fn</span> <span class="ident">into_js_result</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">JsValue</span>, <span class="ident">JsValue</span><span class="op">&gt;</span> {
             <span class="prelude-val">Ok</span>(<span class="ident">JsValue</span>::<span class="ident">undefined</span>())
         }
     }
 
-    <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="ident">IntoJsResult</span> <span class="kw">for</span> <span class="ident">T</span> {
-        <span class="kw">fn</span> <span class="ident">into_js_result</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">JsValue</span>, <span class="ident">JsValue</span><span class="op">&gt;</span> {
+    <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;&gt;</span> <span class="ident">IntoJsResult</span> <span class="kw">for</span> <span class="ident">T</span> {
+        <span class="kw">fn</span> <span class="ident">into_js_result</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">JsValue</span>, <span class="ident">JsValue</span><span class="op">&gt;</span> {
             <span class="prelude-val">Ok</span>(<span class="self">self</span>.<span class="ident">into</span>())
         }
     }
 
-    <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span>, <span class="ident">E</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="ident">IntoJsResult</span> <span class="kw">for</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">E</span><span class="op">&gt;</span> {
-        <span class="kw">fn</span> <span class="ident">into_js_result</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">JsValue</span>, <span class="ident">JsValue</span><span class="op">&gt;</span> {
+    <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span>, <span class="ident">E</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;&gt;</span> <span class="ident">IntoJsResult</span> <span class="kw">for</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">E</span><span class="op">&gt;</span> {
+        <span class="kw">fn</span> <span class="ident">into_js_result</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">JsValue</span>, <span class="ident">JsValue</span><span class="op">&gt;</span> {
             <span class="kw">match</span> <span class="self">self</span> {
-                <span class="prelude-val">Ok</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">e</span>.<span class="ident">into</span>()),
-                <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">e</span>.<span class="ident">into</span>()),
+                <span class="prelude-val">Ok</span>(<span class="ident">e</span>) <span class="op">=&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">e</span>.<span class="ident">into</span>()),
+                <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">e</span>.<span class="ident">into</span>()),
             }
         }
     }
 
-    <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">E</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="ident">IntoJsResult</span> <span class="kw">for</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">E</span><span class="op">&gt;</span> {
-        <span class="kw">fn</span> <span class="ident">into_js_result</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">JsValue</span>, <span class="ident">JsValue</span><span class="op">&gt;</span> {
+    <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">E</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;&gt;</span> <span class="ident">IntoJsResult</span> <span class="kw">for</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">E</span><span class="op">&gt;</span> {
+        <span class="kw">fn</span> <span class="ident">into_js_result</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">JsValue</span>, <span class="ident">JsValue</span><span class="op">&gt;</span> {
             <span class="kw">match</span> <span class="self">self</span> {
-                <span class="prelude-val">Ok</span>(()) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">JsValue</span>::<span class="ident">undefined</span>()),
-                <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">e</span>.<span class="ident">into</span>()),
+                <span class="prelude-val">Ok</span>(()) <span class="op">=&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">JsValue</span>::<span class="ident">undefined</span>()),
+                <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">e</span>.<span class="ident">into</span>()),
             }
         }
     }
@@ -2307,7 +2308,7 @@
         <span class="kw">fn</span> <span class="ident">start</span>(<span class="self">self</span>) {}
     }
 
-    <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">E</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="ident">Start</span> <span class="kw">for</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">E</span><span class="op">&gt;</span> {
+    <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">E</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;&gt;</span> <span class="ident">Start</span> <span class="kw">for</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">E</span><span class="op">&gt;</span> {
         <span class="attribute">#[<span class="ident">inline</span>]</span>
         <span class="kw">fn</span> <span class="ident">start</span>(<span class="self">self</span>) {
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span> <span class="self">self</span> {
@@ -2335,13 +2336,13 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">Deref</span> <span class="kw">for</span> <span class="ident">Clamped</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
     <span class="kw">type</span> <span class="ident">Target</span> <span class="op">=</span> <span class="ident">T</span>;
 
-    <span class="kw">fn</span> <span class="ident">deref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">T</span> {
+    <span class="kw">fn</span> <span class="ident">deref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="ident">T</span> {
         <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0</span>
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">DerefMut</span> <span class="kw">for</span> <span class="ident">Clamped</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">deref_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">T</span> {
+    <span class="kw">fn</span> <span class="ident">deref_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">T</span> {
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="number">0</span>
     }
 }

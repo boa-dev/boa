@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `boa/src/property/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css"><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script src="../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="shortcut icon" href="https://raw.githubusercontent.com/jasonwilliams/boa/master/assets/logo.svg"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../boa/index.html'><div class='logo-container'><img src='https://raw.githubusercontent.com/jasonwilliams/boa/master/assets/logo.svg' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `boa/src/property/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script src="../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="shortcut icon" href="https://raw.githubusercontent.com/jasonwilliams/boa/master/assets/logo.svg"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../boa/index.html'><div class='logo-container'><img src='https://raw.githubusercontent.com/jasonwilliams/boa/master/assets/logo.svg' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
+                <a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -456,6 +457,23 @@
 <span id="456">456</span>
 <span id="457">457</span>
 <span id="458">458</span>
+<span id="459">459</span>
+<span id="460">460</span>
+<span id="461">461</span>
+<span id="462">462</span>
+<span id="463">463</span>
+<span id="464">464</span>
+<span id="465">465</span>
+<span id="466">466</span>
+<span id="467">467</span>
+<span id="468">468</span>
+<span id="469">469</span>
+<span id="470">470</span>
+<span id="471">471</span>
+<span id="472">472</span>
+<span id="473">473</span>
+<span id="474">474</span>
+<span id="475">475</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements the Property Descriptor.</span>
 <span class="doccomment">//!</span>
@@ -473,16 +491,198 @@
 <span class="doccomment">//! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/defineProperty</span>
 <span class="doccomment">//! [section]: https://tc39.es/ecma262/#sec-property-attributes</span>
 
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">value</span>::{<span class="ident">RcString</span>, <span class="ident">RcSymbol</span>, <span class="ident">Value</span>};
-<span class="kw">use</span> <span class="ident">gc</span>::{<span class="ident">Finalize</span>, <span class="ident">Trace</span>};
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">convert</span>::<span class="ident">TryFrom</span>;
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">fmt</span>;
+<span class="kw">use</span> <span class="kw">crate</span>::{
+    <span class="ident">gc</span>::{<span class="ident">Finalize</span>, <span class="ident">Trace</span>},
+    <span class="ident">object</span>::<span class="ident">GcObject</span>,
+    <span class="ident">value</span>::{<span class="ident">RcString</span>, <span class="ident">RcSymbol</span>, <span class="ident">Value</span>},
+};
+<span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">convert</span>::<span class="ident">TryFrom</span>, <span class="ident">fmt</span>};
 
 <span class="kw">mod</span> <span class="ident">attribute</span>;
-
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">attribute</span>::<span class="ident">Attribute</span>;
 
-<span class="doccomment">/// This represents a Javascript Property AKA The Property Descriptor.</span>
+<span class="doccomment">/// A data descriptor is a property that has a value, which may or may not be writable.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// More information:</span>
+<span class="doccomment">/// - [MDN documentation][mdn]</span>
+<span class="doccomment">/// - [ECMAScript reference][spec]</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-property-descriptor-specification-type</span>
+<span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/defineProperty</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Trace</span>, <span class="ident">Finalize</span>)]</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">DataDescriptor</span> {
+    <span class="ident">value</span>: <span class="ident">Value</span>,
+    <span class="ident">attributes</span>: <span class="ident">Attribute</span>,
+}
+
+<span class="kw">impl</span> <span class="ident">DataDescriptor</span> {
+    <span class="doccomment">/// Create a new `DataDescriptor`.</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>(<span class="ident">value</span>: <span class="ident">V</span>, <span class="ident">attributes</span>: <span class="ident">Attribute</span>) <span class="op">-&gt;</span> <span class="self">Self</span>
+    <span class="kw">where</span>
+        <span class="ident">V</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span>,
+    {
+        <span class="self">Self</span> {
+            <span class="ident">value</span>: <span class="ident">value</span>.<span class="ident">into</span>(),
+            <span class="ident">attributes</span>,
+        }
+    }
+
+    <span class="doccomment">/// Return the `value` of the data descriptor.</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">value</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">Value</span> {
+        <span class="self">self</span>.<span class="ident">value</span>.<span class="ident">clone</span>()
+    }
+
+    <span class="doccomment">/// Return the attributes of the descriptor.</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">attributes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">Attribute</span> {
+        <span class="self">self</span>.<span class="ident">attributes</span>
+    }
+
+    <span class="doccomment">/// Check whether the descriptor is configurable.</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">configurable</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
+        <span class="self">self</span>.<span class="ident">attributes</span>.<span class="ident">configurable</span>()
+    }
+
+    <span class="doccomment">/// Set whether the descriptor is configurable.</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_configurable</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">configurable</span>: <span class="ident">bool</span>) {
+        <span class="self">self</span>.<span class="ident">attributes</span>.<span class="ident">set_configurable</span>(<span class="ident">configurable</span>)
+    }
+
+    <span class="doccomment">/// Check whether the descriptor is configurable.</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">enumerable</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
+        <span class="self">self</span>.<span class="ident">attributes</span>.<span class="ident">enumerable</span>()
+    }
+
+    <span class="doccomment">/// Set whether the descriptor is enumerable.</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_enumerable</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">enumerable</span>: <span class="ident">bool</span>) {
+        <span class="self">self</span>.<span class="ident">attributes</span>.<span class="ident">set_enumerable</span>(<span class="ident">enumerable</span>)
+    }
+
+    <span class="doccomment">/// Check whether the descriptor is writable.</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">writable</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
+        <span class="self">self</span>.<span class="ident">attributes</span>.<span class="ident">writable</span>()
+    }
+
+    <span class="doccomment">/// Set whether the descriptor is writable.</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_writable</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">writable</span>: <span class="ident">bool</span>) {
+        <span class="self">self</span>.<span class="ident">attributes</span>.<span class="ident">set_writable</span>(<span class="ident">writable</span>)
+    }
+}
+
+<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">DataDescriptor</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">PropertyDescriptor</span> {
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">value</span>: <span class="ident">DataDescriptor</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
+        <span class="self">Self</span>::<span class="ident">Data</span>(<span class="ident">value</span>)
+    }
+}
+
+<span class="doccomment">/// An accessor descriptor is a property described by a getter-setter pair of functions.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// More information:</span>
+<span class="doccomment">/// - [MDN documentation][mdn]</span>
+<span class="doccomment">/// - [ECMAScript reference][spec]</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-property-descriptor-specification-type</span>
+<span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/defineProperty</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Trace</span>, <span class="ident">Finalize</span>)]</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">AccessorDescriptor</span> {
+    <span class="doccomment">/// The function serving as getter.</span>
+    <span class="ident">get</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">GcObject</span><span class="op">&gt;</span>,
+    <span class="doccomment">/// The function serving as setter.</span>
+    <span class="ident">set</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">GcObject</span><span class="op">&gt;</span>,
+    <span class="doccomment">/// The attributes of the accessor descriptor.</span>
+    <span class="ident">attributes</span>: <span class="ident">Attribute</span>,
+}
+
+<span class="kw">impl</span> <span class="ident">AccessorDescriptor</span> {
+    <span class="doccomment">/// Create a new `AccessorDescriptor`.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// If the `attributes` argument contains a `writable` flag, it will be removed so only `enumerable`</span>
+    <span class="doccomment">/// and `configurable` remains.</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">get</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">GcObject</span><span class="op">&gt;</span>, <span class="ident">set</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">GcObject</span><span class="op">&gt;</span>, <span class="kw-2">mut</span> <span class="ident">attributes</span>: <span class="ident">Attribute</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
+        <span class="comment">// Accessors can not have writable attribute.</span>
+        <span class="ident">attributes</span>.<span class="ident">remove</span>(<span class="ident">Attribute</span>::<span class="ident">WRITABLE</span>);
+        <span class="self">Self</span> {
+            <span class="ident">get</span>,
+            <span class="ident">set</span>,
+            <span class="ident">attributes</span>,
+        }
+    }
+
+    <span class="doccomment">/// Return the getter if it exists.</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">getter</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">GcObject</span><span class="op">&gt;</span> {
+        <span class="self">self</span>.<span class="ident">get</span>.<span class="ident">as_ref</span>()
+    }
+
+    <span class="doccomment">/// Return the setter if it exists.</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">setter</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">GcObject</span><span class="op">&gt;</span> {
+        <span class="self">self</span>.<span class="ident">set</span>.<span class="ident">as_ref</span>()
+    }
+
+    <span class="doccomment">/// Set the getter of the accessor descriptor.</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_getter</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">get</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">GcObject</span><span class="op">&gt;</span>) {
+        <span class="self">self</span>.<span class="ident">get</span> <span class="op">=</span> <span class="ident">get</span>;
+    }
+
+    <span class="doccomment">/// Set the setter of the accessor descriptor.</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_setter</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">set</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">GcObject</span><span class="op">&gt;</span>) {
+        <span class="self">self</span>.<span class="ident">set</span> <span class="op">=</span> <span class="ident">set</span>;
+    }
+
+    <span class="doccomment">/// Return the attributes of the accessor descriptor.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// It is guaranteed to not contain a `writable` flag</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">attributes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">Attribute</span> {
+        <span class="self">self</span>.<span class="ident">attributes</span>
+    }
+
+    <span class="doccomment">/// Check whether the descriptor is configurable.</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">configurable</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
+        <span class="self">self</span>.<span class="ident">attributes</span>.<span class="ident">configurable</span>()
+    }
+
+    <span class="doccomment">/// Set whether the descriptor is configurable.</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_configurable</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">configurable</span>: <span class="ident">bool</span>) {
+        <span class="self">self</span>.<span class="ident">attributes</span>.<span class="ident">set_configurable</span>(<span class="ident">configurable</span>)
+    }
+
+    <span class="doccomment">/// Check whether the descriptor is enumerable.</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">enumerable</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
+        <span class="self">self</span>.<span class="ident">attributes</span>.<span class="ident">enumerable</span>()
+    }
+
+    <span class="doccomment">/// Set whether the descriptor is enumerable.</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_enumerable</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">enumerable</span>: <span class="ident">bool</span>) {
+        <span class="self">self</span>.<span class="ident">attributes</span>.<span class="ident">set_enumerable</span>(<span class="ident">enumerable</span>)
+    }
+}
+
+<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">AccessorDescriptor</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">PropertyDescriptor</span> {
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">value</span>: <span class="ident">AccessorDescriptor</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
+        <span class="self">Self</span>::<span class="ident">Accessor</span>(<span class="ident">value</span>)
+    }
+}
+
+<span class="doccomment">/// This represents a JavaScript Property AKA The Property Descriptor.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// Property descriptors present in objects come in two main flavors:</span>
 <span class="doccomment">///  - data descriptors</span>
@@ -492,153 +692,19 @@
 <span class="doccomment">/// An accessor descriptor is a property described by a getter-setter pair of functions.</span>
 <span class="doccomment">/// A descriptor must be one of these two flavors; it cannot be both.</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// Any field in a JavaScript Property may be present or absent.</span>
-<span class="doccomment">///</span>
 <span class="doccomment">/// More information:</span>
 <span class="doccomment">/// - [MDN documentation][mdn]</span>
 <span class="doccomment">/// - [ECMAScript reference][spec]</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-property-descriptor-specification-type</span>
 <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/defineProperty</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Trace</span>, <span class="ident">Finalize</span>, <span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Property</span> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">attribute</span>: <span class="ident">Attribute</span>,
-    <span class="doccomment">/// The value associated with the property</span>
-    <span class="kw">pub</span> <span class="ident">value</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span>,
-    <span class="doccomment">/// The function serving as getter</span>
-    <span class="kw">pub</span> <span class="ident">get</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span>,
-    <span class="doccomment">/// The function serving as setter</span>
-    <span class="kw">pub</span> <span class="ident">set</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span>,
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Trace</span>, <span class="ident">Finalize</span>)]</span>
+<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">PropertyDescriptor</span> {
+    <span class="ident">Accessor</span>(<span class="ident">AccessorDescriptor</span>),
+    <span class="ident">Data</span>(<span class="ident">DataDescriptor</span>),
 }
 
-<span class="kw">impl</span> <span class="ident">Property</span> {
-    <span class="doccomment">/// Make a new property with the given value</span>
-    <span class="doccomment">/// The difference between New and Default:</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// New: zeros everything to make an empty object</span>
-    <span class="doccomment">/// Default: Defaults according to the spec</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="self">Self</span> {
-            <span class="ident">attribute</span>: <span class="ident">Default</span>::<span class="ident">default</span>(),
-            <span class="ident">value</span>: <span class="prelude-val">None</span>,
-            <span class="ident">get</span>: <span class="prelude-val">None</span>,
-            <span class="ident">set</span>: <span class="prelude-val">None</span>,
-        }
-    }
-
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">empty</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="self">Self</span> {
-            <span class="ident">attribute</span>: <span class="ident">Attribute</span>::<span class="ident">empty</span>(),
-            <span class="ident">value</span>: <span class="prelude-val">None</span>,
-            <span class="ident">get</span>: <span class="prelude-val">None</span>,
-            <span class="ident">set</span>: <span class="prelude-val">None</span>,
-        }
-    }
-
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">data_descriptor</span>(<span class="ident">value</span>: <span class="ident">Value</span>, <span class="ident">attribute</span>: <span class="ident">Attribute</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="self">Self</span> {
-            <span class="ident">attribute</span>,
-            <span class="ident">value</span>: <span class="prelude-val">Some</span>(<span class="ident">value</span>),
-            <span class="ident">get</span>: <span class="prelude-val">None</span>,
-            <span class="ident">set</span>: <span class="prelude-val">None</span>,
-        }
-    }
-
-    <span class="doccomment">/// Get the</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">configurable</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">attribute</span>.<span class="ident">configurable</span>()
-    }
-
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_configurable</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">configurable</span>: <span class="ident">bool</span>) {
-        <span class="self">self</span>.<span class="ident">attribute</span>.<span class="ident">set_configurable</span>(<span class="ident">configurable</span>)
-    }
-
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">configurable_or</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">value</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">attribute</span>.<span class="ident">has_configurable</span>() {
-            <span class="self">self</span>.<span class="ident">attribute</span>.<span class="ident">configurable</span>()
-        } <span class="kw">else</span> {
-            <span class="ident">value</span>
-        }
-    }
-
-    <span class="doccomment">/// Set enumerable</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">enumerable</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">attribute</span>.<span class="ident">enumerable</span>()
-    }
-
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">enumerable_or</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">value</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">attribute</span>.<span class="ident">has_enumerable</span>() {
-            <span class="self">self</span>.<span class="ident">attribute</span>.<span class="ident">enumerable</span>()
-        } <span class="kw">else</span> {
-            <span class="ident">value</span>
-        }
-    }
-
-    <span class="doccomment">/// Set writable</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">writable</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">attribute</span>.<span class="ident">writable</span>()
-    }
-
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">writable_or</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">value</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">attribute</span>.<span class="ident">has_writable</span>() {
-            <span class="self">self</span>.<span class="ident">attribute</span>.<span class="ident">writable</span>()
-        } <span class="kw">else</span> {
-            <span class="ident">value</span>
-        }
-    }
-
-    <span class="doccomment">/// Set value</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">value</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">value</span>: <span class="ident">Value</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="self">self</span>.<span class="ident">value</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">value</span>);
-        <span class="self">self</span>
-    }
-
-    <span class="doccomment">/// Set get</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">get</span>: <span class="ident">Value</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="self">self</span>.<span class="ident">get</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">get</span>);
-        <span class="self">self</span>
-    }
-
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">has_get</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">get</span>.<span class="ident">is_some</span>()
-    }
-
-    <span class="doccomment">/// Set set</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">set</span>: <span class="ident">Value</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="self">self</span>.<span class="ident">set</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">set</span>);
-        <span class="self">self</span>
-    }
-
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">has_set</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">set</span>.<span class="ident">is_some</span>()
-    }
-
-    <span class="doccomment">/// Is this an empty Property?</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// `true` if all fields are set to none</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_none</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">value</span>.<span class="ident">is_none</span>()
-            <span class="kw-2">&amp;</span><span class="op">&amp;</span> <span class="self">self</span>.<span class="ident">attribute</span>.<span class="ident">is_empty</span>()
-            <span class="kw-2">&amp;</span><span class="op">&amp;</span> <span class="self">self</span>.<span class="ident">get</span>.<span class="ident">is_none</span>()
-            <span class="kw-2">&amp;</span><span class="op">&amp;</span> <span class="self">self</span>.<span class="ident">set</span>.<span class="ident">is_none</span>()
-    }
-
+<span class="kw">impl</span> <span class="ident">PropertyDescriptor</span> {
     <span class="doccomment">/// An accessor Property Descriptor is one that includes any fields named either [[Get]] or [[Set]].</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// More information:</span>
@@ -646,8 +712,17 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-isaccessordescriptor</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_accessor_descriptor</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">get</span>.<span class="ident">is_some</span>() <span class="op">|</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">set</span>.<span class="ident">is_some</span>()
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_accessor_descriptor</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
+        <span class="macro">matches</span><span class="macro">!</span>(<span class="self">self</span>, <span class="self">Self</span>::<span class="ident">Accessor</span>(<span class="kw">_</span>))
+    }
+
+    <span class="doccomment">/// Return `Some()` if it is a accessor descriptor, `None` otherwise.</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_accessor_descriptor</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">AccessorDescriptor</span><span class="op">&gt;</span> {
+        <span class="kw">match</span> <span class="self">self</span> {
+            <span class="self">Self</span>::<span class="ident">Accessor</span>(<span class="kw-2">ref</span> <span class="ident">accessor</span>) <span class="op">=&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">accessor</span>),
+            <span class="kw">_</span> <span class="op">=&gt;</span> <span class="prelude-val">None</span>,
+        }
     }
 
     <span class="doccomment">/// A data Property Descriptor is one that includes any fields named either [[Value]] or [[Writable]].</span>
@@ -657,83 +732,43 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-isdatadescriptor</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_data_descriptor</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">value</span>.<span class="ident">is_some</span>() <span class="op">|</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">attribute</span>.<span class="ident">has_writable</span>()
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_data_descriptor</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
+        <span class="macro">matches</span><span class="macro">!</span>(<span class="self">self</span>, <span class="self">Self</span>::<span class="ident">Data</span>(<span class="kw">_</span>))
     }
 
-    <span class="doccomment">/// Check if a property is generic descriptor.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">/// - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-isgenericdescriptor</span>
+    <span class="doccomment">/// Return `Some()` if it is a data descriptor, `None` otherwise.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_generic_descriptor</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="op">!</span><span class="self">self</span>.<span class="ident">is_accessor_descriptor</span>() <span class="kw-2">&amp;</span><span class="op">&amp;</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">is_data_descriptor</span>()
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_data_descriptor</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">DataDescriptor</span><span class="op">&gt;</span> {
+        <span class="kw">match</span> <span class="self">self</span> {
+            <span class="self">Self</span>::<span class="ident">Data</span>(<span class="kw-2">ref</span> <span class="ident">data</span>) <span class="op">=&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">data</span>),
+            <span class="kw">_</span> <span class="op">=&gt;</span> <span class="prelude-val">None</span>,
+        }
     }
-}
 
-<span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">Property</span> {
-    <span class="doccomment">/// Make a default property</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">/// - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#table-default-attribute-values</span>
+    <span class="doccomment">/// Check whether the descriptor is enumerable.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="self">Self</span>::<span class="ident">new</span>()
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">enumerable</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
+        <span class="kw">match</span> <span class="self">self</span> {
+            <span class="self">Self</span>::<span class="ident">Accessor</span>(<span class="kw-2">ref</span> <span class="ident">accessor</span>) <span class="op">=&gt;</span> <span class="ident">accessor</span>.<span class="ident">enumerable</span>(),
+            <span class="self">Self</span>::<span class="ident">Data</span>(<span class="kw-2">ref</span> <span class="ident">data</span>) <span class="op">=&gt;</span> <span class="ident">data</span>.<span class="ident">enumerable</span>(),
+        }
     }
-}
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">Property</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Value</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">Property</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Value</span> {
-        <span class="kw">let</span> <span class="ident">property</span> <span class="op">=</span> <span class="ident">Value</span>::<span class="ident">new_object</span>(<span class="prelude-val">None</span>);
-        <span class="kw">if</span> <span class="ident">value</span>.<span class="ident">attribute</span>.<span class="ident">has_writable</span>() {
-            <span class="ident">property</span>.<span class="ident">set_field</span>(<span class="string">&quot;writable&quot;</span>, <span class="ident">value</span>.<span class="ident">attribute</span>.<span class="ident">writable</span>());
+    <span class="doccomment">/// Check whether the descriptor is configurable.</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">configurable</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
+        <span class="kw">match</span> <span class="self">self</span> {
+            <span class="self">Self</span>::<span class="ident">Accessor</span>(<span class="kw-2">ref</span> <span class="ident">accessor</span>) <span class="op">=&gt;</span> <span class="ident">accessor</span>.<span class="ident">configurable</span>(),
+            <span class="self">Self</span>::<span class="ident">Data</span>(<span class="kw-2">ref</span> <span class="ident">data</span>) <span class="op">=&gt;</span> <span class="ident">data</span>.<span class="ident">configurable</span>(),
         }
-
-        <span class="kw">if</span> <span class="ident">value</span>.<span class="ident">attribute</span>.<span class="ident">has_enumerable</span>() {
-            <span class="ident">property</span>.<span class="ident">set_field</span>(<span class="string">&quot;enumerable&quot;</span>, <span class="ident">value</span>.<span class="ident">attribute</span>.<span class="ident">enumerable</span>());
-        }
-
-        <span class="kw">if</span> <span class="ident">value</span>.<span class="ident">attribute</span>.<span class="ident">has_configurable</span>() {
-            <span class="ident">property</span>.<span class="ident">set_field</span>(<span class="string">&quot;configurable&quot;</span>, <span class="ident">value</span>.<span class="ident">attribute</span>.<span class="ident">configurable</span>());
-        }
-
-        <span class="ident">property</span>.<span class="ident">set_field</span>(<span class="string">&quot;value&quot;</span>, <span class="ident">value</span>.<span class="ident">value</span>.<span class="ident">clone</span>().<span class="ident">unwrap_or_else</span>(<span class="ident">Value</span>::<span class="ident">null</span>));
-        <span class="ident">property</span>.<span class="ident">set_field</span>(<span class="string">&quot;get&quot;</span>, <span class="ident">value</span>.<span class="ident">get</span>.<span class="ident">clone</span>().<span class="ident">unwrap_or_else</span>(<span class="ident">Value</span>::<span class="ident">null</span>));
-        <span class="ident">property</span>.<span class="ident">set_field</span>(<span class="string">&quot;set&quot;</span>, <span class="ident">value</span>.<span class="ident">set</span>.<span class="ident">clone</span>().<span class="ident">unwrap_or_else</span>(<span class="ident">Value</span>::<span class="ident">null</span>));
-        <span class="ident">property</span>
     }
-}
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Value</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Property</span> {
-    <span class="doccomment">/// Attempt to fetch values &quot;configurable&quot;, &quot;enumerable&quot;, &quot;writable&quot; from the value,</span>
-    <span class="doccomment">/// if they&#39;re not there default to false</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">attribute</span> <span class="op">=</span> <span class="ident">Attribute</span>::<span class="ident">empty</span>();
-
-        <span class="kw">let</span> <span class="ident">writable</span> <span class="op">=</span> <span class="ident">value</span>.<span class="ident">get_field</span>(<span class="string">&quot;writable&quot;</span>);
-        <span class="kw">if</span> <span class="op">!</span><span class="ident">writable</span>.<span class="ident">is_undefined</span>() {
-            <span class="ident">attribute</span>.<span class="ident">set_writable</span>(<span class="ident">bool</span>::<span class="ident">from</span>(<span class="kw-2">&amp;</span><span class="ident">writable</span>));
-        }
-
-        <span class="kw">let</span> <span class="ident">enumerable</span> <span class="op">=</span> <span class="ident">value</span>.<span class="ident">get_field</span>(<span class="string">&quot;enumerable&quot;</span>);
-        <span class="kw">if</span> <span class="op">!</span><span class="ident">enumerable</span>.<span class="ident">is_undefined</span>() {
-            <span class="ident">attribute</span>.<span class="ident">set_enumerable</span>(<span class="ident">bool</span>::<span class="ident">from</span>(<span class="kw-2">&amp;</span><span class="ident">enumerable</span>));
-        }
-
-        <span class="kw">let</span> <span class="ident">configurable</span> <span class="op">=</span> <span class="ident">value</span>.<span class="ident">get_field</span>(<span class="string">&quot;configurable&quot;</span>);
-        <span class="kw">if</span> <span class="op">!</span><span class="ident">configurable</span>.<span class="ident">is_undefined</span>() {
-            <span class="ident">attribute</span>.<span class="ident">set_configurable</span>(<span class="ident">bool</span>::<span class="ident">from</span>(<span class="kw-2">&amp;</span><span class="ident">configurable</span>));
-        }
-
-        <span class="self">Self</span> {
-            <span class="ident">attribute</span>,
-            <span class="ident">value</span>: <span class="prelude-val">Some</span>(<span class="ident">value</span>.<span class="ident">get_field</span>(<span class="string">&quot;value&quot;</span>)),
-            <span class="ident">get</span>: <span class="prelude-val">Some</span>(<span class="ident">value</span>.<span class="ident">get_field</span>(<span class="string">&quot;get&quot;</span>)),
-            <span class="ident">set</span>: <span class="prelude-val">Some</span>(<span class="ident">value</span>.<span class="ident">get_field</span>(<span class="string">&quot;set&quot;</span>)),
+    <span class="doccomment">/// Return the attributes of the descriptor.</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">attributes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">Attribute</span> {
+        <span class="kw">match</span> <span class="self">self</span> {
+            <span class="self">Self</span>::<span class="ident">Accessor</span>(<span class="kw-2">ref</span> <span class="ident">accessor</span>) <span class="op">=&gt;</span> <span class="ident">accessor</span>.<span class="ident">attributes</span>(),
+            <span class="self">Self</span>::<span class="ident">Data</span>(<span class="kw-2">ref</span> <span class="ident">data</span>) <span class="op">=&gt;</span> <span class="ident">data</span>.<span class="ident">attributes</span>(),
         }
     }
 }
@@ -754,7 +789,7 @@
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">RcString</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">PropertyKey</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">string</span>: <span class="ident">RcString</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PropertyKey</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">string</span>: <span class="ident">RcString</span>) <span class="op">-&gt;</span> <span class="ident">PropertyKey</span> {
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">index</span>) <span class="op">=</span> <span class="ident">string</span>.<span class="ident">parse</span>() {
             <span class="ident">PropertyKey</span>::<span class="ident">Index</span>(<span class="ident">index</span>)
         } <span class="kw">else</span> {
@@ -765,7 +800,7 @@
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">PropertyKey</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">string</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PropertyKey</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">string</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-&gt;</span> <span class="ident">PropertyKey</span> {
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">index</span>) <span class="op">=</span> <span class="ident">string</span>.<span class="ident">parse</span>() {
             <span class="ident">PropertyKey</span>::<span class="ident">Index</span>(<span class="ident">index</span>)
         } <span class="kw">else</span> {
@@ -776,7 +811,7 @@
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">PropertyKey</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">string</span>: <span class="ident">String</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PropertyKey</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">string</span>: <span class="ident">String</span>) <span class="op">-&gt;</span> <span class="ident">PropertyKey</span> {
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">index</span>) <span class="op">=</span> <span class="ident">string</span>.<span class="ident">parse</span>() {
             <span class="ident">PropertyKey</span>::<span class="ident">Index</span>(<span class="ident">index</span>)
         } <span class="kw">else</span> {
@@ -785,9 +820,9 @@
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">PropertyKey</span> {
+<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;&gt;</span> <span class="kw">for</span> <span class="ident">PropertyKey</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">string</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PropertyKey</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">string</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="ident">PropertyKey</span> {
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">index</span>) <span class="op">=</span> <span class="ident">string</span>.<span class="ident">parse</span>() {
             <span class="ident">PropertyKey</span>::<span class="ident">Index</span>(<span class="ident">index</span>)
         } <span class="kw">else</span> {
@@ -798,29 +833,29 @@
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">RcSymbol</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">PropertyKey</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">symbol</span>: <span class="ident">RcSymbol</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PropertyKey</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">symbol</span>: <span class="ident">RcSymbol</span>) <span class="op">-&gt;</span> <span class="ident">PropertyKey</span> {
         <span class="ident">PropertyKey</span>::<span class="ident">Symbol</span>(<span class="ident">symbol</span>)
     }
 }
 
 <span class="kw">impl</span> <span class="ident">fmt</span>::<span class="ident">Display</span> <span class="kw">for</span> <span class="ident">PropertyKey</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">PropertyKey</span>::<span class="ident">String</span>(<span class="kw-2">ref</span> <span class="ident">string</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">string</span>.<span class="ident">fmt</span>(<span class="ident">f</span>),
-            <span class="ident">PropertyKey</span>::<span class="ident">Symbol</span>(<span class="kw-2">ref</span> <span class="ident">symbol</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">symbol</span>.<span class="ident">fmt</span>(<span class="ident">f</span>),
-            <span class="ident">PropertyKey</span>::<span class="ident">Index</span>(<span class="ident">index</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">index</span>.<span class="ident">fmt</span>(<span class="ident">f</span>),
+            <span class="ident">PropertyKey</span>::<span class="ident">String</span>(<span class="kw-2">ref</span> <span class="ident">string</span>) <span class="op">=&gt;</span> <span class="ident">string</span>.<span class="ident">fmt</span>(<span class="ident">f</span>),
+            <span class="ident">PropertyKey</span>::<span class="ident">Symbol</span>(<span class="kw-2">ref</span> <span class="ident">symbol</span>) <span class="op">=&gt;</span> <span class="ident">symbol</span>.<span class="ident">fmt</span>(<span class="ident">f</span>),
+            <span class="ident">PropertyKey</span>::<span class="ident">Index</span>(<span class="ident">index</span>) <span class="op">=&gt;</span> <span class="ident">index</span>.<span class="ident">fmt</span>(<span class="ident">f</span>),
         }
     }
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">PropertyKey</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Value</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">property_key</span>: <span class="kw-2">&amp;</span><span class="ident">PropertyKey</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Value</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">property_key</span>: <span class="kw-2">&amp;</span><span class="ident">PropertyKey</span>) <span class="op">-&gt;</span> <span class="ident">Value</span> {
         <span class="kw">match</span> <span class="ident">property_key</span> {
-            <span class="ident">PropertyKey</span>::<span class="ident">String</span>(<span class="kw-2">ref</span> <span class="ident">string</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">string</span>.<span class="ident">clone</span>().<span class="ident">into</span>(),
-            <span class="ident">PropertyKey</span>::<span class="ident">Symbol</span>(<span class="kw-2">ref</span> <span class="ident">symbol</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">symbol</span>.<span class="ident">clone</span>().<span class="ident">into</span>(),
-            <span class="ident">PropertyKey</span>::<span class="ident">Index</span>(<span class="ident">index</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">PropertyKey</span>::<span class="ident">String</span>(<span class="kw-2">ref</span> <span class="ident">string</span>) <span class="op">=&gt;</span> <span class="ident">string</span>.<span class="ident">clone</span>().<span class="ident">into</span>(),
+            <span class="ident">PropertyKey</span>::<span class="ident">Symbol</span>(<span class="kw-2">ref</span> <span class="ident">symbol</span>) <span class="op">=&gt;</span> <span class="ident">symbol</span>.<span class="ident">clone</span>().<span class="ident">into</span>(),
+            <span class="ident">PropertyKey</span>::<span class="ident">Index</span>(<span class="ident">index</span>) <span class="op">=&gt;</span> {
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">integer</span>) <span class="op">=</span> <span class="ident">i32</span>::<span class="ident">try_from</span>(<span class="kw-2">*</span><span class="ident">index</span>) {
                     <span class="ident">Value</span>::<span class="ident">integer</span>(<span class="ident">integer</span>)
                 } <span class="kw">else</span> {
@@ -833,11 +868,11 @@
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">PropertyKey</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Value</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">property_key</span>: <span class="ident">PropertyKey</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Value</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">property_key</span>: <span class="ident">PropertyKey</span>) <span class="op">-&gt;</span> <span class="ident">Value</span> {
         <span class="kw">match</span> <span class="ident">property_key</span> {
-            <span class="ident">PropertyKey</span>::<span class="ident">String</span>(<span class="kw-2">ref</span> <span class="ident">string</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">string</span>.<span class="ident">clone</span>().<span class="ident">into</span>(),
-            <span class="ident">PropertyKey</span>::<span class="ident">Symbol</span>(<span class="kw-2">ref</span> <span class="ident">symbol</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">symbol</span>.<span class="ident">clone</span>().<span class="ident">into</span>(),
-            <span class="ident">PropertyKey</span>::<span class="ident">Index</span>(<span class="ident">index</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">PropertyKey</span>::<span class="ident">String</span>(<span class="kw-2">ref</span> <span class="ident">string</span>) <span class="op">=&gt;</span> <span class="ident">string</span>.<span class="ident">clone</span>().<span class="ident">into</span>(),
+            <span class="ident">PropertyKey</span>::<span class="ident">Symbol</span>(<span class="kw-2">ref</span> <span class="ident">symbol</span>) <span class="op">=&gt;</span> <span class="ident">symbol</span>.<span class="ident">clone</span>().<span class="ident">into</span>(),
+            <span class="ident">PropertyKey</span>::<span class="ident">Index</span>(<span class="ident">index</span>) <span class="op">=&gt;</span> {
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">integer</span>) <span class="op">=</span> <span class="ident">i32</span>::<span class="ident">try_from</span>(<span class="ident">index</span>) {
                     <span class="ident">Value</span>::<span class="ident">integer</span>(<span class="ident">integer</span>)
                 } <span class="kw">else</span> {
@@ -849,25 +884,25 @@
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">PropertyKey</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">value</span>: <span class="ident">u8</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">value</span>: <span class="ident">u8</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
         <span class="ident">PropertyKey</span>::<span class="ident">Index</span>(<span class="ident">value</span>.<span class="ident">into</span>())
     }
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">u16</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">PropertyKey</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">value</span>: <span class="ident">u16</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">value</span>: <span class="ident">u16</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
         <span class="ident">PropertyKey</span>::<span class="ident">Index</span>(<span class="ident">value</span>.<span class="ident">into</span>())
     }
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">PropertyKey</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">value</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">value</span>: <span class="ident">u32</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
         <span class="ident">PropertyKey</span>::<span class="ident">Index</span>(<span class="ident">value</span>)
     }
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">PropertyKey</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">value</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">value</span>: <span class="ident">usize</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">index</span>) <span class="op">=</span> <span class="ident">u32</span>::<span class="ident">try_from</span>(<span class="ident">value</span>) {
             <span class="ident">PropertyKey</span>::<span class="ident">Index</span>(<span class="ident">index</span>)
         } <span class="kw">else</span> {
@@ -877,7 +912,7 @@
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">isize</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">PropertyKey</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">value</span>: <span class="ident">isize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">value</span>: <span class="ident">isize</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">index</span>) <span class="op">=</span> <span class="ident">u32</span>::<span class="ident">try_from</span>(<span class="ident">value</span>) {
             <span class="ident">PropertyKey</span>::<span class="ident">Index</span>(<span class="ident">index</span>)
         } <span class="kw">else</span> {
@@ -887,7 +922,7 @@
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">i32</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">PropertyKey</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">value</span>: <span class="ident">i32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">value</span>: <span class="ident">i32</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">index</span>) <span class="op">=</span> <span class="ident">u32</span>::<span class="ident">try_from</span>(<span class="ident">value</span>) {
             <span class="ident">PropertyKey</span>::<span class="ident">Index</span>(<span class="ident">index</span>)
         } <span class="kw">else</span> {
@@ -897,7 +932,7 @@
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">f64</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">PropertyKey</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">value</span>: <span class="ident">f64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">value</span>: <span class="ident">f64</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
         <span class="kw">use</span> <span class="ident">num_traits</span>::<span class="ident">cast</span>::<span class="ident">FromPrimitive</span>;
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">index</span>) <span class="op">=</span> <span class="ident">u32</span>::<span class="ident">from_f64</span>(<span class="ident">value</span>) {
             <span class="kw">return</span> <span class="ident">PropertyKey</span>::<span class="ident">Index</span>(<span class="ident">index</span>);
@@ -908,10 +943,10 @@
 }
 
 <span class="kw">impl</span> <span class="ident">PartialEq</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">PropertyKey</span> {
-    <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="op">&amp;&amp;</span><span class="ident">str</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">PropertyKey</span>::<span class="ident">String</span>(<span class="kw-2">ref</span> <span class="ident">string</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">string</span> <span class="op">=</span><span class="op">=</span> <span class="ident">other</span>,
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
+            <span class="ident">PropertyKey</span>::<span class="ident">String</span>(<span class="kw-2">ref</span> <span class="ident">string</span>) <span class="op">=&gt;</span> <span class="ident">string</span> <span class="op">==</span> <span class="ident">other</span>,
+            <span class="kw">_</span> <span class="op">=&gt;</span> <span class="bool-val">false</span>,
         }
     }
 }

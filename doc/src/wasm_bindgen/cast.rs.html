@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/wasm-bindgen-0.2.68/src/cast.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>cast.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../wasm_bindgen/index.html'><div class='logo-container'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/wasm-bindgen-0.2.68/src/cast.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>cast.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../wasm_bindgen/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
+                <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -184,7 +185,7 @@
     <span class="doccomment">/// In general this is intended to be a more robust version of</span>
     <span class="doccomment">/// `is_instance_of`, but if you want strictly the `instanceof` operator</span>
     <span class="doccomment">/// it&#39;s recommended to use that instead.</span>
-    <span class="kw">fn</span> <span class="ident">has_type</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span>
+    <span class="kw">fn</span> <span class="ident">has_type</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span>
     <span class="kw">where</span>
         <span class="ident">T</span>: <span class="ident">JsCast</span>,
     {
@@ -197,7 +198,7 @@
     <span class="doccomment">/// This method will return `Err(self)` if `self.has_type::&lt;T&gt;()`</span>
     <span class="doccomment">/// returns `false`, and otherwise it will return `Ok(T)` manufactured with</span>
     <span class="doccomment">/// an unchecked cast (verified correct via the `has_type` operation).</span>
-    <span class="kw">fn</span> <span class="ident">dyn_into</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="self">Self</span><span class="op">&gt;</span>
+    <span class="kw">fn</span> <span class="ident">dyn_into</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="self">Self</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">T</span>: <span class="ident">JsCast</span>,
     {
@@ -214,7 +215,7 @@
     <span class="doccomment">/// This method will return `None` if `self.has_type::&lt;T&gt;()`</span>
     <span class="doccomment">/// returns `false`, and otherwise it will return `Some(&amp;T)` manufactured</span>
     <span class="doccomment">/// with an unchecked cast (verified correct via the `has_type` operation).</span>
-    <span class="kw">fn</span> <span class="ident">dyn_ref</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">T</span><span class="op">&gt;</span>
+    <span class="kw">fn</span> <span class="ident">dyn_ref</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">T</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">T</span>: <span class="ident">JsCast</span>,
     {
@@ -232,7 +233,7 @@
     <span class="doccomment">/// not check whether `self` is an instance of `T`**. If used incorrectly</span>
     <span class="doccomment">/// then this method may cause runtime exceptions in both Rust and JS, this</span>
     <span class="doccomment">/// should be used with caution.</span>
-    <span class="kw">fn</span> <span class="ident">unchecked_into</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">T</span>
+    <span class="kw">fn</span> <span class="ident">unchecked_into</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">T</span>
     <span class="kw">where</span>
         <span class="ident">T</span>: <span class="ident">JsCast</span>,
     {
@@ -250,7 +251,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// This method, unlike `unchecked_into`, does not consume ownership of</span>
     <span class="doccomment">/// `self` and instead works over a shared reference.</span>
-    <span class="kw">fn</span> <span class="ident">unchecked_ref</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">T</span>
+    <span class="kw">fn</span> <span class="ident">unchecked_ref</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="ident">T</span>
     <span class="kw">where</span>
         <span class="ident">T</span>: <span class="ident">JsCast</span>,
     {
@@ -266,7 +267,7 @@
     <span class="doccomment">/// across different realms (e.g. iframes). If you&#39;re not sure whether you</span>
     <span class="doccomment">/// specifically need only `instanceof` it&#39;s recommended to use `has_type`</span>
     <span class="doccomment">/// instead.</span>
-    <span class="kw">fn</span> <span class="ident">is_instance_of</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span>
+    <span class="kw">fn</span> <span class="ident">is_instance_of</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span>
     <span class="kw">where</span>
         <span class="ident">T</span>: <span class="ident">JsCast</span>,
     {
@@ -279,7 +280,7 @@
     <span class="doccomment">/// This is intended to be an internal implementation detail, you likely</span>
     <span class="doccomment">/// won&#39;t need to call this. It&#39;s generally called through the</span>
     <span class="doccomment">/// `is_instance_of` method instead.</span>
-    <span class="kw">fn</span> <span class="ident">instanceof</span>(<span class="ident">val</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span>;
+    <span class="kw">fn</span> <span class="ident">instanceof</span>(<span class="ident">val</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>) <span class="op">-&gt;</span> <span class="ident">bool</span>;
 
     <span class="doccomment">/// Performs a dynamic check to see whether the `JsValue` provided</span>
     <span class="doccomment">/// is a value of this type.</span>
@@ -290,7 +291,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// Other than that, this is intended to be an internal implementation</span>
     <span class="doccomment">/// detail of `has_type` and you likely won&#39;t need to call this.</span>
-    <span class="kw">fn</span> <span class="ident">is_type_of</span>(<span class="ident">val</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">is_type_of</span>(<span class="ident">val</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
         <span class="self">Self</span>::<span class="ident">instanceof</span>(<span class="ident">val</span>)
     }
 
@@ -299,7 +300,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// This is intended to be an internal implementation detail, you likely</span>
     <span class="doccomment">/// won&#39;t need to call this.</span>
-    <span class="kw">fn</span> <span class="ident">unchecked_from_js</span>(<span class="ident">val</span>: <span class="ident">JsValue</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
+    <span class="kw">fn</span> <span class="ident">unchecked_from_js</span>(<span class="ident">val</span>: <span class="ident">JsValue</span>) <span class="op">-&gt;</span> <span class="self">Self</span>;
 
     <span class="doccomment">/// Performs a zero-cost unchecked conversion from a `&amp;JsValue` into an</span>
     <span class="doccomment">/// instance of `&amp;Self`.</span>
@@ -309,7 +310,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// This is intended to be an internal implementation detail, you likely</span>
     <span class="doccomment">/// won&#39;t need to call this.</span>
-    <span class="kw">fn</span> <span class="ident">unchecked_from_js_ref</span>(<span class="ident">val</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="self">Self</span>;
+    <span class="kw">fn</span> <span class="ident">unchecked_from_js_ref</span>(<span class="ident">val</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="self">Self</span>;
 }
 </pre></div>
 </section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../../";window.currentCrate = "wasm_bindgen";</script><script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script><script defer src="../../search-index.js"></script></body></html>

@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/syn-1.0.42/src/gen/hash.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>hash.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css"><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script src="../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="shortcut icon" href="../../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../syn/index.html'><div class='logo-container'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/syn-1.0.42/src/gen/hash.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>hash.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script src="../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="shortcut icon" href="../../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../syn/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
+                <a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
 <span id="3">   3</span>
 <span id="4">   4</span>
@@ -2736,10 +2737,10 @@
         <span class="ident">H</span>: <span class="ident">Hasher</span>,
     {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">AttrStyle</span>::<span class="ident">Outer</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">AttrStyle</span>::<span class="ident">Outer</span> <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">0u8</span>);
             }
-            <span class="ident">AttrStyle</span>::<span class="ident">Inner</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">AttrStyle</span>::<span class="ident">Inner</span>(<span class="kw">_</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">1u8</span>);
             }
         }
@@ -2774,88 +2775,88 @@
         <span class="ident">H</span>: <span class="ident">Hasher</span>,
     {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">BinOp</span>::<span class="ident">Add</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">BinOp</span>::<span class="ident">Add</span>(<span class="kw">_</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">0u8</span>);
             }
-            <span class="ident">BinOp</span>::<span class="ident">Sub</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">BinOp</span>::<span class="ident">Sub</span>(<span class="kw">_</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">1u8</span>);
             }
-            <span class="ident">BinOp</span>::<span class="ident">Mul</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">BinOp</span>::<span class="ident">Mul</span>(<span class="kw">_</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">2u8</span>);
             }
-            <span class="ident">BinOp</span>::<span class="ident">Div</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">BinOp</span>::<span class="ident">Div</span>(<span class="kw">_</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">3u8</span>);
             }
-            <span class="ident">BinOp</span>::<span class="ident">Rem</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">BinOp</span>::<span class="ident">Rem</span>(<span class="kw">_</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">4u8</span>);
             }
-            <span class="ident">BinOp</span>::<span class="ident">And</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">BinOp</span>::<span class="ident">And</span>(<span class="kw">_</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">5u8</span>);
             }
-            <span class="ident">BinOp</span>::<span class="ident">Or</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">BinOp</span>::<span class="ident">Or</span>(<span class="kw">_</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">6u8</span>);
             }
-            <span class="ident">BinOp</span>::<span class="ident">BitXor</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">BinOp</span>::<span class="ident">BitXor</span>(<span class="kw">_</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">7u8</span>);
             }
-            <span class="ident">BinOp</span>::<span class="ident">BitAnd</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">BinOp</span>::<span class="ident">BitAnd</span>(<span class="kw">_</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">8u8</span>);
             }
-            <span class="ident">BinOp</span>::<span class="ident">BitOr</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">BinOp</span>::<span class="ident">BitOr</span>(<span class="kw">_</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">9u8</span>);
             }
-            <span class="ident">BinOp</span>::<span class="ident">Shl</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">BinOp</span>::<span class="ident">Shl</span>(<span class="kw">_</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">10u8</span>);
             }
-            <span class="ident">BinOp</span>::<span class="ident">Shr</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">BinOp</span>::<span class="ident">Shr</span>(<span class="kw">_</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">11u8</span>);
             }
-            <span class="ident">BinOp</span>::<span class="ident">Eq</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">BinOp</span>::<span class="ident">Eq</span>(<span class="kw">_</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">12u8</span>);
             }
-            <span class="ident">BinOp</span>::<span class="ident">Lt</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">BinOp</span>::<span class="ident">Lt</span>(<span class="kw">_</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">13u8</span>);
             }
-            <span class="ident">BinOp</span>::<span class="ident">Le</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">BinOp</span>::<span class="ident">Le</span>(<span class="kw">_</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">14u8</span>);
             }
-            <span class="ident">BinOp</span>::<span class="ident">Ne</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">BinOp</span>::<span class="ident">Ne</span>(<span class="kw">_</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">15u8</span>);
             }
-            <span class="ident">BinOp</span>::<span class="ident">Ge</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">BinOp</span>::<span class="ident">Ge</span>(<span class="kw">_</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">16u8</span>);
             }
-            <span class="ident">BinOp</span>::<span class="ident">Gt</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">BinOp</span>::<span class="ident">Gt</span>(<span class="kw">_</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">17u8</span>);
             }
-            <span class="ident">BinOp</span>::<span class="ident">AddEq</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">BinOp</span>::<span class="ident">AddEq</span>(<span class="kw">_</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">18u8</span>);
             }
-            <span class="ident">BinOp</span>::<span class="ident">SubEq</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">BinOp</span>::<span class="ident">SubEq</span>(<span class="kw">_</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">19u8</span>);
             }
-            <span class="ident">BinOp</span>::<span class="ident">MulEq</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">BinOp</span>::<span class="ident">MulEq</span>(<span class="kw">_</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">20u8</span>);
             }
-            <span class="ident">BinOp</span>::<span class="ident">DivEq</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">BinOp</span>::<span class="ident">DivEq</span>(<span class="kw">_</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">21u8</span>);
             }
-            <span class="ident">BinOp</span>::<span class="ident">RemEq</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">BinOp</span>::<span class="ident">RemEq</span>(<span class="kw">_</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">22u8</span>);
             }
-            <span class="ident">BinOp</span>::<span class="ident">BitXorEq</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">BinOp</span>::<span class="ident">BitXorEq</span>(<span class="kw">_</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">23u8</span>);
             }
-            <span class="ident">BinOp</span>::<span class="ident">BitAndEq</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">BinOp</span>::<span class="ident">BitAndEq</span>(<span class="kw">_</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">24u8</span>);
             }
-            <span class="ident">BinOp</span>::<span class="ident">BitOrEq</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">BinOp</span>::<span class="ident">BitOrEq</span>(<span class="kw">_</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">25u8</span>);
             }
-            <span class="ident">BinOp</span>::<span class="ident">ShlEq</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">BinOp</span>::<span class="ident">ShlEq</span>(<span class="kw">_</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">26u8</span>);
             }
-            <span class="ident">BinOp</span>::<span class="ident">ShrEq</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">BinOp</span>::<span class="ident">ShrEq</span>(<span class="kw">_</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">27u8</span>);
             }
         }
@@ -2919,15 +2920,15 @@
         <span class="ident">H</span>: <span class="ident">Hasher</span>,
     {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Data</span>::<span class="ident">Struct</span>(<span class="ident">v0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Data</span>::<span class="ident">Struct</span>(<span class="ident">v0</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">0u8</span>);
                 <span class="ident">v0</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
             }
-            <span class="ident">Data</span>::<span class="ident">Enum</span>(<span class="ident">v0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Data</span>::<span class="ident">Enum</span>(<span class="ident">v0</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">1u8</span>);
                 <span class="ident">v0</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
             }
-            <span class="ident">Data</span>::<span class="ident">Union</span>(<span class="ident">v0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Data</span>::<span class="ident">Union</span>(<span class="ident">v0</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">2u8</span>);
                 <span class="ident">v0</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
             }
@@ -2983,196 +2984,196 @@
     {
         <span class="kw">match</span> <span class="self">self</span> {
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
-            <span class="ident">Expr</span>::<span class="ident">Array</span>(<span class="ident">v0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Expr</span>::<span class="ident">Array</span>(<span class="ident">v0</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">0u8</span>);
                 <span class="ident">v0</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
             }
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
-            <span class="ident">Expr</span>::<span class="ident">Assign</span>(<span class="ident">v0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Expr</span>::<span class="ident">Assign</span>(<span class="ident">v0</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">1u8</span>);
                 <span class="ident">v0</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
             }
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
-            <span class="ident">Expr</span>::<span class="ident">AssignOp</span>(<span class="ident">v0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Expr</span>::<span class="ident">AssignOp</span>(<span class="ident">v0</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">2u8</span>);
                 <span class="ident">v0</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
             }
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
-            <span class="ident">Expr</span>::<span class="ident">Async</span>(<span class="ident">v0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Expr</span>::<span class="ident">Async</span>(<span class="ident">v0</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">3u8</span>);
                 <span class="ident">v0</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
             }
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
-            <span class="ident">Expr</span>::<span class="ident">Await</span>(<span class="ident">v0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Expr</span>::<span class="ident">Await</span>(<span class="ident">v0</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">4u8</span>);
                 <span class="ident">v0</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
             }
-            <span class="ident">Expr</span>::<span class="ident">Binary</span>(<span class="ident">v0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Expr</span>::<span class="ident">Binary</span>(<span class="ident">v0</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">5u8</span>);
                 <span class="ident">v0</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
             }
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
-            <span class="ident">Expr</span>::<span class="ident">Block</span>(<span class="ident">v0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Expr</span>::<span class="ident">Block</span>(<span class="ident">v0</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">6u8</span>);
                 <span class="ident">v0</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
             }
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
-            <span class="ident">Expr</span>::<span class="ident">Box</span>(<span class="ident">v0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Expr</span>::<span class="ident">Box</span>(<span class="ident">v0</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">7u8</span>);
                 <span class="ident">v0</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
             }
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
-            <span class="ident">Expr</span>::<span class="ident">Break</span>(<span class="ident">v0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Expr</span>::<span class="ident">Break</span>(<span class="ident">v0</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">8u8</span>);
                 <span class="ident">v0</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
             }
-            <span class="ident">Expr</span>::<span class="ident">Call</span>(<span class="ident">v0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Expr</span>::<span class="ident">Call</span>(<span class="ident">v0</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">9u8</span>);
                 <span class="ident">v0</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
             }
-            <span class="ident">Expr</span>::<span class="ident">Cast</span>(<span class="ident">v0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Expr</span>::<span class="ident">Cast</span>(<span class="ident">v0</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">10u8</span>);
                 <span class="ident">v0</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
             }
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
-            <span class="ident">Expr</span>::<span class="ident">Closure</span>(<span class="ident">v0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Expr</span>::<span class="ident">Closure</span>(<span class="ident">v0</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">11u8</span>);
                 <span class="ident">v0</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
             }
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
-            <span class="ident">Expr</span>::<span class="ident">Continue</span>(<span class="ident">v0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Expr</span>::<span class="ident">Continue</span>(<span class="ident">v0</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">12u8</span>);
                 <span class="ident">v0</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
             }
-            <span class="ident">Expr</span>::<span class="ident">Field</span>(<span class="ident">v0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Expr</span>::<span class="ident">Field</span>(<span class="ident">v0</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">13u8</span>);
                 <span class="ident">v0</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
             }
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
-            <span class="ident">Expr</span>::<span class="ident">ForLoop</span>(<span class="ident">v0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Expr</span>::<span class="ident">ForLoop</span>(<span class="ident">v0</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">14u8</span>);
                 <span class="ident">v0</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
             }
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
-            <span class="ident">Expr</span>::<span class="ident">Group</span>(<span class="ident">v0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Expr</span>::<span class="ident">Group</span>(<span class="ident">v0</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">15u8</span>);
                 <span class="ident">v0</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
             }
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
-            <span class="ident">Expr</span>::<span class="ident">If</span>(<span class="ident">v0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Expr</span>::<span class="ident">If</span>(<span class="ident">v0</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">16u8</span>);
                 <span class="ident">v0</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
             }
-            <span class="ident">Expr</span>::<span class="ident">Index</span>(<span class="ident">v0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Expr</span>::<span class="ident">Index</span>(<span class="ident">v0</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">17u8</span>);
                 <span class="ident">v0</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
             }
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
-            <span class="ident">Expr</span>::<span class="ident">Let</span>(<span class="ident">v0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Expr</span>::<span class="ident">Let</span>(<span class="ident">v0</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">18u8</span>);
                 <span class="ident">v0</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
             }
-            <span class="ident">Expr</span>::<span class="ident">Lit</span>(<span class="ident">v0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Expr</span>::<span class="ident">Lit</span>(<span class="ident">v0</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">19u8</span>);
                 <span class="ident">v0</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
             }
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
-            <span class="ident">Expr</span>::<span class="ident">Loop</span>(<span class="ident">v0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Expr</span>::<span class="ident">Loop</span>(<span class="ident">v0</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">20u8</span>);
                 <span class="ident">v0</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
             }
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
-            <span class="ident">Expr</span>::<span class="ident">Macro</span>(<span class="ident">v0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Expr</span>::<span class="ident">Macro</span>(<span class="ident">v0</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">21u8</span>);
                 <span class="ident">v0</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
             }
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
-            <span class="ident">Expr</span>::<span class="ident">Match</span>(<span class="ident">v0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Expr</span>::<span class="ident">Match</span>(<span class="ident">v0</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">22u8</span>);
                 <span class="ident">v0</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
             }
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
-            <span class="ident">Expr</span>::<span class="ident">MethodCall</span>(<span class="ident">v0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Expr</span>::<span class="ident">MethodCall</span>(<span class="ident">v0</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">23u8</span>);
                 <span class="ident">v0</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
             }
-            <span class="ident">Expr</span>::<span class="ident">Paren</span>(<span class="ident">v0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Expr</span>::<span class="ident">Paren</span>(<span class="ident">v0</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">24u8</span>);
                 <span class="ident">v0</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
             }
-            <span class="ident">Expr</span>::<span class="ident">Path</span>(<span class="ident">v0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Expr</span>::<span class="ident">Path</span>(<span class="ident">v0</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">25u8</span>);
                 <span class="ident">v0</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
             }
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
-            <span class="ident">Expr</span>::<span class="ident">Range</span>(<span class="ident">v0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Expr</span>::<span class="ident">Range</span>(<span class="ident">v0</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">26u8</span>);
                 <span class="ident">v0</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
             }
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
-            <span class="ident">Expr</span>::<span class="ident">Reference</span>(<span class="ident">v0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Expr</span>::<span class="ident">Reference</span>(<span class="ident">v0</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">27u8</span>);
                 <span class="ident">v0</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
             }
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
-            <span class="ident">Expr</span>::<span class="ident">Repeat</span>(<span class="ident">v0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Expr</span>::<span class="ident">Repeat</span>(<span class="ident">v0</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">28u8</span>);
                 <span class="ident">v0</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
             }
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
-            <span class="ident">Expr</span>::<span class="ident">Return</span>(<span class="ident">v0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Expr</span>::<span class="ident">Return</span>(<span class="ident">v0</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">29u8</span>);
                 <span class="ident">v0</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
             }
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
-            <span class="ident">Expr</span>::<span class="ident">Struct</span>(<span class="ident">v0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Expr</span>::<span class="ident">Struct</span>(<span class="ident">v0</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">30u8</span>);
                 <span class="ident">v0</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
             }
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
-            <span class="ident">Expr</span>::<span class="ident">Try</span>(<span class="ident">v0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Expr</span>::<span class="ident">Try</span>(<span class="ident">v0</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">31u8</span>);
                 <span class="ident">v0</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
             }
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
-            <span class="ident">Expr</span>::<span class="ident">TryBlock</span>(<span class="ident">v0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Expr</span>::<span class="ident">TryBlock</span>(<span class="ident">v0</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">32u8</span>);
                 <span class="ident">v0</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
             }
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
-            <span class="ident">Expr</span>::<span class="ident">Tuple</span>(<span class="ident">v0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Expr</span>::<span class="ident">Tuple</span>(<span class="ident">v0</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">33u8</span>);
                 <span class="ident">v0</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
             }
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
-            <span class="ident">Expr</span>::<span class="ident">Type</span>(<span class="ident">v0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Expr</span>::<span class="ident">Type</span>(<span class="ident">v0</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">34u8</span>);
                 <span class="ident">v0</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
             }
-            <span class="ident">Expr</span>::<span class="ident">Unary</span>(<span class="ident">v0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Expr</span>::<span class="ident">Unary</span>(<span class="ident">v0</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">35u8</span>);
                 <span class="ident">v0</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
             }
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
-            <span class="ident">Expr</span>::<span class="ident">Unsafe</span>(<span class="ident">v0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Expr</span>::<span class="ident">Unsafe</span>(<span class="ident">v0</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">36u8</span>);
                 <span class="ident">v0</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
             }
-            <span class="ident">Expr</span>::<span class="ident">Verbatim</span>(<span class="ident">v0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Expr</span>::<span class="ident">Verbatim</span>(<span class="ident">v0</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">37u8</span>);
                 <span class="ident">TokenStreamHelper</span>(<span class="ident">v0</span>).<span class="ident">hash</span>(<span class="ident">state</span>);
             }
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
-            <span class="ident">Expr</span>::<span class="ident">While</span>(<span class="ident">v0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Expr</span>::<span class="ident">While</span>(<span class="ident">v0</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">38u8</span>);
                 <span class="ident">v0</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
             }
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
-            <span class="ident">Expr</span>::<span class="ident">Yield</span>(<span class="ident">v0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Expr</span>::<span class="ident">Yield</span>(<span class="ident">v0</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">39u8</span>);
                 <span class="ident">v0</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
             }
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable</span><span class="macro">!</span>(),
+            <span class="kw">_</span> <span class="op">=&gt;</span> <span class="macro">unreachable</span><span class="macro">!</span>(),
         }
     }
 }
@@ -3650,15 +3651,15 @@
         <span class="ident">H</span>: <span class="ident">Hasher</span>,
     {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Fields</span>::<span class="ident">Named</span>(<span class="ident">v0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Fields</span>::<span class="ident">Named</span>(<span class="ident">v0</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">0u8</span>);
                 <span class="ident">v0</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
             }
-            <span class="ident">Fields</span>::<span class="ident">Unnamed</span>(<span class="ident">v0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Fields</span>::<span class="ident">Unnamed</span>(<span class="ident">v0</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">1u8</span>);
                 <span class="ident">v0</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
             }
-            <span class="ident">Fields</span>::<span class="ident">Unit</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Fields</span>::<span class="ident">Unit</span> <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">2u8</span>);
             }
         }
@@ -3700,11 +3701,11 @@
         <span class="ident">H</span>: <span class="ident">Hasher</span>,
     {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">FnArg</span>::<span class="ident">Receiver</span>(<span class="ident">v0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">FnArg</span>::<span class="ident">Receiver</span>(<span class="ident">v0</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">0u8</span>);
                 <span class="ident">v0</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
             }
-            <span class="ident">FnArg</span>::<span class="ident">Typed</span>(<span class="ident">v0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">FnArg</span>::<span class="ident">Typed</span>(<span class="ident">v0</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">1u8</span>);
                 <span class="ident">v0</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
             }
@@ -3718,27 +3719,27 @@
         <span class="ident">H</span>: <span class="ident">Hasher</span>,
     {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">ForeignItem</span>::<span class="ident">Fn</span>(<span class="ident">v0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">ForeignItem</span>::<span class="ident">Fn</span>(<span class="ident">v0</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">0u8</span>);
                 <span class="ident">v0</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
             }
-            <span class="ident">ForeignItem</span>::<span class="ident">Static</span>(<span class="ident">v0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">ForeignItem</span>::<span class="ident">Static</span>(<span class="ident">v0</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">1u8</span>);
                 <span class="ident">v0</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
             }
-            <span class="ident">ForeignItem</span>::<span class="ident">Type</span>(<span class="ident">v0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">ForeignItem</span>::<span class="ident">Type</span>(<span class="ident">v0</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">2u8</span>);
                 <span class="ident">v0</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
             }
-            <span class="ident">ForeignItem</span>::<span class="ident">Macro</span>(<span class="ident">v0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">ForeignItem</span>::<span class="ident">Macro</span>(<span class="ident">v0</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">3u8</span>);
                 <span class="ident">v0</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
             }
-            <span class="ident">ForeignItem</span>::<span class="ident">Verbatim</span>(<span class="ident">v0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">ForeignItem</span>::<span class="ident">Verbatim</span>(<span class="ident">v0</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">4u8</span>);
                 <span class="ident">TokenStreamHelper</span>(<span class="ident">v0</span>).<span class="ident">hash</span>(<span class="ident">state</span>);
             }
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable</span><span class="macro">!</span>(),
+            <span class="kw">_</span> <span class="op">=&gt;</span> <span class="macro">unreachable</span><span class="macro">!</span>(),
         }
     }
 }
@@ -3795,23 +3796,23 @@
         <span class="ident">H</span>: <span class="ident">Hasher</span>,
     {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">GenericArgument</span>::<span class="ident">Lifetime</span>(<span class="ident">v0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">GenericArgument</span>::<span class="ident">Lifetime</span>(<span class="ident">v0</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">0u8</span>);
                 <span class="ident">v0</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
             }
-            <span class="ident">GenericArgument</span>::<span class="ident">Type</span>(<span class="ident">v0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">GenericArgument</span>::<span class="ident">Type</span>(<span class="ident">v0</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">1u8</span>);
                 <span class="ident">v0</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
             }
-            <span class="ident">GenericArgument</span>::<span class="ident">Binding</span>(<span class="ident">v0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">GenericArgument</span>::<span class="ident">Binding</span>(<span class="ident">v0</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">2u8</span>);
                 <span class="ident">v0</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
             }
-            <span class="ident">GenericArgument</span>::<span class="ident">Constraint</span>(<span class="ident">v0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">GenericArgument</span>::<span class="ident">Constraint</span>(<span class="ident">v0</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">3u8</span>);
                 <span class="ident">v0</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
             }
-            <span class="ident">GenericArgument</span>::<span class="ident">Const</span>(<span class="ident">v0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">GenericArgument</span>::<span class="ident">Const</span>(<span class="ident">v0</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">4u8</span>);
                 <span class="ident">v0</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
             }
@@ -3825,11 +3826,11 @@
         <span class="ident">H</span>: <span class="ident">Hasher</span>,
     {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">GenericMethodArgument</span>::<span class="ident">Type</span>(<span class="ident">v0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">GenericMethodArgument</span>::<span class="ident">Type</span>(<span class="ident">v0</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">0u8</span>);
                 <span class="ident">v0</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
             }
-            <span class="ident">GenericMethodArgument</span>::<span class="ident">Const</span>(<span class="ident">v0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">GenericMethodArgument</span>::<span class="ident">Const</span>(<span class="ident">v0</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">1u8</span>);
                 <span class="ident">v0</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
             }
@@ -3843,15 +3844,15 @@
         <span class="ident">H</span>: <span class="ident">Hasher</span>,
     {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">GenericParam</span>::<span class="ident">Type</span>(<span class="ident">v0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">GenericParam</span>::<span class="ident">Type</span>(<span class="ident">v0</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">0u8</span>);
                 <span class="ident">v0</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
             }
-            <span class="ident">GenericParam</span>::<span class="ident">Lifetime</span>(<span class="ident">v0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">GenericParam</span>::<span class="ident">Lifetime</span>(<span class="ident">v0</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">1u8</span>);
                 <span class="ident">v0</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
             }
-            <span class="ident">GenericParam</span>::<span class="ident">Const</span>(<span class="ident">v0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">GenericParam</span>::<span class="ident">Const</span>(<span class="ident">v0</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">2u8</span>);
                 <span class="ident">v0</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
             }
@@ -3877,27 +3878,27 @@
         <span class="ident">H</span>: <span class="ident">Hasher</span>,
     {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">ImplItem</span>::<span class="ident">Const</span>(<span class="ident">v0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">ImplItem</span>::<span class="ident">Const</span>(<span class="ident">v0</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">0u8</span>);
                 <span class="ident">v0</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
             }
-            <span class="ident">ImplItem</span>::<span class="ident">Method</span>(<span class="ident">v0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">ImplItem</span>::<span class="ident">Method</span>(<span class="ident">v0</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">1u8</span>);
                 <span class="ident">v0</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
             }
-            <span class="ident">ImplItem</span>::<span class="ident">Type</span>(<span class="ident">v0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">ImplItem</span>::<span class="ident">Type</span>(<span class="ident">v0</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">2u8</span>);
                 <span class="ident">v0</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
             }
-            <span class="ident">ImplItem</span>::<span class="ident">Macro</span>(<span class="ident">v0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">ImplItem</span>::<span class="ident">Macro</span>(<span class="ident">v0</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">3u8</span>);
                 <span class="ident">v0</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
             }
-            <span class="ident">ImplItem</span>::<span class="ident">Verbatim</span>(<span class="ident">v0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">ImplItem</span>::<span class="ident">Verbatim</span>(<span class="ident">v0</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">4u8</span>);
                 <span class="ident">TokenStreamHelper</span>(<span class="ident">v0</span>).<span class="ident">hash</span>(<span class="ident">state</span>);
             }
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable</span><span class="macro">!</span>(),
+            <span class="kw">_</span> <span class="op">=&gt;</span> <span class="macro">unreachable</span><span class="macro">!</span>(),
         }
     }
 }
@@ -3960,75 +3961,75 @@
         <span class="ident">H</span>: <span class="ident">Hasher</span>,
     {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Item</span>::<span class="ident">Const</span>(<span class="ident">v0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Item</span>::<span class="ident">Const</span>(<span class="ident">v0</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">0u8</span>);
                 <span class="ident">v0</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
             }
-            <span class="ident">Item</span>::<span class="ident">Enum</span>(<span class="ident">v0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Item</span>::<span class="ident">Enum</span>(<span class="ident">v0</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">1u8</span>);
                 <span class="ident">v0</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
             }
-            <span class="ident">Item</span>::<span class="ident">ExternCrate</span>(<span class="ident">v0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Item</span>::<span class="ident">ExternCrate</span>(<span class="ident">v0</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">2u8</span>);
                 <span class="ident">v0</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
             }
-            <span class="ident">Item</span>::<span class="ident">Fn</span>(<span class="ident">v0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Item</span>::<span class="ident">Fn</span>(<span class="ident">v0</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">3u8</span>);
                 <span class="ident">v0</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
             }
-            <span class="ident">Item</span>::<span class="ident">ForeignMod</span>(<span class="ident">v0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Item</span>::<span class="ident">ForeignMod</span>(<span class="ident">v0</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">4u8</span>);
                 <span class="ident">v0</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
             }
-            <span class="ident">Item</span>::<span class="ident">Impl</span>(<span class="ident">v0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Item</span>::<span class="ident">Impl</span>(<span class="ident">v0</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">5u8</span>);
                 <span class="ident">v0</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
             }
-            <span class="ident">Item</span>::<span class="ident">Macro</span>(<span class="ident">v0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Item</span>::<span class="ident">Macro</span>(<span class="ident">v0</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">6u8</span>);
                 <span class="ident">v0</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
             }
-            <span class="ident">Item</span>::<span class="ident">Macro2</span>(<span class="ident">v0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Item</span>::<span class="ident">Macro2</span>(<span class="ident">v0</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">7u8</span>);
                 <span class="ident">v0</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
             }
-            <span class="ident">Item</span>::<span class="ident">Mod</span>(<span class="ident">v0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Item</span>::<span class="ident">Mod</span>(<span class="ident">v0</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">8u8</span>);
                 <span class="ident">v0</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
             }
-            <span class="ident">Item</span>::<span class="ident">Static</span>(<span class="ident">v0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Item</span>::<span class="ident">Static</span>(<span class="ident">v0</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">9u8</span>);
                 <span class="ident">v0</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
             }
-            <span class="ident">Item</span>::<span class="ident">Struct</span>(<span class="ident">v0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Item</span>::<span class="ident">Struct</span>(<span class="ident">v0</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">10u8</span>);
                 <span class="ident">v0</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
             }
-            <span class="ident">Item</span>::<span class="ident">Trait</span>(<span class="ident">v0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Item</span>::<span class="ident">Trait</span>(<span class="ident">v0</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">11u8</span>);
                 <span class="ident">v0</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
             }
-            <span class="ident">Item</span>::<span class="ident">TraitAlias</span>(<span class="ident">v0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Item</span>::<span class="ident">TraitAlias</span>(<span class="ident">v0</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">12u8</span>);
                 <span class="ident">v0</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
             }
-            <span class="ident">Item</span>::<span class="ident">Type</span>(<span class="ident">v0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Item</span>::<span class="ident">Type</span>(<span class="ident">v0</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">13u8</span>);
                 <span class="ident">v0</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
             }
-            <span class="ident">Item</span>::<span class="ident">Union</span>(<span class="ident">v0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Item</span>::<span class="ident">Union</span>(<span class="ident">v0</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">14u8</span>);
                 <span class="ident">v0</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
             }
-            <span class="ident">Item</span>::<span class="ident">Use</span>(<span class="ident">v0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Item</span>::<span class="ident">Use</span>(<span class="ident">v0</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">15u8</span>);
                 <span class="ident">v0</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
             }
-            <span class="ident">Item</span>::<span class="ident">Verbatim</span>(<span class="ident">v0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Item</span>::<span class="ident">Verbatim</span>(<span class="ident">v0</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">16u8</span>);
                 <span class="ident">TokenStreamHelper</span>(<span class="ident">v0</span>).<span class="ident">hash</span>(<span class="ident">state</span>);
             }
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable</span><span class="macro">!</span>(),
+            <span class="kw">_</span> <span class="op">=&gt;</span> <span class="macro">unreachable</span><span class="macro">!</span>(),
         }
     }
 }
@@ -4268,35 +4269,35 @@
         <span class="ident">H</span>: <span class="ident">Hasher</span>,
     {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Lit</span>::<span class="ident">Str</span>(<span class="ident">v0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Lit</span>::<span class="ident">Str</span>(<span class="ident">v0</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">0u8</span>);
                 <span class="ident">v0</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
             }
-            <span class="ident">Lit</span>::<span class="ident">ByteStr</span>(<span class="ident">v0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Lit</span>::<span class="ident">ByteStr</span>(<span class="ident">v0</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">1u8</span>);
                 <span class="ident">v0</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
             }
-            <span class="ident">Lit</span>::<span class="ident">Byte</span>(<span class="ident">v0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Lit</span>::<span class="ident">Byte</span>(<span class="ident">v0</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">2u8</span>);
                 <span class="ident">v0</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
             }
-            <span class="ident">Lit</span>::<span class="ident">Char</span>(<span class="ident">v0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Lit</span>::<span class="ident">Char</span>(<span class="ident">v0</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">3u8</span>);
                 <span class="ident">v0</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
             }
-            <span class="ident">Lit</span>::<span class="ident">Int</span>(<span class="ident">v0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Lit</span>::<span class="ident">Int</span>(<span class="ident">v0</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">4u8</span>);
                 <span class="ident">v0</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
             }
-            <span class="ident">Lit</span>::<span class="ident">Float</span>(<span class="ident">v0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Lit</span>::<span class="ident">Float</span>(<span class="ident">v0</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">5u8</span>);
                 <span class="ident">v0</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
             }
-            <span class="ident">Lit</span>::<span class="ident">Bool</span>(<span class="ident">v0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Lit</span>::<span class="ident">Bool</span>(<span class="ident">v0</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">6u8</span>);
                 <span class="ident">v0</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
             }
-            <span class="ident">Lit</span>::<span class="ident">Verbatim</span>(<span class="ident">v0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Lit</span>::<span class="ident">Verbatim</span>(<span class="ident">v0</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">7u8</span>);
                 <span class="ident">v0</span>.<span class="ident">to_string</span>().<span class="ident">hash</span>(<span class="ident">state</span>);
             }
@@ -4340,13 +4341,13 @@
         <span class="ident">H</span>: <span class="ident">Hasher</span>,
     {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">MacroDelimiter</span>::<span class="ident">Paren</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">MacroDelimiter</span>::<span class="ident">Paren</span>(<span class="kw">_</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">0u8</span>);
             }
-            <span class="ident">MacroDelimiter</span>::<span class="ident">Brace</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">MacroDelimiter</span>::<span class="ident">Brace</span>(<span class="kw">_</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">1u8</span>);
             }
-            <span class="ident">MacroDelimiter</span>::<span class="ident">Bracket</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">MacroDelimiter</span>::<span class="ident">Bracket</span>(<span class="kw">_</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">2u8</span>);
             }
         }
@@ -4359,15 +4360,15 @@
         <span class="ident">H</span>: <span class="ident">Hasher</span>,
     {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Meta</span>::<span class="ident">Path</span>(<span class="ident">v0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Meta</span>::<span class="ident">Path</span>(<span class="ident">v0</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">0u8</span>);
                 <span class="ident">v0</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
             }
-            <span class="ident">Meta</span>::<span class="ident">List</span>(<span class="ident">v0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Meta</span>::<span class="ident">List</span>(<span class="ident">v0</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">1u8</span>);
                 <span class="ident">v0</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
             }
-            <span class="ident">Meta</span>::<span class="ident">NameValue</span>(<span class="ident">v0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Meta</span>::<span class="ident">NameValue</span>(<span class="ident">v0</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">2u8</span>);
                 <span class="ident">v0</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
             }
@@ -4410,11 +4411,11 @@
         <span class="ident">H</span>: <span class="ident">Hasher</span>,
     {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">NestedMeta</span>::<span class="ident">Meta</span>(<span class="ident">v0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">NestedMeta</span>::<span class="ident">Meta</span>(<span class="ident">v0</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">0u8</span>);
                 <span class="ident">v0</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
             }
-            <span class="ident">NestedMeta</span>::<span class="ident">Lit</span>(<span class="ident">v0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">NestedMeta</span>::<span class="ident">Lit</span>(<span class="ident">v0</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">1u8</span>);
                 <span class="ident">v0</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
             }
@@ -4438,71 +4439,71 @@
         <span class="ident">H</span>: <span class="ident">Hasher</span>,
     {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Pat</span>::<span class="ident">Box</span>(<span class="ident">v0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Pat</span>::<span class="ident">Box</span>(<span class="ident">v0</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">0u8</span>);
                 <span class="ident">v0</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
             }
-            <span class="ident">Pat</span>::<span class="ident">Ident</span>(<span class="ident">v0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Pat</span>::<span class="ident">Ident</span>(<span class="ident">v0</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">1u8</span>);
                 <span class="ident">v0</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
             }
-            <span class="ident">Pat</span>::<span class="ident">Lit</span>(<span class="ident">v0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Pat</span>::<span class="ident">Lit</span>(<span class="ident">v0</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">2u8</span>);
                 <span class="ident">v0</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
             }
-            <span class="ident">Pat</span>::<span class="ident">Macro</span>(<span class="ident">v0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Pat</span>::<span class="ident">Macro</span>(<span class="ident">v0</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">3u8</span>);
                 <span class="ident">v0</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
             }
-            <span class="ident">Pat</span>::<span class="ident">Or</span>(<span class="ident">v0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Pat</span>::<span class="ident">Or</span>(<span class="ident">v0</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">4u8</span>);
                 <span class="ident">v0</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
             }
-            <span class="ident">Pat</span>::<span class="ident">Path</span>(<span class="ident">v0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Pat</span>::<span class="ident">Path</span>(<span class="ident">v0</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">5u8</span>);
                 <span class="ident">v0</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
             }
-            <span class="ident">Pat</span>::<span class="ident">Range</span>(<span class="ident">v0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Pat</span>::<span class="ident">Range</span>(<span class="ident">v0</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">6u8</span>);
                 <span class="ident">v0</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
             }
-            <span class="ident">Pat</span>::<span class="ident">Reference</span>(<span class="ident">v0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Pat</span>::<span class="ident">Reference</span>(<span class="ident">v0</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">7u8</span>);
                 <span class="ident">v0</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
             }
-            <span class="ident">Pat</span>::<span class="ident">Rest</span>(<span class="ident">v0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Pat</span>::<span class="ident">Rest</span>(<span class="ident">v0</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">8u8</span>);
                 <span class="ident">v0</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
             }
-            <span class="ident">Pat</span>::<span class="ident">Slice</span>(<span class="ident">v0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Pat</span>::<span class="ident">Slice</span>(<span class="ident">v0</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">9u8</span>);
                 <span class="ident">v0</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
             }
-            <span class="ident">Pat</span>::<span class="ident">Struct</span>(<span class="ident">v0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Pat</span>::<span class="ident">Struct</span>(<span class="ident">v0</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">10u8</span>);
                 <span class="ident">v0</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
             }
-            <span class="ident">Pat</span>::<span class="ident">Tuple</span>(<span class="ident">v0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Pat</span>::<span class="ident">Tuple</span>(<span class="ident">v0</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">11u8</span>);
                 <span class="ident">v0</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
             }
-            <span class="ident">Pat</span>::<span class="ident">TupleStruct</span>(<span class="ident">v0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Pat</span>::<span class="ident">TupleStruct</span>(<span class="ident">v0</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">12u8</span>);
                 <span class="ident">v0</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
             }
-            <span class="ident">Pat</span>::<span class="ident">Type</span>(<span class="ident">v0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Pat</span>::<span class="ident">Type</span>(<span class="ident">v0</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">13u8</span>);
                 <span class="ident">v0</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
             }
-            <span class="ident">Pat</span>::<span class="ident">Verbatim</span>(<span class="ident">v0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Pat</span>::<span class="ident">Verbatim</span>(<span class="ident">v0</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">14u8</span>);
                 <span class="ident">TokenStreamHelper</span>(<span class="ident">v0</span>).<span class="ident">hash</span>(<span class="ident">state</span>);
             }
-            <span class="ident">Pat</span>::<span class="ident">Wild</span>(<span class="ident">v0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Pat</span>::<span class="ident">Wild</span>(<span class="ident">v0</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">15u8</span>);
                 <span class="ident">v0</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
             }
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable</span><span class="macro">!</span>(),
+            <span class="kw">_</span> <span class="op">=&gt;</span> <span class="macro">unreachable</span><span class="macro">!</span>(),
         }
     }
 }
@@ -4683,14 +4684,14 @@
         <span class="ident">H</span>: <span class="ident">Hasher</span>,
     {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">PathArguments</span>::<span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">PathArguments</span>::<span class="prelude-val">None</span> <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">0u8</span>);
             }
-            <span class="ident">PathArguments</span>::<span class="ident">AngleBracketed</span>(<span class="ident">v0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">PathArguments</span>::<span class="ident">AngleBracketed</span>(<span class="ident">v0</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">1u8</span>);
                 <span class="ident">v0</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
             }
-            <span class="ident">PathArguments</span>::<span class="ident">Parenthesized</span>(<span class="ident">v0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">PathArguments</span>::<span class="ident">Parenthesized</span>(<span class="ident">v0</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">2u8</span>);
                 <span class="ident">v0</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
             }
@@ -4756,10 +4757,10 @@
         <span class="ident">H</span>: <span class="ident">Hasher</span>,
     {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">RangeLimits</span>::<span class="ident">HalfOpen</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">RangeLimits</span>::<span class="ident">HalfOpen</span>(<span class="kw">_</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">0u8</span>);
             }
-            <span class="ident">RangeLimits</span>::<span class="ident">Closed</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">RangeLimits</span>::<span class="ident">Closed</span>(<span class="kw">_</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">1u8</span>);
             }
         }
@@ -4783,10 +4784,10 @@
         <span class="ident">H</span>: <span class="ident">Hasher</span>,
     {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">ReturnType</span>::<span class="ident">Default</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">ReturnType</span>::<span class="ident">Default</span> <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">0u8</span>);
             }
-            <span class="ident">ReturnType</span>::<span class="ident">Type</span>(<span class="kw">_</span>, <span class="ident">v1</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">ReturnType</span>::<span class="ident">Type</span>(<span class="kw">_</span>, <span class="ident">v1</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">1u8</span>);
                 <span class="ident">v1</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
             }
@@ -4817,19 +4818,19 @@
         <span class="ident">H</span>: <span class="ident">Hasher</span>,
     {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Stmt</span>::<span class="ident">Local</span>(<span class="ident">v0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Stmt</span>::<span class="ident">Local</span>(<span class="ident">v0</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">0u8</span>);
                 <span class="ident">v0</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
             }
-            <span class="ident">Stmt</span>::<span class="ident">Item</span>(<span class="ident">v0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Stmt</span>::<span class="ident">Item</span>(<span class="ident">v0</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">1u8</span>);
                 <span class="ident">v0</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
             }
-            <span class="ident">Stmt</span>::<span class="ident">Expr</span>(<span class="ident">v0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Stmt</span>::<span class="ident">Expr</span>(<span class="ident">v0</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">2u8</span>);
                 <span class="ident">v0</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
             }
-            <span class="ident">Stmt</span>::<span class="ident">Semi</span>(<span class="ident">v0</span>, <span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Stmt</span>::<span class="ident">Semi</span>(<span class="ident">v0</span>, <span class="kw">_</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">3u8</span>);
                 <span class="ident">v0</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
             }
@@ -4855,10 +4856,10 @@
         <span class="ident">H</span>: <span class="ident">Hasher</span>,
     {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">TraitBoundModifier</span>::<span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">TraitBoundModifier</span>::<span class="prelude-val">None</span> <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">0u8</span>);
             }
-            <span class="ident">TraitBoundModifier</span>::<span class="ident">Maybe</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">TraitBoundModifier</span>::<span class="ident">Maybe</span>(<span class="kw">_</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">1u8</span>);
             }
         }
@@ -4871,27 +4872,27 @@
         <span class="ident">H</span>: <span class="ident">Hasher</span>,
     {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">TraitItem</span>::<span class="ident">Const</span>(<span class="ident">v0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">TraitItem</span>::<span class="ident">Const</span>(<span class="ident">v0</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">0u8</span>);
                 <span class="ident">v0</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
             }
-            <span class="ident">TraitItem</span>::<span class="ident">Method</span>(<span class="ident">v0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">TraitItem</span>::<span class="ident">Method</span>(<span class="ident">v0</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">1u8</span>);
                 <span class="ident">v0</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
             }
-            <span class="ident">TraitItem</span>::<span class="ident">Type</span>(<span class="ident">v0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">TraitItem</span>::<span class="ident">Type</span>(<span class="ident">v0</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">2u8</span>);
                 <span class="ident">v0</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
             }
-            <span class="ident">TraitItem</span>::<span class="ident">Macro</span>(<span class="ident">v0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">TraitItem</span>::<span class="ident">Macro</span>(<span class="ident">v0</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">3u8</span>);
                 <span class="ident">v0</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
             }
-            <span class="ident">TraitItem</span>::<span class="ident">Verbatim</span>(<span class="ident">v0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">TraitItem</span>::<span class="ident">Verbatim</span>(<span class="ident">v0</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">4u8</span>);
                 <span class="ident">TokenStreamHelper</span>(<span class="ident">v0</span>).<span class="ident">hash</span>(<span class="ident">state</span>);
             }
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable</span><span class="macro">!</span>(),
+            <span class="kw">_</span> <span class="op">=&gt;</span> <span class="macro">unreachable</span><span class="macro">!</span>(),
         }
     }
 }
@@ -4951,67 +4952,67 @@
         <span class="ident">H</span>: <span class="ident">Hasher</span>,
     {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Type</span>::<span class="ident">Array</span>(<span class="ident">v0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Type</span>::<span class="ident">Array</span>(<span class="ident">v0</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">0u8</span>);
                 <span class="ident">v0</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
             }
-            <span class="ident">Type</span>::<span class="ident">BareFn</span>(<span class="ident">v0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Type</span>::<span class="ident">BareFn</span>(<span class="ident">v0</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">1u8</span>);
                 <span class="ident">v0</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
             }
-            <span class="ident">Type</span>::<span class="ident">Group</span>(<span class="ident">v0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Type</span>::<span class="ident">Group</span>(<span class="ident">v0</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">2u8</span>);
                 <span class="ident">v0</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
             }
-            <span class="ident">Type</span>::<span class="ident">ImplTrait</span>(<span class="ident">v0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Type</span>::<span class="ident">ImplTrait</span>(<span class="ident">v0</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">3u8</span>);
                 <span class="ident">v0</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
             }
-            <span class="ident">Type</span>::<span class="ident">Infer</span>(<span class="ident">v0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Type</span>::<span class="ident">Infer</span>(<span class="ident">v0</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">4u8</span>);
                 <span class="ident">v0</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
             }
-            <span class="ident">Type</span>::<span class="ident">Macro</span>(<span class="ident">v0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Type</span>::<span class="ident">Macro</span>(<span class="ident">v0</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">5u8</span>);
                 <span class="ident">v0</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
             }
-            <span class="ident">Type</span>::<span class="ident">Never</span>(<span class="ident">v0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Type</span>::<span class="ident">Never</span>(<span class="ident">v0</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">6u8</span>);
                 <span class="ident">v0</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
             }
-            <span class="ident">Type</span>::<span class="ident">Paren</span>(<span class="ident">v0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Type</span>::<span class="ident">Paren</span>(<span class="ident">v0</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">7u8</span>);
                 <span class="ident">v0</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
             }
-            <span class="ident">Type</span>::<span class="ident">Path</span>(<span class="ident">v0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Type</span>::<span class="ident">Path</span>(<span class="ident">v0</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">8u8</span>);
                 <span class="ident">v0</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
             }
-            <span class="ident">Type</span>::<span class="ident">Ptr</span>(<span class="ident">v0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Type</span>::<span class="ident">Ptr</span>(<span class="ident">v0</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">9u8</span>);
                 <span class="ident">v0</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
             }
-            <span class="ident">Type</span>::<span class="ident">Reference</span>(<span class="ident">v0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Type</span>::<span class="ident">Reference</span>(<span class="ident">v0</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">10u8</span>);
                 <span class="ident">v0</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
             }
-            <span class="ident">Type</span>::<span class="ident">Slice</span>(<span class="ident">v0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Type</span>::<span class="ident">Slice</span>(<span class="ident">v0</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">11u8</span>);
                 <span class="ident">v0</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
             }
-            <span class="ident">Type</span>::<span class="ident">TraitObject</span>(<span class="ident">v0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Type</span>::<span class="ident">TraitObject</span>(<span class="ident">v0</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">12u8</span>);
                 <span class="ident">v0</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
             }
-            <span class="ident">Type</span>::<span class="ident">Tuple</span>(<span class="ident">v0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Type</span>::<span class="ident">Tuple</span>(<span class="ident">v0</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">13u8</span>);
                 <span class="ident">v0</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
             }
-            <span class="ident">Type</span>::<span class="ident">Verbatim</span>(<span class="ident">v0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Type</span>::<span class="ident">Verbatim</span>(<span class="ident">v0</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">14u8</span>);
                 <span class="ident">TokenStreamHelper</span>(<span class="ident">v0</span>).<span class="ident">hash</span>(<span class="ident">state</span>);
             }
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable</span><span class="macro">!</span>(),
+            <span class="kw">_</span> <span class="op">=&gt;</span> <span class="macro">unreachable</span><span class="macro">!</span>(),
         }
     }
 }
@@ -5103,11 +5104,11 @@
         <span class="ident">H</span>: <span class="ident">Hasher</span>,
     {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">TypeParamBound</span>::<span class="ident">Trait</span>(<span class="ident">v0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">TypeParamBound</span>::<span class="ident">Trait</span>(<span class="ident">v0</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">0u8</span>);
                 <span class="ident">v0</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
             }
-            <span class="ident">TypeParamBound</span>::<span class="ident">Lifetime</span>(<span class="ident">v0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">TypeParamBound</span>::<span class="ident">Lifetime</span>(<span class="ident">v0</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">1u8</span>);
                 <span class="ident">v0</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
             }
@@ -5190,13 +5191,13 @@
         <span class="ident">H</span>: <span class="ident">Hasher</span>,
     {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">UnOp</span>::<span class="ident">Deref</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">UnOp</span>::<span class="ident">Deref</span>(<span class="kw">_</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">0u8</span>);
             }
-            <span class="ident">UnOp</span>::<span class="ident">Not</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">UnOp</span>::<span class="ident">Not</span>(<span class="kw">_</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">1u8</span>);
             }
-            <span class="ident">UnOp</span>::<span class="ident">Neg</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">UnOp</span>::<span class="ident">Neg</span>(<span class="kw">_</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">2u8</span>);
             }
         }
@@ -5255,23 +5256,23 @@
         <span class="ident">H</span>: <span class="ident">Hasher</span>,
     {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">UseTree</span>::<span class="ident">Path</span>(<span class="ident">v0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">UseTree</span>::<span class="ident">Path</span>(<span class="ident">v0</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">0u8</span>);
                 <span class="ident">v0</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
             }
-            <span class="ident">UseTree</span>::<span class="ident">Name</span>(<span class="ident">v0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">UseTree</span>::<span class="ident">Name</span>(<span class="ident">v0</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">1u8</span>);
                 <span class="ident">v0</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
             }
-            <span class="ident">UseTree</span>::<span class="ident">Rename</span>(<span class="ident">v0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">UseTree</span>::<span class="ident">Rename</span>(<span class="ident">v0</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">2u8</span>);
                 <span class="ident">v0</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
             }
-            <span class="ident">UseTree</span>::<span class="ident">Glob</span>(<span class="ident">v0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">UseTree</span>::<span class="ident">Glob</span>(<span class="ident">v0</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">3u8</span>);
                 <span class="ident">v0</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
             }
-            <span class="ident">UseTree</span>::<span class="ident">Group</span>(<span class="ident">v0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">UseTree</span>::<span class="ident">Group</span>(<span class="ident">v0</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">4u8</span>);
                 <span class="ident">v0</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
             }
@@ -5332,19 +5333,19 @@
         <span class="ident">H</span>: <span class="ident">Hasher</span>,
     {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Visibility</span>::<span class="ident">Public</span>(<span class="ident">v0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Visibility</span>::<span class="ident">Public</span>(<span class="ident">v0</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">0u8</span>);
                 <span class="ident">v0</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
             }
-            <span class="ident">Visibility</span>::<span class="ident">Crate</span>(<span class="ident">v0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Visibility</span>::<span class="ident">Crate</span>(<span class="ident">v0</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">1u8</span>);
                 <span class="ident">v0</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
             }
-            <span class="ident">Visibility</span>::<span class="ident">Restricted</span>(<span class="ident">v0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Visibility</span>::<span class="ident">Restricted</span>(<span class="ident">v0</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">2u8</span>);
                 <span class="ident">v0</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
             }
-            <span class="ident">Visibility</span>::<span class="ident">Inherited</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Visibility</span>::<span class="ident">Inherited</span> <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">3u8</span>);
             }
         }
@@ -5366,15 +5367,15 @@
         <span class="ident">H</span>: <span class="ident">Hasher</span>,
     {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">WherePredicate</span>::<span class="ident">Type</span>(<span class="ident">v0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">WherePredicate</span>::<span class="ident">Type</span>(<span class="ident">v0</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">0u8</span>);
                 <span class="ident">v0</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
             }
-            <span class="ident">WherePredicate</span>::<span class="ident">Lifetime</span>(<span class="ident">v0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">WherePredicate</span>::<span class="ident">Lifetime</span>(<span class="ident">v0</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">1u8</span>);
                 <span class="ident">v0</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
             }
-            <span class="ident">WherePredicate</span>::<span class="ident">Eq</span>(<span class="ident">v0</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">WherePredicate</span>::<span class="ident">Eq</span>(<span class="ident">v0</span>) <span class="op">=&gt;</span> {
                 <span class="ident">state</span>.<span class="ident">write_u8</span>(<span class="number">2u8</span>);
                 <span class="ident">v0</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
             }

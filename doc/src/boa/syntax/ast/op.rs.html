@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `boa/src/syntax/ast/op.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>op.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../dark.css"><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script src="../../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="shortcut icon" href="https://raw.githubusercontent.com/jasonwilliams/boa/master/assets/logo.svg"><style type="text/css">#crate-search{background-image:url("../../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../../boa/index.html'><div class='logo-container'><img src='https://raw.githubusercontent.com/jasonwilliams/boa/master/assets/logo.svg' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../../../settings.html"><img src="../../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `boa/src/syntax/ast/op.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>op.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled ><script src="../../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="shortcut icon" href="https://raw.githubusercontent.com/jasonwilliams/boa/master/assets/logo.svg"><style type="text/css">#crate-search{background-image:url("../../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../../boa/index.html'><div class='logo-container'><img src='https://raw.githubusercontent.com/jasonwilliams/boa/master/assets/logo.svg' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
+                <a id="settings-menu" href="../../../../settings.html"><img src="../../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -1077,17 +1078,17 @@
 }
 
 <span class="kw">impl</span> <span class="ident">Display</span> <span class="kw">for</span> <span class="ident">NumOp</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span> {
         <span class="macro">write</span><span class="macro">!</span>(
             <span class="ident">f</span>,
             <span class="string">&quot;{}&quot;</span>,
             <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-                <span class="self">Self</span>::<span class="ident">Add</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;+&quot;</span>,
-                <span class="self">Self</span>::<span class="ident">Sub</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;-&quot;</span>,
-                <span class="self">Self</span>::<span class="ident">Div</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;/&quot;</span>,
-                <span class="self">Self</span>::<span class="ident">Mul</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;*&quot;</span>,
-                <span class="self">Self</span>::<span class="ident">Exp</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;**&quot;</span>,
-                <span class="self">Self</span>::<span class="ident">Mod</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;%&quot;</span>,
+                <span class="self">Self</span>::<span class="ident">Add</span> <span class="op">=&gt;</span> <span class="string">&quot;+&quot;</span>,
+                <span class="self">Self</span>::<span class="ident">Sub</span> <span class="op">=&gt;</span> <span class="string">&quot;-&quot;</span>,
+                <span class="self">Self</span>::<span class="ident">Div</span> <span class="op">=&gt;</span> <span class="string">&quot;/&quot;</span>,
+                <span class="self">Self</span>::<span class="ident">Mul</span> <span class="op">=&gt;</span> <span class="string">&quot;*&quot;</span>,
+                <span class="self">Self</span>::<span class="ident">Exp</span> <span class="op">=&gt;</span> <span class="string">&quot;**&quot;</span>,
+                <span class="self">Self</span>::<span class="ident">Mod</span> <span class="op">=&gt;</span> <span class="string">&quot;%&quot;</span>,
             }
         )
     }
@@ -1290,20 +1291,20 @@
 }
 
 <span class="kw">impl</span> <span class="ident">Display</span> <span class="kw">for</span> <span class="ident">UnaryOp</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span> {
         <span class="macro">write</span><span class="macro">!</span>(
             <span class="ident">f</span>,
             <span class="string">&quot;{}&quot;</span>,
             <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-                <span class="self">Self</span>::<span class="ident">IncrementPost</span> <span class="op">|</span> <span class="self">Self</span>::<span class="ident">IncrementPre</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;++&quot;</span>,
-                <span class="self">Self</span>::<span class="ident">DecrementPost</span> <span class="op">|</span> <span class="self">Self</span>::<span class="ident">DecrementPre</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;--&quot;</span>,
-                <span class="self">Self</span>::<span class="ident">Plus</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;+&quot;</span>,
-                <span class="self">Self</span>::<span class="ident">Minus</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;-&quot;</span>,
-                <span class="self">Self</span>::<span class="ident">Not</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;!&quot;</span>,
-                <span class="self">Self</span>::<span class="ident">Tilde</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;~&quot;</span>,
-                <span class="self">Self</span>::<span class="ident">Delete</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;delete&quot;</span>,
-                <span class="self">Self</span>::<span class="ident">TypeOf</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;typeof&quot;</span>,
-                <span class="self">Self</span>::<span class="ident">Void</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;void&quot;</span>,
+                <span class="self">Self</span>::<span class="ident">IncrementPost</span> <span class="op">|</span> <span class="self">Self</span>::<span class="ident">IncrementPre</span> <span class="op">=&gt;</span> <span class="string">&quot;++&quot;</span>,
+                <span class="self">Self</span>::<span class="ident">DecrementPost</span> <span class="op">|</span> <span class="self">Self</span>::<span class="ident">DecrementPre</span> <span class="op">=&gt;</span> <span class="string">&quot;--&quot;</span>,
+                <span class="self">Self</span>::<span class="ident">Plus</span> <span class="op">=&gt;</span> <span class="string">&quot;+&quot;</span>,
+                <span class="self">Self</span>::<span class="ident">Minus</span> <span class="op">=&gt;</span> <span class="string">&quot;-&quot;</span>,
+                <span class="self">Self</span>::<span class="ident">Not</span> <span class="op">=&gt;</span> <span class="string">&quot;!&quot;</span>,
+                <span class="self">Self</span>::<span class="ident">Tilde</span> <span class="op">=&gt;</span> <span class="string">&quot;~&quot;</span>,
+                <span class="self">Self</span>::<span class="ident">Delete</span> <span class="op">=&gt;</span> <span class="string">&quot;delete&quot;</span>,
+                <span class="self">Self</span>::<span class="ident">TypeOf</span> <span class="op">=&gt;</span> <span class="string">&quot;typeof&quot;</span>,
+                <span class="self">Self</span>::<span class="ident">Void</span> <span class="op">=&gt;</span> <span class="string">&quot;void&quot;</span>,
             }
         )
     }
@@ -1408,17 +1409,17 @@
 }
 
 <span class="kw">impl</span> <span class="ident">Display</span> <span class="kw">for</span> <span class="ident">BitOp</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span> {
         <span class="macro">write</span><span class="macro">!</span>(
             <span class="ident">f</span>,
             <span class="string">&quot;{}&quot;</span>,
             <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-                <span class="self">Self</span>::<span class="ident">And</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;&amp;&quot;</span>,
-                <span class="self">Self</span>::<span class="ident">Or</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;|&quot;</span>,
-                <span class="self">Self</span>::<span class="ident">Xor</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;^&quot;</span>,
-                <span class="self">Self</span>::<span class="ident">Shl</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;&lt;&lt;&quot;</span>,
-                <span class="self">Self</span>::<span class="ident">Shr</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;&gt;&gt;&quot;</span>,
-                <span class="self">Self</span>::<span class="ident">UShr</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;&gt;&gt;&gt;&quot;</span>,
+                <span class="self">Self</span>::<span class="ident">And</span> <span class="op">=&gt;</span> <span class="string">&quot;&amp;&quot;</span>,
+                <span class="self">Self</span>::<span class="ident">Or</span> <span class="op">=&gt;</span> <span class="string">&quot;|&quot;</span>,
+                <span class="self">Self</span>::<span class="ident">Xor</span> <span class="op">=&gt;</span> <span class="string">&quot;^&quot;</span>,
+                <span class="self">Self</span>::<span class="ident">Shl</span> <span class="op">=&gt;</span> <span class="string">&quot;&lt;&lt;&quot;</span>,
+                <span class="self">Self</span>::<span class="ident">Shr</span> <span class="op">=&gt;</span> <span class="string">&quot;&gt;&gt;&quot;</span>,
+                <span class="self">Self</span>::<span class="ident">UShr</span> <span class="op">=&gt;</span> <span class="string">&quot;&gt;&gt;&gt;&quot;</span>,
             }
         )
     }
@@ -1601,21 +1602,21 @@
 }
 
 <span class="kw">impl</span> <span class="ident">Display</span> <span class="kw">for</span> <span class="ident">CompOp</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span> {
         <span class="macro">write</span><span class="macro">!</span>(
             <span class="ident">f</span>,
             <span class="string">&quot;{}&quot;</span>,
             <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-                <span class="self">Self</span>::<span class="ident">Equal</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;==&quot;</span>,
-                <span class="self">Self</span>::<span class="ident">NotEqual</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;!=&quot;</span>,
-                <span class="self">Self</span>::<span class="ident">StrictEqual</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;===&quot;</span>,
-                <span class="self">Self</span>::<span class="ident">StrictNotEqual</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;!==&quot;</span>,
-                <span class="self">Self</span>::<span class="ident">GreaterThan</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;&gt;&quot;</span>,
-                <span class="self">Self</span>::<span class="ident">GreaterThanOrEqual</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;&gt;=&quot;</span>,
-                <span class="self">Self</span>::<span class="ident">LessThan</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;&lt;&quot;</span>,
-                <span class="self">Self</span>::<span class="ident">LessThanOrEqual</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;&lt;=&quot;</span>,
-                <span class="self">Self</span>::<span class="ident">In</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;in&quot;</span>,
-                <span class="self">Self</span>::<span class="ident">InstanceOf</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;instanceof&quot;</span>,
+                <span class="self">Self</span>::<span class="ident">Equal</span> <span class="op">=&gt;</span> <span class="string">&quot;==&quot;</span>,
+                <span class="self">Self</span>::<span class="ident">NotEqual</span> <span class="op">=&gt;</span> <span class="string">&quot;!=&quot;</span>,
+                <span class="self">Self</span>::<span class="ident">StrictEqual</span> <span class="op">=&gt;</span> <span class="string">&quot;===&quot;</span>,
+                <span class="self">Self</span>::<span class="ident">StrictNotEqual</span> <span class="op">=&gt;</span> <span class="string">&quot;!==&quot;</span>,
+                <span class="self">Self</span>::<span class="ident">GreaterThan</span> <span class="op">=&gt;</span> <span class="string">&quot;&gt;&quot;</span>,
+                <span class="self">Self</span>::<span class="ident">GreaterThanOrEqual</span> <span class="op">=&gt;</span> <span class="string">&quot;&gt;=&quot;</span>,
+                <span class="self">Self</span>::<span class="ident">LessThan</span> <span class="op">=&gt;</span> <span class="string">&quot;&lt;&quot;</span>,
+                <span class="self">Self</span>::<span class="ident">LessThanOrEqual</span> <span class="op">=&gt;</span> <span class="string">&quot;&lt;=&quot;</span>,
+                <span class="self">Self</span>::<span class="ident">In</span> <span class="op">=&gt;</span> <span class="string">&quot;in&quot;</span>,
+                <span class="self">Self</span>::<span class="ident">InstanceOf</span> <span class="op">=&gt;</span> <span class="string">&quot;instanceof&quot;</span>,
             }
         )
     }
@@ -1667,13 +1668,13 @@
 }
 
 <span class="kw">impl</span> <span class="ident">Display</span> <span class="kw">for</span> <span class="ident">LogOp</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span> {
         <span class="macro">write</span><span class="macro">!</span>(
             <span class="ident">f</span>,
             <span class="string">&quot;{}&quot;</span>,
             <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-                <span class="self">Self</span>::<span class="ident">And</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;&amp;&amp;&quot;</span>,
-                <span class="self">Self</span>::<span class="ident">Or</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;||&quot;</span>,
+                <span class="self">Self</span>::<span class="ident">And</span> <span class="op">=&gt;</span> <span class="string">&quot;&amp;&amp;&quot;</span>,
+                <span class="self">Self</span>::<span class="ident">Or</span> <span class="op">=&gt;</span> <span class="string">&quot;||&quot;</span>,
             }
         )
     }
@@ -1717,47 +1718,47 @@
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">NumOp</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">BinOp</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">op</span>: <span class="ident">NumOp</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">op</span>: <span class="ident">NumOp</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
         <span class="self">Self</span>::<span class="ident">Num</span>(<span class="ident">op</span>)
     }
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">BitOp</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">BinOp</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">op</span>: <span class="ident">BitOp</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">op</span>: <span class="ident">BitOp</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
         <span class="self">Self</span>::<span class="ident">Bit</span>(<span class="ident">op</span>)
     }
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">CompOp</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">BinOp</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">op</span>: <span class="ident">CompOp</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">op</span>: <span class="ident">CompOp</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
         <span class="self">Self</span>::<span class="ident">Comp</span>(<span class="ident">op</span>)
     }
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">LogOp</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">BinOp</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">op</span>: <span class="ident">LogOp</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">op</span>: <span class="ident">LogOp</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
         <span class="self">Self</span>::<span class="ident">Log</span>(<span class="ident">op</span>)
     }
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">AssignOp</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">BinOp</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">op</span>: <span class="ident">AssignOp</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">op</span>: <span class="ident">AssignOp</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
         <span class="self">Self</span>::<span class="ident">Assign</span>(<span class="ident">op</span>)
     }
 }
 
 <span class="kw">impl</span> <span class="ident">Display</span> <span class="kw">for</span> <span class="ident">BinOp</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span> {
         <span class="macro">write</span><span class="macro">!</span>(
             <span class="ident">f</span>,
             <span class="string">&quot;{}&quot;</span>,
             <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-                <span class="self">Self</span>::<span class="ident">Num</span>(<span class="kw-2">ref</span> <span class="ident">op</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">op</span>.<span class="ident">to_string</span>(),
-                <span class="self">Self</span>::<span class="ident">Bit</span>(<span class="kw-2">ref</span> <span class="ident">op</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">op</span>.<span class="ident">to_string</span>(),
-                <span class="self">Self</span>::<span class="ident">Comp</span>(<span class="kw-2">ref</span> <span class="ident">op</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">op</span>.<span class="ident">to_string</span>(),
-                <span class="self">Self</span>::<span class="ident">Log</span>(<span class="kw-2">ref</span> <span class="ident">op</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">op</span>.<span class="ident">to_string</span>(),
-                <span class="self">Self</span>::<span class="ident">Assign</span>(<span class="kw-2">ref</span> <span class="ident">op</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">op</span>.<span class="ident">to_string</span>(),
-                <span class="self">Self</span>::<span class="ident">Comma</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;,&quot;</span>.<span class="ident">to_string</span>(),
+                <span class="self">Self</span>::<span class="ident">Num</span>(<span class="kw-2">ref</span> <span class="ident">op</span>) <span class="op">=&gt;</span> <span class="ident">op</span>.<span class="ident">to_string</span>(),
+                <span class="self">Self</span>::<span class="ident">Bit</span>(<span class="kw-2">ref</span> <span class="ident">op</span>) <span class="op">=&gt;</span> <span class="ident">op</span>.<span class="ident">to_string</span>(),
+                <span class="self">Self</span>::<span class="ident">Comp</span>(<span class="kw-2">ref</span> <span class="ident">op</span>) <span class="op">=&gt;</span> <span class="ident">op</span>.<span class="ident">to_string</span>(),
+                <span class="self">Self</span>::<span class="ident">Log</span>(<span class="kw-2">ref</span> <span class="ident">op</span>) <span class="op">=&gt;</span> <span class="ident">op</span>.<span class="ident">to_string</span>(),
+                <span class="self">Self</span>::<span class="ident">Assign</span>(<span class="kw-2">ref</span> <span class="ident">op</span>) <span class="op">=&gt;</span> <span class="ident">op</span>.<span class="ident">to_string</span>(),
+                <span class="self">Self</span>::<span class="ident">Comma</span> <span class="op">=&gt;</span> <span class="string">&quot;,&quot;</span>.<span class="ident">to_string</span>(),
             }
         )
     }
@@ -1938,23 +1939,23 @@
 }
 
 <span class="kw">impl</span> <span class="ident">Display</span> <span class="kw">for</span> <span class="ident">AssignOp</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span> {
         <span class="macro">write</span><span class="macro">!</span>(
             <span class="ident">f</span>,
             <span class="string">&quot;{}&quot;</span>,
             <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-                <span class="self">Self</span>::<span class="ident">Add</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;+=&quot;</span>,
-                <span class="self">Self</span>::<span class="ident">Sub</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;-=&quot;</span>,
-                <span class="self">Self</span>::<span class="ident">Mul</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;*=&quot;</span>,
-                <span class="self">Self</span>::<span class="ident">Exp</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;**=&quot;</span>,
-                <span class="self">Self</span>::<span class="ident">Div</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;/=&quot;</span>,
-                <span class="self">Self</span>::<span class="ident">Mod</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;%=&quot;</span>,
-                <span class="self">Self</span>::<span class="ident">And</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;&amp;=&quot;</span>,
-                <span class="self">Self</span>::<span class="ident">Or</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;|=&quot;</span>,
-                <span class="self">Self</span>::<span class="ident">Xor</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;^=&quot;</span>,
-                <span class="self">Self</span>::<span class="ident">Shl</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;&lt;&lt;=&quot;</span>,
-                <span class="self">Self</span>::<span class="ident">Shr</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;&gt;&gt;=&quot;</span>,
-                <span class="self">Self</span>::<span class="ident">Ushr</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;&gt;&gt;&gt;=&quot;</span>,
+                <span class="self">Self</span>::<span class="ident">Add</span> <span class="op">=&gt;</span> <span class="string">&quot;+=&quot;</span>,
+                <span class="self">Self</span>::<span class="ident">Sub</span> <span class="op">=&gt;</span> <span class="string">&quot;-=&quot;</span>,
+                <span class="self">Self</span>::<span class="ident">Mul</span> <span class="op">=&gt;</span> <span class="string">&quot;*=&quot;</span>,
+                <span class="self">Self</span>::<span class="ident">Exp</span> <span class="op">=&gt;</span> <span class="string">&quot;**=&quot;</span>,
+                <span class="self">Self</span>::<span class="ident">Div</span> <span class="op">=&gt;</span> <span class="string">&quot;/=&quot;</span>,
+                <span class="self">Self</span>::<span class="ident">Mod</span> <span class="op">=&gt;</span> <span class="string">&quot;%=&quot;</span>,
+                <span class="self">Self</span>::<span class="ident">And</span> <span class="op">=&gt;</span> <span class="string">&quot;&amp;=&quot;</span>,
+                <span class="self">Self</span>::<span class="ident">Or</span> <span class="op">=&gt;</span> <span class="string">&quot;|=&quot;</span>,
+                <span class="self">Self</span>::<span class="ident">Xor</span> <span class="op">=&gt;</span> <span class="string">&quot;^=&quot;</span>,
+                <span class="self">Self</span>::<span class="ident">Shl</span> <span class="op">=&gt;</span> <span class="string">&quot;&lt;&lt;=&quot;</span>,
+                <span class="self">Self</span>::<span class="ident">Shr</span> <span class="op">=&gt;</span> <span class="string">&quot;&gt;&gt;=&quot;</span>,
+                <span class="self">Self</span>::<span class="ident">Ushr</span> <span class="op">=&gt;</span> <span class="string">&quot;&gt;&gt;&gt;=&quot;</span>,
             }
         )
     }

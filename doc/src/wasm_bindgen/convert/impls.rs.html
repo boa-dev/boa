@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/wasm-bindgen-0.2.68/src/convert/impls.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>impls.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css"><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script src="../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="shortcut icon" href="../../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../wasm_bindgen/index.html'><div class='logo-container'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/wasm-bindgen-0.2.68/src/convert/impls.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>impls.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script src="../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="shortcut icon" href="../../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../wasm_bindgen/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
+                <a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -468,32 +469,32 @@
 <span class="kw">unsafe</span> <span class="kw">impl</span> <span class="ident">WasmAbi</span> <span class="kw">for</span> <span class="ident">WasmOptional64</span> {}
 
 <span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">type_wasm_native</span> {
-    ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>:<span class="ident">tt</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">c</span>:<span class="ident">tt</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">r</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) <span class="op">=</span><span class="op">&gt;</span> ($(
+    ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>:<span class="ident">tt</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">c</span>:<span class="ident">tt</span> <span class="op">=&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">r</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) <span class="op">=&gt;</span> ($(
         <span class="kw">impl</span> <span class="ident">IntoWasmAbi</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span> {
             <span class="kw">type</span> <span class="ident">Abi</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">c</span>;
 
             <span class="attribute">#[<span class="ident">inline</span>]</span>
-            <span class="kw">fn</span> <span class="ident">into_abi</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">c</span> { <span class="self">self</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">c</span> }
+            <span class="kw">fn</span> <span class="ident">into_abi</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">c</span> { <span class="self">self</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">c</span> }
         }
 
         <span class="kw">impl</span> <span class="ident">FromWasmAbi</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span> {
             <span class="kw">type</span> <span class="ident">Abi</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">c</span>;
 
             <span class="attribute">#[<span class="ident">inline</span>]</span>
-            <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">from_abi</span>(<span class="ident">js</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">c</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> { <span class="ident">js</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span> }
+            <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">from_abi</span>(<span class="ident">js</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">c</span>) <span class="op">-&gt;</span> <span class="self">Self</span> { <span class="ident">js</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span> }
         }
 
         <span class="kw">impl</span> <span class="ident">IntoWasmAbi</span> <span class="kw">for</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span><span class="op">&gt;</span> {
             <span class="kw">type</span> <span class="ident">Abi</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">r</span>;
 
             <span class="attribute">#[<span class="ident">inline</span>]</span>
-            <span class="kw">fn</span> <span class="ident">into_abi</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">r</span> {
+            <span class="kw">fn</span> <span class="ident">into_abi</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">r</span> {
                 <span class="kw">match</span> <span class="self">self</span> {
-                    <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">r</span> {
+                    <span class="prelude-val">None</span> <span class="op">=&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">r</span> {
                         <span class="ident">present</span>: <span class="number">0</span>,
                         <span class="ident">value</span>: <span class="number">0</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">c</span>,
                     },
-                    <span class="prelude-val">Some</span>(<span class="ident">me</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">r</span> {
+                    <span class="prelude-val">Some</span>(<span class="ident">me</span>) <span class="op">=&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">r</span> {
                         <span class="ident">present</span>: <span class="number">1</span>,
                         <span class="ident">value</span>: <span class="ident">me</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">c</span>,
                     },
@@ -505,8 +506,8 @@
             <span class="kw">type</span> <span class="ident">Abi</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">r</span>;
 
             <span class="attribute">#[<span class="ident">inline</span>]</span>
-            <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">from_abi</span>(<span class="ident">js</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">r</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-                <span class="kw">if</span> <span class="ident">js</span>.<span class="ident">present</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+            <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">from_abi</span>(<span class="ident">js</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">r</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
+                <span class="kw">if</span> <span class="ident">js</span>.<span class="ident">present</span> <span class="op">==</span> <span class="number">0</span> {
                     <span class="prelude-val">None</span>
                 } <span class="kw">else</span> {
                     <span class="prelude-val">Some</span>(<span class="ident">js</span>.<span class="ident">value</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>)
@@ -517,38 +518,38 @@
 }
 
 <span class="macro">type_wasm_native</span><span class="macro">!</span>(
-    <span class="ident">i32</span> <span class="kw">as</span> <span class="ident">i32</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">WasmOptionalI32</span>
-    <span class="ident">isize</span> <span class="kw">as</span> <span class="ident">i32</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">WasmOptionalI32</span>
-    <span class="ident">u32</span> <span class="kw">as</span> <span class="ident">u32</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">WasmOptionalU32</span>
-    <span class="ident">usize</span> <span class="kw">as</span> <span class="ident">u32</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">WasmOptionalU32</span>
-    <span class="ident">f32</span> <span class="kw">as</span> <span class="ident">f32</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">WasmOptionalF32</span>
-    <span class="ident">f64</span> <span class="kw">as</span> <span class="ident">f64</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">WasmOptionalF64</span>
+    <span class="ident">i32</span> <span class="kw">as</span> <span class="ident">i32</span> <span class="op">=&gt;</span> <span class="ident">WasmOptionalI32</span>
+    <span class="ident">isize</span> <span class="kw">as</span> <span class="ident">i32</span> <span class="op">=&gt;</span> <span class="ident">WasmOptionalI32</span>
+    <span class="ident">u32</span> <span class="kw">as</span> <span class="ident">u32</span> <span class="op">=&gt;</span> <span class="ident">WasmOptionalU32</span>
+    <span class="ident">usize</span> <span class="kw">as</span> <span class="ident">u32</span> <span class="op">=&gt;</span> <span class="ident">WasmOptionalU32</span>
+    <span class="ident">f32</span> <span class="kw">as</span> <span class="ident">f32</span> <span class="op">=&gt;</span> <span class="ident">WasmOptionalF32</span>
+    <span class="ident">f64</span> <span class="kw">as</span> <span class="ident">f64</span> <span class="op">=&gt;</span> <span class="ident">WasmOptionalF64</span>
 );
 
 <span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">type_abi_as_u32</span> {
-    ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) <span class="op">=</span><span class="op">&gt;</span> ($(
+    ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) <span class="op">=&gt;</span> ($(
         <span class="kw">impl</span> <span class="ident">IntoWasmAbi</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span> {
             <span class="kw">type</span> <span class="ident">Abi</span> <span class="op">=</span> <span class="ident">u32</span>;
 
             <span class="attribute">#[<span class="ident">inline</span>]</span>
-            <span class="kw">fn</span> <span class="ident">into_abi</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span> { <span class="self">self</span> <span class="kw">as</span> <span class="ident">u32</span> }
+            <span class="kw">fn</span> <span class="ident">into_abi</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">u32</span> { <span class="self">self</span> <span class="kw">as</span> <span class="ident">u32</span> }
         }
 
         <span class="kw">impl</span> <span class="ident">FromWasmAbi</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span> {
             <span class="kw">type</span> <span class="ident">Abi</span> <span class="op">=</span> <span class="ident">u32</span>;
 
             <span class="attribute">#[<span class="ident">inline</span>]</span>
-            <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">from_abi</span>(<span class="ident">js</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> { <span class="ident">js</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span> }
+            <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">from_abi</span>(<span class="ident">js</span>: <span class="ident">u32</span>) <span class="op">-&gt;</span> <span class="self">Self</span> { <span class="ident">js</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span> }
         }
 
         <span class="kw">impl</span> <span class="ident">OptionIntoWasmAbi</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span> {
             <span class="attribute">#[<span class="ident">inline</span>]</span>
-            <span class="kw">fn</span> <span class="ident">none</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span> { <span class="number">0x00FF_FFFFu32</span> }
+            <span class="kw">fn</span> <span class="ident">none</span>() <span class="op">-&gt;</span> <span class="ident">u32</span> { <span class="number">0x00FF_FFFFu32</span> }
         }
 
         <span class="kw">impl</span> <span class="ident">OptionFromWasmAbi</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span> {
             <span class="attribute">#[<span class="ident">inline</span>]</span>
-            <span class="kw">fn</span> <span class="ident">is_none</span>(<span class="ident">js</span>: <span class="kw-2">&amp;</span><span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> { <span class="kw-2">*</span><span class="ident">js</span> <span class="op">=</span><span class="op">=</span> <span class="number">0x00FF_FFFFu32</span> }
+            <span class="kw">fn</span> <span class="ident">is_none</span>(<span class="ident">js</span>: <span class="kw-2">&amp;</span><span class="ident">u32</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> { <span class="kw-2">*</span><span class="ident">js</span> <span class="op">==</span> <span class="number">0x00FF_FFFFu32</span> }
         }
     )<span class="kw-2">*</span>)
 }
@@ -556,15 +557,15 @@
 <span class="macro">type_abi_as_u32</span><span class="macro">!</span>(<span class="ident">i8</span> <span class="ident">u8</span> <span class="ident">i16</span> <span class="ident">u16</span>);
 
 <span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">type_64</span> {
-    ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) <span class="op">=</span><span class="op">&gt;</span> ($(
+    ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) <span class="op">=&gt;</span> ($(
         <span class="kw">impl</span> <span class="ident">IntoWasmAbi</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span> {
             <span class="kw">type</span> <span class="ident">Abi</span> <span class="op">=</span> <span class="ident">Wasm64</span>;
 
             <span class="attribute">#[<span class="ident">inline</span>]</span>
-            <span class="kw">fn</span> <span class="ident">into_abi</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Wasm64</span> {
+            <span class="kw">fn</span> <span class="ident">into_abi</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">Wasm64</span> {
                 <span class="ident">Wasm64</span> {
                     <span class="ident">low</span>: <span class="self">self</span> <span class="kw">as</span> <span class="ident">u32</span>,
-                    <span class="ident">high</span>: (<span class="self">self</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">32</span>) <span class="kw">as</span> <span class="ident">u32</span>,
+                    <span class="ident">high</span>: (<span class="self">self</span> <span class="op">&gt;&gt;</span> <span class="number">32</span>) <span class="kw">as</span> <span class="ident">u32</span>,
                 }
             }
         }
@@ -573,8 +574,8 @@
             <span class="kw">type</span> <span class="ident">Abi</span> <span class="op">=</span> <span class="ident">Wasm64</span>;
 
             <span class="attribute">#[<span class="ident">inline</span>]</span>
-            <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">from_abi</span>(<span class="ident">js</span>: <span class="ident">Wasm64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span> {
-                <span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>::<span class="ident">from</span>(<span class="ident">js</span>.<span class="ident">low</span>) <span class="op">|</span> (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>::<span class="ident">from</span>(<span class="ident">js</span>.<span class="ident">high</span>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">32</span>)
+            <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">from_abi</span>(<span class="ident">js</span>: <span class="ident">Wasm64</span>) <span class="op">-&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span> {
+                <span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>::<span class="ident">from</span>(<span class="ident">js</span>.<span class="ident">low</span>) <span class="op">|</span> (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>::<span class="ident">from</span>(<span class="ident">js</span>.<span class="ident">high</span>) <span class="op">&lt;&lt;</span> <span class="number">32</span>)
             }
         }
 
@@ -582,17 +583,17 @@
             <span class="kw">type</span> <span class="ident">Abi</span> <span class="op">=</span> <span class="ident">WasmOptional64</span>;
 
             <span class="attribute">#[<span class="ident">inline</span>]</span>
-            <span class="kw">fn</span> <span class="ident">into_abi</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">WasmOptional64</span> {
+            <span class="kw">fn</span> <span class="ident">into_abi</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">WasmOptional64</span> {
                 <span class="kw">match</span> <span class="self">self</span> {
-                    <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">WasmOptional64</span> {
+                    <span class="prelude-val">None</span> <span class="op">=&gt;</span> <span class="ident">WasmOptional64</span> {
                         <span class="ident">present</span>: <span class="number">0</span>,
                         <span class="ident">low</span>: <span class="number">0</span> <span class="kw">as</span> <span class="ident">u32</span>,
                         <span class="ident">high</span>: <span class="number">0</span> <span class="kw">as</span> <span class="ident">u32</span>,
                     },
-                    <span class="prelude-val">Some</span>(<span class="ident">me</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">WasmOptional64</span> {
+                    <span class="prelude-val">Some</span>(<span class="ident">me</span>) <span class="op">=&gt;</span> <span class="ident">WasmOptional64</span> {
                         <span class="ident">present</span>: <span class="number">1</span>,
                         <span class="ident">low</span>: <span class="ident">me</span> <span class="kw">as</span> <span class="ident">u32</span>,
-                        <span class="ident">high</span>: (<span class="ident">me</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">32</span>) <span class="kw">as</span> <span class="ident">u32</span>,
+                        <span class="ident">high</span>: (<span class="ident">me</span> <span class="op">&gt;&gt;</span> <span class="number">32</span>) <span class="kw">as</span> <span class="ident">u32</span>,
                     },
                 }
             }
@@ -602,11 +603,11 @@
             <span class="kw">type</span> <span class="ident">Abi</span> <span class="op">=</span> <span class="ident">WasmOptional64</span>;
 
             <span class="attribute">#[<span class="ident">inline</span>]</span>
-            <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">from_abi</span>(<span class="ident">js</span>: <span class="ident">WasmOptional64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-                <span class="kw">if</span> <span class="ident">js</span>.<span class="ident">present</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+            <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">from_abi</span>(<span class="ident">js</span>: <span class="ident">WasmOptional64</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
+                <span class="kw">if</span> <span class="ident">js</span>.<span class="ident">present</span> <span class="op">==</span> <span class="number">0</span> {
                     <span class="prelude-val">None</span>
                 } <span class="kw">else</span> {
-                    <span class="prelude-val">Some</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>::<span class="ident">from</span>(<span class="ident">js</span>.<span class="ident">low</span>) <span class="op">|</span> (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>::<span class="ident">from</span>(<span class="ident">js</span>.<span class="ident">high</span>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">32</span>))
+                    <span class="prelude-val">Some</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>::<span class="ident">from</span>(<span class="ident">js</span>.<span class="ident">low</span>) <span class="op">|</span> (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>::<span class="ident">from</span>(<span class="ident">js</span>.<span class="ident">high</span>) <span class="op">&lt;&lt;</span> <span class="number">32</span>))
                 }
             }
         }
@@ -619,7 +620,7 @@
     <span class="kw">type</span> <span class="ident">Abi</span> <span class="op">=</span> <span class="ident">u32</span>;
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">into_abi</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span> {
+    <span class="kw">fn</span> <span class="ident">into_abi</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">u32</span> {
         <span class="self">self</span> <span class="kw">as</span> <span class="ident">u32</span>
     }
 }
@@ -628,22 +629,22 @@
     <span class="kw">type</span> <span class="ident">Abi</span> <span class="op">=</span> <span class="ident">u32</span>;
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">from_abi</span>(<span class="ident">js</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="ident">js</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span>
+    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">from_abi</span>(<span class="ident">js</span>: <span class="ident">u32</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
+        <span class="ident">js</span> <span class="op">!=</span> <span class="number">0</span>
     }
 }
 
 <span class="kw">impl</span> <span class="ident">OptionIntoWasmAbi</span> <span class="kw">for</span> <span class="ident">bool</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">none</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span> {
+    <span class="kw">fn</span> <span class="ident">none</span>() <span class="op">-&gt;</span> <span class="ident">u32</span> {
         <span class="number">0x00FF_FFFFu32</span>
     }
 }
 
 <span class="kw">impl</span> <span class="ident">OptionFromWasmAbi</span> <span class="kw">for</span> <span class="ident">bool</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">is_none</span>(<span class="ident">js</span>: <span class="kw-2">&amp;</span><span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="kw-2">*</span><span class="ident">js</span> <span class="op">=</span><span class="op">=</span> <span class="number">0x00FF_FFFFu32</span>
+    <span class="kw">fn</span> <span class="ident">is_none</span>(<span class="ident">js</span>: <span class="kw-2">&amp;</span><span class="ident">u32</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
+        <span class="kw-2">*</span><span class="ident">js</span> <span class="op">==</span> <span class="number">0x00FF_FFFFu32</span>
     }
 }
 
@@ -651,7 +652,7 @@
     <span class="kw">type</span> <span class="ident">Abi</span> <span class="op">=</span> <span class="ident">u32</span>;
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">into_abi</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span> {
+    <span class="kw">fn</span> <span class="ident">into_abi</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">u32</span> {
         <span class="self">self</span> <span class="kw">as</span> <span class="ident">u32</span>
     }
 }
@@ -660,22 +661,22 @@
     <span class="kw">type</span> <span class="ident">Abi</span> <span class="op">=</span> <span class="ident">u32</span>;
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">from_abi</span>(<span class="ident">js</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">char</span> {
+    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">from_abi</span>(<span class="ident">js</span>: <span class="ident">u32</span>) <span class="op">-&gt;</span> <span class="ident">char</span> {
         <span class="ident">char</span>::<span class="ident">from_u32_unchecked</span>(<span class="ident">js</span>)
     }
 }
 
 <span class="kw">impl</span> <span class="ident">OptionIntoWasmAbi</span> <span class="kw">for</span> <span class="ident">char</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">none</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span> {
+    <span class="kw">fn</span> <span class="ident">none</span>() <span class="op">-&gt;</span> <span class="ident">u32</span> {
         <span class="number">0x00FF_FFFFu32</span>
     }
 }
 
 <span class="kw">impl</span> <span class="ident">OptionFromWasmAbi</span> <span class="kw">for</span> <span class="ident">char</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">is_none</span>(<span class="ident">js</span>: <span class="kw-2">&amp;</span><span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="kw-2">*</span><span class="ident">js</span> <span class="op">=</span><span class="op">=</span> <span class="number">0x00FF_FFFFu32</span>
+    <span class="kw">fn</span> <span class="ident">is_none</span>(<span class="ident">js</span>: <span class="kw-2">&amp;</span><span class="ident">u32</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
+        <span class="kw-2">*</span><span class="ident">js</span> <span class="op">==</span> <span class="number">0x00FF_FFFFu32</span>
     }
 }
 
@@ -683,7 +684,7 @@
     <span class="kw">type</span> <span class="ident">Abi</span> <span class="op">=</span> <span class="ident">u32</span>;
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">into_abi</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span> {
+    <span class="kw">fn</span> <span class="ident">into_abi</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">u32</span> {
         <span class="self">self</span> <span class="kw">as</span> <span class="ident">u32</span>
     }
 }
@@ -692,7 +693,7 @@
     <span class="kw">type</span> <span class="ident">Abi</span> <span class="op">=</span> <span class="ident">u32</span>;
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">from_abi</span>(<span class="ident">js</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">T</span> {
+    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">from_abi</span>(<span class="ident">js</span>: <span class="ident">u32</span>) <span class="op">-&gt;</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">T</span> {
         <span class="ident">js</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">T</span>
     }
 }
@@ -701,7 +702,7 @@
     <span class="kw">type</span> <span class="ident">Abi</span> <span class="op">=</span> <span class="ident">u32</span>;
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">into_abi</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span> {
+    <span class="kw">fn</span> <span class="ident">into_abi</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">u32</span> {
         <span class="self">self</span> <span class="kw">as</span> <span class="ident">u32</span>
     }
 }
@@ -710,7 +711,7 @@
     <span class="kw">type</span> <span class="ident">Abi</span> <span class="op">=</span> <span class="ident">u32</span>;
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">from_abi</span>(<span class="ident">js</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">T</span> {
+    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">from_abi</span>(<span class="ident">js</span>: <span class="ident">u32</span>) <span class="op">-&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">T</span> {
         <span class="ident">js</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">T</span>
     }
 }
@@ -719,7 +720,7 @@
     <span class="kw">type</span> <span class="ident">Abi</span> <span class="op">=</span> <span class="ident">u32</span>;
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">into_abi</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span> {
+    <span class="kw">fn</span> <span class="ident">into_abi</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">u32</span> {
         <span class="kw">let</span> <span class="ident">ret</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">idx</span>;
         <span class="ident">mem</span>::<span class="ident">forget</span>(<span class="self">self</span>);
         <span class="ident">ret</span>
@@ -730,7 +731,7 @@
     <span class="kw">type</span> <span class="ident">Abi</span> <span class="op">=</span> <span class="ident">u32</span>;
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">from_abi</span>(<span class="ident">js</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsValue</span> {
+    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">from_abi</span>(<span class="ident">js</span>: <span class="ident">u32</span>) <span class="op">-&gt;</span> <span class="ident">JsValue</span> {
         <span class="ident">JsValue</span>::<span class="ident">_new</span>(<span class="ident">js</span>)
     }
 }
@@ -739,7 +740,7 @@
     <span class="kw">type</span> <span class="ident">Abi</span> <span class="op">=</span> <span class="ident">u32</span>;
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">into_abi</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span> {
+    <span class="kw">fn</span> <span class="ident">into_abi</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">u32</span> {
         <span class="self">self</span>.<span class="ident">idx</span>
     }
 }
@@ -749,7 +750,7 @@
     <span class="kw">type</span> <span class="ident">Anchor</span> <span class="op">=</span> <span class="ident">ManuallyDrop</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span>;
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">ref_from_abi</span>(<span class="ident">js</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">Anchor</span> {
+    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">ref_from_abi</span>(<span class="ident">js</span>: <span class="ident">u32</span>) <span class="op">-&gt;</span> <span class="self">Self</span>::<span class="ident">Anchor</span> {
         <span class="ident">ManuallyDrop</span>::<span class="ident">new</span>(<span class="ident">JsValue</span>::<span class="ident">_new</span>(<span class="ident">js</span>))
     }
 }
@@ -758,10 +759,10 @@
     <span class="kw">type</span> <span class="ident">Abi</span> <span class="op">=</span> <span class="ident">T</span>::<span class="ident">Abi</span>;
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">into_abi</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">T</span>::<span class="ident">Abi</span> {
+    <span class="kw">fn</span> <span class="ident">into_abi</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">T</span>::<span class="ident">Abi</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">T</span>::<span class="ident">none</span>(),
-            <span class="prelude-val">Some</span>(<span class="ident">me</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">me</span>.<span class="ident">into_abi</span>(),
+            <span class="prelude-val">None</span> <span class="op">=&gt;</span> <span class="ident">T</span>::<span class="ident">none</span>(),
+            <span class="prelude-val">Some</span>(<span class="ident">me</span>) <span class="op">=&gt;</span> <span class="ident">me</span>.<span class="ident">into_abi</span>(),
         }
     }
 }
@@ -770,7 +771,7 @@
     <span class="kw">type</span> <span class="ident">Abi</span> <span class="op">=</span> <span class="ident">T</span>::<span class="ident">Abi</span>;
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">from_abi</span>(<span class="ident">js</span>: <span class="ident">T</span>::<span class="ident">Abi</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">from_abi</span>(<span class="ident">js</span>: <span class="ident">T</span>::<span class="ident">Abi</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
         <span class="kw">if</span> <span class="ident">T</span>::<span class="ident">is_none</span>(<span class="kw-2">&amp;</span><span class="ident">js</span>) {
             <span class="prelude-val">None</span>
         } <span class="kw">else</span> {
@@ -783,7 +784,7 @@
     <span class="kw">type</span> <span class="ident">Abi</span> <span class="op">=</span> <span class="ident">T</span>::<span class="ident">Abi</span>;
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">into_abi</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">Abi</span> {
+    <span class="kw">fn</span> <span class="ident">into_abi</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span>::<span class="ident">Abi</span> {
         <span class="self">self</span>.<span class="number">0</span>.<span class="ident">into_abi</span>()
     }
 }
@@ -792,7 +793,7 @@
     <span class="kw">type</span> <span class="ident">Abi</span> <span class="op">=</span> <span class="ident">T</span>::<span class="ident">Abi</span>;
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">from_abi</span>(<span class="ident">js</span>: <span class="ident">T</span>::<span class="ident">Abi</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">from_abi</span>(<span class="ident">js</span>: <span class="ident">T</span>::<span class="ident">Abi</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
         <span class="ident">Clamped</span>(<span class="ident">T</span>::<span class="ident">from_abi</span>(<span class="ident">js</span>))
     }
 }
@@ -810,10 +811,10 @@
     <span class="kw">type</span> <span class="ident">Abi</span> <span class="op">=</span> <span class="ident">T</span>::<span class="ident">Abi</span>;
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">return_abi</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">Abi</span> {
+    <span class="kw">fn</span> <span class="ident">return_abi</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span>::<span class="ident">Abi</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="prelude-val">Ok</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">v</span>.<span class="ident">into_abi</span>(),
-            <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">crate</span>::<span class="ident">throw_val</span>(<span class="ident">e</span>),
+            <span class="prelude-val">Ok</span>(<span class="ident">v</span>) <span class="op">=&gt;</span> <span class="ident">v</span>.<span class="ident">into_abi</span>(),
+            <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=&gt;</span> <span class="kw">crate</span>::<span class="ident">throw_val</span>(<span class="ident">e</span>),
         }
     }
 }

@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `boa/src/environment/global_environment_record.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>global_environment_record.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css"><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script src="../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="shortcut icon" href="https://raw.githubusercontent.com/jasonwilliams/boa/master/assets/logo.svg"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../boa/index.html'><div class='logo-container'><img src='https://raw.githubusercontent.com/jasonwilliams/boa/master/assets/logo.svg' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `boa/src/environment/global_environment_record.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>global_environment_record.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script src="../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="shortcut icon" href="https://raw.githubusercontent.com/jasonwilliams/boa/master/assets/logo.svg"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../boa/index.html'><div class='logo-container'><img src='https://raw.githubusercontent.com/jasonwilliams/boa/master/assets/logo.svg' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
+                <a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -193,6 +194,7 @@
 <span id="193">193</span>
 <span id="194">194</span>
 <span id="195">195</span>
+<span id="196">196</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! # Global Environment Records</span>
 <span class="doccomment">//!</span>
@@ -210,7 +212,7 @@
         <span class="ident">lexical_environment</span>::{<span class="ident">Environment</span>, <span class="ident">EnvironmentType</span>},
         <span class="ident">object_environment_record</span>::<span class="ident">ObjectEnvironmentRecord</span>,
     },
-    <span class="ident">property</span>::{<span class="ident">Attribute</span>, <span class="ident">Property</span>},
+    <span class="ident">property</span>::{<span class="ident">Attribute</span>, <span class="ident">DataDescriptor</span>},
     <span class="ident">Value</span>,
 };
 <span class="kw">use</span> <span class="ident">gc</span>::{<span class="ident">Finalize</span>, <span class="ident">Trace</span>};
@@ -225,25 +227,25 @@
 }
 
 <span class="kw">impl</span> <span class="ident">GlobalEnvironmentRecord</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">has_var_declaration</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">has_var_declaration</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
         <span class="self">self</span>.<span class="ident">var_names</span>.<span class="ident">contains</span>(<span class="ident">name</span>)
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">has_lexical_declaration</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">has_lexical_declaration</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
         <span class="self">self</span>.<span class="ident">declarative_record</span>.<span class="ident">has_binding</span>(<span class="ident">name</span>)
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">has_restricted_global_property</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">has_restricted_global_property</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
         <span class="kw">let</span> <span class="ident">global_object</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">object_record</span>.<span class="ident">bindings</span>;
         <span class="kw">let</span> <span class="ident">existing_prop</span> <span class="op">=</span> <span class="ident">global_object</span>.<span class="ident">get_property</span>(<span class="ident">name</span>);
         <span class="kw">match</span> <span class="ident">existing_prop</span> {
-            <span class="prelude-val">Some</span>(<span class="ident">prop</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="kw">if</span> <span class="ident">prop</span>.<span class="ident">value</span>.<span class="ident">is_none</span>() <span class="op">|</span><span class="op">|</span> <span class="ident">prop</span>.<span class="ident">configurable</span>() {
+            <span class="prelude-val">Some</span>(<span class="ident">desc</span>) <span class="op">=&gt;</span> {
+                <span class="kw">if</span> <span class="ident">desc</span>.<span class="ident">configurable</span>() {
                     <span class="kw">return</span> <span class="bool-val">false</span>;
                 }
                 <span class="bool-val">true</span>
             }
-            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
+            <span class="prelude-val">None</span> <span class="op">=&gt;</span> <span class="bool-val">false</span>,
         }
     }
 
@@ -252,7 +254,7 @@
         <span class="kw">let</span> <span class="ident">global_object</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">obj_rec</span>.<span class="ident">bindings</span>;
         <span class="kw">let</span> <span class="ident">has_property</span> <span class="op">=</span> <span class="ident">global_object</span>.<span class="ident">has_field</span>(<span class="ident">name</span>.<span class="ident">as_str</span>());
         <span class="kw">let</span> <span class="ident">extensible</span> <span class="op">=</span> <span class="ident">global_object</span>.<span class="ident">is_extensible</span>();
-        <span class="kw">if</span> <span class="op">!</span><span class="ident">has_property</span> <span class="kw-2">&amp;</span><span class="op">&amp;</span> <span class="ident">extensible</span> {
+        <span class="kw">if</span> <span class="op">!</span><span class="ident">has_property</span> <span class="op">&amp;&amp;</span> <span class="ident">extensible</span> {
             <span class="ident">obj_rec</span>.<span class="ident">create_mutable_binding</span>(<span class="ident">name</span>.<span class="ident">clone</span>(), <span class="ident">deletion</span>);
             <span class="ident">obj_rec</span>.<span class="ident">initialize_binding</span>(<span class="kw-2">&amp;</span><span class="ident">name</span>, <span class="ident">Value</span>::<span class="ident">undefined</span>());
         }
@@ -266,30 +268,31 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">create_global_function_binding</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">value</span>: <span class="ident">Value</span>, <span class="ident">deletion</span>: <span class="ident">bool</span>) {
         <span class="kw">let</span> <span class="ident">global_object</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">object_record</span>.<span class="ident">bindings</span>;
         <span class="kw">let</span> <span class="ident">existing_prop</span> <span class="op">=</span> <span class="ident">global_object</span>.<span class="ident">get_property</span>(<span class="ident">name</span>);
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">prop</span>) <span class="op">=</span> <span class="ident">existing_prop</span> {
-            <span class="kw">if</span> <span class="ident">prop</span>.<span class="ident">value</span>.<span class="ident">is_none</span>() <span class="op">|</span><span class="op">|</span> <span class="ident">prop</span>.<span class="ident">configurable_or</span>(<span class="bool-val">false</span>) {
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">property</span> <span class="op">=</span>
-                    <span class="ident">Property</span>::<span class="ident">data_descriptor</span>(<span class="ident">value</span>, <span class="ident">Attribute</span>::<span class="ident">WRITABLE</span> <span class="op">|</span> <span class="ident">Attribute</span>::<span class="ident">ENUMERABLE</span>);
-                <span class="ident">property</span>.<span class="ident">set_configurable</span>(<span class="ident">deletion</span>);
-
-                <span class="ident">global_object</span>.<span class="ident">update_property</span>(<span class="ident">name</span>, <span class="ident">property</span>);
+        <span class="kw">let</span> <span class="ident">desc</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">existing_prop</span> {
+            <span class="prelude-val">Some</span>(<span class="ident">desc</span>) <span class="kw">if</span> <span class="ident">desc</span>.<span class="ident">configurable</span>() <span class="op">=&gt;</span> <span class="ident">DataDescriptor</span>::<span class="ident">new</span>(<span class="ident">value</span>, <span class="ident">Attribute</span>::<span class="ident">empty</span>()),
+            <span class="prelude-val">Some</span>(<span class="kw">_</span>) <span class="op">=&gt;</span> {
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">attributes</span> <span class="op">=</span> <span class="ident">Attribute</span>::<span class="ident">WRITABLE</span> <span class="op">|</span> <span class="ident">Attribute</span>::<span class="ident">ENUMERABLE</span>;
+                <span class="kw">if</span> <span class="ident">deletion</span> {
+                    <span class="ident">attributes</span> <span class="op">|=</span> <span class="ident">Attribute</span>::<span class="ident">CONFIGURABLE</span>;
+                }
+                <span class="ident">DataDescriptor</span>::<span class="ident">new</span>(<span class="ident">value</span>, <span class="ident">attributes</span>)
             }
-        } <span class="kw">else</span> {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">property</span> <span class="op">=</span>
-                <span class="ident">Property</span>::<span class="ident">data_descriptor</span>(<span class="ident">value</span>, <span class="ident">Attribute</span>::<span class="ident">WRITABLE</span> <span class="op">|</span> <span class="ident">Attribute</span>::<span class="ident">ENUMERABLE</span>);
-            <span class="ident">property</span>.<span class="ident">set_configurable</span>(<span class="ident">deletion</span>);
+            <span class="prelude-val">None</span> <span class="op">=&gt;</span> <span class="ident">DataDescriptor</span>::<span class="ident">new</span>(<span class="ident">value</span>, <span class="ident">Attribute</span>::<span class="ident">empty</span>()),
+        };
 
-            <span class="ident">global_object</span>.<span class="ident">update_property</span>(<span class="ident">name</span>, <span class="ident">property</span>);
-        }
+        <span class="ident">global_object</span>
+            .<span class="ident">as_object_mut</span>()
+            .<span class="ident">expect</span>(<span class="string">&quot;global object&quot;</span>)
+            .<span class="ident">insert</span>(<span class="ident">name</span>, <span class="ident">desc</span>);
     }
 }
 
 <span class="kw">impl</span> <span class="ident">EnvironmentRecordTrait</span> <span class="kw">for</span> <span class="ident">GlobalEnvironmentRecord</span> {
-    <span class="kw">fn</span> <span class="ident">get_this_binding</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Value</span> {
+    <span class="kw">fn</span> <span class="ident">get_this_binding</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">Value</span> {
         <span class="self">self</span>.<span class="ident">global_this_binding</span>.<span class="ident">clone</span>()
     }
 
-    <span class="kw">fn</span> <span class="ident">has_binding</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">has_binding</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">declarative_record</span>.<span class="ident">has_binding</span>(<span class="ident">name</span>) {
             <span class="kw">return</span> <span class="bool-val">true</span>;
         }
@@ -306,7 +309,7 @@
             .<span class="ident">create_mutable_binding</span>(<span class="ident">name</span>, <span class="ident">deletion</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">create_immutable_binding</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">name</span>: <span class="ident">String</span>, <span class="ident">strict</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">create_immutable_binding</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">name</span>: <span class="ident">String</span>, <span class="ident">strict</span>: <span class="ident">bool</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">declarative_record</span>.<span class="ident">has_binding</span>(<span class="kw-2">&amp;</span><span class="ident">name</span>) {
             <span class="comment">// TODO: change to exception</span>
             <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;Binding already exists!&quot;</span>);
@@ -334,14 +337,14 @@
         <span class="self">self</span>.<span class="ident">object_record</span>.<span class="ident">set_mutable_binding</span>(<span class="ident">name</span>, <span class="ident">value</span>, <span class="ident">strict</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">get_binding_value</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">strict</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Value</span> {
+    <span class="kw">fn</span> <span class="ident">get_binding_value</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">strict</span>: <span class="ident">bool</span>) <span class="op">-&gt;</span> <span class="ident">Value</span> {
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">declarative_record</span>.<span class="ident">has_binding</span>(<span class="kw-2">&amp;</span><span class="ident">name</span>) {
             <span class="kw">return</span> <span class="self">self</span>.<span class="ident">declarative_record</span>.<span class="ident">get_binding_value</span>(<span class="ident">name</span>, <span class="ident">strict</span>);
         }
         <span class="self">self</span>.<span class="ident">object_record</span>.<span class="ident">get_binding_value</span>(<span class="ident">name</span>, <span class="ident">strict</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">delete_binding</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">delete_binding</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">declarative_record</span>.<span class="ident">has_binding</span>(<span class="kw-2">&amp;</span><span class="ident">name</span>) {
             <span class="kw">return</span> <span class="self">self</span>.<span class="ident">declarative_record</span>.<span class="ident">delete_binding</span>(<span class="ident">name</span>);
         }
@@ -360,19 +363,19 @@
         <span class="bool-val">true</span>
     }
 
-    <span class="kw">fn</span> <span class="ident">has_this_binding</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">has_this_binding</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
         <span class="bool-val">true</span>
     }
 
-    <span class="kw">fn</span> <span class="ident">has_super_binding</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">has_super_binding</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
         <span class="bool-val">false</span>
     }
 
-    <span class="kw">fn</span> <span class="ident">with_base_object</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Value</span> {
+    <span class="kw">fn</span> <span class="ident">with_base_object</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">Value</span> {
         <span class="ident">Value</span>::<span class="ident">undefined</span>()
     }
 
-    <span class="kw">fn</span> <span class="ident">get_outer_environment</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Environment</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">get_outer_environment</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Environment</span><span class="op">&gt;</span> {
         <span class="prelude-val">None</span>
     }
 
@@ -381,11 +384,11 @@
         <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;Not implemented yet&quot;</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">get_environment_type</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">EnvironmentType</span> {
+    <span class="kw">fn</span> <span class="ident">get_environment_type</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">EnvironmentType</span> {
         <span class="ident">EnvironmentType</span>::<span class="ident">Global</span>
     }
 
-    <span class="kw">fn</span> <span class="ident">get_global_object</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">get_global_object</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
         <span class="prelude-val">Some</span>(<span class="self">self</span>.<span class="ident">global_this_binding</span>.<span class="ident">clone</span>())
     }
 }

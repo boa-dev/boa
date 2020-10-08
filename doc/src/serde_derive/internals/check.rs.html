@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/serde_derive-1.0.116/src/internals/check.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>check.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css"><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script src="../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="shortcut icon" href="../../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../serde_derive/index.html'><div class='logo-container'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/serde_derive-1.0.116/src/internals/check.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>check.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script src="../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="shortcut icon" href="../../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../serde_derive/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
+                <a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -441,7 +442,7 @@
 <span class="doccomment">/// attribute.</span>
 <span class="kw">fn</span> <span class="ident">check_getter</span>(<span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="ident">Ctxt</span>, <span class="ident">cont</span>: <span class="kw-2">&amp;</span><span class="ident">Container</span>) {
     <span class="kw">match</span> <span class="ident">cont</span>.<span class="ident">data</span> {
-        <span class="ident">Data</span>::<span class="ident">Enum</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Data</span>::<span class="ident">Enum</span>(<span class="kw">_</span>) <span class="op">=&gt;</span> {
             <span class="kw">if</span> <span class="ident">cont</span>.<span class="ident">data</span>.<span class="ident">has_getter</span>() {
                 <span class="ident">cx</span>.<span class="ident">error_spanned_by</span>(
                     <span class="ident">cont</span>.<span class="ident">original</span>,
@@ -449,8 +450,8 @@
                 );
             }
         }
-        <span class="ident">Data</span>::<span class="ident">Struct</span>(<span class="kw">_</span>, <span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
-            <span class="kw">if</span> <span class="ident">cont</span>.<span class="ident">data</span>.<span class="ident">has_getter</span>() <span class="kw-2">&amp;</span><span class="op">&amp;</span> <span class="ident">cont</span>.<span class="ident">attrs</span>.<span class="ident">remote</span>().<span class="ident">is_none</span>() {
+        <span class="ident">Data</span>::<span class="ident">Struct</span>(<span class="kw">_</span>, <span class="kw">_</span>) <span class="op">=&gt;</span> {
+            <span class="kw">if</span> <span class="ident">cont</span>.<span class="ident">data</span>.<span class="ident">has_getter</span>() <span class="op">&amp;&amp;</span> <span class="ident">cont</span>.<span class="ident">attrs</span>.<span class="ident">remote</span>().<span class="ident">is_none</span>() {
                 <span class="ident">cx</span>.<span class="ident">error_spanned_by</span>(
                     <span class="ident">cont</span>.<span class="ident">original</span>,
                     <span class="string">&quot;#[serde(getter = \&quot;...\&quot;)] can only be used in structs that have #[serde(remote = \&quot;...\&quot;)]&quot;</span>,
@@ -463,14 +464,14 @@
 <span class="doccomment">/// Flattening has some restrictions we can test.</span>
 <span class="kw">fn</span> <span class="ident">check_flatten</span>(<span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="ident">Ctxt</span>, <span class="ident">cont</span>: <span class="kw-2">&amp;</span><span class="ident">Container</span>) {
     <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="ident">cont</span>.<span class="ident">data</span> {
-        <span class="ident">Data</span>::<span class="ident">Enum</span>(<span class="ident">variants</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Data</span>::<span class="ident">Enum</span>(<span class="ident">variants</span>) <span class="op">=&gt;</span> {
             <span class="kw">for</span> <span class="ident">variant</span> <span class="kw">in</span> <span class="ident">variants</span> {
                 <span class="kw">for</span> <span class="ident">field</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">variant</span>.<span class="ident">fields</span> {
                     <span class="ident">check_flatten_field</span>(<span class="ident">cx</span>, <span class="ident">variant</span>.<span class="ident">style</span>, <span class="ident">field</span>);
                 }
             }
         }
-        <span class="ident">Data</span>::<span class="ident">Struct</span>(<span class="ident">style</span>, <span class="ident">fields</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Data</span>::<span class="ident">Struct</span>(<span class="ident">style</span>, <span class="ident">fields</span>) <span class="op">=&gt;</span> {
             <span class="kw">for</span> <span class="ident">field</span> <span class="kw">in</span> <span class="ident">fields</span> {
                 <span class="ident">check_flatten_field</span>(<span class="ident">cx</span>, <span class="kw-2">*</span><span class="ident">style</span>, <span class="ident">field</span>);
             }
@@ -483,19 +484,19 @@
         <span class="kw">return</span>;
     }
     <span class="kw">match</span> <span class="ident">style</span> {
-        <span class="ident">Style</span>::<span class="ident">Tuple</span> <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Style</span>::<span class="ident">Tuple</span> <span class="op">=&gt;</span> {
             <span class="ident">cx</span>.<span class="ident">error_spanned_by</span>(
                 <span class="ident">field</span>.<span class="ident">original</span>,
                 <span class="string">&quot;#[serde(flatten)] cannot be used on tuple structs&quot;</span>,
             );
         }
-        <span class="ident">Style</span>::<span class="ident">Newtype</span> <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Style</span>::<span class="ident">Newtype</span> <span class="op">=&gt;</span> {
             <span class="ident">cx</span>.<span class="ident">error_spanned_by</span>(
                 <span class="ident">field</span>.<span class="ident">original</span>,
                 <span class="string">&quot;#[serde(flatten)] cannot be used on newtype structs&quot;</span>,
             );
         }
-        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {}
+        <span class="kw">_</span> <span class="op">=&gt;</span> {}
     }
 }
 
@@ -507,8 +508,8 @@
 <span class="doccomment">/// last variant may be a newtype variant which is an implicit &quot;other&quot; case.</span>
 <span class="kw">fn</span> <span class="ident">check_identifier</span>(<span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="ident">Ctxt</span>, <span class="ident">cont</span>: <span class="kw-2">&amp;</span><span class="ident">Container</span>) {
     <span class="kw">let</span> <span class="ident">variants</span> <span class="op">=</span> <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="ident">cont</span>.<span class="ident">data</span> {
-        <span class="ident">Data</span>::<span class="ident">Enum</span>(<span class="ident">variants</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">variants</span>,
-        <span class="ident">Data</span>::<span class="ident">Struct</span>(<span class="kw">_</span>, <span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Data</span>::<span class="ident">Enum</span>(<span class="ident">variants</span>) <span class="op">=&gt;</span> <span class="ident">variants</span>,
+        <span class="ident">Data</span>::<span class="ident">Struct</span>(<span class="kw">_</span>, <span class="kw">_</span>) <span class="op">=&gt;</span> {
             <span class="kw">return</span>;
         }
     };
@@ -521,7 +522,7 @@
             <span class="ident">cont</span>.<span class="ident">attrs</span>.<span class="ident">tag</span>(),
         ) {
             <span class="comment">// The `other` attribute may not be used in a variant_identifier.</span>
-            (<span class="kw">_</span>, <span class="ident">Identifier</span>::<span class="ident">Variant</span>, <span class="bool-val">true</span>, <span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            (<span class="kw">_</span>, <span class="ident">Identifier</span>::<span class="ident">Variant</span>, <span class="bool-val">true</span>, <span class="kw">_</span>) <span class="op">=&gt;</span> {
                 <span class="ident">cx</span>.<span class="ident">error_spanned_by</span>(
                     <span class="ident">variant</span>.<span class="ident">original</span>,
                     <span class="string">&quot;#[serde(other)] may not be used on a variant identifier&quot;</span>,
@@ -529,7 +530,7 @@
             }
 
             <span class="comment">// Variant with `other` attribute cannot appear in untagged enum</span>
-            (<span class="kw">_</span>, <span class="ident">Identifier</span>::<span class="ident">No</span>, <span class="bool-val">true</span>, <span class="kw-2">&amp;</span><span class="ident">TagType</span>::<span class="prelude-val">None</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            (<span class="kw">_</span>, <span class="ident">Identifier</span>::<span class="ident">No</span>, <span class="bool-val">true</span>, <span class="kw-2">&amp;</span><span class="ident">TagType</span>::<span class="prelude-val">None</span>) <span class="op">=&gt;</span> {
                 <span class="ident">cx</span>.<span class="ident">error_spanned_by</span>(
                     <span class="ident">variant</span>.<span class="ident">original</span>,
                     <span class="string">&quot;#[serde(other)] cannot appear on untagged enum&quot;</span>,
@@ -537,7 +538,7 @@
             }
 
             <span class="comment">// Variant with `other` attribute must be the last one.</span>
-            (<span class="ident">Style</span>::<span class="ident">Unit</span>, <span class="ident">Identifier</span>::<span class="ident">Field</span>, <span class="bool-val">true</span>, <span class="kw">_</span>) <span class="op">|</span> (<span class="ident">Style</span>::<span class="ident">Unit</span>, <span class="ident">Identifier</span>::<span class="ident">No</span>, <span class="bool-val">true</span>, <span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            (<span class="ident">Style</span>::<span class="ident">Unit</span>, <span class="ident">Identifier</span>::<span class="ident">Field</span>, <span class="bool-val">true</span>, <span class="kw">_</span>) <span class="op">|</span> (<span class="ident">Style</span>::<span class="ident">Unit</span>, <span class="ident">Identifier</span>::<span class="ident">No</span>, <span class="bool-val">true</span>, <span class="kw">_</span>) <span class="op">=&gt;</span> {
                 <span class="kw">if</span> <span class="ident">i</span> <span class="op">&lt;</span> <span class="ident">variants</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="number">1</span> {
                     <span class="ident">cx</span>.<span class="ident">error_spanned_by</span>(
                         <span class="ident">variant</span>.<span class="ident">original</span>,
@@ -547,7 +548,7 @@
             }
 
             <span class="comment">// Variant with `other` attribute must be a unit variant.</span>
-            (<span class="kw">_</span>, <span class="ident">Identifier</span>::<span class="ident">Field</span>, <span class="bool-val">true</span>, <span class="kw">_</span>) <span class="op">|</span> (<span class="kw">_</span>, <span class="ident">Identifier</span>::<span class="ident">No</span>, <span class="bool-val">true</span>, <span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            (<span class="kw">_</span>, <span class="ident">Identifier</span>::<span class="ident">Field</span>, <span class="bool-val">true</span>, <span class="kw">_</span>) <span class="op">|</span> (<span class="kw">_</span>, <span class="ident">Identifier</span>::<span class="ident">No</span>, <span class="bool-val">true</span>, <span class="kw">_</span>) <span class="op">=&gt;</span> {
                 <span class="ident">cx</span>.<span class="ident">error_spanned_by</span>(
                     <span class="ident">variant</span>.<span class="ident">original</span>,
                     <span class="string">&quot;#[serde(other)] must be on a unit variant&quot;</span>,
@@ -555,13 +556,13 @@
             }
 
             <span class="comment">// Any sort of variant is allowed if this is not an identifier.</span>
-            (<span class="kw">_</span>, <span class="ident">Identifier</span>::<span class="ident">No</span>, <span class="bool-val">false</span>, <span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {}
+            (<span class="kw">_</span>, <span class="ident">Identifier</span>::<span class="ident">No</span>, <span class="bool-val">false</span>, <span class="kw">_</span>) <span class="op">=&gt;</span> {}
 
             <span class="comment">// Unit variant without `other` attribute is always fine.</span>
-            (<span class="ident">Style</span>::<span class="ident">Unit</span>, <span class="kw">_</span>, <span class="bool-val">false</span>, <span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {}
+            (<span class="ident">Style</span>::<span class="ident">Unit</span>, <span class="kw">_</span>, <span class="bool-val">false</span>, <span class="kw">_</span>) <span class="op">=&gt;</span> {}
 
             <span class="comment">// The last field is allowed to be a newtype catch-all.</span>
-            (<span class="ident">Style</span>::<span class="ident">Newtype</span>, <span class="ident">Identifier</span>::<span class="ident">Field</span>, <span class="bool-val">false</span>, <span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            (<span class="ident">Style</span>::<span class="ident">Newtype</span>, <span class="ident">Identifier</span>::<span class="ident">Field</span>, <span class="bool-val">false</span>, <span class="kw">_</span>) <span class="op">=&gt;</span> {
                 <span class="kw">if</span> <span class="ident">i</span> <span class="op">&lt;</span> <span class="ident">variants</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="number">1</span> {
                     <span class="ident">cx</span>.<span class="ident">error_spanned_by</span>(
                         <span class="ident">variant</span>.<span class="ident">original</span>,
@@ -570,14 +571,14 @@
                 }
             }
 
-            (<span class="kw">_</span>, <span class="ident">Identifier</span>::<span class="ident">Field</span>, <span class="bool-val">false</span>, <span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            (<span class="kw">_</span>, <span class="ident">Identifier</span>::<span class="ident">Field</span>, <span class="bool-val">false</span>, <span class="kw">_</span>) <span class="op">=&gt;</span> {
                 <span class="ident">cx</span>.<span class="ident">error_spanned_by</span>(
                     <span class="ident">variant</span>.<span class="ident">original</span>,
                     <span class="string">&quot;#[serde(field_identifier)] may only contain unit variants&quot;</span>,
                 );
             }
 
-            (<span class="kw">_</span>, <span class="ident">Identifier</span>::<span class="ident">Variant</span>, <span class="bool-val">false</span>, <span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            (<span class="kw">_</span>, <span class="ident">Identifier</span>::<span class="ident">Variant</span>, <span class="bool-val">false</span>, <span class="kw">_</span>) <span class="op">=&gt;</span> {
                 <span class="ident">cx</span>.<span class="ident">error_spanned_by</span>(
                     <span class="ident">variant</span>.<span class="ident">original</span>,
                     <span class="string">&quot;#[serde(variant_identifier)] may only contain unit variants&quot;</span>,
@@ -591,8 +592,8 @@
 <span class="doccomment">/// (de)serialize_with.</span>
 <span class="kw">fn</span> <span class="ident">check_variant_skip_attrs</span>(<span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="ident">Ctxt</span>, <span class="ident">cont</span>: <span class="kw-2">&amp;</span><span class="ident">Container</span>) {
     <span class="kw">let</span> <span class="ident">variants</span> <span class="op">=</span> <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="ident">cont</span>.<span class="ident">data</span> {
-        <span class="ident">Data</span>::<span class="ident">Enum</span>(<span class="ident">variants</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">variants</span>,
-        <span class="ident">Data</span>::<span class="ident">Struct</span>(<span class="kw">_</span>, <span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Data</span>::<span class="ident">Enum</span>(<span class="ident">variants</span>) <span class="op">=&gt;</span> <span class="ident">variants</span>,
+        <span class="ident">Data</span>::<span class="ident">Struct</span>(<span class="kw">_</span>, <span class="kw">_</span>) <span class="op">=&gt;</span> {
             <span class="kw">return</span>;
         }
     };
@@ -668,16 +669,16 @@
 <span class="doccomment">/// the to-be-deserialized input.</span>
 <span class="kw">fn</span> <span class="ident">check_internal_tag_field_name_conflict</span>(<span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="ident">Ctxt</span>, <span class="ident">cont</span>: <span class="kw-2">&amp;</span><span class="ident">Container</span>) {
     <span class="kw">let</span> <span class="ident">variants</span> <span class="op">=</span> <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="ident">cont</span>.<span class="ident">data</span> {
-        <span class="ident">Data</span>::<span class="ident">Enum</span>(<span class="ident">variants</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">variants</span>,
-        <span class="ident">Data</span>::<span class="ident">Struct</span>(<span class="kw">_</span>, <span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span>,
+        <span class="ident">Data</span>::<span class="ident">Enum</span>(<span class="ident">variants</span>) <span class="op">=&gt;</span> <span class="ident">variants</span>,
+        <span class="ident">Data</span>::<span class="ident">Struct</span>(<span class="kw">_</span>, <span class="kw">_</span>) <span class="op">=&gt;</span> <span class="kw">return</span>,
     };
 
     <span class="kw">let</span> <span class="ident">tag</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">cont</span>.<span class="ident">attrs</span>.<span class="ident">tag</span>() {
-        <span class="ident">TagType</span>::<span class="ident">Internal</span> { <span class="ident">tag</span> } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">tag</span>.<span class="ident">as_str</span>(),
-        <span class="ident">TagType</span>::<span class="ident">External</span> <span class="op">|</span> <span class="ident">TagType</span>::<span class="ident">Adjacent</span> { .. } <span class="op">|</span> <span class="ident">TagType</span>::<span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span>,
+        <span class="ident">TagType</span>::<span class="ident">Internal</span> { <span class="ident">tag</span> } <span class="op">=&gt;</span> <span class="ident">tag</span>.<span class="ident">as_str</span>(),
+        <span class="ident">TagType</span>::<span class="ident">External</span> <span class="op">|</span> <span class="ident">TagType</span>::<span class="ident">Adjacent</span> { .. } <span class="op">|</span> <span class="ident">TagType</span>::<span class="prelude-val">None</span> <span class="op">=&gt;</span> <span class="kw">return</span>,
     };
 
-    <span class="kw">let</span> <span class="ident">diagnose_conflict</span> <span class="op">=</span> <span class="op">|</span><span class="op">|</span> {
+    <span class="kw">let</span> <span class="ident">diagnose_conflict</span> <span class="op">=</span> <span class="op">||</span> {
         <span class="ident">cx</span>.<span class="ident">error_spanned_by</span>(
             <span class="ident">cont</span>.<span class="ident">original</span>,
             <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;variant field name `{}` conflicts with internal tag&quot;</span>, <span class="ident">tag</span>),
@@ -686,27 +687,27 @@
 
     <span class="kw">for</span> <span class="ident">variant</span> <span class="kw">in</span> <span class="ident">variants</span> {
         <span class="kw">match</span> <span class="ident">variant</span>.<span class="ident">style</span> {
-            <span class="ident">Style</span>::<span class="ident">Struct</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Style</span>::<span class="ident">Struct</span> <span class="op">=&gt;</span> {
                 <span class="kw">for</span> <span class="ident">field</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">variant</span>.<span class="ident">fields</span> {
                     <span class="kw">let</span> <span class="ident">check_ser</span> <span class="op">=</span> <span class="op">!</span><span class="ident">field</span>.<span class="ident">attrs</span>.<span class="ident">skip_serializing</span>();
                     <span class="kw">let</span> <span class="ident">check_de</span> <span class="op">=</span> <span class="op">!</span><span class="ident">field</span>.<span class="ident">attrs</span>.<span class="ident">skip_deserializing</span>();
                     <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="ident">field</span>.<span class="ident">attrs</span>.<span class="ident">name</span>();
                     <span class="kw">let</span> <span class="ident">ser_name</span> <span class="op">=</span> <span class="ident">name</span>.<span class="ident">serialize_name</span>();
 
-                    <span class="kw">if</span> <span class="ident">check_ser</span> <span class="kw-2">&amp;</span><span class="op">&amp;</span> <span class="ident">ser_name</span> <span class="op">=</span><span class="op">=</span> <span class="ident">tag</span> {
+                    <span class="kw">if</span> <span class="ident">check_ser</span> <span class="op">&amp;&amp;</span> <span class="ident">ser_name</span> <span class="op">==</span> <span class="ident">tag</span> {
                         <span class="ident">diagnose_conflict</span>();
                         <span class="kw">return</span>;
                     }
 
                     <span class="kw">for</span> <span class="ident">de_name</span> <span class="kw">in</span> <span class="ident">field</span>.<span class="ident">attrs</span>.<span class="ident">aliases</span>() {
-                        <span class="kw">if</span> <span class="ident">check_de</span> <span class="kw-2">&amp;</span><span class="op">&amp;</span> <span class="ident">de_name</span> <span class="op">=</span><span class="op">=</span> <span class="ident">tag</span> {
+                        <span class="kw">if</span> <span class="ident">check_de</span> <span class="op">&amp;&amp;</span> <span class="ident">de_name</span> <span class="op">==</span> <span class="ident">tag</span> {
                             <span class="ident">diagnose_conflict</span>();
                             <span class="kw">return</span>;
                         }
                     }
                 }
             }
-            <span class="ident">Style</span>::<span class="ident">Unit</span> <span class="op">|</span> <span class="ident">Style</span>::<span class="ident">Newtype</span> <span class="op">|</span> <span class="ident">Style</span>::<span class="ident">Tuple</span> <span class="op">=</span><span class="op">&gt;</span> {}
+            <span class="ident">Style</span>::<span class="ident">Unit</span> <span class="op">|</span> <span class="ident">Style</span>::<span class="ident">Newtype</span> <span class="op">|</span> <span class="ident">Style</span>::<span class="ident">Tuple</span> <span class="op">=&gt;</span> {}
         }
     }
 }
@@ -715,11 +716,11 @@
 <span class="doccomment">/// contents tag must differ, for the same reason.</span>
 <span class="kw">fn</span> <span class="ident">check_adjacent_tag_conflict</span>(<span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="ident">Ctxt</span>, <span class="ident">cont</span>: <span class="kw-2">&amp;</span><span class="ident">Container</span>) {
     <span class="kw">let</span> (<span class="ident">type_tag</span>, <span class="ident">content_tag</span>) <span class="op">=</span> <span class="kw">match</span> <span class="ident">cont</span>.<span class="ident">attrs</span>.<span class="ident">tag</span>() {
-        <span class="ident">TagType</span>::<span class="ident">Adjacent</span> { <span class="ident">tag</span>, <span class="ident">content</span> } <span class="op">=</span><span class="op">&gt;</span> (<span class="ident">tag</span>, <span class="ident">content</span>),
-        <span class="ident">TagType</span>::<span class="ident">Internal</span> { .. } <span class="op">|</span> <span class="ident">TagType</span>::<span class="ident">External</span> <span class="op">|</span> <span class="ident">TagType</span>::<span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span>,
+        <span class="ident">TagType</span>::<span class="ident">Adjacent</span> { <span class="ident">tag</span>, <span class="ident">content</span> } <span class="op">=&gt;</span> (<span class="ident">tag</span>, <span class="ident">content</span>),
+        <span class="ident">TagType</span>::<span class="ident">Internal</span> { .. } <span class="op">|</span> <span class="ident">TagType</span>::<span class="ident">External</span> <span class="op">|</span> <span class="ident">TagType</span>::<span class="prelude-val">None</span> <span class="op">=&gt;</span> <span class="kw">return</span>,
     };
 
-    <span class="kw">if</span> <span class="ident">type_tag</span> <span class="op">=</span><span class="op">=</span> <span class="ident">content_tag</span> {
+    <span class="kw">if</span> <span class="ident">type_tag</span> <span class="op">==</span> <span class="ident">content_tag</span> {
         <span class="ident">cx</span>.<span class="ident">error_spanned_by</span>(
             <span class="ident">cont</span>.<span class="ident">original</span>,
             <span class="macro">format</span><span class="macro">!</span>(
@@ -758,21 +759,21 @@
     }
 
     <span class="kw">let</span> <span class="ident">fields</span> <span class="op">=</span> <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">cont</span>.<span class="ident">data</span> {
-        <span class="ident">Data</span>::<span class="ident">Enum</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Data</span>::<span class="ident">Enum</span>(<span class="kw">_</span>) <span class="op">=&gt;</span> {
             <span class="ident">cx</span>.<span class="ident">error_spanned_by</span>(
                 <span class="ident">cont</span>.<span class="ident">original</span>,
                 <span class="string">&quot;#[serde(transparent)] is not allowed on an enum&quot;</span>,
             );
             <span class="kw">return</span>;
         }
-        <span class="ident">Data</span>::<span class="ident">Struct</span>(<span class="ident">Style</span>::<span class="ident">Unit</span>, <span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Data</span>::<span class="ident">Struct</span>(<span class="ident">Style</span>::<span class="ident">Unit</span>, <span class="kw">_</span>) <span class="op">=&gt;</span> {
             <span class="ident">cx</span>.<span class="ident">error_spanned_by</span>(
                 <span class="ident">cont</span>.<span class="ident">original</span>,
                 <span class="string">&quot;#[serde(transparent)] is not allowed on a unit struct&quot;</span>,
             );
             <span class="kw">return</span>;
         }
-        <span class="ident">Data</span>::<span class="ident">Struct</span>(<span class="kw">_</span>, <span class="ident">fields</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">fields</span>,
+        <span class="ident">Data</span>::<span class="ident">Struct</span>(<span class="kw">_</span>, <span class="ident">fields</span>) <span class="op">=&gt;</span> <span class="ident">fields</span>,
     };
 
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">transparent_field</span> <span class="op">=</span> <span class="prelude-val">None</span>;
@@ -791,15 +792,15 @@
     }
 
     <span class="kw">match</span> <span class="ident">transparent_field</span> {
-        <span class="prelude-val">Some</span>(<span class="ident">transparent_field</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">transparent_field</span>.<span class="ident">attrs</span>.<span class="ident">mark_transparent</span>(),
-        <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">derive</span> {
-            <span class="ident">Derive</span>::<span class="ident">Serialize</span> <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="prelude-val">Some</span>(<span class="ident">transparent_field</span>) <span class="op">=&gt;</span> <span class="ident">transparent_field</span>.<span class="ident">attrs</span>.<span class="ident">mark_transparent</span>(),
+        <span class="prelude-val">None</span> <span class="op">=&gt;</span> <span class="kw">match</span> <span class="ident">derive</span> {
+            <span class="ident">Derive</span>::<span class="ident">Serialize</span> <span class="op">=&gt;</span> {
                 <span class="ident">cx</span>.<span class="ident">error_spanned_by</span>(
                     <span class="ident">cont</span>.<span class="ident">original</span>,
                     <span class="string">&quot;#[serde(transparent)] requires at least one field that is not skipped&quot;</span>,
                 );
             }
-            <span class="ident">Derive</span>::<span class="ident">Deserialize</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Derive</span>::<span class="ident">Deserialize</span> <span class="op">=&gt;</span> {
                 <span class="ident">cx</span>.<span class="ident">error_spanned_by</span>(
                     <span class="ident">cont</span>.<span class="ident">original</span>,
                     <span class="string">&quot;#[serde(transparent)] requires at least one field that is neither skipped nor has a default&quot;</span>,
@@ -809,30 +810,30 @@
     }
 }
 
-<span class="kw">fn</span> <span class="ident">member_message</span>(<span class="ident">member</span>: <span class="kw-2">&amp;</span><span class="ident">Member</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">String</span> {
+<span class="kw">fn</span> <span class="ident">member_message</span>(<span class="ident">member</span>: <span class="kw-2">&amp;</span><span class="ident">Member</span>) <span class="op">-&gt;</span> <span class="ident">String</span> {
     <span class="kw">match</span> <span class="ident">member</span> {
-        <span class="ident">Member</span>::<span class="ident">Named</span>(<span class="ident">ident</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;`{}`&quot;</span>, <span class="ident">ident</span>),
-        <span class="ident">Member</span>::<span class="ident">Unnamed</span>(<span class="ident">i</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;#{}&quot;</span>, <span class="ident">i</span>.<span class="ident">index</span>),
+        <span class="ident">Member</span>::<span class="ident">Named</span>(<span class="ident">ident</span>) <span class="op">=&gt;</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;`{}`&quot;</span>, <span class="ident">ident</span>),
+        <span class="ident">Member</span>::<span class="ident">Unnamed</span>(<span class="ident">i</span>) <span class="op">=&gt;</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;#{}&quot;</span>, <span class="ident">i</span>.<span class="ident">index</span>),
     }
 }
 
-<span class="kw">fn</span> <span class="ident">allow_transparent</span>(<span class="ident">field</span>: <span class="kw-2">&amp;</span><span class="ident">Field</span>, <span class="ident">derive</span>: <span class="ident">Derive</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+<span class="kw">fn</span> <span class="ident">allow_transparent</span>(<span class="ident">field</span>: <span class="kw-2">&amp;</span><span class="ident">Field</span>, <span class="ident">derive</span>: <span class="ident">Derive</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
     <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Type</span>::<span class="ident">Path</span>(<span class="ident">ty</span>) <span class="op">=</span> <span class="ident">ungroup</span>(<span class="kw-2">&amp;</span><span class="ident">field</span>.<span class="ident">ty</span>) {
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">seg</span>) <span class="op">=</span> <span class="ident">ty</span>.<span class="ident">path</span>.<span class="ident">segments</span>.<span class="ident">last</span>() {
-            <span class="kw">if</span> <span class="ident">seg</span>.<span class="ident">ident</span> <span class="op">=</span><span class="op">=</span> <span class="string">&quot;PhantomData&quot;</span> {
+            <span class="kw">if</span> <span class="ident">seg</span>.<span class="ident">ident</span> <span class="op">==</span> <span class="string">&quot;PhantomData&quot;</span> {
                 <span class="kw">return</span> <span class="bool-val">false</span>;
             }
         }
     }
 
     <span class="kw">match</span> <span class="ident">derive</span> {
-        <span class="ident">Derive</span>::<span class="ident">Serialize</span> <span class="op">=</span><span class="op">&gt;</span> <span class="op">!</span><span class="ident">field</span>.<span class="ident">attrs</span>.<span class="ident">skip_serializing</span>(),
-        <span class="ident">Derive</span>::<span class="ident">Deserialize</span> <span class="op">=</span><span class="op">&gt;</span> <span class="op">!</span><span class="ident">field</span>.<span class="ident">attrs</span>.<span class="ident">skip_deserializing</span>() <span class="kw-2">&amp;</span><span class="op">&amp;</span> <span class="ident">field</span>.<span class="ident">attrs</span>.<span class="ident">default</span>().<span class="ident">is_none</span>(),
+        <span class="ident">Derive</span>::<span class="ident">Serialize</span> <span class="op">=&gt;</span> <span class="op">!</span><span class="ident">field</span>.<span class="ident">attrs</span>.<span class="ident">skip_serializing</span>(),
+        <span class="ident">Derive</span>::<span class="ident">Deserialize</span> <span class="op">=&gt;</span> <span class="op">!</span><span class="ident">field</span>.<span class="ident">attrs</span>.<span class="ident">skip_deserializing</span>() <span class="op">&amp;&amp;</span> <span class="ident">field</span>.<span class="ident">attrs</span>.<span class="ident">default</span>().<span class="ident">is_none</span>(),
     }
 }
 
 <span class="kw">fn</span> <span class="ident">check_from_and_try_from</span>(<span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="ident">Ctxt</span>, <span class="ident">cont</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Container</span>) {
-    <span class="kw">if</span> <span class="ident">cont</span>.<span class="ident">attrs</span>.<span class="ident">type_from</span>().<span class="ident">is_some</span>() <span class="kw-2">&amp;</span><span class="op">&amp;</span> <span class="ident">cont</span>.<span class="ident">attrs</span>.<span class="ident">type_try_from</span>().<span class="ident">is_some</span>() {
+    <span class="kw">if</span> <span class="ident">cont</span>.<span class="ident">attrs</span>.<span class="ident">type_from</span>().<span class="ident">is_some</span>() <span class="op">&amp;&amp;</span> <span class="ident">cont</span>.<span class="ident">attrs</span>.<span class="ident">type_try_from</span>().<span class="ident">is_some</span>() {
         <span class="ident">cx</span>.<span class="ident">error_spanned_by</span>(
             <span class="ident">cont</span>.<span class="ident">original</span>,
             <span class="string">&quot;#[serde(from = \&quot;...\&quot;)] and #[serde(try_from = \&quot;...\&quot;)] conflict with each other&quot;</span>,

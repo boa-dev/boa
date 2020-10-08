@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `boa/src/syntax/ast/keyword.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>keyword.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../dark.css"><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script src="../../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="shortcut icon" href="https://raw.githubusercontent.com/jasonwilliams/boa/master/assets/logo.svg"><style type="text/css">#crate-search{background-image:url("../../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../../boa/index.html'><div class='logo-container'><img src='https://raw.githubusercontent.com/jasonwilliams/boa/master/assets/logo.svg' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../../../settings.html"><img src="../../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `boa/src/syntax/ast/keyword.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>keyword.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled ><script src="../../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="shortcut icon" href="https://raw.githubusercontent.com/jasonwilliams/boa/master/assets/logo.svg"><style type="text/css">#crate-search{background-image:url("../../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../../boa/index.html'><div class='logo-container'><img src='https://raw.githubusercontent.com/jasonwilliams/boa/master/assets/logo.svg' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
+                <a id="settings-menu" href="../../../../settings.html"><img src="../../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -1017,133 +1018,133 @@
 
 <span class="kw">impl</span> <span class="ident">Keyword</span> {
     <span class="doccomment">/// Gets the keyword as a binary operation, if this keyword is the `in` keyword.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_binop</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">BinOp</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_binop</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">BinOp</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Keyword</span>::<span class="ident">In</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">BinOp</span>::<span class="ident">Comp</span>(<span class="ident">CompOp</span>::<span class="ident">In</span>)),
-            <span class="ident">Keyword</span>::<span class="ident">InstanceOf</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">BinOp</span>::<span class="ident">Comp</span>(<span class="ident">CompOp</span>::<span class="ident">InstanceOf</span>)),
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
+            <span class="ident">Keyword</span>::<span class="ident">In</span> <span class="op">=&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">BinOp</span>::<span class="ident">Comp</span>(<span class="ident">CompOp</span>::<span class="ident">In</span>)),
+            <span class="ident">Keyword</span>::<span class="ident">InstanceOf</span> <span class="op">=&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">BinOp</span>::<span class="ident">Comp</span>(<span class="ident">CompOp</span>::<span class="ident">InstanceOf</span>)),
+            <span class="kw">_</span> <span class="op">=&gt;</span> <span class="prelude-val">None</span>,
         }
     }
 
     <span class="doccomment">/// Gets the keyword as a string.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_str</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_str</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="self">Self</span>::<span class="ident">Await</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;await&quot;</span>,
-            <span class="self">Self</span>::<span class="ident">Break</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;break&quot;</span>,
-            <span class="self">Self</span>::<span class="ident">Case</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;case&quot;</span>,
-            <span class="self">Self</span>::<span class="ident">Catch</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;catch&quot;</span>,
-            <span class="self">Self</span>::<span class="ident">Class</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;class&quot;</span>,
-            <span class="self">Self</span>::<span class="ident">Continue</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;continue&quot;</span>,
-            <span class="self">Self</span>::<span class="ident">Const</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;const&quot;</span>,
-            <span class="self">Self</span>::<span class="ident">Debugger</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;debugger&quot;</span>,
-            <span class="self">Self</span>::<span class="ident">Default</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;default&quot;</span>,
-            <span class="self">Self</span>::<span class="ident">Delete</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;delete&quot;</span>,
-            <span class="self">Self</span>::<span class="ident">Do</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;do&quot;</span>,
-            <span class="self">Self</span>::<span class="ident">Else</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;else&quot;</span>,
-            <span class="self">Self</span>::<span class="ident">Enum</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;enum&quot;</span>,
-            <span class="self">Self</span>::<span class="ident">Extends</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;extends&quot;</span>,
-            <span class="self">Self</span>::<span class="ident">Export</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;export&quot;</span>,
-            <span class="self">Self</span>::<span class="ident">Finally</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;finally&quot;</span>,
-            <span class="self">Self</span>::<span class="ident">For</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;for&quot;</span>,
-            <span class="self">Self</span>::<span class="ident">Function</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;function&quot;</span>,
-            <span class="self">Self</span>::<span class="ident">If</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;if&quot;</span>,
-            <span class="self">Self</span>::<span class="ident">In</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;in&quot;</span>,
-            <span class="self">Self</span>::<span class="ident">InstanceOf</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;instanceof&quot;</span>,
-            <span class="self">Self</span>::<span class="ident">Import</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;import&quot;</span>,
-            <span class="self">Self</span>::<span class="ident">Let</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;let&quot;</span>,
-            <span class="self">Self</span>::<span class="ident">New</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;new&quot;</span>,
-            <span class="self">Self</span>::<span class="ident">Of</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;of&quot;</span>,
-            <span class="self">Self</span>::<span class="ident">Return</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;return&quot;</span>,
-            <span class="self">Self</span>::<span class="ident">Super</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;super&quot;</span>,
-            <span class="self">Self</span>::<span class="ident">Switch</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;switch&quot;</span>,
-            <span class="self">Self</span>::<span class="ident">This</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;this&quot;</span>,
-            <span class="self">Self</span>::<span class="ident">Throw</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;throw&quot;</span>,
-            <span class="self">Self</span>::<span class="ident">Try</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;try&quot;</span>,
-            <span class="self">Self</span>::<span class="ident">TypeOf</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;typeof&quot;</span>,
-            <span class="self">Self</span>::<span class="ident">Var</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;var&quot;</span>,
-            <span class="self">Self</span>::<span class="ident">Void</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;void&quot;</span>,
-            <span class="self">Self</span>::<span class="ident">While</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;while&quot;</span>,
-            <span class="self">Self</span>::<span class="ident">With</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;with&quot;</span>,
-            <span class="self">Self</span>::<span class="ident">Yield</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;yield&quot;</span>,
+            <span class="self">Self</span>::<span class="ident">Await</span> <span class="op">=&gt;</span> <span class="string">&quot;await&quot;</span>,
+            <span class="self">Self</span>::<span class="ident">Break</span> <span class="op">=&gt;</span> <span class="string">&quot;break&quot;</span>,
+            <span class="self">Self</span>::<span class="ident">Case</span> <span class="op">=&gt;</span> <span class="string">&quot;case&quot;</span>,
+            <span class="self">Self</span>::<span class="ident">Catch</span> <span class="op">=&gt;</span> <span class="string">&quot;catch&quot;</span>,
+            <span class="self">Self</span>::<span class="ident">Class</span> <span class="op">=&gt;</span> <span class="string">&quot;class&quot;</span>,
+            <span class="self">Self</span>::<span class="ident">Continue</span> <span class="op">=&gt;</span> <span class="string">&quot;continue&quot;</span>,
+            <span class="self">Self</span>::<span class="ident">Const</span> <span class="op">=&gt;</span> <span class="string">&quot;const&quot;</span>,
+            <span class="self">Self</span>::<span class="ident">Debugger</span> <span class="op">=&gt;</span> <span class="string">&quot;debugger&quot;</span>,
+            <span class="self">Self</span>::<span class="ident">Default</span> <span class="op">=&gt;</span> <span class="string">&quot;default&quot;</span>,
+            <span class="self">Self</span>::<span class="ident">Delete</span> <span class="op">=&gt;</span> <span class="string">&quot;delete&quot;</span>,
+            <span class="self">Self</span>::<span class="ident">Do</span> <span class="op">=&gt;</span> <span class="string">&quot;do&quot;</span>,
+            <span class="self">Self</span>::<span class="ident">Else</span> <span class="op">=&gt;</span> <span class="string">&quot;else&quot;</span>,
+            <span class="self">Self</span>::<span class="ident">Enum</span> <span class="op">=&gt;</span> <span class="string">&quot;enum&quot;</span>,
+            <span class="self">Self</span>::<span class="ident">Extends</span> <span class="op">=&gt;</span> <span class="string">&quot;extends&quot;</span>,
+            <span class="self">Self</span>::<span class="ident">Export</span> <span class="op">=&gt;</span> <span class="string">&quot;export&quot;</span>,
+            <span class="self">Self</span>::<span class="ident">Finally</span> <span class="op">=&gt;</span> <span class="string">&quot;finally&quot;</span>,
+            <span class="self">Self</span>::<span class="ident">For</span> <span class="op">=&gt;</span> <span class="string">&quot;for&quot;</span>,
+            <span class="self">Self</span>::<span class="ident">Function</span> <span class="op">=&gt;</span> <span class="string">&quot;function&quot;</span>,
+            <span class="self">Self</span>::<span class="ident">If</span> <span class="op">=&gt;</span> <span class="string">&quot;if&quot;</span>,
+            <span class="self">Self</span>::<span class="ident">In</span> <span class="op">=&gt;</span> <span class="string">&quot;in&quot;</span>,
+            <span class="self">Self</span>::<span class="ident">InstanceOf</span> <span class="op">=&gt;</span> <span class="string">&quot;instanceof&quot;</span>,
+            <span class="self">Self</span>::<span class="ident">Import</span> <span class="op">=&gt;</span> <span class="string">&quot;import&quot;</span>,
+            <span class="self">Self</span>::<span class="ident">Let</span> <span class="op">=&gt;</span> <span class="string">&quot;let&quot;</span>,
+            <span class="self">Self</span>::<span class="ident">New</span> <span class="op">=&gt;</span> <span class="string">&quot;new&quot;</span>,
+            <span class="self">Self</span>::<span class="ident">Of</span> <span class="op">=&gt;</span> <span class="string">&quot;of&quot;</span>,
+            <span class="self">Self</span>::<span class="ident">Return</span> <span class="op">=&gt;</span> <span class="string">&quot;return&quot;</span>,
+            <span class="self">Self</span>::<span class="ident">Super</span> <span class="op">=&gt;</span> <span class="string">&quot;super&quot;</span>,
+            <span class="self">Self</span>::<span class="ident">Switch</span> <span class="op">=&gt;</span> <span class="string">&quot;switch&quot;</span>,
+            <span class="self">Self</span>::<span class="ident">This</span> <span class="op">=&gt;</span> <span class="string">&quot;this&quot;</span>,
+            <span class="self">Self</span>::<span class="ident">Throw</span> <span class="op">=&gt;</span> <span class="string">&quot;throw&quot;</span>,
+            <span class="self">Self</span>::<span class="ident">Try</span> <span class="op">=&gt;</span> <span class="string">&quot;try&quot;</span>,
+            <span class="self">Self</span>::<span class="ident">TypeOf</span> <span class="op">=&gt;</span> <span class="string">&quot;typeof&quot;</span>,
+            <span class="self">Self</span>::<span class="ident">Var</span> <span class="op">=&gt;</span> <span class="string">&quot;var&quot;</span>,
+            <span class="self">Self</span>::<span class="ident">Void</span> <span class="op">=&gt;</span> <span class="string">&quot;void&quot;</span>,
+            <span class="self">Self</span>::<span class="ident">While</span> <span class="op">=&gt;</span> <span class="string">&quot;while&quot;</span>,
+            <span class="self">Self</span>::<span class="ident">With</span> <span class="op">=&gt;</span> <span class="string">&quot;with&quot;</span>,
+            <span class="self">Self</span>::<span class="ident">Yield</span> <span class="op">=&gt;</span> <span class="string">&quot;yield&quot;</span>,
         }
     }
 }
 
 <span class="kw">impl</span> <span class="ident">TryInto</span><span class="op">&lt;</span><span class="ident">BinOp</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Keyword</span> {
     <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <span class="ident">String</span>;
-    <span class="kw">fn</span> <span class="ident">try_into</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">BinOp</span>, <span class="self">Self</span>::<span class="ident">Error</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">try_into</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">BinOp</span>, <span class="self">Self</span>::<span class="ident">Error</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">as_binop</span>()
-            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;No binary operation for {}&quot;</span>, <span class="self">self</span>))
+            .<span class="ident">ok_or_else</span>(<span class="op">||</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;No binary operation for {}&quot;</span>, <span class="self">self</span>))
     }
 }
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">KeywordError</span>;
 <span class="kw">impl</span> <span class="ident">fmt</span>::<span class="ident">Display</span> <span class="kw">for</span> <span class="ident">KeywordError</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
         <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;invalid token&quot;</span>)
     }
 }
 
 <span class="comment">// This is important for other errors to wrap this one.</span>
 <span class="kw">impl</span> <span class="ident">error</span>::<span class="ident">Error</span> <span class="kw">for</span> <span class="ident">KeywordError</span> {
-    <span class="kw">fn</span> <span class="ident">description</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">str</span> {
+    <span class="kw">fn</span> <span class="ident">description</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="ident">str</span> {
         <span class="string">&quot;invalid token&quot;</span>
     }
 
-    <span class="kw">fn</span> <span class="ident">cause</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw">dyn</span> <span class="ident">error</span>::<span class="ident">Error</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">cause</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw">dyn</span> <span class="ident">error</span>::<span class="ident">Error</span><span class="op">&gt;</span> {
         <span class="comment">// Generic error, underlying cause isn&#39;t tracked.</span>
         <span class="prelude-val">None</span>
     }
 }
 <span class="kw">impl</span> <span class="ident">FromStr</span> <span class="kw">for</span> <span class="ident">Keyword</span> {
     <span class="kw">type</span> <span class="prelude-val">Err</span> <span class="op">=</span> <span class="ident">KeywordError</span>;
-    <span class="kw">fn</span> <span class="ident">from_str</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="self">Self</span>::<span class="prelude-val">Err</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">from_str</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="self">Self</span>::<span class="prelude-val">Err</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="ident">s</span> {
-            <span class="string">&quot;await&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="self">Self</span>::<span class="ident">Await</span>),
-            <span class="string">&quot;break&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="self">Self</span>::<span class="ident">Break</span>),
-            <span class="string">&quot;case&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="self">Self</span>::<span class="ident">Case</span>),
-            <span class="string">&quot;catch&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="self">Self</span>::<span class="ident">Catch</span>),
-            <span class="string">&quot;class&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="self">Self</span>::<span class="ident">Class</span>),
-            <span class="string">&quot;continue&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="self">Self</span>::<span class="ident">Continue</span>),
-            <span class="string">&quot;const&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="self">Self</span>::<span class="ident">Const</span>),
-            <span class="string">&quot;debugger&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="self">Self</span>::<span class="ident">Debugger</span>),
-            <span class="string">&quot;default&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="self">Self</span>::<span class="ident">Default</span>),
-            <span class="string">&quot;delete&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="self">Self</span>::<span class="ident">Delete</span>),
-            <span class="string">&quot;do&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="self">Self</span>::<span class="ident">Do</span>),
-            <span class="string">&quot;else&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="self">Self</span>::<span class="ident">Else</span>),
-            <span class="string">&quot;enum&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="self">Self</span>::<span class="ident">Enum</span>),
-            <span class="string">&quot;extends&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="self">Self</span>::<span class="ident">Extends</span>),
-            <span class="string">&quot;export&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="self">Self</span>::<span class="ident">Export</span>),
-            <span class="string">&quot;finally&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="self">Self</span>::<span class="ident">Finally</span>),
-            <span class="string">&quot;for&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="self">Self</span>::<span class="ident">For</span>),
-            <span class="string">&quot;function&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="self">Self</span>::<span class="ident">Function</span>),
-            <span class="string">&quot;if&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="self">Self</span>::<span class="ident">If</span>),
-            <span class="string">&quot;in&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="self">Self</span>::<span class="ident">In</span>),
-            <span class="string">&quot;instanceof&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="self">Self</span>::<span class="ident">InstanceOf</span>),
-            <span class="string">&quot;import&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="self">Self</span>::<span class="ident">Import</span>),
-            <span class="string">&quot;let&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="self">Self</span>::<span class="ident">Let</span>),
-            <span class="string">&quot;new&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="self">Self</span>::<span class="ident">New</span>),
-            <span class="string">&quot;of&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="self">Self</span>::<span class="ident">Of</span>),
-            <span class="string">&quot;return&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="self">Self</span>::<span class="ident">Return</span>),
-            <span class="string">&quot;super&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="self">Self</span>::<span class="ident">Super</span>),
-            <span class="string">&quot;switch&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="self">Self</span>::<span class="ident">Switch</span>),
-            <span class="string">&quot;this&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="self">Self</span>::<span class="ident">This</span>),
-            <span class="string">&quot;throw&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="self">Self</span>::<span class="ident">Throw</span>),
-            <span class="string">&quot;try&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="self">Self</span>::<span class="ident">Try</span>),
-            <span class="string">&quot;typeof&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="self">Self</span>::<span class="ident">TypeOf</span>),
-            <span class="string">&quot;var&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="self">Self</span>::<span class="ident">Var</span>),
-            <span class="string">&quot;void&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="self">Self</span>::<span class="ident">Void</span>),
-            <span class="string">&quot;while&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="self">Self</span>::<span class="ident">While</span>),
-            <span class="string">&quot;with&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="self">Self</span>::<span class="ident">With</span>),
-            <span class="string">&quot;yield&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="self">Self</span>::<span class="ident">Yield</span>),
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">KeywordError</span>),
+            <span class="string">&quot;await&quot;</span> <span class="op">=&gt;</span> <span class="prelude-val">Ok</span>(<span class="self">Self</span>::<span class="ident">Await</span>),
+            <span class="string">&quot;break&quot;</span> <span class="op">=&gt;</span> <span class="prelude-val">Ok</span>(<span class="self">Self</span>::<span class="ident">Break</span>),
+            <span class="string">&quot;case&quot;</span> <span class="op">=&gt;</span> <span class="prelude-val">Ok</span>(<span class="self">Self</span>::<span class="ident">Case</span>),
+            <span class="string">&quot;catch&quot;</span> <span class="op">=&gt;</span> <span class="prelude-val">Ok</span>(<span class="self">Self</span>::<span class="ident">Catch</span>),
+            <span class="string">&quot;class&quot;</span> <span class="op">=&gt;</span> <span class="prelude-val">Ok</span>(<span class="self">Self</span>::<span class="ident">Class</span>),
+            <span class="string">&quot;continue&quot;</span> <span class="op">=&gt;</span> <span class="prelude-val">Ok</span>(<span class="self">Self</span>::<span class="ident">Continue</span>),
+            <span class="string">&quot;const&quot;</span> <span class="op">=&gt;</span> <span class="prelude-val">Ok</span>(<span class="self">Self</span>::<span class="ident">Const</span>),
+            <span class="string">&quot;debugger&quot;</span> <span class="op">=&gt;</span> <span class="prelude-val">Ok</span>(<span class="self">Self</span>::<span class="ident">Debugger</span>),
+            <span class="string">&quot;default&quot;</span> <span class="op">=&gt;</span> <span class="prelude-val">Ok</span>(<span class="self">Self</span>::<span class="ident">Default</span>),
+            <span class="string">&quot;delete&quot;</span> <span class="op">=&gt;</span> <span class="prelude-val">Ok</span>(<span class="self">Self</span>::<span class="ident">Delete</span>),
+            <span class="string">&quot;do&quot;</span> <span class="op">=&gt;</span> <span class="prelude-val">Ok</span>(<span class="self">Self</span>::<span class="ident">Do</span>),
+            <span class="string">&quot;else&quot;</span> <span class="op">=&gt;</span> <span class="prelude-val">Ok</span>(<span class="self">Self</span>::<span class="ident">Else</span>),
+            <span class="string">&quot;enum&quot;</span> <span class="op">=&gt;</span> <span class="prelude-val">Ok</span>(<span class="self">Self</span>::<span class="ident">Enum</span>),
+            <span class="string">&quot;extends&quot;</span> <span class="op">=&gt;</span> <span class="prelude-val">Ok</span>(<span class="self">Self</span>::<span class="ident">Extends</span>),
+            <span class="string">&quot;export&quot;</span> <span class="op">=&gt;</span> <span class="prelude-val">Ok</span>(<span class="self">Self</span>::<span class="ident">Export</span>),
+            <span class="string">&quot;finally&quot;</span> <span class="op">=&gt;</span> <span class="prelude-val">Ok</span>(<span class="self">Self</span>::<span class="ident">Finally</span>),
+            <span class="string">&quot;for&quot;</span> <span class="op">=&gt;</span> <span class="prelude-val">Ok</span>(<span class="self">Self</span>::<span class="ident">For</span>),
+            <span class="string">&quot;function&quot;</span> <span class="op">=&gt;</span> <span class="prelude-val">Ok</span>(<span class="self">Self</span>::<span class="ident">Function</span>),
+            <span class="string">&quot;if&quot;</span> <span class="op">=&gt;</span> <span class="prelude-val">Ok</span>(<span class="self">Self</span>::<span class="ident">If</span>),
+            <span class="string">&quot;in&quot;</span> <span class="op">=&gt;</span> <span class="prelude-val">Ok</span>(<span class="self">Self</span>::<span class="ident">In</span>),
+            <span class="string">&quot;instanceof&quot;</span> <span class="op">=&gt;</span> <span class="prelude-val">Ok</span>(<span class="self">Self</span>::<span class="ident">InstanceOf</span>),
+            <span class="string">&quot;import&quot;</span> <span class="op">=&gt;</span> <span class="prelude-val">Ok</span>(<span class="self">Self</span>::<span class="ident">Import</span>),
+            <span class="string">&quot;let&quot;</span> <span class="op">=&gt;</span> <span class="prelude-val">Ok</span>(<span class="self">Self</span>::<span class="ident">Let</span>),
+            <span class="string">&quot;new&quot;</span> <span class="op">=&gt;</span> <span class="prelude-val">Ok</span>(<span class="self">Self</span>::<span class="ident">New</span>),
+            <span class="string">&quot;of&quot;</span> <span class="op">=&gt;</span> <span class="prelude-val">Ok</span>(<span class="self">Self</span>::<span class="ident">Of</span>),
+            <span class="string">&quot;return&quot;</span> <span class="op">=&gt;</span> <span class="prelude-val">Ok</span>(<span class="self">Self</span>::<span class="ident">Return</span>),
+            <span class="string">&quot;super&quot;</span> <span class="op">=&gt;</span> <span class="prelude-val">Ok</span>(<span class="self">Self</span>::<span class="ident">Super</span>),
+            <span class="string">&quot;switch&quot;</span> <span class="op">=&gt;</span> <span class="prelude-val">Ok</span>(<span class="self">Self</span>::<span class="ident">Switch</span>),
+            <span class="string">&quot;this&quot;</span> <span class="op">=&gt;</span> <span class="prelude-val">Ok</span>(<span class="self">Self</span>::<span class="ident">This</span>),
+            <span class="string">&quot;throw&quot;</span> <span class="op">=&gt;</span> <span class="prelude-val">Ok</span>(<span class="self">Self</span>::<span class="ident">Throw</span>),
+            <span class="string">&quot;try&quot;</span> <span class="op">=&gt;</span> <span class="prelude-val">Ok</span>(<span class="self">Self</span>::<span class="ident">Try</span>),
+            <span class="string">&quot;typeof&quot;</span> <span class="op">=&gt;</span> <span class="prelude-val">Ok</span>(<span class="self">Self</span>::<span class="ident">TypeOf</span>),
+            <span class="string">&quot;var&quot;</span> <span class="op">=&gt;</span> <span class="prelude-val">Ok</span>(<span class="self">Self</span>::<span class="ident">Var</span>),
+            <span class="string">&quot;void&quot;</span> <span class="op">=&gt;</span> <span class="prelude-val">Ok</span>(<span class="self">Self</span>::<span class="ident">Void</span>),
+            <span class="string">&quot;while&quot;</span> <span class="op">=&gt;</span> <span class="prelude-val">Ok</span>(<span class="self">Self</span>::<span class="ident">While</span>),
+            <span class="string">&quot;with&quot;</span> <span class="op">=&gt;</span> <span class="prelude-val">Ok</span>(<span class="self">Self</span>::<span class="ident">With</span>),
+            <span class="string">&quot;yield&quot;</span> <span class="op">=&gt;</span> <span class="prelude-val">Ok</span>(<span class="self">Self</span>::<span class="ident">Yield</span>),
+            <span class="kw">_</span> <span class="op">=&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">KeywordError</span>),
         }
     }
 }
 
 <span class="kw">impl</span> <span class="ident">fmt</span>::<span class="ident">Display</span> <span class="kw">for</span> <span class="ident">Keyword</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
         <span class="ident">fmt</span>::<span class="ident">Display</span>::<span class="ident">fmt</span>(<span class="self">self</span>.<span class="ident">as_str</span>(), <span class="ident">f</span>)
     }
 }

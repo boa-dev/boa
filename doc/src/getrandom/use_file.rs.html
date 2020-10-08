@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/getrandom-0.1.15/src/use_file.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>use_file.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="https://www.rust-lang.org/favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../getrandom/index.html'><div class='logo-container'><img src='https://www.rust-lang.org/logos/rust-logo-128x128-blk.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/getrandom-0.1.15/src/use_file.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>use_file.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="https://www.rust-lang.org/favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../getrandom/index.html'><div class='logo-container'><img src='https://www.rust-lang.org/logos/rust-logo-128x128-blk.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
+                <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -165,7 +166,7 @@
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>))]</span>
 <span class="kw">const</span> <span class="ident">FILE_PATH</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;/dev/urandom\0&quot;</span>;
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">getrandom_inner</span>(<span class="ident">dest</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Error</span><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">getrandom_inner</span>(<span class="ident">dest</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>]) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Error</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">fd</span> <span class="op">=</span> <span class="ident">get_rng_fd</span>()<span class="question-mark">?</span>;
     <span class="kw">let</span> <span class="ident">read</span> <span class="op">=</span> <span class="op">|</span><span class="ident">buf</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>]<span class="op">|</span> <span class="kw">unsafe</span> { <span class="ident">libc</span>::<span class="ident">read</span>(<span class="ident">fd</span>, <span class="ident">buf</span>.<span class="ident">as_mut_ptr</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw">_</span>, <span class="ident">buf</span>.<span class="ident">len</span>()) };
 
@@ -183,12 +184,12 @@
 <span class="comment">// Returns the file descriptor for the device file used to retrieve random</span>
 <span class="comment">// bytes. The file will be opened exactly once. All successful calls will</span>
 <span class="comment">// return the same file descriptor. This file descriptor is never closed.</span>
-<span class="kw">fn</span> <span class="ident">get_rng_fd</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">libc</span>::<span class="ident">c_int</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">get_rng_fd</span>() <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">libc</span>::<span class="ident">c_int</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
     <span class="kw">static</span> <span class="ident">FD</span>: <span class="ident">AtomicUsize</span> <span class="op">=</span> <span class="ident">AtomicUsize</span>::<span class="ident">new</span>(<span class="ident">LazyUsize</span>::<span class="ident">UNINIT</span>);
-    <span class="kw">fn</span> <span class="ident">get_fd</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">libc</span>::<span class="ident">c_int</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">get_fd</span>() <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">libc</span>::<span class="ident">c_int</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="ident">FD</span>.<span class="ident">load</span>(<span class="ident">Relaxed</span>) {
-            <span class="ident">LazyUsize</span>::<span class="ident">UNINIT</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
-            <span class="ident">val</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">val</span> <span class="kw">as</span> <span class="ident">libc</span>::<span class="ident">c_int</span>),
+            <span class="ident">LazyUsize</span>::<span class="ident">UNINIT</span> <span class="op">=&gt;</span> <span class="prelude-val">None</span>,
+            <span class="ident">val</span> <span class="op">=&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">val</span> <span class="kw">as</span> <span class="ident">libc</span>::<span class="ident">c_int</span>),
         }
     }
 
@@ -201,7 +202,7 @@
     <span class="comment">// before returning, making sure we don&#39;t violate the pthread_mutex_t API.</span>
     <span class="kw">static</span> <span class="ident">MUTEX</span>: <span class="ident">Mutex</span> <span class="op">=</span> <span class="ident">Mutex</span>::<span class="ident">new</span>();
     <span class="kw">unsafe</span> { <span class="ident">MUTEX</span>.<span class="ident">lock</span>() };
-    <span class="kw">let</span> <span class="ident">_guard</span> <span class="op">=</span> <span class="ident">DropGuard</span>(<span class="op">|</span><span class="op">|</span> <span class="kw">unsafe</span> { <span class="ident">MUTEX</span>.<span class="ident">unlock</span>() });
+    <span class="kw">let</span> <span class="ident">_guard</span> <span class="op">=</span> <span class="ident">DropGuard</span>(<span class="op">||</span> <span class="kw">unsafe</span> { <span class="ident">MUTEX</span>.<span class="ident">unlock</span>() });
 
     <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">fd</span>) <span class="op">=</span> <span class="ident">get_fd</span>() {
         <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">fd</span>);
@@ -213,7 +214,7 @@
 
     <span class="kw">let</span> <span class="ident">fd</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">open_readonly</span>(<span class="ident">FILE_PATH</span>)<span class="question-mark">?</span> };
     <span class="comment">// The fd always fits in a usize without conflicting with UNINIT.</span>
-    <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="ident">fd</span> <span class="op">&gt;</span><span class="op">=</span> <span class="number">0</span> <span class="kw-2">&amp;</span><span class="op">&amp;</span> (<span class="ident">fd</span> <span class="kw">as</span> <span class="ident">usize</span>) <span class="op">&lt;</span> <span class="ident">LazyUsize</span>::<span class="ident">UNINIT</span>);
+    <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="ident">fd</span> <span class="op">&gt;=</span> <span class="number">0</span> <span class="op">&amp;&amp;</span> (<span class="ident">fd</span> <span class="kw">as</span> <span class="ident">usize</span>) <span class="op">&lt;</span> <span class="ident">LazyUsize</span>::<span class="ident">UNINIT</span>);
     <span class="ident">FD</span>.<span class="ident">store</span>(<span class="ident">fd</span> <span class="kw">as</span> <span class="ident">usize</span>, <span class="ident">Relaxed</span>);
 
     <span class="prelude-val">Ok</span>(<span class="ident">fd</span>)
@@ -221,7 +222,7 @@
 
 <span class="comment">// Succeeds once /dev/urandom is safe to read from</span>
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>))]</span>
-<span class="kw">fn</span> <span class="ident">wait_until_rng_ready</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Error</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">wait_until_rng_ready</span>() <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Error</span><span class="op">&gt;</span> {
     <span class="comment">// Poll /dev/random to make sure it is ok to read from /dev/urandom.</span>
     <span class="kw">let</span> <span class="ident">fd</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">open_readonly</span>(<span class="string">&quot;/dev/random\0&quot;</span>)<span class="question-mark">?</span> };
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">pfd</span> <span class="op">=</span> <span class="ident">libc</span>::<span class="ident">pollfd</span> {
@@ -229,21 +230,21 @@
         <span class="ident">events</span>: <span class="ident">libc</span>::<span class="ident">POLLIN</span>,
         <span class="ident">revents</span>: <span class="number">0</span>,
     };
-    <span class="kw">let</span> <span class="ident">_guard</span> <span class="op">=</span> <span class="ident">DropGuard</span>(<span class="op">|</span><span class="op">|</span> <span class="kw">unsafe</span> {
+    <span class="kw">let</span> <span class="ident">_guard</span> <span class="op">=</span> <span class="ident">DropGuard</span>(<span class="op">||</span> <span class="kw">unsafe</span> {
         <span class="ident">libc</span>::<span class="ident">close</span>(<span class="ident">fd</span>);
     });
 
     <span class="kw">loop</span> {
         <span class="comment">// A negative timeout means an infinite timeout.</span>
         <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">libc</span>::<span class="ident">poll</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">pfd</span>, <span class="number">1</span>, <span class="op">-</span><span class="number">1</span>) };
-        <span class="kw">if</span> <span class="ident">res</span> <span class="op">&gt;</span><span class="op">=</span> <span class="number">0</span> {
+        <span class="kw">if</span> <span class="ident">res</span> <span class="op">&gt;=</span> <span class="number">0</span> {
             <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">res</span>, <span class="number">1</span>); <span class="comment">// We only used one fd, and cannot timeout.</span>
             <span class="kw">return</span> <span class="prelude-val">Ok</span>(());
         }
         <span class="kw">let</span> <span class="ident">err</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">util_libc</span>::<span class="ident">last_os_error</span>();
         <span class="kw">match</span> <span class="ident">err</span>.<span class="ident">raw_os_error</span>() {
-            <span class="prelude-val">Some</span>(<span class="ident">libc</span>::<span class="ident">EINTR</span>) <span class="op">|</span> <span class="prelude-val">Some</span>(<span class="ident">libc</span>::<span class="ident">EAGAIN</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">continue</span>,
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">err</span>),
+            <span class="prelude-val">Some</span>(<span class="ident">libc</span>::<span class="ident">EINTR</span>) <span class="op">|</span> <span class="prelude-val">Some</span>(<span class="ident">libc</span>::<span class="ident">EAGAIN</span>) <span class="op">=&gt;</span> <span class="kw">continue</span>,
+            <span class="kw">_</span> <span class="op">=&gt;</span> <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">err</span>),
         }
     }
 }
@@ -251,7 +252,7 @@
 <span class="kw">struct</span> <span class="ident">Mutex</span>(<span class="ident">UnsafeCell</span><span class="op">&lt;</span><span class="ident">libc</span>::<span class="ident">pthread_mutex_t</span><span class="op">&gt;</span>);
 
 <span class="kw">impl</span> <span class="ident">Mutex</span> {
-    <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-&gt;</span> <span class="self">Self</span> {
         <span class="self">Self</span>(<span class="ident">UnsafeCell</span>::<span class="ident">new</span>(<span class="ident">libc</span>::<span class="ident">PTHREAD_MUTEX_INITIALIZER</span>))
     }
     <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">lock</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) {

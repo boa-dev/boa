@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/memchr-2.3.3/src/fallback.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>fallback.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../memchr/index.html'><div class='logo-container'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/memchr-2.3.3/src/fallback.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>fallback.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../memchr/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
+                <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -356,14 +357,14 @@
 <span class="doccomment">/// bytes where the borrow propagated all the way to the most significant</span>
 <span class="doccomment">/// bit.&quot;</span>
 <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-<span class="kw">fn</span> <span class="ident">contains_zero_byte</span>(<span class="ident">x</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+<span class="kw">fn</span> <span class="ident">contains_zero_byte</span>(<span class="ident">x</span>: <span class="ident">usize</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
     <span class="kw">const</span> <span class="ident">LO_U64</span>: <span class="ident">u64</span> <span class="op">=</span> <span class="number">0x0101010101010101</span>;
     <span class="kw">const</span> <span class="ident">HI_U64</span>: <span class="ident">u64</span> <span class="op">=</span> <span class="number">0x8080808080808080</span>;
 
     <span class="kw">const</span> <span class="ident">LO_USIZE</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="ident">LO_U64</span> <span class="kw">as</span> <span class="ident">usize</span>;
     <span class="kw">const</span> <span class="ident">HI_USIZE</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="ident">HI_U64</span> <span class="kw">as</span> <span class="ident">usize</span>;
 
-    <span class="ident">x</span>.<span class="ident">wrapping_sub</span>(<span class="ident">LO_USIZE</span>) <span class="op">&amp;</span> <span class="op">!</span><span class="ident">x</span> <span class="op">&amp;</span> <span class="ident">HI_USIZE</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span>
+    <span class="ident">x</span>.<span class="ident">wrapping_sub</span>(<span class="ident">LO_USIZE</span>) <span class="op">&amp;</span> <span class="op">!</span><span class="ident">x</span> <span class="op">&amp;</span> <span class="ident">HI_USIZE</span> <span class="op">!=</span> <span class="number">0</span>
 }
 
 <span class="doccomment">/// Repeat the given byte into a word size number. That is, every 8 bits</span>
@@ -371,13 +372,13 @@
 <span class="doccomment">/// `01001110` in binary, then the returned value on a 32-bit system would be:</span>
 <span class="doccomment">/// `01001110_01001110_01001110_01001110`.</span>
 <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-<span class="kw">fn</span> <span class="ident">repeat_byte</span>(<span class="ident">b</span>: <span class="ident">u8</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+<span class="kw">fn</span> <span class="ident">repeat_byte</span>(<span class="ident">b</span>: <span class="ident">u8</span>) <span class="op">-&gt;</span> <span class="ident">usize</span> {
     (<span class="ident">b</span> <span class="kw">as</span> <span class="ident">usize</span>) <span class="op">*</span> (<span class="ident">usize</span>::<span class="ident">MAX</span> <span class="op">/</span> <span class="number">255</span>)
 }
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">memchr</span>(<span class="ident">n1</span>: <span class="ident">u8</span>, <span class="ident">haystack</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">memchr</span>(<span class="ident">n1</span>: <span class="ident">u8</span>, <span class="ident">haystack</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">vn1</span> <span class="op">=</span> <span class="ident">repeat_byte</span>(<span class="ident">n1</span>);
-    <span class="kw">let</span> <span class="ident">confirm</span> <span class="op">=</span> <span class="op">|</span><span class="ident">byte</span><span class="op">|</span> <span class="ident">byte</span> <span class="op">=</span><span class="op">=</span> <span class="ident">n1</span>;
+    <span class="kw">let</span> <span class="ident">confirm</span> <span class="op">=</span> <span class="op">|</span><span class="ident">byte</span><span class="op">|</span> <span class="ident">byte</span> <span class="op">==</span> <span class="ident">n1</span>;
     <span class="kw">let</span> <span class="ident">loop_size</span> <span class="op">=</span> <span class="ident">cmp</span>::<span class="ident">min</span>(<span class="ident">LOOP_SIZE</span>, <span class="ident">haystack</span>.<span class="ident">len</span>());
     <span class="kw">let</span> <span class="ident">align</span> <span class="op">=</span> <span class="ident">USIZE_BYTES</span> <span class="op">-</span> <span class="number">1</span>;
     <span class="kw">let</span> <span class="ident">start_ptr</span> <span class="op">=</span> <span class="ident">haystack</span>.<span class="ident">as_ptr</span>();
@@ -396,15 +397,15 @@
 
         <span class="ident">ptr</span> <span class="op">=</span> <span class="ident">ptr</span>.<span class="ident">add</span>(<span class="ident">USIZE_BYTES</span> <span class="op">-</span> (<span class="ident">start_ptr</span> <span class="kw">as</span> <span class="ident">usize</span> <span class="op">&amp;</span> <span class="ident">align</span>));
         <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="ident">ptr</span> <span class="op">&gt;</span> <span class="ident">start_ptr</span>);
-        <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="ident">end_ptr</span>.<span class="ident">sub</span>(<span class="ident">USIZE_BYTES</span>) <span class="op">&gt;</span><span class="op">=</span> <span class="ident">start_ptr</span>);
-        <span class="kw">while</span> <span class="ident">loop_size</span> <span class="op">=</span><span class="op">=</span> <span class="ident">LOOP_SIZE</span> <span class="kw-2">&amp;</span><span class="op">&amp;</span> <span class="ident">ptr</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">end_ptr</span>.<span class="ident">sub</span>(<span class="ident">loop_size</span>) {
+        <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="ident">end_ptr</span>.<span class="ident">sub</span>(<span class="ident">USIZE_BYTES</span>) <span class="op">&gt;=</span> <span class="ident">start_ptr</span>);
+        <span class="kw">while</span> <span class="ident">loop_size</span> <span class="op">==</span> <span class="ident">LOOP_SIZE</span> <span class="op">&amp;&amp;</span> <span class="ident">ptr</span> <span class="op">&lt;=</span> <span class="ident">end_ptr</span>.<span class="ident">sub</span>(<span class="ident">loop_size</span>) {
             <span class="macro">debug_assert_eq</span><span class="macro">!</span>(<span class="number">0</span>, (<span class="ident">ptr</span> <span class="kw">as</span> <span class="ident">usize</span>) <span class="op">%</span> <span class="ident">USIZE_BYTES</span>);
 
             <span class="kw">let</span> <span class="ident">a</span> <span class="op">=</span> <span class="kw-2">*</span>(<span class="ident">ptr</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">usize</span>);
             <span class="kw">let</span> <span class="ident">b</span> <span class="op">=</span> <span class="kw-2">*</span>(<span class="ident">ptr</span>.<span class="ident">add</span>(<span class="ident">USIZE_BYTES</span>) <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">usize</span>);
             <span class="kw">let</span> <span class="ident">eqa</span> <span class="op">=</span> <span class="ident">contains_zero_byte</span>(<span class="ident">a</span> <span class="op">^</span> <span class="ident">vn1</span>);
             <span class="kw">let</span> <span class="ident">eqb</span> <span class="op">=</span> <span class="ident">contains_zero_byte</span>(<span class="ident">b</span> <span class="op">^</span> <span class="ident">vn1</span>);
-            <span class="kw">if</span> <span class="ident">eqa</span> <span class="op">|</span><span class="op">|</span> <span class="ident">eqb</span> {
+            <span class="kw">if</span> <span class="ident">eqa</span> <span class="op">||</span> <span class="ident">eqb</span> {
                 <span class="kw">break</span>;
             }
             <span class="ident">ptr</span> <span class="op">=</span> <span class="ident">ptr</span>.<span class="ident">add</span>(<span class="ident">LOOP_SIZE</span>);
@@ -414,10 +415,10 @@
 }
 
 <span class="doccomment">/// Like `memchr`, but searches for two bytes instead of one.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">memchr2</span>(<span class="ident">n1</span>: <span class="ident">u8</span>, <span class="ident">n2</span>: <span class="ident">u8</span>, <span class="ident">haystack</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">memchr2</span>(<span class="ident">n1</span>: <span class="ident">u8</span>, <span class="ident">n2</span>: <span class="ident">u8</span>, <span class="ident">haystack</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">vn1</span> <span class="op">=</span> <span class="ident">repeat_byte</span>(<span class="ident">n1</span>);
     <span class="kw">let</span> <span class="ident">vn2</span> <span class="op">=</span> <span class="ident">repeat_byte</span>(<span class="ident">n2</span>);
-    <span class="kw">let</span> <span class="ident">confirm</span> <span class="op">=</span> <span class="op">|</span><span class="ident">byte</span><span class="op">|</span> <span class="ident">byte</span> <span class="op">=</span><span class="op">=</span> <span class="ident">n1</span> <span class="op">|</span><span class="op">|</span> <span class="ident">byte</span> <span class="op">=</span><span class="op">=</span> <span class="ident">n2</span>;
+    <span class="kw">let</span> <span class="ident">confirm</span> <span class="op">=</span> <span class="op">|</span><span class="ident">byte</span><span class="op">|</span> <span class="ident">byte</span> <span class="op">==</span> <span class="ident">n1</span> <span class="op">||</span> <span class="ident">byte</span> <span class="op">==</span> <span class="ident">n2</span>;
     <span class="kw">let</span> <span class="ident">align</span> <span class="op">=</span> <span class="ident">USIZE_BYTES</span> <span class="op">-</span> <span class="number">1</span>;
     <span class="kw">let</span> <span class="ident">start_ptr</span> <span class="op">=</span> <span class="ident">haystack</span>.<span class="ident">as_ptr</span>();
     <span class="kw">let</span> <span class="ident">end_ptr</span> <span class="op">=</span> <span class="ident">haystack</span>[<span class="ident">haystack</span>.<span class="ident">len</span>()..].<span class="ident">as_ptr</span>();
@@ -431,20 +432,20 @@
         <span class="kw">let</span> <span class="ident">chunk</span> <span class="op">=</span> (<span class="ident">ptr</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">usize</span>).<span class="ident">read_unaligned</span>();
         <span class="kw">let</span> <span class="ident">eq1</span> <span class="op">=</span> <span class="ident">contains_zero_byte</span>(<span class="ident">chunk</span> <span class="op">^</span> <span class="ident">vn1</span>);
         <span class="kw">let</span> <span class="ident">eq2</span> <span class="op">=</span> <span class="ident">contains_zero_byte</span>(<span class="ident">chunk</span> <span class="op">^</span> <span class="ident">vn2</span>);
-        <span class="kw">if</span> <span class="ident">eq1</span> <span class="op">|</span><span class="op">|</span> <span class="ident">eq2</span> {
+        <span class="kw">if</span> <span class="ident">eq1</span> <span class="op">||</span> <span class="ident">eq2</span> {
             <span class="kw">return</span> <span class="ident">forward_search</span>(<span class="ident">start_ptr</span>, <span class="ident">end_ptr</span>, <span class="ident">ptr</span>, <span class="ident">confirm</span>);
         }
 
         <span class="ident">ptr</span> <span class="op">=</span> <span class="ident">ptr</span>.<span class="ident">add</span>(<span class="ident">USIZE_BYTES</span> <span class="op">-</span> (<span class="ident">start_ptr</span> <span class="kw">as</span> <span class="ident">usize</span> <span class="op">&amp;</span> <span class="ident">align</span>));
         <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="ident">ptr</span> <span class="op">&gt;</span> <span class="ident">start_ptr</span>);
-        <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="ident">end_ptr</span>.<span class="ident">sub</span>(<span class="ident">USIZE_BYTES</span>) <span class="op">&gt;</span><span class="op">=</span> <span class="ident">start_ptr</span>);
-        <span class="kw">while</span> <span class="ident">ptr</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">end_ptr</span>.<span class="ident">sub</span>(<span class="ident">USIZE_BYTES</span>) {
+        <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="ident">end_ptr</span>.<span class="ident">sub</span>(<span class="ident">USIZE_BYTES</span>) <span class="op">&gt;=</span> <span class="ident">start_ptr</span>);
+        <span class="kw">while</span> <span class="ident">ptr</span> <span class="op">&lt;=</span> <span class="ident">end_ptr</span>.<span class="ident">sub</span>(<span class="ident">USIZE_BYTES</span>) {
             <span class="macro">debug_assert_eq</span><span class="macro">!</span>(<span class="number">0</span>, (<span class="ident">ptr</span> <span class="kw">as</span> <span class="ident">usize</span>) <span class="op">%</span> <span class="ident">USIZE_BYTES</span>);
 
             <span class="kw">let</span> <span class="ident">chunk</span> <span class="op">=</span> <span class="kw-2">*</span>(<span class="ident">ptr</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">usize</span>);
             <span class="kw">let</span> <span class="ident">eq1</span> <span class="op">=</span> <span class="ident">contains_zero_byte</span>(<span class="ident">chunk</span> <span class="op">^</span> <span class="ident">vn1</span>);
             <span class="kw">let</span> <span class="ident">eq2</span> <span class="op">=</span> <span class="ident">contains_zero_byte</span>(<span class="ident">chunk</span> <span class="op">^</span> <span class="ident">vn2</span>);
-            <span class="kw">if</span> <span class="ident">eq1</span> <span class="op">|</span><span class="op">|</span> <span class="ident">eq2</span> {
+            <span class="kw">if</span> <span class="ident">eq1</span> <span class="op">||</span> <span class="ident">eq2</span> {
                 <span class="kw">break</span>;
             }
             <span class="ident">ptr</span> <span class="op">=</span> <span class="ident">ptr</span>.<span class="ident">add</span>(<span class="ident">USIZE_BYTES</span>);
@@ -454,11 +455,11 @@
 }
 
 <span class="doccomment">/// Like `memchr`, but searches for three bytes instead of one.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">memchr3</span>(<span class="ident">n1</span>: <span class="ident">u8</span>, <span class="ident">n2</span>: <span class="ident">u8</span>, <span class="ident">n3</span>: <span class="ident">u8</span>, <span class="ident">haystack</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">memchr3</span>(<span class="ident">n1</span>: <span class="ident">u8</span>, <span class="ident">n2</span>: <span class="ident">u8</span>, <span class="ident">n3</span>: <span class="ident">u8</span>, <span class="ident">haystack</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">vn1</span> <span class="op">=</span> <span class="ident">repeat_byte</span>(<span class="ident">n1</span>);
     <span class="kw">let</span> <span class="ident">vn2</span> <span class="op">=</span> <span class="ident">repeat_byte</span>(<span class="ident">n2</span>);
     <span class="kw">let</span> <span class="ident">vn3</span> <span class="op">=</span> <span class="ident">repeat_byte</span>(<span class="ident">n3</span>);
-    <span class="kw">let</span> <span class="ident">confirm</span> <span class="op">=</span> <span class="op">|</span><span class="ident">byte</span><span class="op">|</span> <span class="ident">byte</span> <span class="op">=</span><span class="op">=</span> <span class="ident">n1</span> <span class="op">|</span><span class="op">|</span> <span class="ident">byte</span> <span class="op">=</span><span class="op">=</span> <span class="ident">n2</span> <span class="op">|</span><span class="op">|</span> <span class="ident">byte</span> <span class="op">=</span><span class="op">=</span> <span class="ident">n3</span>;
+    <span class="kw">let</span> <span class="ident">confirm</span> <span class="op">=</span> <span class="op">|</span><span class="ident">byte</span><span class="op">|</span> <span class="ident">byte</span> <span class="op">==</span> <span class="ident">n1</span> <span class="op">||</span> <span class="ident">byte</span> <span class="op">==</span> <span class="ident">n2</span> <span class="op">||</span> <span class="ident">byte</span> <span class="op">==</span> <span class="ident">n3</span>;
     <span class="kw">let</span> <span class="ident">align</span> <span class="op">=</span> <span class="ident">USIZE_BYTES</span> <span class="op">-</span> <span class="number">1</span>;
     <span class="kw">let</span> <span class="ident">start_ptr</span> <span class="op">=</span> <span class="ident">haystack</span>.<span class="ident">as_ptr</span>();
     <span class="kw">let</span> <span class="ident">end_ptr</span> <span class="op">=</span> <span class="ident">haystack</span>[<span class="ident">haystack</span>.<span class="ident">len</span>()..].<span class="ident">as_ptr</span>();
@@ -473,21 +474,21 @@
         <span class="kw">let</span> <span class="ident">eq1</span> <span class="op">=</span> <span class="ident">contains_zero_byte</span>(<span class="ident">chunk</span> <span class="op">^</span> <span class="ident">vn1</span>);
         <span class="kw">let</span> <span class="ident">eq2</span> <span class="op">=</span> <span class="ident">contains_zero_byte</span>(<span class="ident">chunk</span> <span class="op">^</span> <span class="ident">vn2</span>);
         <span class="kw">let</span> <span class="ident">eq3</span> <span class="op">=</span> <span class="ident">contains_zero_byte</span>(<span class="ident">chunk</span> <span class="op">^</span> <span class="ident">vn3</span>);
-        <span class="kw">if</span> <span class="ident">eq1</span> <span class="op">|</span><span class="op">|</span> <span class="ident">eq2</span> <span class="op">|</span><span class="op">|</span> <span class="ident">eq3</span> {
+        <span class="kw">if</span> <span class="ident">eq1</span> <span class="op">||</span> <span class="ident">eq2</span> <span class="op">||</span> <span class="ident">eq3</span> {
             <span class="kw">return</span> <span class="ident">forward_search</span>(<span class="ident">start_ptr</span>, <span class="ident">end_ptr</span>, <span class="ident">ptr</span>, <span class="ident">confirm</span>);
         }
 
         <span class="ident">ptr</span> <span class="op">=</span> <span class="ident">ptr</span>.<span class="ident">add</span>(<span class="ident">USIZE_BYTES</span> <span class="op">-</span> (<span class="ident">start_ptr</span> <span class="kw">as</span> <span class="ident">usize</span> <span class="op">&amp;</span> <span class="ident">align</span>));
         <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="ident">ptr</span> <span class="op">&gt;</span> <span class="ident">start_ptr</span>);
-        <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="ident">end_ptr</span>.<span class="ident">sub</span>(<span class="ident">USIZE_BYTES</span>) <span class="op">&gt;</span><span class="op">=</span> <span class="ident">start_ptr</span>);
-        <span class="kw">while</span> <span class="ident">ptr</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">end_ptr</span>.<span class="ident">sub</span>(<span class="ident">USIZE_BYTES</span>) {
+        <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="ident">end_ptr</span>.<span class="ident">sub</span>(<span class="ident">USIZE_BYTES</span>) <span class="op">&gt;=</span> <span class="ident">start_ptr</span>);
+        <span class="kw">while</span> <span class="ident">ptr</span> <span class="op">&lt;=</span> <span class="ident">end_ptr</span>.<span class="ident">sub</span>(<span class="ident">USIZE_BYTES</span>) {
             <span class="macro">debug_assert_eq</span><span class="macro">!</span>(<span class="number">0</span>, (<span class="ident">ptr</span> <span class="kw">as</span> <span class="ident">usize</span>) <span class="op">%</span> <span class="ident">USIZE_BYTES</span>);
 
             <span class="kw">let</span> <span class="ident">chunk</span> <span class="op">=</span> <span class="kw-2">*</span>(<span class="ident">ptr</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">usize</span>);
             <span class="kw">let</span> <span class="ident">eq1</span> <span class="op">=</span> <span class="ident">contains_zero_byte</span>(<span class="ident">chunk</span> <span class="op">^</span> <span class="ident">vn1</span>);
             <span class="kw">let</span> <span class="ident">eq2</span> <span class="op">=</span> <span class="ident">contains_zero_byte</span>(<span class="ident">chunk</span> <span class="op">^</span> <span class="ident">vn2</span>);
             <span class="kw">let</span> <span class="ident">eq3</span> <span class="op">=</span> <span class="ident">contains_zero_byte</span>(<span class="ident">chunk</span> <span class="op">^</span> <span class="ident">vn3</span>);
-            <span class="kw">if</span> <span class="ident">eq1</span> <span class="op">|</span><span class="op">|</span> <span class="ident">eq2</span> <span class="op">|</span><span class="op">|</span> <span class="ident">eq3</span> {
+            <span class="kw">if</span> <span class="ident">eq1</span> <span class="op">||</span> <span class="ident">eq2</span> <span class="op">||</span> <span class="ident">eq3</span> {
                 <span class="kw">break</span>;
             }
             <span class="ident">ptr</span> <span class="op">=</span> <span class="ident">ptr</span>.<span class="ident">add</span>(<span class="ident">USIZE_BYTES</span>);
@@ -497,9 +498,9 @@
 }
 
 <span class="doccomment">/// Return the last index matching the byte `x` in `text`.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">memrchr</span>(<span class="ident">n1</span>: <span class="ident">u8</span>, <span class="ident">haystack</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">memrchr</span>(<span class="ident">n1</span>: <span class="ident">u8</span>, <span class="ident">haystack</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">vn1</span> <span class="op">=</span> <span class="ident">repeat_byte</span>(<span class="ident">n1</span>);
-    <span class="kw">let</span> <span class="ident">confirm</span> <span class="op">=</span> <span class="op">|</span><span class="ident">byte</span><span class="op">|</span> <span class="ident">byte</span> <span class="op">=</span><span class="op">=</span> <span class="ident">n1</span>;
+    <span class="kw">let</span> <span class="ident">confirm</span> <span class="op">=</span> <span class="op">|</span><span class="ident">byte</span><span class="op">|</span> <span class="ident">byte</span> <span class="op">==</span> <span class="ident">n1</span>;
     <span class="kw">let</span> <span class="ident">loop_size</span> <span class="op">=</span> <span class="ident">cmp</span>::<span class="ident">min</span>(<span class="ident">LOOP_SIZE</span>, <span class="ident">haystack</span>.<span class="ident">len</span>());
     <span class="kw">let</span> <span class="ident">align</span> <span class="op">=</span> <span class="ident">USIZE_BYTES</span> <span class="op">-</span> <span class="number">1</span>;
     <span class="kw">let</span> <span class="ident">start_ptr</span> <span class="op">=</span> <span class="ident">haystack</span>.<span class="ident">as_ptr</span>();
@@ -517,15 +518,15 @@
         }
 
         <span class="ident">ptr</span> <span class="op">=</span> (<span class="ident">end_ptr</span> <span class="kw">as</span> <span class="ident">usize</span> <span class="op">&amp;</span> <span class="op">!</span><span class="ident">align</span>) <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">u8</span>;
-        <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="ident">start_ptr</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">ptr</span> <span class="kw-2">&amp;</span><span class="op">&amp;</span> <span class="ident">ptr</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">end_ptr</span>);
-        <span class="kw">while</span> <span class="ident">loop_size</span> <span class="op">=</span><span class="op">=</span> <span class="ident">LOOP_SIZE</span> <span class="kw-2">&amp;</span><span class="op">&amp;</span> <span class="ident">ptr</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">start_ptr</span>.<span class="ident">add</span>(<span class="ident">loop_size</span>) {
+        <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="ident">start_ptr</span> <span class="op">&lt;=</span> <span class="ident">ptr</span> <span class="op">&amp;&amp;</span> <span class="ident">ptr</span> <span class="op">&lt;=</span> <span class="ident">end_ptr</span>);
+        <span class="kw">while</span> <span class="ident">loop_size</span> <span class="op">==</span> <span class="ident">LOOP_SIZE</span> <span class="op">&amp;&amp;</span> <span class="ident">ptr</span> <span class="op">&gt;=</span> <span class="ident">start_ptr</span>.<span class="ident">add</span>(<span class="ident">loop_size</span>) {
             <span class="macro">debug_assert_eq</span><span class="macro">!</span>(<span class="number">0</span>, (<span class="ident">ptr</span> <span class="kw">as</span> <span class="ident">usize</span>) <span class="op">%</span> <span class="ident">USIZE_BYTES</span>);
 
             <span class="kw">let</span> <span class="ident">a</span> <span class="op">=</span> <span class="kw-2">*</span>(<span class="ident">ptr</span>.<span class="ident">sub</span>(<span class="number">2</span> <span class="op">*</span> <span class="ident">USIZE_BYTES</span>) <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">usize</span>);
             <span class="kw">let</span> <span class="ident">b</span> <span class="op">=</span> <span class="kw-2">*</span>(<span class="ident">ptr</span>.<span class="ident">sub</span>(<span class="number">1</span> <span class="op">*</span> <span class="ident">USIZE_BYTES</span>) <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">usize</span>);
             <span class="kw">let</span> <span class="ident">eqa</span> <span class="op">=</span> <span class="ident">contains_zero_byte</span>(<span class="ident">a</span> <span class="op">^</span> <span class="ident">vn1</span>);
             <span class="kw">let</span> <span class="ident">eqb</span> <span class="op">=</span> <span class="ident">contains_zero_byte</span>(<span class="ident">b</span> <span class="op">^</span> <span class="ident">vn1</span>);
-            <span class="kw">if</span> <span class="ident">eqa</span> <span class="op">|</span><span class="op">|</span> <span class="ident">eqb</span> {
+            <span class="kw">if</span> <span class="ident">eqa</span> <span class="op">||</span> <span class="ident">eqb</span> {
                 <span class="kw">break</span>;
             }
             <span class="ident">ptr</span> <span class="op">=</span> <span class="ident">ptr</span>.<span class="ident">sub</span>(<span class="ident">loop_size</span>);
@@ -535,10 +536,10 @@
 }
 
 <span class="doccomment">/// Like `memrchr`, but searches for two bytes instead of one.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">memrchr2</span>(<span class="ident">n1</span>: <span class="ident">u8</span>, <span class="ident">n2</span>: <span class="ident">u8</span>, <span class="ident">haystack</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">memrchr2</span>(<span class="ident">n1</span>: <span class="ident">u8</span>, <span class="ident">n2</span>: <span class="ident">u8</span>, <span class="ident">haystack</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">vn1</span> <span class="op">=</span> <span class="ident">repeat_byte</span>(<span class="ident">n1</span>);
     <span class="kw">let</span> <span class="ident">vn2</span> <span class="op">=</span> <span class="ident">repeat_byte</span>(<span class="ident">n2</span>);
-    <span class="kw">let</span> <span class="ident">confirm</span> <span class="op">=</span> <span class="op">|</span><span class="ident">byte</span><span class="op">|</span> <span class="ident">byte</span> <span class="op">=</span><span class="op">=</span> <span class="ident">n1</span> <span class="op">|</span><span class="op">|</span> <span class="ident">byte</span> <span class="op">=</span><span class="op">=</span> <span class="ident">n2</span>;
+    <span class="kw">let</span> <span class="ident">confirm</span> <span class="op">=</span> <span class="op">|</span><span class="ident">byte</span><span class="op">|</span> <span class="ident">byte</span> <span class="op">==</span> <span class="ident">n1</span> <span class="op">||</span> <span class="ident">byte</span> <span class="op">==</span> <span class="ident">n2</span>;
     <span class="kw">let</span> <span class="ident">align</span> <span class="op">=</span> <span class="ident">USIZE_BYTES</span> <span class="op">-</span> <span class="number">1</span>;
     <span class="kw">let</span> <span class="ident">start_ptr</span> <span class="op">=</span> <span class="ident">haystack</span>.<span class="ident">as_ptr</span>();
     <span class="kw">let</span> <span class="ident">end_ptr</span> <span class="op">=</span> <span class="ident">haystack</span>[<span class="ident">haystack</span>.<span class="ident">len</span>()..].<span class="ident">as_ptr</span>();
@@ -552,19 +553,19 @@
         <span class="kw">let</span> <span class="ident">chunk</span> <span class="op">=</span> (<span class="ident">ptr</span>.<span class="ident">sub</span>(<span class="ident">USIZE_BYTES</span>) <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">usize</span>).<span class="ident">read_unaligned</span>();
         <span class="kw">let</span> <span class="ident">eq1</span> <span class="op">=</span> <span class="ident">contains_zero_byte</span>(<span class="ident">chunk</span> <span class="op">^</span> <span class="ident">vn1</span>);
         <span class="kw">let</span> <span class="ident">eq2</span> <span class="op">=</span> <span class="ident">contains_zero_byte</span>(<span class="ident">chunk</span> <span class="op">^</span> <span class="ident">vn2</span>);
-        <span class="kw">if</span> <span class="ident">eq1</span> <span class="op">|</span><span class="op">|</span> <span class="ident">eq2</span> {
+        <span class="kw">if</span> <span class="ident">eq1</span> <span class="op">||</span> <span class="ident">eq2</span> {
             <span class="kw">return</span> <span class="ident">reverse_search</span>(<span class="ident">start_ptr</span>, <span class="ident">end_ptr</span>, <span class="ident">ptr</span>, <span class="ident">confirm</span>);
         }
 
         <span class="ident">ptr</span> <span class="op">=</span> (<span class="ident">end_ptr</span> <span class="kw">as</span> <span class="ident">usize</span> <span class="op">&amp;</span> <span class="op">!</span><span class="ident">align</span>) <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">u8</span>;
-        <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="ident">start_ptr</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">ptr</span> <span class="kw-2">&amp;</span><span class="op">&amp;</span> <span class="ident">ptr</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">end_ptr</span>);
-        <span class="kw">while</span> <span class="ident">ptr</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">start_ptr</span>.<span class="ident">add</span>(<span class="ident">USIZE_BYTES</span>) {
+        <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="ident">start_ptr</span> <span class="op">&lt;=</span> <span class="ident">ptr</span> <span class="op">&amp;&amp;</span> <span class="ident">ptr</span> <span class="op">&lt;=</span> <span class="ident">end_ptr</span>);
+        <span class="kw">while</span> <span class="ident">ptr</span> <span class="op">&gt;=</span> <span class="ident">start_ptr</span>.<span class="ident">add</span>(<span class="ident">USIZE_BYTES</span>) {
             <span class="macro">debug_assert_eq</span><span class="macro">!</span>(<span class="number">0</span>, (<span class="ident">ptr</span> <span class="kw">as</span> <span class="ident">usize</span>) <span class="op">%</span> <span class="ident">USIZE_BYTES</span>);
 
             <span class="kw">let</span> <span class="ident">chunk</span> <span class="op">=</span> <span class="kw-2">*</span>(<span class="ident">ptr</span>.<span class="ident">sub</span>(<span class="ident">USIZE_BYTES</span>) <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">usize</span>);
             <span class="kw">let</span> <span class="ident">eq1</span> <span class="op">=</span> <span class="ident">contains_zero_byte</span>(<span class="ident">chunk</span> <span class="op">^</span> <span class="ident">vn1</span>);
             <span class="kw">let</span> <span class="ident">eq2</span> <span class="op">=</span> <span class="ident">contains_zero_byte</span>(<span class="ident">chunk</span> <span class="op">^</span> <span class="ident">vn2</span>);
-            <span class="kw">if</span> <span class="ident">eq1</span> <span class="op">|</span><span class="op">|</span> <span class="ident">eq2</span> {
+            <span class="kw">if</span> <span class="ident">eq1</span> <span class="op">||</span> <span class="ident">eq2</span> {
                 <span class="kw">break</span>;
             }
             <span class="ident">ptr</span> <span class="op">=</span> <span class="ident">ptr</span>.<span class="ident">sub</span>(<span class="ident">USIZE_BYTES</span>);
@@ -574,11 +575,11 @@
 }
 
 <span class="doccomment">/// Like `memrchr`, but searches for three bytes instead of one.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">memrchr3</span>(<span class="ident">n1</span>: <span class="ident">u8</span>, <span class="ident">n2</span>: <span class="ident">u8</span>, <span class="ident">n3</span>: <span class="ident">u8</span>, <span class="ident">haystack</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">memrchr3</span>(<span class="ident">n1</span>: <span class="ident">u8</span>, <span class="ident">n2</span>: <span class="ident">u8</span>, <span class="ident">n3</span>: <span class="ident">u8</span>, <span class="ident">haystack</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">vn1</span> <span class="op">=</span> <span class="ident">repeat_byte</span>(<span class="ident">n1</span>);
     <span class="kw">let</span> <span class="ident">vn2</span> <span class="op">=</span> <span class="ident">repeat_byte</span>(<span class="ident">n2</span>);
     <span class="kw">let</span> <span class="ident">vn3</span> <span class="op">=</span> <span class="ident">repeat_byte</span>(<span class="ident">n3</span>);
-    <span class="kw">let</span> <span class="ident">confirm</span> <span class="op">=</span> <span class="op">|</span><span class="ident">byte</span><span class="op">|</span> <span class="ident">byte</span> <span class="op">=</span><span class="op">=</span> <span class="ident">n1</span> <span class="op">|</span><span class="op">|</span> <span class="ident">byte</span> <span class="op">=</span><span class="op">=</span> <span class="ident">n2</span> <span class="op">|</span><span class="op">|</span> <span class="ident">byte</span> <span class="op">=</span><span class="op">=</span> <span class="ident">n3</span>;
+    <span class="kw">let</span> <span class="ident">confirm</span> <span class="op">=</span> <span class="op">|</span><span class="ident">byte</span><span class="op">|</span> <span class="ident">byte</span> <span class="op">==</span> <span class="ident">n1</span> <span class="op">||</span> <span class="ident">byte</span> <span class="op">==</span> <span class="ident">n2</span> <span class="op">||</span> <span class="ident">byte</span> <span class="op">==</span> <span class="ident">n3</span>;
     <span class="kw">let</span> <span class="ident">align</span> <span class="op">=</span> <span class="ident">USIZE_BYTES</span> <span class="op">-</span> <span class="number">1</span>;
     <span class="kw">let</span> <span class="ident">start_ptr</span> <span class="op">=</span> <span class="ident">haystack</span>.<span class="ident">as_ptr</span>();
     <span class="kw">let</span> <span class="ident">end_ptr</span> <span class="op">=</span> <span class="ident">haystack</span>[<span class="ident">haystack</span>.<span class="ident">len</span>()..].<span class="ident">as_ptr</span>();
@@ -593,20 +594,20 @@
         <span class="kw">let</span> <span class="ident">eq1</span> <span class="op">=</span> <span class="ident">contains_zero_byte</span>(<span class="ident">chunk</span> <span class="op">^</span> <span class="ident">vn1</span>);
         <span class="kw">let</span> <span class="ident">eq2</span> <span class="op">=</span> <span class="ident">contains_zero_byte</span>(<span class="ident">chunk</span> <span class="op">^</span> <span class="ident">vn2</span>);
         <span class="kw">let</span> <span class="ident">eq3</span> <span class="op">=</span> <span class="ident">contains_zero_byte</span>(<span class="ident">chunk</span> <span class="op">^</span> <span class="ident">vn3</span>);
-        <span class="kw">if</span> <span class="ident">eq1</span> <span class="op">|</span><span class="op">|</span> <span class="ident">eq2</span> <span class="op">|</span><span class="op">|</span> <span class="ident">eq3</span> {
+        <span class="kw">if</span> <span class="ident">eq1</span> <span class="op">||</span> <span class="ident">eq2</span> <span class="op">||</span> <span class="ident">eq3</span> {
             <span class="kw">return</span> <span class="ident">reverse_search</span>(<span class="ident">start_ptr</span>, <span class="ident">end_ptr</span>, <span class="ident">ptr</span>, <span class="ident">confirm</span>);
         }
 
         <span class="ident">ptr</span> <span class="op">=</span> (<span class="ident">end_ptr</span> <span class="kw">as</span> <span class="ident">usize</span> <span class="op">&amp;</span> <span class="op">!</span><span class="ident">align</span>) <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">u8</span>;
-        <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="ident">start_ptr</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">ptr</span> <span class="kw-2">&amp;</span><span class="op">&amp;</span> <span class="ident">ptr</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">end_ptr</span>);
-        <span class="kw">while</span> <span class="ident">ptr</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">start_ptr</span>.<span class="ident">add</span>(<span class="ident">USIZE_BYTES</span>) {
+        <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="ident">start_ptr</span> <span class="op">&lt;=</span> <span class="ident">ptr</span> <span class="op">&amp;&amp;</span> <span class="ident">ptr</span> <span class="op">&lt;=</span> <span class="ident">end_ptr</span>);
+        <span class="kw">while</span> <span class="ident">ptr</span> <span class="op">&gt;=</span> <span class="ident">start_ptr</span>.<span class="ident">add</span>(<span class="ident">USIZE_BYTES</span>) {
             <span class="macro">debug_assert_eq</span><span class="macro">!</span>(<span class="number">0</span>, (<span class="ident">ptr</span> <span class="kw">as</span> <span class="ident">usize</span>) <span class="op">%</span> <span class="ident">USIZE_BYTES</span>);
 
             <span class="kw">let</span> <span class="ident">chunk</span> <span class="op">=</span> <span class="kw-2">*</span>(<span class="ident">ptr</span>.<span class="ident">sub</span>(<span class="ident">USIZE_BYTES</span>) <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">usize</span>);
             <span class="kw">let</span> <span class="ident">eq1</span> <span class="op">=</span> <span class="ident">contains_zero_byte</span>(<span class="ident">chunk</span> <span class="op">^</span> <span class="ident">vn1</span>);
             <span class="kw">let</span> <span class="ident">eq2</span> <span class="op">=</span> <span class="ident">contains_zero_byte</span>(<span class="ident">chunk</span> <span class="op">^</span> <span class="ident">vn2</span>);
             <span class="kw">let</span> <span class="ident">eq3</span> <span class="op">=</span> <span class="ident">contains_zero_byte</span>(<span class="ident">chunk</span> <span class="op">^</span> <span class="ident">vn3</span>);
-            <span class="kw">if</span> <span class="ident">eq1</span> <span class="op">|</span><span class="op">|</span> <span class="ident">eq2</span> <span class="op">|</span><span class="op">|</span> <span class="ident">eq3</span> {
+            <span class="kw">if</span> <span class="ident">eq1</span> <span class="op">||</span> <span class="ident">eq2</span> <span class="op">||</span> <span class="ident">eq3</span> {
                 <span class="kw">break</span>;
             }
             <span class="ident">ptr</span> <span class="op">=</span> <span class="ident">ptr</span>.<span class="ident">sub</span>(<span class="ident">USIZE_BYTES</span>);
@@ -616,14 +617,14 @@
 }
 
 <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-<span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">forward_search</span><span class="op">&lt;</span><span class="ident">F</span>: <span class="ident">Fn</span>(<span class="ident">u8</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span><span class="op">&gt;</span>(
+<span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">forward_search</span><span class="op">&lt;</span><span class="ident">F</span>: <span class="ident">Fn</span>(<span class="ident">u8</span>) <span class="op">-&gt;</span> <span class="ident">bool</span><span class="op">&gt;</span>(
     <span class="ident">start_ptr</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">u8</span>,
     <span class="ident">end_ptr</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">u8</span>,
     <span class="kw-2">mut</span> <span class="ident">ptr</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">u8</span>,
     <span class="ident">confirm</span>: <span class="ident">F</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
-    <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="ident">start_ptr</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">ptr</span>);
-    <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="ident">ptr</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">end_ptr</span>);
+) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
+    <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="ident">start_ptr</span> <span class="op">&lt;=</span> <span class="ident">ptr</span>);
+    <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="ident">ptr</span> <span class="op">&lt;=</span> <span class="ident">end_ptr</span>);
 
     <span class="kw">while</span> <span class="ident">ptr</span> <span class="op">&lt;</span> <span class="ident">end_ptr</span> {
         <span class="kw">if</span> <span class="ident">confirm</span>(<span class="kw-2">*</span><span class="ident">ptr</span>) {
@@ -635,14 +636,14 @@
 }
 
 <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-<span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">reverse_search</span><span class="op">&lt;</span><span class="ident">F</span>: <span class="ident">Fn</span>(<span class="ident">u8</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span><span class="op">&gt;</span>(
+<span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">reverse_search</span><span class="op">&lt;</span><span class="ident">F</span>: <span class="ident">Fn</span>(<span class="ident">u8</span>) <span class="op">-&gt;</span> <span class="ident">bool</span><span class="op">&gt;</span>(
     <span class="ident">start_ptr</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">u8</span>,
     <span class="ident">end_ptr</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">u8</span>,
     <span class="kw-2">mut</span> <span class="ident">ptr</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">u8</span>,
     <span class="ident">confirm</span>: <span class="ident">F</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
-    <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="ident">start_ptr</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">ptr</span>);
-    <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="ident">ptr</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">end_ptr</span>);
+) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
+    <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="ident">start_ptr</span> <span class="op">&lt;=</span> <span class="ident">ptr</span>);
+    <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="ident">ptr</span> <span class="op">&lt;=</span> <span class="ident">end_ptr</span>);
 
     <span class="kw">while</span> <span class="ident">ptr</span> <span class="op">&gt;</span> <span class="ident">start_ptr</span> {
         <span class="ident">ptr</span> <span class="op">=</span> <span class="ident">ptr</span>.<span class="ident">offset</span>(<span class="op">-</span><span class="number">1</span>);
@@ -655,8 +656,8 @@
 
 <span class="doccomment">/// Subtract `b` from `a` and return the difference. `a` should be greater than</span>
 <span class="doccomment">/// or equal to `b`.</span>
-<span class="kw">fn</span> <span class="ident">sub</span>(<span class="ident">a</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">u8</span>, <span class="ident">b</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">u8</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
-    <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="ident">a</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">b</span>);
+<span class="kw">fn</span> <span class="ident">sub</span>(<span class="ident">a</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">u8</span>, <span class="ident">b</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">u8</span>) <span class="op">-&gt;</span> <span class="ident">usize</span> {
+    <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="ident">a</span> <span class="op">&gt;=</span> <span class="ident">b</span>);
     (<span class="ident">a</span> <span class="kw">as</span> <span class="ident">usize</span>) <span class="op">-</span> (<span class="ident">b</span> <span class="kw">as</span> <span class="ident">usize</span>)
 }
 </pre></div>

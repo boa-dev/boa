@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/clap-2.33.3/src/usage_parser.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>usage_parser.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../clap/index.html'><div class='logo-container'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/clap-2.33.3/src/usage_parser.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>usage_parser.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../clap/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
+                <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
 <span id="3">   3</span>
 <span id="4">   4</span>
@@ -1385,7 +1386,7 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">UsageParser</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">usage</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">usage</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
         <span class="macro">debugln</span><span class="macro">!</span>(<span class="string">&quot;UsageParser::new: usage={:?}&quot;</span>, <span class="ident">usage</span>);
         <span class="ident">UsageParser</span> {
             <span class="ident">usage</span>: <span class="ident">usage</span>,
@@ -1396,12 +1397,12 @@
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_usage</span>(<span class="ident">usage</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_usage</span>(<span class="ident">usage</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
         <span class="macro">debugln</span><span class="macro">!</span>(<span class="string">&quot;UsageParser::from_usage;&quot;</span>);
         <span class="ident">UsageParser</span>::<span class="ident">new</span>(<span class="ident">usage</span>)
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">parse</span>(<span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Arg</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">parse</span>(<span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">Arg</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
         <span class="macro">debugln</span><span class="macro">!</span>(<span class="string">&quot;UsageParser::parse;&quot;</span>);
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">arg</span> <span class="op">=</span> <span class="ident">Arg</span>::<span class="ident">default</span>();
         <span class="kw">loop</span> {
@@ -1409,10 +1410,10 @@
             <span class="self">self</span>.<span class="ident">stop_at</span>(<span class="ident">token</span>);
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="ident">c</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">usage</span>.<span class="ident">as_bytes</span>().<span class="ident">get</span>(<span class="self">self</span>.<span class="ident">pos</span>) {
                 <span class="kw">match</span> <span class="ident">c</span> {
-                    <span class="string">b&#39;-&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">short_or_long</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">arg</span>),
-                    <span class="string">b&#39;.&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">multiple</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">arg</span>),
-                    <span class="string">b&#39;\&#39;&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">help</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">arg</span>),
-                    <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">name</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">arg</span>),
+                    <span class="string">b&#39;-&#39;</span> <span class="op">=&gt;</span> <span class="self">self</span>.<span class="ident">short_or_long</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">arg</span>),
+                    <span class="string">b&#39;.&#39;</span> <span class="op">=&gt;</span> <span class="self">self</span>.<span class="ident">multiple</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">arg</span>),
+                    <span class="string">b&#39;\&#39;&#39;</span> <span class="op">=&gt;</span> <span class="self">self</span>.<span class="ident">help</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">arg</span>),
+                    <span class="kw">_</span> <span class="op">=&gt;</span> <span class="self">self</span>.<span class="ident">name</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">arg</span>),
                 }
             } <span class="kw">else</span> {
                 <span class="kw">break</span>;
@@ -1426,8 +1427,8 @@
             )
         );
         <span class="ident">arg</span>.<span class="ident">v</span>.<span class="ident">num_vals</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">arg</span>.<span class="ident">v</span>.<span class="ident">val_names</span> {
-            <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">v</span>) <span class="kw">if</span> <span class="ident">v</span>.<span class="ident">len</span>() <span class="op">&gt;</span><span class="op">=</span> <span class="number">2</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">v</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u64</span>),
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
+            <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">v</span>) <span class="kw">if</span> <span class="ident">v</span>.<span class="ident">len</span>() <span class="op">&gt;=</span> <span class="number">2</span> <span class="op">=&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">v</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u64</span>),
+            <span class="kw">_</span> <span class="op">=&gt;</span> <span class="prelude-val">None</span>,
         };
         <span class="macro">debugln</span><span class="macro">!</span>(<span class="string">&quot;UsageParser::parse: vals...{:?}&quot;</span>, <span class="ident">arg</span>.<span class="ident">v</span>.<span class="ident">val_names</span>);
         <span class="ident">arg</span>
@@ -1440,18 +1441,18 @@
             .<span class="ident">as_bytes</span>()
             .<span class="ident">get</span>(<span class="self">self</span>.<span class="ident">pos</span>)
             .<span class="ident">expect</span>(<span class="ident">INTERNAL_ERROR_MSG</span>)
-            <span class="op">=</span><span class="op">=</span> <span class="string">b&#39;&lt;&#39;</span>
-            <span class="kw-2">&amp;</span><span class="op">&amp;</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">explicit_name_set</span>
+            <span class="op">==</span> <span class="string">b&#39;&lt;&#39;</span>
+            <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">explicit_name_set</span>
         {
             <span class="ident">arg</span>.<span class="ident">setb</span>(<span class="ident">ArgSettings</span>::<span class="ident">Required</span>);
         }
-        <span class="self">self</span>.<span class="ident">pos</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+        <span class="self">self</span>.<span class="ident">pos</span> <span class="op">+=</span> <span class="number">1</span>;
         <span class="self">self</span>.<span class="ident">stop_at</span>(<span class="ident">name_end</span>);
         <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">usage</span>[<span class="self">self</span>.<span class="ident">start</span>..<span class="self">self</span>.<span class="ident">pos</span>];
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">prev</span> <span class="op">=</span><span class="op">=</span> <span class="ident">UsageToken</span>::<span class="ident">Unknown</span> {
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">prev</span> <span class="op">==</span> <span class="ident">UsageToken</span>::<span class="ident">Unknown</span> {
             <span class="macro">debugln</span><span class="macro">!</span>(<span class="string">&quot;UsageParser::name: setting name...{}&quot;</span>, <span class="ident">name</span>);
             <span class="ident">arg</span>.<span class="ident">b</span>.<span class="ident">name</span> <span class="op">=</span> <span class="ident">name</span>;
-            <span class="kw">if</span> <span class="ident">arg</span>.<span class="ident">s</span>.<span class="ident">long</span>.<span class="ident">is_none</span>() <span class="kw-2">&amp;</span><span class="op">&amp;</span> <span class="ident">arg</span>.<span class="ident">s</span>.<span class="ident">short</span>.<span class="ident">is_none</span>() {
+            <span class="kw">if</span> <span class="ident">arg</span>.<span class="ident">s</span>.<span class="ident">long</span>.<span class="ident">is_none</span>() <span class="op">&amp;&amp;</span> <span class="ident">arg</span>.<span class="ident">s</span>.<span class="ident">short</span>.<span class="ident">is_none</span>() {
                 <span class="macro">debugln</span><span class="macro">!</span>(<span class="string">&quot;UsageParser::name: explicit name set...&quot;</span>);
                 <span class="self">self</span>.<span class="ident">explicit_name_set</span> <span class="op">=</span> <span class="bool-val">true</span>;
                 <span class="self">self</span>.<span class="ident">prev</span> <span class="op">=</span> <span class="ident">UsageToken</span>::<span class="ident">Name</span>;
@@ -1473,11 +1474,11 @@
 
     <span class="kw">fn</span> <span class="ident">stop_at</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">f</span>: <span class="ident">F</span>)
     <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="ident">Fn</span>(<span class="ident">u8</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span>,
+        <span class="ident">F</span>: <span class="ident">Fn</span>(<span class="ident">u8</span>) <span class="op">-&gt;</span> <span class="ident">bool</span>,
     {
         <span class="macro">debugln</span><span class="macro">!</span>(<span class="string">&quot;UsageParser::stop_at;&quot;</span>);
         <span class="self">self</span>.<span class="ident">start</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">pos</span>;
-        <span class="self">self</span>.<span class="ident">pos</span> <span class="op">+</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">usage</span>[<span class="self">self</span>.<span class="ident">start</span>..]
+        <span class="self">self</span>.<span class="ident">pos</span> <span class="op">+=</span> <span class="self">self</span>.<span class="ident">usage</span>[<span class="self">self</span>.<span class="ident">start</span>..]
             .<span class="ident">bytes</span>()
             .<span class="ident">take_while</span>(<span class="op">|</span><span class="kw-2">&amp;</span><span class="ident">b</span><span class="op">|</span> <span class="ident">f</span>(<span class="ident">b</span>))
             .<span class="ident">count</span>();
@@ -1485,15 +1486,15 @@
 
     <span class="kw">fn</span> <span class="ident">short_or_long</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">arg</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Arg</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;a</span><span class="op">&gt;</span>) {
         <span class="macro">debugln</span><span class="macro">!</span>(<span class="string">&quot;UsageParser::short_or_long;&quot;</span>);
-        <span class="self">self</span>.<span class="ident">pos</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+        <span class="self">self</span>.<span class="ident">pos</span> <span class="op">+=</span> <span class="number">1</span>;
         <span class="kw">if</span> <span class="kw-2">*</span><span class="self">self</span>
             .<span class="ident">usage</span>
             .<span class="ident">as_bytes</span>()
             .<span class="ident">get</span>(<span class="self">self</span>.<span class="ident">pos</span>)
             .<span class="ident">expect</span>(<span class="ident">INTERNAL_ERROR_MSG</span>)
-            <span class="op">=</span><span class="op">=</span> <span class="string">b&#39;-&#39;</span>
+            <span class="op">==</span> <span class="string">b&#39;-&#39;</span>
         {
-            <span class="self">self</span>.<span class="ident">pos</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+            <span class="self">self</span>.<span class="ident">pos</span> <span class="op">+=</span> <span class="number">1</span>;
             <span class="self">self</span>.<span class="ident">long</span>(<span class="ident">arg</span>);
             <span class="kw">return</span>;
         }
@@ -1534,10 +1535,10 @@
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">dot_counter</span> <span class="op">=</span> <span class="number">1</span>;
         <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">pos</span>;
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">bytes</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">usage</span>[<span class="ident">start</span>..].<span class="ident">bytes</span>();
-        <span class="kw">while</span> <span class="ident">bytes</span>.<span class="ident">next</span>() <span class="op">=</span><span class="op">=</span> <span class="prelude-val">Some</span>(<span class="string">b&#39;.&#39;</span>) {
-            <span class="ident">dot_counter</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
-            <span class="self">self</span>.<span class="ident">pos</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
-            <span class="kw">if</span> <span class="ident">dot_counter</span> <span class="op">=</span><span class="op">=</span> <span class="number">3</span> {
+        <span class="kw">while</span> <span class="ident">bytes</span>.<span class="ident">next</span>() <span class="op">==</span> <span class="prelude-val">Some</span>(<span class="string">b&#39;.&#39;</span>) {
+            <span class="ident">dot_counter</span> <span class="op">+=</span> <span class="number">1</span>;
+            <span class="self">self</span>.<span class="ident">pos</span> <span class="op">+=</span> <span class="number">1</span>;
+            <span class="kw">if</span> <span class="ident">dot_counter</span> <span class="op">==</span> <span class="number">3</span> {
                 <span class="macro">debugln</span><span class="macro">!</span>(<span class="string">&quot;UsageParser::multiple: setting multiple&quot;</span>);
                 <span class="ident">arg</span>.<span class="ident">setb</span>(<span class="ident">ArgSettings</span>::<span class="ident">Multiple</span>);
                 <span class="kw">if</span> <span class="ident">arg</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings</span>::<span class="ident">TakesValue</span>) {
@@ -1548,7 +1549,7 @@
                     }
                 }
                 <span class="self">self</span>.<span class="ident">prev</span> <span class="op">=</span> <span class="ident">UsageToken</span>::<span class="ident">Multiple</span>;
-                <span class="self">self</span>.<span class="ident">pos</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+                <span class="self">self</span>.<span class="ident">pos</span> <span class="op">+=</span> <span class="number">1</span>;
                 <span class="kw">break</span>;
             }
         }
@@ -1564,29 +1565,29 @@
             <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">usage</span>[<span class="self">self</span>.<span class="ident">start</span>..<span class="self">self</span>.<span class="ident">pos</span>]
         );
         <span class="ident">arg</span>.<span class="ident">b</span>.<span class="ident">help</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">usage</span>[<span class="self">self</span>.<span class="ident">start</span>..<span class="self">self</span>.<span class="ident">pos</span>]);
-        <span class="self">self</span>.<span class="ident">pos</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>; <span class="comment">// Move to next byte to keep from thinking ending &#39; is a start</span>
+        <span class="self">self</span>.<span class="ident">pos</span> <span class="op">+=</span> <span class="number">1</span>; <span class="comment">// Move to next byte to keep from thinking ending &#39; is a start</span>
         <span class="self">self</span>.<span class="ident">prev</span> <span class="op">=</span> <span class="ident">UsageToken</span>::<span class="ident">Help</span>;
     }
 }
 
 <span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">fn</span> <span class="ident">name_end</span>(<span class="ident">b</span>: <span class="ident">u8</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-    <span class="ident">b</span> <span class="op">!</span><span class="op">=</span> <span class="string">b&#39;]&#39;</span> <span class="kw-2">&amp;</span><span class="op">&amp;</span> <span class="ident">b</span> <span class="op">!</span><span class="op">=</span> <span class="string">b&#39;&gt;&#39;</span>
+<span class="kw">fn</span> <span class="ident">name_end</span>(<span class="ident">b</span>: <span class="ident">u8</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
+    <span class="ident">b</span> <span class="op">!=</span> <span class="string">b&#39;]&#39;</span> <span class="op">&amp;&amp;</span> <span class="ident">b</span> <span class="op">!=</span> <span class="string">b&#39;&gt;&#39;</span>
 }
 
 <span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">fn</span> <span class="ident">token</span>(<span class="ident">b</span>: <span class="ident">u8</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-    <span class="ident">b</span> <span class="op">!</span><span class="op">=</span> <span class="string">b&#39;\&#39;&#39;</span> <span class="kw-2">&amp;</span><span class="op">&amp;</span> <span class="ident">b</span> <span class="op">!</span><span class="op">=</span> <span class="string">b&#39;.&#39;</span> <span class="kw-2">&amp;</span><span class="op">&amp;</span> <span class="ident">b</span> <span class="op">!</span><span class="op">=</span> <span class="string">b&#39;&lt;&#39;</span> <span class="kw-2">&amp;</span><span class="op">&amp;</span> <span class="ident">b</span> <span class="op">!</span><span class="op">=</span> <span class="string">b&#39;[&#39;</span> <span class="kw-2">&amp;</span><span class="op">&amp;</span> <span class="ident">b</span> <span class="op">!</span><span class="op">=</span> <span class="string">b&#39;-&#39;</span>
+<span class="kw">fn</span> <span class="ident">token</span>(<span class="ident">b</span>: <span class="ident">u8</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
+    <span class="ident">b</span> <span class="op">!=</span> <span class="string">b&#39;\&#39;&#39;</span> <span class="op">&amp;&amp;</span> <span class="ident">b</span> <span class="op">!=</span> <span class="string">b&#39;.&#39;</span> <span class="op">&amp;&amp;</span> <span class="ident">b</span> <span class="op">!=</span> <span class="string">b&#39;&lt;&#39;</span> <span class="op">&amp;&amp;</span> <span class="ident">b</span> <span class="op">!=</span> <span class="string">b&#39;[&#39;</span> <span class="op">&amp;&amp;</span> <span class="ident">b</span> <span class="op">!=</span> <span class="string">b&#39;-&#39;</span>
 }
 
 <span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">fn</span> <span class="ident">long_end</span>(<span class="ident">b</span>: <span class="ident">u8</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-    <span class="ident">b</span> <span class="op">!</span><span class="op">=</span> <span class="string">b&#39;\&#39;&#39;</span> <span class="kw-2">&amp;</span><span class="op">&amp;</span> <span class="ident">b</span> <span class="op">!</span><span class="op">=</span> <span class="string">b&#39;.&#39;</span> <span class="kw-2">&amp;</span><span class="op">&amp;</span> <span class="ident">b</span> <span class="op">!</span><span class="op">=</span> <span class="string">b&#39;&lt;&#39;</span> <span class="kw-2">&amp;</span><span class="op">&amp;</span> <span class="ident">b</span> <span class="op">!</span><span class="op">=</span> <span class="string">b&#39;[&#39;</span> <span class="kw-2">&amp;</span><span class="op">&amp;</span> <span class="ident">b</span> <span class="op">!</span><span class="op">=</span> <span class="string">b&#39;=&#39;</span> <span class="kw-2">&amp;</span><span class="op">&amp;</span> <span class="ident">b</span> <span class="op">!</span><span class="op">=</span> <span class="string">b&#39; &#39;</span>
+<span class="kw">fn</span> <span class="ident">long_end</span>(<span class="ident">b</span>: <span class="ident">u8</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
+    <span class="ident">b</span> <span class="op">!=</span> <span class="string">b&#39;\&#39;&#39;</span> <span class="op">&amp;&amp;</span> <span class="ident">b</span> <span class="op">!=</span> <span class="string">b&#39;.&#39;</span> <span class="op">&amp;&amp;</span> <span class="ident">b</span> <span class="op">!=</span> <span class="string">b&#39;&lt;&#39;</span> <span class="op">&amp;&amp;</span> <span class="ident">b</span> <span class="op">!=</span> <span class="string">b&#39;[&#39;</span> <span class="op">&amp;&amp;</span> <span class="ident">b</span> <span class="op">!=</span> <span class="string">b&#39;=&#39;</span> <span class="op">&amp;&amp;</span> <span class="ident">b</span> <span class="op">!=</span> <span class="string">b&#39; &#39;</span>
 }
 
 <span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">fn</span> <span class="ident">help_start</span>(<span class="ident">b</span>: <span class="ident">u8</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-    <span class="ident">b</span> <span class="op">!</span><span class="op">=</span> <span class="string">b&#39;\&#39;&#39;</span>
+<span class="kw">fn</span> <span class="ident">help_start</span>(<span class="ident">b</span>: <span class="ident">u8</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
+    <span class="ident">b</span> <span class="op">!=</span> <span class="string">b&#39;\&#39;&#39;</span>
 }
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
@@ -1720,7 +1721,7 @@
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">a</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings</span>::<span class="ident">TakesValue</span>));
         <span class="macro">assert</span><span class="macro">!</span>(<span class="op">!</span><span class="ident">a</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings</span>::<span class="ident">Required</span>));
         <span class="macro">assert_eq</span><span class="macro">!</span>(
-            <span class="ident">a</span>.<span class="ident">v</span>.<span class="ident">val_names</span>.<span class="ident">unwrap</span>().<span class="ident">values</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>(),
+            <span class="ident">a</span>.<span class="ident">v</span>.<span class="ident">val_names</span>.<span class="ident">unwrap</span>().<span class="ident">values</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;&gt;</span>(),
             [<span class="kw-2">&amp;</span><span class="string">&quot;opt&quot;</span>]
         );
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">a</span>.<span class="ident">v</span>.<span class="ident">num_vals</span>.<span class="ident">is_none</span>());
@@ -1737,7 +1738,7 @@
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">b</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings</span>::<span class="ident">TakesValue</span>));
         <span class="macro">assert</span><span class="macro">!</span>(<span class="op">!</span><span class="ident">b</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings</span>::<span class="ident">Required</span>));
         <span class="macro">assert_eq</span><span class="macro">!</span>(
-            <span class="ident">b</span>.<span class="ident">v</span>.<span class="ident">val_names</span>.<span class="ident">unwrap</span>().<span class="ident">values</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>(),
+            <span class="ident">b</span>.<span class="ident">v</span>.<span class="ident">val_names</span>.<span class="ident">unwrap</span>().<span class="ident">values</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;&gt;</span>(),
             [<span class="kw-2">&amp;</span><span class="string">&quot;opt&quot;</span>]
         );
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">b</span>.<span class="ident">v</span>.<span class="ident">num_vals</span>.<span class="ident">is_none</span>());
@@ -1754,7 +1755,7 @@
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">c</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings</span>::<span class="ident">TakesValue</span>));
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">c</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings</span>::<span class="ident">Required</span>));
         <span class="macro">assert_eq</span><span class="macro">!</span>(
-            <span class="ident">c</span>.<span class="ident">v</span>.<span class="ident">val_names</span>.<span class="ident">unwrap</span>().<span class="ident">values</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>(),
+            <span class="ident">c</span>.<span class="ident">v</span>.<span class="ident">val_names</span>.<span class="ident">unwrap</span>().<span class="ident">values</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;&gt;</span>(),
             [<span class="kw-2">&amp;</span><span class="string">&quot;opt&quot;</span>]
         );
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">c</span>.<span class="ident">v</span>.<span class="ident">num_vals</span>.<span class="ident">is_none</span>());
@@ -1771,7 +1772,7 @@
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">d</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings</span>::<span class="ident">TakesValue</span>));
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">d</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings</span>::<span class="ident">Required</span>));
         <span class="macro">assert_eq</span><span class="macro">!</span>(
-            <span class="ident">d</span>.<span class="ident">v</span>.<span class="ident">val_names</span>.<span class="ident">unwrap</span>().<span class="ident">values</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>(),
+            <span class="ident">d</span>.<span class="ident">v</span>.<span class="ident">val_names</span>.<span class="ident">unwrap</span>().<span class="ident">values</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;&gt;</span>(),
             [<span class="kw-2">&amp;</span><span class="string">&quot;opt&quot;</span>]
         );
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">d</span>.<span class="ident">v</span>.<span class="ident">num_vals</span>.<span class="ident">is_none</span>());
@@ -1788,7 +1789,7 @@
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">a</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings</span>::<span class="ident">TakesValue</span>));
         <span class="macro">assert</span><span class="macro">!</span>(<span class="op">!</span><span class="ident">a</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings</span>::<span class="ident">Required</span>));
         <span class="macro">assert_eq</span><span class="macro">!</span>(
-            <span class="ident">a</span>.<span class="ident">v</span>.<span class="ident">val_names</span>.<span class="ident">unwrap</span>().<span class="ident">values</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>(),
+            <span class="ident">a</span>.<span class="ident">v</span>.<span class="ident">val_names</span>.<span class="ident">unwrap</span>().<span class="ident">values</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;&gt;</span>(),
             [<span class="kw-2">&amp;</span><span class="string">&quot;opt&quot;</span>]
         );
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">a</span>.<span class="ident">v</span>.<span class="ident">num_vals</span>.<span class="ident">is_none</span>());
@@ -1805,7 +1806,7 @@
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">a</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings</span>::<span class="ident">TakesValue</span>));
         <span class="macro">assert</span><span class="macro">!</span>(<span class="op">!</span><span class="ident">a</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings</span>::<span class="ident">Required</span>));
         <span class="macro">assert_eq</span><span class="macro">!</span>(
-            <span class="ident">a</span>.<span class="ident">v</span>.<span class="ident">val_names</span>.<span class="ident">unwrap</span>().<span class="ident">values</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>(),
+            <span class="ident">a</span>.<span class="ident">v</span>.<span class="ident">val_names</span>.<span class="ident">unwrap</span>().<span class="ident">values</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;&gt;</span>(),
             [<span class="kw-2">&amp;</span><span class="string">&quot;opt&quot;</span>]
         );
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">a</span>.<span class="ident">v</span>.<span class="ident">num_vals</span>.<span class="ident">is_none</span>());
@@ -1822,7 +1823,7 @@
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">b</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings</span>::<span class="ident">TakesValue</span>));
         <span class="macro">assert</span><span class="macro">!</span>(<span class="op">!</span><span class="ident">b</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings</span>::<span class="ident">Required</span>));
         <span class="macro">assert_eq</span><span class="macro">!</span>(
-            <span class="ident">b</span>.<span class="ident">v</span>.<span class="ident">val_names</span>.<span class="ident">unwrap</span>().<span class="ident">values</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>(),
+            <span class="ident">b</span>.<span class="ident">v</span>.<span class="ident">val_names</span>.<span class="ident">unwrap</span>().<span class="ident">values</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;&gt;</span>(),
             [<span class="kw-2">&amp;</span><span class="string">&quot;opt&quot;</span>]
         );
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">b</span>.<span class="ident">v</span>.<span class="ident">num_vals</span>.<span class="ident">is_none</span>());
@@ -1839,7 +1840,7 @@
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">c</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings</span>::<span class="ident">TakesValue</span>));
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">c</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings</span>::<span class="ident">Required</span>));
         <span class="macro">assert_eq</span><span class="macro">!</span>(
-            <span class="ident">c</span>.<span class="ident">v</span>.<span class="ident">val_names</span>.<span class="ident">unwrap</span>().<span class="ident">values</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>(),
+            <span class="ident">c</span>.<span class="ident">v</span>.<span class="ident">val_names</span>.<span class="ident">unwrap</span>().<span class="ident">values</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;&gt;</span>(),
             [<span class="kw-2">&amp;</span><span class="string">&quot;opt&quot;</span>]
         );
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">c</span>.<span class="ident">v</span>.<span class="ident">num_vals</span>.<span class="ident">is_none</span>());
@@ -1856,7 +1857,7 @@
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">c</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings</span>::<span class="ident">TakesValue</span>));
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">c</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings</span>::<span class="ident">Required</span>));
         <span class="macro">assert_eq</span><span class="macro">!</span>(
-            <span class="ident">c</span>.<span class="ident">v</span>.<span class="ident">val_names</span>.<span class="ident">unwrap</span>().<span class="ident">values</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>(),
+            <span class="ident">c</span>.<span class="ident">v</span>.<span class="ident">val_names</span>.<span class="ident">unwrap</span>().<span class="ident">values</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;&gt;</span>(),
             [<span class="kw-2">&amp;</span><span class="string">&quot;opt&quot;</span>]
         );
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">c</span>.<span class="ident">v</span>.<span class="ident">num_vals</span>.<span class="ident">is_none</span>());
@@ -1873,7 +1874,7 @@
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">d</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings</span>::<span class="ident">TakesValue</span>));
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">d</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings</span>::<span class="ident">Required</span>));
         <span class="macro">assert_eq</span><span class="macro">!</span>(
-            <span class="ident">d</span>.<span class="ident">v</span>.<span class="ident">val_names</span>.<span class="ident">unwrap</span>().<span class="ident">values</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>(),
+            <span class="ident">d</span>.<span class="ident">v</span>.<span class="ident">val_names</span>.<span class="ident">unwrap</span>().<span class="ident">values</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;&gt;</span>(),
             [<span class="kw-2">&amp;</span><span class="string">&quot;opt&quot;</span>]
         );
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">d</span>.<span class="ident">v</span>.<span class="ident">num_vals</span>.<span class="ident">is_none</span>());
@@ -1890,7 +1891,7 @@
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">a</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings</span>::<span class="ident">TakesValue</span>));
         <span class="macro">assert</span><span class="macro">!</span>(<span class="op">!</span><span class="ident">a</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings</span>::<span class="ident">Required</span>));
         <span class="macro">assert_eq</span><span class="macro">!</span>(
-            <span class="ident">a</span>.<span class="ident">v</span>.<span class="ident">val_names</span>.<span class="ident">unwrap</span>().<span class="ident">values</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>(),
+            <span class="ident">a</span>.<span class="ident">v</span>.<span class="ident">val_names</span>.<span class="ident">unwrap</span>().<span class="ident">values</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;&gt;</span>(),
             [<span class="kw-2">&amp;</span><span class="string">&quot;opt&quot;</span>]
         );
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">a</span>.<span class="ident">v</span>.<span class="ident">num_vals</span>.<span class="ident">is_none</span>());
@@ -1907,7 +1908,7 @@
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">b</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings</span>::<span class="ident">TakesValue</span>));
         <span class="macro">assert</span><span class="macro">!</span>(<span class="op">!</span><span class="ident">b</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings</span>::<span class="ident">Required</span>));
         <span class="macro">assert_eq</span><span class="macro">!</span>(
-            <span class="ident">b</span>.<span class="ident">v</span>.<span class="ident">val_names</span>.<span class="ident">unwrap</span>().<span class="ident">values</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>(),
+            <span class="ident">b</span>.<span class="ident">v</span>.<span class="ident">val_names</span>.<span class="ident">unwrap</span>().<span class="ident">values</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;&gt;</span>(),
             [<span class="kw-2">&amp;</span><span class="string">&quot;option&quot;</span>]
         );
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">b</span>.<span class="ident">v</span>.<span class="ident">num_vals</span>.<span class="ident">is_none</span>());
@@ -1924,7 +1925,7 @@
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">c</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings</span>::<span class="ident">TakesValue</span>));
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">c</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings</span>::<span class="ident">Required</span>));
         <span class="macro">assert_eq</span><span class="macro">!</span>(
-            <span class="ident">c</span>.<span class="ident">v</span>.<span class="ident">val_names</span>.<span class="ident">unwrap</span>().<span class="ident">values</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>(),
+            <span class="ident">c</span>.<span class="ident">v</span>.<span class="ident">val_names</span>.<span class="ident">unwrap</span>().<span class="ident">values</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;&gt;</span>(),
             [<span class="kw-2">&amp;</span><span class="string">&quot;opt&quot;</span>]
         );
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">c</span>.<span class="ident">v</span>.<span class="ident">num_vals</span>.<span class="ident">is_none</span>());
@@ -1941,7 +1942,7 @@
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">d</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings</span>::<span class="ident">TakesValue</span>));
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">d</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings</span>::<span class="ident">Required</span>));
         <span class="macro">assert_eq</span><span class="macro">!</span>(
-            <span class="ident">d</span>.<span class="ident">v</span>.<span class="ident">val_names</span>.<span class="ident">unwrap</span>().<span class="ident">values</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>(),
+            <span class="ident">d</span>.<span class="ident">v</span>.<span class="ident">val_names</span>.<span class="ident">unwrap</span>().<span class="ident">values</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;&gt;</span>(),
             [<span class="kw-2">&amp;</span><span class="string">&quot;option&quot;</span>]
         );
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">d</span>.<span class="ident">v</span>.<span class="ident">num_vals</span>.<span class="ident">is_none</span>());
@@ -1958,7 +1959,7 @@
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">a</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings</span>::<span class="ident">TakesValue</span>));
         <span class="macro">assert</span><span class="macro">!</span>(<span class="op">!</span><span class="ident">a</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings</span>::<span class="ident">Required</span>));
         <span class="macro">assert_eq</span><span class="macro">!</span>(
-            <span class="ident">a</span>.<span class="ident">v</span>.<span class="ident">val_names</span>.<span class="ident">unwrap</span>().<span class="ident">values</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>(),
+            <span class="ident">a</span>.<span class="ident">v</span>.<span class="ident">val_names</span>.<span class="ident">unwrap</span>().<span class="ident">values</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;&gt;</span>(),
             [<span class="kw-2">&amp;</span><span class="string">&quot;opt&quot;</span>]
         );
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">a</span>.<span class="ident">v</span>.<span class="ident">num_vals</span>.<span class="ident">is_none</span>());
@@ -1975,7 +1976,7 @@
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">a</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings</span>::<span class="ident">TakesValue</span>));
         <span class="macro">assert</span><span class="macro">!</span>(<span class="op">!</span><span class="ident">a</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings</span>::<span class="ident">Required</span>));
         <span class="macro">assert_eq</span><span class="macro">!</span>(
-            <span class="ident">a</span>.<span class="ident">v</span>.<span class="ident">val_names</span>.<span class="ident">unwrap</span>().<span class="ident">values</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>(),
+            <span class="ident">a</span>.<span class="ident">v</span>.<span class="ident">val_names</span>.<span class="ident">unwrap</span>().<span class="ident">values</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;&gt;</span>(),
             [<span class="kw-2">&amp;</span><span class="string">&quot;opt&quot;</span>]
         );
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">a</span>.<span class="ident">v</span>.<span class="ident">num_vals</span>.<span class="ident">is_none</span>());
@@ -1992,7 +1993,7 @@
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">b</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings</span>::<span class="ident">TakesValue</span>));
         <span class="macro">assert</span><span class="macro">!</span>(<span class="op">!</span><span class="ident">b</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings</span>::<span class="ident">Required</span>));
         <span class="macro">assert_eq</span><span class="macro">!</span>(
-            <span class="ident">b</span>.<span class="ident">v</span>.<span class="ident">val_names</span>.<span class="ident">unwrap</span>().<span class="ident">values</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>(),
+            <span class="ident">b</span>.<span class="ident">v</span>.<span class="ident">val_names</span>.<span class="ident">unwrap</span>().<span class="ident">values</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;&gt;</span>(),
             [<span class="kw-2">&amp;</span><span class="string">&quot;option&quot;</span>]
         );
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">b</span>.<span class="ident">v</span>.<span class="ident">num_vals</span>.<span class="ident">is_none</span>());
@@ -2009,7 +2010,7 @@
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">c</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings</span>::<span class="ident">TakesValue</span>));
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">c</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings</span>::<span class="ident">Required</span>));
         <span class="macro">assert_eq</span><span class="macro">!</span>(
-            <span class="ident">c</span>.<span class="ident">v</span>.<span class="ident">val_names</span>.<span class="ident">unwrap</span>().<span class="ident">values</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>(),
+            <span class="ident">c</span>.<span class="ident">v</span>.<span class="ident">val_names</span>.<span class="ident">unwrap</span>().<span class="ident">values</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;&gt;</span>(),
             [<span class="kw-2">&amp;</span><span class="string">&quot;opt&quot;</span>]
         );
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">c</span>.<span class="ident">v</span>.<span class="ident">num_vals</span>.<span class="ident">is_none</span>());
@@ -2026,7 +2027,7 @@
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">c</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings</span>::<span class="ident">TakesValue</span>));
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">c</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings</span>::<span class="ident">Required</span>));
         <span class="macro">assert_eq</span><span class="macro">!</span>(
-            <span class="ident">c</span>.<span class="ident">v</span>.<span class="ident">val_names</span>.<span class="ident">unwrap</span>().<span class="ident">values</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>(),
+            <span class="ident">c</span>.<span class="ident">v</span>.<span class="ident">val_names</span>.<span class="ident">unwrap</span>().<span class="ident">values</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;&gt;</span>(),
             [<span class="kw-2">&amp;</span><span class="string">&quot;opt&quot;</span>]
         );
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">c</span>.<span class="ident">v</span>.<span class="ident">num_vals</span>.<span class="ident">is_none</span>());
@@ -2043,7 +2044,7 @@
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">d</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings</span>::<span class="ident">TakesValue</span>));
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">d</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings</span>::<span class="ident">Required</span>));
         <span class="macro">assert_eq</span><span class="macro">!</span>(
-            <span class="ident">d</span>.<span class="ident">v</span>.<span class="ident">val_names</span>.<span class="ident">unwrap</span>().<span class="ident">values</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>(),
+            <span class="ident">d</span>.<span class="ident">v</span>.<span class="ident">val_names</span>.<span class="ident">unwrap</span>().<span class="ident">values</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;&gt;</span>(),
             [<span class="kw-2">&amp;</span><span class="string">&quot;option&quot;</span>]
         );
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">d</span>.<span class="ident">v</span>.<span class="ident">num_vals</span>.<span class="ident">is_none</span>());
@@ -2060,7 +2061,7 @@
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">a</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings</span>::<span class="ident">TakesValue</span>));
         <span class="macro">assert</span><span class="macro">!</span>(<span class="op">!</span><span class="ident">a</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings</span>::<span class="ident">Required</span>));
         <span class="macro">assert_eq</span><span class="macro">!</span>(
-            <span class="ident">a</span>.<span class="ident">v</span>.<span class="ident">val_names</span>.<span class="ident">unwrap</span>().<span class="ident">values</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>(),
+            <span class="ident">a</span>.<span class="ident">v</span>.<span class="ident">val_names</span>.<span class="ident">unwrap</span>().<span class="ident">values</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;&gt;</span>(),
             [<span class="kw-2">&amp;</span><span class="string">&quot;opt&quot;</span>]
         );
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">a</span>.<span class="ident">v</span>.<span class="ident">num_vals</span>.<span class="ident">is_none</span>());
@@ -2077,7 +2078,7 @@
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">b</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings</span>::<span class="ident">TakesValue</span>));
         <span class="macro">assert</span><span class="macro">!</span>(<span class="op">!</span><span class="ident">b</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings</span>::<span class="ident">Required</span>));
         <span class="macro">assert_eq</span><span class="macro">!</span>(
-            <span class="ident">b</span>.<span class="ident">v</span>.<span class="ident">val_names</span>.<span class="ident">unwrap</span>().<span class="ident">values</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>(),
+            <span class="ident">b</span>.<span class="ident">v</span>.<span class="ident">val_names</span>.<span class="ident">unwrap</span>().<span class="ident">values</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;&gt;</span>(),
             [<span class="kw-2">&amp;</span><span class="string">&quot;option&quot;</span>]
         );
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">b</span>.<span class="ident">v</span>.<span class="ident">num_vals</span>.<span class="ident">is_none</span>());
@@ -2094,7 +2095,7 @@
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">c</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings</span>::<span class="ident">TakesValue</span>));
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">c</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings</span>::<span class="ident">Required</span>));
         <span class="macro">assert_eq</span><span class="macro">!</span>(
-            <span class="ident">c</span>.<span class="ident">v</span>.<span class="ident">val_names</span>.<span class="ident">unwrap</span>().<span class="ident">values</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>(),
+            <span class="ident">c</span>.<span class="ident">v</span>.<span class="ident">val_names</span>.<span class="ident">unwrap</span>().<span class="ident">values</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;&gt;</span>(),
             [<span class="kw-2">&amp;</span><span class="string">&quot;opt&quot;</span>]
         );
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">c</span>.<span class="ident">v</span>.<span class="ident">num_vals</span>.<span class="ident">is_none</span>());
@@ -2111,7 +2112,7 @@
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">d</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings</span>::<span class="ident">TakesValue</span>));
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">d</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings</span>::<span class="ident">Required</span>));
         <span class="macro">assert_eq</span><span class="macro">!</span>(
-            <span class="ident">d</span>.<span class="ident">v</span>.<span class="ident">val_names</span>.<span class="ident">unwrap</span>().<span class="ident">values</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>(),
+            <span class="ident">d</span>.<span class="ident">v</span>.<span class="ident">val_names</span>.<span class="ident">unwrap</span>().<span class="ident">values</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;&gt;</span>(),
             [<span class="kw-2">&amp;</span><span class="string">&quot;option&quot;</span>]
         );
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">d</span>.<span class="ident">v</span>.<span class="ident">num_vals</span>.<span class="ident">is_none</span>());
@@ -2128,7 +2129,7 @@
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">a</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings</span>::<span class="ident">TakesValue</span>));
         <span class="macro">assert</span><span class="macro">!</span>(<span class="op">!</span><span class="ident">a</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings</span>::<span class="ident">Required</span>));
         <span class="macro">assert_eq</span><span class="macro">!</span>(
-            <span class="ident">a</span>.<span class="ident">v</span>.<span class="ident">val_names</span>.<span class="ident">unwrap</span>().<span class="ident">values</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>(),
+            <span class="ident">a</span>.<span class="ident">v</span>.<span class="ident">val_names</span>.<span class="ident">unwrap</span>().<span class="ident">values</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;&gt;</span>(),
             [<span class="kw-2">&amp;</span><span class="string">&quot;opt&quot;</span>]
         );
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">a</span>.<span class="ident">v</span>.<span class="ident">num_vals</span>.<span class="ident">is_none</span>());
@@ -2145,7 +2146,7 @@
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">a</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings</span>::<span class="ident">TakesValue</span>));
         <span class="macro">assert</span><span class="macro">!</span>(<span class="op">!</span><span class="ident">a</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings</span>::<span class="ident">Required</span>));
         <span class="macro">assert_eq</span><span class="macro">!</span>(
-            <span class="ident">a</span>.<span class="ident">v</span>.<span class="ident">val_names</span>.<span class="ident">unwrap</span>().<span class="ident">values</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>(),
+            <span class="ident">a</span>.<span class="ident">v</span>.<span class="ident">val_names</span>.<span class="ident">unwrap</span>().<span class="ident">values</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;&gt;</span>(),
             [<span class="kw-2">&amp;</span><span class="string">&quot;opt&quot;</span>]
         );
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">a</span>.<span class="ident">v</span>.<span class="ident">num_vals</span>.<span class="ident">is_none</span>());
@@ -2162,7 +2163,7 @@
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">b</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings</span>::<span class="ident">TakesValue</span>));
         <span class="macro">assert</span><span class="macro">!</span>(<span class="op">!</span><span class="ident">b</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings</span>::<span class="ident">Required</span>));
         <span class="macro">assert_eq</span><span class="macro">!</span>(
-            <span class="ident">b</span>.<span class="ident">v</span>.<span class="ident">val_names</span>.<span class="ident">unwrap</span>().<span class="ident">values</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>(),
+            <span class="ident">b</span>.<span class="ident">v</span>.<span class="ident">val_names</span>.<span class="ident">unwrap</span>().<span class="ident">values</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;&gt;</span>(),
             [<span class="kw-2">&amp;</span><span class="string">&quot;option&quot;</span>]
         );
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">b</span>.<span class="ident">v</span>.<span class="ident">num_vals</span>.<span class="ident">is_none</span>());
@@ -2179,7 +2180,7 @@
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">c</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings</span>::<span class="ident">TakesValue</span>));
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">c</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings</span>::<span class="ident">Required</span>));
         <span class="macro">assert_eq</span><span class="macro">!</span>(
-            <span class="ident">c</span>.<span class="ident">v</span>.<span class="ident">val_names</span>.<span class="ident">unwrap</span>().<span class="ident">values</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>(),
+            <span class="ident">c</span>.<span class="ident">v</span>.<span class="ident">val_names</span>.<span class="ident">unwrap</span>().<span class="ident">values</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;&gt;</span>(),
             [<span class="kw-2">&amp;</span><span class="string">&quot;opt&quot;</span>]
         );
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">c</span>.<span class="ident">v</span>.<span class="ident">num_vals</span>.<span class="ident">is_none</span>());
@@ -2196,7 +2197,7 @@
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">c</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings</span>::<span class="ident">TakesValue</span>));
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">c</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings</span>::<span class="ident">Required</span>));
         <span class="macro">assert_eq</span><span class="macro">!</span>(
-            <span class="ident">c</span>.<span class="ident">v</span>.<span class="ident">val_names</span>.<span class="ident">unwrap</span>().<span class="ident">values</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>(),
+            <span class="ident">c</span>.<span class="ident">v</span>.<span class="ident">val_names</span>.<span class="ident">unwrap</span>().<span class="ident">values</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;&gt;</span>(),
             [<span class="kw-2">&amp;</span><span class="string">&quot;opt&quot;</span>]
         );
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">c</span>.<span class="ident">v</span>.<span class="ident">num_vals</span>.<span class="ident">is_none</span>());
@@ -2213,7 +2214,7 @@
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">d</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings</span>::<span class="ident">TakesValue</span>));
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">d</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings</span>::<span class="ident">Required</span>));
         <span class="macro">assert_eq</span><span class="macro">!</span>(
-            <span class="ident">d</span>.<span class="ident">v</span>.<span class="ident">val_names</span>.<span class="ident">unwrap</span>().<span class="ident">values</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>(),
+            <span class="ident">d</span>.<span class="ident">v</span>.<span class="ident">val_names</span>.<span class="ident">unwrap</span>().<span class="ident">values</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;&gt;</span>(),
             [<span class="kw-2">&amp;</span><span class="string">&quot;option&quot;</span>]
         );
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">d</span>.<span class="ident">v</span>.<span class="ident">num_vals</span>.<span class="ident">is_none</span>());
@@ -2230,7 +2231,7 @@
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">a</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings</span>::<span class="ident">TakesValue</span>));
         <span class="macro">assert</span><span class="macro">!</span>(<span class="op">!</span><span class="ident">a</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings</span>::<span class="ident">Required</span>));
         <span class="macro">assert_eq</span><span class="macro">!</span>(
-            <span class="ident">a</span>.<span class="ident">v</span>.<span class="ident">val_names</span>.<span class="ident">unwrap</span>().<span class="ident">values</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>(),
+            <span class="ident">a</span>.<span class="ident">v</span>.<span class="ident">val_names</span>.<span class="ident">unwrap</span>().<span class="ident">values</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;&gt;</span>(),
             [<span class="kw-2">&amp;</span><span class="string">&quot;option&quot;</span>]
         );
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">a</span>.<span class="ident">v</span>.<span class="ident">num_vals</span>.<span class="ident">is_none</span>());
@@ -2247,7 +2248,7 @@
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">b</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings</span>::<span class="ident">TakesValue</span>));
         <span class="macro">assert</span><span class="macro">!</span>(<span class="op">!</span><span class="ident">b</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings</span>::<span class="ident">Required</span>));
         <span class="macro">assert_eq</span><span class="macro">!</span>(
-            <span class="ident">b</span>.<span class="ident">v</span>.<span class="ident">val_names</span>.<span class="ident">unwrap</span>().<span class="ident">values</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>(),
+            <span class="ident">b</span>.<span class="ident">v</span>.<span class="ident">val_names</span>.<span class="ident">unwrap</span>().<span class="ident">values</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;&gt;</span>(),
             [<span class="kw-2">&amp;</span><span class="string">&quot;option&quot;</span>]
         );
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">b</span>.<span class="ident">v</span>.<span class="ident">num_vals</span>.<span class="ident">is_none</span>());
@@ -2264,7 +2265,7 @@
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">c</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings</span>::<span class="ident">TakesValue</span>));
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">c</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings</span>::<span class="ident">Required</span>));
         <span class="macro">assert_eq</span><span class="macro">!</span>(
-            <span class="ident">c</span>.<span class="ident">v</span>.<span class="ident">val_names</span>.<span class="ident">unwrap</span>().<span class="ident">values</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>(),
+            <span class="ident">c</span>.<span class="ident">v</span>.<span class="ident">val_names</span>.<span class="ident">unwrap</span>().<span class="ident">values</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;&gt;</span>(),
             [<span class="kw-2">&amp;</span><span class="string">&quot;opt&quot;</span>]
         );
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">c</span>.<span class="ident">v</span>.<span class="ident">num_vals</span>.<span class="ident">is_none</span>());
@@ -2281,7 +2282,7 @@
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">d</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings</span>::<span class="ident">TakesValue</span>));
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">d</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings</span>::<span class="ident">Required</span>));
         <span class="macro">assert_eq</span><span class="macro">!</span>(
-            <span class="ident">d</span>.<span class="ident">v</span>.<span class="ident">val_names</span>.<span class="ident">unwrap</span>().<span class="ident">values</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>(),
+            <span class="ident">d</span>.<span class="ident">v</span>.<span class="ident">val_names</span>.<span class="ident">unwrap</span>().<span class="ident">values</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;&gt;</span>(),
             [<span class="kw-2">&amp;</span><span class="string">&quot;option&quot;</span>]
         );
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">d</span>.<span class="ident">v</span>.<span class="ident">num_vals</span>.<span class="ident">is_none</span>());
@@ -2298,7 +2299,7 @@
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">a</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings</span>::<span class="ident">TakesValue</span>));
         <span class="macro">assert</span><span class="macro">!</span>(<span class="op">!</span><span class="ident">a</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings</span>::<span class="ident">Required</span>));
         <span class="macro">assert_eq</span><span class="macro">!</span>(
-            <span class="ident">a</span>.<span class="ident">v</span>.<span class="ident">val_names</span>.<span class="ident">unwrap</span>().<span class="ident">values</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>(),
+            <span class="ident">a</span>.<span class="ident">v</span>.<span class="ident">val_names</span>.<span class="ident">unwrap</span>().<span class="ident">values</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;&gt;</span>(),
             [<span class="kw-2">&amp;</span><span class="string">&quot;option&quot;</span>]
         );
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">a</span>.<span class="ident">v</span>.<span class="ident">num_vals</span>.<span class="ident">is_none</span>());
@@ -2315,7 +2316,7 @@
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">b</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings</span>::<span class="ident">TakesValue</span>));
         <span class="macro">assert</span><span class="macro">!</span>(<span class="op">!</span><span class="ident">b</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings</span>::<span class="ident">Required</span>));
         <span class="macro">assert_eq</span><span class="macro">!</span>(
-            <span class="ident">b</span>.<span class="ident">v</span>.<span class="ident">val_names</span>.<span class="ident">unwrap</span>().<span class="ident">values</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>(),
+            <span class="ident">b</span>.<span class="ident">v</span>.<span class="ident">val_names</span>.<span class="ident">unwrap</span>().<span class="ident">values</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;&gt;</span>(),
             [<span class="kw-2">&amp;</span><span class="string">&quot;option&quot;</span>]
         );
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">b</span>.<span class="ident">v</span>.<span class="ident">num_vals</span>.<span class="ident">is_none</span>());
@@ -2332,7 +2333,7 @@
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">c</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings</span>::<span class="ident">TakesValue</span>));
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">c</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings</span>::<span class="ident">Required</span>));
         <span class="macro">assert_eq</span><span class="macro">!</span>(
-            <span class="ident">c</span>.<span class="ident">v</span>.<span class="ident">val_names</span>.<span class="ident">unwrap</span>().<span class="ident">values</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>(),
+            <span class="ident">c</span>.<span class="ident">v</span>.<span class="ident">val_names</span>.<span class="ident">unwrap</span>().<span class="ident">values</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;&gt;</span>(),
             [<span class="kw-2">&amp;</span><span class="string">&quot;opt&quot;</span>]
         );
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">c</span>.<span class="ident">v</span>.<span class="ident">num_vals</span>.<span class="ident">is_none</span>());
@@ -2349,7 +2350,7 @@
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">d</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings</span>::<span class="ident">TakesValue</span>));
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">d</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings</span>::<span class="ident">Required</span>));
         <span class="macro">assert_eq</span><span class="macro">!</span>(
-            <span class="ident">d</span>.<span class="ident">v</span>.<span class="ident">val_names</span>.<span class="ident">unwrap</span>().<span class="ident">values</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>(),
+            <span class="ident">d</span>.<span class="ident">v</span>.<span class="ident">val_names</span>.<span class="ident">unwrap</span>().<span class="ident">values</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;&gt;</span>(),
             [<span class="kw-2">&amp;</span><span class="string">&quot;option&quot;</span>]
         );
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">d</span>.<span class="ident">v</span>.<span class="ident">num_vals</span>.<span class="ident">is_none</span>());
@@ -2366,7 +2367,7 @@
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">a</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings</span>::<span class="ident">TakesValue</span>));
         <span class="macro">assert</span><span class="macro">!</span>(<span class="op">!</span><span class="ident">a</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings</span>::<span class="ident">Required</span>));
         <span class="macro">assert_eq</span><span class="macro">!</span>(
-            <span class="ident">a</span>.<span class="ident">v</span>.<span class="ident">val_names</span>.<span class="ident">unwrap</span>().<span class="ident">values</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>(),
+            <span class="ident">a</span>.<span class="ident">v</span>.<span class="ident">val_names</span>.<span class="ident">unwrap</span>().<span class="ident">values</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;&gt;</span>(),
             [<span class="kw-2">&amp;</span><span class="string">&quot;option&quot;</span>]
         );
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">a</span>.<span class="ident">v</span>.<span class="ident">num_vals</span>.<span class="ident">is_none</span>());
@@ -2383,7 +2384,7 @@
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">b</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings</span>::<span class="ident">TakesValue</span>));
         <span class="macro">assert</span><span class="macro">!</span>(<span class="op">!</span><span class="ident">b</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings</span>::<span class="ident">Required</span>));
         <span class="macro">assert_eq</span><span class="macro">!</span>(
-            <span class="ident">b</span>.<span class="ident">v</span>.<span class="ident">val_names</span>.<span class="ident">unwrap</span>().<span class="ident">values</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>(),
+            <span class="ident">b</span>.<span class="ident">v</span>.<span class="ident">val_names</span>.<span class="ident">unwrap</span>().<span class="ident">values</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;&gt;</span>(),
             [<span class="kw-2">&amp;</span><span class="string">&quot;option&quot;</span>]
         );
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">b</span>.<span class="ident">v</span>.<span class="ident">num_vals</span>.<span class="ident">is_none</span>());
@@ -2400,7 +2401,7 @@
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">c</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings</span>::<span class="ident">TakesValue</span>));
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">c</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings</span>::<span class="ident">Required</span>));
         <span class="macro">assert_eq</span><span class="macro">!</span>(
-            <span class="ident">c</span>.<span class="ident">v</span>.<span class="ident">val_names</span>.<span class="ident">unwrap</span>().<span class="ident">values</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>(),
+            <span class="ident">c</span>.<span class="ident">v</span>.<span class="ident">val_names</span>.<span class="ident">unwrap</span>().<span class="ident">values</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;&gt;</span>(),
             [<span class="kw-2">&amp;</span><span class="string">&quot;opt&quot;</span>]
         );
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">c</span>.<span class="ident">v</span>.<span class="ident">num_vals</span>.<span class="ident">is_none</span>());
@@ -2417,7 +2418,7 @@
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">d</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings</span>::<span class="ident">TakesValue</span>));
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">d</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings</span>::<span class="ident">Required</span>));
         <span class="macro">assert_eq</span><span class="macro">!</span>(
-            <span class="ident">d</span>.<span class="ident">v</span>.<span class="ident">val_names</span>.<span class="ident">unwrap</span>().<span class="ident">values</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>(),
+            <span class="ident">d</span>.<span class="ident">v</span>.<span class="ident">val_names</span>.<span class="ident">unwrap</span>().<span class="ident">values</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;&gt;</span>(),
             [<span class="kw-2">&amp;</span><span class="string">&quot;option&quot;</span>]
         );
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">d</span>.<span class="ident">v</span>.<span class="ident">num_vals</span>.<span class="ident">is_none</span>());
@@ -2434,7 +2435,7 @@
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">a</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings</span>::<span class="ident">TakesValue</span>));
         <span class="macro">assert</span><span class="macro">!</span>(<span class="op">!</span><span class="ident">a</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings</span>::<span class="ident">Required</span>));
         <span class="macro">assert_eq</span><span class="macro">!</span>(
-            <span class="ident">a</span>.<span class="ident">v</span>.<span class="ident">val_names</span>.<span class="ident">unwrap</span>().<span class="ident">values</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>(),
+            <span class="ident">a</span>.<span class="ident">v</span>.<span class="ident">val_names</span>.<span class="ident">unwrap</span>().<span class="ident">values</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;&gt;</span>(),
             [<span class="kw-2">&amp;</span><span class="string">&quot;option&quot;</span>]
         );
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">a</span>.<span class="ident">v</span>.<span class="ident">num_vals</span>.<span class="ident">is_none</span>());
@@ -2451,7 +2452,7 @@
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">b</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings</span>::<span class="ident">TakesValue</span>));
         <span class="macro">assert</span><span class="macro">!</span>(<span class="op">!</span><span class="ident">b</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings</span>::<span class="ident">Required</span>));
         <span class="macro">assert_eq</span><span class="macro">!</span>(
-            <span class="ident">b</span>.<span class="ident">v</span>.<span class="ident">val_names</span>.<span class="ident">unwrap</span>().<span class="ident">values</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>(),
+            <span class="ident">b</span>.<span class="ident">v</span>.<span class="ident">val_names</span>.<span class="ident">unwrap</span>().<span class="ident">values</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;&gt;</span>(),
             [<span class="kw-2">&amp;</span><span class="string">&quot;option&quot;</span>]
         );
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">b</span>.<span class="ident">v</span>.<span class="ident">num_vals</span>.<span class="ident">is_none</span>());
@@ -2468,7 +2469,7 @@
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">c</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings</span>::<span class="ident">TakesValue</span>));
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">c</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings</span>::<span class="ident">Required</span>));
         <span class="macro">assert_eq</span><span class="macro">!</span>(
-            <span class="ident">c</span>.<span class="ident">v</span>.<span class="ident">val_names</span>.<span class="ident">unwrap</span>().<span class="ident">values</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>(),
+            <span class="ident">c</span>.<span class="ident">v</span>.<span class="ident">val_names</span>.<span class="ident">unwrap</span>().<span class="ident">values</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;&gt;</span>(),
             [<span class="kw-2">&amp;</span><span class="string">&quot;opt&quot;</span>]
         );
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">c</span>.<span class="ident">v</span>.<span class="ident">num_vals</span>.<span class="ident">is_none</span>());
@@ -2485,7 +2486,7 @@
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">d</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings</span>::<span class="ident">TakesValue</span>));
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">d</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings</span>::<span class="ident">Required</span>));
         <span class="macro">assert_eq</span><span class="macro">!</span>(
-            <span class="ident">d</span>.<span class="ident">v</span>.<span class="ident">val_names</span>.<span class="ident">unwrap</span>().<span class="ident">values</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>(),
+            <span class="ident">d</span>.<span class="ident">v</span>.<span class="ident">val_names</span>.<span class="ident">unwrap</span>().<span class="ident">values</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;&gt;</span>(),
             [<span class="kw-2">&amp;</span><span class="string">&quot;option&quot;</span>]
         );
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">d</span>.<span class="ident">v</span>.<span class="ident">num_vals</span>.<span class="ident">is_none</span>());
@@ -2502,7 +2503,7 @@
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">d</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings</span>::<span class="ident">TakesValue</span>));
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">d</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings</span>::<span class="ident">Required</span>));
         <span class="macro">assert_eq</span><span class="macro">!</span>(
-            <span class="ident">d</span>.<span class="ident">v</span>.<span class="ident">val_names</span>.<span class="ident">unwrap</span>().<span class="ident">values</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>(),
+            <span class="ident">d</span>.<span class="ident">v</span>.<span class="ident">val_names</span>.<span class="ident">unwrap</span>().<span class="ident">values</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;&gt;</span>(),
             [<span class="kw-2">&amp;</span><span class="string">&quot;file&quot;</span>, <span class="kw-2">&amp;</span><span class="string">&quot;mode&quot;</span>]
         );
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">d</span>.<span class="ident">v</span>.<span class="ident">num_vals</span>.<span class="ident">unwrap</span>(), <span class="number">2</span>);
@@ -2519,7 +2520,7 @@
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">d</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings</span>::<span class="ident">TakesValue</span>));
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">d</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings</span>::<span class="ident">Required</span>));
         <span class="macro">assert_eq</span><span class="macro">!</span>(
-            <span class="ident">d</span>.<span class="ident">v</span>.<span class="ident">val_names</span>.<span class="ident">unwrap</span>().<span class="ident">values</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>(),
+            <span class="ident">d</span>.<span class="ident">v</span>.<span class="ident">val_names</span>.<span class="ident">unwrap</span>().<span class="ident">values</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;&gt;</span>(),
             [<span class="kw-2">&amp;</span><span class="string">&quot;file&quot;</span>, <span class="kw-2">&amp;</span><span class="string">&quot;mode&quot;</span>]
         );
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">d</span>.<span class="ident">v</span>.<span class="ident">num_vals</span>.<span class="ident">unwrap</span>(), <span class="number">2</span>);
@@ -2536,7 +2537,7 @@
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">d</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings</span>::<span class="ident">TakesValue</span>));
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">d</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings</span>::<span class="ident">Required</span>));
         <span class="macro">assert_eq</span><span class="macro">!</span>(
-            <span class="ident">d</span>.<span class="ident">v</span>.<span class="ident">val_names</span>.<span class="ident">unwrap</span>().<span class="ident">values</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>(),
+            <span class="ident">d</span>.<span class="ident">v</span>.<span class="ident">val_names</span>.<span class="ident">unwrap</span>().<span class="ident">values</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;&gt;</span>(),
             [<span class="kw-2">&amp;</span><span class="string">&quot;file&quot;</span>, <span class="kw-2">&amp;</span><span class="string">&quot;mode&quot;</span>]
         );
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">d</span>.<span class="ident">v</span>.<span class="ident">num_vals</span>.<span class="ident">unwrap</span>(), <span class="number">2</span>);
@@ -2553,7 +2554,7 @@
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">d</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings</span>::<span class="ident">TakesValue</span>));
         <span class="macro">assert</span><span class="macro">!</span>(<span class="op">!</span><span class="ident">d</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings</span>::<span class="ident">Required</span>));
         <span class="macro">assert_eq</span><span class="macro">!</span>(
-            <span class="ident">d</span>.<span class="ident">v</span>.<span class="ident">val_names</span>.<span class="ident">unwrap</span>().<span class="ident">values</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>(),
+            <span class="ident">d</span>.<span class="ident">v</span>.<span class="ident">val_names</span>.<span class="ident">unwrap</span>().<span class="ident">values</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;&gt;</span>(),
             [<span class="kw-2">&amp;</span><span class="string">&quot;file&quot;</span>, <span class="kw-2">&amp;</span><span class="string">&quot;mode&quot;</span>]
         );
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">d</span>.<span class="ident">v</span>.<span class="ident">num_vals</span>.<span class="ident">unwrap</span>(), <span class="number">2</span>);
@@ -2709,7 +2710,7 @@
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">a</span>.<span class="ident">b</span>.<span class="ident">name</span>, <span class="string">&quot;ñämê&quot;</span>);
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">a</span>.<span class="ident">s</span>.<span class="ident">long</span>, <span class="prelude-val">Some</span>(<span class="string">&quot;ôpt&quot;</span>));
         <span class="macro">assert_eq</span><span class="macro">!</span>(
-            <span class="ident">a</span>.<span class="ident">v</span>.<span class="ident">val_names</span>.<span class="ident">unwrap</span>().<span class="ident">values</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>(),
+            <span class="ident">a</span>.<span class="ident">v</span>.<span class="ident">val_names</span>.<span class="ident">unwrap</span>().<span class="ident">values</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;&gt;</span>(),
             [<span class="kw-2">&amp;</span><span class="string">&quot;üñíčöĐ€&quot;</span>]
         );
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">a</span>.<span class="ident">b</span>.<span class="ident">help</span>, <span class="prelude-val">Some</span>(<span class="string">&quot;hælp&quot;</span>));

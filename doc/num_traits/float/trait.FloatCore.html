@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="API documentation for the Rust `FloatCore` trait in crate `num_traits`."><meta name="keywords" content="rust, rustlang, rust-lang, FloatCore"><title>num_traits::float::FloatCore - Rust</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc trait"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../num_traits/index.html'><div class='logo-container'><img src='../../rust-logo.png' alt='logo'></div></a><p class='location'>Trait FloatCore</p><div class="sidebar-elems"><div class="block items"><a class="sidebar-title" href="#required-methods">Required Methods</a><div class="sidebar-links"><a href="#tymethod.classify">classify</a><a href="#tymethod.epsilon">epsilon</a><a href="#tymethod.infinity">infinity</a><a href="#tymethod.integer_decode">integer_decode</a><a href="#tymethod.max_value">max_value</a><a href="#tymethod.min_positive_value">min_positive_value</a><a href="#tymethod.min_value">min_value</a><a href="#tymethod.nan">nan</a><a href="#tymethod.neg_infinity">neg_infinity</a><a href="#tymethod.neg_zero">neg_zero</a><a href="#tymethod.to_degrees">to_degrees</a><a href="#tymethod.to_radians">to_radians</a></div><a class="sidebar-title" href="#provided-methods">Provided Methods</a><div class="sidebar-links"><a href="#method.abs">abs</a><a href="#method.ceil">ceil</a><a href="#method.floor">floor</a><a href="#method.fract">fract</a><a href="#method.is_finite">is_finite</a><a href="#method.is_infinite">is_infinite</a><a href="#method.is_nan">is_nan</a><a href="#method.is_normal">is_normal</a><a href="#method.is_sign_negative">is_sign_negative</a><a href="#method.is_sign_positive">is_sign_positive</a><a href="#method.max">max</a><a href="#method.min">min</a><a href="#method.powi">powi</a><a href="#method.recip">recip</a><a href="#method.round">round</a><a href="#method.signum">signum</a><a href="#method.trunc">trunc</a></div><a class="sidebar-title" href="#foreign-impls">Implementations on Foreign Types</a><div class="sidebar-links"><a href="#impl-FloatCore-for-f32">f32</a><a href="#impl-FloatCore-for-f64">f64</a></div><a class="sidebar-title" href="#implementors">Implementors</a></div><p class='location'><a href='../index.html'>num_traits</a>::<wbr><a href='index.html'>float</a></p><script>window.sidebarCurrent = {name: 'FloatCore', ty: 'trait', relpath: ''};</script><script defer src="sidebar-items.js"></script></div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><h1 class='fqn'><span class='out-of-band'><span id='render-detail'><a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">[<span class='inner'>&#x2212;</span>]</a></span><a class='srclink' href='../../src/num_traits/float.rs.html#16-747' title='goto source code'>[src]</a></span><span class='in-band'>Trait <a href='../index.html'>num_traits</a>::<wbr><a href='index.html'>float</a>::<wbr><a class="trait" href=''>FloatCore</a></span></h1><div class="docblock type-decl hidden-by-usual-hider"><pre class='rust trait'>pub trait FloatCore: <a class="trait" href="../../num_traits/trait.Num.html" title="trait num_traits::Num">Num</a> + <a class="trait" href="../../num_traits/cast/trait.NumCast.html" title="trait num_traits::cast::NumCast">NumCast</a> + <a class="trait" href="https://doc.rust-lang.org/nightly/core/ops/arith/trait.Neg.html" title="trait core::ops::arith::Neg">Neg</a>&lt;Output = Self&gt; + <a class="trait" href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialOrd.html" title="trait core::cmp::PartialOrd">PartialOrd</a> + <a class="trait" href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html" title="trait core::marker::Copy">Copy</a> {
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="API documentation for the Rust `FloatCore` trait in crate `num_traits`."><meta name="keywords" content="rust, rustlang, rust-lang, FloatCore"><title>num_traits::float::FloatCore - Rust</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc trait"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../num_traits/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a><p class='location'>Trait FloatCore</p><div class="sidebar-elems"><div class="block items"><a class="sidebar-title" href="#required-methods">Required Methods</a><div class="sidebar-links"><a href="#tymethod.classify">classify</a><a href="#tymethod.epsilon">epsilon</a><a href="#tymethod.infinity">infinity</a><a href="#tymethod.integer_decode">integer_decode</a><a href="#tymethod.max_value">max_value</a><a href="#tymethod.min_positive_value">min_positive_value</a><a href="#tymethod.min_value">min_value</a><a href="#tymethod.nan">nan</a><a href="#tymethod.neg_infinity">neg_infinity</a><a href="#tymethod.neg_zero">neg_zero</a><a href="#tymethod.to_degrees">to_degrees</a><a href="#tymethod.to_radians">to_radians</a></div><a class="sidebar-title" href="#provided-methods">Provided Methods</a><div class="sidebar-links"><a href="#method.abs">abs</a><a href="#method.ceil">ceil</a><a href="#method.floor">floor</a><a href="#method.fract">fract</a><a href="#method.is_finite">is_finite</a><a href="#method.is_infinite">is_infinite</a><a href="#method.is_nan">is_nan</a><a href="#method.is_normal">is_normal</a><a href="#method.is_sign_negative">is_sign_negative</a><a href="#method.is_sign_positive">is_sign_positive</a><a href="#method.max">max</a><a href="#method.min">min</a><a href="#method.powi">powi</a><a href="#method.recip">recip</a><a href="#method.round">round</a><a href="#method.signum">signum</a><a href="#method.trunc">trunc</a></div><a class="sidebar-title" href="#foreign-impls">Implementations on Foreign Types</a><div class="sidebar-links"><a href="#impl-FloatCore-for-f32">f32</a><a href="#impl-FloatCore-for-f64">f64</a></div><a class="sidebar-title" href="#implementors">Implementors</a></div><p class='location'><a href='../index.html'>num_traits</a>::<wbr><a href='index.html'>float</a></p><script>window.sidebarCurrent = {name: 'FloatCore', ty: 'trait', relpath: ''};</script><script defer src="sidebar-items.js"></script></div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
+                <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><h1 class='fqn'><span class='out-of-band'><span id='render-detail'><a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">[<span class='inner'>&#x2212;</span>]</a></span><a class='srclink' href='../../src/num_traits/float.rs.html#16-747' title='goto source code'>[src]</a></span><span class='in-band'>Trait <a href='../index.html'>num_traits</a>::<wbr><a href='index.html'>float</a>::<wbr><a class="trait" href=''>FloatCore</a></span></h1><div class="docblock type-decl hidden-by-usual-hider"><pre class='rust trait'>pub trait FloatCore: <a class="trait" href="../../num_traits/trait.Num.html" title="trait num_traits::Num">Num</a> + <a class="trait" href="../../num_traits/cast/trait.NumCast.html" title="trait num_traits::cast::NumCast">NumCast</a> + <a class="trait" href="https://doc.rust-lang.org/nightly/core/ops/arith/trait.Neg.html" title="trait core::ops::arith::Neg">Neg</a>&lt;Output = Self&gt; + <a class="trait" href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialOrd.html" title="trait core::cmp::PartialOrd">PartialOrd</a> + <a class="trait" href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html" title="trait core::marker::Copy">Copy</a> {
     fn <a href='#tymethod.infinity' class='fnname'>infinity</a>() -&gt; Self;
 <div class='item-spacer'></div>    fn <a href='#tymethod.neg_infinity' class='fnname'>neg_infinity</a>() -&gt; Self;
 <div class='item-spacer'></div>    fn <a href='#tymethod.nan' class='fnname'>nan</a>() -&gt; Self;
@@ -39,7 +40,7 @@
 <span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">f32</span>, <span class="ident">f64</span>};
 
 <span class="kw">fn</span> <span class="ident">check</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">FloatCore</span><span class="op">&gt;</span>(<span class="ident">x</span>: <span class="ident">T</span>) {
-    <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">T</span>::<span class="ident">infinity</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">x</span>);
+    <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">T</span>::<span class="ident">infinity</span>() <span class="op">==</span> <span class="ident">x</span>);
 }
 
 <span class="ident">check</span>(<span class="ident">f32</span>::<span class="ident">INFINITY</span>);
@@ -51,7 +52,7 @@
 <span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">f32</span>, <span class="ident">f64</span>};
 
 <span class="kw">fn</span> <span class="ident">check</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">FloatCore</span><span class="op">&gt;</span>(<span class="ident">x</span>: <span class="ident">T</span>) {
-    <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">T</span>::<span class="ident">neg_infinity</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">x</span>);
+    <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">T</span>::<span class="ident">neg_infinity</span>() <span class="op">==</span> <span class="ident">x</span>);
 }
 
 <span class="ident">check</span>(<span class="ident">f32</span>::<span class="ident">NEG_INFINITY</span>);
@@ -63,7 +64,7 @@
 
 <span class="kw">fn</span> <span class="ident">check</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">FloatCore</span><span class="op">&gt;</span>() {
     <span class="kw">let</span> <span class="ident">n</span> <span class="op">=</span> <span class="ident">T</span>::<span class="ident">nan</span>();
-    <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">n</span> <span class="op">!</span><span class="op">=</span> <span class="ident">n</span>);
+    <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">n</span> <span class="op">!=</span> <span class="ident">n</span>);
 }
 
 <span class="ident">check</span>::<span class="op">&lt;</span><span class="ident">f32</span><span class="op">&gt;</span>();
@@ -77,7 +78,7 @@
 <span class="kw">fn</span> <span class="ident">check</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">FloatCore</span><span class="op">&gt;</span>(<span class="ident">n</span>: <span class="ident">T</span>) {
     <span class="kw">let</span> <span class="ident">z</span> <span class="op">=</span> <span class="ident">T</span>::<span class="ident">neg_zero</span>();
     <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">z</span>.<span class="ident">is_zero</span>());
-    <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">T</span>::<span class="ident">one</span>() <span class="op">/</span> <span class="ident">z</span> <span class="op">=</span><span class="op">=</span> <span class="ident">n</span>);
+    <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">T</span>::<span class="ident">one</span>() <span class="op">/</span> <span class="ident">z</span> <span class="op">==</span> <span class="ident">n</span>);
 }
 
 <span class="ident">check</span>(<span class="ident">f32</span>::<span class="ident">NEG_INFINITY</span>);
@@ -89,7 +90,7 @@
 <span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">f32</span>, <span class="ident">f64</span>};
 
 <span class="kw">fn</span> <span class="ident">check</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">FloatCore</span><span class="op">&gt;</span>(<span class="ident">x</span>: <span class="ident">T</span>) {
-    <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">T</span>::<span class="ident">min_value</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">x</span>);
+    <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">T</span>::<span class="ident">min_value</span>() <span class="op">==</span> <span class="ident">x</span>);
 }
 
 <span class="ident">check</span>(<span class="ident">f32</span>::<span class="ident">MIN</span>);
@@ -101,7 +102,7 @@
 <span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">f32</span>, <span class="ident">f64</span>};
 
 <span class="kw">fn</span> <span class="ident">check</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">FloatCore</span><span class="op">&gt;</span>(<span class="ident">x</span>: <span class="ident">T</span>) {
-    <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">T</span>::<span class="ident">min_positive_value</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">x</span>);
+    <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">T</span>::<span class="ident">min_positive_value</span>() <span class="op">==</span> <span class="ident">x</span>);
 }
 
 <span class="ident">check</span>(<span class="ident">f32</span>::<span class="ident">MIN_POSITIVE</span>);
@@ -113,7 +114,7 @@
 <span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">f32</span>, <span class="ident">f64</span>};
 
 <span class="kw">fn</span> <span class="ident">check</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">FloatCore</span><span class="op">&gt;</span>(<span class="ident">x</span>: <span class="ident">T</span>) {
-    <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">T</span>::<span class="ident">epsilon</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">x</span>);
+    <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">T</span>::<span class="ident">epsilon</span>() <span class="op">==</span> <span class="ident">x</span>);
 }
 
 <span class="ident">check</span>(<span class="ident">f32</span>::<span class="ident">EPSILON</span>);
@@ -125,7 +126,7 @@
 <span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">f32</span>, <span class="ident">f64</span>};
 
 <span class="kw">fn</span> <span class="ident">check</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">FloatCore</span><span class="op">&gt;</span>(<span class="ident">x</span>: <span class="ident">T</span>) {
-    <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">T</span>::<span class="ident">max_value</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">x</span>);
+    <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">T</span>::<span class="ident">max_value</span>() <span class="op">==</span> <span class="ident">x</span>);
 }
 
 <span class="ident">check</span>(<span class="ident">f32</span>::<span class="ident">MAX</span>);
@@ -140,7 +141,7 @@ predicate instead.</p>
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">num</span>::<span class="ident">FpCategory</span>;
 
 <span class="kw">fn</span> <span class="ident">check</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">FloatCore</span><span class="op">&gt;</span>(<span class="ident">x</span>: <span class="ident">T</span>, <span class="ident">c</span>: <span class="ident">FpCategory</span>) {
-    <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">x</span>.<span class="ident">classify</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">c</span>);
+    <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">x</span>.<span class="ident">classify</span>() <span class="op">==</span> <span class="ident">c</span>);
 }
 
 <span class="ident">check</span>(<span class="ident">f32</span>::<span class="ident">INFINITY</span>, <span class="ident">FpCategory</span>::<span class="ident">Infinite</span>);
@@ -156,7 +157,7 @@ predicate instead.</p>
 <span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">f32</span>, <span class="ident">f64</span>};
 
 <span class="kw">fn</span> <span class="ident">check</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">FloatCore</span><span class="op">&gt;</span>(<span class="ident">rad</span>: <span class="ident">T</span>, <span class="ident">deg</span>: <span class="ident">T</span>) {
-    <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">rad</span>.<span class="ident">to_degrees</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">deg</span>);
+    <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">rad</span>.<span class="ident">to_degrees</span>() <span class="op">==</span> <span class="ident">deg</span>);
 }
 
 <span class="ident">check</span>(<span class="number">0.0f32</span>, <span class="number">0.0</span>);
@@ -170,7 +171,7 @@ predicate instead.</p>
 <span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">f32</span>, <span class="ident">f64</span>};
 
 <span class="kw">fn</span> <span class="ident">check</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">FloatCore</span><span class="op">&gt;</span>(<span class="ident">deg</span>: <span class="ident">T</span>, <span class="ident">rad</span>: <span class="ident">T</span>) {
-    <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">deg</span>.<span class="ident">to_radians</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">rad</span>);
+    <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">deg</span>.<span class="ident">to_radians</span>() <span class="op">==</span> <span class="ident">rad</span>);
 }
 
 <span class="ident">check</span>(<span class="number">0.0f32</span>, <span class="number">0.0</span>);
@@ -191,10 +192,10 @@ The original number can be recovered by <code>sign * mantissa * 2 ^ exponent</co
     <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">sign</span>, <span class="ident">s</span>);
 }
 
-<span class="ident">check</span>(<span class="number">2.0f32</span>, <span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">23</span>, <span class="op">-</span><span class="number">22</span>, <span class="number">1</span>);
-<span class="ident">check</span>(<span class="op">-</span><span class="number">2.0f32</span>, <span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">23</span>, <span class="op">-</span><span class="number">22</span>, <span class="op">-</span><span class="number">1</span>);
-<span class="ident">check</span>(<span class="ident">f32</span>::<span class="ident">INFINITY</span>, <span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">23</span>, <span class="number">105</span>, <span class="number">1</span>);
-<span class="ident">check</span>(<span class="ident">f64</span>::<span class="ident">NEG_INFINITY</span>, <span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">52</span>, <span class="number">972</span>, <span class="op">-</span><span class="number">1</span>);</pre></div>
+<span class="ident">check</span>(<span class="number">2.0f32</span>, <span class="number">1</span> <span class="op">&lt;&lt;</span> <span class="number">23</span>, <span class="op">-</span><span class="number">22</span>, <span class="number">1</span>);
+<span class="ident">check</span>(<span class="op">-</span><span class="number">2.0f32</span>, <span class="number">1</span> <span class="op">&lt;&lt;</span> <span class="number">23</span>, <span class="op">-</span><span class="number">22</span>, <span class="op">-</span><span class="number">1</span>);
+<span class="ident">check</span>(<span class="ident">f32</span>::<span class="ident">INFINITY</span>, <span class="number">1</span> <span class="op">&lt;&lt;</span> <span class="number">23</span>, <span class="number">105</span>, <span class="number">1</span>);
+<span class="ident">check</span>(<span class="ident">f64</span>::<span class="ident">NEG_INFINITY</span>, <span class="number">1</span> <span class="op">&lt;&lt;</span> <span class="number">52</span>, <span class="number">972</span>, <span class="op">-</span><span class="number">1</span>);</pre></div>
 </div></div><span class='loading-content'>Loading content...</span>
             <h2 id='provided-methods' class='small-section-header'>Provided methods<a href='#provided-methods' class='anchor'></a></h2><div class='methods'><h3 id='method.is_nan' class='method'><code>fn <a href='#method.is_nan' class='fnname'>is_nan</a>(self) -&gt; <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a></code></h3><div class='docblock'><p>Returns <code>true</code> if the number is NaN.</p>
 <h1 id="examples-12" class="section-header"><a href="#examples-12">Examples</a></h1>
@@ -203,7 +204,7 @@ The original number can be recovered by <code>sign * mantissa * 2 ^ exponent</co
 <span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">f32</span>, <span class="ident">f64</span>};
 
 <span class="kw">fn</span> <span class="ident">check</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">FloatCore</span><span class="op">&gt;</span>(<span class="ident">x</span>: <span class="ident">T</span>, <span class="ident">p</span>: <span class="ident">bool</span>) {
-    <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">x</span>.<span class="ident">is_nan</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">p</span>);
+    <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">x</span>.<span class="ident">is_nan</span>() <span class="op">==</span> <span class="ident">p</span>);
 }
 
 <span class="ident">check</span>(<span class="ident">f32</span>::<span class="ident">NAN</span>, <span class="bool-val">true</span>);
@@ -217,7 +218,7 @@ The original number can be recovered by <code>sign * mantissa * 2 ^ exponent</co
 <span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">f32</span>, <span class="ident">f64</span>};
 
 <span class="kw">fn</span> <span class="ident">check</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">FloatCore</span><span class="op">&gt;</span>(<span class="ident">x</span>: <span class="ident">T</span>, <span class="ident">p</span>: <span class="ident">bool</span>) {
-    <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">x</span>.<span class="ident">is_infinite</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">p</span>);
+    <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">x</span>.<span class="ident">is_infinite</span>() <span class="op">==</span> <span class="ident">p</span>);
 }
 
 <span class="ident">check</span>(<span class="ident">f32</span>::<span class="ident">INFINITY</span>, <span class="bool-val">true</span>);
@@ -233,7 +234,7 @@ The original number can be recovered by <code>sign * mantissa * 2 ^ exponent</co
 <span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">f32</span>, <span class="ident">f64</span>};
 
 <span class="kw">fn</span> <span class="ident">check</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">FloatCore</span><span class="op">&gt;</span>(<span class="ident">x</span>: <span class="ident">T</span>, <span class="ident">p</span>: <span class="ident">bool</span>) {
-    <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">x</span>.<span class="ident">is_finite</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">p</span>);
+    <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">x</span>.<span class="ident">is_finite</span>() <span class="op">==</span> <span class="ident">p</span>);
 }
 
 <span class="ident">check</span>(<span class="ident">f32</span>::<span class="ident">INFINITY</span>, <span class="bool-val">false</span>);
@@ -248,7 +249,7 @@ The original number can be recovered by <code>sign * mantissa * 2 ^ exponent</co
 <span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">f32</span>, <span class="ident">f64</span>};
 
 <span class="kw">fn</span> <span class="ident">check</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">FloatCore</span><span class="op">&gt;</span>(<span class="ident">x</span>: <span class="ident">T</span>, <span class="ident">p</span>: <span class="ident">bool</span>) {
-    <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">x</span>.<span class="ident">is_normal</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">p</span>);
+    <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">x</span>.<span class="ident">is_normal</span>() <span class="op">==</span> <span class="ident">p</span>);
 }
 
 <span class="ident">check</span>(<span class="ident">f32</span>::<span class="ident">INFINITY</span>, <span class="bool-val">false</span>);
@@ -263,7 +264,7 @@ The original number can be recovered by <code>sign * mantissa * 2 ^ exponent</co
 <span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">f32</span>, <span class="ident">f64</span>};
 
 <span class="kw">fn</span> <span class="ident">check</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">FloatCore</span><span class="op">&gt;</span>(<span class="ident">x</span>: <span class="ident">T</span>, <span class="ident">y</span>: <span class="ident">T</span>) {
-    <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">x</span>.<span class="ident">floor</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">y</span>);
+    <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">x</span>.<span class="ident">floor</span>() <span class="op">==</span> <span class="ident">y</span>);
 }
 
 <span class="ident">check</span>(<span class="ident">f32</span>::<span class="ident">INFINITY</span>, <span class="ident">f32</span>::<span class="ident">INFINITY</span>);
@@ -282,7 +283,7 @@ The original number can be recovered by <code>sign * mantissa * 2 ^ exponent</co
 <span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">f32</span>, <span class="ident">f64</span>};
 
 <span class="kw">fn</span> <span class="ident">check</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">FloatCore</span><span class="op">&gt;</span>(<span class="ident">x</span>: <span class="ident">T</span>, <span class="ident">y</span>: <span class="ident">T</span>) {
-    <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">x</span>.<span class="ident">ceil</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">y</span>);
+    <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">x</span>.<span class="ident">ceil</span>() <span class="op">==</span> <span class="ident">y</span>);
 }
 
 <span class="ident">check</span>(<span class="ident">f32</span>::<span class="ident">INFINITY</span>, <span class="ident">f32</span>::<span class="ident">INFINITY</span>);
@@ -301,7 +302,7 @@ The original number can be recovered by <code>sign * mantissa * 2 ^ exponent</co
 <span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">f32</span>, <span class="ident">f64</span>};
 
 <span class="kw">fn</span> <span class="ident">check</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">FloatCore</span><span class="op">&gt;</span>(<span class="ident">x</span>: <span class="ident">T</span>, <span class="ident">y</span>: <span class="ident">T</span>) {
-    <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">x</span>.<span class="ident">round</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">y</span>);
+    <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">x</span>.<span class="ident">round</span>() <span class="op">==</span> <span class="ident">y</span>);
 }
 
 <span class="ident">check</span>(<span class="ident">f32</span>::<span class="ident">INFINITY</span>, <span class="ident">f32</span>::<span class="ident">INFINITY</span>);
@@ -319,7 +320,7 @@ The original number can be recovered by <code>sign * mantissa * 2 ^ exponent</co
 <span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">f32</span>, <span class="ident">f64</span>};
 
 <span class="kw">fn</span> <span class="ident">check</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">FloatCore</span><span class="op">&gt;</span>(<span class="ident">x</span>: <span class="ident">T</span>, <span class="ident">y</span>: <span class="ident">T</span>) {
-    <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">x</span>.<span class="ident">trunc</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">y</span>);
+    <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">x</span>.<span class="ident">trunc</span>() <span class="op">==</span> <span class="ident">y</span>);
 }
 
 <span class="ident">check</span>(<span class="ident">f32</span>::<span class="ident">INFINITY</span>, <span class="ident">f32</span>::<span class="ident">INFINITY</span>);
@@ -338,7 +339,7 @@ The original number can be recovered by <code>sign * mantissa * 2 ^ exponent</co
 <span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">f32</span>, <span class="ident">f64</span>};
 
 <span class="kw">fn</span> <span class="ident">check</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">FloatCore</span><span class="op">&gt;</span>(<span class="ident">x</span>: <span class="ident">T</span>, <span class="ident">y</span>: <span class="ident">T</span>) {
-    <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">x</span>.<span class="ident">fract</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">y</span>);
+    <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">x</span>.<span class="ident">fract</span>() <span class="op">==</span> <span class="ident">y</span>);
 }
 
 <span class="ident">check</span>(<span class="ident">f32</span>::<span class="ident">MAX</span>, <span class="number">0.0</span>);
@@ -358,7 +359,7 @@ number is <code>FloatCore::nan()</code>.</p>
 <span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">f32</span>, <span class="ident">f64</span>};
 
 <span class="kw">fn</span> <span class="ident">check</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">FloatCore</span><span class="op">&gt;</span>(<span class="ident">x</span>: <span class="ident">T</span>, <span class="ident">y</span>: <span class="ident">T</span>) {
-    <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">x</span>.<span class="ident">abs</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">y</span>);
+    <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">x</span>.<span class="ident">abs</span>() <span class="op">==</span> <span class="ident">y</span>);
 }
 
 <span class="ident">check</span>(<span class="ident">f32</span>::<span class="ident">INFINITY</span>, <span class="ident">f32</span>::<span class="ident">INFINITY</span>);
@@ -379,7 +380,7 @@ number is <code>FloatCore::nan()</code>.</p>
 <span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">f32</span>, <span class="ident">f64</span>};
 
 <span class="kw">fn</span> <span class="ident">check</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">FloatCore</span><span class="op">&gt;</span>(<span class="ident">x</span>: <span class="ident">T</span>, <span class="ident">y</span>: <span class="ident">T</span>) {
-    <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">x</span>.<span class="ident">signum</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">y</span>);
+    <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">x</span>.<span class="ident">signum</span>() <span class="op">==</span> <span class="ident">y</span>);
 }
 
 <span class="ident">check</span>(<span class="ident">f32</span>::<span class="ident">INFINITY</span>, <span class="number">1.0</span>);
@@ -397,7 +398,7 @@ number is <code>FloatCore::nan()</code>.</p>
 <span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">f32</span>, <span class="ident">f64</span>};
 
 <span class="kw">fn</span> <span class="ident">check</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">FloatCore</span><span class="op">&gt;</span>(<span class="ident">x</span>: <span class="ident">T</span>, <span class="ident">p</span>: <span class="ident">bool</span>) {
-    <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">x</span>.<span class="ident">is_sign_positive</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">p</span>);
+    <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">x</span>.<span class="ident">is_sign_positive</span>() <span class="op">==</span> <span class="ident">p</span>);
 }
 
 <span class="ident">check</span>(<span class="ident">f32</span>::<span class="ident">INFINITY</span>, <span class="bool-val">true</span>);
@@ -416,7 +417,7 @@ number is <code>FloatCore::nan()</code>.</p>
 <span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">f32</span>, <span class="ident">f64</span>};
 
 <span class="kw">fn</span> <span class="ident">check</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">FloatCore</span><span class="op">&gt;</span>(<span class="ident">x</span>: <span class="ident">T</span>, <span class="ident">p</span>: <span class="ident">bool</span>) {
-    <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">x</span>.<span class="ident">is_sign_negative</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">p</span>);
+    <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">x</span>.<span class="ident">is_sign_negative</span>() <span class="op">==</span> <span class="ident">p</span>);
 }
 
 <span class="ident">check</span>(<span class="ident">f32</span>::<span class="ident">INFINITY</span>, <span class="bool-val">false</span>);
@@ -434,7 +435,7 @@ number is <code>FloatCore::nan()</code>.</p>
 <span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">f32</span>, <span class="ident">f64</span>};
 
 <span class="kw">fn</span> <span class="ident">check</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">FloatCore</span><span class="op">&gt;</span>(<span class="ident">x</span>: <span class="ident">T</span>, <span class="ident">y</span>: <span class="ident">T</span>, <span class="ident">min</span>: <span class="ident">T</span>) {
-    <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">x</span>.<span class="ident">min</span>(<span class="ident">y</span>) <span class="op">=</span><span class="op">=</span> <span class="ident">min</span>);
+    <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">x</span>.<span class="ident">min</span>(<span class="ident">y</span>) <span class="op">==</span> <span class="ident">min</span>);
 }
 
 <span class="ident">check</span>(<span class="number">1.0f32</span>, <span class="number">2.0</span>, <span class="number">1.0</span>);
@@ -449,7 +450,7 @@ number is <code>FloatCore::nan()</code>.</p>
 <span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">f32</span>, <span class="ident">f64</span>};
 
 <span class="kw">fn</span> <span class="ident">check</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">FloatCore</span><span class="op">&gt;</span>(<span class="ident">x</span>: <span class="ident">T</span>, <span class="ident">y</span>: <span class="ident">T</span>, <span class="ident">max</span>: <span class="ident">T</span>) {
-    <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">x</span>.<span class="ident">max</span>(<span class="ident">y</span>) <span class="op">=</span><span class="op">=</span> <span class="ident">max</span>);
+    <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">x</span>.<span class="ident">max</span>(<span class="ident">y</span>) <span class="op">==</span> <span class="ident">max</span>);
 }
 
 <span class="ident">check</span>(<span class="number">1.0f32</span>, <span class="number">2.0</span>, <span class="number">2.0</span>);
@@ -463,8 +464,8 @@ number is <code>FloatCore::nan()</code>.</p>
 <span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">f32</span>, <span class="ident">f64</span>};
 
 <span class="kw">fn</span> <span class="ident">check</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">FloatCore</span><span class="op">&gt;</span>(<span class="ident">x</span>: <span class="ident">T</span>, <span class="ident">y</span>: <span class="ident">T</span>) {
-    <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">x</span>.<span class="ident">recip</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">y</span>);
-    <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">y</span>.<span class="ident">recip</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">x</span>);
+    <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">x</span>.<span class="ident">recip</span>() <span class="op">==</span> <span class="ident">y</span>);
+    <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">y</span>.<span class="ident">recip</span>() <span class="op">==</span> <span class="ident">x</span>);
 }
 
 <span class="ident">check</span>(<span class="ident">f32</span>::<span class="ident">INFINITY</span>, <span class="number">0.0</span>);
@@ -478,7 +479,7 @@ number is <code>FloatCore::nan()</code>.</p>
 <span class="kw">use</span> <span class="ident">num_traits</span>::<span class="ident">float</span>::<span class="ident">FloatCore</span>;
 
 <span class="kw">fn</span> <span class="ident">check</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">FloatCore</span><span class="op">&gt;</span>(<span class="ident">x</span>: <span class="ident">T</span>, <span class="ident">exp</span>: <span class="ident">i32</span>, <span class="ident">powi</span>: <span class="ident">T</span>) {
-    <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">x</span>.<span class="ident">powi</span>(<span class="ident">exp</span>) <span class="op">=</span><span class="op">=</span> <span class="ident">powi</span>);
+    <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">x</span>.<span class="ident">powi</span>(<span class="ident">exp</span>) <span class="op">==</span> <span class="ident">powi</span>);
 }
 
 <span class="ident">check</span>(<span class="number">9.0f32</span>, <span class="number">2</span>, <span class="number">81.0</span>);
