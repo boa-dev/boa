@@ -205,7 +205,6 @@
       li.append(header);
 
       // Add sub-suites
-
       let inner = $("<div></div>")
         .attr("id", newID)
         .attr("data-parent", "#" + parentID)
@@ -280,14 +279,6 @@
     }
   }
 
-  // Displays test information in a modal.
-  function displayTestModal(name) {
-    fetch("https://raw.githubusercontent.com/tc39/test262/main/" + name)
-      .then((response) => response.text())
-      .then((code) => console.log(code));
-    // console.log(test262Info[name]);
-  }
-
   /// Creates the general information structure.
   function createGeneralInfo(data) {
     let latest = data[data.length - 1];
@@ -345,7 +336,6 @@
               Math.round((10000 * latest.p) / latest.t) / 100
             }%</b>`
           )
-        // TODO: add progress bar
       );
   }
 
