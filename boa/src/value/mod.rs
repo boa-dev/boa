@@ -190,7 +190,7 @@ impl Value {
                     );
                 }
                 new_obj.set_property(
-                    "length".to_string(),
+                    "length",
                     // TODO: Fix length attribute
                     DataDescriptor::new(length, Attribute::all()),
                 );
