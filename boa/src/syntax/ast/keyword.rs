@@ -36,6 +36,16 @@ pub enum Keyword {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/await
     Await,
 
+    /// The `async` keyword.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#prod-AsyncMethod
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/async_function
+    Async,
+
     /// The `break` keyword.
     ///
     /// More information:
@@ -454,6 +464,7 @@ impl Keyword {
     pub fn as_str(self) -> &'static str {
         match self {
             Self::Await => "await",
+            Self::Async => "async",
             Self::Break => "break",
             Self::Case => "case",
             Self::Catch => "catch",
@@ -526,6 +537,7 @@ impl FromStr for Keyword {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
             "await" => Ok(Self::Await),
+            "async" => Ok(Self::Async),
             "break" => Ok(Self::Break),
             "case" => Ok(Self::Case),
             "catch" => Ok(Self::Catch),
