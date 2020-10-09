@@ -53,7 +53,7 @@ impl ArrayIterator {
         let array_iterator = Value::new_object(Some(ctx.global_object()));
         array_iterator.set_data(ObjectData::ArrayIterator(Self::new(array, kind)));
         array_iterator
-            .as_object_mut()
+            .as_object()
             .expect("array iterator object")
             .set_prototype_instance(ctx.iterator_prototypes().array_iterator().into());
         Ok(array_iterator)
@@ -126,7 +126,7 @@ impl ArrayIterator {
         let array_iterator = Value::new_object(Some(global));
         make_builtin_fn(Self::next, "next", &array_iterator, 0, ctx);
         array_iterator
-            .as_object_mut()
+            .as_object()
             .expect("array iterator prototype object")
             .set_prototype_instance(iterator_prototype);
 

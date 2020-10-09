@@ -73,7 +73,7 @@ impl Map {
         // Set Prototype
         let prototype = ctx.global_object().get_field("Map").get_field(PROTOTYPE);
 
-        this.as_object_mut()
+        this.as_object()
             .expect("this is map object")
             .set_prototype_instance(prototype);
         // This value is used by console.log and other routines to match Object type
@@ -354,7 +354,7 @@ impl Map {
     /// Helper function to get a key-value pair from an array.
     fn get_key_value(value: &Value) -> Option<(Value, Value)> {
         if let Value::Object(object) = value {
-            if object.borrow().is_array() {
+            if object.is_array() {
                 let (key, value) = match value.get_field("length").as_number().unwrap() as i32 {
                     0 => (Value::Undefined, Value::Undefined),
                     1 => (value.get_field("0"), Value::Undefined),

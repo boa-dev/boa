@@ -154,6 +154,7 @@ impl Json {
                 .map(|obj| {
                     let object_to_return = Value::new_object(None);
                     for (key, val) in obj
+                        .borrow()
                         .iter()
                         // FIXME: handle accessor descriptors
                         .map(|(k, v)| (k, v.as_data_descriptor().unwrap().value()))
@@ -176,6 +177,7 @@ impl Json {
                 .ok_or_else(Value::undefined)?
         } else if replacer_as_object.is_array() {
             let mut obj_to_return = serde_json::Map::new();
+            let replacer_as_object = replacer_as_object.borrow();
             let fields = replacer_as_object.keys().filter_map(|key| {
                 if key == "length" {
                     None

@@ -53,7 +53,7 @@ impl MapIterator {
         let map_iterator = Value::new_object(Some(ctx.global_object()));
         map_iterator.set_data(ObjectData::MapIterator(Self::new(map, kind)));
         map_iterator
-            .as_object_mut()
+            .as_object()
             .expect("map iterator object")
             .set_prototype_instance(ctx.iterator_prototypes().map_iterator().into());
         Ok(map_iterator)
@@ -143,7 +143,7 @@ impl MapIterator {
         let map_iterator = Value::new_object(Some(global));
         make_builtin_fn(Self::next, "next", &map_iterator, 0, ctx);
         map_iterator
-            .as_object_mut()
+            .as_object()
             .expect("map iterator prototype object")
             .set_prototype_instance(iterator_prototype);
 

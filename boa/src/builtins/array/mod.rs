@@ -186,7 +186,7 @@ impl Array {
             None => context.standard_objects().array_object().prototype(),
         };
 
-        this.as_object_mut()
+        this.as_object()
             .expect("this should be an array object")
             .set_prototype_instance(prototype.into());
         // This value is used by console.log and other routines to match Object type
@@ -213,7 +213,7 @@ impl Array {
         ));
         array.set_data(ObjectData::Array);
         array
-            .as_object_mut()
+            .as_object()
             .expect("array object")
             .set_prototype_instance(context.standard_objects().array_object().prototype().into());
         array.set_field("length", Value::from(0));
@@ -281,7 +281,7 @@ impl Array {
         _interpreter: &mut Context,
     ) -> Result<Value> {
         match args.get(0).and_then(|x| x.as_object()) {
-            Some(object) => Ok(Value::from(object.is_array())),
+            Some(object) => Ok(Value::from(object.borrow().is_array())),
             None => Ok(Value::from(false)),
         }
     }

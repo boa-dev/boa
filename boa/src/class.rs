@@ -43,7 +43,7 @@
 //!         class.method("speak", 0, |this, _args, _ctx| {
 //!             if let Some(object) = this.as_object() {
 //!                 if let Some(animal) = object.downcast_ref::<Animal>() {
-//!                     match animal {
+//!                     match &*animal {
 //!                         Self::Cat => println!("meow"),
 //!                         Self::Dog => println!("woof"),
 //!                         Self::Other => println!(r"¯\_(ツ)_/¯"),

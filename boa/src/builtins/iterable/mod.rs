@@ -20,16 +20,16 @@ impl IteratorPrototypes {
         let iterator_prototype = create_iterator_prototype(ctx);
         Self {
             iterator_prototype: iterator_prototype
-                .as_gc_object()
+                .as_object()
                 .expect("Iterator prototype is not an object"),
             array_iterator: ArrayIterator::create_prototype(ctx, iterator_prototype.clone())
-                .as_gc_object()
+                .as_object()
                 .expect("Array Iterator Prototype is not an object"),
             string_iterator: StringIterator::create_prototype(ctx, iterator_prototype.clone())
-                .as_gc_object()
+                .as_object()
                 .expect("String Iterator Prototype is not an object"),
             map_iterator: MapIterator::create_prototype(ctx, iterator_prototype)
-                .as_gc_object()
+                .as_object()
                 .expect("Map Iterator Prototype is not an object"),
         }
     }

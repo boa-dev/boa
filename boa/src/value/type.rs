@@ -47,7 +47,7 @@ impl Value {
             Self::Undefined => Type::Undefined,
             Self::BigInt(_) => Type::BigInt,
             Self::Object(ref object) => {
-                if object.borrow().is_function() {
+                if object.is_function() {
                     Type::Function
                 } else {
                     Type::Object

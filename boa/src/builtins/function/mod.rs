@@ -14,7 +14,7 @@
 use crate::{
     builtins::{Array, BuiltIn},
     environment::lexical_environment::Environment,
-    object::{ConstructorBuilder, FunctionBuilder, Object, ObjectData, PROTOTYPE},
+    object::{ConstructorBuilder, FunctionBuilder, GcObject, Object, ObjectData},
     property::{Attribute, DataDescriptor},
     syntax::ast::node::{FormalParameter, RcStatementList},
     BoaProfiler, Context, Result, Value,
@@ -172,7 +172,7 @@ impl Function {
 /// <https://tc39.es/ecma262/#sec-createunmappedargumentsobject>
 pub fn create_unmapped_arguments_object(arguments_list: &[Value]) -> Value {
     let len = arguments_list.len();
-    let mut obj = Object::default();
+    let mut obj = GcObject::new(Object::default());
     // Set length
     let length = DataDescriptor::new(
         len,
@@ -193,61 +193,6 @@ pub fn create_unmapped_arguments_object(arguments_list: &[Value]) -> Value {
     }
 
     Value::from(obj)
-}
-
-/// Creates a new constructor function
-///
-/// This utility function handling linking the new Constructor to the prototype.
-/// So far this is only used by internal functions
-pub fn make_constructor_fn(
-    name: &str,
-    length: usize,
-    body: NativeFunction,
-    global: &Value,
-    prototype: Value,
-    constructable: bool,
-    callable: bool,
-) -> Value {
-    let _timer =
-        BoaProfiler::global().start_event(&format!("make_constructor_fn: {}", name), "init");
-
-    // Create the native function
-    let function = Function::BuiltIn(
-        body.into(),
-        FunctionFlags::from_parameters(callable, constructable),
-    );
-
-    // Get reference to Function.prototype
-    // Create the function object and point its instance prototype to Function.prototype
-    let mut constructor =
-        Object::function(function, global.get_field("Function").get_field(PROTOTYPE));
-
-    let length = DataDescriptor::new(
-        length,
-        Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT,
-    );
-    constructor.insert("length", length);
-
-    let name = DataDescriptor::new(
-        name,
-        Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT,
-    );
-    constructor.insert("name", name);
-
-    let constructor = Value::from(constructor);
-
-    prototype.as_object_mut().unwrap().insert_property(
-        "constructor",
-        constructor.clone(),
-        Attribute::all(),
-    );
-
-    constructor
-        .as_object_mut()
-        .expect("constructor object")
-        .insert_property(PROTOTYPE, prototype, Attribute::all());
-
-    constructor
 }
 
 /// Creates a new member function of a `Object` or `prototype`.
@@ -290,7 +235,7 @@ pub fn make_builtin_fn<N>(
     function.insert_property("length", length, Attribute::all());
 
     parent
-        .as_object_mut()
+        .as_object()
         .unwrap()
         .insert_property(name, function, Attribute::all());
 }

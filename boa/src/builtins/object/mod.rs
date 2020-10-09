@@ -140,7 +140,7 @@ impl Object {
         if let Some(key) = args.get(1) {
             let key = key.to_property_key(ctx)?;
 
-            if let Some(desc) = object.borrow().get_own_property(&key) {
+            if let Some(desc) = object.get_own_property(&key) {
                 return Ok(Self::from_property_descriptor(desc, ctx)?);
             }
         }
@@ -169,7 +169,6 @@ impl Object {
         for key in object.borrow().keys() {
             let descriptor = {
                 let desc = object
-                    .borrow()
                     .get_own_property(&key)
                     .expect("Expected property to be on object.");
                 Self::from_property_descriptor(desc, ctx)?
@@ -239,16 +238,16 @@ impl Object {
     /// Get the `prototype` of an object.
     pub fn get_prototype_of(_: &Value, args: &[Value], _: &mut Context) -> Result<Value> {
         let obj = args.get(0).expect("Cannot get object");
-        Ok(obj.as_object().map_or_else(Value::undefined, |object| {
-            object.prototype_instance().clone()
-        }))
+        Ok(obj
+            .as_object()
+            .map_or_else(Value::undefined, |object| object.prototype_instance()))
     }
 
     /// Set the `prototype` of an object.
     pub fn set_prototype_of(_: &Value, args: &[Value], _: &mut Context) -> Result<Value> {
         let obj = args.get(0).expect("Cannot get object").clone();
         let proto = args.get(1).expect("Cannot get object").clone();
-        obj.as_object_mut().unwrap().set_prototype_instance(proto);
+        obj.as_object().unwrap().set_prototype_instance(proto);
         Ok(obj)
     }
 
@@ -281,11 +280,11 @@ impl Object {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/defineProperties
     pub fn define_properties(_: &Value, args: &[Value], ctx: &mut Context) -> Result<Value> {
         let arg = args.get(0).cloned().unwrap_or_default();
-        let arg_obj = arg.as_object_mut();
+        let arg_obj = arg.as_object();
         if let Some(mut obj) = arg_obj {
             let props = args.get(1).cloned().unwrap_or_else(Value::undefined);
             obj.define_properties(props, ctx)?;
-            Ok(arg.clone())
+            Ok(arg)
         } else {
             ctx.throw_type_error("Expected an object")
         }
@@ -307,19 +306,21 @@ impl Object {
         } else if this.is_null() {
             Ok("[object Null]".into())
         } else {
-            let gc_o = this.to_object(ctx)?;
-            let o = gc_o.borrow();
-            let builtin_tag = match &o.data {
-                ObjectData::Array => "Array",
-                // TODO: Arguments Exotic Objects are currently not supported
-                ObjectData::Function(_) => "Function",
-                ObjectData::Error => "Error",
-                ObjectData::Boolean(_) => "Boolean",
-                ObjectData::Number(_) => "Number",
-                ObjectData::String(_) => "String",
-                ObjectData::Date(_) => "Date",
-                ObjectData::RegExp(_) => "RegExp",
-                _ => "Object",
+            let o = this.to_object(ctx)?;
+            let builtin_tag = {
+                let o = o.borrow();
+                match &o.data {
+                    ObjectData::Array => "Array",
+                    // TODO: Arguments Exotic Objects are currently not supported
+                    ObjectData::Function(_) => "Function",
+                    ObjectData::Error => "Error",
+                    ObjectData::Boolean(_) => "Boolean",
+                    ObjectData::Number(_) => "Number",
+                    ObjectData::String(_) => "String",
+                    ObjectData::Date(_) => "Date",
+                    ObjectData::RegExp(_) => "RegExp",
+                    _ => "Object",
+                }
             };
 
             let tag = o.get(&ctx.well_known_symbols().to_string_tag_symbol().into());
@@ -349,7 +350,6 @@ impl Object {
         };
         let own_property = this
             .as_object()
-            .as_deref()
             .expect("Cannot get THIS object")
             .get_own_property(&prop.expect("cannot get prop").into());
         if own_property.is_none() {
@@ -370,7 +370,7 @@ impl Object {
         };
 
         let key = key.to_property_key(ctx)?;
-        let own_property = this.to_object(ctx)?.borrow().get_own_property(&key);
+        let own_property = this.to_object(ctx)?.get_own_property(&key);
 
         Ok(own_property.map_or(Value::from(false), |own_prop| {
             Value::from(own_prop.enumerable())
