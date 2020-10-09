@@ -755,6 +755,19 @@ mod in_operator {
     }
 
     #[test]
+    fn should_type_error_when_new_is_not_constructor() {
+        let mut engine = Context::new();
+
+        let scenario = r#"
+            const a = "";
+            new a();
+        "#;
+
+        let result = forward(&mut engine, scenario);
+        assert_eq!(result, "Uncaught \"TypeError\": \"a is not a constructor\"");
+    }
+
+    #[test]
     fn new_instance_should_point_to_prototype() {
         // A new instance should point to a prototype object created with the constructor function
         let mut engine = Context::new();

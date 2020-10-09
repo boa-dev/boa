@@ -16,7 +16,7 @@
 use crate::{
     builtins::BuiltIn,
     object::{ConstructorBuilder, Object as BuiltinObject, ObjectData},
-    property::{Attribute, Property},
+    property::Attribute,
     value::{same_value, Value},
     BoaProfiler, Context, Result,
 };
@@ -53,6 +53,7 @@ impl BuiltIn for Object {
         .static_method(Self::set_prototype_of, "setPrototypeOf", 2)
         .static_method(Self::get_prototype_of, "getPrototypeOf", 1)
         .static_method(Self::define_property, "defineProperty", 3)
+        .static_method(Self::define_properties, "defineProperties", 2)
         .static_method(Self::is, "is", 2)
         .build();
 
@@ -84,24 +85,28 @@ impl Object {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-object.create
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/create
-    pub fn create(_: &Value, args: &[Value], interpreter: &mut Context) -> Result<Value> {
+    pub fn create(_: &Value, args: &[Value], ctx: &mut Context) -> Result<Value> {
         let prototype = args.get(0).cloned().unwrap_or_else(Value::undefined);
         let properties = args.get(1).cloned().unwrap_or_else(Value::undefined);
 
-        if properties != Value::Undefined {
-            unimplemented!("propertiesObject argument of Object.create")
-        }
-
-        match prototype {
-            Value::Object(_) | Value::Null => Ok(Value::object(BuiltinObject::with_prototype(
+        let obj = match prototype {
+            Value::Object(_) | Value::Null => Value::object(BuiltinObject::with_prototype(
                 prototype,
                 ObjectData::Ordinary,
-            ))),
-            _ => interpreter.throw_type_error(format!(
-                "Object prototype may only be an Object or null: {}",
-                prototype.display()
             )),
+            _ => {
+                return ctx.throw_type_error(format!(
+                    "Object prototype may only be an Object or null: {}",
+                    prototype.display()
+                ))
+            }
+        };
+
+        if !properties.is_undefined() {
+            return Object::define_properties(&Value::Undefined, &[obj, properties], ctx);
         }
+
+        Ok(obj)
     }
 
     /// Uses the SameValue algorithm to check equality of objects
@@ -129,17 +134,43 @@ impl Object {
     }
 
     /// Define a property in an object
-    pub fn define_property(_: &Value, args: &[Value], ctx: &mut Context) -> Result<Value> {
+    pub fn define_property(_: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
         let obj = args.get(0).expect("Cannot get object");
         let prop = args
             .get(1)
             .expect("Cannot get object")
-            .to_property_key(ctx)?;
-        let desc = Property::from(args.get(2).expect("Cannot get object"));
+            .to_property_key(context)?;
+
+        let desc = if let Value::Object(ref object) = args.get(2).cloned().unwrap_or_default() {
+            object.to_property_descriptor(context)?
+        } else {
+            return context.throw_type_error("Property description must be an object");
+        };
         obj.set_property(prop, desc);
         Ok(Value::undefined())
     }
 
+    /// `Object.defineProperties( proto, [propertiesObject] )`
+    ///
+    /// Creates or update own properties to the object
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-object.defineproperties
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/defineProperties
+    pub fn define_properties(_: &Value, args: &[Value], ctx: &mut Context) -> Result<Value> {
+        let arg = args.get(0).cloned().unwrap_or_default();
+        let arg_obj = arg.as_object_mut();
+        if let Some(mut obj) = arg_obj {
+            let props = args.get(1).cloned().unwrap_or_else(Value::undefined);
+            obj.define_properties(props, ctx)?;
+            Ok(arg.clone())
+        } else {
+            ctx.throw_type_error("Expected an object")
+        }
+    }
     /// `Object.prototype.toString()`
     ///
     /// This method returns a string representing the object.
@@ -220,12 +251,10 @@ impl Object {
         };
 
         let key = key.to_property_key(ctx)?;
-        let own_property = this
-            .to_object(ctx)
-            .map(|obj| obj.borrow().get_own_property(&key));
+        let own_property = this.to_object(ctx)?.borrow().get_own_property(&key);
 
         Ok(own_property.map_or(Value::from(false), |own_prop| {
-            Value::from(own_prop.enumerable_or(false))
+            Value::from(own_prop.enumerable())
         }))
     }
 }

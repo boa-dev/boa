@@ -28,3 +28,53 @@ fn error_to_string() {
     );
     assert_eq!(forward(&mut ctx, "type_e.toString()"), "\"TypeError: 5\"");
 }
+
+#[test]
+fn eval_error_name() {
+    let mut ctx = Context::new();
+    assert_eq!(forward(&mut ctx, "EvalError.name"), "\"EvalError\"");
+}
+
+#[test]
+fn eval_error_length() {
+    let mut ctx = Context::new();
+    assert_eq!(forward(&mut ctx, "EvalError.length"), "1");
+}
+
+#[test]
+fn eval_error_to_string() {
+    let mut ctx = Context::new();
+    assert_eq!(
+        forward(&mut ctx, "new EvalError('hello').toString()"),
+        "\"EvalError: hello\""
+    );
+    assert_eq!(
+        forward(&mut ctx, "new EvalError().toString()"),
+        "\"EvalError\""
+    );
+}
+
+#[test]
+fn uri_error_name() {
+    let mut ctx = Context::new();
+    assert_eq!(forward(&mut ctx, "URIError.name"), "\"URIError\"");
+}
+
+#[test]
+fn uri_error_length() {
+    let mut ctx = Context::new();
+    assert_eq!(forward(&mut ctx, "URIError.length"), "1");
+}
+
+#[test]
+fn uri_error_to_string() {
+    let mut ctx = Context::new();
+    assert_eq!(
+        forward(&mut ctx, "new URIError('hello').toString()"),
+        "\"URIError: hello\""
+    );
+    assert_eq!(
+        forward(&mut ctx, "new URIError().toString()"),
+        "\"URIError\""
+    );
+}

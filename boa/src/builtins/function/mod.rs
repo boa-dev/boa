@@ -14,8 +14,8 @@
 use crate::{
     builtins::{Array, BuiltIn},
     environment::lexical_environment::Environment,
-    object::{ConstructorBuilder, Object, ObjectData, PROTOTYPE},
-    property::{Attribute, Property},
+    object::{ConstructorBuilder, FunctionBuilder, Object, ObjectData, PROTOTYPE},
+    property::{Attribute, DataDescriptor},
     syntax::ast::node::{FormalParameter, RcStatementList},
     BoaProfiler, Context, Result, Value,
 };
@@ -174,16 +174,16 @@ pub fn create_unmapped_arguments_object(arguments_list: &[Value]) -> Value {
     let len = arguments_list.len();
     let mut obj = Object::default();
     // Set length
-    let length = Property::data_descriptor(
-        len.into(),
+    let length = DataDescriptor::new(
+        len,
         Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::PERMANENT,
     );
     // Define length as a property
-    obj.define_own_property("length", length);
+    obj.define_own_property("length", length.into());
     let mut index: usize = 0;
     while index < len {
         let val = arguments_list.get(index).expect("Could not get argument");
-        let prop = Property::data_descriptor(
+        let prop = DataDescriptor::new(
             val.clone(),
             Attribute::WRITABLE | Attribute::ENUMERABLE | Attribute::CONFIGURABLE,
         );
@@ -222,14 +222,14 @@ pub fn make_constructor_fn(
     let mut constructor =
         Object::function(function, global.get_field("Function").get_field(PROTOTYPE));
 
-    let length = Property::data_descriptor(
-        length.into(),
+    let length = DataDescriptor::new(
+        length,
         Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT,
     );
     constructor.insert("length", length);
 
-    let name = Property::data_descriptor(
-        name.into(),
+    let name = DataDescriptor::new(
+        name,
         Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT,
     );
     constructor.insert("name", name);
@@ -301,12 +301,36 @@ pub struct BuiltInFunctionObject;
 impl BuiltInFunctionObject {
     pub const LENGTH: usize = 1;
 
-    fn constructor(this: &Value, _args: &[Value], _context: &mut Context) -> Result<Value> {
+    fn constructor(this: &Value, _: &[Value], _: &mut Context) -> Result<Value> {
         this.set_data(ObjectData::Function(Function::BuiltIn(
             BuiltInFunction(|_, _, _| Ok(Value::undefined())),
             FunctionFlags::CALLABLE | FunctionFlags::CONSTRUCTABLE,
         )));
         Ok(this.clone())
+    }
+
+    fn prototype(_: &Value, _: &[Value], _: &mut Context) -> Result<Value> {
+        Ok(Value::undefined())
+    }
+
+    /// `Function.prototype.call`
+    ///
+    /// The call() method invokes self with the first argument as the `this` value.
+    ///
+    /// More information:
+    ///  - [MDN documentation][mdn]
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-function.prototype.call
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/call
+    fn call(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+        if !this.is_function() {
+            return context.throw_type_error(format!("{} is not a function", this.display()));
+        }
+        let this_arg: Value = args.get(0).cloned().unwrap_or_default();
+        // TODO?: 3. Perform PrepareForTailCall
+        let start = if !args.is_empty() { 1 } else { 0 };
+        context.call(this, &this_arg, &args[start..])
     }
 }
 
@@ -320,6 +344,14 @@ impl BuiltIn for BuiltInFunctionObject {
     fn init(context: &mut Context) -> (&'static str, Value, Attribute) {
         let _timer = BoaProfiler::global().start_event("function", "init");
 
+        let function_prototype = context.standard_objects().function_object().prototype();
+        FunctionBuilder::new(context, Self::prototype)
+            .name("")
+            .length(0)
+            .callable(true)
+            .constructable(false)
+            .build_function_prototype(&function_prototype);
+
         let function_object = ConstructorBuilder::with_standard_object(
             context,
             Self::constructor,
@@ -327,6 +359,7 @@ impl BuiltIn for BuiltInFunctionObject {
         )
         .name(Self::NAME)
         .length(Self::LENGTH)
+        .method(Self::call, "call", 1)
         .build();
 
         (Self::NAME, function_object.into(), Self::attribute())

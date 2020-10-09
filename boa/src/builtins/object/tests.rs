@@ -161,15 +161,14 @@ fn object_to_string() {
         let o = Object();
     "#;
     eprintln!("{}", forward(&mut ctx, init));
-    // TODO: need Function.prototype.call to be implemented
-    // assert_eq!(
-    //     forward(&mut ctx, "Object.prototype.toString.call(u)"),
-    //     "\"[object Undefined]\""
-    // );
-    // assert_eq!(
-    //     forward(&mut ctx, "Object.prototype.toString.call(n)"),
-    //     "\"[object Null]\""
-    // );
+    assert_eq!(
+        forward(&mut ctx, "Object.prototype.toString.call(u)"),
+        "\"[object Undefined]\""
+    );
+    assert_eq!(
+        forward(&mut ctx, "Object.prototype.toString.call(n)"),
+        "\"[object Null]\""
+    );
     assert_eq!(forward(&mut ctx, "a.toString()"), "\"[object Array]\"");
     assert_eq!(forward(&mut ctx, "f.toString()"), "\"[object Function]\"");
     assert_eq!(forward(&mut ctx, "e.toString()"), "\"[object Error]\"");
@@ -193,4 +192,23 @@ fn define_symbol_property() {
     eprintln!("{}", forward(&mut ctx, init));
 
     assert_eq!(forward(&mut ctx, "obj[sym]"), "\"val\"");
+}
+
+#[test]
+fn object_define_properties() {
+    let mut ctx = Context::new();
+
+    let init = r#"
+        const obj = {};
+
+        Object.defineProperties(obj, {
+            p: {
+                value: 42,
+                writable: true
+            }
+        });
+    "#;
+    eprintln!("{}", forward(&mut ctx, init));
+
+    assert_eq!(forward(&mut ctx, "obj.p"), "42");
 }

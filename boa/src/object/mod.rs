@@ -10,7 +10,7 @@ use crate::{
     },
     context::StandardConstructor,
     gc::{Finalize, Trace},
-    property::{Attribute, Property, PropertyKey},
+    property::{Attribute, DataDescriptor, PropertyDescriptor, PropertyKey},
     value::{RcBigInt, RcString, RcSymbol, Value},
     BoaProfiler, Context,
 };
@@ -25,7 +25,7 @@ mod gcobject;
 mod internal_methods;
 mod iter;
 
-pub use gcobject::{GcObject, Ref, RefMut};
+pub use gcobject::{GcObject, RecursionLimiter, Ref, RefMut};
 pub use iter::*;
 
 /// Static `prototype`, usually set on constructors as a key to point to their respective prototype object.
@@ -59,11 +59,11 @@ impl<T: Any + Debug + Trace> NativeObject for T {
 pub struct Object {
     /// The type of the object.
     pub data: ObjectData,
-    indexed_properties: FxHashMap<u32, Property>,
+    indexed_properties: FxHashMap<u32, PropertyDescriptor>,
     /// Properties
-    string_properties: FxHashMap<RcString, Property>,
+    string_properties: FxHashMap<RcString, PropertyDescriptor>,
     /// Symbol Properties
-    symbol_properties: FxHashMap<RcSymbol, Property>,
+    symbol_properties: FxHashMap<RcSymbol, PropertyDescriptor>,
     /// Instance prototype `__proto__`.
     prototype: Value,
     /// Whether it can have new properties added to it.
@@ -670,6 +670,29 @@ impl<'context> FunctionBuilder<'context> {
 
         GcObject::new(function)
     }
+
+    /// Initializes the `Function.prototype` function object.
+    pub(crate) fn build_function_prototype(&mut self, object: &GcObject) {
+        let mut object = object.borrow_mut();
+        object.data = ObjectData::Function(Function::BuiltIn(
+            self.function,
+            FunctionFlags::from_parameters(self.callable, self.constructable),
+        ));
+        object.set_prototype_instance(
+            self.context
+                .standard_objects()
+                .object_object()
+                .prototype()
+                .into(),
+        );
+        let attribute = Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT;
+        if let Some(name) = self.name.take() {
+            object.insert_property("name", name, attribute);
+        } else {
+            object.insert_property("name", "", attribute);
+        }
+        object.insert_property("length", self.length, attribute);
+    }
 }
 
 /// Builder for creating objects with properties.
@@ -737,7 +760,7 @@ impl<'context> ObjectInitializer<'context> {
         K: Into<PropertyKey>,
         V: Into<Value>,
     {
-        let property = Property::data_descriptor(value.into(), attribute);
+        let property = DataDescriptor::new(value, attribute);
         self.object.borrow_mut().insert(key, property);
         self
     }
@@ -868,7 +891,7 @@ impl<'context> ConstructorBuilder<'context> {
         K: Into<PropertyKey>,
         V: Into<Value>,
     {
-        let property = Property::data_descriptor(value.into(), attribute);
+        let property = DataDescriptor::new(value, attribute);
         self.prototype.borrow_mut().insert(key, property);
         self
     }
@@ -880,7 +903,7 @@ impl<'context> ConstructorBuilder<'context> {
         K: Into<PropertyKey>,
         V: Into<Value>,
     {
-        let property = Property::data_descriptor(value.into(), attribute);
+        let property = DataDescriptor::new(value, attribute);
         self.constructor_object.borrow_mut().insert(key, property);
         self
     }
@@ -948,15 +971,12 @@ impl<'context> ConstructorBuilder<'context> {
             FunctionFlags::from_parameters(self.callable, self.constructable),
         );
 
-        let length = Property::data_descriptor(
-            self.length.into(),
+        let length = DataDescriptor::new(
+            self.length,
             Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT,
         );
-        let name = Property::data_descriptor(
-            self.name
-                .take()
-                .unwrap_or_else(|| String::from("[object]"))
-                .into(),
+        let name = DataDescriptor::new(
+            self.name.take().unwrap_or_else(|| String::from("[object]")),
             Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT,
         );
 

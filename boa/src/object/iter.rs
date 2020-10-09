@@ -1,4 +1,4 @@
-use super::{Object, Property, PropertyKey};
+use super::{Object, PropertyDescriptor, PropertyKey};
 use crate::value::{RcString, RcSymbol};
 use std::{collections::hash_map, iter::FusedIterator};
 
@@ -108,13 +108,13 @@ impl Object {
 /// An iterator over the property entries of an `Object`
 #[derive(Debug, Clone)]
 pub struct Iter<'a> {
-    indexed_properties: hash_map::Iter<'a, u32, Property>,
-    string_properties: hash_map::Iter<'a, RcString, Property>,
-    symbol_properties: hash_map::Iter<'a, RcSymbol, Property>,
+    indexed_properties: hash_map::Iter<'a, u32, PropertyDescriptor>,
+    string_properties: hash_map::Iter<'a, RcString, PropertyDescriptor>,
+    symbol_properties: hash_map::Iter<'a, RcSymbol, PropertyDescriptor>,
 }
 
 impl<'a> Iterator for Iter<'a> {
-    type Item = (PropertyKey, &'a Property);
+    type Item = (PropertyKey, &'a PropertyDescriptor);
     fn next(&mut self) -> Option<Self::Item> {
         if let Some((key, value)) = self.indexed_properties.next() {
             Some(((*key).into(), value))
@@ -162,7 +162,7 @@ impl FusedIterator for Keys<'_> {}
 pub struct Values<'a>(Iter<'a>);
 
 impl<'a> Iterator for Values<'a> {
-    type Item = &'a Property;
+    type Item = &'a PropertyDescriptor;
     fn next(&mut self) -> Option<Self::Item> {
         let (_, value) = self.0.next()?;
         Some(value)
@@ -180,10 +180,10 @@ impl FusedIterator for Values<'_> {}
 
 /// An iterator over the `Symbol` property entries of an `Object`
 #[derive(Debug, Clone)]
-pub struct SymbolProperties<'a>(hash_map::Iter<'a, RcSymbol, Property>);
+pub struct SymbolProperties<'a>(hash_map::Iter<'a, RcSymbol, PropertyDescriptor>);
 
 impl<'a> Iterator for SymbolProperties<'a> {
-    type Item = (&'a RcSymbol, &'a Property);
+    type Item = (&'a RcSymbol, &'a PropertyDescriptor);
 
     #[inline]
     fn next(&mut self) -> Option<Self::Item> {
@@ -207,7 +207,7 @@ impl FusedIterator for SymbolProperties<'_> {}
 
 /// An iterator over the keys (`RcSymbol`) of an `Object`.
 #[derive(Debug, Clone)]
-pub struct SymbolPropertyKeys<'a>(hash_map::Keys<'a, RcSymbol, Property>);
+pub struct SymbolPropertyKeys<'a>(hash_map::Keys<'a, RcSymbol, PropertyDescriptor>);
 
 impl<'a> Iterator for SymbolPropertyKeys<'a> {
     type Item = &'a RcSymbol;
@@ -234,10 +234,10 @@ impl FusedIterator for SymbolPropertyKeys<'_> {}
 
 /// An iterator over the `Symbol` values (`Property`) of an `Object`.
 #[derive(Debug, Clone)]
-pub struct SymbolPropertyValues<'a>(hash_map::Values<'a, RcSymbol, Property>);
+pub struct SymbolPropertyValues<'a>(hash_map::Values<'a, RcSymbol, PropertyDescriptor>);
 
 impl<'a> Iterator for SymbolPropertyValues<'a> {
-    type Item = &'a Property;
+    type Item = &'a PropertyDescriptor;
 
     #[inline]
     fn next(&mut self) -> Option<Self::Item> {
@@ -261,10 +261,10 @@ impl FusedIterator for SymbolPropertyValues<'_> {}
 
 /// An iterator over the indexed property entries of an `Object`
 #[derive(Debug, Clone)]
-pub struct IndexProperties<'a>(hash_map::Iter<'a, u32, Property>);
+pub struct IndexProperties<'a>(hash_map::Iter<'a, u32, PropertyDescriptor>);
 
 impl<'a> Iterator for IndexProperties<'a> {
-    type Item = (&'a u32, &'a Property);
+    type Item = (&'a u32, &'a PropertyDescriptor);
 
     #[inline]
     fn next(&mut self) -> Option<Self::Item> {
@@ -288,7 +288,7 @@ impl FusedIterator for IndexProperties<'_> {}
 
 /// An iterator over the index keys (`u32`) of an `Object`.
 #[derive(Debug, Clone)]
-pub struct IndexPropertyKeys<'a>(hash_map::Keys<'a, u32, Property>);
+pub struct IndexPropertyKeys<'a>(hash_map::Keys<'a, u32, PropertyDescriptor>);
 
 impl<'a> Iterator for IndexPropertyKeys<'a> {
     type Item = &'a u32;
@@ -315,10 +315,10 @@ impl FusedIterator for IndexPropertyKeys<'_> {}
 
 /// An iterator over the index values (`Property`) of an `Object`.
 #[derive(Debug, Clone)]
-pub struct IndexPropertyValues<'a>(hash_map::Values<'a, u32, Property>);
+pub struct IndexPropertyValues<'a>(hash_map::Values<'a, u32, PropertyDescriptor>);
 
 impl<'a> Iterator for IndexPropertyValues<'a> {
-    type Item = &'a Property;
+    type Item = &'a PropertyDescriptor;
 
     #[inline]
     fn next(&mut self) -> Option<Self::Item> {
@@ -342,10 +342,10 @@ impl FusedIterator for IndexPropertyValues<'_> {}
 
 /// An iterator over the `String` property entries of an `Object`
 #[derive(Debug, Clone)]
-pub struct StringProperties<'a>(hash_map::Iter<'a, RcString, Property>);
+pub struct StringProperties<'a>(hash_map::Iter<'a, RcString, PropertyDescriptor>);
 
 impl<'a> Iterator for StringProperties<'a> {
-    type Item = (&'a RcString, &'a Property);
+    type Item = (&'a RcString, &'a PropertyDescriptor);
 
     #[inline]
     fn next(&mut self) -> Option<Self::Item> {
@@ -369,7 +369,7 @@ impl FusedIterator for StringProperties<'_> {}
 
 /// An iterator over the string keys (`RcString`) of an `Object`.
 #[derive(Debug, Clone)]
-pub struct StringPropertyKeys<'a>(hash_map::Keys<'a, RcString, Property>);
+pub struct StringPropertyKeys<'a>(hash_map::Keys<'a, RcString, PropertyDescriptor>);
 
 impl<'a> Iterator for StringPropertyKeys<'a> {
     type Item = &'a RcString;
@@ -396,10 +396,10 @@ impl FusedIterator for StringPropertyKeys<'_> {}
 
 /// An iterator over the string values (`Property`) of an `Object`.
 #[derive(Debug, Clone)]
-pub struct StringPropertyValues<'a>(hash_map::Values<'a, RcString, Property>);
+pub struct StringPropertyValues<'a>(hash_map::Values<'a, RcString, PropertyDescriptor>);
 
 impl<'a> Iterator for StringPropertyValues<'a> {
-    type Item = &'a Property;
+    type Item = &'a PropertyDescriptor;
 
     #[inline]
     fn next(&mut self) -> Option<Self::Item> {

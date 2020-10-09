@@ -11,11 +11,11 @@ use crate::{
         BigInt, Number,
     },
     object::{GcObject, Object, ObjectData, PROTOTYPE},
-    property::{Attribute, Property, PropertyKey},
+    property::{Attribute, DataDescriptor, PropertyDescriptor, PropertyKey},
     BoaProfiler, Context, Result,
 };
 use gc::{Finalize, GcCellRef, GcCellRefMut, Trace};
-use serde_json::{map::Map, Number as JSONNumber, Value as JSONValue};
+use serde_json::{Number as JSONNumber, Value as JSONValue};
 use std::{
     collections::HashSet,
     convert::TryFrom,
@@ -25,7 +25,7 @@ use std::{
 };
 
 mod conversions;
-mod display;
+pub(crate) mod display;
 mod equality;
 mod hash;
 mod operations;
@@ -35,7 +35,6 @@ mod rcsymbol;
 mod r#type;
 
 pub use conversions::*;
-pub(crate) use display::display_obj;
 pub use display::ValueDisplay;
 pub use equality::*;
 pub use hash::*;
@@ -184,15 +183,16 @@ impl Value {
                 for (idx, json) in vs.into_iter().enumerate() {
                     new_obj.set_property(
                         idx.to_string(),
-                        Property::data_descriptor(
+                        DataDescriptor::new(
                             Self::from_json(json, context),
                             Attribute::WRITABLE | Attribute::ENUMERABLE | Attribute::CONFIGURABLE,
                         ),
                     );
                 }
                 new_obj.set_property(
-                    "length".to_string(),
-                    Property::default().value(Self::from(length)),
+                    "length",
+                    // TODO: Fix length attribute
+                    DataDescriptor::new(length, Attribute::all()),
                 );
                 new_obj
             }
@@ -202,7 +202,7 @@ impl Value {
                     let value = Self::from_json(json, context);
                     new_obj.set_property(
                         key,
-                        Property::data_descriptor(
+                        DataDescriptor::new(
                             value,
                             Attribute::WRITABLE | Attribute::ENUMERABLE | Attribute::CONFIGURABLE,
                         ),
@@ -225,32 +225,7 @@ impl Value {
         match *self {
             Self::Null => Ok(JSONValue::Null),
             Self::Boolean(b) => Ok(JSONValue::Bool(b)),
-            Self::Object(ref obj) => {
-                if obj.borrow().is_array() {
-                    let mut keys: Vec<u32> = obj.borrow().index_property_keys().cloned().collect();
-                    keys.sort();
-                    let mut arr: Vec<JSONValue> = Vec::with_capacity(keys.len());
-                    for key in keys {
-                        let value = self.get_field(key);
-                        if value.is_undefined() || value.is_function() || value.is_symbol() {
-                            arr.push(JSONValue::Null);
-                        } else {
-                            arr.push(value.to_json(interpreter)?);
-                        }
-                    }
-                    Ok(JSONValue::Array(arr))
-                } else {
-                    let mut new_obj = Map::new();
-                    for k in obj.borrow().keys() {
-                        let key = k.clone();
-                        let value = self.get_field(k.to_string());
-                        if !value.is_undefined() && !value.is_function() && !value.is_symbol() {
-                            new_obj.insert(key.to_string(), value.to_json(interpreter)?);
-                        }
-                    }
-                    Ok(JSONValue::Object(new_obj))
-                }
-            }
+            Self::Object(ref obj) => obj.to_json(interpreter),
             Self::String(ref str) => Ok(JSONValue::String(str.to_string())),
             Self::Rational(num) => Ok(JSONNumber::from_f64(num)
                 .map(JSONValue::Number)
@@ -467,7 +442,7 @@ impl Value {
     /// Resolve the property in the object.
     ///
     /// A copy of the Property is returned.
-    pub fn get_property<Key>(&self, key: Key) -> Option<Property>
+    pub fn get_property<Key>(&self, key: Key) -> Option<PropertyDescriptor>
     where
         Key: Into<PropertyKey>,
     {
@@ -477,25 +452,13 @@ impl Value {
             Self::Object(ref object) => {
                 let object = object.borrow();
                 let property = object.get_own_property(&key);
-                if !property.is_none() {
-                    return Some(property);
+                if property.is_some() {
+                    return property;
                 }
 
                 object.prototype_instance().get_property(key)
             }
             _ => None,
-        }
-    }
-
-    /// update_prop will overwrite individual [Property] fields, unlike
-    /// Set_prop, which will overwrite prop with a new Property
-    ///
-    /// Mostly used internally for now
-    pub(crate) fn update_property(&self, field: &str, new_property: Property) {
-        let _timer = BoaProfiler::global().start_event("Value::update_property", "value");
-
-        if let Some(ref mut object) = self.as_object_mut() {
-            object.insert(field, new_property);
         }
     }
 
@@ -509,24 +472,10 @@ impl Value {
         let _timer = BoaProfiler::global().start_event("Value::get_field", "value");
         let key = key.into();
         match self.get_property(key) {
-            Some(prop) => {
-                // If the Property has [[Get]] set to a function, we should run that and return the Value
-                let prop_getter = match prop.get {
-                    Some(_) => None,
-                    None => None,
-                };
-
-                // If the getter is populated, use that. If not use [[Value]] instead
-                if let Some(val) = prop_getter {
-                    val
-                } else {
-                    let val = prop
-                        .value
-                        .as_ref()
-                        .expect("Could not get property as reference");
-                    val.clone()
-                }
-            }
+            Some(ref desc) => match desc {
+                PropertyDescriptor::Accessor(_) => todo!(),
+                PropertyDescriptor::Data(desc) => desc.value(),
+            },
             None => Value::undefined(),
         }
     }
@@ -576,14 +525,15 @@ impl Value {
     }
 
     /// Set the property in the value.
-    pub fn set_property<K>(&self, key: K, property: Property) -> Property
+    #[inline]
+    pub fn set_property<K, P>(&self, key: K, property: P)
     where
         K: Into<PropertyKey>,
+        P: Into<PropertyDescriptor>,
     {
         if let Some(mut object) = self.as_object_mut() {
-            object.insert(key.into(), property.clone());
+            object.insert(key.into(), property.into());
         }
-        property
     }
 
     /// The abstract operation ToPrimitive takes an input argument and an optional argument PreferredType.
@@ -592,7 +542,7 @@ impl Value {
     pub fn to_primitive(&self, ctx: &mut Context, preferred_type: PreferredType) -> Result<Value> {
         // 1. Assert: input is an ECMAScript language value. (always a value not need to check)
         // 2. If Type(input) is Object, then
-        if let Value::Object(_) = self {
+        if let Value::Object(obj) = self {
             let mut hint = preferred_type;
 
             // Skip d, e we don't support Symbols yet
@@ -603,7 +553,7 @@ impl Value {
             };
 
             // g. Return ? OrdinaryToPrimitive(input, hint).
-            ctx.ordinary_to_primitive(self, hint)
+            obj.ordinary_to_primitive(ctx, hint)
         } else {
             // 3. Return input.
             Ok(self.clone())
@@ -908,6 +858,15 @@ impl Value {
             Err(ctx.construct_type_error("cannot convert null or undefined to Object"))
         } else {
             Ok(self)
+        }
+    }
+
+    #[inline]
+    pub fn to_property_descriptor(&self, context: &mut Context) -> Result<PropertyDescriptor> {
+        if let Self::Object(ref object) = self {
+            object.to_property_descriptor(context)
+        } else {
+            Err(context.construct_type_error("Property description must be an object"))
         }
     }
 }

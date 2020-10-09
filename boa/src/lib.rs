@@ -1,4 +1,12 @@
-//! This is an experimental Javascript lexer, parser and compiler written in Rust. Currently, it has support for some of the language.
+/*!
+This is an experimental Javascript lexer, parser and compiler written in Rust. Currently, it has support for some of the language.
+
+# Crate Features
+ - **serde** - Enables serialization and deserialization of the AST (Abstract Syntax Tree).
+ - **console** - Enables `boa`s WHATWG `console` object implementation.
+ - **profiler** - Enables profiling with measureme (this is mostly internal).
+
+**/
 
 #![doc(
     html_logo_url = "https://raw.githubusercontent.com/jasonwilliams/boa/master/assets/logo.svg",
