@@ -350,7 +350,7 @@ impl GcObject {
             Err(interpreter.construct_type_error("cyclic object value"))
         } else if self.borrow().is_array() {
             let mut keys: Vec<u32> = self.borrow().index_property_keys().cloned().collect();
-            keys.sort();
+            keys.sort_unstable();
             let mut arr: Vec<JSONValue> = Vec::with_capacity(keys.len());
             let this = Value::from(self.clone());
             for key in keys {
