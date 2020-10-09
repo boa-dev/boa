@@ -541,12 +541,6 @@
 <span id="540">540</span>
 <span id="541">541</span>
 <span id="542">542</span>
-<span id="543">543</span>
-<span id="544">544</span>
-<span id="545">545</span>
-<span id="546">546</span>
-<span id="547">547</span>
-<span id="548">548</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Expression parsing.</span>
 <span class="doccomment">//!</span>
@@ -595,16 +589,21 @@
     }
 }
 
-<span class="doccomment">/// Generates an expression parser.</span>
+<span class="doccomment">/// Generates an expression parser for a number of expressions whose production rules are of the following pattern.</span>
+<span class="doccomment">/// &lt;TargetExpression&gt;[allowed_identifiers]</span>
+<span class="doccomment">///     =&gt; &lt;InnerExpression&gt;[?allowed_identifiers]</span>
+<span class="doccomment">///     =&gt; &lt;TargetExpression&gt;[?allowed_identifiers] &lt;op1&gt; &lt;InnerExpression&gt;[?allowed_identifiers]</span>
+<span class="doccomment">///     =&gt; &lt;TargetExpression&gt;[?allowed_identifiers] &lt;op2&gt; &lt;InnerExpression&gt;[?allowed_identifiers]</span>
+<span class="doccomment">///     ...</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// This macro has 2 mandatory identifiers:</span>
-<span class="doccomment">///  - The `$name` identifier will contain the name of the parsing structure.</span>
-<span class="doccomment">///  - The `$lower` identifier will contain the parser for lower level expressions.</span>
+<span class="doccomment">///  - The `$name` identifier is the name of the TargetExpression struct that the parser will be implemented for.</span>
+<span class="doccomment">///  - The `$lower` identifier is the name of the InnerExpression struct according to the pattern above.</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// Those exressions are divided by the punctuators passed as the third parameter.</span>
+<span class="doccomment">/// A list of punctuators (operands between the &lt;TargetExpression&gt; and &lt;InnerExpression&gt;) are passed as the third parameter.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// The fifth parameter is an Option&lt;InputElement&gt; which sets the goal symbol to set before parsing (or None to leave it as is).</span>
-<span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">expression</span> { (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">lower</span>:<span class="ident">ident</span>, [$( <span class="macro-nonterminal">$</span><span class="macro-nonterminal">op</span>:<span class="ident">path</span> ),<span class="kw-2">*</span>], [$( <span class="macro-nonterminal">$</span><span class="macro-nonterminal">low_param</span>:<span class="ident">ident</span> ),<span class="kw-2">*</span>], <span class="macro-nonterminal">$</span><span class="macro-nonterminal">goal</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">profile</span>:<span class="ident">expr</span> ) <span class="op">=&gt;</span> {
+<span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">expression</span> { (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">lower</span>:<span class="ident">ident</span>, [$( <span class="macro-nonterminal">$</span><span class="macro-nonterminal">op</span>:<span class="ident">path</span> ),<span class="kw-2">*</span>], [$( <span class="macro-nonterminal">$</span><span class="macro-nonterminal">low_param</span>:<span class="ident">ident</span> ),<span class="kw-2">*</span>], <span class="macro-nonterminal">$</span><span class="macro-nonterminal">goal</span>:<span class="ident">expr</span> ) <span class="op">=&gt;</span> {
     <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="ident">TokenParser</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>
     <span class="kw">where</span>
         <span class="ident">R</span>: <span class="ident">Read</span>
@@ -612,7 +611,7 @@
         <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">Node</span>;
 
         <span class="kw">fn</span> <span class="ident">parse</span>(<span class="self">self</span>, <span class="ident">cursor</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>)<span class="op">-&gt;</span> <span class="ident">ParseResult</span> {
-            <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">BoaProfiler</span>::<span class="ident">global</span>().<span class="ident">start_event</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">profile</span>, <span class="string">&quot;Parsing&quot;</span>);
+            <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">BoaProfiler</span>::<span class="ident">global</span>().<span class="ident">start_event</span>(<span class="macro">stringify</span><span class="macro">!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>), <span class="string">&quot;Parsing&quot;</span>);
 
             <span class="kw">if</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">goal</span>.<span class="ident">is_some</span>() {
                 <span class="ident">cursor</span>.<span class="ident">set_goal</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">goal</span>.<span class="ident">unwrap</span>());
@@ -682,8 +681,7 @@
     <span class="ident">AssignmentExpression</span>,
     [<span class="ident">Punctuator</span>::<span class="ident">Comma</span>],
     [<span class="ident">allow_in</span>, <span class="ident">allow_yield</span>, <span class="ident">allow_await</span>],
-    <span class="prelude-val">None</span>::<span class="op">&lt;</span><span class="ident">InputElement</span><span class="op">&gt;</span>,
-    <span class="string">&quot;Expression&quot;</span>
+    <span class="prelude-val">None</span>::<span class="op">&lt;</span><span class="ident">InputElement</span><span class="op">&gt;</span>
 );
 
 <span class="doccomment">/// Parses a logical `OR` expression.</span>
@@ -722,8 +720,7 @@
     <span class="ident">LogicalANDExpression</span>,
     [<span class="ident">Punctuator</span>::<span class="ident">BoolOr</span>],
     [<span class="ident">allow_in</span>, <span class="ident">allow_yield</span>, <span class="ident">allow_await</span>],
-    <span class="prelude-val">None</span>::<span class="op">&lt;</span><span class="ident">InputElement</span><span class="op">&gt;</span>,
-    <span class="string">&quot;LogicalOrExpression&quot;</span>
+    <span class="prelude-val">None</span>::<span class="op">&lt;</span><span class="ident">InputElement</span><span class="op">&gt;</span>
 );
 
 <span class="doccomment">/// Parses a logical `AND` expression.</span>
@@ -762,8 +759,7 @@
     <span class="ident">BitwiseORExpression</span>,
     [<span class="ident">Punctuator</span>::<span class="ident">BoolAnd</span>],
     [<span class="ident">allow_in</span>, <span class="ident">allow_yield</span>, <span class="ident">allow_await</span>],
-    <span class="prelude-val">None</span>::<span class="op">&lt;</span><span class="ident">InputElement</span><span class="op">&gt;</span>,
-    <span class="string">&quot;LogicalANDExpression&quot;</span>
+    <span class="prelude-val">None</span>::<span class="op">&lt;</span><span class="ident">InputElement</span><span class="op">&gt;</span>
 );
 
 <span class="doccomment">/// Parses a bitwise `OR` expression.</span>
@@ -802,8 +798,7 @@
     <span class="ident">BitwiseXORExpression</span>,
     [<span class="ident">Punctuator</span>::<span class="ident">Or</span>],
     [<span class="ident">allow_in</span>, <span class="ident">allow_yield</span>, <span class="ident">allow_await</span>],
-    <span class="prelude-val">None</span>::<span class="op">&lt;</span><span class="ident">InputElement</span><span class="op">&gt;</span>,
-    <span class="string">&quot;BitwiseORExpression&quot;</span>
+    <span class="prelude-val">None</span>::<span class="op">&lt;</span><span class="ident">InputElement</span><span class="op">&gt;</span>
 );
 
 <span class="doccomment">/// Parses a bitwise `XOR` expression.</span>
@@ -842,8 +837,7 @@
     <span class="ident">BitwiseANDExpression</span>,
     [<span class="ident">Punctuator</span>::<span class="ident">Xor</span>],
     [<span class="ident">allow_in</span>, <span class="ident">allow_yield</span>, <span class="ident">allow_await</span>],
-    <span class="prelude-val">None</span>::<span class="op">&lt;</span><span class="ident">InputElement</span><span class="op">&gt;</span>,
-    <span class="string">&quot;BitwiseXORExpression&quot;</span>
+    <span class="prelude-val">None</span>::<span class="op">&lt;</span><span class="ident">InputElement</span><span class="op">&gt;</span>
 );
 
 <span class="doccomment">/// Parses a bitwise `AND` expression.</span>
@@ -882,8 +876,7 @@
     <span class="ident">EqualityExpression</span>,
     [<span class="ident">Punctuator</span>::<span class="ident">And</span>],
     [<span class="ident">allow_in</span>, <span class="ident">allow_yield</span>, <span class="ident">allow_await</span>],
-    <span class="prelude-val">None</span>::<span class="op">&lt;</span><span class="ident">InputElement</span><span class="op">&gt;</span>,
-    <span class="string">&quot;BitwiseANDExpression&quot;</span>
+    <span class="prelude-val">None</span>::<span class="op">&lt;</span><span class="ident">InputElement</span><span class="op">&gt;</span>
 );
 
 <span class="doccomment">/// Parses an equality expression.</span>
@@ -927,8 +920,7 @@
         <span class="ident">Punctuator</span>::<span class="ident">StrictNotEq</span>
     ],
     [<span class="ident">allow_in</span>, <span class="ident">allow_yield</span>, <span class="ident">allow_await</span>],
-    <span class="prelude-val">None</span>::<span class="op">&lt;</span><span class="ident">InputElement</span><span class="op">&gt;</span>,
-    <span class="string">&quot;EqualityExpression&quot;</span>
+    <span class="prelude-val">None</span>::<span class="op">&lt;</span><span class="ident">InputElement</span><span class="op">&gt;</span>
 );
 
 <span class="doccomment">/// Parses a relational expression.</span>
@@ -974,8 +966,7 @@
         <span class="ident">Keyword</span>::<span class="ident">In</span>
     ],
     [<span class="ident">allow_yield</span>, <span class="ident">allow_await</span>],
-    <span class="prelude-val">None</span>::<span class="op">&lt;</span><span class="ident">InputElement</span><span class="op">&gt;</span>,
-    <span class="string">&quot;RelationoalExpression&quot;</span>
+    <span class="prelude-val">None</span>::<span class="op">&lt;</span><span class="ident">InputElement</span><span class="op">&gt;</span>
 );
 
 <span class="doccomment">/// Parses a bitwise shift expression.</span>
@@ -1015,8 +1006,7 @@
         <span class="ident">Punctuator</span>::<span class="ident">URightSh</span>
     ],
     [<span class="ident">allow_yield</span>, <span class="ident">allow_await</span>],
-    <span class="prelude-val">None</span>::<span class="op">&lt;</span><span class="ident">InputElement</span><span class="op">&gt;</span>,
-    <span class="string">&quot;ShiftExpression&quot;</span>
+    <span class="prelude-val">None</span>::<span class="op">&lt;</span><span class="ident">InputElement</span><span class="op">&gt;</span>
 );
 
 <span class="doccomment">/// Parses an additive expression.</span>
@@ -1054,8 +1044,7 @@
     <span class="ident">MultiplicativeExpression</span>,
     [<span class="ident">Punctuator</span>::<span class="ident">Add</span>, <span class="ident">Punctuator</span>::<span class="ident">Sub</span>],
     [<span class="ident">allow_yield</span>, <span class="ident">allow_await</span>],
-    <span class="prelude-val">None</span>::<span class="op">&lt;</span><span class="ident">InputElement</span><span class="op">&gt;</span>,
-    <span class="string">&quot;AdditiveExpression&quot;</span>
+    <span class="prelude-val">None</span>::<span class="op">&lt;</span><span class="ident">InputElement</span><span class="op">&gt;</span>
 );
 
 <span class="doccomment">/// Parses a multiplicative expression.</span>
@@ -1093,8 +1082,7 @@
     <span class="ident">ExponentiationExpression</span>,
     [<span class="ident">Punctuator</span>::<span class="ident">Mul</span>, <span class="ident">Punctuator</span>::<span class="ident">Div</span>, <span class="ident">Punctuator</span>::<span class="ident">Mod</span>],
     [<span class="ident">allow_yield</span>, <span class="ident">allow_await</span>],
-    <span class="prelude-val">Some</span>(<span class="ident">InputElement</span>::<span class="ident">Div</span>),
-    <span class="string">&quot;MultiplicativeExpression&quot;</span>
+    <span class="prelude-val">Some</span>(<span class="ident">InputElement</span>::<span class="ident">Div</span>)
 );
 </pre></div>
 </section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../../../../../";window.currentCrate = "boa";</script><script src="../../../../../main.js"></script><script src="../../../../../source-script.js"></script><script src="../../../../../source-files.js"></script><script defer src="../../../../../search-index.js"></script></body></html>
