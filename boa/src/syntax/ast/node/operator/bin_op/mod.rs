@@ -5,6 +5,7 @@ use crate::{
         node::Node,
         op::{self, AssignOp, BitOp, CompOp, LogOp, NumOp},
     },
+    vm::compilation::CodeGen,
     Context, Result, Value,
 };
 use std::fmt;
@@ -227,6 +228,20 @@ impl Executable for BinOp {
                 Ok(self.rhs().run(context)?)
             }
         }
+    }
+}
+
+impl CodeGen for BinOp {
+    fn compile(&self, ctx: &mut Context) -> std::result::Result<(), &str> {
+        match self.op() {
+            op::BinOp::Num(op) => {
+                self.lhs().compile(ctx);
+                self.rhs().compile(ctx);
+            }
+            _ => unimplemented!(),
+        }
+
+        Err("Fail")
     }
 }
 
