@@ -8,7 +8,7 @@
     />
 </p>
 
-This is an experimental Javascript lexer, parser and compiler written in Rust.
+This is an experimental Javascript lexer, parser and interpreter written in Rust.
 Currently, it has support for some of the language.
 
 [![Build Status][build_badge]][build_link]
@@ -28,6 +28,10 @@ You can get more verbose errors when running from the command line.
 ## Development documentation
 
 You can check the internal development docs at <https://boa-dev.github.io/boa/doc>.
+
+## Conformance
+
+To know how much of the ECMAScript specification does Boa cover, you can check out results running the ECMASCript Test262 test suite [here](https://boa-dev.github.io/boa/test262/).
 
 ## Benchmarks
 
