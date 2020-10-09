@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/structopt-0.3.18/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../structopt/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/structopt-0.3.19/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../structopt/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
                 <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
 <span id="3">   3</span>
@@ -1171,6 +1171,15 @@
 <span id="1170">1170</span>
 <span id="1171">1171</span>
 <span id="1172">1172</span>
+<span id="1173">1173</span>
+<span id="1174">1174</span>
+<span id="1175">1175</span>
+<span id="1176">1176</span>
+<span id="1177">1177</span>
+<span id="1178">1178</span>
+<span id="1179">1179</span>
+<span id="1180">1180</span>
+<span id="1181">1181</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Copyright 2018 Guillaume Pinot (@TeXitoi) &lt;texitoi@texitoi.eu&gt;</span>
 <span class="comment">//</span>
@@ -1483,7 +1492,7 @@
 <span class="doccomment">//!</span>
 <span class="doccomment">//!     Usable only on field-level.</span>
 <span class="doccomment">//!</span>
-<span class="doccomment">//! - [`rename_all_env`](##auto-deriving-environment-variables):</span>
+<span class="doccomment">//! - [`rename_all_env`](#auto-deriving-environment-variables):</span>
 <span class="doccomment">//!     [`rename_all_env = &quot;kebab&quot;/&quot;snake&quot;/&quot;screaming-snake&quot;/&quot;camel&quot;/&quot;pascal&quot;/&quot;verbatim&quot;/&quot;lower&quot;/&quot;upper&quot;]`</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//!     Usable both on top level and field level.</span>
@@ -1707,7 +1716,7 @@
 <span class="doccomment">//!</span>
 <span class="doccomment">//! ### `long_help` and `--help`</span>
 <span class="doccomment">//!</span>
-<span class="doccomment">//! A message passed to [`App::long_help`] or [`Arg::long_about`] will be displayed whenever</span>
+<span class="doccomment">//! A message passed to [`App::long_about`] or [`Arg::long_help`] will be displayed whenever</span>
 <span class="doccomment">//! your program is called with `--help` instead of `-h`. Of course, you can</span>
 <span class="doccomment">//! use them via raw methods as described [above](#help-messages).</span>
 <span class="doccomment">//!</span>
@@ -1760,8 +1769,8 @@
 <span class="doccomment">//!</span>
 <span class="doccomment">//! The `-h` flag is not the same as `--help`.</span>
 <span class="doccomment">//!</span>
-<span class="doccomment">//! -h corresponds to Arg::help/App::about and requests short &quot;summary&quot; messages</span>
-<span class="doccomment">//! while --help corresponds to Arg::long_help/App::long_about and requests more</span>
+<span class="doccomment">//! -h corresponds to `Arg::help/App::about` and requests short &quot;summary&quot; messages</span>
+<span class="doccomment">//! while --help corresponds to `Arg::long_help/App::long_about` and requests more</span>
 <span class="doccomment">//! detailed, descriptive messages.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! It is entirely up to `clap` what happens if you used only one of</span>
@@ -2247,15 +2256,16 @@
 
 <span class="doccomment">/// A struct that is converted from command line arguments.</span>
 <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">StructOpt</span> {
-    <span class="doccomment">/// Returns the corresponding `clap::App`.</span>
+    <span class="doccomment">/// Returns [`clap::App`] corresponding to the struct.</span>
     <span class="kw">fn</span> <span class="ident">clap</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span><span class="op">&gt;</span>() <span class="op">-&gt;</span> <span class="ident">clap</span>::<span class="ident">App</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span><span class="op">&gt;</span>;
 
-    <span class="doccomment">/// Creates the struct from `clap::ArgMatches`.  It cannot fail</span>
-    <span class="doccomment">/// with a parameter generated by `clap` by construction.</span>
+    <span class="doccomment">/// Builds the struct from [`clap::ArgMatches`]. It&#39;s guaranteed to succeed</span>
+    <span class="doccomment">/// if `matches` originates from an `App` generated by [`StructOpt::clap`] called on</span>
+    <span class="doccomment">/// the same type, otherwise it must panic.</span>
     <span class="kw">fn</span> <span class="ident">from_clap</span>(<span class="ident">matches</span>: <span class="kw-2">&amp;</span><span class="ident">clap</span>::<span class="ident">ArgMatches</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="self">Self</span>;
 
-    <span class="doccomment">/// Gets the struct from the command line arguments.  Print the</span>
-    <span class="doccomment">/// error message and quit the program in case of failure.</span>
+    <span class="doccomment">/// Builds the struct from the command line arguments ([`std::env::args_os`]).</span>
+    <span class="doccomment">/// Calls [`clap::Error::exit`] on failure, printing the error message and aborting the program.</span>
     <span class="kw">fn</span> <span class="ident">from_args</span>() <span class="op">-&gt;</span> <span class="self">Self</span>
     <span class="kw">where</span>
         <span class="self">Self</span>: <span class="ident">Sized</span>,
@@ -2263,13 +2273,23 @@
         <span class="self">Self</span>::<span class="ident">from_clap</span>(<span class="kw-2">&amp;</span><span class="self">Self</span>::<span class="ident">clap</span>().<span class="ident">get_matches</span>())
     }
 
+    <span class="doccomment">/// Builds the struct from the command line arguments ([`std::env::args_os`]).</span>
+    <span class="doccomment">/// Unlike [`StructOpt::from_args`], returns [`clap::Error`] on failure instead of aborting the program,</span>
+    <span class="doccomment">/// so calling [`.exit`][clap::Error::exit] is up to you.</span>
+    <span class="kw">fn</span> <span class="ident">from_args_safe</span>() <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">clap</span>::<span class="ident">Error</span><span class="op">&gt;</span>
+    <span class="kw">where</span>
+        <span class="self">Self</span>: <span class="ident">Sized</span>,
+    {
+        <span class="self">Self</span>::<span class="ident">clap</span>()
+            .<span class="ident">get_matches_safe</span>()
+            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">matches</span><span class="op">|</span> <span class="self">Self</span>::<span class="ident">from_clap</span>(<span class="kw-2">&amp;</span><span class="ident">matches</span>))
+    }
+
     <span class="doccomment">/// Gets the struct from any iterator such as a `Vec` of your making.</span>
     <span class="doccomment">/// Print the error message and quit the program in case of failure.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// **NOTE**: The first argument will be parsed as the binary name unless</span>
-    <span class="doccomment">/// [`AppSettings::NoBinaryName`] has been used.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`AppSettings::NoBinaryName`]: https://docs.rs/clap/2.33.0/clap/enum.AppSettings.html#variant.NoBinaryName</span>
+    <span class="doccomment">/// [`clap::AppSettings::NoBinaryName`] has been used.</span>
     <span class="kw">fn</span> <span class="ident">from_iter</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span>(<span class="ident">iter</span>: <span class="ident">I</span>) <span class="op">-&gt;</span> <span class="self">Self</span>
     <span class="kw">where</span>
         <span class="self">Self</span>: <span class="ident">Sized</span>,
@@ -2281,14 +2301,12 @@
 
     <span class="doccomment">/// Gets the struct from any iterator such as a `Vec` of your making.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// Returns a `clap::Error` in case of failure. This does *not* exit in the</span>
+    <span class="doccomment">/// Returns a [`clap::Error`] in case of failure. This does *not* exit in the</span>
     <span class="doccomment">/// case of `--help` or `--version`, to achieve the same behavior as</span>
-    <span class="doccomment">/// `from_iter()` you must call `.exit()` on the error value.</span>
+    <span class="doccomment">/// [`from_iter()`][StructOpt::from_iter] you must call [`.exit()`][clap::Error::exit] on the error value.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// **NOTE**: The first argument will be parsed as the binary name unless</span>
-    <span class="doccomment">/// [`AppSettings::NoBinaryName`] has been used.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`AppSettings::NoBinaryName`]: https://docs.rs/clap/2.33.0/clap/enum.AppSettings.html#variant.NoBinaryName</span>
+    <span class="doccomment">/// [`clap::AppSettings::NoBinaryName`] has been used.</span>
     <span class="kw">fn</span> <span class="ident">from_iter_safe</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span>(<span class="ident">iter</span>: <span class="ident">I</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">clap</span>::<span class="ident">Error</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="self">Self</span>: <span class="ident">Sized</span>,
