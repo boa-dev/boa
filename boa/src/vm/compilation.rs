@@ -1,21 +1,27 @@
 use super::*;
-use crate::{syntax::ast::Const, syntax::ast::Node, Context};
+use crate::{syntax::ast::Const, syntax::ast::Node};
 
 #[derive(Debug, Default)]
-pub(crate) struct Compiler {
-    res: Vec<Instruction>,
-    next_free: u8,
+pub struct Compiler {
+    pub(super) instructions: Vec<Instruction>,
+}
+
+impl Compiler {
+    // Add a new instruction.
+    pub fn add_instruction(&mut self, instr: Instruction) {
+        self.instructions.push(instr);
+    }
 }
 
 pub(crate) trait CodeGen {
-    fn compile(&self, ctx: &mut Context);
+    fn compile(&self, compiler: &mut Compiler);
 }
 
 impl CodeGen for Node {
-    fn compile(&self, ctx: &mut Context) {
+    fn compile(&self, compiler: &mut Compiler) {
         match *self {
-            Node::BinOp(ref op) => op.compile(ctx),
-            Node::Const(Const::Int(num)) => ctx.add_instruction(Instruction::Int32(num)),
+            Node::BinOp(ref op) => op.compile(compiler),
+            Node::Const(Const::Int(num)) => compiler.add_instruction(Instruction::Int32(num)),
             _ => unimplemented!(),
         }
     }

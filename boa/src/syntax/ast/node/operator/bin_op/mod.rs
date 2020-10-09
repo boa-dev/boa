@@ -5,6 +5,7 @@ use crate::{
         op::{self, AssignOp, BitOp, CompOp, LogOp, NumOp},
     },
     vm::compilation::CodeGen,
+    vm::compilation::Compiler,
     vm::instructions::Instruction,
     Context, Result, Value,
 };
@@ -188,14 +189,46 @@ impl Executable for BinOp {
 }
 
 impl CodeGen for BinOp {
-    fn compile(&self, ctx: &mut Context) {
+    fn compile(&self, compiler: &mut Compiler) {
         match self.op() {
             op::BinOp::Num(op) => {
-                self.lhs().compile(ctx);
-                self.rhs().compile(ctx);
+                self.lhs().compile(compiler);
+                self.rhs().compile(compiler);
                 match op {
-                    NumOp::Add => ctx.add_instruction(Instruction::Add),
-                    _ => unimplemented!(),
+                    NumOp::Add => compiler.add_instruction(Instruction::Add),
+                    NumOp::Sub => compiler.add_instruction(Instruction::Sub),
+                    NumOp::Mul => compiler.add_instruction(Instruction::Mul),
+                    NumOp::Div => compiler.add_instruction(Instruction::Div),
+                    NumOp::Exp => compiler.add_instruction(Instruction::Pow),
+                    NumOp::Mod => compiler.add_instruction(Instruction::Mod),
+                }
+            }
+            op::BinOp::Bit(op) => {
+                self.lhs().compile(compiler);
+                self.rhs().compile(compiler);
+                match op {
+                    BitOp::And => compiler.add_instruction(Instruction::BitAnd),
+                    BitOp::Or => compiler.add_instruction(Instruction::BitOr),
+                    BitOp::Xor => compiler.add_instruction(Instruction::BitXor),
+                    BitOp::Shl => compiler.add_instruction(Instruction::Shl),
+                    BitOp::Shr => compiler.add_instruction(Instruction::Shr),
+                    BitOp::UShr => compiler.add_instruction(Instruction::UShr),
+                }
+            }
+            op::BinOp::Comp(op) => {
+                self.lhs().compile(compiler);
+                self.rhs().compile(compiler);
+                match op {
+                    CompOp::Equal => compiler.add_instruction(Instruction::Eq),
+                    CompOp::NotEqual => compiler.add_instruction(Instruction::NotEq),
+                    CompOp::StrictEqual => compiler.add_instruction(Instruction::StrictEq),
+                    CompOp::StrictNotEqual => compiler.add_instruction(Instruction::StrictNotEq),
+                    CompOp::GreaterThan => compiler.add_instruction(Instruction::Gt),
+                    CompOp::GreaterThanOrEqual => compiler.add_instruction(Instruction::Ge),
+                    CompOp::LessThan => compiler.add_instruction(Instruction::Lt),
+                    CompOp::LessThanOrEqual => compiler.add_instruction(Instruction::Le),
+                    CompOp::In => compiler.add_instruction(Instruction::In),
+                    CompOp::InstanceOf => compiler.add_instruction(Instruction::InstanceOf),
                 }
             }
             _ => unimplemented!(),

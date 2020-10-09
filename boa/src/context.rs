@@ -23,6 +23,7 @@ use crate::{
         Parser,
     },
     value::{RcString, RcSymbol, Value},
+    vm::compilation::Compiler,
     vm::VM,
     BoaProfiler, Executable, Result,
 };
@@ -33,7 +34,6 @@ use crate::builtins::console::Console;
 
 #[cfg(feature = "vm")]
 use crate::vm::compilation::CodeGen;
-use crate::vm::instructions::Instruction;
 
 /// Store a builtin constructor (such as `Object`) and its corresponding prototype.
 #[derive(Debug, Clone)]
@@ -199,12 +199,8 @@ pub struct Context {
     /// Cached iterator prototypes.
     iterator_prototypes: IteratorPrototypes,
 
-    /// Cached standard objects and their prototypes
+    /// Cached standard objects and their prototypes.
     standard_objects: StandardObjects,
-
-    /// Holds instructions for ByteCode generation
-    #[cfg(feature = "vm")]
-    instruction_stack: Vec<Instruction>,
 }
 
 impl Default for Context {
@@ -221,8 +217,6 @@ impl Default for Context {
             well_known_symbols,
             iterator_prototypes: IteratorPrototypes::default(),
             standard_objects: Default::default(),
-            #[cfg(feature = "vm")]
-            instruction_stack: vec![],
         };
 
         // Add new builtIns to Context Realm
@@ -246,10 +240,6 @@ impl Context {
 
     pub fn realm_mut(&mut self) -> &mut Realm {
         &mut self.realm
-    }
-
-    pub fn instructions_mut(&mut self) -> &mut Vec<Instruction> {
-        &mut self.instruction_stack
     }
 
     pub fn executor(&mut self) -> &mut Interpreter {
@@ -644,6 +634,7 @@ impl Context {
     /// assert!(value.is_number());
     /// assert_eq!(value.as_number().unwrap(), 4.0);
     /// ```
+    #[cfg(not(feature = "vm"))]
     #[allow(clippy::unit_arg, clippy::drop_copy)]
     pub fn eval(&mut self, src: &str) -> Result<Value> {
         let main_timer = BoaProfiler::global().start_event("Main", "Main");
@@ -671,23 +662,31 @@ impl Context {
     ///# use boa::Context;
     /// let mut context = Context::new();
     ///
-    /// let value = context.eval_bytecode("1 + 3").unwrap();
+    /// let value = context.eval("1 + 3").unwrap();
     ///
     /// assert!(value.is_number());
     /// assert_eq!(value.as_number().unwrap(), 4.0);
     /// ```
-    pub fn eval_bytecode(&mut self, src: &str) -> Result<Value> {
+    #[cfg(feature = "vm")]
+    #[allow(clippy::unit_arg, clippy::drop_copy)]
+    pub fn eval(&mut self, src: &str) -> Result<Value> {
         let main_timer = BoaProfiler::global().start_event("Main", "Main");
 
         let parsing_result = Parser::new(src.as_bytes())
             .parse_all()
             .map_err(|e| e.to_string());
 
-        let statement_list = parsing_result.expect("unable to get statementList");
+        let statement_list = match parsing_result {
+            Ok(statement_list) => statement_list,
+            Err(e) => return self.throw_syntax_error(e),
+        };
+
+        let mut compiler = Compiler::default();
+        statement_list.compile(&mut compiler);
+
+        let mut vm = VM::new(compiler, self);
         // Generate Bytecode and place it into instruction_stack
-        statement_list.compile(self);
         // Interpret the Bytecode
-        let mut vm = VM::new(self);
         let result = vm.run();
         // The main_timer needs to be dropped before the BoaProfiler is.
         drop(main_timer);
@@ -722,10 +721,5 @@ impl Context {
     #[inline]
     pub fn standard_objects(&self) -> &StandardObjects {
         &self.standard_objects
-    }
-
-    // Add a new instruction
-    pub fn add_instruction(&mut self, instr: Instruction) {
-        self.instruction_stack.push(instr);
     }
 }

@@ -152,7 +152,7 @@ pub fn main() -> Result<(), std::io::Error> {
                 eprintln!("{}", e);
             }
         } else {
-            match engine.eval_bytecode(&buffer) {
+            match engine.eval(&buffer) {
                 Ok(v) => println!("{}", v.display()),
                 Err(v) => eprintln!("Uncaught {}", v.display()),
             }
