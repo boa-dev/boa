@@ -3,6 +3,7 @@
 use crate::{
     exec::{Executable, InterpreterState},
     syntax::ast::node::Node,
+    vm::compilation::CodeGen,
     BoaProfiler, Context, Result, Value,
 };
 use gc::{unsafe_empty_trace, Finalize, Trace};
@@ -91,6 +92,23 @@ impl Executable for StatementList {
         }
 
         Ok(obj)
+    }
+}
+
+impl CodeGen for StatementList {
+    fn compile(&self, ctx: &mut Context) -> std::result::Result<(), &str> {
+        let _timer = BoaProfiler::global().start_event("StatementList", "codeGen");
+
+        // https://tc39.es/ecma262/#sec-block-runtime-semantics-evaluation
+        // The return value is uninitialized, which means it defaults to Value::Undefined
+        let mut obj = Value::default();
+        ctx.executor()
+            .set_current_state(InterpreterState::Executing);
+        for (i, item) in self.statements().iter().enumerate() {
+            item.compile(ctx)?;
+        }
+
+        Ok(())
     }
 }
 

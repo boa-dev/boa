@@ -13,6 +13,9 @@ edition = "2018"
 [features]
 profiler = ["measureme", "once_cell"]
 
+# Enable Bytecode generation & execution instead of tree walking
+vm = []
+
 # Enable Boa's WHATWG console object implementation.
 console = []
 

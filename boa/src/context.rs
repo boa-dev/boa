@@ -23,12 +23,16 @@ use crate::{
         Parser,
     },
     value::{RcString, RcSymbol, Value},
+    vm::compilation::CodeGen,
     BoaProfiler, Executable, Result,
 };
 use std::result::Result as StdResult;
 
 #[cfg(feature = "console")]
 use crate::builtins::console::Console;
+
+#[cfg(feature = "vm")]
+use crate::vm::instructions::Instruction;
 
 /// Store a builtin constructor (such as `Object`) and its corresponding prototype.
 #[derive(Debug, Clone)]
@@ -196,6 +200,10 @@ pub struct Context {
 
     /// Cached standard objects and their prototypes
     standard_objects: StandardObjects,
+
+    /// Holds instructions for ByteCode generation
+    #[cfg(feature = "vm")]
+    instruction_stack: Vec<Instruction>,
 }
 
 impl Default for Context {
@@ -212,6 +220,8 @@ impl Default for Context {
             well_known_symbols,
             iterator_prototypes: IteratorPrototypes::default(),
             standard_objects: Default::default(),
+            #[cfg(feature = "vm")]
+            instruction_stack: vec![],
         };
 
         // Add new builtIns to Context Realm
@@ -649,6 +659,33 @@ impl Context {
         execution_result
     }
 
+    /// Evaluates the given code by compiling down to bytecode, then interpreting the bytecode into a value
+    ///
+    /// # Examples
+    /// ```
+    ///# use boa::Context;
+    /// let mut context = Context::new();
+    ///
+    /// let value = context.eval_bytecode("1 + 3").unwrap();
+    ///
+    /// assert!(value.is_number());
+    /// assert_eq!(value.as_number().unwrap(), 4.0);
+    /// ```
+    pub fn eval_bytecode(&mut self, src: &str) -> std::result::Result<(), &str> {
+        let main_timer = BoaProfiler::global().start_event("Main", "Main");
+
+        let result = match Self::parser_expr(src) {
+            Ok(ref expr) => expr.compile(self),
+            Err(e) => panic!(e),
+        };
+
+        // The main_timer needs to be dropped before the BoaProfiler is.
+        drop(main_timer);
+        BoaProfiler::global().drop();
+
+        Err("not implemented")
+    }
+
     /// Returns a structure that contains the JavaScript well known symbols.
     ///
     /// # Examples
@@ -675,5 +712,10 @@ impl Context {
     #[inline]
     pub fn standard_objects(&self) -> &StandardObjects {
         &self.standard_objects
+    }
+
+    // Add a new instruction
+    pub fn add_instruction(&mut self) {
+        self.instruction_stack.push(919);
     }
 }
