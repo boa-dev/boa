@@ -4,7 +4,7 @@
   let formatter = new Intl.NumberFormat("en-GB");
 
   // Load latest complete data from master:
-  fetch("/test262/refs/heads/master/latest.json")
+  fetch("./refs/heads/master/latest.json")
     .then((response) => response.json())
     .then((data) => {
       latest.master = data;
@@ -14,7 +14,7 @@
     });
 
   // Load master branch information over time:
-  fetch("/test262/refs/heads/master/results.json")
+  fetch("./refs/heads/master/results.json")
     .then((response) => response.json())
     .then((data) => {
       let innerContainer = $("<div></div>")
@@ -40,7 +40,7 @@
       let latestTag = data[0].tag_name;
 
       // We set the latest version.
-      fetch(`/test262/refs/tags/${getRefTag(latestTag)[1]}/results.json`)
+      fetch(`./refs/tags/${getRefTag(latestTag)[1]}/results.json`)
         .then((response) => response.json())
         .then((data) => {
           let innerContainer = $("<div></div>")
@@ -65,7 +65,7 @@
           continue;
         }
 
-        fetch(`/test262/refs/tags/${tag}/latest.json`)
+        fetch(`./refs/tags/${tag}/latest.json`)
           .then((response) => response.json())
           .then((data) => {
             latest[rel.tag_name] = data;
