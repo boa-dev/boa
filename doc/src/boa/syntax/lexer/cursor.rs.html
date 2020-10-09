@@ -296,6 +296,13 @@
 <span id="295">295</span>
 <span id="296">296</span>
 <span id="297">297</span>
+<span id="298">298</span>
+<span id="299">299</span>
+<span id="300">300</span>
+<span id="301">301</span>
+<span id="302">302</span>
+<span id="303">303</span>
+<span id="304">304</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Module implementing the lexer cursor. This is used for managing the input byte stream.</span>
 
@@ -306,7 +313,6 @@
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
     <span class="ident">iter</span>: <span class="ident">InnerIter</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>,
-    <span class="ident">peeked</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">char</span><span class="op">&gt;&gt;</span>,
     <span class="ident">pos</span>: <span class="ident">Position</span>,
     <span class="ident">strict_mode</span>: <span class="ident">bool</span>,
 }
@@ -352,7 +358,6 @@
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">inner</span>: <span class="ident">R</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
         <span class="self">Self</span> {
             <span class="ident">iter</span>: <span class="ident">InnerIter</span>::<span class="ident">new</span>(<span class="ident">inner</span>.<span class="ident">bytes</span>()),
-            <span class="ident">peeked</span>: <span class="prelude-val">None</span>,
             <span class="ident">pos</span>: <span class="ident">Position</span>::<span class="ident">new</span>(<span class="number">1</span>, <span class="number">1</span>),
             <span class="ident">strict_mode</span>: <span class="bool-val">false</span>,
         }
@@ -363,14 +368,7 @@
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">peek</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">char</span><span class="op">&gt;</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">BoaProfiler</span>::<span class="ident">global</span>().<span class="ident">start_event</span>(<span class="string">&quot;cursor::peek()&quot;</span>, <span class="string">&quot;Lexing&quot;</span>);
 
-        <span class="kw">let</span> <span class="ident">iter</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">iter</span>;
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">v</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">peeked</span> {
-            <span class="prelude-val">Ok</span>(<span class="ident">v</span>)
-        } <span class="kw">else</span> {
-            <span class="kw">let</span> <span class="ident">val</span> <span class="op">=</span> <span class="ident">iter</span>.<span class="ident">next_char</span>()<span class="question-mark">?</span>;
-            <span class="self">self</span>.<span class="ident">peeked</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">val</span>);
-            <span class="prelude-val">Ok</span>(<span class="ident">val</span>)
-        }
+        <span class="self">self</span>.<span class="ident">iter</span>.<span class="ident">peek_char</span>()
     }
 
     <span class="doccomment">/// Compares the character passed in to the next character, if they match true is returned and the buffer is incremented</span>
@@ -380,7 +378,7 @@
 
         <span class="prelude-val">Ok</span>(<span class="kw">match</span> <span class="self">self</span>.<span class="ident">peek</span>()<span class="question-mark">?</span> {
             <span class="prelude-val">Some</span>(<span class="ident">next</span>) <span class="kw">if</span> <span class="ident">next</span> <span class="op">==</span> <span class="ident">peek</span> <span class="op">=&gt;</span> {
-                <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">peeked</span>.<span class="ident">take</span>();
+                <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">iter</span>.<span class="ident">next_char</span>();
                 <span class="bool-val">true</span>
             }
             <span class="kw">_</span> <span class="op">=&gt;</span> <span class="bool-val">false</span>,
@@ -463,17 +461,14 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">next_char</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">char</span><span class="op">&gt;</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">BoaProfiler</span>::<span class="ident">global</span>().<span class="ident">start_event</span>(<span class="string">&quot;cursor::next_char()&quot;</span>, <span class="string">&quot;Lexing&quot;</span>);
 
-        <span class="kw">let</span> <span class="ident">chr</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">peeked</span>.<span class="ident">take</span>() {
-            <span class="prelude-val">Some</span>(<span class="ident">v</span>) <span class="op">=&gt;</span> <span class="ident">v</span>,
-            <span class="prelude-val">None</span> <span class="op">=&gt;</span> <span class="self">self</span>.<span class="ident">iter</span>.<span class="ident">next_char</span>()<span class="question-mark">?</span>,
-        };
+        <span class="kw">let</span> <span class="ident">chr</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">iter</span>.<span class="ident">next_char</span>()<span class="question-mark">?</span>;
 
         <span class="kw">match</span> <span class="ident">chr</span> {
             <span class="prelude-val">Some</span>(<span class="string">&#39;\r&#39;</span>) <span class="op">=&gt;</span> {
                 <span class="comment">// Try to take a newline if it&#39;s next, for windows &quot;\r\n&quot; newlines</span>
                 <span class="comment">// Otherwise, treat as a Mac OS9 bare &#39;\r&#39; newline</span>
                 <span class="kw">if</span> <span class="self">self</span>.<span class="ident">peek</span>()<span class="question-mark">?</span> <span class="op">==</span> <span class="prelude-val">Some</span>(<span class="string">&#39;\n&#39;</span>) {
-                    <span class="self">self</span>.<span class="ident">peeked</span>.<span class="ident">take</span>();
+                    <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">iter</span>.<span class="ident">next_char</span>();
                 }
                 <span class="self">self</span>.<span class="ident">next_line</span>();
             }
@@ -490,13 +485,17 @@
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">struct</span> <span class="ident">InnerIter</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
     <span class="ident">iter</span>: <span class="ident">Bytes</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>,
+    <span class="ident">peeked_char</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">char</span><span class="op">&gt;&gt;</span>,
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="ident">InnerIter</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
     <span class="doccomment">/// Creates a new inner iterator.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">iter</span>: <span class="ident">Bytes</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
-        <span class="self">Self</span> { <span class="ident">iter</span> }
+        <span class="self">Self</span> {
+            <span class="ident">iter</span>,
+            <span class="ident">peeked_char</span>: <span class="prelude-val">None</span>,
+        }
     }
 }
 
@@ -521,8 +520,25 @@
         <span class="prelude-val">Ok</span>(())
     }
 
+    <span class="doccomment">/// Peeks the next UTF-8 checked character.</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">peek_char</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">char</span><span class="op">&gt;</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">v</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">peeked_char</span> {
+            <span class="prelude-val">Ok</span>(<span class="ident">v</span>)
+        } <span class="kw">else</span> {
+            <span class="kw">let</span> <span class="ident">chr</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">next_char</span>()<span class="question-mark">?</span>;
+            <span class="self">self</span>.<span class="ident">peeked_char</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">chr</span>);
+            <span class="prelude-val">Ok</span>(<span class="ident">chr</span>)
+        }
+    }
+
     <span class="doccomment">/// Retrieves the next UTF-8 checked character.</span>
     <span class="kw">fn</span> <span class="ident">next_char</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">char</span><span class="op">&gt;&gt;</span> {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">v</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">peeked_char</span> {
+            <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">peeked_char</span>.<span class="ident">take</span>();
+            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">v</span>);
+        }
+
         <span class="kw">let</span> <span class="ident">first_byte</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">iter</span>.<span class="ident">next</span>().<span class="ident">transpose</span>()<span class="question-mark">?</span> {
             <span class="prelude-val">Some</span>(<span class="ident">b</span>) <span class="op">=&gt;</span> <span class="ident">b</span>,
             <span class="prelude-val">None</span> <span class="op">=&gt;</span> <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
@@ -582,11 +598,9 @@
     <span class="doccomment">/// Retrieves the next ASCII checked character.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">next_ascii</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;&gt;</span> {
-        <span class="kw">let</span> <span class="ident">next_byte</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">iter</span>.<span class="ident">next</span>().<span class="ident">transpose</span>()<span class="question-mark">?</span>;
-
-        <span class="kw">match</span> <span class="ident">next_byte</span> {
-            <span class="prelude-val">Some</span>(<span class="ident">next</span>) <span class="kw">if</span> <span class="ident">next</span> <span class="op">&lt;=</span> <span class="number">0x7F</span> <span class="op">=&gt;</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="ident">next</span>)),
-            <span class="prelude-val">None</span> <span class="op">=&gt;</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
+        <span class="kw">match</span> <span class="self">self</span>.<span class="ident">next_char</span>() {
+            <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="ident">chr</span>)) <span class="kw">if</span> <span class="ident">chr</span>.<span class="ident">is_ascii</span>() <span class="op">=&gt;</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="ident">chr</span> <span class="kw">as</span> <span class="ident">u8</span>)),
+            <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>) <span class="op">=&gt;</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
             <span class="kw">_</span> <span class="op">=&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">io</span>::<span class="ident">Error</span>::<span class="ident">new</span>(
                 <span class="ident">io</span>::<span class="ident">ErrorKind</span>::<span class="ident">InvalidData</span>,
                 <span class="string">&quot;non-ASCII byte found&quot;</span>,
