@@ -628,7 +628,7 @@ fn illegal_following_numeric_literal() {
 
 #[test]
 fn codepoint_with_no_braces() {
-    let mut lexer = Lexer::new(&br#""test\uD83Dtest""#[..]);
+    let mut lexer = Lexer::new(&br#""test\uD38Dtest""#[..]);
     assert!(lexer.next().is_ok());
 }
 
