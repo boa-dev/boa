@@ -11,6 +11,7 @@ use crate::{
             node::{AsyncFunctionDecl, FunctionDecl},
             Keyword, Node, Punctuator,
         },
+        lexer::TokenKind,
         parser::{
             function::FormalParameters, function::FunctionBody, statement::BindingIdentifier,
             AllowAwait, AllowDefault, AllowYield, Cursor, ParseError, ParseResult, TokenParser,
@@ -18,7 +19,6 @@ use crate::{
     },
     BoaProfiler,
 };
-
 use std::io::Read;
 
 /// Hoistable declaration parsing.
@@ -58,10 +58,21 @@ where
 
     fn parse(self, cursor: &mut Cursor<R>) -> ParseResult {
         let _timer = BoaProfiler::global().start_event("HoistableDeclaration", "Parsing");
-        // TODO: check for generators and async functions + generators
-        FunctionDeclaration::new(self.allow_yield, self.allow_await, self.is_default)
-            .parse(cursor)
-            .map(Node::from)
+        let tok = cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?;
+
+        match tok.kind() {
+            TokenKind::Keyword(Keyword::Function) => {
+                FunctionDeclaration::new(self.allow_yield, self.allow_await, self.is_default)
+                    .parse(cursor)
+                    .map(Node::from)
+            }
+            TokenKind::Keyword(Keyword::Async) => {
+                AsyncFunctionDeclaration::new(self.allow_yield, self.allow_await, false)
+                    .parse(cursor)
+                    .map(Node::from)
+            }
+            _ => unreachable!("unknown token found: {:?}", tok),
+        }
     }
 }
 
@@ -161,6 +172,7 @@ where
     type Output = AsyncFunctionDecl;
 
     fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
+        cursor.expect(Keyword::Async, "async function declaration")?;
         unimplemented!("AsyncFunctionDecl parse");
     }
 }
