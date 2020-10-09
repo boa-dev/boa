@@ -43,10 +43,9 @@ fn clone() {
     assert_eq!(result, "2");
 }
 
-// depends on the https://github.com/boa-dev/boa/issues/810
+// TODO depends on the https://github.com/boa-dev/boa/issues/810
 #[test]
 #[ignore]
-
 fn merge() {
     let mut engine = Context::new();
     let init = r#"
