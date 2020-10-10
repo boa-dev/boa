@@ -6,6 +6,10 @@
 //!
 //! [mdn]:
 //! [spec]:
+
+#[cfg(test)]
+mod tests;
+
 use crate::{
     syntax::{
         ast::{node::AsyncFunctionExpr, Keyword, Punctuator},
