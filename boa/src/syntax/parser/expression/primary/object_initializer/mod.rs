@@ -141,6 +141,14 @@ where
             return Ok(node::PropertyDefinition::property(prop_name, val));
         }
 
+        // TODO GeneratorMethod
+
+        if prop_name.as_str() == "async" {
+            // TODO - AsyncMethod.
+
+            // TODO - AsyncGeneratorMethod
+        }
+
         if cursor
             .next_if(TokenKind::Punctuator(Punctuator::OpenParen))?
             .is_some()

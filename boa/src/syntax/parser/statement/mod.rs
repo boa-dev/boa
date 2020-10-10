@@ -42,6 +42,7 @@ use crate::{
     syntax::{
         ast::{node, Keyword, Node, Punctuator},
         lexer::{Error as LexError, InputElement, TokenKind},
+        parser::expression::await_expr::AwaitExpression,
     },
     BoaProfiler,
 };
@@ -110,6 +111,9 @@ where
         let tok = cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?;
 
         match tok.kind() {
+            TokenKind::Keyword(Keyword::Await) => AwaitExpression::new(self.allow_yield)
+                .parse(cursor)
+                .map(Node::from),
             TokenKind::Keyword(Keyword::If) => {
                 IfStatement::new(self.allow_yield, self.allow_await, self.allow_return)
                     .parse(cursor)

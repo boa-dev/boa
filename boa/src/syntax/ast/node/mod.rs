@@ -1,6 +1,7 @@
 //! This module implements the `Node` structure, which composes the AST.
 
 pub mod array;
+pub mod await_expr;
 pub mod block;
 pub mod break_node;
 pub mod call;
@@ -21,6 +22,7 @@ pub mod try_node;
 
 pub use self::{
     array::ArrayDecl,
+    await_expr::AwaitExpr,
     block::Block,
     break_node::Break,
     call::Call,
@@ -70,6 +72,9 @@ pub enum Node {
 
     /// An async function expression node. [More information](./declaration/struct.AsyncFunctionExpr.html).
     AsyncFunctionExpr(AsyncFunctionExpr),
+
+    /// An await expression node. [More information](./await_expr/struct.AwaitExpression.html).
+    AwaitExpr(AwaitExpr),
 
     /// A binary operator node. [More information](./operator/struct.BinOp.html).
     BinOp(BinOp),
@@ -251,6 +256,7 @@ impl Node {
             Self::ConstDeclList(ref decl) => Display::fmt(decl, f),
             Self::AsyncFunctionDecl(ref decl) => decl.display(f, indentation),
             Self::AsyncFunctionExpr(ref expr) => expr.display(f, indentation),
+            Self::AwaitExpr(ref expr) => expr.display(f, indentation),
         }
     }
 }
@@ -261,6 +267,7 @@ impl Executable for Node {
         match *self {
             Node::AsyncFunctionDecl(ref decl) => decl.run(interpreter),
             Node::AsyncFunctionExpr(ref function_expr) => function_expr.run(interpreter),
+            Node::AwaitExpr(ref expr) => expr.run(interpreter),
             Node::Call(ref call) => call.run(interpreter),
             Node::Const(Const::Null) => Ok(Value::null()),
             Node::Const(Const::Num(num)) => Ok(Value::rational(num)),
