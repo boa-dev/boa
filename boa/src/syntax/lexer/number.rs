@@ -234,7 +234,7 @@ impl<R> Tokenizer<R> for NumberLiteral {
                 return Err(Error::syntax(
                     "character was not in expected digit",
                     cursor.pos(),
-                ))
+                ));
             }
         }
         // Consume digits until a non-digit character is encountered or all the characters are consumed.
