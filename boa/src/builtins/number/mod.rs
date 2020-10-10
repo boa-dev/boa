@@ -528,7 +528,7 @@ impl Number {
                             } else {
                                 // String can't be parsed.
                                 Ok(Value::from(f64::NAN))
-                            }
+                            };
                         } else {
                             radix = 10
                         };

@@ -1095,7 +1095,7 @@ impl Array {
             } else {
                 // early return to prevent usize subtraction errors
                 Ok(initial_value)
-            }
+            };
         }
         let mut k = length - 1;
         let mut accumulator = if initial_value.is_undefined() {
