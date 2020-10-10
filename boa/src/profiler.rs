@@ -11,17 +11,11 @@ use std::{
     thread::{current, ThreadId},
 };
 
-/// MmapSerializatioSink is faster on macOS and Linux
-/// but FileSerializationSink is faster on Windows
-#[cfg(not(windows))]
 #[cfg(feature = "profiler")]
-type SerializationSink = measureme::MmapSerializationSink;
-#[cfg(windows)]
-#[cfg(feature = "profiler")]
-type SerializationSink = measureme::FileSerializationSink;
+type SerializationSink = measureme::SerializationSink;
 #[cfg(feature = "profiler")]
 pub struct BoaProfiler {
-    profiler: Profiler<SerializationSink>,
+    profiler: Profiler,
 }
 
 /// This static instance should never be public, and its only access should be done through the `global()` and `drop()` methods
@@ -31,7 +25,7 @@ static mut INSTANCE: OnceCell<BoaProfiler> = OnceCell::new();
 
 #[cfg(feature = "profiler")]
 impl BoaProfiler {
-    pub fn start_event(&self, label: &str, category: &str) -> TimingGuard<'_, SerializationSink> {
+    pub fn start_event(&self, label: &str, category: &str) -> TimingGuard<'_> {
         let kind = self.profiler.alloc_string(category);
         let id = EventId::from_label(self.profiler.alloc_string(label));
         let thread_id = Self::thread_id_to_u32(current().id());
