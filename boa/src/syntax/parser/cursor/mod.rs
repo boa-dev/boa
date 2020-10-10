@@ -67,10 +67,6 @@ where
     }
 
     /// Returns an error if the next token is not of kind `kind`.
-    ///
-    /// Note: it will consume the next token only if the next token is the expected type.
-    ///
-    /// If skip_line_terminators is true then line terminators will be discarded.
     #[inline]
     pub(super) fn expect<K>(&mut self, kind: K, context: &'static str) -> Result<Token, ParseError>
     where
@@ -134,7 +130,7 @@ where
     ///
     /// It expects that the token stream does not end here.
     ///
-    /// This is just syntatic sugar for a .peek(skip_n, false) call followed by a check that the result is not a line terminator or None.
+    /// This is just syntatic sugar for a .peek(skip_n) call followed by a check that the result is not a line terminator or None.
     #[inline]
     pub(super) fn peek_expect_no_lineterminator(
         &mut self,
@@ -151,13 +147,34 @@ where
         }
     }
 
+    /// Returns an error if the next token is not of kind `kind`.
+    #[inline]
+    pub(super) fn expect_no_skip_lineterminator<K>(
+        &mut self,
+        kind: K,
+        context: &'static str,
+    ) -> Result<Token, ParseError>
+    where
+        K: Into<TokenKind>,
+    {
+        let next_token = self
+            .buffered_lexer
+            .next(false)?
+            .ok_or(ParseError::AbruptEnd)?;
+        let kind = kind.into();
+
+        if next_token.kind() == &kind {
+            Ok(next_token)
+        } else {
+            Err(ParseError::expected(vec![kind], next_token, context))
+        }
+    }
+
     /// Advance the cursor to the next token and retrieve it, only if it's of `kind` type.
     ///
     /// When the next token is a `kind` token, get the token, otherwise return `None`.
     ///
     /// No next token also returns None.
-    ///
-    /// If skip_line_terminators is true then line terminators will be discarded.
     #[inline]
     pub(super) fn next_if<K>(&mut self, kind: K) -> Result<Option<Token>, ParseError>
     where

@@ -173,6 +173,13 @@ where
 
     fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         cursor.expect(Keyword::Async, "async function declaration")?;
+        let tok = cursor.peek_expect_no_lineterminator(0)?;
+
+        match tok.kind() {
+            TokenKind::Keyword(Keyword::Function) => {}
+            _ => {}
+        }
+
         unimplemented!("AsyncFunctionDecl parse");
     }
 }
