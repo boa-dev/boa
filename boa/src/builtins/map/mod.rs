@@ -3,7 +3,7 @@
 use crate::{
     builtins::BuiltIn,
     object::{ConstructorBuilder, ObjectData, PROTOTYPE},
-    property::{Attribute, Property},
+    property::{Attribute, DataDescriptor},
     BoaProfiler, Context, Result, Value,
 };
 use ordered_map::OrderedMap;
@@ -100,8 +100,8 @@ impl Map {
 
     /// Helper function to set the size property.
     fn set_size(this: &Value, size: usize) {
-        let size = Property::data_descriptor(
-            size.into(),
+        let size = DataDescriptor::new(
+            size,
             Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT,
         );
 

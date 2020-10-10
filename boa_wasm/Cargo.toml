@@ -11,7 +11,7 @@ exclude = ["../.vscode/*", "../Dockerfile", "../Makefile", "../.editorConfig"]
 edition = "2018"
 
 [dependencies]
-Boa = { path = "../boa" }
+Boa = { path = "../boa", features = ["console"] }
 wasm-bindgen = "0.2.68"
 
 [lib]

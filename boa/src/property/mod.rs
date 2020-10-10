@@ -14,16 +14,198 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/defineProperty
 //! [section]: https://tc39.es/ecma262/#sec-property-attributes
 
-use crate::value::{RcString, RcSymbol, Value};
-use gc::{Finalize, Trace};
-use std::convert::TryFrom;
-use std::fmt;
+use crate::{
+    gc::{Finalize, Trace},
+    object::GcObject,
+    value::{RcString, RcSymbol, Value},
+};
+use std::{convert::TryFrom, fmt};
 
 mod attribute;
-
 pub use attribute::Attribute;
 
-/// This represents a Javascript Property AKA The Property Descriptor.
+/// A data descriptor is a property that has a value, which may or may not be writable.
+///
+/// More information:
+/// - [MDN documentation][mdn]
+/// - [ECMAScript reference][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-property-descriptor-specification-type
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/defineProperty
+#[derive(Debug, Clone, Trace, Finalize)]
+pub struct DataDescriptor {
+    value: Value,
+    attributes: Attribute,
+}
+
+impl DataDescriptor {
+    /// Create a new `DataDescriptor`.
+    #[inline]
+    pub fn new<V>(value: V, attributes: Attribute) -> Self
+    where
+        V: Into<Value>,
+    {
+        Self {
+            value: value.into(),
+            attributes,
+        }
+    }
+
+    /// Return the `value` of the data descriptor.
+    #[inline]
+    pub fn value(&self) -> Value {
+        self.value.clone()
+    }
+
+    /// Return the attributes of the descriptor.
+    #[inline]
+    pub fn attributes(&self) -> Attribute {
+        self.attributes
+    }
+
+    /// Check whether the descriptor is configurable.
+    #[inline]
+    pub fn configurable(&self) -> bool {
+        self.attributes.configurable()
+    }
+
+    /// Set whether the descriptor is configurable.
+    #[inline]
+    pub fn set_configurable(&mut self, configurable: bool) {
+        self.attributes.set_configurable(configurable)
+    }
+
+    /// Check whether the descriptor is configurable.
+    #[inline]
+    pub fn enumerable(&self) -> bool {
+        self.attributes.enumerable()
+    }
+
+    /// Set whether the descriptor is enumerable.
+    #[inline]
+    pub fn set_enumerable(&mut self, enumerable: bool) {
+        self.attributes.set_enumerable(enumerable)
+    }
+
+    /// Check whether the descriptor is writable.
+    #[inline]
+    pub fn writable(&self) -> bool {
+        self.attributes.writable()
+    }
+
+    /// Set whether the descriptor is writable.
+    #[inline]
+    pub fn set_writable(&mut self, writable: bool) {
+        self.attributes.set_writable(writable)
+    }
+}
+
+impl From<DataDescriptor> for PropertyDescriptor {
+    #[inline]
+    fn from(value: DataDescriptor) -> Self {
+        Self::Data(value)
+    }
+}
+
+/// An accessor descriptor is a property described by a getter-setter pair of functions.
+///
+/// More information:
+/// - [MDN documentation][mdn]
+/// - [ECMAScript reference][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-property-descriptor-specification-type
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/defineProperty
+#[derive(Debug, Clone, Trace, Finalize)]
+pub struct AccessorDescriptor {
+    /// The function serving as getter.
+    get: Option<GcObject>,
+    /// The function serving as setter.
+    set: Option<GcObject>,
+    /// The attributes of the accessor descriptor.
+    attributes: Attribute,
+}
+
+impl AccessorDescriptor {
+    /// Create a new `AccessorDescriptor`.
+    ///
+    /// If the `attributes` argument contains a `writable` flag, it will be removed so only `enumerable`
+    /// and `configurable` remains.
+    #[inline]
+    pub fn new(get: Option<GcObject>, set: Option<GcObject>, mut attributes: Attribute) -> Self {
+        // Accessors can not have writable attribute.
+        attributes.remove(Attribute::WRITABLE);
+        Self {
+            get,
+            set,
+            attributes,
+        }
+    }
+
+    /// Return the getter if it exists.
+    #[inline]
+    pub fn getter(&self) -> Option<&GcObject> {
+        self.get.as_ref()
+    }
+
+    /// Return the setter if it exists.
+    #[inline]
+    pub fn setter(&self) -> Option<&GcObject> {
+        self.set.as_ref()
+    }
+
+    /// Set the getter of the accessor descriptor.
+    #[inline]
+    pub fn set_getter(&mut self, get: Option<GcObject>) {
+        self.get = get;
+    }
+
+    /// Set the setter of the accessor descriptor.
+    #[inline]
+    pub fn set_setter(&mut self, set: Option<GcObject>) {
+        self.set = set;
+    }
+
+    /// Return the attributes of the accessor descriptor.
+    ///
+    /// It is guaranteed to not contain a `writable` flag
+    #[inline]
+    pub fn attributes(&self) -> Attribute {
+        self.attributes
+    }
+
+    /// Check whether the descriptor is configurable.
+    #[inline]
+    pub fn configurable(&self) -> bool {
+        self.attributes.configurable()
+    }
+
+    /// Set whether the descriptor is configurable.
+    #[inline]
+    pub fn set_configurable(&mut self, configurable: bool) {
+        self.attributes.set_configurable(configurable)
+    }
+
+    /// Check whether the descriptor is enumerable.
+    #[inline]
+    pub fn enumerable(&self) -> bool {
+        self.attributes.enumerable()
+    }
+
+    /// Set whether the descriptor is enumerable.
+    #[inline]
+    pub fn set_enumerable(&mut self, enumerable: bool) {
+        self.attributes.set_enumerable(enumerable)
+    }
+}
+
+impl From<AccessorDescriptor> for PropertyDescriptor {
+    #[inline]
+    fn from(value: AccessorDescriptor) -> Self {
+        Self::Accessor(value)
+    }
+}
+
+/// This represents a JavaScript Property AKA The Property Descriptor.
 ///
 /// Property descriptors present in objects come in two main flavors:
 ///  - data descriptors
@@ -33,153 +215,19 @@ pub use attribute::Attribute;
 /// An accessor descriptor is a property described by a getter-setter pair of functions.
 /// A descriptor must be one of these two flavors; it cannot be both.
 ///
-/// Any field in a JavaScript Property may be present or absent.
-///
 /// More information:
 /// - [MDN documentation][mdn]
 /// - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-property-descriptor-specification-type
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/defineProperty
-#[derive(Trace, Finalize, Clone, Debug)]
-pub struct Property {
-    pub(crate) attribute: Attribute,
-    /// The value associated with the property
-    pub value: Option<Value>,
-    /// The function serving as getter
-    pub get: Option<Value>,
-    /// The function serving as setter
-    pub set: Option<Value>,
+#[derive(Debug, Clone, Trace, Finalize)]
+pub enum PropertyDescriptor {
+    Accessor(AccessorDescriptor),
+    Data(DataDescriptor),
 }
 
-impl Property {
-    /// Make a new property with the given value
-    /// The difference between New and Default:
-    ///
-    /// New: zeros everything to make an empty object
-    /// Default: Defaults according to the spec
-    #[inline]
-    pub fn new() -> Self {
-        Self {
-            attribute: Default::default(),
-            value: None,
-            get: None,
-            set: None,
-        }
-    }
-
-    #[inline]
-    pub fn empty() -> Self {
-        Self {
-            attribute: Attribute::empty(),
-            value: None,
-            get: None,
-            set: None,
-        }
-    }
-
-    #[inline]
-    pub fn data_descriptor(value: Value, attribute: Attribute) -> Self {
-        Self {
-            attribute,
-            value: Some(value),
-            get: None,
-            set: None,
-        }
-    }
-
-    /// Get the
-    #[inline]
-    pub fn configurable(&self) -> bool {
-        self.attribute.configurable()
-    }
-
-    #[inline]
-    pub fn set_configurable(&mut self, configurable: bool) {
-        self.attribute.set_configurable(configurable)
-    }
-
-    #[inline]
-    pub fn configurable_or(&self, value: bool) -> bool {
-        if self.attribute.has_configurable() {
-            self.attribute.configurable()
-        } else {
-            value
-        }
-    }
-
-    /// Set enumerable
-    #[inline]
-    pub fn enumerable(&self) -> bool {
-        self.attribute.enumerable()
-    }
-
-    #[inline]
-    pub fn enumerable_or(&self, value: bool) -> bool {
-        if self.attribute.has_enumerable() {
-            self.attribute.enumerable()
-        } else {
-            value
-        }
-    }
-
-    /// Set writable
-    #[inline]
-    pub fn writable(&self) -> bool {
-        self.attribute.writable()
-    }
-
-    #[inline]
-    pub fn writable_or(&self, value: bool) -> bool {
-        if self.attribute.has_writable() {
-            self.attribute.writable()
-        } else {
-            value
-        }
-    }
-
-    /// Set value
-    #[inline]
-    pub fn value(mut self, value: Value) -> Self {
-        self.value = Some(value);
-        self
-    }
-
-    /// Set get
-    #[inline]
-    pub fn get(mut self, get: Value) -> Self {
-        self.get = Some(get);
-        self
-    }
-
-    #[inline]
-    pub fn has_get(&self) -> bool {
-        self.get.is_some()
-    }
-
-    /// Set set
-    #[inline]
-    pub fn set(mut self, set: Value) -> Self {
-        self.set = Some(set);
-        self
-    }
-
-    #[inline]
-    pub fn has_set(&self) -> bool {
-        self.set.is_some()
-    }
-
-    /// Is this an empty Property?
-    ///
-    /// `true` if all fields are set to none
-    #[inline]
-    pub fn is_none(&self) -> bool {
-        self.value.is_none()
-            && self.attribute.is_empty()
-            && self.get.is_none()
-            && self.set.is_none()
-    }
-
+impl PropertyDescriptor {
     /// An accessor Property Descriptor is one that includes any fields named either [[Get]] or [[Set]].
     ///
     /// More information:
@@ -188,7 +236,16 @@ impl Property {
     /// [spec]: https://tc39.es/ecma262/#sec-isaccessordescriptor
     #[inline]
     pub fn is_accessor_descriptor(&self) -> bool {
-        self.get.is_some() || self.set.is_some()
+        matches!(self, Self::Accessor(_))
+    }
+
+    /// Return `Some()` if it is a accessor descriptor, `None` otherwise.
+    #[inline]
+    pub fn as_accessor_descriptor(&self) -> Option<&AccessorDescriptor> {
+        match self {
+            Self::Accessor(ref accessor) => Some(accessor),
+            _ => None,
+        }
     }
 
     /// A data Property Descriptor is one that includes any fields named either [[Value]] or [[Writable]].
@@ -199,82 +256,42 @@ impl Property {
     /// [spec]: https://tc39.es/ecma262/#sec-isdatadescriptor
     #[inline]
     pub fn is_data_descriptor(&self) -> bool {
-        self.value.is_some() || self.attribute.has_writable()
+        matches!(self, Self::Data(_))
     }
 
-    /// Check if a property is generic descriptor.
-    ///
-    /// More information:
-    /// - [ECMAScript reference][spec]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-isgenericdescriptor
+    /// Return `Some()` if it is a data descriptor, `None` otherwise.
     #[inline]
-    pub fn is_generic_descriptor(&self) -> bool {
-        !self.is_accessor_descriptor() && !self.is_data_descriptor()
+    pub fn as_data_descriptor(&self) -> Option<&DataDescriptor> {
+        match self {
+            Self::Data(ref data) => Some(data),
+            _ => None,
+        }
     }
-}
 
-impl Default for Property {
-    /// Make a default property
-    ///
-    /// More information:
-    /// - [ECMAScript reference][spec]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#table-default-attribute-values
+    /// Check whether the descriptor is enumerable.
     #[inline]
-    fn default() -> Self {
-        Self::new()
+    pub fn enumerable(&self) -> bool {
+        match self {
+            Self::Accessor(ref accessor) => accessor.enumerable(),
+            Self::Data(ref data) => data.enumerable(),
+        }
     }
-}
 
-impl From<&Property> for Value {
-    fn from(value: &Property) -> Value {
-        let property = Value::new_object(None);
-        if value.attribute.has_writable() {
-            property.set_field("writable", value.attribute.writable());
+    /// Check whether the descriptor is configurable.
+    #[inline]
+    pub fn configurable(&self) -> bool {
+        match self {
+            Self::Accessor(ref accessor) => accessor.configurable(),
+            Self::Data(ref data) => data.configurable(),
         }
-
-        if value.attribute.has_enumerable() {
-            property.set_field("enumerable", value.attribute.enumerable());
-        }
-
-        if value.attribute.has_configurable() {
-            property.set_field("configurable", value.attribute.configurable());
-        }
-
-        property.set_field("value", value.value.clone().unwrap_or_else(Value::null));
-        property.set_field("get", value.get.clone().unwrap_or_else(Value::null));
-        property.set_field("set", value.set.clone().unwrap_or_else(Value::null));
-        property
     }
-}
 
-impl<'a> From<&'a Value> for Property {
-    /// Attempt to fetch values "configurable", "enumerable", "writable" from the value,
-    /// if they're not there default to false
-    fn from(value: &Value) -> Self {
-        let mut attribute = Attribute::empty();
-
-        let writable = value.get_field("writable");
-        if !writable.is_undefined() {
-            attribute.set_writable(bool::from(&writable));
-        }
-
-        let enumerable = value.get_field("enumerable");
-        if !enumerable.is_undefined() {
-            attribute.set_enumerable(bool::from(&enumerable));
-        }
-
-        let configurable = value.get_field("configurable");
-        if !configurable.is_undefined() {
-            attribute.set_configurable(bool::from(&configurable));
-        }
-
-        Self {
-            attribute,
-            value: Some(value.get_field("value")),
-            get: Some(value.get_field("get")),
-            set: Some(value.get_field("set")),
+    /// Return the attributes of the descriptor.
+    #[inline]
+    pub fn attributes(&self) -> Attribute {
+        match self {
+            Self::Accessor(ref accessor) => accessor.attributes(),
+            Self::Data(ref data) => data.attributes(),
         }
     }
 }

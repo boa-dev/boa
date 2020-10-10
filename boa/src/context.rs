@@ -6,12 +6,11 @@ use crate::{
         function::{Function, FunctionFlags, NativeFunction},
         iterable::IteratorPrototypes,
         symbol::{Symbol, WellKnownSymbols},
-        Console,
     },
     class::{Class, ClassBuilder},
     exec::Interpreter,
     object::{GcObject, Object, ObjectData, PROTOTYPE},
-    property::{Property, PropertyKey},
+    property::{DataDescriptor, PropertyKey},
     realm::Realm,
     syntax::{
         ast::{
@@ -27,6 +26,9 @@ use crate::{
     BoaProfiler, Executable, Result,
 };
 use std::result::Result as StdResult;
+
+#[cfg(feature = "console")]
+use crate::builtins::console::Console;
 
 /// Store a builtin constructor (such as `Object`) and its corresponding prototype.
 #[derive(Debug, Clone)]
@@ -79,6 +81,8 @@ pub struct StandardObjects {
     referece_error: StandardConstructor,
     range_error: StandardConstructor,
     syntax_error: StandardConstructor,
+    eval_error: StandardConstructor,
+    uri_error: StandardConstructor,
 }
 
 impl StandardObjects {
@@ -151,6 +155,15 @@ impl StandardObjects {
     pub fn syntax_error_object(&self) -> &StandardConstructor {
         &self.syntax_error
     }
+
+    #[inline]
+    pub fn eval_error_object(&self) -> &StandardConstructor {
+        &self.eval_error
+    }
+
+    pub fn uri_error_object(&self) -> &StandardConstructor {
+        &self.uri_error
+    }
 }
 
 /// Javascript context. It is the primary way to interact with the runtime.
@@ -172,6 +185,7 @@ pub struct Context {
     symbol_count: u32,
 
     /// console object state.
+    #[cfg(feature = "console")]
     console: Console,
 
     /// Cached well known symbols
@@ -193,6 +207,7 @@ impl Default for Context {
             realm,
             executor,
             symbol_count,
+            #[cfg(feature = "console")]
             console: Console::default(),
             well_known_symbols,
             iterator_prototypes: IteratorPrototypes::default(),
@@ -227,11 +242,13 @@ impl Context {
     }
 
     /// A helper function for getting a immutable reference to the `console` object.
+    #[cfg(feature = "console")]
     pub(crate) fn console(&self) -> &Console {
         &self.console
     }
 
     /// A helper function for getting a mutable reference to the `console` object.
+    #[cfg(feature = "console")]
     pub(crate) fn console_mut(&mut self) -> &mut Console {
         &mut self.console
     }
@@ -366,6 +383,48 @@ impl Context {
         M: Into<String>,
     {
         Err(self.construct_syntax_error(message))
+    }
+
+    /// Constructs a `EvalError` with the specified message.
+    pub fn construct_eval_error<M>(&mut self, message: M) -> Value
+    where
+        M: Into<String>,
+    {
+        New::from(Call::new(
+            Identifier::from("EvalError"),
+            vec![Const::from(message.into()).into()],
+        ))
+        .run(self)
+        .expect("Into<String> used as message")
+    }
+
+    /// Constructs a `URIError` with the specified message.
+    pub fn construct_uri_error<M>(&mut self, message: M) -> Value
+    where
+        M: Into<String>,
+    {
+        New::from(Call::new(
+            Identifier::from("URIError"),
+            vec![Const::from(message.into()).into()],
+        ))
+        .run(self)
+        .expect("Into<String> used as message")
+    }
+
+    /// Throws a `EvalError` with the specified message.
+    pub fn throw_eval_error<M>(&mut self, message: M) -> Result<Value>
+    where
+        M: Into<String>,
+    {
+        Err(self.construct_eval_error(message))
+    }
+
+    /// Throws a `URIError` with the specified message.
+    pub fn throw_uri_error<M>(&mut self, message: M) -> Result<Value>
+    where
+        M: Into<String>,
+    {
+        Err(self.construct_uri_error(message))
     }
 
     /// Utility to create a function Value for Function Declarations, Arrow Functions or Function Expressions
@@ -549,7 +608,7 @@ impl Context {
         T::init(&mut class_builder)?;
 
         let class = class_builder.build();
-        let property = Property::data_descriptor(class.into(), T::ATTRIBUTE);
+        let property = DataDescriptor::new(class, T::ATTRIBUTE);
         self.global_object()
             .as_object_mut()
             .unwrap()

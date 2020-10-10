@@ -13,13 +13,7 @@
 //! [spec]: https://tc39.es/ecma262/#sec-objects
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object
 
-use crate::{
-    builtins::BuiltIn,
-    object::{ConstructorBuilder, Object as BuiltinObject, ObjectData, ObjectInitializer},
-    property::{Attribute, Property},
-    value::{same_value, Value},
-    BoaProfiler, Context, Result,
-};
+use crate::{BoaProfiler, Context, Result, builtins::BuiltIn, object::{ConstructorBuilder, Object as BuiltinObject, ObjectData, ObjectInitializer}, property::Attribute, property::DataDescriptor, property::PropertyDescriptor, value::{same_value, Value}};
 
 #[cfg(test)]
 mod tests;
@@ -137,7 +131,7 @@ impl Object {
         let object = args.get(0).unwrap().to_object(ctx)?;
         if let Some(key) = args.get(1) {
             let key = key.to_property_key(ctx)?;
-            let desc = object.borrow().get_own_property(&key);
+            let desc = object.borrow().get_own_property(&key).unwrap();
             Self::from_property_descriptor(desc, ctx)
         } else {
             Ok(Value::undefined())
@@ -163,13 +157,14 @@ impl Object {
         let descriptors = ctx.construct_object();
 
         for key in object.borrow().keys() {
-            let desc = object.borrow().get_own_property(&key);
+            let desc = object.borrow().get_own_property(&key).unwrap();
             let descriptor = Self::from_property_descriptor(desc, ctx)?;
 
             if !descriptor.is_undefined() {
-                descriptors
-                    .borrow_mut()
-                    .insert(key, Property::data_descriptor(descriptor, Attribute::all()));
+                descriptors.borrow_mut().insert(
+                    key,
+                    PropertyDescriptor::from(DataDescriptor::new(descriptor, Attribute::all())),
+                );
             }
         }
 
@@ -177,21 +172,31 @@ impl Object {
     }
 
     /// https://www.ecma-international.org/ecma-262/10.0/index.html#sec-frompropertydescriptor
-    fn from_property_descriptor(desc: Property, ctx: &mut Context) -> Result<Value> {
+    fn from_property_descriptor(desc: PropertyDescriptor, ctx: &mut Context) -> Result<Value> {
         let mut descriptor = ObjectInitializer::new(ctx);
 
-        if let Some(value) = &desc.value {
-            descriptor.property("value", value, Attribute::all());
-        }
-        if let Some(set) = &desc.set {
-            descriptor.property("set", set, Attribute::all());
-        }
-        if let Some(get) = &desc.get {
-            descriptor.property("get", get, Attribute::all());
+        if let PropertyDescriptor::Data(data_desc) = &desc {
+            descriptor.property("value", data_desc.value(), Attribute::all());
         }
 
+        if let PropertyDescriptor::Accessor(accessor_desc) = &desc {
+            if let Some(setter) = accessor_desc.setter() {
+                descriptor.property("set", Value::Object(setter.to_owned()), Attribute::all());       
+            } 
+            if let Some(getter) = accessor_desc.getter() {
+                descriptor.property("get", Value::Object(getter.to_owned()), Attribute::all());
+            }
+
+        }
+
+        let writable = if let PropertyDescriptor::Data(data_desc) = &desc {
+            data_desc.writable()
+        } else {
+            false
+        };
+
         descriptor
-            .property("writable", Value::from(desc.writable()), Attribute::all())
+            .property("writable", Value::from(writable), Attribute::all())
             .property(
                 "enumerable",
                 Value::from(desc.enumerable()),
@@ -231,13 +236,18 @@ impl Object {
     }
 
     /// Define a property in an object
-    pub fn define_property(_: &Value, args: &[Value], ctx: &mut Context) -> Result<Value> {
+    pub fn define_property(_: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
         let obj = args.get(0).expect("Cannot get object");
         let prop = args
             .get(1)
             .expect("Cannot get object")
-            .to_property_key(ctx)?;
-        let desc = Property::from(args.get(2).expect("Cannot get object"));
+            .to_property_key(context)?;
+
+        let desc = if let Value::Object(ref object) = args.get(2).cloned().unwrap_or_default() {
+            object.to_property_descriptor(context)?
+        } else {
+            return context.throw_type_error("Property description must be an object");
+        };
         obj.set_property(prop, desc);
         Ok(Value::undefined())
     }
@@ -253,7 +263,7 @@ impl Object {
     /// [spec]: https://tc39.es/ecma262/#sec-object.defineproperties
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/defineProperties
     pub fn define_properties(_: &Value, args: &[Value], ctx: &mut Context) -> Result<Value> {
-        let arg = args.get(0).cloned().unwrap_or(Value::undefined());
+        let arg = args.get(0).cloned().unwrap_or_default();
         let arg_obj = arg.as_object_mut();
         if let Some(mut obj) = arg_obj {
             let props = args.get(1).cloned().unwrap_or_else(Value::undefined);
@@ -343,12 +353,10 @@ impl Object {
         };
 
         let key = key.to_property_key(ctx)?;
-        let own_property = this
-            .to_object(ctx)
-            .map(|obj| obj.borrow().get_own_property(&key));
+        let own_property = this.to_object(ctx)?.borrow().get_own_property(&key);
 
         Ok(own_property.map_or(Value::from(false), |own_prop| {
-            Value::from(own_prop.enumerable_or(false))
+            Value::from(own_prop.enumerable())
         }))
     }
 }

@@ -2,7 +2,7 @@ use crate::builtins::string::code_point_at;
 use crate::{
     builtins::{function::make_builtin_fn, iterable::create_iter_result_object},
     object::ObjectData,
-    property::{Attribute, Property},
+    property::{Attribute, DataDescriptor},
     BoaProfiler, Context, Result, Value,
 };
 use gc::{Finalize, Trace};
@@ -82,7 +82,7 @@ impl StringIterator {
 
         let to_string_tag = ctx.well_known_symbols().to_string_tag_symbol();
         let to_string_tag_property =
-            Property::data_descriptor(Value::string("String Iterator"), Attribute::CONFIGURABLE);
+            DataDescriptor::new("String Iterator", Attribute::CONFIGURABLE);
         array_iterator.set_property(to_string_tag, to_string_tag_property);
         array_iterator
     }

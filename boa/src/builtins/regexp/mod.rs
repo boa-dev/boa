@@ -13,11 +13,11 @@ use crate::{
     builtins::BuiltIn,
     gc::{empty_trace, Finalize, Trace},
     object::{ConstructorBuilder, ObjectData},
-    property::{Attribute, Property},
+    property::{Attribute, DataDescriptor},
     value::{RcString, Value},
     BoaProfiler, Context, Result,
 };
-use regex::Regex;
+use regress::{Flags, Regex};
 
 #[cfg(test)]
 mod tests;
@@ -123,7 +123,6 @@ impl RegExp {
 
         // parse flags
         let mut sorted_flags = String::new();
-        let mut pattern = String::new();
         let mut dot_all = false;
         let mut global = false;
         let mut ignore_case = false;
@@ -137,34 +136,26 @@ impl RegExp {
         if regex_flags.contains('i') {
             ignore_case = true;
             sorted_flags.push('i');
-            pattern.push('i');
         }
         if regex_flags.contains('m') {
             multiline = true;
             sorted_flags.push('m');
-            pattern.push('m');
         }
         if regex_flags.contains('s') {
             dot_all = true;
             sorted_flags.push('s');
-            pattern.push('s');
         }
         if regex_flags.contains('u') {
             unicode = true;
             sorted_flags.push('u');
-            //pattern.push('s'); // rust uses utf-8 anyway
         }
         if regex_flags.contains('y') {
             sticky = true;
             sorted_flags.push('y');
         }
-        // the `regex` crate uses '(?{flags})` inside the pattern to enable flags
-        if !pattern.is_empty() {
-            pattern = format!("(?{})", pattern);
-        }
-        pattern.push_str(regex_body.as_str());
 
-        let matcher = Regex::new(pattern.as_str()).expect("failed to create matcher");
+        let matcher = Regex::newf(regex_body.as_str(), Flags::from(sorted_flags.as_str()))
+            .expect("failed to create matcher");
         let regexp = RegExp {
             matcher,
             use_last_index: global || sticky,
@@ -319,17 +310,18 @@ impl RegExp {
         let mut last_index = this.get_field("lastIndex").to_index(ctx)?;
         let result = if let Some(object) = this.as_object() {
             let regex = object.as_regexp().unwrap();
-            let result = if let Some(m) = regex.matcher.find_at(arg_str.as_str(), last_index) {
-                if regex.use_last_index {
-                    last_index = m.end();
-                }
-                true
-            } else {
-                if regex.use_last_index {
-                    last_index = 0;
-                }
-                false
-            };
+            let result =
+                if let Some(m) = regex.matcher.find_from(arg_str.as_str(), last_index).next() {
+                    if regex.use_last_index {
+                        last_index = m.total().end;
+                    }
+                    true
+                } else {
+                    if regex.use_last_index {
+                        last_index = 0;
+                    }
+                    false
+                };
             Ok(Value::boolean(result))
         } else {
             panic!("object is not a regexp")
@@ -358,35 +350,36 @@ impl RegExp {
         let mut last_index = this.get_field("lastIndex").to_index(ctx)?;
         let result = if let Some(object) = this.as_object() {
             let regex = object.as_regexp().unwrap();
-            let mut locations = regex.matcher.capture_locations();
-            let result = if let Some(m) =
-                regex
-                    .matcher
-                    .captures_read_at(&mut locations, arg_str.as_str(), last_index)
-            {
-                if regex.use_last_index {
-                    last_index = m.end();
-                }
-                let mut result = Vec::with_capacity(locations.len());
-                for i in 0..locations.len() {
-                    if let Some((start, end)) = locations.get(i) {
-                        result.push(Value::from(
-                            arg_str.get(start..end).expect("Could not get slice"),
-                        ));
-                    } else {
-                        result.push(Value::undefined());
+            let result = {
+                if let Some(m) = regex.matcher.find_from(arg_str.as_str(), last_index).next() {
+                    if regex.use_last_index {
+                        last_index = m.total().end;
                     }
-                }
+                    let groups = m.captures.len() + 1;
+                    let mut result = Vec::with_capacity(groups);
+                    for i in 0..groups {
+                        if let Some(range) = m.group(i) {
+                            result.push(Value::from(
+                                arg_str.get(range).expect("Could not get slice"),
+                            ));
+                        } else {
+                            result.push(Value::undefined());
+                        }
+                    }
 
-                let result = Value::from(result);
-                result.set_property("index", Property::default().value(Value::from(m.start())));
-                result.set_property("input", Property::default().value(Value::from(arg_str)));
-                result
-            } else {
-                if regex.use_last_index {
-                    last_index = 0;
+                    let result = Value::from(result);
+                    result.set_property(
+                        "index",
+                        DataDescriptor::new(m.total().start, Attribute::all()),
+                    );
+                    result.set_property("input", DataDescriptor::new(arg_str, Attribute::all()));
+                    result
+                } else {
+                    if regex.use_last_index {
+                        last_index = 0;
+                    }
+                    Value::null()
                 }
-                Value::null()
             };
             Ok(result)
         } else {
@@ -416,7 +409,7 @@ impl RegExp {
         if flags.contains('g') {
             let mut matches = Vec::new();
             for mat in matcher.find_iter(&arg) {
-                matches.push(Value::from(mat.as_str()));
+                matches.push(Value::from(&arg[mat.total()]));
             }
             if matches.is_empty() {
                 return Ok(Value::null());
@@ -438,12 +431,15 @@ impl RegExp {
     /// [spec]: https://tc39.es/ecma262/#sec-regexp.prototype.tostring
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/toString
     #[allow(clippy::wrong_self_convention)]
-    pub(crate) fn to_string(this: &Value, _: &[Value], _: &mut Context) -> Result<Value> {
+    pub(crate) fn to_string(this: &Value, _: &[Value], context: &mut Context) -> Result<Value> {
         let (body, flags) = if let Some(object) = this.as_object() {
             let regex = object.as_regexp().unwrap();
             (regex.original_source.clone(), regex.flags.clone())
         } else {
-            panic!("object is not an object")
+            return context.throw_type_error(format!(
+                "Method RegExp.prototype.toString called on incompatible receiver {}",
+                this.display()
+            ));
         };
         Ok(Value::from(format!("/{}/{}", body, flags)))
     }
@@ -464,29 +460,29 @@ impl RegExp {
             let regex = object.as_regexp().unwrap();
             let mut matches = Vec::new();
 
-            for m in regex.matcher.find_iter(&arg_str) {
-                if let Some(caps) = regex.matcher.captures(&m.as_str()) {
-                    let match_vec = caps
-                        .iter()
-                        .map(|group| match group {
-                            Some(g) => Value::from(g.as_str()),
-                            None => Value::undefined(),
-                        })
-                        .collect::<Vec<Value>>();
+            for mat in regex.matcher.find_iter(&arg_str) {
+                let match_vec: Vec<Value> = mat
+                    .groups()
+                    .map(|group| match group {
+                        Some(range) => Value::from(&arg_str[range]),
+                        None => Value::undefined(),
+                    })
+                    .collect();
 
-                    let match_val = Value::from(match_vec);
+                let match_val = Value::from(match_vec);
 
-                    match_val
-                        .set_property("index", Property::default().value(Value::from(m.start())));
-                    match_val.set_property(
-                        "input",
-                        Property::default().value(Value::from(arg_str.clone())),
-                    );
-                    matches.push(match_val);
+                match_val.set_property(
+                    "index",
+                    DataDescriptor::new(mat.total().start, Attribute::all()),
+                );
+                match_val.set_property(
+                    "input",
+                    DataDescriptor::new(arg_str.clone(), Attribute::all()),
+                );
+                matches.push(match_val);
 
-                    if !regex.flags.contains('g') {
-                        break;
-                    }
+                if !regex.flags.contains('g') {
+                    break;
                 }
             }
 

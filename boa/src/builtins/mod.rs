@@ -3,6 +3,7 @@
 pub mod array;
 pub mod bigint;
 pub mod boolean;
+#[cfg(feature = "console")]
 pub mod console;
 pub mod date;
 pub mod error;
@@ -25,9 +26,8 @@ pub(crate) use self::{
     array::{array_iterator::ArrayIterator, Array},
     bigint::BigInt,
     boolean::Boolean,
-    console::Console,
     date::Date,
-    error::{Error, RangeError, ReferenceError, SyntaxError, TypeError},
+    error::{Error, EvalError, RangeError, ReferenceError, SyntaxError, TypeError, UriError},
     function::BuiltInFunctionObject,
     global_this::GlobalThis,
     infinity::Infinity,
@@ -43,7 +43,7 @@ pub(crate) use self::{
     undefined::Undefined,
 };
 use crate::{
-    property::{Attribute, Property},
+    property::{Attribute, DataDescriptor},
     Context, Value,
 };
 
@@ -68,7 +68,6 @@ pub fn init(context: &mut Context) {
         BuiltInObjectObject::init,
         Math::init,
         Json::init,
-        Console::init,
         Array::init,
         BigInt::init,
         Boolean::init,
@@ -83,6 +82,10 @@ pub fn init(context: &mut Context) {
         ReferenceError::init,
         TypeError::init,
         SyntaxError::init,
+        EvalError::init,
+        UriError::init,
+        #[cfg(feature = "console")]
+        console::Console::init,
     ];
 
     let global_object = if let Value::Object(global) = context.global_object() {
@@ -93,7 +96,7 @@ pub fn init(context: &mut Context) {
 
     for init in &globals {
         let (name, value, attribute) = init(context);
-        let property = Property::data_descriptor(value, attribute);
+        let property = DataDescriptor::new(value, attribute);
         global_object.borrow_mut().insert(name, property);
     }
 }

@@ -17,7 +17,7 @@ use crate::{
     builtins::array::array_iterator::{ArrayIterationKind, ArrayIterator},
     builtins::BuiltIn,
     object::{ConstructorBuilder, FunctionBuilder, ObjectData, PROTOTYPE},
-    property::{Attribute, Property},
+    property::{Attribute, DataDescriptor},
     value::{same_value_zero, Value},
     BoaProfiler, Context, Result,
 };
@@ -129,8 +129,8 @@ impl Array {
         }
 
         // finally create length property
-        let length = Property::data_descriptor(
-            length.into(),
+        let length = DataDescriptor::new(
+            length,
             Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::PERMANENT,
         );
 
@@ -171,8 +171,8 @@ impl Array {
         }
 
         // Create length
-        let length = Property::data_descriptor(
-            array_contents.len().into(),
+        let length = DataDescriptor::new(
+            array_contents.len(),
             Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::PERMANENT,
         );
         array_obj_ptr.set_property("length".to_string(), length);
@@ -581,7 +581,7 @@ impl Array {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.map
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/map
-    pub(crate) fn map(this: &Value, args: &[Value], interpreter: &mut Context) -> Result<Value> {
+    pub(crate) fn map(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
         if args.is_empty() {
             return Err(Value::from(
                 "missing argument 0 when calling function Array.prototype.map",
@@ -591,16 +591,20 @@ impl Array {
         let callback = args.get(0).cloned().unwrap_or_else(Value::undefined);
         let this_val = args.get(1).cloned().unwrap_or_else(Value::undefined);
 
-        let length = this.get_field("length").as_number().unwrap() as i32;
+        let length = this.get_field("length").to_length(context)?;
 
-        let new = Self::new_array(interpreter)?;
+        if length > 2usize.pow(32) - 1 {
+            return context.throw_range_error("Invalid array length");
+        }
+
+        let new = Self::new_array(context)?;
 
         let values: Vec<Value> = (0..length)
             .map(|idx| {
                 let element = this.get_field(idx);
                 let args = [element, Value::from(idx), new.clone()];
 
-                interpreter
+                context
                     .call(&callback, &this_val, &args)
                     .unwrap_or_else(|_| Value::undefined())
             })
@@ -1113,12 +1117,13 @@ impl Array {
                 );
             }
             let result = this.get_field(k);
-            k -= 1;
+            k = k.overflowing_sub(1).0;
             result
         } else {
             initial_value
         };
-        loop {
+        // usize::MAX is bigger than the maximum array size so we can use it check for integer undeflow
+        while k != usize::MAX {
             if this.has_field(k) {
                 let arguments = [accumulator, this.get_field(k), Value::from(k), this.clone()];
                 accumulator = interpreter.call(&callback, &Value::undefined(), &arguments)?;
@@ -1140,7 +1145,7 @@ impl Array {
             if k == 0 {
                 break;
             }
-            k -= 1;
+            k = k.overflowing_sub(1).0;
         }
         Ok(accumulator)
     }
