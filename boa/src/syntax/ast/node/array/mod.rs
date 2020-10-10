@@ -41,10 +41,9 @@ impl Executable for ArrayDecl {
                 let val = x.run(interpreter)?;
                 let iterator_record =
                     super::super::super::super::builtins::iterable::get_iterator(interpreter, val)?;
-                //not sure what to do with this next_index mentioned in the spec
-                //it is mentioned that it has to be returned from somewhere
-                //https://tc39.es/ecma262/#sec-runtime-semantics-arrayaccumulation
-                //let mut next_index = 0;
+                // TODO after proper internal Array representation as per https://github.com/boa-dev/boa/pull/811#discussion_r502460858
+                // next_index variable should be utilized here as per https://tc39.es/ecma262/#sec-runtime-semantics-arrayaccumulation
+                // let mut next_index = 0;
                 loop {
                     let next = iterator_record.next(interpreter)?;
                     if next.is_done() {
