@@ -1,7 +1,11 @@
 //! Array declaration node.
 
 use super::{join_nodes, Node};
-use crate::{builtins::Array, exec::Executable, BoaProfiler, Context, Result, Value};
+use crate::{
+    builtins::{iterable, Array},
+    exec::Executable,
+    BoaProfiler, Context, Result, Value,
+};
 use gc::{Finalize, Trace};
 use std::fmt;
 
@@ -39,8 +43,7 @@ impl Executable for ArrayDecl {
         for elem in self.as_ref() {
             if let Node::Spread(ref x) = elem {
                 let val = x.run(interpreter)?;
-                let iterator_record =
-                    super::super::super::super::builtins::iterable::get_iterator(interpreter, val)?;
+                let iterator_record = iterable::get_iterator(interpreter, val)?;
                 // TODO after proper internal Array representation as per https://github.com/boa-dev/boa/pull/811#discussion_r502460858
                 // next_index variable should be utilized here as per https://tc39.es/ecma262/#sec-runtime-semantics-arrayaccumulation
                 // let mut next_index = 0;
