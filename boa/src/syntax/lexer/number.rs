@@ -226,6 +226,17 @@ impl<R> Tokenizer<R> for NumberLiteral {
             }
         }
 
+        //Checks if the next
+        let digit_char = cursor.peek();
+
+        if let Some(digit) = digit_char? {
+            if !digit.is_digit(kind.base()) {
+                return Err(Error::syntax(
+                    "character was not in expected digit",
+                    cursor.pos(),
+                ))
+            }
+        }
         // Consume digits until a non-digit character is encountered or all the characters are consumed.
         cursor.take_while_pred(&mut buf, &|c: char| c.is_digit(kind.base()))?;
 
@@ -287,11 +298,9 @@ impl<R> Tokenizer<R> for NumberLiteral {
 
         let num = match kind {
             NumericKind::BigInt(base) => {
-                let val = BigInt::from_string_radix(&buf, base);
-                match val {
-                    Some(bigint) => Ok(Numeric::BigInt(bigint)),
-                    _ => Err("Could not convert to BigInt"),
-                }
+                Numeric::BigInt(
+                    BigInt::from_string_radix(&buf, base).expect("Could not convert to BigInt")
+                    )
             }
             NumericKind::Rational /* base: 10 */ => {
                 let val = f64::from_str(&buf).expect("Failed to parse float after checks");
@@ -302,14 +311,14 @@ impl<R> Tokenizer<R> for NumberLiteral {
                 #[allow(clippy::float_cmp)]
                 if (int_val as f64) == val {
                     // For performance reasons we attempt to store values as integers if possible.
-                    Ok(Numeric::Integer(int_val))
+                    Numeric::Integer(int_val)
                 } else {
-                    Ok(Numeric::Rational(val))
+                    Numeric::Rational(val)
                 }
             },
             NumericKind::Integer(base) => {
                 if let Ok(num) = i32::from_str_radix(&buf, base) {
-                    Ok(Numeric::Integer(num))
+                    Numeric::Integer(num)
                 } else {
                     let b = f64::from(base);
                     let mut result = 0.0_f64;
@@ -317,17 +326,14 @@ impl<R> Tokenizer<R> for NumberLiteral {
                         let digit = f64::from(c.to_digit(base).expect("could not parse digit after already checking validity"));
                         result = result * b + digit;
                     }
-                    Ok(Numeric::Rational(result))
+                    Numeric::Rational(result)
                 }
             }
         };
 
-        match num {
-            Ok(numeric_literal) => Ok(Token::new(
-                TokenKind::NumericLiteral(numeric_literal),
-                Span::new(start_pos, cursor.pos()),
-            )),
-            Err(error_message) => Err(Error::syntax(error_message, cursor.pos())),
-        }
+        Ok(Token::new(
+            TokenKind::NumericLiteral(num),
+            Span::new(start_pos, cursor.pos()),
+        ))
     }
 }
