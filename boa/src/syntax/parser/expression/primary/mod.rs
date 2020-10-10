@@ -78,9 +78,9 @@ where
             TokenKind::Keyword(Keyword::Function) => {
                 FunctionExpression.parse(cursor).map(Node::from)
             }
-            TokenKind::Keyword(Keyword::Async) => {
-                AsyncFunctionExpression.parse(cursor).map(Node::from)
-            }
+            TokenKind::Keyword(Keyword::Async) => AsyncFunctionExpression::new(self.allow_yield)
+                .parse(cursor)
+                .map(Node::from),
             TokenKind::Punctuator(Punctuator::OpenParen) => {
                 cursor.set_goal(InputElement::RegExp);
                 let expr =
