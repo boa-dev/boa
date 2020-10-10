@@ -1,13 +1,11 @@
 #[cfg(test)]
 mod tests;
 
-use crate::{
-    syntax::{
-        ast::{node::FunctionDecl, Keyword, Punctuator},
-        parser::{
-            function::FormalParameters, function::FunctionBody, statement::BindingIdentifier,
-            AllowAwait, AllowDefault, AllowYield, Cursor, ParseError, TokenParser,
-        },
+use crate::syntax::{
+    ast::{node::FunctionDecl, Keyword, Punctuator},
+    parser::{
+        function::FormalParameters, function::FunctionBody, statement::BindingIdentifier,
+        AllowAwait, AllowDefault, AllowYield, Cursor, ParseError, TokenParser,
     },
 };
 use std::io::Read;
