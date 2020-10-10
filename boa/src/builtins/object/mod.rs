@@ -13,7 +13,15 @@
 //! [spec]: https://tc39.es/ecma262/#sec-objects
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object
 
-use crate::{BoaProfiler, Context, Result, builtins::BuiltIn, object::{ConstructorBuilder, Object as BuiltinObject, ObjectData, ObjectInitializer}, property::Attribute, property::DataDescriptor, property::PropertyDescriptor, value::{same_value, Value}};
+use crate::{
+    builtins::BuiltIn,
+    object::{ConstructorBuilder, Object as BuiltinObject, ObjectData, ObjectInitializer},
+    property::Attribute,
+    property::DataDescriptor,
+    property::PropertyDescriptor,
+    value::{same_value, Value},
+    BoaProfiler, Context, Result,
+};
 
 #[cfg(test)]
 mod tests;
@@ -181,12 +189,11 @@ impl Object {
 
         if let PropertyDescriptor::Accessor(accessor_desc) = &desc {
             if let Some(setter) = accessor_desc.setter() {
-                descriptor.property("set", Value::Object(setter.to_owned()), Attribute::all());       
-            } 
+                descriptor.property("set", Value::Object(setter.to_owned()), Attribute::all());
+            }
             if let Some(getter) = accessor_desc.getter() {
                 descriptor.property("get", Value::Object(getter.to_owned()), Attribute::all());
             }
-
         }
 
         let writable = if let PropertyDescriptor::Data(data_desc) = &desc {
