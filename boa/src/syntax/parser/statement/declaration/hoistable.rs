@@ -173,13 +173,39 @@ where
 
     fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         cursor.expect(Keyword::Async, "async function declaration")?;
-        let tok = cursor.peek_expect_no_lineterminator(0)?;
+        cursor.expect_no_skip_lineterminator(Keyword::Function, "async function declaration")?;
+        let tok = cursor.peek(0)?;
 
-        match tok.kind() {
-            TokenKind::Keyword(Keyword::Function) => {}
-            _ => {}
-        }
+        let name = if let Some(token) = tok {
+            match token.kind() {
+                TokenKind::Punctuator(Punctuator::OpenParen) => {
+                    if !self.is_default.0 {
+                        return Err(ParseError::unexpected(
+                            token.clone(),
+                            "Unexpected missing identifier for async function decl",
+                        ));
+                    }
+                    None
+                }
+                _ => {
+                    Some(BindingIdentifier::new(self.allow_yield, self.allow_await).parse(cursor)?)
+                }
+            }
+        } else {
+            return Err(ParseError::AbruptEnd);
+        };
 
-        unimplemented!("AsyncFunctionDecl parse");
+        cursor.expect(Punctuator::OpenParen, "async function declaration")?;
+
+        let params = FormalParameters::new(!self.allow_yield.0, true).parse(cursor)?;
+
+        cursor.expect(Punctuator::CloseParen, "async function declaration")?;
+        cursor.expect(Punctuator::OpenBlock, "async function declaration")?;
+
+        let body = FunctionBody::new(!self.allow_yield.0, true).parse(cursor)?;
+
+        cursor.expect(Punctuator::CloseBlock, "async function declaration")?;
+
+        Ok(AsyncFunctionDecl::new(name, params, body))
     }
 }
