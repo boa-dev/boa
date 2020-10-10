@@ -11,7 +11,10 @@ use crate::{
     syntax::{
         ast::{node, op::UnaryOp, Node, Punctuator},
         lexer::TokenKind,
-        parser::{AllowAwait, AllowYield, Cursor, ParseError, ParseResult, TokenParser},
+        parser::{
+            expression::unary::UnaryExpression, AllowAwait, AllowYield, Cursor, ParseError,
+            ParseResult, TokenParser,
+        },
     },
 };
 
@@ -58,8 +61,7 @@ where
                 cursor.next()?.expect("Punctuator::Inc token disappeared");
                 return Ok(node::UnaryOp::new(
                     UnaryOp::IncrementPre,
-                    LeftHandSideExpression::new(self.allow_yield, self.allow_await)
-                        .parse(cursor)?,
+                    UnaryExpression::new(self.allow_yield, self.allow_await).parse(cursor)?,
                 )
                 .into());
             }
@@ -67,8 +69,7 @@ where
                 cursor.next()?.expect("Punctuator::Dec token disappeared");
                 return Ok(node::UnaryOp::new(
                     UnaryOp::DecrementPre,
-                    LeftHandSideExpression::new(self.allow_yield, self.allow_await)
-                        .parse(cursor)?,
+                    UnaryExpression::new(self.allow_yield, self.allow_await).parse(cursor)?,
                 )
                 .into());
             }
