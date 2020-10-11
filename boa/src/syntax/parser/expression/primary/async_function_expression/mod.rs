@@ -62,7 +62,7 @@ where
             return Err(ParseError::AbruptEnd);
         };
 
-        cursor.expect(Punctuator::OpenParen, "function expression")?;
+        cursor.expect(Punctuator::OpenParen, "async function expression")?;
 
         let params = FormalParameters::new(!self.allow_yield.0, true).parse(cursor)?;
 
