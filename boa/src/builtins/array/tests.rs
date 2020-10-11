@@ -1210,3 +1210,27 @@ fn array_values_symbol_iterator() {
     "#;
     assert_eq!(forward(&mut engine, init), "true");
 }
+
+#[test]
+fn array_spread_arrays() {
+    let mut engine = Context::new();
+    let init = r#"
+        const array1 = [2, 3];
+        const array2 = [1, ...array1];
+        array2[0] === 1 && array2[1] === 2 && array2[2] === 3;
+    "#;
+    assert_eq!(forward(&mut engine, init), "true");
+}
+
+#[test]
+fn array_spread_non_iterable() {
+    let mut engine = Context::new();
+    let init = r#"
+        try {
+            const array2 = [...5];
+        } catch (err) {
+            err.name === "TypeError" && err.message === "Not an iterable"
+        }
+    "#;
+    assert_eq!(forward(&mut engine, init), "true");
+}

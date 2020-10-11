@@ -508,6 +508,7 @@ impl Context {
     /// Converts an array object into a rust vector of values.
     ///
     /// This is useful for the spread operator, for any other object an `Err` is returned
+    /// TODO: Not needed for spread of arrays. Check in the future for Map and remove if necessary
     pub(crate) fn extract_array_properties(&mut self, value: &Value) -> StdResult<Vec<Value>, ()> {
         if let Value::Object(ref x) = value {
             // Check if object is array

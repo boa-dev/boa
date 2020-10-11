@@ -1,7 +1,11 @@
 //! Array declaration node.
 
 use super::{join_nodes, Node};
-use crate::{builtins::Array, exec::Executable, BoaProfiler, Context, Result, Value};
+use crate::{
+    builtins::{iterable, Array},
+    exec::Executable,
+    BoaProfiler, Context, Result, Value,
+};
 use gc::{Finalize, Trace};
 use std::fmt;
 
@@ -39,14 +43,25 @@ impl Executable for ArrayDecl {
         for elem in self.as_ref() {
             if let Node::Spread(ref x) = elem {
                 let val = x.run(interpreter)?;
-                let mut vals = interpreter.extract_array_properties(&val).unwrap();
-                elements.append(&mut vals);
-                continue; // Don't push array after spread
+                let iterator_record = iterable::get_iterator(interpreter, val)?;
+                // TODO after proper internal Array representation as per https://github.com/boa-dev/boa/pull/811#discussion_r502460858
+                // next_index variable should be utilized here as per https://tc39.es/ecma262/#sec-runtime-semantics-arrayaccumulation
+                // let mut next_index = 0;
+                loop {
+                    let next = iterator_record.next(interpreter)?;
+                    if next.is_done() {
+                        break;
+                    }
+                    let next_value = next.value();
+                    //next_index += 1;
+                    elements.push(next_value.clone());
+                }
+            } else {
+                elements.push(elem.run(interpreter)?);
             }
-            elements.push(elem.run(interpreter)?);
         }
-        Array::add_to_array_object(&array, &elements)?;
 
+        Array::add_to_array_object(&array, &elements)?;
         Ok(array)
     }
 }
