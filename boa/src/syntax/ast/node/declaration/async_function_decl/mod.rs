@@ -1,3 +1,5 @@
+//! Async Function Declaration.
+
 use crate::{
     exec::Executable,
     syntax::ast::node::{join_nodes, FormalParameter, Node, StatementList},
@@ -9,7 +11,7 @@ use std::fmt;
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
-/// Async Function Declaration.
+/// An async function is used to specify an action (or series of actions) to perform asynchronously.
 ///
 /// More information:
 ///  - [ECMAScript reference][spec]

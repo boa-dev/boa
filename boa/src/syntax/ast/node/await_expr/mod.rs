@@ -8,14 +8,15 @@ use std::fmt;
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
-///
+/// An await expression is used within an async function to pause execution and wait for a
+/// promise to resolve.
 ///
 /// More information:
 ///  - [ECMAScript reference][spec]
 ///  - [MDN documentation][mdn]
 ///
-/// [spec]:
-/// [mdn]:
+/// [spec]: https://tc39.es/ecma262/#prod-AwaitExpression
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/await
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub struct AwaitExpr {

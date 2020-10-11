@@ -4,8 +4,8 @@
 //!  - [MDN documentation][mdn]
 //!  - [ECMAScript specification][spec]
 //!
-//! [mdn]:
-//! [spec]:
+//! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/await
+//! [spec]: https://tc39.es/ecma262/#prod-AwaitExpression
 
 use super::unary::UnaryExpression;
 
@@ -16,14 +16,14 @@ use crate::syntax::{
 };
 use std::io::Read;
 
-/// Parses a await expression.
+/// Parses an await expression.
 ///
 /// More information:
 ///  - [MDN documentation][mdn]
 ///  - [ECMAScript specification][spec]
 ///
-/// [mdn]:
-/// [spec]:
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/await
+/// [spec]: https://tc39.es/ecma262/#prod-AwaitExpression
 #[derive(Debug, Clone, Copy)]
 pub(in crate::syntax::parser) struct AwaitExpression {
     allow_yield: AllowYield,

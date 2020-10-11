@@ -1,3 +1,5 @@
+//! Async Function Expression.
+
 use crate::{
     exec::Executable,
     syntax::ast::node::{join_nodes, FormalParameter, Node, StatementList},
@@ -9,7 +11,8 @@ use std::fmt;
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
-/// AsyncFunctionExpr.
+/// An async function expression is very similar to an async function declaration except used within
+/// a wider expression (for example during an assignment).
 ///
 /// More information:
 ///  - [ECMAScript reference][spec]
