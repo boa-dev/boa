@@ -59,7 +59,7 @@ where
                     if !self.is_default.0 {
                         return Err(ParseError::unexpected(
                             token.clone(),
-                            "Unexpected missing identifier for async function decl",
+                            " in async function declaration",
                         ));
                     }
                     None
