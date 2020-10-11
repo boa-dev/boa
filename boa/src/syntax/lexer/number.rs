@@ -226,10 +226,9 @@ impl<R> Tokenizer<R> for NumberLiteral {
             }
         }
 
-        //Checks if the next
-        let digit_char = cursor.peek();
-
-        if let Some(digit) = digit_char? {
+        // Checks if the next char after '0x', '0o' or '0b' is a digit
+        // of that base. if not return an error. 
+        if let Some(digit) = cursor.peek()? {
             if !digit.is_digit(kind.base()) {
                 return Err(Error::syntax(
                     "expected digit after number base prefix",
