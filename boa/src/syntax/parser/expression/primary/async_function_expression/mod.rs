@@ -1,12 +1,3 @@
-//! Async Function expression parsing.
-//!
-//! More information:
-//!  - [MDN documentation][mdn]
-//!  - [ECMAScript specification][spec]
-//!
-//! [mdn]:
-//! [spec]:
-
 #[cfg(test)]
 mod tests;
 
@@ -31,8 +22,8 @@ use std::io::Read;
 ///  - [MDN documentation][mdn]
 ///  - [ECMAScript specification][spec]
 ///
-/// [mdn]:
-/// [spec]:
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/async_function
+/// [spec]: https://www.ecma-international.org/ecma-262/11.0/index.html#prod-AsyncFunctionExpression
 #[derive(Debug, Clone, Copy)]
 pub(super) struct AsyncFunctionExpression {
     allow_yield: AllowYield,

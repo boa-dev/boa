@@ -1,7 +1,7 @@
 use crate::syntax::{
     ast::{
         node::{
-            ConstDecl, ConstDeclList, FunctionDecl, LetDecl, LetDeclList, Node, VarDecl,
+            ConstDecl, ConstDeclList, LetDecl, LetDeclList, Node, VarDecl,
             VarDeclList,
         },
         Const,
