@@ -94,6 +94,7 @@
 <span id="93">93</span>
 <span id="94">94</span>
 <span id="95">95</span>
+<span id="96">96</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Update expression parsing.</span>
 <span class="doccomment">//!</span>
@@ -108,7 +109,10 @@
     <span class="ident">syntax</span>::{
         <span class="ident">ast</span>::{<span class="ident">node</span>, <span class="ident">op</span>::<span class="ident">UnaryOp</span>, <span class="ident">Node</span>, <span class="ident">Punctuator</span>},
         <span class="ident">lexer</span>::<span class="ident">TokenKind</span>,
-        <span class="ident">parser</span>::{<span class="ident">AllowAwait</span>, <span class="ident">AllowYield</span>, <span class="ident">Cursor</span>, <span class="ident">ParseError</span>, <span class="ident">ParseResult</span>, <span class="ident">TokenParser</span>},
+        <span class="ident">parser</span>::{
+            <span class="ident">expression</span>::<span class="ident">unary</span>::<span class="ident">UnaryExpression</span>, <span class="ident">AllowAwait</span>, <span class="ident">AllowYield</span>, <span class="ident">Cursor</span>, <span class="ident">ParseError</span>,
+            <span class="ident">ParseResult</span>, <span class="ident">TokenParser</span>,
+        },
     },
 };
 
@@ -155,8 +159,7 @@
                 <span class="ident">cursor</span>.<span class="ident">next</span>()<span class="question-mark">?</span>.<span class="ident">expect</span>(<span class="string">&quot;Punctuator::Inc token disappeared&quot;</span>);
                 <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">node</span>::<span class="ident">UnaryOp</span>::<span class="ident">new</span>(
                     <span class="ident">UnaryOp</span>::<span class="ident">IncrementPre</span>,
-                    <span class="ident">LeftHandSideExpression</span>::<span class="ident">new</span>(<span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>)
-                        .<span class="ident">parse</span>(<span class="ident">cursor</span>)<span class="question-mark">?</span>,
+                    <span class="ident">UnaryExpression</span>::<span class="ident">new</span>(<span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>).<span class="ident">parse</span>(<span class="ident">cursor</span>)<span class="question-mark">?</span>,
                 )
                 .<span class="ident">into</span>());
             }
@@ -164,8 +167,7 @@
                 <span class="ident">cursor</span>.<span class="ident">next</span>()<span class="question-mark">?</span>.<span class="ident">expect</span>(<span class="string">&quot;Punctuator::Dec token disappeared&quot;</span>);
                 <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">node</span>::<span class="ident">UnaryOp</span>::<span class="ident">new</span>(
                     <span class="ident">UnaryOp</span>::<span class="ident">DecrementPre</span>,
-                    <span class="ident">LeftHandSideExpression</span>::<span class="ident">new</span>(<span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>)
-                        .<span class="ident">parse</span>(<span class="ident">cursor</span>)<span class="question-mark">?</span>,
+                    <span class="ident">UnaryExpression</span>::<span class="ident">new</span>(<span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>).<span class="ident">parse</span>(<span class="ident">cursor</span>)<span class="question-mark">?</span>,
                 )
                 .<span class="ident">into</span>());
             }
