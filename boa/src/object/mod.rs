@@ -4,6 +4,7 @@ use crate::{
     builtins::{
         array::array_iterator::ArrayIterator,
         function::{BuiltInFunction, Function, FunctionFlags, NativeFunction},
+        map::map_iterator::MapIterator,
         map::ordered_map::OrderedMap,
         string::string_iterator::StringIterator,
         BigInt, Date, RegExp,
@@ -76,6 +77,7 @@ pub enum ObjectData {
     Array,
     ArrayIterator(ArrayIterator),
     Map(OrderedMap<Value, Value>),
+    MapIterator(MapIterator),
     RegExp(Box<RegExp>),
     BigInt(RcBigInt),
     Boolean(bool),
@@ -102,6 +104,7 @@ impl Display for ObjectData {
                 Self::Function(_) => "Function",
                 Self::RegExp(_) => "RegExp",
                 Self::Map(_) => "Map",
+                Self::MapIterator(_) => "MapIterator",
                 Self::String(_) => "String",
                 Self::StringIterator(_) => "StringIterator",
                 Self::Symbol(_) => "Symbol",
@@ -323,6 +326,14 @@ impl Object {
     pub fn as_map_mut(&mut self) -> Option<&mut OrderedMap<Value, Value>> {
         match &mut self.data {
             ObjectData::Map(map) => Some(map),
+            _ => None,
+        }
+    }
+
+    #[inline]
+    pub fn as_map_iterator_mut(&mut self) -> Option<&mut MapIterator> {
+        match &mut self.data {
+            ObjectData::MapIterator(iter) => Some(iter),
             _ => None,
         }
     }

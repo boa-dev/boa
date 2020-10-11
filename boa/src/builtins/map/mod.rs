@@ -8,6 +8,9 @@ use crate::{
 };
 use ordered_map::OrderedMap;
 
+pub mod map_iterator;
+use map_iterator::{MapIterator, MapIterationKind};
+
 pub mod ordered_map;
 #[cfg(test)]
 mod tests;
@@ -29,6 +32,7 @@ impl BuiltIn for Map {
             .name(Self::NAME)
             .length(Self::LENGTH)
             .method(Self::set, "set", 2)
+            .method(Self::entries, "entries", 0)
             .method(Self::delete, "delete", 1)
             .method(Self::get, "get", 1)
             .method(Self::clear, "clear", 0)
@@ -96,6 +100,20 @@ impl Map {
         this.set_data(ObjectData::Map(data));
 
         Ok(this.clone())
+    }
+
+    /// `Map.prototype.entries()`
+    ///
+    /// Returns a new Iterator object that contains the [key, value] pairs for each element in the Map object in insertion order.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://www.ecma-international.org/ecma-262/11.0/index.html#sec-map.prototype.entries
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/entries
+    pub(crate) fn entries(this: &Value, _: &[Value], ctx: &mut Context) -> Result<Value> {
+        MapIterator::create_map_iterator(ctx, this.clone(), MapIterationKind::KeyAndValue)
     }
 
     /// Helper function to set the size property.
