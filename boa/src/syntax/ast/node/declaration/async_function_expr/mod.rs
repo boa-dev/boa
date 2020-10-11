@@ -76,8 +76,9 @@ impl AsyncFunctionExpr {
 }
 
 impl Executable for AsyncFunctionExpr {
-    fn run(&self, interpreter: &mut Context) -> Result<Value> {
-        unimplemented!("Execute AsyncFunctionExpr");
+    fn run(&self, _: &mut Context) -> Result<Value> {
+        // unimplemented!("Execute AsyncFunctionExpr");
+        return Ok(Value::Undefined);
     }
 }
 
