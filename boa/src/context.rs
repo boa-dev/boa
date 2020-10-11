@@ -617,12 +617,6 @@ impl Context {
         Ok(())
     }
 
-    fn parser_expr(src: &str) -> StdResult<StatementList, String> {
-        Parser::new(src.as_bytes())
-            .parse_all()
-            .map_err(|e| e.to_string())
-    }
-
     /// Evaluates the given code.
     ///
     /// # Examples
@@ -639,8 +633,12 @@ impl Context {
     pub fn eval(&mut self, src: &str) -> Result<Value> {
         let main_timer = BoaProfiler::global().start_event("Main", "Main");
 
-        let result = match Self::parser_expr(src) {
-            Ok(expr) => expr.run(self),
+        let parsing_result = Parser::new(src.as_bytes())
+            .parse_all()
+            .map_err(|e| e.to_string());
+
+        let execution_result = match parsing_result {
+            Ok(statement_list) => statement_list.run(self),
             Err(e) => self.throw_syntax_error(e),
         };
 
@@ -648,7 +646,7 @@ impl Context {
         drop(main_timer);
         BoaProfiler::global().drop();
 
-        result
+        execution_result
     }
 
     /// Returns a structure that contains the JavaScript well known symbols.
