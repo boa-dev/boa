@@ -1,9 +1,6 @@
 use crate::syntax::{
     ast::{
-        node::{
-            ConstDecl, ConstDeclList, LetDecl, LetDeclList, Node, VarDecl,
-            VarDeclList,
-        },
+        node::{ConstDecl, ConstDeclList, LetDecl, LetDeclList, Node, VarDecl, VarDeclList},
         Const,
     },
     parser::tests::{check_invalid, check_parser},

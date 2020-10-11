@@ -28,7 +28,6 @@ fn check_async_expression() {
     );
 }
 
-/// Checks async expression parsing.
 #[test]
 fn check_nested_async_expression() {
     check_parser(
