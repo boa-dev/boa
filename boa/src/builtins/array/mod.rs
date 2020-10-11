@@ -1088,14 +1088,14 @@ impl Array {
         let initial_value = args.get(1).cloned().unwrap_or_else(Value::undefined);
         let mut length = this.get_field("length").to_length(interpreter)?;
         if length == 0 {
-            if initial_value.is_undefined() {
-                return interpreter.throw_type_error(
+            return if initial_value.is_undefined() {
+                interpreter.throw_type_error(
                     "reduceRight was called on an empty array and with no initial value",
-                );
+                )
             } else {
                 // early return to prevent usize subtraction errors
-                return Ok(initial_value);
-            }
+                Ok(initial_value)
+            };
         }
         let mut k = length - 1;
         let mut accumulator = if initial_value.is_undefined() {
