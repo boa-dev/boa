@@ -136,14 +136,16 @@ impl Object {
         args: &[Value],
         ctx: &mut Context,
     ) -> Result<Value> {
-        let object = args.get(0).unwrap().to_object(ctx)?;
+        let object = args.get(0).unwrap_or(&Value::undefined()).to_object(ctx)?;
         if let Some(key) = args.get(1) {
             let key = key.to_property_key(ctx)?;
-            let desc = object.borrow().get_own_property(&key).unwrap();
-            Self::from_property_descriptor(desc, ctx)
-        } else {
-            Ok(Value::undefined())
+
+            if let Some(desc) = object.borrow().get_own_property(&key) {
+                return Ok(Self::from_property_descriptor(desc, ctx)?);
+            }
         }
+
+        Ok(Value::undefined())
     }
 
     /// `Object.getOwnPropertyDescriptors( object )`
@@ -165,8 +167,13 @@ impl Object {
         let descriptors = ctx.construct_object();
 
         for key in object.borrow().keys() {
-            let desc = object.borrow().get_own_property(&key).unwrap();
-            let descriptor = Self::from_property_descriptor(desc, ctx)?;
+            let descriptor = {
+                let desc = object
+                    .borrow()
+                    .get_own_property(&key)
+                    .expect("Expected property to be on object.");
+                Self::from_property_descriptor(desc, ctx)?
+            };
 
             if !descriptor.is_undefined() {
                 descriptors.borrow_mut().insert(
