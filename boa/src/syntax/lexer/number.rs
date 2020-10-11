@@ -232,7 +232,7 @@ impl<R> Tokenizer<R> for NumberLiteral {
         if let Some(digit) = digit_char? {
             if !digit.is_digit(kind.base()) {
                 return Err(Error::syntax(
-                    "character was not in expected digit",
+                    "expected digit after number base prefix",
                     cursor.pos(),
                 ));
             }
