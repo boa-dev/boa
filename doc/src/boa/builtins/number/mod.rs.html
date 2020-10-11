@@ -1203,7 +1203,7 @@
                 <span class="ident">fraction</span> <span class="op">-=</span> <span class="ident">digit</span> <span class="kw">as</span> <span class="ident">f64</span>;
                 <span class="comment">// Round to even.</span>
                 <span class="kw">if</span> <span class="ident">fraction</span> <span class="op">+</span> <span class="ident">delta</span> <span class="op">&gt;</span> <span class="number">1.0</span>
-                    <span class="op">&amp;&amp;</span> (<span class="ident">fraction</span> <span class="op">&gt;</span> <span class="number">0.5</span> <span class="op">||</span> (<span class="ident">fraction</span> <span class="op">-</span> <span class="number">0.5</span>) <span class="op">&lt;</span> <span class="ident">f64</span>::<span class="ident">EPSILON</span> <span class="op">&amp;&amp;</span> <span class="ident">digit</span> <span class="op">&amp;</span> <span class="number">1</span> <span class="op">!=</span> <span class="number">0</span>)
+                    <span class="op">&amp;&amp;</span> (<span class="ident">fraction</span> <span class="op">&gt;</span> <span class="number">0.5</span> <span class="op">||</span> (<span class="ident">fraction</span> <span class="op">-</span> <span class="number">0.5</span>).<span class="ident">abs</span>() <span class="op">&lt;</span> <span class="ident">f64</span>::<span class="ident">EPSILON</span> <span class="op">&amp;&amp;</span> <span class="ident">digit</span> <span class="op">&amp;</span> <span class="number">1</span> <span class="op">!=</span> <span class="number">0</span>)
                 {
                     <span class="kw">loop</span> {
                         <span class="comment">// We need to back trace already written digits in case of carry-over.</span>
@@ -1372,12 +1372,12 @@
 
                     <span class="kw">if</span> <span class="ident">radix</span> <span class="op">==</span> <span class="number">0</span> {
                         <span class="kw">if</span> <span class="ident">s</span>.<span class="ident">starts_with</span>(<span class="string">&quot;0x&quot;</span>) <span class="op">||</span> <span class="ident">s</span>.<span class="ident">starts_with</span>(<span class="string">&quot;0X&quot;</span>) {
-                            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">i</span>) <span class="op">=</span> <span class="ident">i32</span>::<span class="ident">from_str_radix</span>(<span class="kw-2">&amp;</span><span class="ident">s</span>[<span class="number">2</span>..], <span class="number">16</span>) {
-                                <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">integer</span>(<span class="ident">i</span>));
+                            <span class="kw">return</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">i</span>) <span class="op">=</span> <span class="ident">i32</span>::<span class="ident">from_str_radix</span>(<span class="kw-2">&amp;</span><span class="ident">s</span>[<span class="number">2</span>..], <span class="number">16</span>) {
+                                <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">integer</span>(<span class="ident">i</span>))
                             } <span class="kw">else</span> {
                                 <span class="comment">// String can&#39;t be parsed.</span>
-                                <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">f64</span>::<span class="ident">NAN</span>));
-                            }
+                                <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">f64</span>::<span class="ident">NAN</span>))
+                            };
                         } <span class="kw">else</span> {
                             <span class="ident">radix</span> <span class="op">=</span> <span class="number">10</span>
                         };
