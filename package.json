@@ -9,7 +9,7 @@
     "clean-webpack-plugin": "^3.0.0",
     "copy-webpack-plugin": "^6.2.1",
     "css-loader": "^4.3.0",
-    "file-loader": "^6.1.0",
+    "file-loader": "^6.1.1",
     "html-webpack-plugin": "^4.5.0",
     "prettier": "2.1.2",
     "style-loader": "^2.0.0",
