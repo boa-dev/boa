@@ -65,8 +65,8 @@ Unicode codepoints. For example, in ASCII compatible mode, <code>\xFF</code> mat
 literal byte <code>\xFF</code>, while in Unicode mode, <code>\xFF</code> is a Unicode codepoint that
 matches its UTF-8 encoding of <code>\xC3\xBF</code>. Similarly for octal notation when
 enabled.</li>
-<li><code>.</code> matches any <em>byte</em> except for <code>\n</code> instead of any Unicode scalar value.
-When the <code>s</code> flag is enabled, <code>.</code> matches any byte.</li>
+<li>In ASCII compatible mode, <code>.</code> matches any <em>byte</em> except for <code>\n</code>. When the
+<code>s</code> flag is additionally enabled, <code>.</code> matches any byte.</li>
 </ol>
 <h1 id="performance" class="section-header"><a href="#performance">Performance</a></h1>
 <p>In general, one should expect performance on <code>&amp;[u8]</code> to be roughly similar to

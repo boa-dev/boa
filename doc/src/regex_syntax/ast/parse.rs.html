@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-syntax-0.6.18/src/ast/parse.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>parse.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script src="../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="shortcut icon" href="../../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../regex_syntax/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-syntax-0.6.19/src/ast/parse.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>parse.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script src="../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="shortcut icon" href="../../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../regex_syntax/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
                 <a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
 <span id="3">   3</span>
@@ -5900,6 +5900,46 @@
 <span id="5899">5899</span>
 <span id="5900">5900</span>
 <span id="5901">5901</span>
+<span id="5902">5902</span>
+<span id="5903">5903</span>
+<span id="5904">5904</span>
+<span id="5905">5905</span>
+<span id="5906">5906</span>
+<span id="5907">5907</span>
+<span id="5908">5908</span>
+<span id="5909">5909</span>
+<span id="5910">5910</span>
+<span id="5911">5911</span>
+<span id="5912">5912</span>
+<span id="5913">5913</span>
+<span id="5914">5914</span>
+<span id="5915">5915</span>
+<span id="5916">5916</span>
+<span id="5917">5917</span>
+<span id="5918">5918</span>
+<span id="5919">5919</span>
+<span id="5920">5920</span>
+<span id="5921">5921</span>
+<span id="5922">5922</span>
+<span id="5923">5923</span>
+<span id="5924">5924</span>
+<span id="5925">5925</span>
+<span id="5926">5926</span>
+<span id="5927">5927</span>
+<span id="5928">5928</span>
+<span id="5929">5929</span>
+<span id="5930">5930</span>
+<span id="5931">5931</span>
+<span id="5932">5932</span>
+<span id="5933">5933</span>
+<span id="5934">5934</span>
+<span id="5935">5935</span>
+<span id="5936">5936</span>
+<span id="5937">5937</span>
+<span id="5938">5938</span>
+<span id="5939">5939</span>
+<span id="5940">5940</span>
+<span id="5941">5941</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">/*!
 This module provides a regular expression parser.
@@ -6001,12 +6041,13 @@ This module provides a regular expression parser.
 <span class="doccomment">/// Returns true if the given character is a valid in a capture group name.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// If `first` is true, then `c` is treated as the first character in the</span>
-<span class="doccomment">/// group name (which is not allowed to be a digit).</span>
+<span class="doccomment">/// group name (which must be alphabetic or underscore).</span>
 <span class="kw">fn</span> <span class="ident">is_capture_char</span>(<span class="ident">c</span>: <span class="ident">char</span>, <span class="ident">first</span>: <span class="ident">bool</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
     <span class="ident">c</span> <span class="op">==</span> <span class="string">&#39;_&#39;</span>
-        <span class="op">||</span> (<span class="op">!</span><span class="ident">first</span> <span class="op">&amp;&amp;</span> <span class="ident">c</span> <span class="op">&gt;=</span> <span class="string">&#39;0&#39;</span> <span class="op">&amp;&amp;</span> <span class="ident">c</span> <span class="op">&lt;=</span> <span class="string">&#39;9&#39;</span>)
-        <span class="op">||</span> (<span class="ident">c</span> <span class="op">&gt;=</span> <span class="string">&#39;a&#39;</span> <span class="op">&amp;&amp;</span> <span class="ident">c</span> <span class="op">&lt;=</span> <span class="string">&#39;z&#39;</span>)
-        <span class="op">||</span> (<span class="ident">c</span> <span class="op">&gt;=</span> <span class="string">&#39;A&#39;</span> <span class="op">&amp;&amp;</span> <span class="ident">c</span> <span class="op">&lt;=</span> <span class="string">&#39;Z&#39;</span>)
+        <span class="op">||</span> (<span class="op">!</span><span class="ident">first</span>
+            <span class="op">&amp;&amp;</span> ((<span class="string">&#39;0&#39;</span> <span class="op">&lt;=</span> <span class="ident">c</span> <span class="op">&amp;&amp;</span> <span class="ident">c</span> <span class="op">&lt;=</span> <span class="string">&#39;9&#39;</span>) <span class="op">||</span> <span class="ident">c</span> <span class="op">==</span> <span class="string">&#39;.&#39;</span> <span class="op">||</span> <span class="ident">c</span> <span class="op">==</span> <span class="string">&#39;[&#39;</span> <span class="op">||</span> <span class="ident">c</span> <span class="op">==</span> <span class="string">&#39;]&#39;</span>))
+        <span class="op">||</span> (<span class="string">&#39;A&#39;</span> <span class="op">&lt;=</span> <span class="ident">c</span> <span class="op">&amp;&amp;</span> <span class="ident">c</span> <span class="op">&lt;=</span> <span class="string">&#39;Z&#39;</span>)
+        <span class="op">||</span> (<span class="string">&#39;a&#39;</span> <span class="op">&lt;=</span> <span class="ident">c</span> <span class="op">&amp;&amp;</span> <span class="ident">c</span> <span class="op">&lt;=</span> <span class="string">&#39;z&#39;</span>)
 }
 
 <span class="doccomment">/// A builder for a regular expression parser.</span>
@@ -9751,6 +9792,45 @@ bar
                     <span class="ident">index</span>: <span class="number">1</span>,
                 }),
                 <span class="ident">ast</span>: <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">lit</span>(<span class="string">&#39;z&#39;</span>, <span class="number">8</span>)),
+            }))
+        );
+
+        <span class="macro">assert_eq</span><span class="macro">!</span>(
+            <span class="ident">parser</span>(<span class="string">&quot;(?P&lt;a_1&gt;z)&quot;</span>).<span class="ident">parse</span>(),
+            <span class="prelude-val">Ok</span>(<span class="ident">Ast</span>::<span class="ident">Group</span>(<span class="ident">ast</span>::<span class="ident">Group</span> {
+                <span class="ident">span</span>: <span class="ident">span</span>(<span class="number">0</span>..<span class="number">10</span>),
+                <span class="ident">kind</span>: <span class="ident">ast</span>::<span class="ident">GroupKind</span>::<span class="ident">CaptureName</span>(<span class="ident">ast</span>::<span class="ident">CaptureName</span> {
+                    <span class="ident">span</span>: <span class="ident">span</span>(<span class="number">4</span>..<span class="number">7</span>),
+                    <span class="ident">name</span>: <span class="ident">s</span>(<span class="string">&quot;a_1&quot;</span>),
+                    <span class="ident">index</span>: <span class="number">1</span>,
+                }),
+                <span class="ident">ast</span>: <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">lit</span>(<span class="string">&#39;z&#39;</span>, <span class="number">8</span>)),
+            }))
+        );
+
+        <span class="macro">assert_eq</span><span class="macro">!</span>(
+            <span class="ident">parser</span>(<span class="string">&quot;(?P&lt;a.1&gt;z)&quot;</span>).<span class="ident">parse</span>(),
+            <span class="prelude-val">Ok</span>(<span class="ident">Ast</span>::<span class="ident">Group</span>(<span class="ident">ast</span>::<span class="ident">Group</span> {
+                <span class="ident">span</span>: <span class="ident">span</span>(<span class="number">0</span>..<span class="number">10</span>),
+                <span class="ident">kind</span>: <span class="ident">ast</span>::<span class="ident">GroupKind</span>::<span class="ident">CaptureName</span>(<span class="ident">ast</span>::<span class="ident">CaptureName</span> {
+                    <span class="ident">span</span>: <span class="ident">span</span>(<span class="number">4</span>..<span class="number">7</span>),
+                    <span class="ident">name</span>: <span class="ident">s</span>(<span class="string">&quot;a.1&quot;</span>),
+                    <span class="ident">index</span>: <span class="number">1</span>,
+                }),
+                <span class="ident">ast</span>: <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">lit</span>(<span class="string">&#39;z&#39;</span>, <span class="number">8</span>)),
+            }))
+        );
+
+        <span class="macro">assert_eq</span><span class="macro">!</span>(
+            <span class="ident">parser</span>(<span class="string">&quot;(?P&lt;a[1]&gt;z)&quot;</span>).<span class="ident">parse</span>(),
+            <span class="prelude-val">Ok</span>(<span class="ident">Ast</span>::<span class="ident">Group</span>(<span class="ident">ast</span>::<span class="ident">Group</span> {
+                <span class="ident">span</span>: <span class="ident">span</span>(<span class="number">0</span>..<span class="number">11</span>),
+                <span class="ident">kind</span>: <span class="ident">ast</span>::<span class="ident">GroupKind</span>::<span class="ident">CaptureName</span>(<span class="ident">ast</span>::<span class="ident">CaptureName</span> {
+                    <span class="ident">span</span>: <span class="ident">span</span>(<span class="number">4</span>..<span class="number">8</span>),
+                    <span class="ident">name</span>: <span class="ident">s</span>(<span class="string">&quot;a[1]&quot;</span>),
+                    <span class="ident">index</span>: <span class="number">1</span>,
+                }),
+                <span class="ident">ast</span>: <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">lit</span>(<span class="string">&#39;z&#39;</span>, <span class="number">9</span>)),
             }))
         );
 
