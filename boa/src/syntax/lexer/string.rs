@@ -169,7 +169,16 @@ impl<R> Tokenizer<R> for StringLiteral {
                         };
                     }
                 }
-                next_ch => buf.push(next_ch as u16),
+                next_ch => {
+                    if next_ch.len_utf16() == 1 {
+                        buf.push(next_ch as u16);
+                    } else {
+                        let mut code_point_bytes_buf = [0u16; 2];
+                        let code_point_bytes = next_ch.encode_utf16(&mut code_point_bytes_buf);
+
+                        buf.extend(code_point_bytes.iter());
+                    }
+                }
             }
         }
 
