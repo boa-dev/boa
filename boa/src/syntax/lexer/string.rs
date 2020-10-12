@@ -95,11 +95,11 @@ impl<R> Tokenizer<R> for StringLiteral {
                                 let mut code_point_utf8_bytes = [0u8; 2];
                                 cursor.fill_bytes(&mut code_point_utf8_bytes)?;
                                 let code_point_str = str::from_utf8(&code_point_utf8_bytes)
-                                    .expect("malformed Unicode character escape sequence");
+                                    .expect("malformed Hexadecimal character escape sequence");
                                 let code_point =
                                     u16::from_str_radix(&code_point_str, 16).map_err(|_| {
                                         Error::syntax(
-                                            "invalid Unicode escape sequence",
+                                            "invalid Hexadecimal escape sequence",
                                             cursor.pos(),
                                         )
                                     })?;
