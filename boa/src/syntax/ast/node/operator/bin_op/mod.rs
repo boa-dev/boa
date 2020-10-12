@@ -6,6 +6,7 @@ use crate::{
         op::{self, AssignOp, BitOp, CompOp, LogOp, NumOp},
     },
     vm::compilation::CodeGen,
+    vm::instructions::Instruction,
     Context, Result, Value,
 };
 use std::fmt;
@@ -232,16 +233,18 @@ impl Executable for BinOp {
 }
 
 impl CodeGen for BinOp {
-    fn compile(&self, ctx: &mut Context) -> std::result::Result<(), &str> {
+    fn compile(&self, ctx: &mut Context) {
         match self.op() {
             op::BinOp::Num(op) => {
                 self.lhs().compile(ctx);
                 self.rhs().compile(ctx);
+                match op {
+                    NumOp::Add => ctx.add_instruction(Instruction::Add),
+                    _ => unimplemented!(),
+                }
             }
             _ => unimplemented!(),
         }
-
-        Err("Fail")
     }
 }
 

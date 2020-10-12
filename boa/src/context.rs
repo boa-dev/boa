@@ -23,7 +23,6 @@ use crate::{
         Parser,
     },
     value::{RcString, RcSymbol, Value},
-    vm::compilation::CodeGen,
     BoaProfiler, Executable, Result,
 };
 use std::result::Result as StdResult;
@@ -32,6 +31,7 @@ use std::result::Result as StdResult;
 use crate::builtins::console::Console;
 
 #[cfg(feature = "vm")]
+use crate::vm::compilation::CodeGen;
 use crate::vm::instructions::Instruction;
 
 /// Store a builtin constructor (such as `Object`) and its corresponding prototype.
@@ -747,9 +747,13 @@ impl Context {
     pub fn eval_bytecode(&mut self, src: &str) -> std::result::Result<(), &str> {
         let main_timer = BoaProfiler::global().start_event("Main", "Main");
 
-        let result = match Self::parser_expr(src) {
-            Ok(ref expr) => expr.compile(self),
-            Err(e) => panic!(e),
+        let parsing_result = Parser::new(src.as_bytes())
+            .parse_all()
+            .map_err(|e| e.to_string());
+
+        let execution_result = match parsing_result {
+            Ok(statement_list) => statement_list.compile(self),
+            Err(e) => (),
         };
 
         // The main_timer needs to be dropped before the BoaProfiler is.
@@ -788,7 +792,7 @@ impl Context {
     }
 
     // Add a new instruction
-    pub fn add_instruction(&mut self) {
-        self.instruction_stack.push(919);
+    pub fn add_instruction(&mut self, instr: Instruction) {
+        self.instruction_stack.push(instr);
     }
 }
