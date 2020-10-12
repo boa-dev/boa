@@ -12,14 +12,15 @@
         "kind": "build",
         "isDefault": true
       },
-      "options": {
-        "env": {
-          "RUST_BACKTRACE": "full"
-        }
-      },
       "presentation": {
         "clear": true
-      }
+      },
+      "options": {
+        "env": {
+          "RUST_BACKTRACE": "1"
+        }
+      },
+      "problemMatcher": []
     },
     {
       "type": "process",
