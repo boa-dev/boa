@@ -23,6 +23,7 @@ use crate::{
         Parser,
     },
     value::{RcString, RcSymbol, Value},
+    vm::VM,
     BoaProfiler, Executable, Result,
 };
 use std::result::Result as StdResult;
@@ -279,6 +280,11 @@ impl Context {
     #[inline]
     pub fn realm_mut(&mut self) -> &mut Realm {
         &mut self.realm
+    }
+
+    #[cfg(feature = "vm")]
+    pub fn instructions_mut(&mut self) -> &mut Vec<Instruction> {
+        &mut self.instruction_stack
     }
 
     #[inline]
@@ -744,23 +750,24 @@ impl Context {
     /// assert!(value.is_number());
     /// assert_eq!(value.as_number().unwrap(), 4.0);
     /// ```
-    pub fn eval_bytecode(&mut self, src: &str) -> std::result::Result<(), &str> {
+    pub fn eval_bytecode(&mut self, src: &str) -> Result<Value> {
         let main_timer = BoaProfiler::global().start_event("Main", "Main");
 
         let parsing_result = Parser::new(src.as_bytes())
             .parse_all()
             .map_err(|e| e.to_string());
 
-        let execution_result = match parsing_result {
-            Ok(statement_list) => statement_list.compile(self),
-            Err(e) => (),
-        };
-
+        let statement_list = parsing_result.expect("unable to get statementList");
+        // Generate Bytecode and place it into instruction_stack
+        statement_list.compile(self);
+        // Interpret the Bytecode
+        let mut vm = VM::new(self);
+        let result = vm.run();
         // The main_timer needs to be dropped before the BoaProfiler is.
         drop(main_timer);
         BoaProfiler::global().drop();
 
-        Err("not implemented")
+        result
     }
 
     /// Returns a structure that contains the JavaScript well known symbols.
