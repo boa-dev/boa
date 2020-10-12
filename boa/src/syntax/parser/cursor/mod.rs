@@ -135,38 +135,16 @@ where
     pub(super) fn peek_expect_no_lineterminator(
         &mut self,
         skip_n: usize,
+        context: &'static str,
     ) -> Result<&Token, ParseError> {
         if let Some(t) = self.buffered_lexer.peek(skip_n, false)? {
             if t.kind() == &TokenKind::LineTerminator {
-                Err(ParseError::unexpected(t.clone(), None))
+                Err(ParseError::unexpected(t.clone(), context))
             } else {
                 Ok(t)
             }
         } else {
             Err(ParseError::AbruptEnd)
-        }
-    }
-
-    /// Returns an error if the next token is not of kind `kind`.
-    #[inline]
-    pub(super) fn expect_no_skip_lineterminator<K>(
-        &mut self,
-        kind: K,
-        context: &'static str,
-    ) -> Result<Token, ParseError>
-    where
-        K: Into<TokenKind>,
-    {
-        let next_token = self
-            .buffered_lexer
-            .next(false)?
-            .ok_or(ParseError::AbruptEnd)?;
-        let kind = kind.into();
-
-        if next_token.kind() == &kind {
-            Ok(next_token)
-        } else {
-            Err(ParseError::expected(vec![kind], next_token, context))
         }
     }
 

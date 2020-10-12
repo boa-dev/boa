@@ -142,11 +142,14 @@ where
         }
 
         // TODO GeneratorMethod
+        // https://tc39.es/ecma262/#prod-GeneratorMethod
 
         if prop_name.as_str() == "async" {
             // TODO - AsyncMethod.
+            // https://tc39.es/ecma262/#prod-AsyncMethod
 
             // TODO - AsyncGeneratorMethod
+            // https://tc39.es/ecma262/#prod-AsyncGeneratorMethod
         }
 
         if cursor

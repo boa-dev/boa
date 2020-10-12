@@ -50,7 +50,8 @@ where
 
     fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         cursor.expect(Keyword::Async, "async function declaration")?;
-        cursor.expect_no_skip_lineterminator(Keyword::Function, "async function declaration")?;
+        cursor.peek_expect_no_lineterminator(0, "async function declaration")?;
+        cursor.expect(Keyword::Function, "async function declaration")?;
         let tok = cursor.peek(0)?;
 
         let name = if let Some(token) = tok {

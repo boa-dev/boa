@@ -23,7 +23,7 @@ use std::io::Read;
 ///  - [ECMAScript specification][spec]
 ///
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/async_function
-/// [spec]: https://www.ecma-international.org/ecma-262/11.0/index.html#prod-AsyncFunctionExpression
+/// [spec]: https://tc39.es/ecma262/#prod-AsyncFunctionExpression
 #[derive(Debug, Clone, Copy)]
 pub(super) struct AsyncFunctionExpression {
     allow_yield: AllowYield,
@@ -49,7 +49,8 @@ where
 
     fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("AsyncFunctionExpression", "Parsing");
-        cursor.expect_no_skip_lineterminator(Keyword::Function, "async function expression")?;
+        cursor.peek_expect_no_lineterminator(0, "async function expression")?;
+        cursor.expect(Keyword::Function, "async function expression")?;
 
         let tok = cursor.peek(0)?;
 
@@ -66,12 +67,12 @@ where
 
         let params = FormalParameters::new(!self.allow_yield.0, true).parse(cursor)?;
 
-        cursor.expect(Punctuator::CloseParen, "function expression")?;
-        cursor.expect(Punctuator::OpenBlock, "function expression")?;
+        cursor.expect(Punctuator::CloseParen, "async function expression")?;
+        cursor.expect(Punctuator::OpenBlock, "async function expression")?;
 
         let body = FunctionBody::new(!self.allow_yield.0, true).parse(cursor)?;
 
-        cursor.expect(Punctuator::CloseBlock, "function expression")?;
+        cursor.expect(Punctuator::CloseBlock, "async function expression")?;
 
         Ok(AsyncFunctionExpr::new(name, params, body))
     }

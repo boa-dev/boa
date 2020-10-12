@@ -86,7 +86,7 @@ where
             Box::new([FormalParameter::new(param, None, false)])
         };
 
-        cursor.peek_expect_no_lineterminator(0)?;
+        cursor.peek_expect_no_lineterminator(0, "arrow function")?;
 
         cursor.expect(TokenKind::Punctuator(Punctuator::Arrow), "arrow function")?;
         let body = ConciseBody::new(self.allow_in).parse(cursor)?;
