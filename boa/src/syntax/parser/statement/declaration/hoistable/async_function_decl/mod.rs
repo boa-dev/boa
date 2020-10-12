@@ -75,12 +75,12 @@ where
 
         cursor.expect(Punctuator::OpenParen, "async function declaration")?;
 
-        let params = FormalParameters::new(!self.allow_yield.0, true).parse(cursor)?;
+        let params = FormalParameters::new(false, true).parse(cursor)?;
 
         cursor.expect(Punctuator::CloseParen, "async function declaration")?;
         cursor.expect(Punctuator::OpenBlock, "async function declaration")?;
 
-        let body = FunctionBody::new(!self.allow_yield.0, true).parse(cursor)?;
+        let body = FunctionBody::new(false, true).parse(cursor)?;
 
         cursor.expect(Punctuator::CloseBlock, "async function declaration")?;
 
