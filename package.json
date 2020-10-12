@@ -15,7 +15,7 @@
     "style-loader": "^2.0.0",
     "text-encoding": "^0.7.0",
     "webpack": "^4.44.2",
-    "webpack-cli": "^3.3.12",
+    "webpack-cli": "^4.0.0",
     "webpack-dev-server": "^3.11.0"
   },
   "dependencies": {
