@@ -129,7 +129,7 @@ impl Object {
     ///  - [ECMAScript reference][spec]
     ///  - [MDN documentation][mdn]
     ///
-    /// [spec]: https://www.ecma-international.org/ecma-262/10.0/index.html#sec-object.getownpropertydescriptor
+    /// [spec]: https://tc39.es/ecma262/#sec-object.getownpropertydescriptor
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/getOwnPropertyDescriptor
     pub fn get_own_property_descriptor(
         _: &Value,
@@ -156,7 +156,7 @@ impl Object {
     ///  - [ECMAScript reference][spec]
     ///  - [MDN documentation][mdn]
     ///
-    /// [spec]: https://www.ecma-international.org/ecma-262/10.0/index.html#sec-object.getownpropertydescriptor
+    /// [spec]: https://tc39.es/ecma262/#sec-object.getownpropertydescriptors
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/getOwnPropertyDescriptors
     pub fn get_own_property_descriptors(
         _: &Value,
@@ -186,7 +186,10 @@ impl Object {
         Ok(Value::Object(descriptors))
     }
 
-    /// https://www.ecma-international.org/ecma-262/10.0/index.html#sec-frompropertydescriptor
+    /// The abstract operation `FromPropertyDescriptor`.
+    ///
+    /// [ECMAScript reference][spec]
+    /// [spec]: https://tc39.es/ecma262/#sec-frompropertydescriptor
     fn from_property_descriptor(desc: PropertyDescriptor, ctx: &mut Context) -> Result<Value> {
         let mut descriptor = ObjectInitializer::new(ctx);
 
