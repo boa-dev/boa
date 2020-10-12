@@ -21,9 +21,9 @@ pub enum MapIterationKind {
 /// [spec]: TODO https://tc39.es/ecma262/#sec-array-iterator-objects
 #[derive(Debug, Clone, Finalize, Trace)]
 pub struct MapIterator {
-  map: Value,
-  next_index: u32,
-  kind: MapIterationKind,
+  iterated_map: Value,
+  map_next_index: u32,
+  map_iteration_kind: MapIterationKind,
 }
 
 impl MapIterator {
@@ -31,9 +31,9 @@ impl MapIterator {
 
   fn new(map: Value, kind: MapIterationKind) -> Self {
     MapIterator {
-      map,
-      kind,
-      next_index: 0,
+      iterated_map: map,
+      map_next_index: 0,
+      map_iteration_kind: kind,
     }
   }
 
@@ -67,33 +67,41 @@ impl MapIterator {
   /// More information:
   ///  - [ECMA reference][spec]
   ///
-  /// [spec]: TODO https://tc39.es/ecma262/#sec-%arrayiteratorprototype%.next
+  /// [spec]: https://tc39.es/ecma262/#sec-%mapiteratorprototype%.next
   pub(crate) fn next(this: &Value, _args: &[Value], ctx: &mut Context) -> Result<Value> {
     if let Value::Object(ref object) = this {
       let mut object = object.borrow_mut();
       if let Some(map_iterator) = object.as_map_iterator_mut() {
-        let index = map_iterator.next_index;
-        if map_iterator.map.is_undefined() {
+        let m = &map_iterator.iterated_map;
+        let index = map_iterator.map_next_index;
+        let item_kind = &map_iterator.map_iteration_kind;
+
+        if m.is_undefined() {
           return Ok(create_iter_result_object(ctx, Value::undefined(), true));
         }
-        let len = map_iterator
-          .map
-          .get_field("length")
-          .as_number()
-          .ok_or_else(|| ctx.construct_type_error("Not a map"))? as u32;
-        if map_iterator.next_index >= len {
-          map_iterator.map = Value::undefined();
+
+        let entries = match m.get_data() {
+          ObjectData::Map(data) => data,
+          _ => {panic!("Trying to access map data on an Object that is not of ObjectData::Map type");}
+        };
+
+        let numEntries = entries.len();
+
+        Ok(Value::undefined())
+        /* while
+        if map_iterator.map_next_index >= len {
+          map_iterator.iterated_map = Value::undefined();
           return Ok(create_iter_result_object(ctx, Value::undefined(), true));
         }
-        map_iterator.next_index = index + 1;
-        match map_iterator.kind {
+        map_iterator.map_next_index = index + 1;
+        match map_iterator.map_iteration_kind {
           MapIterationKind::Key => Ok(create_iter_result_object(ctx, index.into(), false)),
           MapIterationKind::Value => {
-            let element_value = map_iterator.map.get_field(index);
+            let element_value = map_iterator.iterated_map.get_field(index);
             Ok(create_iter_result_object(ctx, element_value, false))
           }
           MapIterationKind::KeyAndValue => {
-            let element_value = map_iterator.map.get_field(index);
+            let element_value = map_iterator.iterated_map.get_field(index);
             let result = Map::constructor(
               &Value::new_object(Some(ctx.global_object())),
               &[index.into(), element_value],
@@ -101,7 +109,7 @@ impl MapIterator {
             )?;
             Ok(create_iter_result_object(ctx, result, false))
           }
-        }
+        } */
       } else {
         ctx.throw_type_error("`this` is not an MapIterator")
       }

@@ -28,7 +28,7 @@ impl IteratorPrototypes {
             string_iterator: StringIterator::create_prototype(ctx, iterator_prototype.clone())
                 .as_gc_object()
                 .expect("String Iterator Prototype is not an object"),
-            map_iterator: MapIterator::create_prototype(ctx, iterator_prototype.clone())
+            map_iterator: MapIterator::create_prototype(ctx, iterator_prototype)
                 .as_gc_object()
                 .expect("Map Iterator Prototype is not an object"),
         }

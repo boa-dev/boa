@@ -524,6 +524,16 @@ impl Value {
         }
     }
 
+    /// Get internal object data.
+    #[inline]
+    pub fn get_data(&self) -> ObjectData {
+        if let Self::Object(ref obj) = *self {
+            obj.borrow_mut().data;
+        } else {
+            panic!("Trying to access get_data on a Value that does not have it");
+        }
+    }
+
     /// Set the property in the value.
     #[inline]
     pub fn set_property<K, P>(&self, key: K, property: P)
