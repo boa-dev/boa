@@ -1,5 +1,5 @@
 use crate::{
-    builtins::{function::make_builtin_fn, iterable::create_iter_result_object, Value},
+    builtins::{function::make_builtin_fn, iterable::create_iter_result_object, Array, Value},
     object::ObjectData,
     property::{Attribute, DataDescriptor},
     BoaProfiler, Context, Result,
@@ -61,7 +61,7 @@ impl MapIterator {
 
     /// %MapIteratorPrototype%.next( )
     ///
-    /// Gets the next result in the map.
+    /// Advances the iterator and gets the next result in the map.
     ///
     /// More information:
     ///  - [ECMA reference][spec]
@@ -87,9 +87,30 @@ impl MapIterator {
                             index += 1;
                             map_iterator.map_next_index = index;
                             if let Some((key, value)) = e {
-                                // TODO result of e is a Record
-                                // TODO handle itemKind
-                                return Ok(create_iter_result_object(ctx, value.clone(), false));
+                                // TODO result of e is a Record, check impact
+                                match item_kind {
+                                    MapIterationKind::Key => {
+                                        return Ok(create_iter_result_object(
+                                            ctx,
+                                            key.clone(),
+                                            false,
+                                        ));
+                                    }
+                                    MapIterationKind::Value => {
+                                        return Ok(create_iter_result_object(
+                                            ctx,
+                                            value.clone(),
+                                            false,
+                                        ));
+                                    }
+                                    MapIterationKind::KeyAndValue => {
+                                        let result = Array::construct_array(
+                                            &Array::new_array(ctx)?,
+                                            &[key.clone(), value.clone()],
+                                        )?;
+                                        return Ok(create_iter_result_object(ctx, result, false));
+                                    }
+                                }
                             }
                         }
                     } else {
