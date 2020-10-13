@@ -311,7 +311,7 @@
             <span class="ident">TokenKind</span>::<span class="ident">Identifier</span>(<span class="kw">_</span>)
             <span class="op">|</span> <span class="ident">TokenKind</span>::<span class="ident">Keyword</span>(<span class="ident">Keyword</span>::<span class="ident">Yield</span>)
             <span class="op">|</span> <span class="ident">TokenKind</span>::<span class="ident">Keyword</span>(<span class="ident">Keyword</span>::<span class="ident">Await</span>) <span class="op">=&gt;</span> {
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">tok</span>) <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">peek_expect_no_lineterminator</span>(<span class="number">1</span>) {
+                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">tok</span>) <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">peek_expect_no_lineterminator</span>(<span class="number">1</span>, <span class="string">&quot;assignment expression&quot;</span>) {
                     <span class="kw">if</span> <span class="ident">tok</span>.<span class="ident">kind</span>() <span class="op">==</span> <span class="kw-2">&amp;</span><span class="ident">TokenKind</span>::<span class="ident">Punctuator</span>(<span class="ident">Punctuator</span>::<span class="ident">Arrow</span>) {
                         <span class="kw">return</span> <span class="ident">ArrowFunction</span>::<span class="ident">new</span>(
                             <span class="self">self</span>.<span class="ident">allow_in</span>,

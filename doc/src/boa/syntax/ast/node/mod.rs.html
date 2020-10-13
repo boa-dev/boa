@@ -538,10 +538,28 @@
 <span id="537">537</span>
 <span id="538">538</span>
 <span id="539">539</span>
+<span id="540">540</span>
+<span id="541">541</span>
+<span id="542">542</span>
+<span id="543">543</span>
+<span id="544">544</span>
+<span id="545">545</span>
+<span id="546">546</span>
+<span id="547">547</span>
+<span id="548">548</span>
+<span id="549">549</span>
+<span id="550">550</span>
+<span id="551">551</span>
+<span id="552">552</span>
+<span id="553">553</span>
+<span id="554">554</span>
+<span id="555">555</span>
+<span id="556">556</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements the `Node` structure, which composes the AST.</span>
 
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">array</span>;
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">await_expr</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">block</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">break_node</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">call</span>;
@@ -562,13 +580,14 @@
 
 <span class="kw">pub</span> <span class="kw">use</span> <span class="self">self</span>::{
     <span class="ident">array</span>::<span class="ident">ArrayDecl</span>,
+    <span class="ident">await_expr</span>::<span class="ident">AwaitExpr</span>,
     <span class="ident">block</span>::<span class="ident">Block</span>,
     <span class="ident">break_node</span>::<span class="ident">Break</span>,
     <span class="ident">call</span>::<span class="ident">Call</span>,
     <span class="ident">conditional</span>::{<span class="ident">ConditionalOp</span>, <span class="ident">If</span>},
     <span class="ident">declaration</span>::{
-        <span class="ident">ArrowFunctionDecl</span>, <span class="ident">ConstDecl</span>, <span class="ident">ConstDeclList</span>, <span class="ident">FunctionDecl</span>, <span class="ident">FunctionExpr</span>, <span class="ident">LetDecl</span>,
-        <span class="ident">LetDeclList</span>, <span class="ident">VarDecl</span>, <span class="ident">VarDeclList</span>,
+        <span class="ident">ArrowFunctionDecl</span>, <span class="ident">AsyncFunctionDecl</span>, <span class="ident">AsyncFunctionExpr</span>, <span class="ident">ConstDecl</span>, <span class="ident">ConstDeclList</span>,
+        <span class="ident">FunctionDecl</span>, <span class="ident">FunctionExpr</span>, <span class="ident">LetDecl</span>, <span class="ident">LetDeclList</span>, <span class="ident">VarDecl</span>, <span class="ident">VarDeclList</span>,
     },
     <span class="ident">field</span>::{<span class="ident">GetConstField</span>, <span class="ident">GetField</span>},
     <span class="ident">identifier</span>::<span class="ident">Identifier</span>,
@@ -605,6 +624,15 @@
 
     <span class="doccomment">/// An assignment operator node. [More information](./operator/struct.Assign.html).</span>
     <span class="ident">Assign</span>(<span class="ident">Assign</span>),
+
+    <span class="doccomment">/// An async function declaration node. [More information](./declaration/struct.AsyncFunctionDecl.html).</span>
+    <span class="ident">AsyncFunctionDecl</span>(<span class="ident">AsyncFunctionDecl</span>),
+
+    <span class="doccomment">/// An async function expression node. [More information](./declaration/struct.AsyncFunctionExpr.html).</span>
+    <span class="ident">AsyncFunctionExpr</span>(<span class="ident">AsyncFunctionExpr</span>),
+
+    <span class="doccomment">/// An await expression node. [More information](./await_expr/struct.AwaitExpression.html).</span>
+    <span class="ident">AwaitExpr</span>(<span class="ident">AwaitExpr</span>),
 
     <span class="doccomment">/// A binary operator node. [More information](./operator/struct.BinOp.html).</span>
     <span class="ident">BinOp</span>(<span class="ident">BinOp</span>),
@@ -645,7 +673,7 @@
     <span class="doccomment">/// A function declaration node. [More information](./declaration/struct.FunctionDecl.html).</span>
     <span class="ident">FunctionDecl</span>(<span class="ident">FunctionDecl</span>),
 
-    <span class="doccomment">/// A function expressino node. [More information](./declaration/struct.FunctionExpr.html).</span>
+    <span class="doccomment">/// A function expression node. [More information](./declaration/struct.FunctionExpr.html).</span>
     <span class="ident">FunctionExpr</span>(<span class="ident">FunctionExpr</span>),
 
     <span class="doccomment">/// Provides access to an object types&#39; constant properties. [More information](./declaration/struct.GetConstField.html).</span>
@@ -784,6 +812,9 @@
             <span class="self">Self</span>::<span class="ident">Assign</span>(<span class="kw-2">ref</span> <span class="ident">op</span>) <span class="op">=&gt;</span> <span class="ident">Display</span>::<span class="ident">fmt</span>(<span class="ident">op</span>, <span class="ident">f</span>),
             <span class="self">Self</span>::<span class="ident">LetDeclList</span>(<span class="kw-2">ref</span> <span class="ident">decl</span>) <span class="op">=&gt;</span> <span class="ident">Display</span>::<span class="ident">fmt</span>(<span class="ident">decl</span>, <span class="ident">f</span>),
             <span class="self">Self</span>::<span class="ident">ConstDeclList</span>(<span class="kw-2">ref</span> <span class="ident">decl</span>) <span class="op">=&gt;</span> <span class="ident">Display</span>::<span class="ident">fmt</span>(<span class="ident">decl</span>, <span class="ident">f</span>),
+            <span class="self">Self</span>::<span class="ident">AsyncFunctionDecl</span>(<span class="kw-2">ref</span> <span class="ident">decl</span>) <span class="op">=&gt;</span> <span class="ident">decl</span>.<span class="ident">display</span>(<span class="ident">f</span>, <span class="ident">indentation</span>),
+            <span class="self">Self</span>::<span class="ident">AsyncFunctionExpr</span>(<span class="kw-2">ref</span> <span class="ident">expr</span>) <span class="op">=&gt;</span> <span class="ident">expr</span>.<span class="ident">display</span>(<span class="ident">f</span>, <span class="ident">indentation</span>),
+            <span class="self">Self</span>::<span class="ident">AwaitExpr</span>(<span class="kw-2">ref</span> <span class="ident">expr</span>) <span class="op">=&gt;</span> <span class="ident">expr</span>.<span class="ident">display</span>(<span class="ident">f</span>, <span class="ident">indentation</span>),
         }
     }
 }
@@ -792,6 +823,9 @@
     <span class="kw">fn</span> <span class="ident">run</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">interpreter</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">BoaProfiler</span>::<span class="ident">global</span>().<span class="ident">start_event</span>(<span class="string">&quot;Executable&quot;</span>, <span class="string">&quot;exec&quot;</span>);
         <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
+            <span class="ident">Node</span>::<span class="ident">AsyncFunctionDecl</span>(<span class="kw-2">ref</span> <span class="ident">decl</span>) <span class="op">=&gt;</span> <span class="ident">decl</span>.<span class="ident">run</span>(<span class="ident">interpreter</span>),
+            <span class="ident">Node</span>::<span class="ident">AsyncFunctionExpr</span>(<span class="kw-2">ref</span> <span class="ident">function_expr</span>) <span class="op">=&gt;</span> <span class="ident">function_expr</span>.<span class="ident">run</span>(<span class="ident">interpreter</span>),
+            <span class="ident">Node</span>::<span class="ident">AwaitExpr</span>(<span class="kw-2">ref</span> <span class="ident">expr</span>) <span class="op">=&gt;</span> <span class="ident">expr</span>.<span class="ident">run</span>(<span class="ident">interpreter</span>),
             <span class="ident">Node</span>::<span class="ident">Call</span>(<span class="kw-2">ref</span> <span class="ident">call</span>) <span class="op">=&gt;</span> <span class="ident">call</span>.<span class="ident">run</span>(<span class="ident">interpreter</span>),
             <span class="ident">Node</span>::<span class="ident">Const</span>(<span class="ident">Const</span>::<span class="ident">Null</span>) <span class="op">=&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">null</span>()),
             <span class="ident">Node</span>::<span class="ident">Const</span>(<span class="ident">Const</span>::<span class="ident">Num</span>(<span class="ident">num</span>)) <span class="op">=&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">rational</span>(<span class="ident">num</span>)),

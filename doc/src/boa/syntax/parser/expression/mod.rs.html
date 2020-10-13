@@ -541,6 +541,8 @@
 <span id="540">540</span>
 <span id="541">541</span>
 <span id="542">542</span>
+<span id="543">543</span>
+<span id="544">544</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Expression parsing.</span>
 <span class="doccomment">//!</span>
@@ -558,6 +560,8 @@
 <span class="kw">mod</span> <span class="ident">tests</span>;
 <span class="kw">mod</span> <span class="ident">unary</span>;
 <span class="kw">mod</span> <span class="ident">update</span>;
+
+<span class="kw">pub</span>(<span class="kw">in</span> <span class="kw">crate</span>::<span class="ident">syntax</span>::<span class="ident">parser</span>) <span class="kw">mod</span> <span class="ident">await_expr</span>;
 
 <span class="kw">use</span> <span class="self">self</span>::<span class="ident">assignment</span>::<span class="ident">ExponentiationExpression</span>;
 <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">use</span> <span class="self">self</span>::{<span class="ident">assignment</span>::<span class="ident">AssignmentExpression</span>, <span class="ident">primary</span>::<span class="ident">Initializer</span>};

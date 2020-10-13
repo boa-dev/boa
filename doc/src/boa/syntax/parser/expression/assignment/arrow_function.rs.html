@@ -256,7 +256,7 @@
             <span class="ident">Box</span>::<span class="ident">new</span>([<span class="ident">FormalParameter</span>::<span class="ident">new</span>(<span class="ident">param</span>, <span class="prelude-val">None</span>, <span class="bool-val">false</span>)])
         };
 
-        <span class="ident">cursor</span>.<span class="ident">peek_expect_no_lineterminator</span>(<span class="number">0</span>)<span class="question-mark">?</span>;
+        <span class="ident">cursor</span>.<span class="ident">peek_expect_no_lineterminator</span>(<span class="number">0</span>, <span class="string">&quot;arrow function&quot;</span>)<span class="question-mark">?</span>;
 
         <span class="ident">cursor</span>.<span class="ident">expect</span>(<span class="ident">TokenKind</span>::<span class="ident">Punctuator</span>(<span class="ident">Punctuator</span>::<span class="ident">Arrow</span>), <span class="string">&quot;arrow function&quot;</span>)<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">body</span> <span class="op">=</span> <span class="ident">ConciseBody</span>::<span class="ident">new</span>(<span class="self">self</span>.<span class="ident">allow_in</span>).<span class="ident">parse</span>(<span class="ident">cursor</span>)<span class="question-mark">?</span>;

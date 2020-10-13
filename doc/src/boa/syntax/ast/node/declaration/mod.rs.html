@@ -16,10 +16,16 @@
 <span id="15">15</span>
 <span id="16">16</span>
 <span id="17">17</span>
+<span id="18">18</span>
+<span id="19">19</span>
+<span id="20">20</span>
+<span id="21">21</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Declaration nodes</span>
 
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">arrow_function_decl</span>;
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">async_function_decl</span>;
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">async_function_expr</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">const_decl_list</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">function_decl</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">function_expr</span>;
@@ -28,6 +34,8 @@
 
 <span class="kw">pub</span> <span class="kw">use</span> <span class="self">self</span>::{
     <span class="ident">arrow_function_decl</span>::<span class="ident">ArrowFunctionDecl</span>,
+    <span class="ident">async_function_decl</span>::<span class="ident">AsyncFunctionDecl</span>,
+    <span class="ident">async_function_expr</span>::<span class="ident">AsyncFunctionExpr</span>,
     <span class="ident">const_decl_list</span>::{<span class="ident">ConstDecl</span>, <span class="ident">ConstDeclList</span>},
     <span class="ident">function_decl</span>::<span class="ident">FunctionDecl</span>,
     <span class="ident">function_expr</span>::<span class="ident">FunctionExpr</span>,

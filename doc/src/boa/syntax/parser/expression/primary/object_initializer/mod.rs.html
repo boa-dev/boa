@@ -297,6 +297,17 @@
 <span id="296">296</span>
 <span id="297">297</span>
 <span id="298">298</span>
+<span id="299">299</span>
+<span id="300">300</span>
+<span id="301">301</span>
+<span id="302">302</span>
+<span id="303">303</span>
+<span id="304">304</span>
+<span id="305">305</span>
+<span id="306">306</span>
+<span id="307">307</span>
+<span id="308">308</span>
+<span id="309">309</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Object initializer parsing.</span>
 <span class="doccomment">//!</span>
@@ -439,6 +450,17 @@
             <span class="kw">let</span> <span class="ident">val</span> <span class="op">=</span> <span class="ident">AssignmentExpression</span>::<span class="ident">new</span>(<span class="bool-val">true</span>, <span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>)
                 .<span class="ident">parse</span>(<span class="ident">cursor</span>)<span class="question-mark">?</span>;
             <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">node</span>::<span class="ident">PropertyDefinition</span>::<span class="ident">property</span>(<span class="ident">prop_name</span>, <span class="ident">val</span>));
+        }
+
+        <span class="comment">// TODO GeneratorMethod</span>
+        <span class="comment">// https://tc39.es/ecma262/#prod-GeneratorMethod</span>
+
+        <span class="kw">if</span> <span class="ident">prop_name</span>.<span class="ident">as_str</span>() <span class="op">==</span> <span class="string">&quot;async&quot;</span> {
+            <span class="comment">// TODO - AsyncMethod.</span>
+            <span class="comment">// https://tc39.es/ecma262/#prod-AsyncMethod</span>
+
+            <span class="comment">// TODO - AsyncGeneratorMethod</span>
+            <span class="comment">// https://tc39.es/ecma262/#prod-AsyncGeneratorMethod</span>
         }
 
         <span class="kw">if</span> <span class="ident">cursor</span>

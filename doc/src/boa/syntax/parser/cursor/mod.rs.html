@@ -170,11 +170,6 @@
 <span id="169">169</span>
 <span id="170">170</span>
 <span id="171">171</span>
-<span id="172">172</span>
-<span id="173">173</span>
-<span id="174">174</span>
-<span id="175">175</span>
-<span id="176">176</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Cursor implementation for the parser.</span>
 <span class="kw">mod</span> <span class="ident">buffered_lexer</span>;
@@ -245,10 +240,6 @@
     }
 
     <span class="doccomment">/// Returns an error if the next token is not of kind `kind`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Note: it will consume the next token only if the next token is the expected type.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// If skip_line_terminators is true then line terminators will be discarded.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">expect</span><span class="op">&lt;</span><span class="ident">K</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">kind</span>: <span class="ident">K</span>, <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Token</span>, <span class="ident">ParseError</span><span class="op">&gt;</span>
     <span class="kw">where</span>
@@ -312,15 +303,16 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// It expects that the token stream does not end here.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// This is just syntatic sugar for a .peek(skip_n, false) call followed by a check that the result is not a line terminator or None.</span>
+    <span class="doccomment">/// This is just syntatic sugar for a .peek(skip_n) call followed by a check that the result is not a line terminator or None.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">peek_expect_no_lineterminator</span>(
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
         <span class="ident">skip_n</span>: <span class="ident">usize</span>,
+        <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>,
     ) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">Token</span>, <span class="ident">ParseError</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">t</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">buffered_lexer</span>.<span class="ident">peek</span>(<span class="ident">skip_n</span>, <span class="bool-val">false</span>)<span class="question-mark">?</span> {
             <span class="kw">if</span> <span class="ident">t</span>.<span class="ident">kind</span>() <span class="op">==</span> <span class="kw-2">&amp;</span><span class="ident">TokenKind</span>::<span class="ident">LineTerminator</span> {
-                <span class="prelude-val">Err</span>(<span class="ident">ParseError</span>::<span class="ident">unexpected</span>(<span class="ident">t</span>.<span class="ident">clone</span>(), <span class="prelude-val">None</span>))
+                <span class="prelude-val">Err</span>(<span class="ident">ParseError</span>::<span class="ident">unexpected</span>(<span class="ident">t</span>.<span class="ident">clone</span>(), <span class="ident">context</span>))
             } <span class="kw">else</span> {
                 <span class="prelude-val">Ok</span>(<span class="ident">t</span>)
             }
@@ -334,8 +326,6 @@
     <span class="doccomment">/// When the next token is a `kind` token, get the token, otherwise return `None`.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// No next token also returns None.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// If skip_line_terminators is true then line terminators will be discarded.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">next_if</span><span class="op">&lt;</span><span class="ident">K</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">kind</span>: <span class="ident">K</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Token</span><span class="op">&gt;</span>, <span class="ident">ParseError</span><span class="op">&gt;</span>
     <span class="kw">where</span>
