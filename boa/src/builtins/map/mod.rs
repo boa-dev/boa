@@ -2,7 +2,7 @@
 
 use crate::{
     builtins::BuiltIn,
-    object::{ConstructorBuilder, ObjectData, PROTOTYPE},
+    object::{ConstructorBuilder, FunctionBuilder, ObjectData, PROTOTYPE},
     property::{Attribute, DataDescriptor},
     BoaProfiler, Context, Result, Value,
 };
@@ -28,11 +28,29 @@ impl BuiltIn for Map {
     fn init(context: &mut Context) -> (&'static str, Value, Attribute) {
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
+        let iterator_symbol = context.well_known_symbols().iterator_symbol();
+
+        let entries_function = FunctionBuilder::new(context, Self::entries)
+            .name("entries")
+            .length(0)
+            .callable(true)
+            .constructable(false)
+            .build();
+
         let map_object = ConstructorBuilder::new(context, Self::constructor)
             .name(Self::NAME)
             .length(Self::LENGTH)
+            .property(
+                "entries",
+                entries_function.clone(),
+                Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+            )
+            .property(
+                iterator_symbol,
+                entries_function,
+                Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+            )
             .method(Self::set, "set", 2)
-            .method(Self::entries, "entries", 0)
             .method(Self::delete, "delete", 1)
             .method(Self::get, "get", 1)
             .method(Self::clear, "clear", 0)
