@@ -75,7 +75,7 @@ where
 
         cursor.expect(Punctuator::OpenParen, "async function declaration")?;
 
-        let params = FormalParameters::new(false, true).parse(cursor)?;
+        let params = FormalParameters::new(false, true, false).parse(cursor)?;
 
         cursor.expect(Punctuator::CloseParen, "async function declaration")?;
         cursor.expect(Punctuator::OpenBlock, "async function declaration")?;

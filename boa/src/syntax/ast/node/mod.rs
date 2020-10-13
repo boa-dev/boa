@@ -28,8 +28,8 @@ pub use self::{
     call::Call,
     conditional::{ConditionalOp, If},
     declaration::{
-        ArrowFunctionDecl, AsyncFunctionDecl, AsyncFunctionExpr, ConstDecl, ConstDeclList,
-        FunctionDecl, FunctionExpr, LetDecl, LetDeclList, VarDecl, VarDeclList,
+        ArrowFunctionDecl, AsyncArrowFunctionDecl, AsyncFunctionDecl, AsyncFunctionExpr, ConstDecl,
+        ConstDeclList, FunctionDecl, FunctionExpr, LetDecl, LetDeclList, VarDecl, VarDeclList,
     },
     field::{GetConstField, GetField},
     identifier::Identifier,
@@ -72,6 +72,8 @@ pub enum Node {
 
     /// An async function expression node. [More information](./declaration/struct.AsyncFunctionExpr.html).
     AsyncFunctionExpr(AsyncFunctionExpr),
+
+    AsyncArrowFunctionDecl(AsyncArrowFunctionDecl),
 
     /// An await expression node. [More information](./await_expr/struct.AwaitExpression.html).
     AwaitExpr(AwaitExpr),
@@ -257,6 +259,7 @@ impl Node {
             Self::AsyncFunctionDecl(ref decl) => decl.display(f, indentation),
             Self::AsyncFunctionExpr(ref expr) => expr.display(f, indentation),
             Self::AwaitExpr(ref expr) => expr.display(f, indentation),
+            Self::AsyncArrowFunctionDecl(ref decl) => decl.display(f, indentation),
         }
     }
 }
@@ -267,6 +270,7 @@ impl Executable for Node {
         match *self {
             Node::AsyncFunctionDecl(ref decl) => decl.run(interpreter),
             Node::AsyncFunctionExpr(ref function_expr) => function_expr.run(interpreter),
+            Node::AsyncArrowFunctionDecl(ref decl) => decl.run(interpreter),
             Node::AwaitExpr(ref expr) => expr.run(interpreter),
             Node::Call(ref call) => call.run(interpreter),
             Node::Const(Const::Null) => Ok(Value::null()),

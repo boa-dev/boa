@@ -212,7 +212,7 @@ where
                     "property method definition",
                 )?;
                 let first_param = cursor.peek(0)?.expect("current token disappeared").clone();
-                let params = FormalParameters::new(false, false).parse(cursor)?;
+                let params = FormalParameters::new(false, false, false).parse(cursor)?;
                 cursor.expect(Punctuator::CloseParen, "method definition")?;
                 if idn == "get" {
                     if !params.is_empty() {
@@ -233,7 +233,7 @@ where
                 }
             }
             prop_name => {
-                let params = FormalParameters::new(false, false).parse(cursor)?;
+                let params = FormalParameters::new(false, false, true).parse(cursor)?;
                 cursor.expect(Punctuator::CloseParen, "method definition")?;
                 (
                     MethodDefinitionKind::Ordinary,

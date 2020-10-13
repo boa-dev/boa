@@ -8,17 +8,23 @@
 //! [spec]: https://tc39.es/ecma262/#sec-assignment-operators
 
 mod arrow_function;
+mod async_arrow_function;
+mod concise_body;
 mod conditional;
 mod exponentiation;
+mod expression_body;
 
-use self::{arrow_function::ArrowFunction, conditional::ConditionalExpression};
-use crate::syntax::lexer::{Error as LexError, InputElement, TokenKind};
+use self::{
+    arrow_function::ArrowFunction, async_arrow_function::AsyncArrowFunction,
+    concise_body::ConciseBody, conditional::ConditionalExpression, expression_body::ExpressionBody,
+};
 use crate::{
     syntax::{
         ast::{
             node::{Assign, BinOp, Node},
             Keyword, Punctuator,
         },
+        lexer::{Error as LexError, InputElement, TokenKind},
         parser::{AllowAwait, AllowIn, AllowYield, Cursor, ParseError, ParseResult, TokenParser},
     },
     BoaProfiler,
@@ -84,6 +90,12 @@ where
 
         // Arrow function
         match cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?.kind() {
+            TokenKind::Keyword(Keyword::Async) => {
+                return AsyncArrowFunction::new(self.allow_in, self.allow_yield, self.allow_await)
+                    .parse(cursor)
+                    .map(Node::AsyncArrowFunctionDecl);
+            }
+
             // a=>{}
             TokenKind::Identifier(_)
             | TokenKind::Keyword(Keyword::Yield)
