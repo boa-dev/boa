@@ -21,18 +21,17 @@ impl Executable for FunctionDecl {
 
         // Set the name and assign it in the current environment
         val.set_field("name", self.name());
-        interpreter.realm_mut().environment.create_mutable_binding(
-            self.name().to_owned(),
-            false,
-            VariableScope::Function,
-        )
-                            .map_err(|e| e.to_error(interpreter))?;
+        interpreter
+            .realm_mut()
+            .environment
+            .create_mutable_binding(self.name().to_owned(), false, VariableScope::Function)
+            .map_err(|e| e.to_error(interpreter))?;
 
         interpreter
             .realm_mut()
             .environment
             .initialize_binding(self.name(), val)
-                            .map_err(|e| e.to_error(interpreter))?;
+            .map_err(|e| e.to_error(interpreter))?;
 
         Ok(Value::undefined())
     }
@@ -65,20 +64,19 @@ impl Executable for VarDeclList {
 
             if environment.has_binding(var.name()) {
                 if var.init().is_some() {
-                    environment.set_mutable_binding(var.name(), val, true)
-                            .map_err(|e| e.to_error(interpreter))?;
+                    environment
+                        .set_mutable_binding(var.name(), val, true)
+                        .map_err(|e| e.to_error(interpreter))?;
                 }
             } else {
-                environment.create_mutable_binding(
-                    var.name().to_owned(),
-                    false,
-                    VariableScope::Function,
-                )
-                            .map_err(|e| e.to_error(interpreter))?;
+                environment
+                    .create_mutable_binding(var.name().to_owned(), false, VariableScope::Function)
+                    .map_err(|e| e.to_error(interpreter))?;
 
-            let environment = &mut interpreter.realm_mut().environment;
-                environment.initialize_binding(var.name(), val)
-                            .map_err(|e| e.to_error(interpreter))?;
+                let environment = &mut interpreter.realm_mut().environment;
+                environment
+                    .initialize_binding(var.name(), val)
+                    .map_err(|e| e.to_error(interpreter))?;
             }
         }
         Ok(Value::undefined())
@@ -94,13 +92,13 @@ impl Executable for ConstDeclList {
                 .realm_mut()
                 .environment
                 .create_immutable_binding(decl.name().to_owned(), false, VariableScope::Block)
-                            .map_err(|e| e.to_error(interpreter))?;
+                .map_err(|e| e.to_error(interpreter))?;
 
             interpreter
                 .realm_mut()
                 .environment
                 .initialize_binding(decl.name(), val)
-                            .map_err(|e| e.to_error(interpreter))?;
+                .map_err(|e| e.to_error(interpreter))?;
         }
         Ok(Value::undefined())
     }
@@ -113,17 +111,16 @@ impl Executable for LetDeclList {
                 Some(v) => v.run(interpreter)?,
                 None => Value::undefined(),
             };
-            interpreter.realm_mut().environment.create_mutable_binding(
-                var.name().to_owned(),
-                false,
-                VariableScope::Block,
-            )
-                            .map_err(|e| e.to_error(interpreter))?;
+            interpreter
+                .realm_mut()
+                .environment
+                .create_mutable_binding(var.name().to_owned(), false, VariableScope::Block)
+                .map_err(|e| e.to_error(interpreter))?;
             interpreter
                 .realm_mut()
                 .environment
                 .initialize_binding(var.name(), val)
-                            .map_err(|e| e.to_error(interpreter))?;
+                .map_err(|e| e.to_error(interpreter))?;
         }
         Ok(Value::undefined())
     }

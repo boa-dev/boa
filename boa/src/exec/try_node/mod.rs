@@ -33,7 +33,7 @@ impl Executable for Try {
 
                             let env = &mut interpreter.realm_mut().environment;
                             env.initialize_binding(param, err)
-                            .map_err(|e| e.to_error(interpreter))?;
+                                .map_err(|e| e.to_error(interpreter))?;
                         }
                     }
 
