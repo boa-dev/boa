@@ -72,10 +72,10 @@ impl MapIterator {
             let mut object = object.borrow_mut();
             if let Some(map_iterator) = object.as_map_iterator_mut() {
                 let m = &map_iterator.iterated_map;
-                let index = map_iterator.map_next_index;
+                let mut index = map_iterator.map_next_index;
                 let item_kind = &map_iterator.map_iteration_kind;
 
-                if m.is_undefined() {
+                if map_iterator.iterated_map.is_undefined() {
                     return Ok(create_iter_result_object(ctx, Value::undefined(), true));
                 }
 
@@ -86,40 +86,21 @@ impl MapIterator {
                             let e = entries.get_index(index);
                             index += 1;
                             map_iterator.map_next_index = index;
-                            // TODO handle itemKind and empty e.[[Key]]
-                            let (_, result) = e.unwrap();
-                            return Ok(create_iter_result_object(ctx, result, false));
+                            if let Some((key, value)) = e {
+                                // TODO result of e is a Record
+                                // TODO handle itemKind
+                                return Ok(create_iter_result_object(ctx, value.clone(), false));
+                            }
                         }
-                        map_iterator.iterated_map = Value::undefined();
-                        return Ok(create_iter_result_object(ctx, Value::undefined(), true));
                     } else {
                         return Err(ctx.construct_type_error("'this' is not a Map"));
                     }
                 } else {
                     return Err(ctx.construct_type_error("'this' is not a Map"));
-                };
-            /* while
-            if map_iterator.map_next_index >= len {
-              map_iterator.iterated_map = Value::undefined();
-              return Ok(create_iter_result_object(ctx, Value::undefined(), true));
-            }
-            map_iterator.map_next_index = index + 1;
-            match map_iterator.map_iteration_kind {
-              MapIterationKind::Key => Ok(create_iter_result_object(ctx, index.into(), false)),
-              MapIterationKind::Value => {
-                let element_value = map_iterator.iterated_map.get_field(index);
-                Ok(create_iter_result_object(ctx, element_value, false))
-              }
-              MapIterationKind::KeyAndValue => {
-                let element_value = map_iterator.iterated_map.get_field(index);
-                let result = Map::constructor(
-                  &Value::new_object(Some(ctx.global_object())),
-                  &[index.into(), element_value],
-                  ctx,
-                )?;
-                Ok(create_iter_result_object(ctx, result, false))
-              }
-            } */
+                }
+
+                map_iterator.iterated_map = Value::undefined();
+                Ok(create_iter_result_object(ctx, Value::undefined(), true))
             } else {
                 ctx.throw_type_error("`this` is not an MapIterator")
             }
