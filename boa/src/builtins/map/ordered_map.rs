@@ -94,6 +94,12 @@ where
         self.0.get(key)
     }
 
+    /// TODO description
+    /// TODO return Record
+    pub fn get_index(&self, index: usize) -> Option<(&K, &V)> {
+        self.0.get_index(index)
+    }
+
     /// Return an iterator over the key-value pairs of the map, in their order
     pub fn iter(&self) -> Iter<'_, K, V> {
         self.0.iter()
