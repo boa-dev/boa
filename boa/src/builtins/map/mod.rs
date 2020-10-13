@@ -9,7 +9,7 @@ use crate::{
 use ordered_map::OrderedMap;
 
 pub mod map_iterator;
-use map_iterator::{MapIterator, MapIterationKind};
+use map_iterator::{MapIterationKind, MapIterator};
 
 pub mod ordered_map;
 #[cfg(test)]
