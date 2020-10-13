@@ -141,6 +141,17 @@ where
             return Ok(node::PropertyDefinition::property(prop_name, val));
         }
 
+        // TODO GeneratorMethod
+        // https://tc39.es/ecma262/#prod-GeneratorMethod
+
+        if prop_name.as_str() == "async" {
+            // TODO - AsyncMethod.
+            // https://tc39.es/ecma262/#prod-AsyncMethod
+
+            // TODO - AsyncGeneratorMethod
+            // https://tc39.es/ecma262/#prod-AsyncGeneratorMethod
+        }
+
         if cursor
             .next_if(TokenKind::Punctuator(Punctuator::OpenParen))?
             .is_some()

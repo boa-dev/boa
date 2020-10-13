@@ -33,14 +33,14 @@ use std::io::Read;
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Expressions_and_Operators#Unary
 /// [spec]: https://tc39.es/ecma262/#prod-UnaryExpression
 #[derive(Debug, Clone, Copy)]
-pub(super) struct UnaryExpression {
+pub(in crate::syntax::parser) struct UnaryExpression {
     allow_yield: AllowYield,
     allow_await: AllowAwait,
 }
 
 impl UnaryExpression {
     /// Creates a new `UnaryExpression` parser.
-    pub(super) fn new<Y, A>(allow_yield: Y, allow_await: A) -> Self
+    pub(in crate::syntax::parser) fn new<Y, A>(allow_yield: Y, allow_await: A) -> Self
     where
         Y: Into<AllowYield>,
         A: Into<AllowAwait>,

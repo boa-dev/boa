@@ -1,6 +1,7 @@
 //! This module implements the `Node` structure, which composes the AST.
 
 pub mod array;
+pub mod await_expr;
 pub mod block;
 pub mod break_node;
 pub mod call;
@@ -21,13 +22,14 @@ pub mod try_node;
 
 pub use self::{
     array::ArrayDecl,
+    await_expr::AwaitExpr,
     block::Block,
     break_node::Break,
     call::Call,
     conditional::{ConditionalOp, If},
     declaration::{
-        ArrowFunctionDecl, ConstDecl, ConstDeclList, FunctionDecl, FunctionExpr, LetDecl,
-        LetDeclList, VarDecl, VarDeclList,
+        ArrowFunctionDecl, AsyncFunctionDecl, AsyncFunctionExpr, ConstDecl, ConstDeclList,
+        FunctionDecl, FunctionExpr, LetDecl, LetDeclList, VarDecl, VarDeclList,
     },
     field::{GetConstField, GetField},
     identifier::Identifier,
@@ -64,6 +66,15 @@ pub enum Node {
 
     /// An assignment operator node. [More information](./operator/struct.Assign.html).
     Assign(Assign),
+
+    /// An async function declaration node. [More information](./declaration/struct.AsyncFunctionDecl.html).
+    AsyncFunctionDecl(AsyncFunctionDecl),
+
+    /// An async function expression node. [More information](./declaration/struct.AsyncFunctionExpr.html).
+    AsyncFunctionExpr(AsyncFunctionExpr),
+
+    /// An await expression node. [More information](./await_expr/struct.AwaitExpression.html).
+    AwaitExpr(AwaitExpr),
 
     /// A binary operator node. [More information](./operator/struct.BinOp.html).
     BinOp(BinOp),
@@ -104,7 +115,7 @@ pub enum Node {
     /// A function declaration node. [More information](./declaration/struct.FunctionDecl.html).
     FunctionDecl(FunctionDecl),
 
-    /// A function expressino node. [More information](./declaration/struct.FunctionExpr.html).
+    /// A function expression node. [More information](./declaration/struct.FunctionExpr.html).
     FunctionExpr(FunctionExpr),
 
     /// Provides access to an object types' constant properties. [More information](./declaration/struct.GetConstField.html).
@@ -243,6 +254,9 @@ impl Node {
             Self::Assign(ref op) => Display::fmt(op, f),
             Self::LetDeclList(ref decl) => Display::fmt(decl, f),
             Self::ConstDeclList(ref decl) => Display::fmt(decl, f),
+            Self::AsyncFunctionDecl(ref decl) => decl.display(f, indentation),
+            Self::AsyncFunctionExpr(ref expr) => expr.display(f, indentation),
+            Self::AwaitExpr(ref expr) => expr.display(f, indentation),
         }
     }
 }
@@ -251,6 +265,9 @@ impl Executable for Node {
     fn run(&self, interpreter: &mut Context) -> Result<Value> {
         let _timer = BoaProfiler::global().start_event("Executable", "exec");
         match *self {
+            Node::AsyncFunctionDecl(ref decl) => decl.run(interpreter),
+            Node::AsyncFunctionExpr(ref function_expr) => function_expr.run(interpreter),
+            Node::AwaitExpr(ref expr) => expr.run(interpreter),
             Node::Call(ref call) => call.run(interpreter),
             Node::Const(Const::Null) => Ok(Value::null()),
             Node::Const(Const::Num(num)) => Ok(Value::rational(num)),
