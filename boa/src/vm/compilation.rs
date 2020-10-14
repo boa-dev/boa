@@ -43,6 +43,7 @@ impl CodeGen for Node {
             Node::Const(Const::Null) => compiler.add_instruction(Instruction::Null),
             Node::Const(Const::Bool(true)) => compiler.add_instruction(Instruction::True),
             Node::Const(Const::Bool(false)) => compiler.add_instruction(Instruction::False),
+            Node::Const(Const::Num(num)) => compiler.add_instruction(Instruction::Rational(num)),
             Node::Const(Const::Int(num)) => match num {
                 0 => compiler.add_instruction(Instruction::Zero),
                 1 => compiler.add_instruction(Instruction::One),
