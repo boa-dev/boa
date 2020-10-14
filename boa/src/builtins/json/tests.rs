@@ -199,6 +199,15 @@ fn json_stringify_no_args() {
 }
 
 #[test]
+fn json_stringify_fractional_numbers() {
+    let mut engine = Context::new();
+
+    let actual = forward(&mut engine, r#"JSON.stringify(Math.round(1.0))"#);
+    let expected = forward(&mut engine, r#""1""#);
+    assert_eq!(actual, expected);
+}
+
+#[test]
 fn json_parse_array_with_reviver() {
     let mut engine = Context::new();
     let result = forward_val(
