@@ -41,7 +41,8 @@ impl CodeGen for Node {
         match *self {
             Node::Const(Const::Undefined) => compiler.add_instruction(Instruction::Undefined),
             Node::Const(Const::Null) => compiler.add_instruction(Instruction::Null),
-            Node::Const(Const::Bool(value)) => compiler.add_instruction(Instruction::Bool(value)),
+            Node::Const(Const::Bool(true)) => compiler.add_instruction(Instruction::True),
+            Node::Const(Const::Bool(false)) => compiler.add_instruction(Instruction::False),
             Node::Const(Const::Int(num)) => compiler.add_instruction(Instruction::Int32(num)),
             Node::Const(Const::String(ref string)) => {
                 compiler.add_string_instruction(string.clone())

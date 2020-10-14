@@ -2,7 +2,8 @@
 pub enum Instruction {
     Undefined,
     Null,
-    Bool(bool),
+    True,
+    False,
     String(usize),
     BigInt(usize),
 

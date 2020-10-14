@@ -1,4 +1,4 @@
-use crate::{Context, Value};
+use crate::{Context, Result, Value};
 
 pub(crate) mod compilation;
 pub(crate) mod instructions;
@@ -43,14 +43,15 @@ impl<'a> VM<'a> {
         self.stack.pop().unwrap()
     }
 
-    pub fn run(&mut self) -> super::Result<Value> {
+    pub fn run(&mut self) -> Result<Value> {
         let mut idx = 0;
 
         while idx < self.instructions.len() {
             match self.instructions[idx] {
                 Instruction::Undefined => self.push(Value::undefined()),
                 Instruction::Null => self.push(Value::null()),
-                Instruction::Bool(value) => self.push(Value::boolean(value)),
+                Instruction::True => self.push(Value::boolean(true)),
+                Instruction::False => self.push(Value::boolean(false)),
                 Instruction::Int32(i) => self.push(Value::Integer(i)),
                 Instruction::String(index) => {
                     let value = self.pool[index].clone();
