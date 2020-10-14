@@ -134,16 +134,13 @@ impl Array {
         let array = Array::array_create(this, 0, Some(prototype), context)?;
 
         if !length.is_number() {
-            array.set_field("0".to_string(), Value::from(length));
-            array.set_field("length".to_string(), Value::from(1));
+            array.set_field(0, Value::from(length));
+            array.set_field("length", Value::from(1));
         } else {
             if length.is_double() {
                 return context.throw_range_error("Invalid array length");
             }
-            array.set_field(
-                "length".to_string(),
-                Value::from(length.to_u32(context).unwrap()),
-            );
+            array.set_field("length", Value::from(length.to_u32(context).unwrap()));
         }
 
         Ok(array)
@@ -164,7 +161,7 @@ impl Array {
         let array = Array::array_create(this, items.len() as u32, Some(prototype), context)?;
 
         for (k, item) in items.iter().enumerate() {
-            array.set_field(k.to_string(), item.clone());
+            array.set_field(k, item.clone());
         }
 
         Ok(array)
@@ -198,7 +195,7 @@ impl Array {
             length,
             Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::PERMANENT,
         );
-        this.set_property("length".to_string(), length);
+        this.set_property("length", length);
 
         Ok(this.clone())
     }
