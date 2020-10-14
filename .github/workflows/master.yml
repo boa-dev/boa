@@ -20,8 +20,8 @@ jobs:
         with:
           path: |
             target
+            !target/doc_upload
             ~/.cargo/git
-            !~/cache/doc_upload
             ~/.cargo/registry
           key: ${{ runner.os }}-cargo-doc-bench-${{ hashFiles('**/Cargo.lock') }}
       - name: Generate documentation
