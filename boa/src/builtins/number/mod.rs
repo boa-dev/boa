@@ -354,7 +354,7 @@ impl Number {
                 fraction -= digit as f64;
                 // Round to even.
                 if fraction + delta > 1.0
-                    && (fraction > 0.5 || (fraction - 0.5) < f64::EPSILON && digit & 1 != 0)
+                    && (fraction > 0.5 || (fraction - 0.5).abs() < f64::EPSILON && digit & 1 != 0)
                 {
                     loop {
                         // We need to back trace already written digits in case of carry-over.
@@ -523,12 +523,12 @@ impl Number {
 
                     if radix == 0 {
                         if s.starts_with("0x") || s.starts_with("0X") {
-                            if let Ok(i) = i32::from_str_radix(&s[2..], 16) {
-                                return Ok(Value::integer(i));
+                            return if let Ok(i) = i32::from_str_radix(&s[2..], 16) {
+                                Ok(Value::integer(i))
                             } else {
                                 // String can't be parsed.
-                                return Ok(Value::from(f64::NAN));
-                            }
+                                Ok(Value::from(f64::NAN))
+                            };
                         } else {
                             radix = 10
                         };

@@ -1,9 +1,6 @@
 use crate::syntax::{
     ast::{
-        node::{
-            ConstDecl, ConstDeclList, FunctionDecl, LetDecl, LetDeclList, Node, VarDecl,
-            VarDeclList,
-        },
+        node::{ConstDecl, ConstDeclList, LetDecl, LetDeclList, Node, VarDecl, VarDeclList},
         Const,
     },
     parser::tests::{check_invalid, check_parser},
@@ -167,28 +164,5 @@ fn multiple_const_declaration() {
             ConstDecl::new("c", Some(Const::from(6))),
         ])
         .into()],
-    );
-}
-
-/// Function declaration parsing.
-#[test]
-fn function_declaration() {
-    check_parser(
-        "function hello() {}",
-        vec![FunctionDecl::new(Box::from("hello"), vec![], vec![]).into()],
-    );
-}
-
-/// Function declaration parsing with keywords.
-#[test]
-fn function_declaration_keywords() {
-    check_parser(
-        "function yield() {}",
-        vec![FunctionDecl::new(Box::from("yield"), vec![], vec![]).into()],
-    );
-
-    check_parser(
-        "function await() {}",
-        vec![FunctionDecl::new(Box::from("await"), vec![], vec![]).into()],
     );
 }

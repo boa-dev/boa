@@ -15,6 +15,8 @@ mod tests;
 mod unary;
 mod update;
 
+pub(in crate::syntax::parser) mod await_expr;
+
 use self::assignment::ExponentiationExpression;
 pub(super) use self::{assignment::AssignmentExpression, primary::Initializer};
 use super::{AllowAwait, AllowIn, AllowYield, Cursor, ParseResult, TokenParser};
