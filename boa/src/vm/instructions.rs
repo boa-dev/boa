@@ -1,5 +1,12 @@
 #[derive(Debug, Clone, Copy)]
 pub enum Instruction {
+    Undefined,
+    Null,
+    Bool(bool),
+
+    /// Loads an i32 onto the stack
+    Int32(i32),
+
     /// Adds the values from destination and source and stores the result in destination
     Add,
 
@@ -35,7 +42,4 @@ pub enum Instruction {
 
     In,
     InstanceOf,
-
-    // Loads an i32 onto the stack
-    Int32(i32),
 }

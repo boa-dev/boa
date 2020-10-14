@@ -46,6 +46,9 @@ impl<'a> VM<'a> {
 
         while idx < self.instructions.len() {
             match self.instructions[idx] {
+                Instruction::Undefined => self.push(Value::undefined()),
+                Instruction::Null => self.push(Value::null()),
+                Instruction::Bool(value) => self.push(Value::boolean(value)),
                 Instruction::Int32(i) => self.push(Value::Integer(i)),
                 Instruction::Add => {
                     let r = self.pop();
