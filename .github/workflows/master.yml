@@ -21,8 +21,9 @@ jobs:
           path: |
             target
             ~/.cargo/git
+            !~/cache/doc_upload
             ~/.cargo/registry
-          key: ${{ runner.os }}-cargo-master-${{ hashFiles('**/Cargo.lock') }}
+          key: ${{ runner.os }}-cargo-doc-bench-${{ hashFiles('**/Cargo.lock') }}
       - name: Generate documentation
         uses: actions-rs/cargo@v1
         with:
