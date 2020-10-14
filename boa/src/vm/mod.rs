@@ -232,6 +232,38 @@ impl<'a> VM<'a> {
                     // spec: https://tc39.es/ecma262/#sec-instanceofoperator
                     todo!("instanceof operator")
                 }
+                Instruction::Void => {
+                    let _value = self.pop();
+                    self.push(Value::undefined());
+                }
+                Instruction::TypeOf => {
+                    let value = self.pop();
+                    self.push(value.get_type().as_str().into());
+                }
+                Instruction::Pos => {
+                    let value = self.pop();
+                    let value = value.to_number(self.ctx)?;
+                    self.push(value.into());
+                }
+                Instruction::Neg => {
+                    let value = self.pop();
+                    self.push(Value::from(!value.to_boolean()));
+                }
+                Instruction::Not => {
+                    let value = self.pop();
+                    self.push((!value.to_boolean()).into());
+                }
+                Instruction::BitNot => {
+                    let target = self.pop();
+                    let num = target.to_number(self.ctx)?;
+                    let value = if num.is_nan() {
+                        -1
+                    } else {
+                        // TODO: this is not spec compliant.
+                        !(num as i32)
+                    };
+                    self.push(value.into());
+                }
             }
 
             idx += 1;

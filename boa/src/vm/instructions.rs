@@ -50,4 +50,11 @@ pub enum Instruction {
 
     In,
     InstanceOf,
+
+    Void,
+    TypeOf,
+    Pos,
+    Neg,
+    BitNot,
+    Not,
 }

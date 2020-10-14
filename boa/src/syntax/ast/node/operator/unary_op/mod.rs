@@ -1,6 +1,9 @@
 use crate::{
     exec::Executable,
     syntax::ast::{node::Node, op},
+    vm::compilation::CodeGen,
+    vm::Compiler,
+    vm::Instruction,
     Context, Result, Value,
 };
 use gc::{Finalize, Trace};
@@ -123,5 +126,24 @@ impl fmt::Display for UnaryOp {
 impl From<UnaryOp> for Node {
     fn from(op: UnaryOp) -> Self {
         Self::UnaryOp(op)
+    }
+}
+
+impl CodeGen for UnaryOp {
+    fn compile(&self, compiler: &mut Compiler) {
+        self.target().compile(compiler);
+        match self.op {
+            op::UnaryOp::Void => compiler.add_instruction(Instruction::Void),
+            op::UnaryOp::Plus => compiler.add_instruction(Instruction::Pos),
+            op::UnaryOp::Minus => compiler.add_instruction(Instruction::Neg),
+            op::UnaryOp::TypeOf => compiler.add_instruction(Instruction::TypeOf),
+            op::UnaryOp::Not => compiler.add_instruction(Instruction::Not),
+            op::UnaryOp::Tilde => compiler.add_instruction(Instruction::BitNot),
+            op::UnaryOp::IncrementPost => {}
+            op::UnaryOp::IncrementPre => {}
+            op::UnaryOp::DecrementPost => {}
+            op::UnaryOp::DecrementPre => {}
+            op::UnaryOp::Delete => {}
+        }
     }
 }

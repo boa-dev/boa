@@ -56,6 +56,7 @@ impl CodeGen for Node {
                 compiler.add_bigint_instruction(bigint.clone())
             }
             Node::BinOp(ref op) => op.compile(compiler),
+            Node::UnaryOp(ref op) => op.compile(compiler),
             _ => unimplemented!(),
         }
     }
