@@ -1,4 +1,4 @@
-use crate::{Context, Value};
+use crate::{value::RcString, Context, Value};
 
 pub(crate) mod compilation;
 pub(crate) mod instructions;
@@ -11,15 +11,17 @@ pub use instructions::Instruction;
 pub struct VM<'a> {
     ctx: &'a mut Context,
     instructions: Vec<Instruction>,
+    pool: Vec<RcString>,
     stack: Vec<Value>,
     stack_pointer: usize,
 }
 
 impl<'a> VM<'a> {
     pub fn new(compiler: Compiler, ctx: &'a mut Context) -> Self {
-        VM {
+        Self {
             ctx,
             instructions: compiler.instructions,
+            pool: compiler.pool,
             stack: vec![],
             stack_pointer: 0,
         }
@@ -49,6 +51,10 @@ impl<'a> VM<'a> {
                 Instruction::Undefined => self.push(Value::undefined()),
                 Instruction::Null => self.push(Value::null()),
                 Instruction::Bool(value) => self.push(Value::boolean(value)),
+                Instruction::String(index) => {
+                    let value = self.pool[index].clone();
+                    self.push(value.into())
+                }
                 Instruction::Int32(i) => self.push(Value::Integer(i)),
                 Instruction::Add => {
                     let r = self.pop();

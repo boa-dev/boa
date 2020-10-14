@@ -3,6 +3,7 @@ pub enum Instruction {
     Undefined,
     Null,
     Bool(bool),
+    String(usize),
 
     /// Loads an i32 onto the stack
     Int32(i32),
