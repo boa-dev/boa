@@ -211,6 +211,33 @@ fn has() {
 }
 
 #[test]
+fn keys() {
+    let mut engine = Context::new();
+    let init = r#"
+        const map1 = new Map();
+        map1.set('0', 'foo');
+        map1.set(1, 'bar');
+        const keysIterator = map1.keys();
+        let item1 = keysIterator.next();
+        let item2 = keysIterator.next();
+        let item3 = keysIterator.next();
+        "#;
+    forward(&mut engine, init);
+    let result = forward(&mut engine, "item1.value");
+    assert_eq!(result, "\"0\"");
+    let result = forward(&mut engine, "item1.done");
+    assert_eq!(result, "false");
+    let result = forward(&mut engine, "item2.value");
+    assert_eq!(result, "1");
+    let result = forward(&mut engine, "item2.done");
+    assert_eq!(result, "false");
+    let result = forward(&mut engine, "item3.value");
+    assert_eq!(result, "undefined");
+    let result = forward(&mut engine, "item3.done");
+    assert_eq!(result, "true");
+}
+
+#[test]
 fn for_each() {
     let mut engine = Context::new();
     let init = r#"
@@ -229,6 +256,33 @@ fn for_each() {
     assert_eq!(forward(&mut engine, "valueSum"), "30");
     assert_eq!(forward(&mut engine, "keySum"), "6");
     assert_eq!(forward(&mut engine, "sizeSum"), "9");
+}
+
+#[test]
+fn values() {
+    let mut engine = Context::new();
+    let init = r#"
+        const map1 = new Map();
+        map1.set('0', 'foo');
+        map1.set(1, 'bar');
+        const valuesIterator = map1.values();
+        let item1 = valuesIterator.next();
+        let item2 = valuesIterator.next();
+        let item3 = valuesIterator.next();
+        "#;
+    forward(&mut engine, init);
+    let result = forward(&mut engine, "item1.value");
+    assert_eq!(result, "\"foo\"");
+    let result = forward(&mut engine, "item1.done");
+    assert_eq!(result, "false");
+    let result = forward(&mut engine, "item2.value");
+    assert_eq!(result, "\"bar\"");
+    let result = forward(&mut engine, "item2.done");
+    assert_eq!(result, "false");
+    let result = forward(&mut engine, "item3.value");
+    assert_eq!(result, "undefined");
+    let result = forward(&mut engine, "item3.done");
+    assert_eq!(result, "true");
 }
 
 #[test]
