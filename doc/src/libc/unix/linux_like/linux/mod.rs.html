@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/libc-0.2.78/src/unix/linux_like/linux/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../../../ayu.css" disabled ><script src="../../../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../../../noscript.css"></noscript><link rel="shortcut icon" href="../../../../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../../../libc/index.html'><div class='logo-container rust-logo'><img src='../../../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/libc-0.2.79/src/unix/linux_like/linux/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../../../ayu.css" disabled ><script src="../../../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../../../noscript.css"></noscript><link rel="shortcut icon" href="../../../../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../../../libc/index.html'><div class='logo-container rust-logo'><img src='../../../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
                 <a id="settings-menu" href="../../../../../settings.html"><img src="../../../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
 <span id="3">   3</span>
@@ -3465,67 +3465,6 @@
 <span id="3464">3464</span>
 <span id="3465">3465</span>
 <span id="3466">3466</span>
-<span id="3467">3467</span>
-<span id="3468">3468</span>
-<span id="3469">3469</span>
-<span id="3470">3470</span>
-<span id="3471">3471</span>
-<span id="3472">3472</span>
-<span id="3473">3473</span>
-<span id="3474">3474</span>
-<span id="3475">3475</span>
-<span id="3476">3476</span>
-<span id="3477">3477</span>
-<span id="3478">3478</span>
-<span id="3479">3479</span>
-<span id="3480">3480</span>
-<span id="3481">3481</span>
-<span id="3482">3482</span>
-<span id="3483">3483</span>
-<span id="3484">3484</span>
-<span id="3485">3485</span>
-<span id="3486">3486</span>
-<span id="3487">3487</span>
-<span id="3488">3488</span>
-<span id="3489">3489</span>
-<span id="3490">3490</span>
-<span id="3491">3491</span>
-<span id="3492">3492</span>
-<span id="3493">3493</span>
-<span id="3494">3494</span>
-<span id="3495">3495</span>
-<span id="3496">3496</span>
-<span id="3497">3497</span>
-<span id="3498">3498</span>
-<span id="3499">3499</span>
-<span id="3500">3500</span>
-<span id="3501">3501</span>
-<span id="3502">3502</span>
-<span id="3503">3503</span>
-<span id="3504">3504</span>
-<span id="3505">3505</span>
-<span id="3506">3506</span>
-<span id="3507">3507</span>
-<span id="3508">3508</span>
-<span id="3509">3509</span>
-<span id="3510">3510</span>
-<span id="3511">3511</span>
-<span id="3512">3512</span>
-<span id="3513">3513</span>
-<span id="3514">3514</span>
-<span id="3515">3515</span>
-<span id="3516">3516</span>
-<span id="3517">3517</span>
-<span id="3518">3518</span>
-<span id="3519">3519</span>
-<span id="3520">3520</span>
-<span id="3521">3521</span>
-<span id="3522">3522</span>
-<span id="3523">3523</span>
-<span id="3524">3524</span>
-<span id="3525">3525</span>
-<span id="3526">3526</span>
-<span id="3527">3527</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Linux-specific definitions for linux-like values</span>
 
@@ -4791,73 +4730,6 @@
 
 <span class="comment">// netinet/in.h</span>
 <span class="comment">// NOTE: These are in addition to the constants defined in src/unix/mod.rs</span>
-
-<span class="comment">// IPPROTO_IP defined in src/unix/mod.rs</span>
-<span class="doccomment">/// Hop-by-hop option header</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">IPPROTO_HOPOPTS</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">0</span>;
-<span class="comment">// IPPROTO_ICMP defined in src/unix/mod.rs</span>
-<span class="doccomment">/// group mgmt protocol</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">IPPROTO_IGMP</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">2</span>;
-<span class="doccomment">/// for compatibility</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">IPPROTO_IPIP</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">4</span>;
-<span class="comment">// IPPROTO_TCP defined in src/unix/mod.rs</span>
-<span class="doccomment">/// exterior gateway protocol</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">IPPROTO_EGP</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">8</span>;
-<span class="doccomment">/// pup</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">IPPROTO_PUP</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">12</span>;
-<span class="comment">// IPPROTO_UDP defined in src/unix/mod.rs</span>
-<span class="doccomment">/// xns idp</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">IPPROTO_IDP</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">22</span>;
-<span class="doccomment">/// tp-4 w/ class negotiation</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">IPPROTO_TP</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">29</span>;
-<span class="doccomment">/// DCCP</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">IPPROTO_DCCP</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">33</span>;
-<span class="comment">// IPPROTO_IPV6 defined in src/unix/mod.rs</span>
-<span class="doccomment">/// IP6 routing header</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">IPPROTO_ROUTING</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">43</span>;
-<span class="doccomment">/// IP6 fragmentation header</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">IPPROTO_FRAGMENT</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">44</span>;
-<span class="doccomment">/// resource reservation</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">IPPROTO_RSVP</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">46</span>;
-<span class="doccomment">/// General Routing Encap.</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">IPPROTO_GRE</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">47</span>;
-<span class="doccomment">/// IP6 Encap Sec. Payload</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">IPPROTO_ESP</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">50</span>;
-<span class="doccomment">/// IP6 Auth Header</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">IPPROTO_AH</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">51</span>;
-<span class="comment">// IPPROTO_ICMPV6 defined in src/unix/mod.rs</span>
-<span class="doccomment">/// IP6 no next header</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">IPPROTO_NONE</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">59</span>;
-<span class="doccomment">/// IP6 destination option</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">IPPROTO_DSTOPTS</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">60</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">IPPROTO_MTP</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">92</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">IPPROTO_BEETPH</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">94</span>;
-<span class="doccomment">/// encapsulation header</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">IPPROTO_ENCAP</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">98</span>;
-<span class="doccomment">/// Protocol indep. multicast</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">IPPROTO_PIM</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">103</span>;
-<span class="doccomment">/// IP Payload Comp. Protocol</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">IPPROTO_COMP</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">108</span>;
-<span class="doccomment">/// SCTP</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">IPPROTO_SCTP</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">132</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">IPPROTO_MH</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">135</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">IPPROTO_UDPLITE</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">136</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">IPPROTO_MPLS</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">137</span>;
-<span class="doccomment">/// raw IP packet</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">IPPROTO_RAW</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">255</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">IPPROTO_MAX</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">256</span>;
-
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">IP_MSFILTER</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">41</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MCAST_JOIN_GROUP</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">42</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MCAST_BLOCK_SOURCE</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">43</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MCAST_UNBLOCK_SOURCE</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">44</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MCAST_LEAVE_GROUP</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">45</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MCAST_JOIN_SOURCE_GROUP</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">46</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MCAST_LEAVE_SOURCE_GROUP</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">47</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MCAST_MSFILTER</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">48</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">IP_MULTICAST_ALL</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">49</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">IP_UNICAST_IF</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">50</span>;
-
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">AF_IB</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">27</span>;
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">AF_MPLS</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">28</span>;
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">AF_NFC</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">39</span>;
@@ -5120,15 +4992,21 @@
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ENOATTR</span>: ::<span class="ident">c_int</span> <span class="op">=</span> ::<span class="ident">ENODATA</span>;
 
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SO_ORIGINAL_DST</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">80</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">IP_ORIGDSTADDR</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">20</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">IP_RECVORIGDSTADDR</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="ident">IP_ORIGDSTADDR</span>;
+
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">IP_RECVFRAGSIZE</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">25</span>;
+
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">IPV6_FLOWINFO</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">11</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">IPV6_ORIGDSTADDR</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">74</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">IPV6_RECVORIGDSTADDR</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="ident">IPV6_ORIGDSTADDR</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">IPV6_MULTICAST_ALL</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">29</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">IPV6_ROUTER_ALERT_ISOLATE</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">30</span>;
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">IPV6_FLOWLABEL_MGR</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">32</span>;
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">IPV6_FLOWINFO_SEND</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">33</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">IPV6_RECVFRAGSIZE</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">77</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">IPV6_FREEBIND</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">78</span>;
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">IPV6_FLOWINFO_FLOWLABEL</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">0x000fffff</span>;
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">IPV6_FLOWINFO_PRIORITY</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">0x0ff00000</span>;
+
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">IPV6_RTHDR_LOOSE</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">0</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">IPV6_RTHDR_STRICT</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">1</span>;
 
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">IUTF8</span>: ::<span class="ident">tcflag_t</span> <span class="op">=</span> <span class="number">0x00004000</span>;
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">CMSPAR</span>: ::<span class="ident">tcflag_t</span> <span class="op">=</span> <span class="number">0o10000000000</span>;

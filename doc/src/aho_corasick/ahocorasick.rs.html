@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/aho-corasick-0.7.13/src/ahocorasick.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>ahocorasick.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../aho_corasick/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/aho-corasick-0.7.14/src/ahocorasick.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>ahocorasick.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../aho_corasick/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
                 <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
 <span id="3">   3</span>
@@ -2124,6 +2124,28 @@
 <span id="2123">2123</span>
 <span id="2124">2124</span>
 <span id="2125">2125</span>
+<span id="2126">2126</span>
+<span id="2127">2127</span>
+<span id="2128">2128</span>
+<span id="2129">2129</span>
+<span id="2130">2130</span>
+<span id="2131">2131</span>
+<span id="2132">2132</span>
+<span id="2133">2133</span>
+<span id="2134">2134</span>
+<span id="2135">2135</span>
+<span id="2136">2136</span>
+<span id="2137">2137</span>
+<span id="2138">2138</span>
+<span id="2139">2139</span>
+<span id="2140">2140</span>
+<span id="2141">2141</span>
+<span id="2142">2142</span>
+<span id="2143">2143</span>
+<span id="2144">2144</span>
+<span id="2145">2145</span>
+<span id="2146">2146</span>
+<span id="2147">2147</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">io</span>;
 
@@ -2133,7 +2155,7 @@
 <span class="kw">use</span> <span class="ident">error</span>::<span class="prelude-ty">Result</span>;
 <span class="kw">use</span> <span class="ident">nfa</span>::{<span class="self">self</span>, <span class="ident">NFA</span>};
 <span class="kw">use</span> <span class="ident">packed</span>;
-<span class="kw">use</span> <span class="ident">prefilter</span>::<span class="ident">PrefilterState</span>;
+<span class="kw">use</span> <span class="ident">prefilter</span>::{<span class="ident">Prefilter</span>, <span class="ident">PrefilterState</span>};
 <span class="kw">use</span> <span class="ident">state_id</span>::<span class="ident">StateID</span>;
 <span class="kw">use</span> <span class="ident">Match</span>;
 
@@ -3202,6 +3224,24 @@
         }
     }
 
+    <span class="doccomment">/// Returns the prefilter object, if one exists, for the underlying</span>
+    <span class="doccomment">/// automaton.</span>
+    <span class="kw">fn</span> <span class="ident">prefilter</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">dyn</span> <span class="ident">Prefilter</span><span class="op">&gt;</span> {
+        <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
+            <span class="ident">Imp</span>::<span class="ident">NFA</span>(<span class="kw-2">ref</span> <span class="ident">nfa</span>) <span class="op">=&gt;</span> <span class="ident">nfa</span>.<span class="ident">prefilter</span>(),
+            <span class="ident">Imp</span>::<span class="ident">DFA</span>(<span class="kw-2">ref</span> <span class="ident">dfa</span>) <span class="op">=&gt;</span> <span class="ident">dfa</span>.<span class="ident">prefilter</span>(),
+        }
+    }
+
+    <span class="doccomment">/// Returns true if and only if we should attempt to use a prefilter.</span>
+    <span class="kw">fn</span> <span class="ident">use_prefilter</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
+        <span class="kw">let</span> <span class="ident">p</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">prefilter</span>() {
+            <span class="prelude-val">None</span> <span class="op">=&gt;</span> <span class="kw">return</span> <span class="bool-val">false</span>,
+            <span class="prelude-val">Some</span>(<span class="ident">p</span>) <span class="op">=&gt;</span> <span class="ident">p</span>,
+        };
+        <span class="op">!</span><span class="ident">p</span>.<span class="ident">looks_for_non_start_of_match</span>()
+    }
+
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
     <span class="kw">fn</span> <span class="ident">overlapping_find_at</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
@@ -3490,7 +3530,11 @@
             <span class="string">&quot;stream searching is only supported for Standard match semantics&quot;</span>
         );
 
-        <span class="kw">let</span> <span class="ident">prestate</span> <span class="op">=</span> <span class="ident">PrefilterState</span>::<span class="ident">new</span>(<span class="ident">ac</span>.<span class="ident">max_pattern_len</span>());
+        <span class="kw">let</span> <span class="ident">prestate</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">ac</span>.<span class="ident">imp</span>.<span class="ident">use_prefilter</span>() {
+            <span class="ident">PrefilterState</span>::<span class="ident">new</span>(<span class="ident">ac</span>.<span class="ident">max_pattern_len</span>())
+        } <span class="kw">else</span> {
+            <span class="ident">PrefilterState</span>::<span class="ident">disabled</span>()
+        };
         <span class="kw">let</span> <span class="ident">buf</span> <span class="op">=</span> <span class="ident">Buffer</span>::<span class="ident">new</span>(<span class="ident">ac</span>.<span class="ident">imp</span>.<span class="ident">max_pattern_len</span>());
         <span class="kw">let</span> <span class="ident">state_id</span> <span class="op">=</span> <span class="ident">ac</span>.<span class="ident">imp</span>.<span class="ident">start_state</span>();
         <span class="ident">StreamChunkIter</span> {
@@ -3974,7 +4018,7 @@
     <span class="doccomment">/// finite automaton (NFA) is used instead.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// The main benefit to a DFA is that it can execute searches more quickly</span>
-    <span class="doccomment">/// than a DFA (perhaps 2-4 times as fast). The main drawback is that the</span>
+    <span class="doccomment">/// than a NFA (perhaps 2-4 times as fast). The main drawback is that the</span>
     <span class="doccomment">/// DFA uses more space and can take much longer to build.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Enabling this option does not change the time complexity for</span>
