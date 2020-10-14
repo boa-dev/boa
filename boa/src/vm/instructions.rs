@@ -4,6 +4,8 @@ pub enum Instruction {
     Null,
     True,
     False,
+    Zero,
+    One,
     String(usize),
     BigInt(usize),
 

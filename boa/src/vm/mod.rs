@@ -52,6 +52,8 @@ impl<'a> VM<'a> {
                 Instruction::Null => self.push(Value::null()),
                 Instruction::True => self.push(Value::boolean(true)),
                 Instruction::False => self.push(Value::boolean(false)),
+                Instruction::Zero => self.push(Value::integer(0)),
+                Instruction::One => self.push(Value::integer(1)),
                 Instruction::Int32(i) => self.push(Value::Integer(i)),
                 Instruction::String(index) => {
                     let value = self.pool[index].clone();
