@@ -35,9 +35,9 @@ to check for the template directory.</p>
 <p>If this is not configured, then the default locations will be searched
 instead.</p>
 </div><h4 id='method.initial_head' class="method"><code>pub fn <a href='#method.initial_head' class='fnname'>initial_head</a>(&amp;mut self, head: &amp;<a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; &amp;mut <a class="struct" href="../git2/struct.RepositoryInitOptions.html" title="struct git2::RepositoryInitOptions">RepositoryInitOptions</a></code><a class='srclink' href='../src/git2/repo.rs.html#2935-2938' title='goto source code'>[src]</a></h4><div class='docblock'><p>The name of the head to point HEAD at.</p>
-<p>If not configured, this will be treated as <code>master</code> and the HEAD ref
-will be set to <code>refs/heads/master</code>. If this begins with <code>refs/</code> it will
-be used verbatim; otherwise <code>refs/heads/</code> will be prefixed</p>
+<p>If not configured, this will be taken from your git configuration.
+If this begins with <code>refs/</code> it will be used verbatim;
+otherwise <code>refs/heads/</code> will be prefixed</p>
 </div><h4 id='method.origin_url' class="method"><code>pub fn <a href='#method.origin_url' class='fnname'>origin_url</a>(&amp;mut self, url: &amp;<a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; &amp;mut <a class="struct" href="../git2/struct.RepositoryInitOptions.html" title="struct git2::RepositoryInitOptions">RepositoryInitOptions</a></code><a class='srclink' href='../src/git2/repo.rs.html#2942-2945' title='goto source code'>[src]</a></h4><div class='docblock'><p>If set, then after the rest of the repository initialization is
 completed an <code>origin</code> remote will be added pointing to this URL.</p>
 </div><h4 id='method.raw' class="method"><code>pub unsafe fn <a href='#method.raw' class='fnname'>raw</a>(&amp;self) -&gt; <a class="struct" href="../libgit2_sys/struct.git_repository_init_options.html" title="struct libgit2_sys::git_repository_init_options">git_repository_init_options</a></code><a class='srclink' href='../src/git2/repo.rs.html#2952-2969' title='goto source code'>[src]</a></h4><div class='docblock'><p>Creates a set of raw init options to be used with

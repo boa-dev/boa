@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/git2-0.13.11/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../git2/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/git2-0.13.12/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../git2/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
                 <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
 <span id="3">   3</span>
@@ -1415,6 +1415,40 @@
 <span id="1414">1414</span>
 <span id="1415">1415</span>
 <span id="1416">1416</span>
+<span id="1417">1417</span>
+<span id="1418">1418</span>
+<span id="1419">1419</span>
+<span id="1420">1420</span>
+<span id="1421">1421</span>
+<span id="1422">1422</span>
+<span id="1423">1423</span>
+<span id="1424">1424</span>
+<span id="1425">1425</span>
+<span id="1426">1426</span>
+<span id="1427">1427</span>
+<span id="1428">1428</span>
+<span id="1429">1429</span>
+<span id="1430">1430</span>
+<span id="1431">1431</span>
+<span id="1432">1432</span>
+<span id="1433">1433</span>
+<span id="1434">1434</span>
+<span id="1435">1435</span>
+<span id="1436">1436</span>
+<span id="1437">1437</span>
+<span id="1438">1438</span>
+<span id="1439">1439</span>
+<span id="1440">1440</span>
+<span id="1441">1441</span>
+<span id="1442">1442</span>
+<span id="1443">1443</span>
+<span id="1444">1444</span>
+<span id="1445">1445</span>
+<span id="1446">1446</span>
+<span id="1447">1447</span>
+<span id="1448">1448</span>
+<span id="1449">1449</span>
+<span id="1450">1450</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! # libgit2 bindings for Rust</span>
 <span class="doccomment">//!</span>
@@ -2819,6 +2853,40 @@
     <span class="macro">is_bit_set</span><span class="macro">!</span>(<span class="ident">is_not_binary</span>, <span class="ident">DiffFlags</span>::<span class="ident">NOT_BINARY</span>);
     <span class="macro">is_bit_set</span><span class="macro">!</span>(<span class="ident">has_valid_id</span>, <span class="ident">DiffFlags</span>::<span class="ident">VALID_ID</span>);
     <span class="macro">is_bit_set</span><span class="macro">!</span>(<span class="ident">exists</span>, <span class="ident">DiffFlags</span>::<span class="ident">EXISTS</span>);
+}
+
+<span class="macro">bitflags</span><span class="macro">!</span> {
+    <span class="doccomment">/// Options for [`Reference::normalize_name`].</span>
+    <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ReferenceFormat</span>: <span class="ident">u32</span> {
+        <span class="doccomment">/// No particular normalization.</span>
+        <span class="kw">const</span> <span class="ident">NORMAL</span> <span class="op">=</span> <span class="ident">raw</span>::<span class="ident">GIT_REFERENCE_FORMAT_NORMAL</span> <span class="kw">as</span> <span class="ident">u32</span>;
+        <span class="doccomment">/// Constrol whether one-level refname are accepted (i.e., refnames that</span>
+        <span class="doccomment">/// do not contain multiple `/`-separated components). Those are</span>
+        <span class="doccomment">/// expected to be written only using uppercase letters and underscore</span>
+        <span class="doccomment">/// (e.g. `HEAD`, `FETCH_HEAD`).</span>
+        <span class="kw">const</span> <span class="ident">ALLOW_ONELEVEL</span> <span class="op">=</span> <span class="ident">raw</span>::<span class="ident">GIT_REFERENCE_FORMAT_ALLOW_ONELEVEL</span> <span class="kw">as</span> <span class="ident">u32</span>;
+        <span class="doccomment">/// Interpret the provided name as a reference pattern for a refspec (as</span>
+        <span class="doccomment">/// used with remote repositories). If this option is enabled, the name</span>
+        <span class="doccomment">/// is allowed to contain a single `*` in place of a full pathname</span>
+        <span class="doccomment">/// components (e.g., `foo/*/bar` but not `foo/bar*`).</span>
+        <span class="kw">const</span> <span class="ident">REFSPEC_PATTERN</span> <span class="op">=</span> <span class="ident">raw</span>::<span class="ident">GIT_REFERENCE_FORMAT_REFSPEC_PATTERN</span> <span class="kw">as</span> <span class="ident">u32</span>;
+        <span class="doccomment">/// Interpret the name as part of a refspec in shorthand form so the</span>
+        <span class="doccomment">/// `ALLOW_ONELEVEL` naming rules aren&#39;t enforced and `main` becomes a</span>
+        <span class="doccomment">/// valid name.</span>
+        <span class="kw">const</span> <span class="ident">REFSPEC_SHORTHAND</span> <span class="op">=</span> <span class="ident">raw</span>::<span class="ident">GIT_REFERENCE_FORMAT_REFSPEC_SHORTHAND</span> <span class="kw">as</span> <span class="ident">u32</span>;
+    }
+}
+
+<span class="kw">impl</span> <span class="ident">ReferenceFormat</span> {
+    <span class="macro">is_bit_set</span><span class="macro">!</span>(<span class="ident">is_allow_onelevel</span>, <span class="ident">ReferenceFormat</span>::<span class="ident">ALLOW_ONELEVEL</span>);
+    <span class="macro">is_bit_set</span><span class="macro">!</span>(<span class="ident">is_refspec_pattern</span>, <span class="ident">ReferenceFormat</span>::<span class="ident">REFSPEC_PATTERN</span>);
+    <span class="macro">is_bit_set</span><span class="macro">!</span>(<span class="ident">is_refspec_shorthand</span>, <span class="ident">ReferenceFormat</span>::<span class="ident">REFSPEC_SHORTHAND</span>);
+}
+
+<span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">ReferenceFormat</span> {
+    <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-&gt;</span> <span class="self">Self</span> {
+        <span class="ident">ReferenceFormat</span>::<span class="ident">NORMAL</span>
+    }
 }
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>

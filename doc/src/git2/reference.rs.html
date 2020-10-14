@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/git2-0.13.11/src/reference.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>reference.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../git2/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/git2-0.13.12/src/reference.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>reference.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../git2/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
                 <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
@@ -417,6 +417,119 @@
 <span id="416">416</span>
 <span id="417">417</span>
 <span id="418">418</span>
+<span id="419">419</span>
+<span id="420">420</span>
+<span id="421">421</span>
+<span id="422">422</span>
+<span id="423">423</span>
+<span id="424">424</span>
+<span id="425">425</span>
+<span id="426">426</span>
+<span id="427">427</span>
+<span id="428">428</span>
+<span id="429">429</span>
+<span id="430">430</span>
+<span id="431">431</span>
+<span id="432">432</span>
+<span id="433">433</span>
+<span id="434">434</span>
+<span id="435">435</span>
+<span id="436">436</span>
+<span id="437">437</span>
+<span id="438">438</span>
+<span id="439">439</span>
+<span id="440">440</span>
+<span id="441">441</span>
+<span id="442">442</span>
+<span id="443">443</span>
+<span id="444">444</span>
+<span id="445">445</span>
+<span id="446">446</span>
+<span id="447">447</span>
+<span id="448">448</span>
+<span id="449">449</span>
+<span id="450">450</span>
+<span id="451">451</span>
+<span id="452">452</span>
+<span id="453">453</span>
+<span id="454">454</span>
+<span id="455">455</span>
+<span id="456">456</span>
+<span id="457">457</span>
+<span id="458">458</span>
+<span id="459">459</span>
+<span id="460">460</span>
+<span id="461">461</span>
+<span id="462">462</span>
+<span id="463">463</span>
+<span id="464">464</span>
+<span id="465">465</span>
+<span id="466">466</span>
+<span id="467">467</span>
+<span id="468">468</span>
+<span id="469">469</span>
+<span id="470">470</span>
+<span id="471">471</span>
+<span id="472">472</span>
+<span id="473">473</span>
+<span id="474">474</span>
+<span id="475">475</span>
+<span id="476">476</span>
+<span id="477">477</span>
+<span id="478">478</span>
+<span id="479">479</span>
+<span id="480">480</span>
+<span id="481">481</span>
+<span id="482">482</span>
+<span id="483">483</span>
+<span id="484">484</span>
+<span id="485">485</span>
+<span id="486">486</span>
+<span id="487">487</span>
+<span id="488">488</span>
+<span id="489">489</span>
+<span id="490">490</span>
+<span id="491">491</span>
+<span id="492">492</span>
+<span id="493">493</span>
+<span id="494">494</span>
+<span id="495">495</span>
+<span id="496">496</span>
+<span id="497">497</span>
+<span id="498">498</span>
+<span id="499">499</span>
+<span id="500">500</span>
+<span id="501">501</span>
+<span id="502">502</span>
+<span id="503">503</span>
+<span id="504">504</span>
+<span id="505">505</span>
+<span id="506">506</span>
+<span id="507">507</span>
+<span id="508">508</span>
+<span id="509">509</span>
+<span id="510">510</span>
+<span id="511">511</span>
+<span id="512">512</span>
+<span id="513">513</span>
+<span id="514">514</span>
+<span id="515">515</span>
+<span id="516">516</span>
+<span id="517">517</span>
+<span id="518">518</span>
+<span id="519">519</span>
+<span id="520">520</span>
+<span id="521">521</span>
+<span id="522">522</span>
+<span id="523">523</span>
+<span id="524">524</span>
+<span id="525">525</span>
+<span id="526">526</span>
+<span id="527">527</span>
+<span id="528">528</span>
+<span id="529">529</span>
+<span id="530">530</span>
+<span id="531">531</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">cmp</span>::<span class="ident">Ordering</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">ffi</span>::<span class="ident">CString</span>;
@@ -428,8 +541,13 @@
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">object</span>::<span class="ident">CastOrPanic</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">util</span>::{<span class="ident">c_cmp_to_ordering</span>, <span class="ident">Binding</span>};
 <span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">raw</span>, <span class="ident">Blob</span>, <span class="ident">Commit</span>, <span class="ident">Error</span>, <span class="ident">Object</span>, <span class="ident">ObjectType</span>, <span class="ident">Oid</span>, <span class="ident">ReferenceType</span>, <span class="ident">Repository</span>, <span class="ident">Tag</span>, <span class="ident">Tree</span>,
+    <span class="ident">raw</span>, <span class="ident">Blob</span>, <span class="ident">Commit</span>, <span class="ident">Error</span>, <span class="ident">Object</span>, <span class="ident">ObjectType</span>, <span class="ident">Oid</span>, <span class="ident">ReferenceFormat</span>, <span class="ident">ReferenceType</span>, <span class="ident">Repository</span>,
+    <span class="ident">Tag</span>, <span class="ident">Tree</span>,
 };
+
+<span class="comment">// Not in the public header files (yet?), but a hard limit used by libgit2</span>
+<span class="comment">// internally</span>
+<span class="kw">const</span> <span class="ident">GIT_REFNAME_MAX</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">1024</span>;
 
 <span class="kw">struct</span> <span class="ident">Refdb</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;repo</span> <span class="ident">Repository</span>);
 
@@ -454,10 +572,118 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span> <span class="ident">Reference</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span> {
     <span class="doccomment">/// Ensure the reference name is well-formed.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Validation is performed as if [`ReferenceFormat::ALLOW_ONELEVEL`]</span>
+    <span class="doccomment">/// was given to [`Reference::normalize_name`]. No normalization is</span>
+    <span class="doccomment">/// performed, however.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// ```rust</span>
+    <span class="doccomment">/// use git2::Reference;</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// assert!(Reference::is_valid_name(&quot;HEAD&quot;));</span>
+    <span class="doccomment">/// assert!(Reference::is_valid_name(&quot;refs/heads/main&quot;));</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// // But:</span>
+    <span class="doccomment">/// assert!(!Reference::is_valid_name(&quot;main&quot;));</span>
+    <span class="doccomment">/// assert!(!Reference::is_valid_name(&quot;refs/heads/*&quot;));</span>
+    <span class="doccomment">/// assert!(!Reference::is_valid_name(&quot;foo//bar&quot;));</span>
+    <span class="doccomment">/// ```</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// [`ReferenceFormat::ALLOW_ONELEVEL`]:</span>
+    <span class="doccomment">///     struct.ReferenceFormat#associatedconstant.ALLOW_ONELEVEL</span>
+    <span class="doccomment">/// [`Reference::normalize_name`]: struct.Reference#method.normalize_name</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_valid_name</span>(<span class="ident">refname</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
         <span class="kw">crate</span>::<span class="ident">init</span>();
         <span class="kw">let</span> <span class="ident">refname</span> <span class="op">=</span> <span class="ident">CString</span>::<span class="ident">new</span>(<span class="ident">refname</span>).<span class="ident">unwrap</span>();
         <span class="kw">unsafe</span> { <span class="ident">raw</span>::<span class="ident">git_reference_is_valid_name</span>(<span class="ident">refname</span>.<span class="ident">as_ptr</span>()) <span class="op">==</span> <span class="number">1</span> }
+    }
+
+    <span class="doccomment">/// Normalize reference name and check validity.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// This will normalize the reference name by collapsing runs of adjacent</span>
+    <span class="doccomment">/// slashes between name components into a single slash. It also validates</span>
+    <span class="doccomment">/// the name according to the following rules:</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// 1. If [`ReferenceFormat::ALLOW_ONELEVEL`] is given, the name may</span>
+    <span class="doccomment">///    contain only capital letters and underscores, and must begin and end</span>
+    <span class="doccomment">///    with a letter. (e.g. &quot;HEAD&quot;, &quot;ORIG_HEAD&quot;).</span>
+    <span class="doccomment">/// 2. The flag [`ReferenceFormat::REFSPEC_SHORTHAND`] has an effect</span>
+    <span class="doccomment">///    only when combined with [`ReferenceFormat::ALLOW_ONELEVEL`]. If</span>
+    <span class="doccomment">///    it is given, &quot;shorthand&quot; branch names (i.e. those not prefixed by</span>
+    <span class="doccomment">///    `refs/`, but consisting of a single word without `/` separators)</span>
+    <span class="doccomment">///    become valid. For example, &quot;main&quot; would be accepted.</span>
+    <span class="doccomment">/// 3. If [`ReferenceFormat::REFSPEC_PATTERN`] is given, the name may</span>
+    <span class="doccomment">///    contain a single `*` in place of a full pathname component (e.g.</span>
+    <span class="doccomment">///    `foo/*/bar`, `foo/bar*`).</span>
+    <span class="doccomment">/// 4. Names prefixed with &quot;refs/&quot; can be almost anything. You must avoid</span>
+    <span class="doccomment">///    the characters &#39;~&#39;, &#39;^&#39;, &#39;:&#39;, &#39;\\&#39;, &#39;?&#39;, &#39;[&#39;, and &#39;*&#39;, and the</span>
+    <span class="doccomment">///    sequences &quot;..&quot; and &quot;@{&quot; which have special meaning to revparse.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// If the reference passes validation, it is returned in normalized form,</span>
+    <span class="doccomment">/// otherwise an [`Error`] with [`ErrorCode::InvalidSpec`] is returned.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// ```rust</span>
+    <span class="doccomment">/// use git2::{Reference, ReferenceFormat};</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// assert_eq!(</span>
+    <span class="doccomment">///     Reference::normalize_name(</span>
+    <span class="doccomment">///         &quot;foo//bar&quot;,</span>
+    <span class="doccomment">///         ReferenceFormat::NORMAL</span>
+    <span class="doccomment">///     )</span>
+    <span class="doccomment">///     .unwrap(),</span>
+    <span class="doccomment">///     &quot;foo/bar&quot;.to_owned()</span>
+    <span class="doccomment">/// );</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// assert_eq!(</span>
+    <span class="doccomment">///     Reference::normalize_name(</span>
+    <span class="doccomment">///         &quot;HEAD&quot;,</span>
+    <span class="doccomment">///         ReferenceFormat::ALLOW_ONELEVEL</span>
+    <span class="doccomment">///     )</span>
+    <span class="doccomment">///     .unwrap(),</span>
+    <span class="doccomment">///     &quot;HEAD&quot;.to_owned()</span>
+    <span class="doccomment">/// );</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// assert_eq!(</span>
+    <span class="doccomment">///     Reference::normalize_name(</span>
+    <span class="doccomment">///         &quot;refs/heads/*&quot;,</span>
+    <span class="doccomment">///         ReferenceFormat::REFSPEC_PATTERN</span>
+    <span class="doccomment">///     )</span>
+    <span class="doccomment">///     .unwrap(),</span>
+    <span class="doccomment">///     &quot;refs/heads/*&quot;.to_owned()</span>
+    <span class="doccomment">/// );</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// assert_eq!(</span>
+    <span class="doccomment">///     Reference::normalize_name(</span>
+    <span class="doccomment">///         &quot;main&quot;,</span>
+    <span class="doccomment">///         ReferenceFormat::ALLOW_ONELEVEL | ReferenceFormat::REFSPEC_SHORTHAND</span>
+    <span class="doccomment">///     )</span>
+    <span class="doccomment">///     .unwrap(),</span>
+    <span class="doccomment">///     &quot;main&quot;.to_owned()</span>
+    <span class="doccomment">/// );</span>
+    <span class="doccomment">/// ```</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// [`ReferenceFormat::ALLOW_ONELEVEL`]:</span>
+    <span class="doccomment">///     struct.ReferenceFormat#associatedconstant.ALLOW_ONELEVEL</span>
+    <span class="doccomment">/// [`ReferenceFormat::REFSPEC_SHORTHAND`]:</span>
+    <span class="doccomment">///     struct.ReferenceFormat#associatedconstant.REFSPEC_SHORTHAND</span>
+    <span class="doccomment">/// [`ReferenceFormat::REFSPEC_PATTERN`]:</span>
+    <span class="doccomment">///     struct.ReferenceFormat#associatedconstant.REFSPEC_PATTERN</span>
+    <span class="doccomment">/// [`Error`]: struct.Error</span>
+    <span class="doccomment">/// [`ErrorCode::InvalidSpec`]: enum.ErrorCode#variant.InvalidSpec</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">normalize_name</span>(<span class="ident">refname</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">flags</span>: <span class="ident">ReferenceFormat</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
+        <span class="kw">crate</span>::<span class="ident">init</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">dst</span> <span class="op">=</span> [<span class="number">0u8</span>; <span class="ident">GIT_REFNAME_MAX</span>];
+        <span class="kw">let</span> <span class="ident">refname</span> <span class="op">=</span> <span class="ident">CString</span>::<span class="ident">new</span>(<span class="ident">refname</span>)<span class="question-mark">?</span>;
+        <span class="kw">unsafe</span> {
+            <span class="macro">try_call</span><span class="macro">!</span>(<span class="ident">raw</span>::<span class="ident">git_reference_normalize_name</span>(
+                <span class="ident">dst</span>.<span class="ident">as_mut_ptr</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">libc</span>::<span class="ident">c_char</span>,
+                <span class="ident">dst</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">libc</span>::<span class="ident">size_t</span>,
+                <span class="ident">refname</span>,
+                <span class="ident">flags</span>.<span class="ident">bits</span>()
+            ));
+            <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">dst</span>[..<span class="ident">dst</span>.<span class="ident">iter</span>().<span class="ident">position</span>(<span class="op">|</span><span class="kw-2">&amp;</span><span class="ident">a</span><span class="op">|</span> <span class="ident">a</span> <span class="op">==</span> <span class="number">0</span>).<span class="ident">unwrap</span>()];
+            <span class="prelude-val">Ok</span>(<span class="ident">str</span>::<span class="ident">from_utf8</span>(<span class="ident">s</span>).<span class="ident">unwrap</span>().<span class="ident">to_owned</span>())
+        }
     }
 
     <span class="doccomment">/// Get access to the underlying raw pointer.</span>
@@ -789,18 +1015,18 @@
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">head</span>.<span class="ident">kind</span>().<span class="ident">unwrap</span>(), <span class="ident">ReferenceType</span>::<span class="ident">Direct</span>);
 
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">head</span> <span class="op">==</span> <span class="ident">repo</span>.<span class="ident">head</span>().<span class="ident">unwrap</span>());
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">head</span>.<span class="ident">name</span>(), <span class="prelude-val">Some</span>(<span class="string">&quot;refs/heads/master&quot;</span>));
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">head</span>.<span class="ident">name</span>(), <span class="prelude-val">Some</span>(<span class="string">&quot;refs/heads/main&quot;</span>));
 
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">head</span> <span class="op">==</span> <span class="ident">repo</span>.<span class="ident">find_reference</span>(<span class="string">&quot;refs/heads/master&quot;</span>).<span class="ident">unwrap</span>());
+        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">head</span> <span class="op">==</span> <span class="ident">repo</span>.<span class="ident">find_reference</span>(<span class="string">&quot;refs/heads/main&quot;</span>).<span class="ident">unwrap</span>());
         <span class="macro">assert_eq</span><span class="macro">!</span>(
-            <span class="ident">repo</span>.<span class="ident">refname_to_id</span>(<span class="string">&quot;refs/heads/master&quot;</span>).<span class="ident">unwrap</span>(),
+            <span class="ident">repo</span>.<span class="ident">refname_to_id</span>(<span class="string">&quot;refs/heads/main&quot;</span>).<span class="ident">unwrap</span>(),
             <span class="ident">head</span>.<span class="ident">target</span>().<span class="ident">unwrap</span>()
         );
 
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">head</span>.<span class="ident">symbolic_target</span>().<span class="ident">is_none</span>());
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">head</span>.<span class="ident">target_peel</span>().<span class="ident">is_none</span>());
 
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">head</span>.<span class="ident">shorthand</span>(), <span class="prelude-val">Some</span>(<span class="string">&quot;master&quot;</span>));
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">head</span>.<span class="ident">shorthand</span>(), <span class="prelude-val">Some</span>(<span class="string">&quot;main&quot;</span>));
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">head</span>.<span class="ident">resolve</span>().<span class="ident">unwrap</span>() <span class="op">==</span> <span class="ident">head</span>);
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">tag1</span> <span class="op">=</span> <span class="ident">repo</span>
@@ -816,7 +1042,7 @@
         <span class="ident">tag1</span>.<span class="ident">delete</span>().<span class="ident">unwrap</span>();
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">sym1</span> <span class="op">=</span> <span class="ident">repo</span>
-            .<span class="ident">reference_symbolic</span>(<span class="string">&quot;refs/tags/tag1&quot;</span>, <span class="string">&quot;refs/heads/master&quot;</span>, <span class="bool-val">false</span>, <span class="string">&quot;test&quot;</span>)
+            .<span class="ident">reference_symbolic</span>(<span class="string">&quot;refs/tags/tag1&quot;</span>, <span class="string">&quot;refs/heads/main&quot;</span>, <span class="bool-val">false</span>, <span class="string">&quot;test&quot;</span>)
             .<span class="ident">unwrap</span>();
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">sym1</span>.<span class="ident">kind</span>().<span class="ident">unwrap</span>(), <span class="ident">ReferenceType</span>::<span class="ident">Symbolic</span>);
         <span class="ident">sym1</span>.<span class="ident">delete</span>().<span class="ident">unwrap</span>();
@@ -826,7 +1052,7 @@
             <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">repo</span>.<span class="ident">references</span>().<span class="ident">unwrap</span>().<span class="ident">next</span>().<span class="ident">unwrap</span>().<span class="ident">unwrap</span>() <span class="op">==</span> <span class="ident">head</span>);
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">names</span> <span class="op">=</span> <span class="ident">repo</span>.<span class="ident">references</span>().<span class="ident">unwrap</span>();
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">names</span> <span class="op">=</span> <span class="ident">names</span>.<span class="ident">names</span>();
-            <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">names</span>.<span class="ident">next</span>().<span class="ident">unwrap</span>().<span class="ident">unwrap</span>(), <span class="string">&quot;refs/heads/master&quot;</span>);
+            <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">names</span>.<span class="ident">next</span>().<span class="ident">unwrap</span>().<span class="ident">unwrap</span>(), <span class="string">&quot;refs/heads/main&quot;</span>);
             <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">names</span>.<span class="ident">next</span>().<span class="ident">is_none</span>());
             <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">repo</span>.<span class="ident">references_glob</span>(<span class="string">&quot;foo&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">count</span>() <span class="op">==</span> <span class="number">0</span>);
             <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">repo</span>.<span class="ident">references_glob</span>(<span class="string">&quot;refs/heads/*&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">count</span>() <span class="op">==</span> <span class="number">1</span>);

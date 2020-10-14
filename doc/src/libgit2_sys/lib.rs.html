@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/libgit2-sys-0.12.13+1.0.1/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../libgit2_sys/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/libgit2-sys-0.12.14+1.1.0/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../libgit2_sys/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
                 <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
 <span id="3">   3</span>
@@ -3814,6 +3814,21 @@
 <span id="3813">3813</span>
 <span id="3814">3814</span>
 <span id="3815">3815</span>
+<span id="3816">3816</span>
+<span id="3817">3817</span>
+<span id="3818">3818</span>
+<span id="3819">3819</span>
+<span id="3820">3820</span>
+<span id="3821">3821</span>
+<span id="3822">3822</span>
+<span id="3823">3823</span>
+<span id="3824">3824</span>
+<span id="3825">3825</span>
+<span id="3826">3826</span>
+<span id="3827">3827</span>
+<span id="3828">3828</span>
+<span id="3829">3829</span>
+<span id="3830">3830</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="attribute">#![<span class="ident">doc</span>(<span class="ident">html_root_url</span> <span class="op">=</span> <span class="string">&quot;https://docs.rs/libgit2-sys/0.12&quot;</span>)]</span>
 <span class="attribute">#![<span class="ident">allow</span>(<span class="ident">non_camel_case_types</span>, <span class="ident">unused_extern_crates</span>)]</span>
@@ -5631,6 +5646,15 @@
     }
 }
 
+<span class="macro">git_enum</span><span class="macro">!</span> {
+    <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">git_reference_format_t</span> {
+        <span class="ident">GIT_REFERENCE_FORMAT_NORMAL</span> <span class="op">=</span> <span class="number">0</span>,
+        <span class="ident">GIT_REFERENCE_FORMAT_ALLOW_ONELEVEL</span> <span class="op">=</span> <span class="number">1</span> <span class="op">&lt;&lt;</span> <span class="number">0</span>,
+        <span class="ident">GIT_REFERENCE_FORMAT_REFSPEC_PATTERN</span> <span class="op">=</span> <span class="number">1</span> <span class="op">&lt;&lt;</span> <span class="number">1</span>,
+        <span class="ident">GIT_REFERENCE_FORMAT_REFSPEC_SHORTHAND</span> <span class="op">=</span> <span class="number">1</span> <span class="op">&lt;&lt;</span> <span class="number">2</span>,
+    }
+}
+
 <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
     <span class="comment">// threads</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">git_libgit2_init</span>() <span class="op">-&gt;</span> <span class="ident">c_int</span>;
@@ -6095,6 +6119,12 @@
     ) <span class="op">-&gt;</span> <span class="ident">c_int</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">git_reference_has_log</span>(<span class="ident">repo</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">git_repository</span>, <span class="ident">name</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_char</span>) <span class="op">-&gt;</span> <span class="ident">c_int</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">git_reference_ensure_log</span>(<span class="ident">repo</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">git_repository</span>, <span class="ident">name</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_char</span>) <span class="op">-&gt;</span> <span class="ident">c_int</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">git_reference_normalize_name</span>(
+        <span class="ident">buffer_out</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_char</span>,
+        <span class="ident">buffer_size</span>: <span class="ident">size_t</span>,
+        <span class="ident">name</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_char</span>,
+        <span class="ident">flags</span>: <span class="ident">u32</span>,
+    ) <span class="op">-&gt;</span> <span class="ident">c_int</span>;
 
     <span class="comment">// stash</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">git_stash_save</span>(
