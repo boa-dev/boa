@@ -1,10 +1,10 @@
 use super::*;
-use crate::{syntax::ast::Const, syntax::ast::Node, value::RcString};
+use crate::{syntax::ast::Const, syntax::ast::Node, value::RcBigInt, value::RcString};
 
 #[derive(Debug, Default)]
 pub struct Compiler {
     pub(super) instructions: Vec<Instruction>,
-    pub(super) pool: Vec<RcString>,
+    pub(super) pool: Vec<Value>,
 }
 
 impl Compiler {
@@ -19,7 +19,16 @@ impl Compiler {
     {
         let index = self.pool.len();
         self.add_instruction(Instruction::String(index));
-        self.pool.push(string.into());
+        self.pool.push(string.into().into());
+    }
+
+    pub fn add_bigint_instruction<B>(&mut self, bigint: B)
+    where
+        B: Into<RcBigInt>,
+    {
+        let index = self.pool.len();
+        self.add_instruction(Instruction::BigInt(index));
+        self.pool.push(bigint.into().into());
     }
 }
 
@@ -36,6 +45,9 @@ impl CodeGen for Node {
             Node::Const(Const::Int(num)) => compiler.add_instruction(Instruction::Int32(num)),
             Node::Const(Const::String(ref string)) => {
                 compiler.add_string_instruction(string.clone())
+            }
+            Node::Const(Const::BigInt(ref bigint)) => {
+                compiler.add_bigint_instruction(bigint.clone())
             }
             Node::BinOp(ref op) => op.compile(compiler),
             _ => unimplemented!(),

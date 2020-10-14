@@ -4,6 +4,7 @@ pub enum Instruction {
     Null,
     Bool(bool),
     String(usize),
+    BigInt(usize),
 
     /// Loads an i32 onto the stack
     Int32(i32),
