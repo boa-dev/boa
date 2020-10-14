@@ -9,8 +9,6 @@ use crate::{
     },
 };
 use std::{
-    char::{decode_utf16, from_u32},
-    convert::TryFrom,
     io::{self, ErrorKind, Read},
     str,
 };
@@ -57,7 +55,7 @@ impl<R> Tokenizer<R> for StringLiteral {
     {
         let _timer = BoaProfiler::global().start_event("StringLiteral", "Lexing");
 
-        let mut buf = String::new();
+        let mut buf: Vec<u16> = Vec::new();
         loop {
             let next_chr_start = cursor.pos();
             let next_chr = cursor.next_char()?.ok_or_else(|| {
@@ -84,108 +82,81 @@ impl<R> Tokenizer<R> for StringLiteral {
                             "unterminated escape sequence in string literal",
                         ))
                     })?;
-                    if escape != '\n' {
-                        let escaped_ch = match escape {
-                            'n' => '\n',
-                            'r' => '\r',
-                            't' => '\t',
-                            'b' => '\x08',
-                            'f' => '\x0c',
-                            '0' => '\0',
-                            'x' => {
-                                let mut nums = [0u8; 2];
-                                cursor.fill_bytes(&mut nums)?;
-                                let nums = str::from_utf8(&nums).expect("non-UTF-8 bytes found");
 
-                                let as_num = match u64::from_str_radix(&nums, 16) {
-                                    Ok(v) => v,
-                                    Err(_) => 0,
-                                };
-                                match from_u32(as_num as u32) {
-                                    Some(v) => v,
-                                    None => {
-                                        return Err(Error::syntax(
-                                            format!(
-                                                "{}: {} is not a valid Unicode scalar value",
-                                                cursor.pos(),
-                                                as_num
-                                            ),
+                    if escape != '\n' {
+                        match escape {
+                            'n' => buf.push('\n' as u16),
+                            'r' => buf.push('\r' as u16),
+                            't' => buf.push('\t' as u16),
+                            'b' => buf.push('\x08' as u16),
+                            'f' => buf.push('\x0c' as u16),
+                            '0' => buf.push('\0' as u16),
+                            'x' => {
+                                let mut code_point_utf8_bytes = [0u8; 2];
+                                cursor.fill_bytes(&mut code_point_utf8_bytes)?;
+                                let code_point_str = str::from_utf8(&code_point_utf8_bytes)
+                                    .expect("malformed Hexadecimal character escape sequence");
+                                let code_point =
+                                    u16::from_str_radix(&code_point_str, 16).map_err(|_| {
+                                        Error::syntax(
+                                            "invalid Hexadecimal escape sequence",
                                             cursor.pos(),
-                                        ))
-                                    }
-                                }
+                                        )
+                                    })?;
+
+                                buf.push(code_point);
                             }
                             'u' => {
-                                // There are 2 types of codepoints. Surragate codepoints and
-                                // unicode codepoints. UTF-16 could be surrogate codepoints,
-                                // "\uXXXX\uXXXX" which make up a single unicode codepoint. We will
-                                //  need to loop to make sure we catch all UTF-16 codepoints
-
                                 // Support \u{X..X} (Unicode Codepoint)
                                 if cursor.next_is('{')? {
                                     cursor.next_char()?.expect("{ character vanished"); // Consume the '{'.
 
-                                    // The biggest code point is 0x10FFFF
                                     // TODO: use bytes for a bit better performance (using stack)
-                                    let mut code_point = String::with_capacity(6);
-                                    cursor.take_until('}', &mut code_point)?;
+                                    let mut code_point_str = String::with_capacity(6);
+                                    cursor.take_until('}', &mut code_point_str)?;
 
                                     cursor.next_char()?.expect("} character vanished"); // Consume the '}'.
 
                                     // We know this is a single unicode codepoint, convert to u32
-                                    let as_num =
-                                        u32::from_str_radix(&code_point, 16).map_err(|_| {
+                                    let code_point = u32::from_str_radix(&code_point_str, 16)
+                                        .map_err(|_| {
                                             Error::syntax(
                                                 "malformed Unicode character escape sequence",
                                                 cursor.pos(),
                                             )
                                         })?;
-                                    if as_num > 0x10_FFFF {
+
+                                    // UTF16Encoding of a numeric code point value
+                                    if code_point > 0x10_FFFF {
                                         return Err(Error::syntax("Unicode codepoint must not be greater than 0x10FFFF in escape sequence", cursor.pos()));
+                                    } else if code_point <= 65535 {
+                                        buf.push(code_point as u16);
+                                    } else {
+                                        let cu1 = ((code_point - 65536) / 1024 + 0xD800) as u16;
+                                        let cu2 = ((code_point - 65536) % 1024 + 0xDC00) as u16;
+                                        buf.push(cu1);
+                                        buf.push(cu2);
                                     }
-                                    char::try_from(as_num).map_err(|_| {
-                                        Error::syntax(
-                                            "invalid Unicode escape sequence",
-                                            cursor.pos(),
-                                        )
-                                    })?
                                 } else {
-                                    let mut codepoints: Vec<u16> = vec![];
-                                    loop {
-                                        // Collect each character after \u e.g \uD83D will give "D83D"
-                                        let mut code_point = [0u8; 4];
-                                        cursor.fill_bytes(&mut code_point)?;
+                                    // Collect each character after \u e.g \uD83D will give "D83D"
+                                    let mut code_point_utf8_bytes = [0u8; 4];
+                                    cursor.fill_bytes(&mut code_point_utf8_bytes)?;
 
-                                        // Convert to u16
-                                        let as_num = match u16::from_str_radix(
-                                            str::from_utf8(&code_point)
-                                                .expect("the cursor returned invalid UTF-8"),
-                                            16,
-                                        ) {
-                                            Ok(v) => v,
-                                            Err(_) => 0,
-                                        };
+                                    // Convert to u16
+                                    let code_point_str = str::from_utf8(&code_point_utf8_bytes)
+                                        .expect("malformed Unicode character escape sequence");
+                                    let code_point = u16::from_str_radix(code_point_str, 16)
+                                        .map_err(|_| {
+                                            Error::syntax(
+                                                "invalid Unicode escape sequence",
+                                                cursor.pos(),
+                                            )
+                                        })?;
 
-                                        codepoints.push(as_num);
-
-                                        // Check for another UTF-16 codepoint
-                                        if cursor.next_is('\\')? && cursor.next_is('u')? {
-                                            continue;
-                                        }
-                                        break;
-                                    }
-
-                                    // codepoints length should either be 1 (unicode codepoint) or
-                                    // 2 (surrogate codepoint). Rust's decode_utf16 will deal with
-                                    // it regardless
-                                    // TODO: do not panic with invalid code points.
-                                    decode_utf16(codepoints.iter().copied())
-                                        .next()
-                                        .expect("Could not get next codepoint")
-                                        .expect("Could not get next codepoint")
+                                    buf.push(code_point);
                                 }
                             }
-                            '\'' | '"' | '\\' => escape,
+                            '\'' | '"' | '\\' => buf.push(escape as u16),
                             ch => {
                                 let details = format!(
                                     "invalid escape sequence `{}` at line {}, column {}",
@@ -196,15 +167,23 @@ impl<R> Tokenizer<R> for StringLiteral {
                                 return Err(Error::syntax(details, cursor.pos()));
                             }
                         };
-                        buf.push(escaped_ch);
                     }
                 }
-                next_ch => buf.push(next_ch),
+                next_ch => {
+                    if next_ch.len_utf16() == 1 {
+                        buf.push(next_ch as u16);
+                    } else {
+                        let mut code_point_bytes_buf = [0u16; 2];
+                        let code_point_bytes = next_ch.encode_utf16(&mut code_point_bytes_buf);
+
+                        buf.extend(code_point_bytes.iter());
+                    }
+                }
             }
         }
 
         Ok(Token::new(
-            TokenKind::string_literal(buf),
+            TokenKind::string_literal(String::from_utf16_lossy(buf.as_slice())),
             Span::new(start_pos, cursor.pos()),
         ))
     }
