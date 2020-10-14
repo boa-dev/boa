@@ -87,7 +87,6 @@ impl MapIterator {
                             index += 1;
                             map_iterator.map_next_index = index;
                             if let Some((key, value)) = e {
-                                // TODO result of e is a Record, check impact
                                 match item_kind {
                                     MapIterationKind::Key => {
                                         return Ok(create_iter_result_object(
@@ -135,7 +134,7 @@ impl MapIterator {
     /// More information:
     ///  - [ECMA reference][spec]
     ///
-    /// [spec]: TODO https://tc39.es/ecma262/#sec-%arrayiteratorprototype%-object
+    /// [spec]: https://tc39.es/ecma262/#sec-%mapiteratorprototype%-object
     pub(crate) fn create_prototype(ctx: &mut Context, iterator_prototype: Value) -> Value {
         let global = ctx.global_object();
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");

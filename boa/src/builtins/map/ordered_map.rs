@@ -97,9 +97,6 @@ where
     /// Get a key-value pair by index
     /// Valid indices are 0 <= index < self.len()
     /// Computes in O(1) time.
-    ///
-    /// TODO perhaps return Record as per
-    /// https://tc39.es/ecma262/#sec-%mapiteratorprototype%.next bullet 12.a.
     pub fn get_index(&self, index: usize) -> Option<(&K, &V)> {
         self.0.get_index(index)
     }
