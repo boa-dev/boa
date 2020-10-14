@@ -19,21 +19,14 @@ jobs:
           toolchain: stable
           override: true
           profile: minimal
-      - name: Cache cargo registry
+      - name: Cache cargo
         uses: actions/cache@v2
         with:
-          path: ~/.cargo/registry
-          key: ${{ runner.os }}-cargo-registry-${{ hashFiles('**/Cargo.lock') }}
-      - name: Cache cargo index
-        uses: actions/cache@v2
-        with:
-          path: ~/.cargo/git
-          key: ${{ runner.os }}-cargo-index-${{ hashFiles('**/Cargo.lock') }}
-      - name: Cache cargo build
-        uses: actions/cache@v2
-        with:
-          path: target
-          key: ${{ runner.os }}-cargo-build-target-${{ hashFiles('**/Cargo.lock') }}
+          path: |
+            target
+            ~/.cargo/git
+            ~/.cargo/registry
+          key: ${{ runner.os }}-cargo-check-${{ hashFiles('**/Cargo.lock') }}
       - uses: actions-rs/cargo@v1
         with:
           command: check
@@ -49,6 +42,11 @@ jobs:
           toolchain: stable
           override: true
           profile: minimal
+      - name: Cache cargo build
+        uses: actions/cache@v2
+        with:
+          path: target
+          key: ${{ runner.os }}-cargo-build-target-windows-check-${{ hashFiles('**/Cargo.lock') }}
       - uses: actions-rs/cargo@v1
         with:
           command: check
@@ -64,6 +62,11 @@ jobs:
           toolchain: stable
           override: true
           profile: minimal
+      - name: Cache cargo build
+        uses: actions/cache@v2
+        with:
+          path: target
+          key: ${{ runner.os }}-cargo-build-target-macos-check-${{ hashFiles('**/Cargo.lock') }}
       - uses: actions-rs/cargo@v1
         with:
           command: check
@@ -79,21 +82,14 @@ jobs:
           toolchain: stable
           override: true
           profile: minimal
-      - name: Cache cargo registry
+      - name: Cache cargo
         uses: actions/cache@v2
         with:
-          path: ~/.cargo/registry
-          key: ${{ runner.os }}-cargo-registry-${{ hashFiles('**/Cargo.lock') }}
-      - name: Cache cargo index
-        uses: actions/cache@v2
-        with:
-          path: ~/.cargo/git
-          key: ${{ runner.os }}-cargo-index-${{ hashFiles('**/Cargo.lock') }}
-      - name: Cache cargo build
-        uses: actions/cache@v2
-        with:
-          path: target
-          key: ${{ runner.os }}-cargo-build-target-${{ hashFiles('**/Cargo.lock') }}
+          path: |
+            target
+            ~/.cargo/git
+            ~/.cargo/registry
+          key: ${{ runner.os }}-cargo-test-${{ hashFiles('**/Cargo.lock') }}
       - uses: actions-rs/cargo@v1
         with:
           command: test
@@ -115,6 +111,11 @@ jobs:
           toolchain: stable
           override: true
           profile: minimal
+      - name: Cache cargo
+        uses: actions/cache@v2
+        with:
+          path: target
+          key: ${{ runner.os }}-cargo-windows-test-${{ hashFiles('**/Cargo.lock') }}
       - uses: actions-rs/cargo@v1
         with:
           command: test
@@ -130,6 +131,11 @@ jobs:
           toolchain: stable
           override: true
           profile: minimal
+      - name: Cache cargo
+        uses: actions/cache@v2
+        with:
+          path: target
+          key: ${{ runner.os }}-cargo-macos-test-${{ hashFiles('**/Cargo.lock') }}
       - uses: actions-rs/cargo@v1
         with:
           command: test
@@ -162,21 +168,14 @@ jobs:
           override: true
           profile: minimal
           components: clippy
-      - name: Cache cargo registry
+      - name: Cache cargo
         uses: actions/cache@v2
         with:
-          path: ~/.cargo/registry
-          key: ${{ runner.os }}-cargo-registry-${{ hashFiles('**/Cargo.lock') }}
-      - name: Cache cargo index
-        uses: actions/cache@v2
-        with:
-          path: ~/.cargo/git
-          key: ${{ runner.os }}-cargo-index-${{ hashFiles('**/Cargo.lock') }}
-      - name: Cache cargo build
-        uses: actions/cache@v2
-        with:
-          path: target
-          key: ${{ runner.os }}-cargo-build-target-${{ hashFiles('**/Cargo.lock') }}
+          path: |
+            target
+            ~/.cargo/git
+            ~/.cargo/registry
+          key: ${{ runner.os }}-cargo-clippy-${{ hashFiles('**/Cargo.lock') }}
       - uses: actions-rs/cargo@v1
         with:
           command: clippy
@@ -192,21 +191,14 @@ jobs:
           toolchain: stable
           override: true
           profile: minimal
-      - name: Cache cargo registry
+      - name: Cache cargo
         uses: actions/cache@v2
         with:
-          path: ~/.cargo/registry
-          key: ${{ runner.os }}-cargo-registry-${{ hashFiles('**/Cargo.lock') }}
-      - name: Cache cargo index
-        uses: actions/cache@v2
-        with:
-          path: ~/.cargo/git
-          key: ${{ runner.os }}-cargo-index-${{ hashFiles('**/Cargo.lock') }}
-      - name: Cache cargo build
-        uses: actions/cache@v2
-        with:
-          path: target
-          key: ${{ runner.os }}-cargo-build-target-${{ hashFiles('**/Cargo.lock') }}
+          path: |
+            target
+            ~/.cargo/git
+            ~/.cargo/registry
+          key: ${{ runner.os }}-cargo-doc-${{ hashFiles('**/Cargo.lock') }}
       - name: Generate documentation
         uses: actions-rs/cargo@v1
         with:
