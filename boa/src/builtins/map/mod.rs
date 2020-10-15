@@ -50,12 +50,14 @@ impl BuiltIn for Map {
                 entries_function,
                 Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
+            .method(Self::keys, "keys", 0)
             .method(Self::set, "set", 2)
             .method(Self::delete, "delete", 1)
             .method(Self::get, "get", 1)
             .method(Self::clear, "clear", 0)
             .method(Self::has, "has", 1)
             .method(Self::for_each, "forEach", 1)
+            .method(Self::values, "values", 0)
             .callable(false)
             .build();
 
@@ -132,6 +134,20 @@ impl Map {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/entries
     pub(crate) fn entries(this: &Value, _: &[Value], ctx: &mut Context) -> Result<Value> {
         MapIterator::create_map_iterator(ctx, this.clone(), MapIterationKind::KeyAndValue)
+    }
+
+    /// `Map.prototype.keys()`
+    ///
+    /// Returns a new Iterator object that contains the keys for each element in the Map object in insertion order.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-map.prototype.keys
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/keys
+    pub(crate) fn keys(this: &Value, _: &[Value], ctx: &mut Context) -> Result<Value> {
+        MapIterator::create_map_iterator(ctx, this.clone(), MapIterationKind::Key)
     }
 
     /// Helper function to set the size property.
@@ -319,6 +335,20 @@ impl Map {
         }
 
         Ok(Value::Undefined)
+    }
+
+    /// `Map.prototype.values()`
+    ///
+    /// Returns a new Iterator object that contains the values for each element in the Map object in insertion order.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-map.prototype.values
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/values
+    pub(crate) fn values(this: &Value, _: &[Value], ctx: &mut Context) -> Result<Value> {
+        MapIterator::create_map_iterator(ctx, this.clone(), MapIterationKind::Value)
     }
 
     /// Helper function to get a key-value pair from an array.
