@@ -163,3 +163,52 @@ fn function_prototype_call_multiple_args() {
         .unwrap();
     assert!(boolean);
 }
+
+#[test]
+fn function_prototype_apply() {
+    let mut engine = Context::new();
+    let init = r#"
+        const numbers = [6, 7, 3, 4, 2];
+        const max = Math.max.apply(null, numbers);
+        const min = Math.min.apply(null, numbers);
+    "#;
+    forward_val(&mut engine, init).unwrap();
+
+    let boolean = forward_val(&mut engine, "max == 7")
+        .unwrap()
+        .as_boolean()
+        .unwrap();
+    assert!(boolean);
+
+    let boolean = forward_val(&mut engine, "min == 2")
+        .unwrap()
+        .as_boolean()
+        .unwrap();
+    assert!(boolean);
+}
+
+#[test]
+fn function_prototype_apply_on_object() {
+    let mut engine = Context::new();
+    let init = r#"
+        function f(a, b) {
+            this.a = a;
+            this.b = b;
+        }
+        let o = {a: 0, b: 0};
+        f.apply(o, [1, 2]);
+    "#;
+    forward_val(&mut engine, init).unwrap();
+
+    let boolean = forward_val(&mut engine, "o.a == 1")
+        .unwrap()
+        .as_boolean()
+        .unwrap();
+    assert!(boolean);
+
+    let boolean = forward_val(&mut engine, "o.b == 2")
+        .unwrap()
+        .as_boolean()
+        .unwrap();
+    assert!(boolean);
+}

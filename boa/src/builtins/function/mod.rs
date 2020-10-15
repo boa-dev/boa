@@ -332,6 +332,34 @@ impl BuiltInFunctionObject {
         let start = if !args.is_empty() { 1 } else { 0 };
         context.call(this, &this_arg, &args[start..])
     }
+
+    /// `Function.prototype.apply`
+    ///
+    /// The apply() method invokes self with the first argument as the `this` value
+    /// and the rest of the arguments provided as an array (or an array-like object).
+    ///
+    /// More information:
+    ///  - [MDN documentation][mdn]
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-function.prototype.apply
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/apply
+    fn apply(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+        if !this.is_function() {
+            return context.throw_type_error(format!("{} is not a function", this.display()));
+        }
+        let this_arg = args.get(0).cloned().unwrap_or_default();
+        let arg_array = args.get(1).cloned().unwrap_or_default();
+        if arg_array.is_null_or_undefined() {
+            // TODO?: 3.a. PrepareForTailCall
+            return context.call(this, &this_arg, &[]);
+        }
+        let arg_list = context
+            .extract_array_properties(&arg_array)
+            .map_err(|()| arg_array)?;
+        // TODO?: 5. PrepareForTailCall
+        context.call(this, &this_arg, &arg_list)
+    }
 }
 
 impl BuiltIn for BuiltInFunctionObject {
@@ -360,6 +388,7 @@ impl BuiltIn for BuiltInFunctionObject {
         .name(Self::NAME)
         .length(Self::LENGTH)
         .method(Self::call, "call", 1)
+        .method(Self::apply, "apply", 1)
         .build();
 
         (Self::NAME, function_object.into(), Self::attribute())
