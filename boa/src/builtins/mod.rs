@@ -32,6 +32,7 @@ pub(crate) use self::{
     global_this::GlobalThis,
     infinity::Infinity,
     json::Json,
+    map::map_iterator::MapIterator,
     map::Map,
     math::Math,
     nan::NaN,

@@ -94,6 +94,13 @@ where
         self.0.get(key)
     }
 
+    /// Get a key-value pair by index
+    /// Valid indices are 0 <= index < self.len()
+    /// Computes in O(1) time.
+    pub fn get_index(&self, index: usize) -> Option<(&K, &V)> {
+        self.0.get_index(index)
+    }
+
     /// Return an iterator over the key-value pairs of the map, in their order
     pub fn iter(&self) -> Iter<'_, K, V> {
         self.0.iter()

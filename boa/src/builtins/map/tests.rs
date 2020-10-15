@@ -43,9 +43,78 @@ fn clone() {
     assert_eq!(result, "2");
 }
 
-// TODO depends on the https://github.com/boa-dev/boa/issues/810
 #[test]
-#[ignore]
+fn symbol_iterator() {
+    let mut engine = Context::new();
+    let init = r#"
+        const map1 = new Map();
+        map1.set('0', 'foo');
+        map1.set(1, 'bar');
+        const iterator = map1[Symbol.iterator]();
+        let item1 = iterator.next();
+        let item2 = iterator.next();
+        let item3 = iterator.next();
+        "#;
+    forward(&mut engine, init);
+    let result = forward(&mut engine, "item1.value.length");
+    assert_eq!(result, "2");
+    let result = forward(&mut engine, "item1.value[0]");
+    assert_eq!(result, "\"0\"");
+    let result = forward(&mut engine, "item1.value[1]");
+    assert_eq!(result, "\"foo\"");
+    let result = forward(&mut engine, "item1.done");
+    assert_eq!(result, "false");
+    let result = forward(&mut engine, "item2.value.length");
+    assert_eq!(result, "2");
+    let result = forward(&mut engine, "item2.value[0]");
+    assert_eq!(result, "1");
+    let result = forward(&mut engine, "item2.value[1]");
+    assert_eq!(result, "\"bar\"");
+    let result = forward(&mut engine, "item2.done");
+    assert_eq!(result, "false");
+    let result = forward(&mut engine, "item3.value");
+    assert_eq!(result, "undefined");
+    let result = forward(&mut engine, "item3.done");
+    assert_eq!(result, "true");
+}
+
+// Should behave the same as symbol_iterator
+#[test]
+fn entries() {
+    let mut engine = Context::new();
+    let init = r#"
+        const map1 = new Map();
+        map1.set('0', 'foo');
+        map1.set(1, 'bar');
+        const entriesIterator = map1.entries();
+        let item1 = entriesIterator.next();
+        let item2 = entriesIterator.next();
+        let item3 = entriesIterator.next();
+        "#;
+    forward(&mut engine, init);
+    let result = forward(&mut engine, "item1.value.length");
+    assert_eq!(result, "2");
+    let result = forward(&mut engine, "item1.value[0]");
+    assert_eq!(result, "\"0\"");
+    let result = forward(&mut engine, "item1.value[1]");
+    assert_eq!(result, "\"foo\"");
+    let result = forward(&mut engine, "item1.done");
+    assert_eq!(result, "false");
+    let result = forward(&mut engine, "item2.value.length");
+    assert_eq!(result, "2");
+    let result = forward(&mut engine, "item2.value[0]");
+    assert_eq!(result, "1");
+    let result = forward(&mut engine, "item2.value[1]");
+    assert_eq!(result, "\"bar\"");
+    let result = forward(&mut engine, "item2.done");
+    assert_eq!(result, "false");
+    let result = forward(&mut engine, "item3.value");
+    assert_eq!(result, "undefined");
+    let result = forward(&mut engine, "item3.done");
+    assert_eq!(result, "true");
+}
+
+#[test]
 fn merge() {
     let mut engine = Context::new();
     let init = r#"

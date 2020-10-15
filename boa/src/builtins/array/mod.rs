@@ -38,12 +38,14 @@ impl BuiltIn for Array {
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
         let symbol_iterator = context.well_known_symbols().iterator_symbol();
+
         let values_function = FunctionBuilder::new(context, Self::values)
             .name("values")
             .length(0)
             .callable(true)
             .constructable(false)
             .build();
+
         let array = ConstructorBuilder::with_standard_object(
             context,
             Self::constructor,

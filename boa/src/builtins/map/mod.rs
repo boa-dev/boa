@@ -2,11 +2,14 @@
 
 use crate::{
     builtins::BuiltIn,
-    object::{ConstructorBuilder, ObjectData, PROTOTYPE},
+    object::{ConstructorBuilder, FunctionBuilder, ObjectData, PROTOTYPE},
     property::{Attribute, DataDescriptor},
     BoaProfiler, Context, Result, Value,
 };
 use ordered_map::OrderedMap;
+
+pub mod map_iterator;
+use map_iterator::{MapIterationKind, MapIterator};
 
 pub mod ordered_map;
 #[cfg(test)]
@@ -25,9 +28,28 @@ impl BuiltIn for Map {
     fn init(context: &mut Context) -> (&'static str, Value, Attribute) {
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
+        let iterator_symbol = context.well_known_symbols().iterator_symbol();
+
+        let entries_function = FunctionBuilder::new(context, Self::entries)
+            .name("entries")
+            .length(0)
+            .callable(true)
+            .constructable(false)
+            .build();
+
         let map_object = ConstructorBuilder::new(context, Self::constructor)
             .name(Self::NAME)
             .length(Self::LENGTH)
+            .property(
+                "entries",
+                entries_function.clone(),
+                Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+            )
+            .property(
+                iterator_symbol,
+                entries_function,
+                Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+            )
             .method(Self::set, "set", 2)
             .method(Self::delete, "delete", 1)
             .method(Self::get, "get", 1)
@@ -96,6 +118,20 @@ impl Map {
         this.set_data(ObjectData::Map(data));
 
         Ok(this.clone())
+    }
+
+    /// `Map.prototype.entries()`
+    ///
+    /// Returns a new Iterator object that contains the [key, value] pairs for each element in the Map object in insertion order.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://www.ecma-international.org/ecma-262/11.0/index.html#sec-map.prototype.entries
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/entries
+    pub(crate) fn entries(this: &Value, _: &[Value], ctx: &mut Context) -> Result<Value> {
+        MapIterator::create_map_iterator(ctx, this.clone(), MapIterationKind::KeyAndValue)
     }
 
     /// Helper function to set the size property.
