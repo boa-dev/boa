@@ -228,8 +228,7 @@ where
 
     /// Retrieves the next UTF-8 checked character.
     fn next_char(&mut self) -> io::Result<Option<char>> {
-        if let Some(v) = self.peeked_char {
-            let _ = self.peeked_char.take();
+        if let Some(v) = self.peeked_char.take() {
             return Ok(v);
         }
 
