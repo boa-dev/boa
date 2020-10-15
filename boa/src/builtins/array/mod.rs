@@ -16,6 +16,7 @@ mod tests;
 use crate::{
     builtins::array::array_iterator::{ArrayIterationKind, ArrayIterator},
     builtins::BuiltIn,
+    gc::GcObject,
     object::{ConstructorBuilder, FunctionBuilder, ObjectData, PROTOTYPE},
     property::{Attribute, DataDescriptor},
     value::{same_value_zero, Value},
@@ -100,8 +101,90 @@ impl Array {
     const LENGTH: usize = 1;
 
     fn constructor(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
-        // Set Prototype
+        // Delegate to the appropriate constructor based on the number of arguments
+        match args.len() {
+            0 => Array::construct_array_empty(this, context),
+            1 => Array::construct_array_length(this, &args[0], context),
+            _ => Array::construct_array_values(this, args, context),
+        }
+    }
+
+    /// No argument constructor for `Array`.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-array-constructor-array
+    fn construct_array_empty(this: &Value, context: &mut Context) -> Result<Value> {
         let prototype = context.standard_objects().array_object().prototype();
+
+        Array::array_create(this, 0, Some(prototype), context)
+    }
+
+    /// By length constructor for `Array`.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-array-len
+    fn construct_array_length(
+        this: &Value,
+        length: &Value,
+        context: &mut Context,
+    ) -> Result<Value> {
+        let prototype = context.standard_objects().array_object().prototype();
+        let array = Array::array_create(this, 0, Some(prototype), context)?;
+
+        if !length.is_number() {
+            array.set_field(0, Value::from(length));
+            array.set_field("length", Value::from(1));
+        } else {
+            if length.is_double() {
+                return context.throw_range_error("Invalid array length");
+            }
+            array.set_field("length", Value::from(length.to_u32(context).unwrap()));
+        }
+
+        Ok(array)
+    }
+
+    /// From items constructor for `Array`.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-array-items
+    fn construct_array_values(
+        this: &Value,
+        items: &[Value],
+        context: &mut Context,
+    ) -> Result<Value> {
+        let prototype = context.standard_objects().array_object().prototype();
+        let array = Array::array_create(this, items.len() as u32, Some(prototype), context)?;
+
+        for (k, item) in items.iter().enumerate() {
+            array.set_field(k, item.clone());
+        }
+
+        Ok(array)
+    }
+
+    /// Utility for constructing `Array` objects.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-arraycreate
+    fn array_create(
+        this: &Value,
+        length: u32,
+        prototype: Option<GcObject>,
+        context: &mut Context,
+    ) -> Result<Value> {
+        let prototype = match prototype {
+            Some(prototype) => prototype,
+            None => context.standard_objects().array_object().prototype(),
+        };
 
         this.as_object_mut()
             .expect("this should be an array object")
@@ -110,33 +193,11 @@ impl Array {
         // to its Javascript Identifier (global constructor method name)
         this.set_data(ObjectData::Array);
 
-        // add our arguments in
-        let mut length = args.len() as i32;
-        match args.len() {
-            1 if args[0].is_integer() => {
-                length = args[0].as_number().unwrap() as i32;
-                // TODO: It should not create an array of undefineds, but an empty array ("holy" array in V8) with length `n`.
-                for n in 0..length {
-                    this.set_field(n, Value::undefined());
-                }
-            }
-            1 if args[0].is_double() => {
-                return context.throw_range_error("invalid array length");
-            }
-            _ => {
-                for (n, value) in args.iter().enumerate() {
-                    this.set_field(n, value.clone());
-                }
-            }
-        }
-
-        // finally create length property
         let length = DataDescriptor::new(
             length,
             Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::PERMANENT,
         );
-
-        this.set_property("length".to_string(), length);
+        this.set_property("length", length);
 
         Ok(this.clone())
     }
