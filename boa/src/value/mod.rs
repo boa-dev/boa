@@ -227,9 +227,9 @@ impl Value {
             Self::Boolean(b) => Ok(JSONValue::Bool(b)),
             Self::Object(ref obj) => obj.to_json(interpreter),
             Self::String(ref str) => Ok(JSONValue::String(str.to_string())),
-            Self::Rational(num) => Ok(JSONNumber::from_f64(num)
-                .map(JSONValue::Number)
-                .unwrap_or(JSONValue::Null)),
+            Self::Rational(num) => Ok(JSONValue::Number(
+                JSONNumber::from_str(&Number::to_native_string(num)).unwrap(),
+            )),
             Self::Integer(val) => Ok(JSONValue::Number(JSONNumber::from(val))),
             Self::BigInt(_) => {
                 Err(interpreter.construct_type_error("BigInt value can't be serialized in JSON"))
