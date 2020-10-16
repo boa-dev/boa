@@ -133,6 +133,7 @@ fn bigint_function_conversion_from_string() {
     let mut engine = Context::new();
 
     assert_eq!(forward(&mut engine, "BigInt('')"), "0n");
+    assert_eq!(forward(&mut engine, "BigInt('   ')"), "0n");
     assert_eq!(
         forward(&mut engine, "BigInt('200000000000000000')"),
         "200000000000000000n"
@@ -141,6 +142,9 @@ fn bigint_function_conversion_from_string() {
         forward(&mut engine, "BigInt('1000000000000000000000000000000000')"),
         "1000000000000000000000000000000000n"
     );
+    assert_eq!(forward(&mut engine, "BigInt('0b1111')"), "15n");
+    assert_eq!(forward(&mut engine, "BigInt('0o70')"), "56n");
+    assert_eq!(forward(&mut engine, "BigInt('0xFF')"), "255n");
 }
 
 #[test]
