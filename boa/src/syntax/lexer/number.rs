@@ -158,6 +158,16 @@ impl<R> Tokenizer<R> for NumberLiteral {
 
                         // HexIntegerLiteral
                         kind = NumericKind::Integer(16);
+
+                        // Checks if the next char after '0x' is a digit of that base. if not return an error.
+                        if let Some(digit) = cursor.peek()? {
+                            if !digit.is_digit(16) {
+                                return Err(Error::syntax(
+                                    "expected hexadecimal digit after number base prefix",
+                                    cursor.pos(),
+                                ));
+                            }
+                        }
                     }
                     'o' | 'O' => {
                         // Remove the initial '0' from buffer.
@@ -166,6 +176,16 @@ impl<R> Tokenizer<R> for NumberLiteral {
 
                         // OctalIntegerLiteral
                         kind = NumericKind::Integer(8);
+
+                        // Checks if the next char after '0o' is a digit of that base. if not return an error.
+                        if let Some(digit) = cursor.peek()? {
+                            if !digit.is_digit(8) {
+                                return Err(Error::syntax(
+                                    "expected hexadecimal digit after number base prefix",
+                                    cursor.pos(),
+                                ));
+                            }
+                        }
                     }
                     'b' | 'B' => {
                         // Remove the initial '0' from buffer.
@@ -174,6 +194,16 @@ impl<R> Tokenizer<R> for NumberLiteral {
 
                         // BinaryIntegerLiteral
                         kind = NumericKind::Integer(2);
+
+                        // Checks if the next char after '0b' is a digit of that base. if not return an error.
+                        if let Some(digit) = cursor.peek()? {
+                            if !digit.is_digit(2) {
+                                return Err(Error::syntax(
+                                    "expected hexadecimal digit after number base prefix",
+                                    cursor.pos(),
+                                ));
+                            }
+                        }
                     }
                     'n' => {
                         cursor.next_char()?.expect("n character vanished");
@@ -226,16 +256,6 @@ impl<R> Tokenizer<R> for NumberLiteral {
             }
         }
 
-        // Checks if the next char after '0x', '0o' or '0b' is a digit
-        // of that base. if not return an error. 
-        if let Some(digit) = cursor.peek()? {
-            if !digit.is_digit(kind.base()) {
-                return Err(Error::syntax(
-                    "expected digit after number base prefix",
-                    cursor.pos(),
-                ));
-            }
-        }
         // Consume digits until a non-digit character is encountered or all the characters are consumed.
         cursor.take_while_pred(&mut buf, &|c: char| c.is_digit(kind.base()))?;
 
