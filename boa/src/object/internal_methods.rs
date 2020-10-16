@@ -12,19 +12,20 @@ use crate::{
     BoaProfiler, Context, Result,
 };
 
-impl Object {
+impl GcObject {
     /// Check if object has property.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-hasproperty-p
+    #[inline]
     pub fn has_property(&self, key: &PropertyKey) -> bool {
         let prop = self.get_own_property(key);
         if prop.is_none() {
             let parent = self.get_prototype_of();
             return if let Value::Object(ref object) = parent {
-                object.borrow().has_property(key)
+                object.has_property(key)
             } else {
                 false
             };
@@ -40,7 +41,7 @@ impl Object {
     /// [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-isextensible
     #[inline]
     pub fn is_extensible(&self) -> bool {
-        self.extensible
+        self.borrow().extensible
     }
 
     /// Disable extensibility.
@@ -51,15 +52,16 @@ impl Object {
     /// [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-preventextensions
     #[inline]
     pub fn prevent_extensions(&mut self) -> bool {
-        self.extensible = false;
+        self.borrow_mut().extensible = false;
         true
     }
 
     /// Delete property.
+    #[inline]
     pub fn delete(&mut self, key: &PropertyKey) -> bool {
         match self.get_own_property(key) {
             Some(desc) if desc.configurable() => {
-                self.remove_property(&key);
+                self.remove(&key);
                 true
             }
             Some(_) => false,
@@ -216,13 +218,15 @@ impl Object {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-getownproperty-p
+    #[inline]
     pub fn get_own_property(&self, key: &PropertyKey) -> Option<PropertyDescriptor> {
         let _timer = BoaProfiler::global().start_event("Object::get_own_property", "object");
 
+        let object = self.borrow();
         let property = match key {
-            PropertyKey::Index(index) => self.indexed_properties.get(&index),
-            PropertyKey::String(ref st) => self.string_properties.get(st),
-            PropertyKey::Symbol(ref symbol) => self.symbol_properties.get(symbol),
+            PropertyKey::Index(index) => object.indexed_properties.get(&index),
+            PropertyKey::String(ref st) => object.string_properties.get(st),
+            PropertyKey::Symbol(ref symbol) => object.symbol_properties.get(symbol),
         };
 
         property.cloned()
@@ -234,8 +238,9 @@ impl Object {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec](https://tc39.es/ecma262/#table-essential-internal-methods)
+    #[inline]
     pub fn own_property_keys(&self) -> Vec<PropertyKey> {
-        self.keys().collect()
+        self.borrow().keys().collect()
     }
 
     /// The abstract operation ObjectDefineProperties
@@ -244,15 +249,16 @@ impl Object {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-object.defineproperties
+    #[inline]
     pub fn define_properties(&mut self, props: Value, ctx: &mut Context) -> Result<()> {
         let props = props.to_object(ctx)?;
-        let keys = props.borrow().own_property_keys();
+        let keys = props.own_property_keys();
         let mut descriptors: Vec<(PropertyKey, PropertyDescriptor)> = Vec::new();
 
         for next_key in keys {
-            if let Some(prop_desc) = props.borrow().get_own_property(&next_key) {
+            if let Some(prop_desc) = props.get_own_property(&next_key) {
                 if prop_desc.enumerable() {
-                    let desc_obj = props.borrow().get(&next_key);
+                    let desc_obj = props.get(&next_key);
                     let desc = desc_obj.to_property_descriptor(ctx)?;
                     descriptors.push((next_key, desc));
                 }
@@ -277,6 +283,7 @@ impl Object {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-setprototypeof-v
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/setPrototypeOf
+    #[inline]
     pub fn set_prototype_of(&mut self, _val: Value) -> bool {
         // debug_assert!(val.is_object() || val.is_null());
         // let current = self.prototype.clone();
@@ -316,9 +323,69 @@ impl Object {
     /// [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-getprototypeof
     #[inline]
     pub fn get_prototype_of(&self) -> Value {
-        self.prototype.clone()
+        self.borrow().prototype.clone()
     }
 
+    /// Helper function for property insertion.
+    #[inline]
+    pub(crate) fn insert<K, P>(&mut self, key: K, property: P) -> Option<PropertyDescriptor>
+    where
+        K: Into<PropertyKey>,
+        P: Into<PropertyDescriptor>,
+    {
+        self.borrow_mut().insert(key, property)
+    }
+
+    /// Helper function for property removal.
+    #[inline]
+    pub(crate) fn remove(&mut self, key: &PropertyKey) -> Option<PropertyDescriptor> {
+        self.borrow_mut().remove(key)
+    }
+
+    /// Inserts a field in the object `properties` without checking if it's writable.
+    ///
+    /// If a field was already in the object with the same name that a `Some` is returned
+    /// with that field, otherwise None is returned.
+    #[inline]
+    pub(crate) fn insert_property<K, V>(
+        &mut self,
+        key: K,
+        value: V,
+        attribute: Attribute,
+    ) -> Option<PropertyDescriptor>
+    where
+        K: Into<PropertyKey>,
+        V: Into<Value>,
+    {
+        self.insert(key.into(), DataDescriptor::new(value, attribute))
+    }
+
+    /// It determines if Object is a callable function with a [[Call]] internal method.
+    ///
+    /// More information:
+    /// - [EcmaScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-iscallable
+    #[inline]
+    #[track_caller]
+    pub fn is_callable(&self) -> bool {
+        self.borrow().is_callable()
+    }
+
+    /// It determines if Object is a function object with a [[Construct]] internal method.
+    ///
+    /// More information:
+    /// - [EcmaScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-isconstructor
+    #[inline]
+    #[track_caller]
+    pub fn is_constructable(&self) -> bool {
+        self.borrow().is_constructable()
+    }
+}
+
+impl Object {
     /// Helper function for property insertion.
     #[inline]
     pub(crate) fn insert<K, P>(&mut self, key: K, property: P) -> Option<PropertyDescriptor>
@@ -340,7 +407,7 @@ impl Object {
 
     /// Helper function for property removal.
     #[inline]
-    pub(crate) fn remove_property(&mut self, key: &PropertyKey) -> Option<PropertyDescriptor> {
+    pub(crate) fn remove(&mut self, key: &PropertyKey) -> Option<PropertyDescriptor> {
         match key {
             PropertyKey::Index(index) => self.indexed_properties.remove(&index),
             PropertyKey::String(ref string) => self.string_properties.remove(string),

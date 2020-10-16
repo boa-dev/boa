@@ -309,6 +309,7 @@ impl RegExp {
             .to_string(ctx)?;
         let mut last_index = this.get_field("lastIndex").to_index(ctx)?;
         let result = if let Some(object) = this.as_object() {
+            let object = object.borrow();
             let regex = object.as_regexp().unwrap();
             let result =
                 if let Some(m) = regex.matcher.find_from(arg_str.as_str(), last_index).next() {
@@ -349,6 +350,7 @@ impl RegExp {
             .to_string(ctx)?;
         let mut last_index = this.get_field("lastIndex").to_index(ctx)?;
         let result = if let Some(object) = this.as_object() {
+            let object = object.borrow();
             let regex = object.as_regexp().unwrap();
             let result = {
                 if let Some(m) = regex.matcher.find_from(arg_str.as_str(), last_index).next() {
@@ -401,6 +403,7 @@ impl RegExp {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/@@match
     pub(crate) fn r#match(this: &Value, arg: RcString, ctx: &mut Context) -> Result<Value> {
         let (matcher, flags) = if let Some(object) = this.as_object() {
+            let object = object.borrow();
             let regex = object.as_regexp().unwrap();
             (regex.matcher.clone(), regex.flags.clone())
         } else {
@@ -433,6 +436,7 @@ impl RegExp {
     #[allow(clippy::wrong_self_convention)]
     pub(crate) fn to_string(this: &Value, _: &[Value], context: &mut Context) -> Result<Value> {
         let (body, flags) = if let Some(object) = this.as_object() {
+            let object = object.borrow();
             let regex = object.as_regexp().unwrap();
             (regex.original_source.clone(), regex.flags.clone())
         } else {
@@ -457,6 +461,7 @@ impl RegExp {
     // TODO: it's returning an array, it should return an iterator
     pub(crate) fn match_all(this: &Value, arg_str: String) -> Result<Value> {
         let matches = if let Some(object) = this.as_object() {
+            let object = object.borrow();
             let regex = object.as_regexp().unwrap();
             let mut matches = Vec::new();
 

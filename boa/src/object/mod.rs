@@ -483,6 +483,14 @@ impl Object {
         matches!(self.data, ObjectData::NativeObject(_))
     }
 
+    #[inline]
+    pub fn as_native_object(&self) -> Option<&dyn NativeObject> {
+        match self.data {
+            ObjectData::NativeObject(ref object) => Some(object.as_ref()),
+            _ => None,
+        }
+    }
+
     /// Reeturn `true` if it is a native object and the native type is `T`.
     #[inline]
     pub fn is<T>(&self) -> bool

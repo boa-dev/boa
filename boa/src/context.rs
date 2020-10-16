@@ -482,15 +482,15 @@ impl Context {
 
         // Every new function has a prototype property pre-made
         let proto = Value::new_object(Some(self.global_object()));
-        let mut function = Object::function(
+        let mut function = GcObject::new(Object::function(
             Function::BuiltIn(body.into(), FunctionFlags::CALLABLE),
             function_prototype,
-        );
+        ));
         function.set(PROTOTYPE.into(), proto);
         function.set("length".into(), length.into());
         function.set("name".into(), name.into());
 
-        Ok(GcObject::new(function))
+        Ok(function)
     }
 
     /// Register a global function.
@@ -533,16 +533,13 @@ impl Context {
                                 .expect("Could not get global object"),
                         ));
                         array.set_data(ObjectData::Array);
-                        array
-                            .as_object_mut()
-                            .expect("object")
-                            .set_prototype_instance(
-                                self.realm()
-                                    .environment
-                                    .get_binding_value("Array")
-                                    .expect("Array was not initialized")
-                                    .get_field(PROTOTYPE),
-                            );
+                        array.as_object().expect("object").set_prototype_instance(
+                            self.realm()
+                                .environment
+                                .get_binding_value("Array")
+                                .expect("Array was not initialized")
+                                .get_field(PROTOTYPE),
+                        );
                         array.set_field("0", key);
                         array.set_field("1", value);
                         array.set_field("length", Value::from(2));
@@ -611,7 +608,7 @@ impl Context {
         let class = class_builder.build();
         let property = DataDescriptor::new(class, T::ATTRIBUTE);
         self.global_object()
-            .as_object_mut()
+            .as_object()
             .unwrap()
             .insert(T::NAME, property);
         Ok(())

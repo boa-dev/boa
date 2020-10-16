@@ -59,11 +59,7 @@ fn instances_have_correct_proto_set() {
     let bool_prototype = forward_val(&mut engine, "boolProto").expect("value expected");
 
     assert!(same_value(
-        &bool_instance
-            .as_object()
-            .unwrap()
-            .prototype_instance()
-            .clone(),
+        &bool_instance.as_object().unwrap().prototype_instance(),
         &bool_prototype
     ));
 }

@@ -83,7 +83,7 @@ impl GlobalEnvironmentRecord {
         };
 
         global_object
-            .as_object_mut()
+            .as_object()
             .expect("global object")
             .insert(name, desc);
     }

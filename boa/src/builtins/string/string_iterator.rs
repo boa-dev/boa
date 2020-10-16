@@ -25,7 +25,7 @@ impl StringIterator {
         let string_iterator = Value::new_object(Some(ctx.global_object()));
         string_iterator.set_data(ObjectData::StringIterator(Self::new(string)));
         string_iterator
-            .as_object_mut()
+            .as_object()
             .expect("array iterator object")
             .set_prototype_instance(ctx.iterator_prototypes().string_iterator().into());
         Ok(string_iterator)
@@ -76,7 +76,7 @@ impl StringIterator {
         let array_iterator = Value::new_object(Some(global));
         make_builtin_fn(Self::next, "next", &array_iterator, 0, ctx);
         array_iterator
-            .as_object_mut()
+            .as_object()
             .expect("array iterator prototype object")
             .set_prototype_instance(iterator_prototype);
 

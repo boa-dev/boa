@@ -14,7 +14,7 @@ use crate::{
     property::{Attribute, DataDescriptor, PropertyDescriptor, PropertyKey},
     BoaProfiler, Context, Result,
 };
-use gc::{Finalize, GcCellRef, GcCellRefMut, Trace};
+use gc::{Finalize, Trace};
 use serde_json::{Number as JSONNumber, Value as JSONValue};
 use std::{
     collections::HashSet,
@@ -268,25 +268,9 @@ impl Value {
     }
 
     #[inline]
-    pub fn as_object(&self) -> Option<GcCellRef<'_, Object>> {
+    pub fn as_object(&self) -> Option<GcObject> {
         match *self {
-            Self::Object(ref o) => Some(o.borrow()),
-            _ => None,
-        }
-    }
-
-    #[inline]
-    pub fn as_gc_object(&self) -> Option<GcObject> {
-        match self {
-            Self::Object(o) => Some(o.clone()),
-            _ => None,
-        }
-    }
-
-    #[inline]
-    pub fn as_object_mut(&self) -> Option<GcCellRefMut<'_, Object>> {
-        match *self {
-            Self::Object(ref o) => Some(o.borrow_mut()),
+            Self::Object(ref o) => Some(o.clone()),
             _ => None,
         }
     }
@@ -307,7 +291,7 @@ impl Value {
     /// Returns true if the value is a function
     #[inline]
     pub fn is_function(&self) -> bool {
-        matches!(self, Self::Object(o) if o.borrow().is_function())
+        matches!(self, Self::Object(o) if o.is_function())
     }
 
     /// Returns true if the value is undefined.
@@ -434,8 +418,8 @@ impl Value {
     where
         Key: Into<PropertyKey>,
     {
-        self.as_object_mut()
-            .map(|mut x| x.remove_property(&key.into()))
+        self.as_object()
+            .map(|mut x| x.remove(&key.into()))
             .is_some()
     }
 
@@ -450,13 +434,12 @@ impl Value {
         let _timer = BoaProfiler::global().start_event("Value::get_property", "value");
         match self {
             Self::Object(ref object) => {
-                let object = object.borrow();
                 let property = object.get_own_property(&key);
                 if property.is_some() {
                     return property;
                 }
 
-                object.prototype_instance().get_property(key)
+                object.borrow().prototype_instance().get_property(key)
             }
             _ => None,
         }
@@ -504,14 +487,14 @@ impl Value {
         let _timer = BoaProfiler::global().start_event("Value::set_field", "value");
         if let Self::Object(ref obj) = *self {
             if let PropertyKey::Index(index) = key {
-                if obj.borrow().is_array() {
+                if obj.is_array() {
                     let len = self.get_field("length").as_number().unwrap() as u32;
                     if len < index + 1 {
                         self.set_field("length", index + 1);
                     }
                 }
             }
-            obj.borrow_mut().set(key, value.clone());
+            obj.clone().set(key, value.clone());
         }
         value
     }
@@ -531,7 +514,7 @@ impl Value {
         K: Into<PropertyKey>,
         P: Into<PropertyDescriptor>,
     {
-        if let Some(mut object) = self.as_object_mut() {
+        if let Some(mut object) = self.as_object() {
             object.insert(key.into(), property.into());
         }
     }
@@ -661,11 +644,13 @@ impl Value {
             Value::String(ref string) => {
                 let prototype = ctx.standard_objects().string_object().prototype();
 
-                let mut object =
-                    Object::with_prototype(prototype.into(), ObjectData::String(string.clone()));
+                let mut object = GcObject::new(Object::with_prototype(
+                    prototype.into(),
+                    ObjectData::String(string.clone()),
+                ));
                 // Make sure the correct length is set on our new string object
                 object.set("length".into(), string.chars().count().into());
-                Ok(GcObject::new(object))
+                Ok(object)
             }
             Value::Symbol(ref symbol) => {
                 let prototype = ctx.standard_objects().symbol_object().prototype();

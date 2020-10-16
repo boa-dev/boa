@@ -2,7 +2,7 @@
 //!
 //! The `GcObject` is a garbage collected Object.
 
-use super::{Object, PROTOTYPE};
+use super::{NativeObject, Object, PROTOTYPE};
 use crate::{
     builtins::function::{
         create_unmapped_arguments_object, BuiltInFunction, Function, NativeFunction,
@@ -25,18 +25,20 @@ use std::{
     result::Result as StdResult,
 };
 
-/// A wrapper type for an immutably borrowed `Object`.
-pub type Ref<'object> = GcCellRef<'object, Object>;
+/// A wrapper type for an immutably borrowed type T.
+pub type Ref<'a, T> = GcCellRef<'a, T>;
 
-/// A wrapper type for a mutably borrowed `Object`.
-pub type RefMut<'object> = GcCellRefMut<'object, Object>;
+/// A wrapper type for a mutably borrowed type T.
+pub type RefMut<'a, T> = GcCellRefMut<'a, T>;
 
 /// Garbage collected `Object`.
 #[derive(Trace, Finalize, Clone, Default)]
 pub struct GcObject(Gc<GcCell<Object>>);
 
-// This is needed for the call method since we cannot mutate the function itself since we
-// already borrow it so we get the function body clone it then drop the borrow and run the body
+/// The body of a JavaScript function.
+///
+/// This is needed for the call method since we cannot mutate the function itself since we
+/// already borrow it so we get the function body clone it then drop the borrow and run the body
 enum FunctionBody {
     BuiltIn(NativeFunction),
     Ordinary(RcStatementList),
@@ -51,27 +53,28 @@ impl GcObject {
 
     /// Immutably borrows the `Object`.
     ///
-    /// The borrow lasts until the returned `GcCellRef` exits scope.
+    /// The borrow lasts until the returned `Ref` exits scope.
     /// Multiple immutable borrows can be taken out at the same time.
     ///
-    ///# Panics
+    /// # Panics
+    ///
     /// Panics if the object is currently mutably borrowed.
     #[inline]
     #[track_caller]
-    pub fn borrow(&self) -> Ref<'_> {
+    pub fn borrow(&self) -> Ref<'_, Object> {
         self.try_borrow().expect("Object already mutably borrowed")
     }
 
     /// Mutably borrows the Object.
     ///
-    /// The borrow lasts until the returned `GcCellRefMut` exits scope.
+    /// The borrow lasts until the returned `RefMut` exits scope.
     /// The object cannot be borrowed while this borrow is active.
     ///
     ///# Panics
     /// Panics if the object is currently borrowed.
     #[inline]
     #[track_caller]
-    pub fn borrow_mut(&self) -> RefMut<'_> {
+    pub fn borrow_mut(&self) -> RefMut<'_, Object> {
         self.try_borrow_mut().expect("Object already borrowed")
     }
 
@@ -82,7 +85,7 @@ impl GcObject {
     ///
     /// This is the non-panicking variant of [`borrow`](#method.borrow).
     #[inline]
-    pub fn try_borrow(&self) -> StdResult<Ref<'_>, BorrowError> {
+    pub fn try_borrow(&self) -> StdResult<Ref<'_, Object>, BorrowError> {
         self.0.try_borrow().map_err(|_| BorrowError)
     }
 
@@ -93,7 +96,7 @@ impl GcObject {
     ///
     /// This is the non-panicking variant of [`borrow_mut`](#method.borrow_mut).
     #[inline]
-    pub fn try_borrow_mut(&self) -> StdResult<RefMut<'_>, BorrowMutError> {
+    pub fn try_borrow_mut(&self) -> StdResult<RefMut<'_, Object>, BorrowMutError> {
         self.0.try_borrow_mut().map_err(|_| BorrowMutError)
     }
 
@@ -105,7 +108,8 @@ impl GcObject {
 
     /// Call this object.
     ///
-    ///# Panics
+    /// # Panics
+    ///
     /// Panics if the object is currently mutably borrowed.
     // <https://tc39.es/ecma262/#sec-prepareforordinarycall>
     // <https://tc39.es/ecma262/#sec-ecmascript-function-objects-call-thisargument-argumentslist>
@@ -188,12 +192,13 @@ impl GcObject {
 
     /// Construct an instance of this object with the specified arguments.
     ///
-    ///# Panics
+    /// # Panics
+    ///
     /// Panics if the object is currently mutably borrowed.
     // <https://tc39.es/ecma262/#sec-ecmascript-function-objects-construct-argumentslist-newtarget>
     #[track_caller]
     pub fn construct(&self, args: &[Value], ctx: &mut Context) -> Result<Value> {
-        let this: Value = Object::create(self.borrow().get(&PROTOTYPE.into())).into();
+        let this: Value = Object::create(self.get(&PROTOTYPE.into())).into();
 
         let this_function_object = self.clone();
         let body = if let Some(function) = self.borrow().as_function() {
@@ -348,7 +353,7 @@ impl GcObject {
         let rec_limiter = RecursionLimiter::new(self);
         if rec_limiter.live {
             Err(interpreter.construct_type_error("cyclic object value"))
-        } else if self.borrow().is_array() {
+        } else if self.is_array() {
             let mut keys: Vec<u32> = self.borrow().index_property_keys().cloned().collect();
             keys.sort_unstable();
             let mut arr: Vec<JSONValue> = Vec::with_capacity(keys.len());
@@ -376,44 +381,45 @@ impl GcObject {
         }
     }
 
+    /// Convert the object to a `PropertyDescritptor`
+    ///
+    /// # Panics
+    ///
+    /// Panics if the object is currently mutably borrowed.
     pub fn to_property_descriptor(&self, context: &mut Context) -> Result<PropertyDescriptor> {
         let mut attribute = Attribute::empty();
 
         let enumerable_key = PropertyKey::from("enumerable");
-        if self.borrow().has_property(&enumerable_key)
-            && self.borrow().get(&enumerable_key).to_boolean()
-        {
+        if self.has_property(&enumerable_key) && self.get(&enumerable_key).to_boolean() {
             attribute |= Attribute::ENUMERABLE;
         }
 
         let configurable_key = PropertyKey::from("configurable");
-        if self.borrow().has_property(&configurable_key)
-            && self.borrow().get(&configurable_key).to_boolean()
-        {
+        if self.has_property(&configurable_key) && self.get(&configurable_key).to_boolean() {
             attribute |= Attribute::CONFIGURABLE;
         }
 
         let mut value = None;
         let value_key = PropertyKey::from("value");
-        if self.borrow().has_property(&value_key) {
-            value = Some(self.borrow().get(&value_key));
+        if self.has_property(&value_key) {
+            value = Some(self.get(&value_key));
         }
 
         let mut has_writable = false;
         let writable_key = PropertyKey::from("writable");
-        if self.borrow().has_property(&writable_key) {
+        if self.has_property(&writable_key) {
             has_writable = true;
-            if self.borrow().get(&writable_key).to_boolean() {
+            if self.get(&writable_key).to_boolean() {
                 attribute |= Attribute::WRITABLE;
             }
         }
 
         let mut get = None;
         let get_key = PropertyKey::from("get");
-        if self.borrow().has_property(&get_key) {
-            let getter = self.borrow().get(&get_key);
+        if self.has_property(&get_key) {
+            let getter = self.get(&get_key);
             match getter {
-                Value::Object(ref object) if object.borrow().is_callable() => {
+                Value::Object(ref object) if object.is_callable() => {
                     get = Some(object.clone());
                 }
                 _ => {
@@ -426,10 +432,10 @@ impl GcObject {
 
         let mut set = None;
         let set_key = PropertyKey::from("set");
-        if self.borrow().has_property(&set_key) {
-            let setter = self.borrow().get(&set_key);
+        if self.has_property(&set_key) {
+            let setter = self.get(&set_key);
             match setter {
-                Value::Object(ref object) if object.borrow().is_callable() => {
+                Value::Object(ref object) if object.is_callable() => {
                     set = Some(object.clone());
                 }
                 _ => {
@@ -449,6 +455,226 @@ impl GcObject {
         } else {
             Ok(DataDescriptor::new(value.unwrap_or_else(Value::undefined), attribute).into())
         }
+    }
+
+    /// Reeturn `true` if it is a native object and the native type is `T`.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the object is currently mutably borrowed.
+    #[inline]
+    #[track_caller]
+    pub fn is<T>(&self) -> bool
+    where
+        T: NativeObject,
+    {
+        self.borrow().is::<T>()
+    }
+
+    /// Downcast a reference to the object,
+    /// if the object is type native object type `T`.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the object is currently mutably borrowed.
+    #[inline]
+    #[track_caller]
+    pub fn downcast_ref<T>(&self) -> Option<Ref<'_, T>>
+    where
+        T: NativeObject,
+    {
+        let object = self.borrow();
+        if object.is::<T>() {
+            Some(Ref::map(object, |x| x.downcast_ref::<T>().unwrap()))
+        } else {
+            None
+        }
+    }
+
+    /// Downcast a mutable reference to the object,
+    /// if the object is type native object type `T`.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the object is currently borrowed.
+    #[inline]
+    #[track_caller]
+    pub fn downcast_mut<T>(&mut self) -> Option<RefMut<'_, T>>
+    where
+        T: NativeObject,
+    {
+        let object = self.borrow_mut();
+        if object.is::<T>() {
+            Some(RefMut::map(object, |x| x.downcast_mut::<T>().unwrap()))
+        } else {
+            None
+        }
+    }
+
+    /// Get the prototype of the object.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the object is currently mutably borrowed.
+    #[inline]
+    #[track_caller]
+    pub fn prototype_instance(&self) -> Value {
+        self.borrow().prototype_instance().clone()
+    }
+
+    /// Set the prototype of the object.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the object is currently mutably borrowed
+    /// or if th prototype is not an object or undefined.
+    #[inline]
+    #[track_caller]
+    pub fn set_prototype_instance(&mut self, prototype: Value) {
+        self.borrow_mut().set_prototype_instance(prototype)
+    }
+
+    /// Checks if it an `Array` object.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the object is currently mutably borrowed.
+    #[inline]
+    #[track_caller]
+    pub fn is_array(&self) -> bool {
+        self.borrow().is_array()
+    }
+
+    /// Checks if it is an `ArrayIterator` object.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the object is currently mutably borrowed.
+    #[inline]
+    #[track_caller]
+    pub fn is_array_iterator(&self) -> bool {
+        self.borrow().is_array_iterator()
+    }
+
+    /// Checks if it is a `Map` object.pub
+    ///
+    /// # Panics
+    ///
+    /// Panics if the object is currently mutably borrowed.
+    #[inline]
+    #[track_caller]
+    pub fn is_map(&self) -> bool {
+        self.borrow().is_map()
+    }
+
+    /// Checks if it a `String` object.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the object is currently mutably borrowed.
+    #[inline]
+    #[track_caller]
+    pub fn is_string(&self) -> bool {
+        self.borrow().is_string()
+    }
+
+    /// Checks if it a `Function` object.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the object is currently mutably borrowed.
+    #[inline]
+    #[track_caller]
+    pub fn is_function(&self) -> bool {
+        self.borrow().is_function()
+    }
+
+    /// Checks if it a Symbol object.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the object is currently mutably borrowed.
+    #[inline]
+    #[track_caller]
+    pub fn is_symbol(&self) -> bool {
+        self.borrow().is_symbol()
+    }
+
+    /// Checks if it an Error object.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the object is currently mutably borrowed.
+    #[inline]
+    #[track_caller]
+    pub fn is_error(&self) -> bool {
+        self.borrow().is_error()
+    }
+
+    /// Checks if it a Boolean object.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the object is currently mutably borrowed.
+    #[inline]
+    #[track_caller]
+    pub fn is_boolean(&self) -> bool {
+        self.borrow().is_boolean()
+    }
+
+    /// Checks if it a `Number` object.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the object is currently mutably borrowed.
+    #[inline]
+    #[track_caller]
+    pub fn is_number(&self) -> bool {
+        self.borrow().is_number()
+    }
+
+    /// Checks if it a `BigInt` object.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the object is currently mutably borrowed.
+    #[inline]
+    #[track_caller]
+    pub fn is_bigint(&self) -> bool {
+        self.borrow().is_bigint()
+    }
+
+    /// Checks if it a `RegExp` object.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the object is currently mutably borrowed.
+    #[inline]
+    #[track_caller]
+    pub fn is_regexp(&self) -> bool {
+        self.borrow().is_regexp()
+    }
+
+    /// Checks if it an ordinary object.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the object is currently mutably borrowed.
+    #[inline]
+    #[track_caller]
+    pub fn is_ordinary(&self) -> bool {
+        self.borrow().is_ordinary()
+    }
+
+    /// Returns `true` if it holds an Rust type that implements `NativeObject`.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the object is currently mutably borrowed.
+    #[inline]
+    #[track_caller]
+    pub fn is_native_object(&self) -> bool {
+        self.borrow().is_native_object()
     }
 }
 
