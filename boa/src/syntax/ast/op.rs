@@ -602,7 +602,7 @@ pub enum CompOp {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/in
     In,
 
-    /// The `instanceop` operator returns `true` if the specified object is an instance of the
+    /// The `instanceof` operator returns `true` if the specified object is an instance of the
     /// right hand side object.
     ///
     /// Syntax: `obj instanceof Object`
