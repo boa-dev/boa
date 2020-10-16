@@ -107,7 +107,7 @@
             <span class="self">Self</span>::<span class="ident">Undefined</span> <span class="op">=&gt;</span> <span class="ident">Type</span>::<span class="ident">Undefined</span>,
             <span class="self">Self</span>::<span class="ident">BigInt</span>(<span class="kw">_</span>) <span class="op">=&gt;</span> <span class="ident">Type</span>::<span class="ident">BigInt</span>,
             <span class="self">Self</span>::<span class="ident">Object</span>(<span class="kw-2">ref</span> <span class="ident">object</span>) <span class="op">=&gt;</span> {
-                <span class="kw">if</span> <span class="ident">object</span>.<span class="ident">borrow</span>().<span class="ident">is_function</span>() {
+                <span class="kw">if</span> <span class="ident">object</span>.<span class="ident">is_function</span>() {
                     <span class="ident">Type</span>::<span class="ident">Function</span>
                 } <span class="kw">else</span> {
                     <span class="ident">Type</span>::<span class="ident">Object</span>

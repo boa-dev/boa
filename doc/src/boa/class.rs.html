@@ -235,7 +235,7 @@
 <span class="doccomment">//!         class.method(&quot;speak&quot;, 0, |this, _args, _ctx| {</span>
 <span class="doccomment">//!             if let Some(object) = this.as_object() {</span>
 <span class="doccomment">//!                 if let Some(animal) = object.downcast_ref::&lt;Animal&gt;() {</span>
-<span class="doccomment">//!                     match animal {</span>
+<span class="doccomment">//!                     match &amp;*animal {</span>
 <span class="doccomment">//!                         Self::Cat =&gt; println!(&quot;meow&quot;),</span>
 <span class="doccomment">//!                         Self::Dog =&gt; println!(&quot;woof&quot;),</span>
 <span class="doccomment">//!                         Self::Other =&gt; println!(r&quot;¯\_(ツ)_/¯&quot;),</span>

@@ -200,6 +200,8 @@
 <span id="199">199</span>
 <span id="200">200</span>
 <span id="201">201</span>
+<span id="202">202</span>
+<span id="203">203</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements the global `JSON` object.</span>
 <span class="doccomment">//!</span>
@@ -357,6 +359,7 @@
                 .<span class="ident">map</span>(<span class="op">|</span><span class="ident">obj</span><span class="op">|</span> {
                     <span class="kw">let</span> <span class="ident">object_to_return</span> <span class="op">=</span> <span class="ident">Value</span>::<span class="ident">new_object</span>(<span class="prelude-val">None</span>);
                     <span class="kw">for</span> (<span class="ident">key</span>, <span class="ident">val</span>) <span class="kw">in</span> <span class="ident">obj</span>
+                        .<span class="ident">borrow</span>()
                         .<span class="ident">iter</span>()
                         <span class="comment">// FIXME: handle accessor descriptors</span>
                         .<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">k</span>, <span class="ident">v</span>)<span class="op">|</span> (<span class="ident">k</span>, <span class="ident">v</span>.<span class="ident">as_data_descriptor</span>().<span class="ident">unwrap</span>().<span class="ident">value</span>()))
@@ -379,6 +382,7 @@
                 .<span class="ident">ok_or_else</span>(<span class="ident">Value</span>::<span class="ident">undefined</span>)<span class="question-mark">?</span>
         } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">replacer_as_object</span>.<span class="ident">is_array</span>() {
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">obj_to_return</span> <span class="op">=</span> <span class="ident">serde_json</span>::<span class="ident">Map</span>::<span class="ident">new</span>();
+            <span class="kw">let</span> <span class="ident">replacer_as_object</span> <span class="op">=</span> <span class="ident">replacer_as_object</span>.<span class="ident">borrow</span>();
             <span class="kw">let</span> <span class="ident">fields</span> <span class="op">=</span> <span class="ident">replacer_as_object</span>.<span class="ident">keys</span>().<span class="ident">filter_map</span>(<span class="op">|</span><span class="ident">key</span><span class="op">|</span> {
                 <span class="kw">if</span> <span class="ident">key</span> <span class="op">==</span> <span class="string">&quot;length&quot;</span> {
                     <span class="prelude-val">None</span>

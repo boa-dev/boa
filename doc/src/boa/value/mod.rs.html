@@ -951,21 +951,6 @@
 <span id="950">950</span>
 <span id="951">951</span>
 <span id="952">952</span>
-<span id="953">953</span>
-<span id="954">954</span>
-<span id="955">955</span>
-<span id="956">956</span>
-<span id="957">957</span>
-<span id="958">958</span>
-<span id="959">959</span>
-<span id="960">960</span>
-<span id="961">961</span>
-<span id="962">962</span>
-<span id="963">963</span>
-<span id="964">964</span>
-<span id="965">965</span>
-<span id="966">966</span>
-<span id="967">967</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements the JavaScript Value.</span>
 <span class="doccomment">//!</span>
@@ -983,7 +968,7 @@
     <span class="ident">property</span>::{<span class="ident">Attribute</span>, <span class="ident">DataDescriptor</span>, <span class="ident">PropertyDescriptor</span>, <span class="ident">PropertyKey</span>},
     <span class="ident">BoaProfiler</span>, <span class="ident">Context</span>, <span class="prelude-ty">Result</span>,
 };
-<span class="kw">use</span> <span class="ident">gc</span>::{<span class="ident">Finalize</span>, <span class="ident">GcCellRef</span>, <span class="ident">GcCellRefMut</span>, <span class="ident">Trace</span>};
+<span class="kw">use</span> <span class="ident">gc</span>::{<span class="ident">Finalize</span>, <span class="ident">Trace</span>};
 <span class="kw">use</span> <span class="ident">serde_json</span>::{<span class="ident">Number</span> <span class="kw">as</span> <span class="ident">JSONNumber</span>, <span class="ident">Value</span> <span class="kw">as</span> <span class="ident">JSONValue</span>};
 <span class="kw">use</span> <span class="ident">std</span>::{
     <span class="ident">collections</span>::<span class="ident">HashSet</span>,
@@ -1237,25 +1222,9 @@
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_object</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">GcCellRef</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">Object</span><span class="op">&gt;&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_object</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">GcObject</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="self">Self</span>::<span class="ident">Object</span>(<span class="kw-2">ref</span> <span class="ident">o</span>) <span class="op">=&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">o</span>.<span class="ident">borrow</span>()),
-            <span class="kw">_</span> <span class="op">=&gt;</span> <span class="prelude-val">None</span>,
-        }
-    }
-
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_gc_object</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">GcObject</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="self">Self</span>::<span class="ident">Object</span>(<span class="ident">o</span>) <span class="op">=&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">o</span>.<span class="ident">clone</span>()),
-            <span class="kw">_</span> <span class="op">=&gt;</span> <span class="prelude-val">None</span>,
-        }
-    }
-
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_object_mut</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">GcCellRefMut</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">Object</span><span class="op">&gt;&gt;</span> {
-        <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="self">Self</span>::<span class="ident">Object</span>(<span class="kw-2">ref</span> <span class="ident">o</span>) <span class="op">=&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">o</span>.<span class="ident">borrow_mut</span>()),
+            <span class="self">Self</span>::<span class="ident">Object</span>(<span class="kw-2">ref</span> <span class="ident">o</span>) <span class="op">=&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">o</span>.<span class="ident">clone</span>()),
             <span class="kw">_</span> <span class="op">=&gt;</span> <span class="prelude-val">None</span>,
         }
     }
@@ -1276,7 +1245,7 @@
     <span class="doccomment">/// Returns true if the value is a function</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_function</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
-        <span class="macro">matches</span><span class="macro">!</span>(<span class="self">self</span>, <span class="self">Self</span>::<span class="ident">Object</span>(<span class="ident">o</span>) <span class="kw">if</span> <span class="ident">o</span>.<span class="ident">borrow</span>().<span class="ident">is_function</span>())
+        <span class="macro">matches</span><span class="macro">!</span>(<span class="self">self</span>, <span class="self">Self</span>::<span class="ident">Object</span>(<span class="ident">o</span>) <span class="kw">if</span> <span class="ident">o</span>.<span class="ident">is_function</span>())
     }
 
     <span class="doccomment">/// Returns true if the value is undefined.</span>
@@ -1403,8 +1372,8 @@
     <span class="kw">where</span>
         <span class="ident">Key</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">PropertyKey</span><span class="op">&gt;</span>,
     {
-        <span class="self">self</span>.<span class="ident">as_object_mut</span>()
-            .<span class="ident">map</span>(<span class="op">|</span><span class="kw-2">mut</span> <span class="ident">x</span><span class="op">|</span> <span class="ident">x</span>.<span class="ident">remove_property</span>(<span class="kw-2">&amp;</span><span class="ident">key</span>.<span class="ident">into</span>()))
+        <span class="self">self</span>.<span class="ident">as_object</span>()
+            .<span class="ident">map</span>(<span class="op">|</span><span class="kw-2">mut</span> <span class="ident">x</span><span class="op">|</span> <span class="ident">x</span>.<span class="ident">remove</span>(<span class="kw-2">&amp;</span><span class="ident">key</span>.<span class="ident">into</span>()))
             .<span class="ident">is_some</span>()
     }
 
@@ -1419,13 +1388,12 @@
         <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">BoaProfiler</span>::<span class="ident">global</span>().<span class="ident">start_event</span>(<span class="string">&quot;Value::get_property&quot;</span>, <span class="string">&quot;value&quot;</span>);
         <span class="kw">match</span> <span class="self">self</span> {
             <span class="self">Self</span>::<span class="ident">Object</span>(<span class="kw-2">ref</span> <span class="ident">object</span>) <span class="op">=&gt;</span> {
-                <span class="kw">let</span> <span class="ident">object</span> <span class="op">=</span> <span class="ident">object</span>.<span class="ident">borrow</span>();
                 <span class="kw">let</span> <span class="ident">property</span> <span class="op">=</span> <span class="ident">object</span>.<span class="ident">get_own_property</span>(<span class="kw-2">&amp;</span><span class="ident">key</span>);
                 <span class="kw">if</span> <span class="ident">property</span>.<span class="ident">is_some</span>() {
                     <span class="kw">return</span> <span class="ident">property</span>;
                 }
 
-                <span class="ident">object</span>.<span class="ident">prototype_instance</span>().<span class="ident">get_property</span>(<span class="ident">key</span>)
+                <span class="ident">object</span>.<span class="ident">borrow</span>().<span class="ident">prototype_instance</span>().<span class="ident">get_property</span>(<span class="ident">key</span>)
             }
             <span class="kw">_</span> <span class="op">=&gt;</span> <span class="prelude-val">None</span>,
         }
@@ -1473,14 +1441,14 @@
         <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">BoaProfiler</span>::<span class="ident">global</span>().<span class="ident">start_event</span>(<span class="string">&quot;Value::set_field&quot;</span>, <span class="string">&quot;value&quot;</span>);
         <span class="kw">if</span> <span class="kw">let</span> <span class="self">Self</span>::<span class="ident">Object</span>(<span class="kw-2">ref</span> <span class="ident">obj</span>) <span class="op">=</span> <span class="kw-2">*</span><span class="self">self</span> {
             <span class="kw">if</span> <span class="kw">let</span> <span class="ident">PropertyKey</span>::<span class="ident">Index</span>(<span class="ident">index</span>) <span class="op">=</span> <span class="ident">key</span> {
-                <span class="kw">if</span> <span class="ident">obj</span>.<span class="ident">borrow</span>().<span class="ident">is_array</span>() {
+                <span class="kw">if</span> <span class="ident">obj</span>.<span class="ident">is_array</span>() {
                     <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_field</span>(<span class="string">&quot;length&quot;</span>).<span class="ident">as_number</span>().<span class="ident">unwrap</span>() <span class="kw">as</span> <span class="ident">u32</span>;
                     <span class="kw">if</span> <span class="ident">len</span> <span class="op">&lt;</span> <span class="ident">index</span> <span class="op">+</span> <span class="number">1</span> {
                         <span class="self">self</span>.<span class="ident">set_field</span>(<span class="string">&quot;length&quot;</span>, <span class="ident">index</span> <span class="op">+</span> <span class="number">1</span>);
                     }
                 }
             }
-            <span class="ident">obj</span>.<span class="ident">borrow_mut</span>().<span class="ident">set</span>(<span class="ident">key</span>, <span class="ident">value</span>.<span class="ident">clone</span>());
+            <span class="ident">obj</span>.<span class="ident">clone</span>().<span class="ident">set</span>(<span class="ident">key</span>, <span class="ident">value</span>.<span class="ident">clone</span>());
         }
         <span class="ident">value</span>
     }
@@ -1500,7 +1468,7 @@
         <span class="ident">K</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">PropertyKey</span><span class="op">&gt;</span>,
         <span class="ident">P</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">PropertyDescriptor</span><span class="op">&gt;</span>,
     {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">mut</span> <span class="ident">object</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">as_object_mut</span>() {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">mut</span> <span class="ident">object</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">as_object</span>() {
             <span class="ident">object</span>.<span class="ident">insert</span>(<span class="ident">key</span>.<span class="ident">into</span>(), <span class="ident">property</span>.<span class="ident">into</span>());
         }
     }
@@ -1630,11 +1598,13 @@
             <span class="ident">Value</span>::<span class="ident">String</span>(<span class="kw-2">ref</span> <span class="ident">string</span>) <span class="op">=&gt;</span> {
                 <span class="kw">let</span> <span class="ident">prototype</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">standard_objects</span>().<span class="ident">string_object</span>().<span class="ident">prototype</span>();
 
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">object</span> <span class="op">=</span>
-                    <span class="ident">Object</span>::<span class="ident">with_prototype</span>(<span class="ident">prototype</span>.<span class="ident">into</span>(), <span class="ident">ObjectData</span>::<span class="ident">String</span>(<span class="ident">string</span>.<span class="ident">clone</span>()));
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">object</span> <span class="op">=</span> <span class="ident">GcObject</span>::<span class="ident">new</span>(<span class="ident">Object</span>::<span class="ident">with_prototype</span>(
+                    <span class="ident">prototype</span>.<span class="ident">into</span>(),
+                    <span class="ident">ObjectData</span>::<span class="ident">String</span>(<span class="ident">string</span>.<span class="ident">clone</span>()),
+                ));
                 <span class="comment">// Make sure the correct length is set on our new string object</span>
                 <span class="ident">object</span>.<span class="ident">set</span>(<span class="string">&quot;length&quot;</span>.<span class="ident">into</span>(), <span class="ident">string</span>.<span class="ident">chars</span>().<span class="ident">count</span>().<span class="ident">into</span>());
-                <span class="prelude-val">Ok</span>(<span class="ident">GcObject</span>::<span class="ident">new</span>(<span class="ident">object</span>))
+                <span class="prelude-val">Ok</span>(<span class="ident">object</span>)
             }
             <span class="ident">Value</span>::<span class="ident">Symbol</span>(<span class="kw-2">ref</span> <span class="ident">symbol</span>) <span class="op">=&gt;</span> {
                 <span class="kw">let</span> <span class="ident">prototype</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">standard_objects</span>().<span class="ident">symbol_object</span>().<span class="ident">prototype</span>();

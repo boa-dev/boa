@@ -1445,7 +1445,7 @@
             <span class="prelude-val">None</span> <span class="op">=&gt;</span> <span class="ident">context</span>.<span class="ident">standard_objects</span>().<span class="ident">array_object</span>().<span class="ident">prototype</span>(),
         };
 
-        <span class="ident">this</span>.<span class="ident">as_object_mut</span>()
+        <span class="ident">this</span>.<span class="ident">as_object</span>()
             .<span class="ident">expect</span>(<span class="string">&quot;this should be an array object&quot;</span>)
             .<span class="ident">set_prototype_instance</span>(<span class="ident">prototype</span>.<span class="ident">into</span>());
         <span class="comment">// This value is used by console.log and other routines to match Object type</span>
@@ -1472,7 +1472,7 @@
         ));
         <span class="ident">array</span>.<span class="ident">set_data</span>(<span class="ident">ObjectData</span>::<span class="ident">Array</span>);
         <span class="ident">array</span>
-            .<span class="ident">as_object_mut</span>()
+            .<span class="ident">as_object</span>()
             .<span class="ident">expect</span>(<span class="string">&quot;array object&quot;</span>)
             .<span class="ident">set_prototype_instance</span>(<span class="ident">context</span>.<span class="ident">standard_objects</span>().<span class="ident">array_object</span>().<span class="ident">prototype</span>().<span class="ident">into</span>());
         <span class="ident">array</span>.<span class="ident">set_field</span>(<span class="string">&quot;length&quot;</span>, <span class="ident">Value</span>::<span class="ident">from</span>(<span class="number">0</span>));
@@ -1540,7 +1540,7 @@
         <span class="ident">_interpreter</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
     ) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">x</span>.<span class="ident">as_object</span>()) {
-            <span class="prelude-val">Some</span>(<span class="ident">object</span>) <span class="op">=&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">object</span>.<span class="ident">is_array</span>())),
+            <span class="prelude-val">Some</span>(<span class="ident">object</span>) <span class="op">=&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">object</span>.<span class="ident">borrow</span>().<span class="ident">is_array</span>())),
             <span class="prelude-val">None</span> <span class="op">=&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="bool-val">false</span>)),
         }
     }
