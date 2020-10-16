@@ -1026,6 +1026,17 @@
 <span id="1025">1025</span>
 <span id="1026">1026</span>
 <span id="1027">1027</span>
+<span id="1028">1028</span>
+<span id="1029">1029</span>
+<span id="1030">1030</span>
+<span id="1031">1031</span>
+<span id="1032">1032</span>
+<span id="1033">1033</span>
+<span id="1034">1034</span>
+<span id="1035">1035</span>
+<span id="1036">1036</span>
+<span id="1037">1037</span>
+<span id="1038">1038</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements the Rust representation of a JavaScript object.</span>
 
@@ -1033,6 +1044,7 @@
     <span class="ident">builtins</span>::{
         <span class="ident">array</span>::<span class="ident">array_iterator</span>::<span class="ident">ArrayIterator</span>,
         <span class="ident">function</span>::{<span class="ident">BuiltInFunction</span>, <span class="ident">Function</span>, <span class="ident">FunctionFlags</span>, <span class="ident">NativeFunction</span>},
+        <span class="ident">map</span>::<span class="ident">map_iterator</span>::<span class="ident">MapIterator</span>,
         <span class="ident">map</span>::<span class="ident">ordered_map</span>::<span class="ident">OrderedMap</span>,
         <span class="ident">string</span>::<span class="ident">string_iterator</span>::<span class="ident">StringIterator</span>,
         <span class="ident">BigInt</span>, <span class="ident">Date</span>, <span class="ident">RegExp</span>,
@@ -1105,6 +1117,7 @@
     <span class="ident">Array</span>,
     <span class="ident">ArrayIterator</span>(<span class="ident">ArrayIterator</span>),
     <span class="ident">Map</span>(<span class="ident">OrderedMap</span><span class="op">&lt;</span><span class="ident">Value</span>, <span class="ident">Value</span><span class="op">&gt;</span>),
+    <span class="ident">MapIterator</span>(<span class="ident">MapIterator</span>),
     <span class="ident">RegExp</span>(<span class="ident">Box</span><span class="op">&lt;</span><span class="ident">RegExp</span><span class="op">&gt;</span>),
     <span class="ident">BigInt</span>(<span class="ident">RcBigInt</span>),
     <span class="ident">Boolean</span>(<span class="ident">bool</span>),
@@ -1131,6 +1144,7 @@
                 <span class="self">Self</span>::<span class="ident">Function</span>(<span class="kw">_</span>) <span class="op">=&gt;</span> <span class="string">&quot;Function&quot;</span>,
                 <span class="self">Self</span>::<span class="ident">RegExp</span>(<span class="kw">_</span>) <span class="op">=&gt;</span> <span class="string">&quot;RegExp&quot;</span>,
                 <span class="self">Self</span>::<span class="ident">Map</span>(<span class="kw">_</span>) <span class="op">=&gt;</span> <span class="string">&quot;Map&quot;</span>,
+                <span class="self">Self</span>::<span class="ident">MapIterator</span>(<span class="kw">_</span>) <span class="op">=&gt;</span> <span class="string">&quot;MapIterator&quot;</span>,
                 <span class="self">Self</span>::<span class="ident">String</span>(<span class="kw">_</span>) <span class="op">=&gt;</span> <span class="string">&quot;String&quot;</span>,
                 <span class="self">Self</span>::<span class="ident">StringIterator</span>(<span class="kw">_</span>) <span class="op">=&gt;</span> <span class="string">&quot;StringIterator&quot;</span>,
                 <span class="self">Self</span>::<span class="ident">Symbol</span>(<span class="kw">_</span>) <span class="op">=&gt;</span> <span class="string">&quot;Symbol&quot;</span>,
@@ -1352,6 +1366,14 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_map_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">OrderedMap</span><span class="op">&lt;</span><span class="ident">Value</span>, <span class="ident">Value</span><span class="op">&gt;&gt;</span> {
         <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">data</span> {
             <span class="ident">ObjectData</span>::<span class="ident">Map</span>(<span class="ident">map</span>) <span class="op">=&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">map</span>),
+            <span class="kw">_</span> <span class="op">=&gt;</span> <span class="prelude-val">None</span>,
+        }
+    }
+
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_map_iterator_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">MapIterator</span><span class="op">&gt;</span> {
+        <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">data</span> {
+            <span class="ident">ObjectData</span>::<span class="ident">MapIterator</span>(<span class="ident">iter</span>) <span class="op">=&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">iter</span>),
             <span class="kw">_</span> <span class="op">=&gt;</span> <span class="prelude-val">None</span>,
         }
     }

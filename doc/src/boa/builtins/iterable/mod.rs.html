@@ -149,10 +149,20 @@
 <span id="148">148</span>
 <span id="149">149</span>
 <span id="150">150</span>
+<span id="151">151</span>
+<span id="152">152</span>
+<span id="153">153</span>
+<span id="154">154</span>
+<span id="155">155</span>
+<span id="156">156</span>
+<span id="157">157</span>
+<span id="158">158</span>
+<span id="159">159</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">builtins</span>::<span class="ident">string</span>::<span class="ident">string_iterator</span>::<span class="ident">StringIterator</span>,
     <span class="ident">builtins</span>::<span class="ident">ArrayIterator</span>,
+    <span class="ident">builtins</span>::<span class="ident">MapIterator</span>,
     <span class="ident">object</span>::{<span class="ident">GcObject</span>, <span class="ident">ObjectInitializer</span>},
     <span class="ident">property</span>::{<span class="ident">Attribute</span>, <span class="ident">DataDescriptor</span>},
     <span class="ident">BoaProfiler</span>, <span class="ident">Context</span>, <span class="prelude-ty">Result</span>, <span class="ident">Value</span>,
@@ -163,6 +173,7 @@
     <span class="ident">iterator_prototype</span>: <span class="ident">GcObject</span>,
     <span class="ident">array_iterator</span>: <span class="ident">GcObject</span>,
     <span class="ident">string_iterator</span>: <span class="ident">GcObject</span>,
+    <span class="ident">map_iterator</span>: <span class="ident">GcObject</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">IteratorPrototypes</span> {
@@ -175,9 +186,12 @@
             <span class="ident">array_iterator</span>: <span class="ident">ArrayIterator</span>::<span class="ident">create_prototype</span>(<span class="ident">ctx</span>, <span class="ident">iterator_prototype</span>.<span class="ident">clone</span>())
                 .<span class="ident">as_gc_object</span>()
                 .<span class="ident">expect</span>(<span class="string">&quot;Array Iterator Prototype is not an object&quot;</span>),
-            <span class="ident">string_iterator</span>: <span class="ident">StringIterator</span>::<span class="ident">create_prototype</span>(<span class="ident">ctx</span>, <span class="ident">iterator_prototype</span>)
+            <span class="ident">string_iterator</span>: <span class="ident">StringIterator</span>::<span class="ident">create_prototype</span>(<span class="ident">ctx</span>, <span class="ident">iterator_prototype</span>.<span class="ident">clone</span>())
                 .<span class="ident">as_gc_object</span>()
                 .<span class="ident">expect</span>(<span class="string">&quot;String Iterator Prototype is not an object&quot;</span>),
+            <span class="ident">map_iterator</span>: <span class="ident">MapIterator</span>::<span class="ident">create_prototype</span>(<span class="ident">ctx</span>, <span class="ident">iterator_prototype</span>)
+                .<span class="ident">as_gc_object</span>()
+                .<span class="ident">expect</span>(<span class="string">&quot;Map Iterator Prototype is not an object&quot;</span>),
         }
     }
 
@@ -191,6 +205,10 @@
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">string_iterator</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">GcObject</span> {
         <span class="self">self</span>.<span class="ident">string_iterator</span>.<span class="ident">clone</span>()
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">map_iterator</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">GcObject</span> {
+        <span class="self">self</span>.<span class="ident">map_iterator</span>.<span class="ident">clone</span>()
     }
 }
 
