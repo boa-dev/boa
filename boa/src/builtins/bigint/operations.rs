@@ -7,15 +7,46 @@ use super::BigInt;
 
 impl BigInt {
     #[inline]
-    pub fn pow(self, other: &Self) -> Self {
-        Self(
-            self.0.pow(
-                other
-                    .0
-                    .to_biguint()
-                    .expect("RangeError: \"BigInt negative exponent\""),
-            ),
-        )
+    pub fn pow(self, other: &Self) -> Result<Self, String> {
+        Ok(Self(self.0.pow(
+            other.0.to_biguint().ok_or("BigInt negative exponent")?,
+        )))
+    }
+
+    #[inline]
+    pub fn shift_right(mut self, other: Self) -> Result<Self, String> {
+        use std::ops::ShlAssign;
+        use std::ops::ShrAssign;
+
+        if let Some(n) = other.0.to_i32() {
+            if n > 0 {
+                self.0.shr_assign(n as usize)
+            } else {
+                self.0.shl_assign(n.abs() as usize)
+            }
+
+            Ok(self)
+        } else {
+            Err("Maximum BigInt size exceeded".into())
+        }
+    }
+
+    #[inline]
+    pub fn shift_left(mut self, other: Self) -> Result<Self, String> {
+        use std::ops::ShlAssign;
+        use std::ops::ShrAssign;
+
+        if let Some(n) = other.0.to_i32() {
+            if n > 0 {
+                self.0.shl_assign(n as usize)
+            } else {
+                self.0.shr_assign(n.abs() as usize)
+            }
+
+            Ok(self)
+        } else {
+            Err("Maximum BigInt size exceeded".into())
+        }
     }
 
     /// Floored integer modulo.
@@ -54,48 +85,6 @@ impl_bigint_operator!(Rem, rem, RemAssign, rem_assign);
 impl_bigint_operator!(BitAnd, bitand, BitAndAssign, bitand_assign);
 impl_bigint_operator!(BitOr, bitor, BitOrAssign, bitor_assign);
 impl_bigint_operator!(BitXor, bitxor, BitXorAssign, bitxor_assign);
-
-impl std::ops::Shr for BigInt {
-    type Output = Self;
-
-    fn shr(mut self, other: Self) -> Self::Output {
-        use std::ops::ShlAssign;
-        use std::ops::ShrAssign;
-
-        if let Some(n) = other.0.to_i32() {
-            if n > 0 {
-                self.0.shr_assign(n as usize)
-            } else {
-                self.0.shl_assign(n.abs() as usize)
-            }
-
-            return self;
-        }
-
-        panic!("RangeError: Maximum BigInt size exceeded");
-    }
-}
-
-impl std::ops::Shl for BigInt {
-    type Output = Self;
-
-    fn shl(mut self, other: Self) -> Self::Output {
-        use std::ops::ShlAssign;
-        use std::ops::ShrAssign;
-
-        if let Some(n) = other.0.to_i32() {
-            if n > 0 {
-                self.0.shl_assign(n as usize)
-            } else {
-                self.0.shr_assign(n.abs() as usize)
-            }
-
-            return self;
-        }
-
-        panic!("RangeError: Maximum BigInt size exceeded");
-    }
-}
 
 impl std::ops::Neg for BigInt {
     type Output = Self;

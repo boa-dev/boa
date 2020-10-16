@@ -173,9 +173,9 @@ impl BigInt {
     pub(crate) fn as_int_n(_this: &Value, args: &[Value], ctx: &mut Context) -> Result<Value> {
         let (modulo, bits) = Self::calculate_as_uint_n(args, ctx)?;
 
-        if bits > 0 && modulo >= BigInt::from(2).pow(&BigInt::from(bits as i64 - 1)) {
+        if bits > 0 && modulo >= BigInt::from(2).pow(&BigInt::from(bits as i64 - 1)).unwrap() {
             Ok(Value::from(
-                modulo - BigInt::from(2).pow(&BigInt::from(bits as i64)),
+                modulo - BigInt::from(2).pow(&BigInt::from(bits as i64)).unwrap(),
             ))
         } else {
             Ok(Value::from(modulo))
@@ -217,7 +217,7 @@ impl BigInt {
             bigint
                 .as_inner()
                 .clone()
-                .mod_floor(&BigInt::from(2).pow(&BigInt::from(bits as i64))),
+                .mod_floor(&BigInt::from(2).pow(&BigInt::from(bits as i64)).unwrap()),
             bits,
         ))
     }
