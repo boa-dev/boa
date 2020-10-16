@@ -14,15 +14,29 @@ impl BigInt {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-stringtobigint
     #[inline]
-    pub(crate) fn from_string(string: &str, _ctx: &mut Context) -> Result<Self, Value> {
-        if string.is_empty() {
+    pub(crate) fn from_string(string: &str, context: &mut Context) -> Result<Self, Value> {
+        if string.trim().is_empty() {
             return Ok(BigInt::from(0));
         }
 
-        match num_bigint::BigInt::from_str(string) {
-            Ok(bigint) => Ok(Self(bigint)),
-            _ => panic!("SyntaxError: cannot convert {} to a BigInt", string),
+        let mut radix = 10;
+        let mut string = string;
+        if string.starts_with("0b") || string.starts_with("0B") {
+            radix = 2;
+            string = &string[2..];
         }
+        if string.starts_with("0x") || string.starts_with("0X") {
+            radix = 16;
+            string = &string[2..];
+        }
+        if string.starts_with("0o") || string.starts_with("0O") {
+            radix = 8;
+            string = &string[2..];
+        }
+
+        BigInt::from_string_radix(string, radix).ok_or_else(|| {
+            context.construct_syntax_error(format!("cannot convert {} to a BigInt", string))
+        })
     }
 
     /// Converts a string to a BigInt with the specified radix.
