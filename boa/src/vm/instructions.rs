@@ -1,20 +1,60 @@
-use std::fmt::{Debug, Error, Formatter};
-
-#[derive(Clone, Copy)]
+#[derive(Debug, Clone, Copy)]
 pub enum Instruction {
+    Undefined,
+    Null,
+    True,
+    False,
+    Zero,
+    One,
+    String(usize),
+    BigInt(usize),
+
+    /// Loads an i32 onto the stack
+    Int32(i32),
+
+    /// Loads an f32 onto the stack
+    Rational(f64),
+
     /// Adds the values from destination and source and stores the result in destination
     Add,
 
-    // Loads an i32 onto the stack
-    Int32(i32),
-}
+    /// subtracts the values from destination and source and stores the result in destination
+    Sub,
 
-impl Debug for Instruction {
-    fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), Error> {
-        match self {
-            Self::Add => write!(f, "Add"),
-            Self::Int32(i) => write!(f, "Int32\t{}", format!("{}", i)),
-            _ => write!(f, "unimplemented"),
-        }
-    }
+    /// Multiplies the values from destination and source and stores the result in destination
+    Mul,
+
+    /// Divides the values from destination and source and stores the result in destination
+    Div,
+
+    Pow,
+
+    Mod,
+
+    BitAnd,
+    BitOr,
+    BitXor,
+    Shl,
+    Shr,
+    UShr,
+
+    Eq,
+    NotEq,
+    StrictEq,
+    StrictNotEq,
+
+    Gt,
+    Ge,
+    Lt,
+    Le,
+
+    In,
+    InstanceOf,
+
+    Void,
+    TypeOf,
+    Pos,
+    Neg,
+    BitNot,
+    Not,
 }
