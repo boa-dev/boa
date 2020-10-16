@@ -321,6 +321,24 @@ fn sub_string_and_number_object() {
 }
 
 #[test]
+fn div_by_zero() {
+    let mut engine = Context::new();
+
+    let value = forward_val(&mut engine, "1 / 0").unwrap();
+    let value = value.to_number(&mut engine).unwrap();
+    assert!(value.is_infinite());
+}
+
+#[test]
+fn rem_by_zero() {
+    let mut engine = Context::new();
+
+    let value = forward_val(&mut engine, "1 % 0").unwrap();
+    let value = value.to_number(&mut engine).unwrap();
+    assert!(value.is_nan());
+}
+
+#[test]
 fn bitand_integer_and_integer() {
     let mut engine = Context::new();
 

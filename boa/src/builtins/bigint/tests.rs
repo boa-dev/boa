@@ -361,3 +361,9 @@ fn division_by_zero() {
     let mut engine = Context::new();
     assert_throws(&mut engine, "1n/0n", "RangeError");
 }
+
+#[test]
+fn remainder_by_zero() {
+    let mut engine = Context::new();
+    assert_throws(&mut engine, "1n % 0n", "RangeError");
+}
