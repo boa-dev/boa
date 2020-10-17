@@ -134,7 +134,13 @@ impl Value {
     pub fn rem(&self, other: &Self, ctx: &mut Context) -> Result<Value> {
         Ok(match (self, other) {
             // Fast path:
-            (Self::Integer(x), Self::Integer(y)) => Self::rational(f64::from(*x) % f64::from(*y)),
+            (Self::Integer(x), Self::Integer(y)) => {
+                if *y == 0 {
+                    Self::nan()
+                } else {
+                    Self::integer(x % *y)
+                }
+            }
             (Self::Rational(x), Self::Rational(y)) => Self::rational(x % y),
             (Self::Integer(x), Self::Rational(y)) => Self::rational(f64::from(*x) % y),
             (Self::Rational(x), Self::Integer(y)) => Self::rational(x % f64::from(*y)),
