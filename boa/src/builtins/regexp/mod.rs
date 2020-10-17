@@ -502,4 +502,36 @@ impl RegExp {
 
         Ok(result)
     }
+
+    /// `RegExp.prototype[ @@search ]( string )`
+    ///
+    /// The `[@@search]` method executes a search for a match between a `this` regular expression and a string.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-regexp.prototype-@@search
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/@@search
+    pub(crate) fn search(this: &Value, arg_str: String, ctx: &mut Context) -> Result<Value> {
+        if !this.is_object() {
+            panic!("Not an object");
+        }
+        let last_index = this.get_field("lastIndex").to_index(ctx)?;
+        if last_index != 0 {
+            this.set_field("lastIndex", Value::from(0));
+        }
+
+        let result = Self::exec(this, &[Value::from(arg_str)], ctx)?;
+        let current_last_index = this.get_field("lastIndex").to_index(ctx)?;
+        if current_last_index != last_index {
+            this.set_field("lastIndex", Value::from(current_last_index));
+        }
+
+        if result.is_null() {
+            Ok(Value::from(-1))
+        } else {
+            Ok(result.get_field("index"))
+        }
+    }
 }

@@ -105,6 +105,7 @@ impl BuiltIn for String {
         .method(Self::substr, "substr", 2)
         .method(Self::value_of, "valueOf", 0)
         .method(Self::match_all, "matchAll", 1)
+        .method(Self::search, "search", 1)
         .method(Self::replace, "replace", 2)
         .method(Self::iterator, (symbol_iterator, "[Symbol.iterator]"), 0)
         .build();
@@ -1159,6 +1160,40 @@ impl String {
         }?;
 
         RegExp::match_all(&re, this.to_string(ctx)?.to_string())
+    }
+
+    /// `String.prototype.search( regexp )`
+    ///
+    /// The `search()` method returns the index of the first match between the [`regular expression`][regex] and the given string, or `-1` if no match was found.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-string.prototype.search
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/search
+    /// [regex]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions
+    pub(crate) fn search(this: &Value, args: &[Value], ctx: &mut Context) -> Result<Value> {
+        let arg = args.get(0)
+            .and_then(|arg| {
+                if arg.is_null() || arg.is_undefined() {
+                    None
+                } else {
+                    Some(arg.clone())
+                }
+            });
+
+        let re = if let Some(arg) = arg {
+            RegExp::constructor(
+                &Value::from(Object::default()),
+                &[Value::from(arg.to_string(ctx)?)],
+                ctx
+            )
+        } else {
+            RegExp::constructor(&Value::from(Object::default()), &[], ctx)
+        }?;
+
+        RegExp::search(&re, this.to_string(ctx)?.to_string(), ctx)
     }
 
     pub(crate) fn iterator(this: &Value, _args: &[Value], ctx: &mut Context) -> Result<Value> {
