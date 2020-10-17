@@ -140,7 +140,7 @@ impl BigInt {
         } else {
             10
         };
-        if radix < 2 && radix > 36 {
+        if radix < 2 || radix > 36 {
             return ctx
                 .throw_range_error("radix must be an integer at least 2 and no greater than 36");
         }

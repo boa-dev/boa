@@ -213,6 +213,15 @@ fn to_string() {
 }
 
 #[test]
+fn to_string_invalid_radix() {
+    let mut engine = Context::new();
+
+    assert_throws(&mut engine, "10n.toString(null)", "RangeError");
+    assert_throws(&mut engine, "10n.toString(-1)", "RangeError");
+    assert_throws(&mut engine, "10n.toString(37)", "RangeError");
+}
+
+#[test]
 fn as_int_n() {
     let mut engine = Context::new();
 
