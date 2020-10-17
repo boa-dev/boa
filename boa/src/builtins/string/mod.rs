@@ -1175,14 +1175,12 @@ impl String {
     /// [regex]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions
     pub(crate) fn search(this: &Value, args: &[Value], ctx: &mut Context) -> Result<Value> {
         let re = match args.get(0) {
-            Some(arg) if !arg.is_null() && !arg.is_undefined() => {
-                RegExp::constructor(
-                    &Value::from(Object::default()),
-                    &[Value::from(arg.to_string(ctx)?)],
-                    ctx
-                )
-            }
-            _ => RegExp::constructor(&Value::from(Object::default()), &[], ctx)
+            Some(arg) if !arg.is_null() && !arg.is_undefined() => RegExp::constructor(
+                &Value::from(Object::default()),
+                &[Value::from(arg.to_string(ctx)?)],
+                ctx,
+            ),
+            _ => RegExp::constructor(&Value::from(Object::default()), &[], ctx),
         }?;
 
         RegExp::search(&re, this.to_string(ctx)?.to_string(), ctx)
