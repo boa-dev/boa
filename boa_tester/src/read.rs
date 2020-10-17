@@ -82,15 +82,8 @@ pub(super) fn read_harness() -> io::Result<Harness> {
     })
 }
 
-/// Reads the global suite from disk.
-pub(super) fn read_global_suite() -> io::Result<TestSuite> {
-    let path = CLI.test262_path().join("test");
-
-    Ok(read_suite(path.as_path())?)
-}
-
 /// Reads a test suite in the given path.
-fn read_suite(path: &Path) -> io::Result<TestSuite> {
+pub(super) fn read_suite(path: &Path) -> io::Result<TestSuite> {
     use std::ffi::OsStr;
 
     let name = path
@@ -139,7 +132,7 @@ fn read_suite(path: &Path) -> io::Result<TestSuite> {
 }
 
 /// Reads information about a given test case.
-fn read_test(path: &Path) -> io::Result<Test> {
+pub(super) fn read_test(path: &Path) -> io::Result<Test> {
     let name = path
         .file_stem()
         .ok_or_else(|| {
