@@ -173,9 +173,17 @@ impl BigInt {
     pub(crate) fn as_int_n(_this: &Value, args: &[Value], ctx: &mut Context) -> Result<Value> {
         let (modulo, bits) = Self::calculate_as_uint_n(args, ctx)?;
 
-        if bits > 0 && modulo >= BigInt::from(2).pow(&BigInt::from(bits as i64 - 1)).unwrap() {
+        if bits > 0
+            && modulo
+                >= BigInt::from(2)
+                    .pow(&BigInt::from(bits as i64 - 1))
+                    .expect("the exponent must be positive")
+        {
             Ok(Value::from(
-                modulo - BigInt::from(2).pow(&BigInt::from(bits as i64)).unwrap(),
+                modulo
+                    - BigInt::from(2)
+                        .pow(&BigInt::from(bits as i64))
+                        .expect("the exponent must be positive"),
             ))
         } else {
             Ok(Value::from(modulo))
@@ -214,10 +222,11 @@ impl BigInt {
         let bigint = bigint_arg.to_bigint(ctx)?;
 
         Ok((
-            bigint
-                .as_inner()
-                .clone()
-                .mod_floor(&BigInt::from(2).pow(&BigInt::from(bits as i64)).unwrap()),
+            bigint.as_inner().clone().mod_floor(
+                &BigInt::from(2)
+                    .pow(&BigInt::from(bits as i64))
+                    .expect("the exponent must be positive"),
+            ),
             bits,
         ))
     }
