@@ -171,7 +171,7 @@ impl Value {
                 a.as_inner()
                     .clone()
                     .pow(b)
-                    .map_err(|msg| ctx.construct_range_error(&msg))?,
+                    .map_err(|msg| ctx.construct_range_error(msg))?,
             ),
 
             // Slow path:
@@ -181,7 +181,7 @@ impl Value {
                     a.as_inner()
                         .clone()
                         .pow(b)
-                        .map_err(|msg| ctx.construct_range_error(&msg))?,
+                        .map_err(|msg| ctx.construct_range_error(msg))?,
                 ),
                 (_, _) => {
                     return ctx.throw_type_error(
