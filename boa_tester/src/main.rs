@@ -41,7 +41,7 @@ mod read;
 mod results;
 
 use self::{
-    read::{read_global_suite, read_harness, MetaData, Negative, TestFlag},
+    read::{read_harness, read_suite, read_test, MetaData, Negative, TestFlag},
     results::write_json,
 };
 use bitflags::bitflags;
@@ -69,6 +69,10 @@ struct Cli {
     #[structopt(long, parse(from_os_str), default_value = "./test262")]
     test262_path: PathBuf,
 
+    /// Which specific test or test suite to run.
+    #[structopt(short, long, parse(from_os_str), default_value = "test")]
+    suite: PathBuf,
+
     /// Optional output folder for the full results information.
     #[structopt(short, long, parse(from_os_str))]
     output: Option<PathBuf>,
@@ -83,6 +87,11 @@ impl Cli {
     /// Path to the Test262 suite.
     fn test262_path(&self) -> &Path {
         self.test262_path.as_path()
+    }
+
+    /// Which specific test or test suite to run.
+    fn suite(&self) -> &Path {
+        self.suite.as_path()
     }
 
     /// Optional output folder for the full results information.
@@ -109,23 +118,36 @@ fn main() {
     }
     let harness = read_harness().expect("could not read initialization bindings");
 
-    let global_suite = read_global_suite().expect("could not get the list of tests to run");
+    if CLI.suite().to_string_lossy().ends_with(".js") {
+        let test = read_test(&CLI.test262_path().join(CLI.suite()))
+            .expect("could not get the test to run");
 
-    if CLI.verbose() {
-        println!("Test suite loaded, starting tests...");
+        if CLI.verbose() {
+            println!("Test loaded, starting...");
+        }
+        test.run(&harness);
+
+        println!();
+    } else {
+        let suite = read_suite(&CLI.test262_path().join(CLI.suite()))
+            .expect("could not get the list of tests to run");
+
+        if CLI.verbose() {
+            println!("Test suite loaded, starting tests...");
+        }
+        let results = suite.run(&harness);
+
+        println!();
+        println!("Results:");
+        println!("Total tests: {}", results.total);
+        println!("Passed tests: {}", results.passed);
+        println!(
+            "Conformance: {:.2}%",
+            (results.passed as f64 / results.total as f64) * 100.0
+        );
+
+        write_json(results).expect("could not write the results to the output JSON file");
     }
-    let results = global_suite.run(&harness);
-    println!();
-
-    println!("Results:");
-    println!("Total tests: {}", results.total);
-    println!("Passed tests: {}", results.passed);
-    println!(
-        "Conformance: {:.2}%",
-        (results.passed as f64 / results.total as f64) * 100.0
-    );
-
-    write_json(results).expect("could not write the results to the output JSON file");
 }
 
 /// All the harness include files.
