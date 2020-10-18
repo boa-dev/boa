@@ -1166,6 +1166,9 @@
 <span id="1165">1165</span>
 <span id="1166">1166</span>
 <span id="1167">1167</span>
+<span id="1168">1168</span>
+<span id="1169">1169</span>
+<span id="1170">1170</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements the global `String` object.</span>
 <span class="doccomment">//!</span>
@@ -1358,7 +1361,8 @@
         <span class="kw">let</span> <span class="ident">primitive_val</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">to_string</span>(<span class="ident">ctx</span>)<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">pos</span> <span class="op">=</span> <span class="ident">args</span>
             .<span class="ident">get</span>(<span class="number">0</span>)
-            .<span class="ident">expect</span>(<span class="string">&quot;failed to get argument for String method&quot;</span>)
+            .<span class="ident">cloned</span>()
+            .<span class="ident">unwrap_or_else</span>(<span class="ident">Value</span>::<span class="ident">undefined</span>)
             .<span class="ident">to_integer</span>(<span class="ident">ctx</span>)<span class="question-mark">?</span> <span class="kw">as</span> <span class="ident">i32</span>;
 
         <span class="comment">// Calling .len() on a string would give the wrong result, as they are bytes not the number of</span>
@@ -1404,7 +1408,8 @@
         <span class="kw">let</span> <span class="ident">length</span> <span class="op">=</span> <span class="ident">primitive_val</span>.<span class="ident">chars</span>().<span class="ident">count</span>();
         <span class="kw">let</span> <span class="ident">pos</span> <span class="op">=</span> <span class="ident">args</span>
             .<span class="ident">get</span>(<span class="number">0</span>)
-            .<span class="ident">expect</span>(<span class="string">&quot;failed to get argument for String method&quot;</span>)
+            .<span class="ident">cloned</span>()
+            .<span class="ident">unwrap_or_else</span>(<span class="ident">Value</span>::<span class="ident">undefined</span>)
             .<span class="ident">to_integer</span>(<span class="ident">ctx</span>)<span class="question-mark">?</span> <span class="kw">as</span> <span class="ident">i32</span>;
 
         <span class="kw">if</span> <span class="ident">pos</span> <span class="op">&gt;=</span> <span class="ident">length</span> <span class="kw">as</span> <span class="ident">i32</span> <span class="op">||</span> <span class="ident">pos</span> <span class="op">&lt;</span> <span class="number">0</span> {
@@ -1494,19 +1499,20 @@
         <span class="comment">// Then we convert it into a Rust String by wrapping it in from_value</span>
         <span class="kw">let</span> <span class="ident">primitive_val</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">to_string</span>(<span class="ident">ctx</span>)<span class="question-mark">?</span>;
 
-        <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <span class="ident">args</span>
-            .<span class="ident">get</span>(<span class="number">0</span>)
-            .<span class="ident">expect</span>(<span class="string">&quot;failed to get argument for String method&quot;</span>)
-            .<span class="ident">to_integer</span>(<span class="ident">ctx</span>)<span class="question-mark">?</span> <span class="kw">as</span> <span class="ident">i32</span>;
-
-        <span class="kw">let</span> <span class="ident">end</span> <span class="op">=</span> <span class="ident">args</span>
-            .<span class="ident">get</span>(<span class="number">1</span>)
-            .<span class="ident">expect</span>(<span class="string">&quot;failed to get argument in slice&quot;</span>)
-            .<span class="ident">to_integer</span>(<span class="ident">ctx</span>)<span class="question-mark">?</span> <span class="kw">as</span> <span class="ident">i32</span>;
-
         <span class="comment">// Calling .len() on a string would give the wrong result, as they are bytes not the number of unicode code points</span>
         <span class="comment">// Note that this is an O(N) operation (because UTF-8 is complex) while getting the number of bytes is an O(1) operation.</span>
         <span class="kw">let</span> <span class="ident">length</span> <span class="op">=</span> <span class="ident">primitive_val</span>.<span class="ident">chars</span>().<span class="ident">count</span>() <span class="kw">as</span> <span class="ident">i32</span>;
+
+        <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <span class="ident">args</span>
+            .<span class="ident">get</span>(<span class="number">0</span>)
+            .<span class="ident">cloned</span>()
+            .<span class="ident">unwrap_or_else</span>(<span class="ident">Value</span>::<span class="ident">undefined</span>)
+            .<span class="ident">to_integer</span>(<span class="ident">ctx</span>)<span class="question-mark">?</span> <span class="kw">as</span> <span class="ident">i32</span>;
+        <span class="kw">let</span> <span class="ident">end</span> <span class="op">=</span> <span class="ident">args</span>
+            .<span class="ident">get</span>(<span class="number">1</span>)
+            .<span class="ident">cloned</span>()
+            .<span class="ident">unwrap_or_else</span>(<span class="op">||</span> <span class="ident">Value</span>::<span class="ident">integer</span>(<span class="ident">length</span>))
+            .<span class="ident">to_integer</span>(<span class="ident">ctx</span>)<span class="question-mark">?</span> <span class="kw">as</span> <span class="ident">i32</span>;
 
         <span class="kw">let</span> <span class="ident">from</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">start</span> <span class="op">&lt;</span> <span class="number">0</span> {
             <span class="ident">max</span>(<span class="ident">length</span>.<span class="ident">wrapping_add</span>(<span class="ident">start</span>), <span class="number">0</span>)
