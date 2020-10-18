@@ -628,6 +628,26 @@
 <span id="627">627</span>
 <span id="628">628</span>
 <span id="629">629</span>
+<span id="630">630</span>
+<span id="631">631</span>
+<span id="632">632</span>
+<span id="633">633</span>
+<span id="634">634</span>
+<span id="635">635</span>
+<span id="636">636</span>
+<span id="637">637</span>
+<span id="638">638</span>
+<span id="639">639</span>
+<span id="640">640</span>
+<span id="641">641</span>
+<span id="642">642</span>
+<span id="643">643</span>
+<span id="644">644</span>
+<span id="645">645</span>
+<span id="646">646</span>
+<span id="647">647</span>
+<span id="648">648</span>
+<span id="649">649</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">builtins</span>::<span class="ident">number</span>::{<span class="ident">f64_to_int32</span>, <span class="ident">f64_to_uint32</span>, <span class="ident">Number</span>};
@@ -807,14 +827,22 @@
             (<span class="self">Self</span>::<span class="ident">Integer</span>(<span class="ident">x</span>), <span class="self">Self</span>::<span class="ident">Rational</span>(<span class="ident">y</span>)) <span class="op">=&gt;</span> <span class="self">Self</span>::<span class="ident">rational</span>(<span class="ident">f64</span>::<span class="ident">from</span>(<span class="kw-2">*</span><span class="ident">x</span>).<span class="ident">powf</span>(<span class="kw-2">*</span><span class="ident">y</span>)),
             (<span class="self">Self</span>::<span class="ident">Rational</span>(<span class="ident">x</span>), <span class="self">Self</span>::<span class="ident">Integer</span>(<span class="ident">y</span>)) <span class="op">=&gt;</span> <span class="self">Self</span>::<span class="ident">rational</span>(<span class="ident">x</span>.<span class="ident">powi</span>(<span class="kw-2">*</span><span class="ident">y</span>)),
 
-            (<span class="self">Self</span>::<span class="ident">BigInt</span>(<span class="kw-2">ref</span> <span class="ident">a</span>), <span class="self">Self</span>::<span class="ident">BigInt</span>(<span class="kw-2">ref</span> <span class="ident">b</span>)) <span class="op">=&gt;</span> <span class="self">Self</span>::<span class="ident">bigint</span>(<span class="ident">a</span>.<span class="ident">as_inner</span>().<span class="ident">clone</span>().<span class="ident">pow</span>(<span class="ident">b</span>)),
+            (<span class="self">Self</span>::<span class="ident">BigInt</span>(<span class="kw-2">ref</span> <span class="ident">a</span>), <span class="self">Self</span>::<span class="ident">BigInt</span>(<span class="kw-2">ref</span> <span class="ident">b</span>)) <span class="op">=&gt;</span> <span class="self">Self</span>::<span class="ident">bigint</span>(
+                <span class="ident">a</span>.<span class="ident">as_inner</span>()
+                    .<span class="ident">clone</span>()
+                    .<span class="ident">pow</span>(<span class="ident">b</span>)
+                    .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">msg</span><span class="op">|</span> <span class="ident">ctx</span>.<span class="ident">construct_range_error</span>(<span class="ident">msg</span>))<span class="question-mark">?</span>,
+            ),
 
             <span class="comment">// Slow path:</span>
             (<span class="kw">_</span>, <span class="kw">_</span>) <span class="op">=&gt;</span> <span class="kw">match</span> (<span class="self">self</span>.<span class="ident">to_numeric</span>(<span class="ident">ctx</span>)<span class="question-mark">?</span>, <span class="ident">other</span>.<span class="ident">to_numeric</span>(<span class="ident">ctx</span>)<span class="question-mark">?</span>) {
                 (<span class="ident">Numeric</span>::<span class="ident">Number</span>(<span class="ident">a</span>), <span class="ident">Numeric</span>::<span class="ident">Number</span>(<span class="ident">b</span>)) <span class="op">=&gt;</span> <span class="self">Self</span>::<span class="ident">rational</span>(<span class="ident">a</span>.<span class="ident">powf</span>(<span class="ident">b</span>)),
-                (<span class="ident">Numeric</span>::<span class="ident">BigInt</span>(<span class="kw-2">ref</span> <span class="ident">a</span>), <span class="ident">Numeric</span>::<span class="ident">BigInt</span>(<span class="kw-2">ref</span> <span class="ident">b</span>)) <span class="op">=&gt;</span> {
-                    <span class="self">Self</span>::<span class="ident">bigint</span>(<span class="ident">a</span>.<span class="ident">as_inner</span>().<span class="ident">clone</span>().<span class="ident">pow</span>(<span class="ident">b</span>))
-                }
+                (<span class="ident">Numeric</span>::<span class="ident">BigInt</span>(<span class="kw-2">ref</span> <span class="ident">a</span>), <span class="ident">Numeric</span>::<span class="ident">BigInt</span>(<span class="kw-2">ref</span> <span class="ident">b</span>)) <span class="op">=&gt;</span> <span class="self">Self</span>::<span class="ident">bigint</span>(
+                    <span class="ident">a</span>.<span class="ident">as_inner</span>()
+                        .<span class="ident">clone</span>()
+                        .<span class="ident">pow</span>(<span class="ident">b</span>)
+                        .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">msg</span><span class="op">|</span> <span class="ident">ctx</span>.<span class="ident">construct_range_error</span>(<span class="ident">msg</span>))<span class="question-mark">?</span>,
+                ),
                 (<span class="kw">_</span>, <span class="kw">_</span>) <span class="op">=&gt;</span> {
                     <span class="kw">return</span> <span class="ident">ctx</span>.<span class="ident">throw_type_error</span>(
                         <span class="string">&quot;cannot mix BigInt and other types, use explicit conversions&quot;</span>,
@@ -935,18 +963,24 @@
                 <span class="self">Self</span>::<span class="ident">integer</span>(<span class="ident">f64_to_int32</span>(<span class="kw-2">*</span><span class="ident">x</span>).<span class="ident">wrapping_shl</span>(<span class="kw-2">*</span><span class="ident">y</span> <span class="kw">as</span> <span class="ident">u32</span>))
             }
 
-            (<span class="self">Self</span>::<span class="ident">BigInt</span>(<span class="kw-2">ref</span> <span class="ident">a</span>), <span class="self">Self</span>::<span class="ident">BigInt</span>(<span class="kw-2">ref</span> <span class="ident">b</span>)) <span class="op">=&gt;</span> {
-                <span class="self">Self</span>::<span class="ident">bigint</span>(<span class="ident">a</span>.<span class="ident">as_inner</span>().<span class="ident">clone</span>() <span class="op">&lt;&lt;</span> <span class="ident">b</span>.<span class="ident">as_inner</span>().<span class="ident">clone</span>())
-            }
+            (<span class="self">Self</span>::<span class="ident">BigInt</span>(<span class="kw-2">ref</span> <span class="ident">a</span>), <span class="self">Self</span>::<span class="ident">BigInt</span>(<span class="kw-2">ref</span> <span class="ident">b</span>)) <span class="op">=&gt;</span> <span class="self">Self</span>::<span class="ident">bigint</span>(
+                <span class="ident">a</span>.<span class="ident">as_inner</span>()
+                    .<span class="ident">clone</span>()
+                    .<span class="ident">shift_left</span>(<span class="ident">b</span>.<span class="ident">as_inner</span>().<span class="ident">clone</span>())
+                    .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">msg</span><span class="op">|</span> <span class="ident">ctx</span>.<span class="ident">construct_range_error</span>(<span class="kw-2">&amp;</span><span class="ident">msg</span>))<span class="question-mark">?</span>,
+            ),
 
             <span class="comment">// Slow path:</span>
             (<span class="kw">_</span>, <span class="kw">_</span>) <span class="op">=&gt;</span> <span class="kw">match</span> (<span class="self">self</span>.<span class="ident">to_numeric</span>(<span class="ident">ctx</span>)<span class="question-mark">?</span>, <span class="ident">other</span>.<span class="ident">to_numeric</span>(<span class="ident">ctx</span>)<span class="question-mark">?</span>) {
                 (<span class="ident">Numeric</span>::<span class="ident">Number</span>(<span class="ident">x</span>), <span class="ident">Numeric</span>::<span class="ident">Number</span>(<span class="ident">y</span>)) <span class="op">=&gt;</span> {
                     <span class="self">Self</span>::<span class="ident">integer</span>(<span class="ident">f64_to_int32</span>(<span class="ident">x</span>).<span class="ident">wrapping_shl</span>(<span class="ident">f64_to_uint32</span>(<span class="ident">y</span>)))
                 }
-                (<span class="ident">Numeric</span>::<span class="ident">BigInt</span>(<span class="kw-2">ref</span> <span class="ident">x</span>), <span class="ident">Numeric</span>::<span class="ident">BigInt</span>(<span class="kw-2">ref</span> <span class="ident">y</span>)) <span class="op">=&gt;</span> {
-                    <span class="self">Self</span>::<span class="ident">bigint</span>(<span class="ident">x</span>.<span class="ident">as_inner</span>().<span class="ident">clone</span>() <span class="op">&lt;&lt;</span> <span class="ident">y</span>.<span class="ident">as_inner</span>().<span class="ident">clone</span>())
-                }
+                (<span class="ident">Numeric</span>::<span class="ident">BigInt</span>(<span class="kw-2">ref</span> <span class="ident">x</span>), <span class="ident">Numeric</span>::<span class="ident">BigInt</span>(<span class="kw-2">ref</span> <span class="ident">y</span>)) <span class="op">=&gt;</span> <span class="self">Self</span>::<span class="ident">bigint</span>(
+                    <span class="ident">x</span>.<span class="ident">as_inner</span>()
+                        .<span class="ident">clone</span>()
+                        .<span class="ident">shift_left</span>(<span class="ident">y</span>.<span class="ident">as_inner</span>().<span class="ident">clone</span>())
+                        .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">msg</span><span class="op">|</span> <span class="ident">ctx</span>.<span class="ident">construct_range_error</span>(<span class="kw-2">&amp;</span><span class="ident">msg</span>))<span class="question-mark">?</span>,
+                ),
                 (<span class="kw">_</span>, <span class="kw">_</span>) <span class="op">=&gt;</span> {
                     <span class="kw">return</span> <span class="ident">ctx</span>.<span class="ident">throw_type_error</span>(
                         <span class="string">&quot;cannot mix BigInt and other types, use explicit conversions&quot;</span>,
@@ -971,18 +1005,24 @@
                 <span class="self">Self</span>::<span class="ident">integer</span>(<span class="ident">f64_to_int32</span>(<span class="kw-2">*</span><span class="ident">x</span>).<span class="ident">wrapping_shr</span>(<span class="kw-2">*</span><span class="ident">y</span> <span class="kw">as</span> <span class="ident">u32</span>))
             }
 
-            (<span class="self">Self</span>::<span class="ident">BigInt</span>(<span class="kw-2">ref</span> <span class="ident">a</span>), <span class="self">Self</span>::<span class="ident">BigInt</span>(<span class="kw-2">ref</span> <span class="ident">b</span>)) <span class="op">=&gt;</span> {
-                <span class="self">Self</span>::<span class="ident">bigint</span>(<span class="ident">a</span>.<span class="ident">as_inner</span>().<span class="ident">clone</span>() <span class="op">&gt;&gt;</span> <span class="ident">b</span>.<span class="ident">as_inner</span>().<span class="ident">clone</span>())
-            }
+            (<span class="self">Self</span>::<span class="ident">BigInt</span>(<span class="kw-2">ref</span> <span class="ident">a</span>), <span class="self">Self</span>::<span class="ident">BigInt</span>(<span class="kw-2">ref</span> <span class="ident">b</span>)) <span class="op">=&gt;</span> <span class="self">Self</span>::<span class="ident">bigint</span>(
+                <span class="ident">a</span>.<span class="ident">as_inner</span>()
+                    .<span class="ident">clone</span>()
+                    .<span class="ident">shift_right</span>(<span class="ident">b</span>.<span class="ident">as_inner</span>().<span class="ident">clone</span>())
+                    .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">msg</span><span class="op">|</span> <span class="ident">ctx</span>.<span class="ident">construct_range_error</span>(<span class="kw-2">&amp;</span><span class="ident">msg</span>))<span class="question-mark">?</span>,
+            ),
 
             <span class="comment">// Slow path:</span>
             (<span class="kw">_</span>, <span class="kw">_</span>) <span class="op">=&gt;</span> <span class="kw">match</span> (<span class="self">self</span>.<span class="ident">to_numeric</span>(<span class="ident">ctx</span>)<span class="question-mark">?</span>, <span class="ident">other</span>.<span class="ident">to_numeric</span>(<span class="ident">ctx</span>)<span class="question-mark">?</span>) {
                 (<span class="ident">Numeric</span>::<span class="ident">Number</span>(<span class="ident">x</span>), <span class="ident">Numeric</span>::<span class="ident">Number</span>(<span class="ident">y</span>)) <span class="op">=&gt;</span> {
                     <span class="self">Self</span>::<span class="ident">integer</span>(<span class="ident">f64_to_int32</span>(<span class="ident">x</span>).<span class="ident">wrapping_shr</span>(<span class="ident">f64_to_uint32</span>(<span class="ident">y</span>)))
                 }
-                (<span class="ident">Numeric</span>::<span class="ident">BigInt</span>(<span class="kw-2">ref</span> <span class="ident">x</span>), <span class="ident">Numeric</span>::<span class="ident">BigInt</span>(<span class="kw-2">ref</span> <span class="ident">y</span>)) <span class="op">=&gt;</span> {
-                    <span class="self">Self</span>::<span class="ident">bigint</span>(<span class="ident">x</span>.<span class="ident">as_inner</span>().<span class="ident">clone</span>() <span class="op">&gt;&gt;</span> <span class="ident">y</span>.<span class="ident">as_inner</span>().<span class="ident">clone</span>())
-                }
+                (<span class="ident">Numeric</span>::<span class="ident">BigInt</span>(<span class="kw-2">ref</span> <span class="ident">x</span>), <span class="ident">Numeric</span>::<span class="ident">BigInt</span>(<span class="kw-2">ref</span> <span class="ident">y</span>)) <span class="op">=&gt;</span> <span class="self">Self</span>::<span class="ident">bigint</span>(
+                    <span class="ident">x</span>.<span class="ident">as_inner</span>()
+                        .<span class="ident">clone</span>()
+                        .<span class="ident">shift_right</span>(<span class="ident">y</span>.<span class="ident">as_inner</span>().<span class="ident">clone</span>())
+                        .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">msg</span><span class="op">|</span> <span class="ident">ctx</span>.<span class="ident">construct_range_error</span>(<span class="kw-2">&amp;</span><span class="ident">msg</span>))<span class="question-mark">?</span>,
+                ),
                 (<span class="kw">_</span>, <span class="kw">_</span>) <span class="op">=&gt;</span> {
                     <span class="kw">return</span> <span class="ident">ctx</span>.<span class="ident">throw_type_error</span>(
                         <span class="string">&quot;cannot mix BigInt and other types, use explicit conversions&quot;</span>,

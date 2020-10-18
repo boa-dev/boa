@@ -231,6 +231,15 @@
 <span id="230">230</span>
 <span id="231">231</span>
 <span id="232">232</span>
+<span id="233">233</span>
+<span id="234">234</span>
+<span id="235">235</span>
+<span id="236">236</span>
+<span id="237">237</span>
+<span id="238">238</span>
+<span id="239">239</span>
+<span id="240">240</span>
+<span id="241">241</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements the global `BigInt` object.</span>
 <span class="doccomment">//!</span>
@@ -407,9 +416,17 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">as_int_n</span>(<span class="ident">_this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
         <span class="kw">let</span> (<span class="ident">modulo</span>, <span class="ident">bits</span>) <span class="op">=</span> <span class="self">Self</span>::<span class="ident">calculate_as_uint_n</span>(<span class="ident">args</span>, <span class="ident">ctx</span>)<span class="question-mark">?</span>;
 
-        <span class="kw">if</span> <span class="ident">bits</span> <span class="op">&gt;</span> <span class="number">0</span> <span class="op">&amp;&amp;</span> <span class="ident">modulo</span> <span class="op">&gt;=</span> <span class="ident">BigInt</span>::<span class="ident">from</span>(<span class="number">2</span>).<span class="ident">pow</span>(<span class="kw-2">&amp;</span><span class="ident">BigInt</span>::<span class="ident">from</span>(<span class="ident">bits</span> <span class="kw">as</span> <span class="ident">i64</span> <span class="op">-</span> <span class="number">1</span>)) {
+        <span class="kw">if</span> <span class="ident">bits</span> <span class="op">&gt;</span> <span class="number">0</span>
+            <span class="op">&amp;&amp;</span> <span class="ident">modulo</span>
+                <span class="op">&gt;=</span> <span class="ident">BigInt</span>::<span class="ident">from</span>(<span class="number">2</span>)
+                    .<span class="ident">pow</span>(<span class="kw-2">&amp;</span><span class="ident">BigInt</span>::<span class="ident">from</span>(<span class="ident">bits</span> <span class="kw">as</span> <span class="ident">i64</span> <span class="op">-</span> <span class="number">1</span>))
+                    .<span class="ident">expect</span>(<span class="string">&quot;the exponent must be positive&quot;</span>)
+        {
             <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(
-                <span class="ident">modulo</span> <span class="op">-</span> <span class="ident">BigInt</span>::<span class="ident">from</span>(<span class="number">2</span>).<span class="ident">pow</span>(<span class="kw-2">&amp;</span><span class="ident">BigInt</span>::<span class="ident">from</span>(<span class="ident">bits</span> <span class="kw">as</span> <span class="ident">i64</span>)),
+                <span class="ident">modulo</span>
+                    <span class="op">-</span> <span class="ident">BigInt</span>::<span class="ident">from</span>(<span class="number">2</span>)
+                        .<span class="ident">pow</span>(<span class="kw-2">&amp;</span><span class="ident">BigInt</span>::<span class="ident">from</span>(<span class="ident">bits</span> <span class="kw">as</span> <span class="ident">i64</span>))
+                        .<span class="ident">expect</span>(<span class="string">&quot;the exponent must be positive&quot;</span>),
             ))
         } <span class="kw">else</span> {
             <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">modulo</span>))
@@ -448,10 +465,11 @@
         <span class="kw">let</span> <span class="ident">bigint</span> <span class="op">=</span> <span class="ident">bigint_arg</span>.<span class="ident">to_bigint</span>(<span class="ident">ctx</span>)<span class="question-mark">?</span>;
 
         <span class="prelude-val">Ok</span>((
-            <span class="ident">bigint</span>
-                .<span class="ident">as_inner</span>()
-                .<span class="ident">clone</span>()
-                .<span class="ident">mod_floor</span>(<span class="kw-2">&amp;</span><span class="ident">BigInt</span>::<span class="ident">from</span>(<span class="number">2</span>).<span class="ident">pow</span>(<span class="kw-2">&amp;</span><span class="ident">BigInt</span>::<span class="ident">from</span>(<span class="ident">bits</span> <span class="kw">as</span> <span class="ident">i64</span>))),
+            <span class="ident">bigint</span>.<span class="ident">as_inner</span>().<span class="ident">clone</span>().<span class="ident">mod_floor</span>(
+                <span class="kw-2">&amp;</span><span class="ident">BigInt</span>::<span class="ident">from</span>(<span class="number">2</span>)
+                    .<span class="ident">pow</span>(<span class="kw-2">&amp;</span><span class="ident">BigInt</span>::<span class="ident">from</span>(<span class="ident">bits</span> <span class="kw">as</span> <span class="ident">i64</span>))
+                    .<span class="ident">expect</span>(<span class="string">&quot;the exponent must be positive&quot;</span>),
+            ),
             <span class="ident">bits</span>,
         ))
     }
