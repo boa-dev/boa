@@ -189,7 +189,8 @@ impl String {
         let primitive_val = this.to_string(ctx)?;
         let pos = args
             .get(0)
-            .expect("failed to get argument for String method")
+            .cloned()
+            .unwrap_or_else(Value::undefined)
             .to_integer(ctx)? as i32;
 
         // Calling .len() on a string would give the wrong result, as they are bytes not the number of
@@ -235,7 +236,8 @@ impl String {
         let length = primitive_val.chars().count();
         let pos = args
             .get(0)
-            .expect("failed to get argument for String method")
+            .cloned()
+            .unwrap_or_else(Value::undefined)
             .to_integer(ctx)? as i32;
 
         if pos >= length as i32 || pos < 0 {
@@ -325,19 +327,20 @@ impl String {
         // Then we convert it into a Rust String by wrapping it in from_value
         let primitive_val = this.to_string(ctx)?;
 
-        let start = args
-            .get(0)
-            .expect("failed to get argument for String method")
-            .to_integer(ctx)? as i32;
-
-        let end = args
-            .get(1)
-            .expect("failed to get argument in slice")
-            .to_integer(ctx)? as i32;
-
         // Calling .len() on a string would give the wrong result, as they are bytes not the number of unicode code points
         // Note that this is an O(N) operation (because UTF-8 is complex) while getting the number of bytes is an O(1) operation.
         let length = primitive_val.chars().count() as i32;
+
+        let start = args
+            .get(0)
+            .cloned()
+            .unwrap_or_else(Value::undefined)
+            .to_integer(ctx)? as i32;
+        let end = args
+            .get(1)
+            .cloned()
+            .unwrap_or_else(|| Value::integer(length))
+            .to_integer(ctx)? as i32;
 
         let from = if start < 0 {
             max(length.wrapping_add(start), 0)

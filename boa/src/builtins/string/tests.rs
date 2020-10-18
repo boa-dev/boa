@@ -767,6 +767,34 @@ fn last_index_non_integer_position_argument() {
 }
 
 #[test]
+fn char_at() {
+    let mut engine = Context::new();
+    assert_eq!(forward(&mut engine, "'abc'.charAt(1)"), "\"b\"");
+    assert_eq!(forward(&mut engine, "'abc'.charAt(9)"), "\"\"");
+    assert_eq!(forward(&mut engine, "'abc'.charAt()"), "\"a\"");
+    assert_eq!(forward(&mut engine, "'abc'.charAt(null)"), "\"a\"");
+}
+
+#[test]
+fn char_code_at() {
+    let mut engine = Context::new();
+    assert_eq!(forward(&mut engine, "'abc'.charCodeAt(1)"), "98");
+    assert_eq!(forward(&mut engine, "'abc'.charCodeAt(9)"), "NaN");
+    assert_eq!(forward(&mut engine, "'abc'.charCodeAt()"), "97");
+    assert_eq!(forward(&mut engine, "'abc'.charCodeAt(null)"), "97");
+}
+
+#[test]
+fn slice() {
+    let mut engine = Context::new();
+    assert_eq!(forward(&mut engine, "'abc'.slice()"), "\"abc\"");
+    assert_eq!(forward(&mut engine, "'abc'.slice(1)"), "\"bc\"");
+    assert_eq!(forward(&mut engine, "'abc'.slice(-1)"), "\"c\"");
+    assert_eq!(forward(&mut engine, "'abc'.slice(0, 9)"), "\"abc\"");
+    assert_eq!(forward(&mut engine, "'abc'.slice(9, 10)"), "\"\"");
+}
+
+#[test]
 fn empty_iter() {
     let mut engine = Context::new();
     let init = r#"
