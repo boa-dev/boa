@@ -19,7 +19,7 @@ where
     L: Into<Box<[Node]>>,
 {
     assert_eq!(
-        Parser::new(js.as_bytes())
+        Parser::new(js.as_bytes(), false)
             .parse_all()
             .expect("failed to parse"),
         StatementList::from(expr)
@@ -29,7 +29,7 @@ where
 /// Checks that the given javascript string creates a parse error.
 #[track_caller]
 pub(super) fn check_invalid(js: &str) {
-    assert!(Parser::new(js.as_bytes()).parse_all().is_err());
+    assert!(Parser::new(js.as_bytes(), false).parse_all().is_err());
 }
 
 /// Should be parsed as `new Class().method()` instead of `new (Class().method())`

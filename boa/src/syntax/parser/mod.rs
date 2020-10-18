@@ -88,13 +88,14 @@ pub struct Parser<R> {
 }
 
 impl<R> Parser<R> {
-    pub fn new(reader: R) -> Self
+    pub fn new(reader: R, strict_mode: bool) -> Self
     where
         R: Read,
     {
-        Self {
-            cursor: Cursor::new(reader),
-        }
+        let mut cursor = Cursor::new(reader);
+        cursor.set_strict_mode(strict_mode);
+
+        Self { cursor }
     }
 
     pub fn parse_all(&mut self) -> Result<StatementList, ParseError>

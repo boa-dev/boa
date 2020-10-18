@@ -241,7 +241,7 @@ impl Context {
         &mut self.executor
     }
 
-    /// A helper function for getting a immutable reference to the `console` object.
+    /// A helper function for getting an immutable reference to the `console` object.
     #[cfg(feature = "console")]
     pub(crate) fn console(&self) -> &Console {
         &self.console
@@ -630,7 +630,7 @@ impl Context {
     pub fn eval(&mut self, src: &str) -> Result<Value> {
         let main_timer = BoaProfiler::global().start_event("Main", "Main");
 
-        let parsing_result = Parser::new(src.as_bytes())
+        let parsing_result = Parser::new(src.as_bytes(), false)
             .parse_all()
             .map_err(|e| e.to_string());
 

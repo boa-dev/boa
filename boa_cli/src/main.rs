@@ -107,7 +107,7 @@ arg_enum! {
 fn parse_tokens(src: &str) -> Result<StatementList, String> {
     use boa::syntax::parser::Parser;
 
-    Parser::new(src.as_bytes())
+    Parser::new(src.as_bytes(), false)
         .parse_all()
         .map_err(|e| format!("ParsingError: {}", e))
 }
