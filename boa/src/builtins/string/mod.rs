@@ -338,7 +338,8 @@ impl String {
             .to_integer(ctx)? as i32;
         let end = args
             .get(1)
-            .unwrap_or(&Value::integer(length))
+            .cloned()
+            .unwrap_or_else(|| Value::integer(length))
             .to_integer(ctx)? as i32;
 
         let from = if start < 0 {
