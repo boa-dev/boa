@@ -203,6 +203,41 @@ fn pow() {
 }
 
 #[test]
+fn pow_negative_exponent() {
+    let mut engine = Context::new();
+
+    assert_throws(&mut engine, "10n ** (-10n)", "RangeError");
+}
+
+#[test]
+fn shl() {
+    let mut engine = Context::new();
+
+    assert_eq!(forward(&mut engine, "8n << 2n"), "32n");
+}
+
+#[test]
+fn shl_out_of_range() {
+    let mut engine = Context::new();
+
+    assert_throws(&mut engine, "1000n << 1000000000000000n", "RangeError");
+}
+
+#[test]
+fn shr() {
+    let mut engine = Context::new();
+
+    assert_eq!(forward(&mut engine, "8n >> 2n"), "2n");
+}
+
+#[test]
+fn shr_out_of_range() {
+    let mut engine = Context::new();
+
+    assert_throws(&mut engine, "1000n >> 1000000000000000n", "RangeError");
+}
+
+#[test]
 fn to_string() {
     let mut engine = Context::new();
 

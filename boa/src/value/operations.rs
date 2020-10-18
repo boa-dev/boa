@@ -176,14 +176,22 @@ impl Value {
             (Self::Integer(x), Self::Rational(y)) => Self::rational(f64::from(*x).powf(*y)),
             (Self::Rational(x), Self::Integer(y)) => Self::rational(x.powi(*y)),
 
-            (Self::BigInt(ref a), Self::BigInt(ref b)) => Self::bigint(a.as_inner().clone().pow(b)),
+            (Self::BigInt(ref a), Self::BigInt(ref b)) => Self::bigint(
+                a.as_inner()
+                    .clone()
+                    .pow(b)
+                    .map_err(|msg| ctx.construct_range_error(msg))?,
+            ),
 
             // Slow path:
             (_, _) => match (self.to_numeric(ctx)?, other.to_numeric(ctx)?) {
                 (Numeric::Number(a), Numeric::Number(b)) => Self::rational(a.powf(b)),
-                (Numeric::BigInt(ref a), Numeric::BigInt(ref b)) => {
-                    Self::bigint(a.as_inner().clone().pow(b))
-                }
+                (Numeric::BigInt(ref a), Numeric::BigInt(ref b)) => Self::bigint(
+                    a.as_inner()
+                        .clone()
+                        .pow(b)
+                        .map_err(|msg| ctx.construct_range_error(msg))?,
+                ),
                 (_, _) => {
                     return ctx.throw_type_error(
                         "cannot mix BigInt and other types, use explicit conversions",
@@ -304,18 +312,24 @@ impl Value {
                 Self::integer(f64_to_int32(*x).wrapping_shl(*y as u32))
             }
 
-            (Self::BigInt(ref a), Self::BigInt(ref b)) => {
-                Self::bigint(a.as_inner().clone() << b.as_inner().clone())
-            }
+            (Self::BigInt(ref a), Self::BigInt(ref b)) => Self::bigint(
+                a.as_inner()
+                    .clone()
+                    .shift_left(b.as_inner().clone())
+                    .map_err(|msg| ctx.construct_range_error(&msg))?,
+            ),
 
             // Slow path:
             (_, _) => match (self.to_numeric(ctx)?, other.to_numeric(ctx)?) {
                 (Numeric::Number(x), Numeric::Number(y)) => {
                     Self::integer(f64_to_int32(x).wrapping_shl(f64_to_uint32(y)))
                 }
-                (Numeric::BigInt(ref x), Numeric::BigInt(ref y)) => {
-                    Self::bigint(x.as_inner().clone() << y.as_inner().clone())
-                }
+                (Numeric::BigInt(ref x), Numeric::BigInt(ref y)) => Self::bigint(
+                    x.as_inner()
+                        .clone()
+                        .shift_left(y.as_inner().clone())
+                        .map_err(|msg| ctx.construct_range_error(&msg))?,
+                ),
                 (_, _) => {
                     return ctx.throw_type_error(
                         "cannot mix BigInt and other types, use explicit conversions",
@@ -340,18 +354,24 @@ impl Value {
                 Self::integer(f64_to_int32(*x).wrapping_shr(*y as u32))
             }
 
-            (Self::BigInt(ref a), Self::BigInt(ref b)) => {
-                Self::bigint(a.as_inner().clone() >> b.as_inner().clone())
-            }
+            (Self::BigInt(ref a), Self::BigInt(ref b)) => Self::bigint(
+                a.as_inner()
+                    .clone()
+                    .shift_right(b.as_inner().clone())
+                    .map_err(|msg| ctx.construct_range_error(&msg))?,
+            ),
 
             // Slow path:
             (_, _) => match (self.to_numeric(ctx)?, other.to_numeric(ctx)?) {
                 (Numeric::Number(x), Numeric::Number(y)) => {
                     Self::integer(f64_to_int32(x).wrapping_shr(f64_to_uint32(y)))
                 }
-                (Numeric::BigInt(ref x), Numeric::BigInt(ref y)) => {
-                    Self::bigint(x.as_inner().clone() >> y.as_inner().clone())
-                }
+                (Numeric::BigInt(ref x), Numeric::BigInt(ref y)) => Self::bigint(
+                    x.as_inner()
+                        .clone()
+                        .shift_right(y.as_inner().clone())
+                        .map_err(|msg| ctx.construct_range_error(&msg))?,
+                ),
                 (_, _) => {
                     return ctx.throw_type_error(
                         "cannot mix BigInt and other types, use explicit conversions",
