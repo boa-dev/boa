@@ -24,6 +24,26 @@
     },
     {
       "type": "process",
+      "label": "Cargo Run (VM)",
+      "command": "cargo",
+      "args": ["run", "--features", "vm", "../tests/js/test.js"],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "presentation": {
+        "clear": true
+      },
+      "options": {
+        "cwd": "${workspaceFolder}/boa_cli",
+        "env": {
+          "RUST_BACKTRACE": "1"
+        }
+      },
+      "problemMatcher": []
+    },
+    {
+      "type": "process",
       "label": "Cargo Run (Profiler)",
       "command": "cargo",
       "args": ["run", "--features", "Boa/profiler", "../tests/js/test.js"],
