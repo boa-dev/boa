@@ -80,6 +80,7 @@ jobs:
         with:
           comment-id: ${{ steps.previous-comment.outputs.comment-id }}
           body: ${{ steps.compare.outputs.comment }}
+          edit-mode: replace
 
       - name: Write a new comment
         if: github.event_name == 'pull_request' && !steps.previous-comment.outputs.comment-id
