@@ -72,7 +72,7 @@ suite, you can just run the normal `cargo test`, and to run the full ECMAScript 
 with this command:
 
 ```
-cargo run --release --bin boa_tester -- -v 2> error.log
+cargo run --release --bin boa_tester -- run -v 2> error.log
 ```
 
 Note that this requires the `test262` submodule to be checked out, so you will need to run the following first:
@@ -81,8 +81,14 @@ Note that this requires the `test262` submodule to be checked out, so you will n
 git submodule init && git submodule update
 ```
 
-This will run the test suite in verbose mode (you can remove the `-- -v` part to run it in non-verbose mode),
+This will run the test suite in verbose mode (you can remove the `-v` part to run it in non-verbose mode),
 and output nice colorings in the terminal. It will also output any panic information into the `error.log` file.
+
+You can get some more verbose information that tells you the exact name of each test that is being run, useful
+for debugging purposes by setting up the verbose flag twice, for example `-vv`.
+
+Finally, if you want to only run one sub-suite or even one test (to just check if you fixed/broke something specific),
+you can do it with the `-s` parameter, and then passing the path to the sub-suite or test that you want to run.
 
 ## Communication
 

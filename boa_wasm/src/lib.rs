@@ -6,7 +6,7 @@ pub fn evaluate(src: &str) -> Result<String, JsValue> {
     // Setup executor
     let mut engine = Context::new();
 
-    let expr = match parse(src) {
+    let expr = match parse(src, false) {
         Ok(res) => res,
         Err(e) => {
             return Err(format!(

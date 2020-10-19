@@ -1,9 +1,9 @@
 //! Module to read the list of test suites from disk.
 
-use super::{Harness, Locale, Phase, Test, TestSuite, CLI};
+use super::{Harness, Locale, Phase, Test, TestSuite, IGNORED};
 use fxhash::FxHashMap;
 use serde::Deserialize;
-use std::{fs, io, path::Path};
+use std::{fs, io, path::Path, str::FromStr};
 
 /// Representation of the YAML metadata in Test262 tests.
 #[derive(Debug, Clone, Deserialize)]
@@ -52,11 +52,30 @@ pub(super) enum TestFlag {
     NonDeterministic,
 }
 
+impl FromStr for TestFlag {
+    type Err = String; // TODO: improve error type.
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "onlyStrict" => Ok(Self::OnlyStrict),
+            "noStrict" => Ok(Self::NoStrict),
+            "module" => Ok(Self::Module),
+            "raw" => Ok(Self::Raw),
+            "async" => Ok(Self::Async),
+            "generated" => Ok(Self::Generated),
+            "CanBlockIsFalse" => Ok(Self::CanBlockIsFalse),
+            "CanBlockIsTrue" => Ok(Self::CanBlockIsTrue),
+            "non-deterministic" => Ok(Self::NonDeterministic),
+            _ => Err(format!("unknown test flag: {}", s)),
+        }
+    }
+}
+
 /// Reads the Test262 defined bindings.
-pub(super) fn read_harness() -> io::Result<Harness> {
+pub(super) fn read_harness(test262_path: &Path) -> io::Result<Harness> {
     let mut includes = FxHashMap::default();
 
-    for entry in fs::read_dir(CLI.test262_path().join("harness"))? {
+    for entry in fs::read_dir(test262_path.join("harness"))? {
         let entry = entry?;
         let file_name = entry.file_name();
         let file_name = file_name.to_string_lossy();
@@ -72,8 +91,8 @@ pub(super) fn read_harness() -> io::Result<Harness> {
             content.into_boxed_str(),
         );
     }
-    let assert = fs::read_to_string(CLI.test262_path().join("harness/assert.js"))?.into_boxed_str();
-    let sta = fs::read_to_string(CLI.test262_path().join("harness/sta.js"))?.into_boxed_str();
+    let assert = fs::read_to_string(test262_path.join("harness/assert.js"))?.into_boxed_str();
+    let sta = fs::read_to_string(test262_path.join("harness/sta.js"))?.into_boxed_str();
 
     Ok(Harness {
         assert,
@@ -84,8 +103,6 @@ pub(super) fn read_harness() -> io::Result<Harness> {
 
 /// Reads a test suite in the given path.
 pub(super) fn read_suite(path: &Path) -> io::Result<TestSuite> {
-    use std::ffi::OsStr;
-
     let name = path
         .file_stem()
         .ok_or_else(|| {
@@ -105,20 +122,18 @@ pub(super) fn read_suite(path: &Path) -> io::Result<TestSuite> {
     let mut suites = Vec::new();
     let mut tests = Vec::new();
 
-    let filter = |st: &OsStr| {
-        st.to_string_lossy().ends_with("_FIXTURE.js")
-            // TODO: see if we can fix this.
-            || st.to_string_lossy() == "line-terminator-normalisation-CR.js"
-    };
-
     // TODO: iterate in parallel
     for entry in path.read_dir()? {
         let entry = entry?;
 
         if entry.file_type()?.is_dir() {
             suites.push(read_suite(entry.path().as_path())?);
-        } else if filter(&entry.file_name()) {
+        } else if entry.file_name().to_string_lossy().ends_with("_FIXTURE.js") {
             continue;
+        } else if IGNORED.contains_file(&entry.file_name().to_string_lossy()) {
+            let mut test = Test::default();
+            test.set_name(entry.file_name().to_string_lossy());
+            tests.push(test)
         } else {
             tests.push(read_test(entry.path().as_path())?);
         }
