@@ -193,15 +193,13 @@ pub(crate) fn compare_results(base: &Path, new: &Path, markdown: bool) {
 
         /// Generates a proper diff format, with some bold text if things change.
         fn diff_format(diff: isize) -> String {
-            format!("{}{}{}{}",if diff != 0 {
-                "**"
-            } else {
-                ""
-            }, if diff > 0 { "+" } else { "" }, diff.to_formatted_string(&Locale::en), if diff != 0 {
-                "**"
-            } else {
-                ""
-            })
+            format!(
+                "{}{}{}{}",
+                if diff != 0 { "**" } else { "" },
+                if diff > 0 { "+" } else { "" },
+                diff.to_formatted_string(&Locale::en),
+                if diff != 0 { "**" } else { "" }
+            )
         }
 
         println!("## Test262 conformance changes:");
