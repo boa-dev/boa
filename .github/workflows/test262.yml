@@ -50,7 +50,7 @@ jobs:
 
       # Run the results comparison
       - name: Compare results
-        if: github.event_name == 'pull_request_target'
+        if: github.event_name == 'pull_request'
         id: compare
         shell: bash
         run: |
@@ -58,12 +58,12 @@ jobs:
           echo "::set-output name=comment::$(./target/release/boa_tester compare ../gh-pages/test262/refs/heads/master/latest.json ../results/test262/pull/latest.json -m)"
 
       - name: Get the PR number
-        if: github.event_name == 'pull_request_target'
+        if: github.event_name == 'pull_request'
         id: pr-number
         uses: kkak10/pr-number-action@v1.3
 
       - name: Find Previous Comment
-        if: github.event_name == 'pull_request_target'
+        if: github.event_name == 'pull_request'
         uses: peter-evans/find-comment@v1
         id: previous-comment
         with:
@@ -72,14 +72,14 @@ jobs:
           body-includes: Test262 conformance changes
 
       - name: Update comment
-        if: github.event_name == 'pull_request_target' && steps.previous-comment.outputs.comment-id
+        if: github.event_name == 'pull_request' && steps.previous-comment.outputs.comment-id
         uses: peter-evans/create-or-update-comment@v1
         with:
           comment-id: ${{ steps.previous-comment.outputs.comment-id }}
           body: ${{ steps.compare.outputs.comment }}
 
       - name: Write a new comment
-        if: github.event_name == 'pull_request_target' && !steps.previous-comment.outputs.comment-id
+        if: github.event_name == 'pull_request' && !steps.previous-comment.outputs.comment-id
         uses: peter-evans/create-or-update-comment@v1
         with:
           issue-number: ${{ steps.pr-number.outputs.pr }}
