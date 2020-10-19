@@ -93,7 +93,7 @@ jobs:
       - name: Commit files
         if: github.event_name == 'push'
         run: |
-          cp ./results/test262/* ./gh-pages/test262/
+          cp -r ./results/test262/* ./gh-pages/test262/
           cd gh-pages
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
