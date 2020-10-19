@@ -5,15 +5,15 @@ use crate::{
         node::Node,
         op::{self, AssignOp, BitOp, CompOp, LogOp, NumOp},
     },
-    vm::compilation::CodeGen,
-    vm::compilation::Compiler,
-    vm::instructions::Instruction,
     Context, Result, Value,
 };
 use std::fmt;
 
 #[cfg(feature = "deser")]
 use serde::{Deserialize, Serialize};
+
+#[cfg(feature = "vm")]
+use crate::vm::{compilation::CodeGen, Compiler, Instruction};
 
 /// Binary operators requires two operands, one before the operator and one after the operator.
 ///
@@ -233,6 +233,7 @@ impl Executable for BinOp {
     }
 }
 
+#[cfg(feature = "vm")]
 impl CodeGen for BinOp {
     fn compile(&self, compiler: &mut Compiler) {
         match self.op() {

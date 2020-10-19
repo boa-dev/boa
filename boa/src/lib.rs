@@ -53,6 +53,7 @@ pub mod property;
 pub mod realm;
 pub mod syntax;
 pub mod value;
+#[cfg(feature = "vm")]
 pub mod vm;
 
 pub mod context;

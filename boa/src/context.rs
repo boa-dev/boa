@@ -23,8 +23,6 @@ use crate::{
         Parser,
     },
     value::{RcString, RcSymbol, Value},
-    vm::compilation::Compiler,
-    vm::VM,
     BoaProfiler, Executable, Result,
 };
 use std::result::Result as StdResult;
@@ -33,7 +31,10 @@ use std::result::Result as StdResult;
 use crate::builtins::console::Console;
 
 #[cfg(feature = "vm")]
-use crate::vm::compilation::CodeGen;
+use crate::vm::{
+    compilation::{CodeGen, Compiler},
+    VM,
+};
 
 /// Store a builtin constructor (such as `Object`) and its corresponding prototype.
 #[derive(Debug, Clone)]

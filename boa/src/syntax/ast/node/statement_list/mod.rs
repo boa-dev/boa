@@ -4,14 +4,15 @@ use crate::{
     exec::{Executable, InterpreterState},
     gc::{empty_trace, Finalize, Trace},
     syntax::ast::node::Node,
-    vm::compilation::CodeGen,
-    vm::compilation::Compiler,
     BoaProfiler, Context, Result, Value,
 };
 use std::{fmt, ops::Deref, rc::Rc};
 
 #[cfg(feature = "deser")]
 use serde::{Deserialize, Serialize};
+
+#[cfg(feature = "vm")]
+use crate::vm::{compilation::CodeGen, Compiler};
 
 /// List of statements.
 ///
@@ -94,6 +95,7 @@ impl Executable for StatementList {
     }
 }
 
+#[cfg(feature = "vm")]
 impl CodeGen for StatementList {
     fn compile(&self, compiler: &mut Compiler) {
         let _timer = BoaProfiler::global().start_event("StatementList", "codeGen");
