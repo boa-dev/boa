@@ -6,7 +6,7 @@ flag:module
 flag:async
 
 // Non-implemented features:
-feature:TypedArray
+//feature:TypedArray
 //feature:generators
 //feature:async-iteration
 //feature:class

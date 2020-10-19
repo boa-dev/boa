@@ -45,7 +45,7 @@ jobs:
         run: |
           cd boa
           mkdir ../results
-          cargo run --release --bin boa_tester -- run -o ../results/test262
+          cargo run --release --bin boa_tester -- run -v -o ../results/test262
           cd ..
 
       # Run the results comparison

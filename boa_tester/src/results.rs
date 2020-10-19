@@ -65,10 +65,12 @@ pub(crate) fn write_json(
     verbose: u8,
 ) -> io::Result<()> {
     if let Some(path) = output {
-        let mut branch = env::var("GITHUB_REF").unwrap_or_default();
-        if branch.starts_with("refs/pull") {
-            branch = "pull".to_owned();
-        }
+        let event = env::var("GITHUB_EVENT").unwrap_or_default();
+        let branch = if event == "pull_request_target" {
+            "pull".to_owned()
+        } else {
+            env::var("GITHUB_REF").unwrap_or_default()
+        };
 
         // We make sure we are using the latest commit information in GitHub pages:
         update_gh_pages_repo();
