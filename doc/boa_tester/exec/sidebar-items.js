@@ -1,1 +1,1 @@
-initSidebarItems({"static":[["IGNORED","List of ignored tests."]]});
+initSidebarItems({"fn":[["test262_print","`print()` function required by the test262 suite."]]});

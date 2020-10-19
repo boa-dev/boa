@@ -158,6 +158,7 @@
 <span id="157">157</span>
 <span id="158">158</span>
 <span id="159">159</span>
+<span id="160">160</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Boa parser implementation.</span>
 
@@ -249,13 +250,14 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="ident">Parser</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">reader</span>: <span class="ident">R</span>) <span class="op">-&gt;</span> <span class="self">Self</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">reader</span>: <span class="ident">R</span>, <span class="ident">strict_mode</span>: <span class="ident">bool</span>) <span class="op">-&gt;</span> <span class="self">Self</span>
     <span class="kw">where</span>
         <span class="ident">R</span>: <span class="ident">Read</span>,
     {
-        <span class="self">Self</span> {
-            <span class="ident">cursor</span>: <span class="ident">Cursor</span>::<span class="ident">new</span>(<span class="ident">reader</span>),
-        }
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">cursor</span> <span class="op">=</span> <span class="ident">Cursor</span>::<span class="ident">new</span>(<span class="ident">reader</span>);
+        <span class="ident">cursor</span>.<span class="ident">set_strict_mode</span>(<span class="ident">strict_mode</span>);
+
+        <span class="self">Self</span> { <span class="ident">cursor</span> }
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">parse_all</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">StatementList</span>, <span class="ident">ParseError</span><span class="op">&gt;</span>

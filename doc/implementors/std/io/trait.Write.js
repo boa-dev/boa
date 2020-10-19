@@ -1,3 +1,4 @@
 (function() {var implementors = {};
+implementors["arrayvec"] = [{"text":"impl&lt;A:&nbsp;Array&lt;Item = u8&gt;&gt; Write for ArrayVec&lt;A&gt;","synthetic":false,"types":[]}];
 implementors["git2"] = [{"text":"impl&lt;'repo&gt; Write for BlobWriter&lt;'repo&gt;","synthetic":false,"types":[]},{"text":"impl&lt;'repo&gt; Write for OdbWriter&lt;'repo&gt;","synthetic":false,"types":[]},{"text":"impl&lt;'repo&gt; Write for OdbPackwriter&lt;'repo&gt;","synthetic":false,"types":[]}];
 if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()
