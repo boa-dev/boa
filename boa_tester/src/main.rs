@@ -307,11 +307,11 @@ struct SuiteResult {
     ignored: usize,
     #[serde(rename = "p")]
     panic: usize,
-    #[serde(skip_serializing_if = "Vec::is_empty")]
+    #[serde(skip_serializing_if = "Vec::is_empty", default)]
     #[serde(rename = "s")]
     suites: Vec<SuiteResult>,
     #[serde(rename = "t")]
-    #[serde(skip_serializing_if = "Vec::is_empty")]
+    #[serde(skip_serializing_if = "Vec::is_empty", default)]
     tests: Vec<TestResult>,
 }
 
@@ -320,7 +320,7 @@ struct SuiteResult {
 struct TestResult {
     #[serde(rename = "n")]
     name: Box<str>,
-    #[serde(rename = "s")]
+    #[serde(rename = "s", default)]
     strict: bool,
     #[serde(skip)]
     result_text: Box<str>,

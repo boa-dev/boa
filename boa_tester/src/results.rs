@@ -166,41 +166,96 @@ pub(crate) fn compare_results(base: &Path, new: &Path, markdown: bool) {
 
     let base_total = base_results.results.total as isize;
     let new_total = new_results.results.total as isize;
+    let total_diff = new_total - base_total;
+
     let base_passed = base_results.results.passed as isize;
     let new_passed = new_results.results.passed as isize;
+    let passed_diff = new_passed - base_passed;
+
     let base_ignored = base_results.results.ignored as isize;
     let new_ignored = new_results.results.ignored as isize;
+    let ignored_diff = new_ignored - base_ignored;
+
     let base_failed = base_total - base_passed - base_ignored;
     let new_failed = new_total - new_passed - new_ignored;
+    let failed_diff = new_failed - base_failed;
+
     let base_panics = base_results.results.panic as isize;
     let new_panics = new_results.results.panic as isize;
+    let panic_diff = new_panics - base_panics;
+
+    let base_conformance = (base_passed as f64 / base_total as f64) * 100_f64;
+    let new_conformance = (new_passed as f64 / new_total as f64) * 100_f64;
+    let conformance_diff = new_conformance - base_conformance;
 
     if markdown {
+        use num_format::{Locale, ToFormattedString};
+
+        /// Generates a proper diff format, with some bold text if things change.
+        fn diff_format(diff: isize) -> String {
+            format!("{}{}{}{}",if diff != 0 {
+                "**"
+            } else {
+                ""
+            }, if diff > 0 { "+" } else { "" }, diff.to_formatted_string(&Locale::en), if diff != 0 {
+                "**"
+            } else {
+                ""
+            })
+        }
+
         println!("## Test262 conformance changes:");
         println!("| Test result | master count | PR count | difference |");
+        println!("| :---------: | :----------: | :------: | :--------: |");
         println!(
-            "| :Passed: | :{}: | :{}: | :{}: |",
-            base_passed,
-            new_passed,
-            base_passed - new_passed
+            "| Total | {} | {} | {} |",
+            base_total.to_formatted_string(&Locale::en),
+            new_total.to_formatted_string(&Locale::en),
+            diff_format(total_diff),
         );
         println!(
-            "| :Ignored: | :{}: | :{}: | :{}: |",
-            base_ignored,
-            new_ignored,
-            base_ignored - new_ignored
+            "| Passed | {} | {} | {} |",
+            base_passed.to_formatted_string(&Locale::en),
+            new_passed.to_formatted_string(&Locale::en),
+            diff_format(passed_diff),
         );
         println!(
-            "| :Failed: | :{}: | :{}: | :{}: |",
-            base_failed,
-            new_failed,
-            base_failed - new_failed,
+            "| Ignored | {} | {} | {} |",
+            base_ignored.to_formatted_string(&Locale::en),
+            new_ignored.to_formatted_string(&Locale::en),
+            diff_format(ignored_diff),
         );
         println!(
-            "| :Panics: | :{}: | :{}: | :{}: |",
-            base_panics,
-            new_panics,
-            base_panics - new_panics
+            "| Failed | {} | {} | {} |",
+            base_failed.to_formatted_string(&Locale::en),
+            new_failed.to_formatted_string(&Locale::en),
+            diff_format(failed_diff),
+        );
+        println!(
+            "| Panics | {} | {} | {} |",
+            base_panics.to_formatted_string(&Locale::en),
+            new_panics.to_formatted_string(&Locale::en),
+            diff_format(panic_diff),
+        );
+        println!(
+            "| Conformance | {:.2} | {:.2} | {} |",
+            base_conformance,
+            new_conformance,
+            format!(
+                "{}{}{:.2}%{}",
+                if conformance_diff.abs() > f64::EPSILON {
+                    "**"
+                } else {
+                    ""
+                },
+                if conformance_diff > 0_f64 { "+" } else { "" },
+                conformance_diff,
+                if conformance_diff.abs() > f64::EPSILON {
+                    "**"
+                } else {
+                    ""
+                },
+            ),
         );
     } else {
         println!("Test262 conformance changes:");
