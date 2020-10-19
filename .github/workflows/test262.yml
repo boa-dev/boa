@@ -55,7 +55,11 @@ jobs:
         shell: bash
         run: |
           cd boa
-          echo "::set-output name=comment::$(./target/release/boa_tester compare ../gh-pages/test262/refs/heads/master/latest.json ../results/test262/pull/latest.json -m)"
+          comment="$(./target/release/boa_tester compare ../gh-pages/test262/refs/heads/master/latest.json ../results/test262/pull/latest.json -m)"
+          comment="${comment//'%'/'%25'}"
+          comment="${comment//$'\n'/'%0A'}"
+          comment="${comment//$'\r'/'%0D'}"
+          echo "::set-output name=comment::$comment"
 
       - name: Get the PR number
         if: github.event_name == 'pull_request'
@@ -68,7 +72,7 @@ jobs:
         id: previous-comment
         with:
           issue-number: ${{ steps.pr-number.outputs.pr }}
-          comment-author: actions-user
+          comment-author: github-actions
           body-includes: Test262 conformance changes
 
       - name: Update comment

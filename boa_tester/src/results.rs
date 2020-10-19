@@ -202,7 +202,7 @@ pub(crate) fn compare_results(base: &Path, new: &Path, markdown: bool) {
             )
         }
 
-        println!("## Test262 conformance changes:");
+        println!("### Test262 conformance changes:");
         println!("| Test result | master count | PR count | difference |");
         println!("| :---------: | :----------: | :------: | :--------: |");
         println!(
