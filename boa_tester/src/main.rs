@@ -220,7 +220,7 @@ fn main() {
     }
 }
 
-/// Runst the full test suite.
+/// Runs the full test suite.
 fn run_test_suite(verbose: u8, test262_path: &Path, suite: &Path, output: Option<&Path>) {
     if let Some(path) = output {
         if path.exists() {
