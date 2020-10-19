@@ -103,7 +103,7 @@
       function () {
         infoContainer.html("");
         let totalTests = data.r.c;
-        let passedTests = data.r.p;
+        let passedTests = data.r.o;
         let ignoredTests = data.r.i;
         let failedTests = totalTests - passedTests - ignoredTests;
 
@@ -188,14 +188,14 @@
       info.append(name).attr("aria-expanded", false);
 
       let dataHTML = ` <span class="passed-tests">${formatter.format(
-        suite.p
+        suite.o
       )}</span>`;
       dataHTML += ` / <span class="ignored-tests">${formatter.format(
         suite.i
       )}</span>`;
       dataHTML += ` / <span class="failed-tests">${formatter.format(
-        suite.c - suite.p - suite.i
-      )}</span>`;
+        suite.c - suite.o - suite.i
+      )}${suite.p !== 0 ? ` (${formatter.format(suite.p)} ⚠)` : ""}</span>`;
       dataHTML += ` / <span class="total-tests">${formatter.format(
         suite.c
       )}</span>`;
@@ -306,7 +306,7 @@
           .addClass("list-group-item")
           .html(
             `Passed tests: <span class="passed-tests">${formatter.format(
-              latest.p
+              latest.o
             )}</span>`
           )
       )
@@ -324,8 +324,10 @@
           .addClass("list-group-item")
           .html(
             `Failed tests: <span class="failed-tests">${formatter.format(
-              latest.t - latest.p - latest.i
-            )}</span>`
+              latest.t - latest.o - latest.i
+            )}${
+              latest.p !== 0 ? ` (${formatter.format(latest.p)} ⚠)` : ""
+            }</span>`
           )
       )
       .append(
@@ -333,7 +335,7 @@
           .addClass("list-group-item")
           .html(
             `Conformance: <b>${
-              Math.round((10000 * latest.p) / latest.t) / 100
+              Math.round((10000 * latest.o) / latest.t) / 100
             }%</b>`
           )
       );
