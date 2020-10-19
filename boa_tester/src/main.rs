@@ -198,7 +198,6 @@ enum Cli {
 
 /// Program entry point.
 fn main() {
-    panic!("panicking");
     match Cli::from_args() {
         Cli::Run {
             verbose,
