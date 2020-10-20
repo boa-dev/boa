@@ -83,8 +83,9 @@ impl GcObject {
                 parent.get_field(key.clone())
             }
             Some(ref desc) => match desc {
-                PropertyDescriptor::Accessor(_) => todo!(),
                 PropertyDescriptor::Data(desc) => desc.value(),
+                // TODO: Add accessors
+                PropertyDescriptor::Accessor(_) => Value::undefined(),
             },
         }
     }
@@ -118,7 +119,8 @@ impl GcObject {
                 let desc = DataDescriptor::new(val, own_desc.attributes()).into();
                 self.define_own_property(key, desc)
             }
-            PropertyDescriptor::Accessor(_) => todo!(),
+            // TODO: Add accessors
+            PropertyDescriptor::Accessor(_) => false,
         }
     }
 

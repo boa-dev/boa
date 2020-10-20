@@ -456,7 +456,8 @@ impl Value {
         let key = key.into();
         match self.get_property(key) {
             Some(ref desc) => match desc {
-                PropertyDescriptor::Accessor(_) => todo!("property accessor descriptors"),
+                // TODO: Add accessors
+                PropertyDescriptor::Accessor(_) => Value::undefined(),
                 PropertyDescriptor::Data(desc) => desc.value(),
             },
             None => Value::undefined(),
