@@ -47,12 +47,14 @@ impl Executable for ConstDeclList {
             interpreter
                 .realm_mut()
                 .environment
-                .create_immutable_binding(decl.name().to_owned(), false, VariableScope::Block);
+                .create_immutable_binding(decl.name().to_owned(), false, VariableScope::Block)
+                .map_err(|e| e.to_error(interpreter))?;
 
             interpreter
                 .realm_mut()
                 .environment
-                .initialize_binding(decl.name(), val);
+                .initialize_binding(decl.name(), val)
+                .map_err(|e| e.to_error(interpreter))?;
         }
         Ok(Value::undefined())
     }

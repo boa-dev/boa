@@ -157,14 +157,14 @@ impl Executable for BinOp {
                         .realm()
                         .environment
                         .get_binding_value(name.as_ref())
-                        .ok_or_else(|| interpreter.construct_reference_error(name.as_ref()))?;
+                        .map_err(|e| e.to_error(interpreter))?;
                     let v_b = self.rhs().run(interpreter)?;
                     let value = Self::run_assign(op, v_a, v_b, interpreter)?;
-                    interpreter.realm_mut().environment.set_mutable_binding(
-                        name.as_ref(),
-                        value.clone(),
-                        true,
-                    );
+                    interpreter
+                        .realm_mut()
+                        .environment
+                        .set_mutable_binding(name.as_ref(), value.clone(), true)
+                        .map_err(|e| e.to_error(interpreter))?;
                     Ok(value)
                 }
                 Node::GetConstField(ref get_const_field) => {

@@ -7,6 +7,7 @@
 //! that occur within a Script.
 //! More info:  <https://tc39.es/ecma262/#sec-global-environment-records>
 
+use super::ErrorKind;
 use crate::{
     environment::{
         declarative_environment_record::DeclarativeEnvironmentRecord,
@@ -51,20 +52,49 @@ impl GlobalEnvironmentRecord {
         }
     }
 
-    pub fn create_global_var_binding(&mut self, name: String, deletion: bool) {
+    pub fn can_declare_global_var(&self, name: &str) -> bool {
+        let global_object = &self.object_record.bindings;
+        if global_object.has_field(name) {
+            true
+        } else {
+            global_object.is_extensible()
+        }
+    }
+
+    pub fn can_declare_global_function(&self, name: &str) -> bool {
+        let global_object = &self.object_record.bindings;
+        let existing_prop = global_object.get_property(name);
+        match existing_prop {
+            Some(prop) => {
+                if prop.configurable() {
+                    true
+                } else {
+                    prop.is_data_descriptor() && prop.attributes().writable() && prop.enumerable()
+                }
+            }
+            None => global_object.is_extensible(),
+        }
+    }
+
+    pub fn create_global_var_binding(
+        &mut self,
+        name: String,
+        deletion: bool,
+    ) -> Result<(), ErrorKind> {
         let obj_rec = &mut self.object_record;
         let global_object = &obj_rec.bindings;
         let has_property = global_object.has_field(name.as_str());
         let extensible = global_object.is_extensible();
         if !has_property && extensible {
-            obj_rec.create_mutable_binding(name.clone(), deletion);
-            obj_rec.initialize_binding(&name, Value::undefined());
+            obj_rec.create_mutable_binding(name.clone(), deletion)?;
+            obj_rec.initialize_binding(&name, Value::undefined())?;
         }
 
         let var_declared_names = &mut self.var_names;
         if !var_declared_names.contains(&name) {
             var_declared_names.insert(name);
         }
+        Ok(())
     }
 
     pub fn create_global_function_binding(&mut self, name: &str, value: Value, deletion: bool) {
@@ -90,8 +120,8 @@ impl GlobalEnvironmentRecord {
 }
 
 impl EnvironmentRecordTrait for GlobalEnvironmentRecord {
-    fn get_this_binding(&self) -> Value {
-        self.global_this_binding.clone()
+    fn get_this_binding(&self) -> Result<Value, ErrorKind> {
+        Ok(self.global_this_binding.clone())
     }
 
     fn has_binding(&self, name: &str) -> bool {
@@ -101,36 +131,48 @@ impl EnvironmentRecordTrait for GlobalEnvironmentRecord {
         self.object_record.has_binding(name)
     }
 
-    fn create_mutable_binding(&mut self, name: String, deletion: bool) {
+    fn create_mutable_binding(&mut self, name: String, deletion: bool) -> Result<(), ErrorKind> {
         if self.declarative_record.has_binding(&name) {
-            // TODO: change to exception
-            panic!("Binding already exists!");
+            return Err(ErrorKind::TypeError(format!(
+                "Binding already exists for {}",
+                name
+            )));
         }
 
         self.declarative_record
             .create_mutable_binding(name, deletion)
     }
 
-    fn create_immutable_binding(&mut self, name: String, strict: bool) -> bool {
+    fn create_immutable_binding(&mut self, name: String, strict: bool) -> Result<(), ErrorKind> {
         if self.declarative_record.has_binding(&name) {
-            // TODO: change to exception
-            panic!("Binding already exists!");
+            return Err(ErrorKind::TypeError(format!(
+                "Binding already exists for {}",
+                name
+            )));
         }
 
         self.declarative_record
             .create_immutable_binding(name, strict)
     }
 
-    fn initialize_binding(&mut self, name: &str, value: Value) {
+    fn initialize_binding(&mut self, name: &str, value: Value) -> Result<(), ErrorKind> {
         if self.declarative_record.has_binding(&name) {
-            // TODO: assert binding is in the object environment record
             return self.declarative_record.initialize_binding(name, value);
         }
 
-        panic!("Should not initialized binding without creating first.");
+        assert!(
+            self.object_record.has_binding(name),
+            "Binding must be in object_record"
+        );
+        self.object_record.initialize_binding(name, value)
     }
 
-    fn set_mutable_binding(&mut self, name: &str, value: Value, strict: bool) {
+    fn set_mutable_binding(
+        &mut self,
+        name: &str,
+        value: Value,
+        strict: bool,
+    ) -> Result<(), ErrorKind> {
         if self.declarative_record.has_binding(&name) {
             return self
                 .declarative_record
@@ -139,7 +181,7 @@ impl EnvironmentRecordTrait for GlobalEnvironmentRecord {
         self.object_record.set_mutable_binding(name, value, strict)
     }
 
-    fn get_binding_value(&self, name: &str, strict: bool) -> Value {
+    fn get_binding_value(&self, name: &str, strict: bool) -> Result<Value, ErrorKind> {
         if self.declarative_record.has_binding(&name) {
             return self.declarative_record.get_binding_value(name, strict);
         }

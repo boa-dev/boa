@@ -124,12 +124,14 @@ impl Function {
         // Create binding
         local_env
             .borrow_mut()
-            .create_mutable_binding(param.name().to_owned(), false);
+            .create_mutable_binding(param.name().to_owned(), false)
+            .unwrap();
 
         // Set Binding to value
         local_env
             .borrow_mut()
-            .initialize_binding(param.name(), array);
+            .initialize_binding(param.name(), array)
+            .unwrap();
     }
 
     // Adds an argument to the environment
@@ -142,12 +144,14 @@ impl Function {
         // Create binding
         local_env
             .borrow_mut()
-            .create_mutable_binding(param.name().to_owned(), false);
+            .create_mutable_binding(param.name().to_owned(), false)
+            .unwrap();
 
         // Set Binding to value
         local_env
             .borrow_mut()
-            .initialize_binding(param.name(), value);
+            .initialize_binding(param.name(), value)
+            .unwrap();
     }
 
     /// Returns true if the function object is callable.

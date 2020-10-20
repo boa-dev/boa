@@ -46,15 +46,18 @@ impl Executable for VarDeclList {
 
             if environment.has_binding(var.name()) {
                 if var.init().is_some() {
-                    environment.set_mutable_binding(var.name(), val, true);
+                    environment
+                        .set_mutable_binding(var.name(), val, true)
+                        .map_err(|e| e.to_error(interpreter))?;
                 }
             } else {
-                environment.create_mutable_binding(
-                    var.name().to_owned(),
-                    false,
-                    VariableScope::Function,
-                );
-                environment.initialize_binding(var.name(), val);
+                environment
+                    .create_mutable_binding(var.name().to_owned(), false, VariableScope::Function)
+                    .map_err(|e| e.to_error(interpreter))?;
+                let environment = &mut interpreter.realm_mut().environment;
+                environment
+                    .initialize_binding(var.name(), val)
+                    .map_err(|e| e.to_error(interpreter))?;
             }
         }
         Ok(Value::undefined())

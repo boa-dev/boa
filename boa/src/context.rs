@@ -350,7 +350,7 @@ impl Context {
     {
         New::from(Call::new(
             Identifier::from("ReferenceError"),
-            vec![Const::from(message.into() + " is not defined").into()],
+            vec![Const::from(message.into()).into()],
         ))
         .run(self)
         .expect("Into<String> used as message")
@@ -569,7 +569,8 @@ impl Context {
             Node::Identifier(ref name) => {
                 self.realm
                     .environment
-                    .set_mutable_binding(name.as_ref(), value.clone(), true);
+                    .set_mutable_binding(name.as_ref(), value.clone(), true)
+                    .map_err(|e| e.to_error(self))?;
                 Ok(value)
             }
             Node::GetConstField(ref get_const_field_node) => Ok(get_const_field_node

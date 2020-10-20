@@ -60,14 +60,21 @@ impl Executable for Assign {
 
                 if environment.has_binding(name.as_ref()) {
                     // Binding already exists
-                    environment.set_mutable_binding(name.as_ref(), val.clone(), true);
+                    environment
+                        .set_mutable_binding(name.as_ref(), val.clone(), true)
+                        .map_err(|e| e.to_error(interpreter))?;
                 } else {
-                    environment.create_mutable_binding(
-                        name.as_ref().to_owned(),
-                        true,
-                        VariableScope::Function,
-                    );
-                    environment.initialize_binding(name.as_ref(), val.clone());
+                    environment
+                        .create_mutable_binding(
+                            name.as_ref().to_owned(),
+                            true,
+                            VariableScope::Function,
+                        )
+                        .map_err(|e| e.to_error(interpreter))?;
+                    let environment = &mut interpreter.realm_mut().environment;
+                    environment
+                        .initialize_binding(name.as_ref(), val.clone())
+                        .map_err(|e| e.to_error(interpreter))?;
                 }
             }
             Node::GetConstField(ref get_const_field) => {

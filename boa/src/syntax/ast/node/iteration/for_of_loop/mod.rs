@@ -90,14 +90,21 @@ impl Executable for ForOfLoop {
 
                     if environment.has_binding(name.as_ref()) {
                         // Binding already exists
-                        environment.set_mutable_binding(name.as_ref(), next_result.clone(), true);
+                        environment
+                            .set_mutable_binding(name.as_ref(), next_result.clone(), true)
+                            .map_err(|e| e.to_error(interpreter))?;
                     } else {
-                        environment.create_mutable_binding(
-                            name.as_ref().to_owned(),
-                            true,
-                            VariableScope::Function,
-                        );
-                        environment.initialize_binding(name.as_ref(), next_result.clone());
+                        environment
+                            .create_mutable_binding(
+                                name.as_ref().to_owned(),
+                                true,
+                                VariableScope::Function,
+                            )
+                            .map_err(|e| e.to_error(interpreter))?;
+                        let environment = &mut interpreter.realm_mut().environment;
+                        environment
+                            .initialize_binding(name.as_ref(), next_result.clone())
+                            .map_err(|e| e.to_error(interpreter))?;
                     }
                 }
                 Node::VarDeclList(ref list) => match list.as_ref() {
@@ -109,14 +116,21 @@ impl Executable for ForOfLoop {
                         }
 
                         if environment.has_binding(var.name()) {
-                            environment.set_mutable_binding(var.name(), next_result, true);
+                            environment
+                                .set_mutable_binding(var.name(), next_result, true)
+                                .map_err(|e| e.to_error(interpreter))?;
                         } else {
-                            environment.create_mutable_binding(
-                                var.name().to_owned(),
-                                false,
-                                VariableScope::Function,
-                            );
-                            environment.initialize_binding(var.name(), next_result);
+                            environment
+                                .create_mutable_binding(
+                                    var.name().to_owned(),
+                                    false,
+                                    VariableScope::Function,
+                                )
+                                .map_err(|e| e.to_error(interpreter))?;
+                            let environment = &mut interpreter.realm_mut().environment;
+                            environment
+                                .initialize_binding(var.name(), next_result)
+                                .map_err(|e| e.to_error(interpreter))?;
                         }
                     }
                     _ => {
@@ -133,12 +147,18 @@ impl Executable for ForOfLoop {
                             return interpreter.throw_syntax_error("a declaration in the head of a for-of loop can't have an initializer");
                         }
 
-                        environment.create_mutable_binding(
-                            var.name().to_owned(),
-                            false,
-                            VariableScope::Block,
-                        );
-                        environment.initialize_binding(var.name(), next_result);
+                        environment
+                            .create_mutable_binding(
+                                var.name().to_owned(),
+                                false,
+                                VariableScope::Block,
+                            )
+                            .map_err(|e| e.to_error(interpreter))?;
+
+                        let environment = &mut interpreter.realm_mut().environment;
+                        environment
+                            .initialize_binding(var.name(), next_result)
+                            .map_err(|e| e.to_error(interpreter))?;
                     }
                     _ => {
                         return interpreter.throw_syntax_error(
@@ -154,12 +174,17 @@ impl Executable for ForOfLoop {
                             return interpreter.throw_syntax_error("a declaration in the head of a for-of loop can't have an initializer");
                         }
 
-                        environment.create_immutable_binding(
-                            var.name().to_owned(),
-                            false,
-                            VariableScope::Block,
-                        );
-                        environment.initialize_binding(var.name(), next_result);
+                        environment
+                            .create_immutable_binding(
+                                var.name().to_owned(),
+                                false,
+                                VariableScope::Block,
+                            )
+                            .map_err(|e| e.to_error(interpreter))?;
+                        let environment = &mut interpreter.realm_mut().environment;
+                        environment
+                            .initialize_binding(var.name(), next_result)
+                            .map_err(|e| e.to_error(interpreter))?;
                     }
                     _ => {
                         return interpreter.throw_syntax_error(
