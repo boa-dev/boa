@@ -46,6 +46,11 @@ pub enum ParseError {
         message: &'static str,
         position: Position,
     },
+    /// Unimplemented syntax error
+    Unimplemented {
+        message: &'static str,
+        position: Position,
+    },
 }
 
 impl ParseError {
@@ -90,6 +95,11 @@ impl ParseError {
     /// Creates a parsing error from a lexing error.
     pub(super) fn lex(e: LexError) -> Self {
         Self::Lex { err: e }
+    }
+
+    /// Creates a new `Unimplemented` parsing error.
+    pub(super) fn unimplemented(message: &'static str, position: Position) -> Self {
+        Self::Unimplemented { message, position }
     }
 }
 
@@ -156,6 +166,13 @@ impl fmt::Display for ParseError {
                 position.column_number()
             ),
             Self::Lex { err } => fmt::Display::fmt(err, f),
+            Self::Unimplemented { message, position } => write!(
+                f,
+                "{} not yet implemented at line {}, col {}",
+                message,
+                position.line_number(),
+                position.column_number()
+            ),
         }
     }
 }
