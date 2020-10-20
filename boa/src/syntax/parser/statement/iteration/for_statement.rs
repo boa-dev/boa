@@ -88,10 +88,13 @@ where
             _ => Some(Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?),
         };
 
-        // TODO: for..in, for..of
         match cursor.peek(0)? {
             Some(tok) if tok.kind() == &TokenKind::Keyword(Keyword::In) => {
-                unimplemented!("for...in statement")
+                // TODO: for...in
+                return Err(
+                    ParseError::unimplemented("for...in loops"),
+                    cursor.position(),
+                );
             }
             Some(tok) if tok.kind() == &TokenKind::Keyword(Keyword::Of) && init.is_some() => {
                 let _ = cursor.next();
