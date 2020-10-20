@@ -160,6 +160,23 @@
 <span id="159">159</span>
 <span id="160">160</span>
 <span id="161">161</span>
+<span id="162">162</span>
+<span id="163">163</span>
+<span id="164">164</span>
+<span id="165">165</span>
+<span id="166">166</span>
+<span id="167">167</span>
+<span id="168">168</span>
+<span id="169">169</span>
+<span id="170">170</span>
+<span id="171">171</span>
+<span id="172">172</span>
+<span id="173">173</span>
+<span id="174">174</span>
+<span id="175">175</span>
+<span id="176">176</span>
+<span id="177">177</span>
+<span id="178">178</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Error and result implementation for the parser.</span>
 
@@ -209,6 +226,11 @@
         <span class="ident">message</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>,
         <span class="ident">position</span>: <span class="ident">Position</span>,
     },
+    <span class="doccomment">/// Unimplemented syntax error</span>
+    <span class="ident">Unimplemented</span> {
+        <span class="ident">message</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>,
+        <span class="ident">position</span>: <span class="ident">Position</span>,
+    },
 }
 
 <span class="kw">impl</span> <span class="ident">ParseError</span> {
@@ -253,6 +275,11 @@
     <span class="doccomment">/// Creates a parsing error from a lexing error.</span>
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">lex</span>(<span class="ident">e</span>: <span class="ident">LexError</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
         <span class="self">Self</span>::<span class="ident">Lex</span> { <span class="ident">err</span>: <span class="ident">e</span> }
+    }
+
+    <span class="doccomment">/// Creates a new `Unimplemented` parsing error.</span>
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">unimplemented</span>(<span class="ident">message</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>, <span class="ident">position</span>: <span class="ident">Position</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
+        <span class="self">Self</span>::<span class="ident">Unimplemented</span> { <span class="ident">message</span>, <span class="ident">position</span> }
     }
 }
 
@@ -319,6 +346,13 @@
                 <span class="ident">position</span>.<span class="ident">column_number</span>()
             ),
             <span class="self">Self</span>::<span class="ident">Lex</span> { <span class="ident">err</span> } <span class="op">=&gt;</span> <span class="ident">fmt</span>::<span class="ident">Display</span>::<span class="ident">fmt</span>(<span class="ident">err</span>, <span class="ident">f</span>),
+            <span class="self">Self</span>::<span class="ident">Unimplemented</span> { <span class="ident">message</span>, <span class="ident">position</span> } <span class="op">=&gt;</span> <span class="macro">write</span><span class="macro">!</span>(
+                <span class="ident">f</span>,
+                <span class="string">&quot;{} not yet implemented at line {}, col {}&quot;</span>,
+                <span class="ident">message</span>,
+                <span class="ident">position</span>.<span class="ident">line_number</span>(),
+                <span class="ident">position</span>.<span class="ident">column_number</span>()
+            ),
         }
     }
 }
