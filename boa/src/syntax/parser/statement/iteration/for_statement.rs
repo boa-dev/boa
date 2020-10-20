@@ -91,10 +91,10 @@ where
         match cursor.peek(0)? {
             Some(tok) if tok.kind() == &TokenKind::Keyword(Keyword::In) => {
                 // TODO: for...in
-                return Err(
-                    ParseError::unimplemented("for...in loops"),
-                    cursor.position(),
-                );
+                return Err(ParseError::unimplemented(
+                    "for...in loops",
+                    tok.span().start(),
+                ));
             }
             Some(tok) if tok.kind() == &TokenKind::Keyword(Keyword::Of) && init.is_some() => {
                 let _ = cursor.next();
