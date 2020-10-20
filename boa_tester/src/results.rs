@@ -70,9 +70,6 @@ pub(crate) fn write_json(
             branch = "pull".to_owned();
         }
 
-        // We make sure we are using the latest commit information in GitHub pages:
-        update_gh_pages_repo(path);
-
         let path = if branch.is_empty() {
             path.to_path_buf()
         } else {
@@ -80,6 +77,9 @@ pub(crate) fn write_json(
             fs::create_dir_all(&folder)?;
             folder
         };
+
+        // We make sure we are using the latest commit information in GitHub pages:
+        update_gh_pages_repo(path.as_path(), verbose);
 
         if verbose != 0 {
             println!("Writing the results to {}...", path.display());
@@ -140,7 +140,7 @@ fn get_test262_commit() -> Box<str> {
 }
 
 /// Updates the GitHub pages repository by pulling latest changes before writing the new things.
-fn update_gh_pages_repo(path: &Path) {
+fn update_gh_pages_repo(path: &Path, verbose: u8) {
     if env::var("GITHUB_REF").is_ok() {
         use std::process::Command;
 
@@ -151,11 +151,18 @@ fn update_gh_pages_repo(path: &Path) {
             .expect("could not update GitHub Pages");
 
         // Copy the full results file
-        fs::copy(
-            Path::new("../gh-pages/test262/refs/heads/master/").join(RESULTS_FILE_NAME),
-            path.join(RESULTS_FILE_NAME),
-        )
-        .expect("could not copy the master results file");
+        let from = Path::new("../gh-pages/test262/refs/heads/master/").join(RESULTS_FILE_NAME);
+        let to = path.join(RESULTS_FILE_NAME);
+
+        if verbose != 0 {
+            println!(
+                "Copying the {} file to {} in order to add the results",
+                from.display(),
+                to.display()
+            );
+        }
+
+        fs::copy(from, to).expect("could not copy the master results file");
     }
 }
 
