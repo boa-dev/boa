@@ -98,7 +98,7 @@ impl Executable for StatementList {
 #[cfg(feature = "vm")]
 impl CodeGen for StatementList {
     fn compile(&self, compiler: &mut Compiler) {
-        let _timer = BoaProfiler::global().start_event("StatementList", "codeGen");
+        let _timer = BoaProfiler::global().start_event("StatementList - Code Gen", "codeGen");
 
         for item in self.statements().iter() {
             item.compile(compiler);

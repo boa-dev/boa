@@ -1,6 +1,7 @@
 use crate::{
     exec::Executable,
     gc::{Finalize, Trace},
+    profiler::BoaProfiler,
     syntax::ast::{
         node::Node,
         op::{self, AssignOp, BitOp, CompOp, LogOp, NumOp},
@@ -236,6 +237,7 @@ impl Executable for BinOp {
 #[cfg(feature = "vm")]
 impl CodeGen for BinOp {
     fn compile(&self, compiler: &mut Compiler) {
+        let _timer = BoaProfiler::global().start_event("binOp", "codeGen");
         match self.op() {
             op::BinOp::Num(op) => {
                 self.lhs().compile(compiler);

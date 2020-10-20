@@ -3,6 +3,7 @@ use crate::{Context, Result, Value};
 pub(crate) mod compilation;
 pub(crate) mod instructions;
 
+use crate::BoaProfiler;
 pub use compilation::Compiler;
 pub use instructions::Instruction;
 
@@ -44,9 +45,12 @@ impl<'a> VM<'a> {
     }
 
     pub fn run(&mut self) -> Result<Value> {
+        let _timer = BoaProfiler::global().start_event("runVM", "vm");
         let mut idx = 0;
 
         while idx < self.instructions.len() {
+            let _timer =
+                BoaProfiler::global().start_event(&self.instructions[idx].to_string(), "vm");
             match self.instructions[idx] {
                 Instruction::Undefined => self.push(Value::undefined()),
                 Instruction::Null => self.push(Value::null()),

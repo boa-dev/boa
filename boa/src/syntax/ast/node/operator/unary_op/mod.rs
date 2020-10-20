@@ -1,6 +1,7 @@
 use crate::{
     exec::Executable,
     gc::{Finalize, Trace},
+    profiler::BoaProfiler,
     syntax::ast::{node::Node, op},
     Context, Result, Value,
 };
@@ -132,6 +133,7 @@ impl From<UnaryOp> for Node {
 #[cfg(feature = "vm")]
 impl CodeGen for UnaryOp {
     fn compile(&self, compiler: &mut Compiler) {
+        let _timer = BoaProfiler::global().start_event("UnaryOp", "codeGen");
         self.target().compile(compiler);
         match self.op {
             op::UnaryOp::Void => compiler.add_instruction(Instruction::Void),

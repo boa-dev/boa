@@ -38,6 +38,7 @@ pub(crate) trait CodeGen {
 
 impl CodeGen for Node {
     fn compile(&self, compiler: &mut Compiler) {
+        let _timer = BoaProfiler::global().start_event(&format!("Node ({})", &self), "codeGen");
         match *self {
             Node::Const(Const::Undefined) => compiler.add_instruction(Instruction::Undefined),
             Node::Const(Const::Null) => compiler.add_instruction(Instruction::Null),
