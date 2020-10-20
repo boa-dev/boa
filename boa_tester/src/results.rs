@@ -71,7 +71,7 @@ pub(crate) fn write_json(
         }
 
         // We make sure we are using the latest commit information in GitHub pages:
-        update_gh_pages_repo();
+        update_gh_pages_repo(path);
 
         let path = if branch.is_empty() {
             path.to_path_buf()
@@ -140,7 +140,7 @@ fn get_test262_commit() -> Box<str> {
 }
 
 /// Updates the GitHub pages repository by pulling latest changes before writing the new things.
-fn update_gh_pages_repo() {
+fn update_gh_pages_repo(path: &Path) {
     if env::var("GITHUB_REF").is_ok() {
         use std::process::Command;
 
@@ -149,6 +149,13 @@ fn update_gh_pages_repo() {
             .args(&["-C", "../gh-pages", "pull", "--ff-only"])
             .output()
             .expect("could not update GitHub Pages");
+
+        // Copy the full results file
+        fs::copy(
+            Path::new("../gh-pages/test262/refs/heads/master/").join(RESULTS_FILE_NAME),
+            path.join(RESULTS_FILE_NAME),
+        )
+        .expect("could not copy the master results file");
     }
 }
 
