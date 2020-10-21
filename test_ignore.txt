@@ -1,6 +1,3 @@
-// This causes issues when loading:
-file:line-terminator-normalisation-CR.js
-
 // Not implemented yet:
 flag:module
 flag:async
