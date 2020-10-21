@@ -15,7 +15,8 @@ use crate::{
     value::{RcBigInt, RcString, RcSymbol, Value},
     BoaProfiler, Context,
 };
-use rustc_hash::FxHashMap;
+use std::collections::HashMap;
+use twox_hash::XxHash32;
 use std::{
     any::Any,
     fmt::{self, Debug, Display},
@@ -28,6 +29,7 @@ mod iter;
 
 pub use gcobject::{GcObject, RecursionLimiter, Ref, RefMut};
 pub use iter::*;
+use bitflags::_core::hash::BuildHasherDefault;
 
 /// Static `prototype`, usually set on constructors as a key to point to their respective prototype object.
 pub static PROTOTYPE: &str = "prototype";
@@ -60,11 +62,11 @@ impl<T: Any + Debug + Trace> NativeObject for T {
 pub struct Object {
     /// The type of the object.
     pub data: ObjectData,
-    indexed_properties: FxHashMap<u32, PropertyDescriptor>,
+    indexed_properties: HashMap<u32, PropertyDescriptor, BuildHasherDefault<XxHash32>>,
     /// Properties
-    string_properties: FxHashMap<RcString, PropertyDescriptor>,
+    string_properties: HashMap<RcString, PropertyDescriptor, BuildHasherDefault<XxHash32>>,
     /// Symbol Properties
-    symbol_properties: FxHashMap<RcSymbol, PropertyDescriptor>,
+    symbol_properties: HashMap<RcSymbol, PropertyDescriptor, BuildHasherDefault<XxHash32>>,
     /// Instance prototype `__proto__`.
     prototype: Value,
     /// Whether it can have new properties added to it.
@@ -127,9 +129,9 @@ impl Default for Object {
     fn default() -> Self {
         Self {
             data: ObjectData::Ordinary,
-            indexed_properties: FxHashMap::default(),
-            string_properties: FxHashMap::default(),
-            symbol_properties: FxHashMap::default(),
+            indexed_properties: HashMap::default(),
+            string_properties: HashMap::default(),
+            symbol_properties: HashMap::default(),
             prototype: Value::null(),
             extensible: true,
         }
@@ -149,9 +151,9 @@ impl Object {
 
         Self {
             data: ObjectData::Function(function),
-            indexed_properties: FxHashMap::default(),
-            string_properties: FxHashMap::default(),
-            symbol_properties: FxHashMap::default(),
+            indexed_properties: HashMap::default(),
+            string_properties: HashMap::default(),
+            symbol_properties: HashMap::default(),
             prototype,
             extensible: true,
         }
@@ -176,9 +178,9 @@ impl Object {
     pub fn boolean(value: bool) -> Self {
         Self {
             data: ObjectData::Boolean(value),
-            indexed_properties: FxHashMap::default(),
-            string_properties: FxHashMap::default(),
-            symbol_properties: FxHashMap::default(),
+            indexed_properties: HashMap::default(),
+            string_properties: HashMap::default(),
+            symbol_properties: HashMap::default(),
             prototype: Value::null(),
             extensible: true,
         }
@@ -189,9 +191,9 @@ impl Object {
     pub fn number(value: f64) -> Self {
         Self {
             data: ObjectData::Number(value),
-            indexed_properties: FxHashMap::default(),
-            string_properties: FxHashMap::default(),
-            symbol_properties: FxHashMap::default(),
+            indexed_properties: HashMap::default(),
+            string_properties: HashMap::default(),
+            symbol_properties: HashMap::default(),
             prototype: Value::null(),
             extensible: true,
         }
@@ -205,9 +207,9 @@ impl Object {
     {
         Self {
             data: ObjectData::String(value.into()),
-            indexed_properties: FxHashMap::default(),
-            string_properties: FxHashMap::default(),
-            symbol_properties: FxHashMap::default(),
+            indexed_properties: HashMap::default(),
+            string_properties: HashMap::default(),
+            symbol_properties: HashMap::default(),
             prototype: Value::null(),
             extensible: true,
         }
@@ -218,9 +220,9 @@ impl Object {
     pub fn bigint(value: RcBigInt) -> Self {
         Self {
             data: ObjectData::BigInt(value),
-            indexed_properties: FxHashMap::default(),
-            string_properties: FxHashMap::default(),
-            symbol_properties: FxHashMap::default(),
+            indexed_properties: HashMap::default(),
+            string_properties: HashMap::default(),
+            symbol_properties: HashMap::default(),
             prototype: Value::null(),
             extensible: true,
         }
@@ -234,9 +236,9 @@ impl Object {
     {
         Self {
             data: ObjectData::NativeObject(Box::new(value)),
-            indexed_properties: FxHashMap::default(),
-            string_properties: FxHashMap::default(),
-            symbol_properties: FxHashMap::default(),
+            indexed_properties: HashMap::default(),
+            string_properties: HashMap::default(),
+            symbol_properties: HashMap::default(),
             prototype: Value::null(),
             extensible: true,
         }

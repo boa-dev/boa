@@ -13,7 +13,9 @@ use crate::{
     Value,
 };
 use gc::{Finalize, Trace};
-use rustc_hash::FxHashMap;
+use std::collections::HashMap;
+use twox_hash::XxHash32;
+use bitflags::_core::hash::BuildHasherDefault;
 
 /// Declarative Bindings have a few properties for book keeping purposes, such as mutability (const vs let).
 /// Can it be deleted? and strict mode.
@@ -32,7 +34,7 @@ pub struct DeclarativeEnvironmentRecordBinding {
 /// declarations contained within its scope.
 #[derive(Debug, Trace, Finalize, Clone)]
 pub struct DeclarativeEnvironmentRecord {
-    pub env_rec: FxHashMap<String, DeclarativeEnvironmentRecordBinding>,
+    pub env_rec: HashMap<String, DeclarativeEnvironmentRecordBinding, BuildHasherDefault<XxHash32>>,
     pub outer_env: Option<Environment>,
 }
 
