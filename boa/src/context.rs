@@ -302,7 +302,7 @@ impl Context {
     /// Constructs a `RangeError` with the specified message.
     pub fn construct_range_error<M>(&mut self, message: M) -> Value
     where
-        M: Into<String>,
+        M: Into<Box<str>>,
     {
         // Runs a `new RangeError(message)`.
         New::from(Call::new(
@@ -316,7 +316,7 @@ impl Context {
     /// Throws a `RangeError` with the specified message.
     pub fn throw_range_error<M>(&mut self, message: M) -> Result<Value>
     where
-        M: Into<String>,
+        M: Into<Box<str>>,
     {
         Err(self.construct_range_error(message))
     }
@@ -324,7 +324,7 @@ impl Context {
     /// Constructs a `TypeError` with the specified message.
     pub fn construct_type_error<M>(&mut self, message: M) -> Value
     where
-        M: Into<String>,
+        M: Into<Box<str>>,
     {
         // Runs a `new TypeError(message)`.
         New::from(Call::new(
@@ -338,7 +338,7 @@ impl Context {
     /// Throws a `TypeError` with the specified message.
     pub fn throw_type_error<M>(&mut self, message: M) -> Result<Value>
     where
-        M: Into<String>,
+        M: Into<Box<str>>,
     {
         Err(self.construct_type_error(message))
     }
@@ -346,7 +346,7 @@ impl Context {
     /// Constructs a `ReferenceError` with the specified message.
     pub fn construct_reference_error<M>(&mut self, message: M) -> Value
     where
-        M: Into<String>,
+        M: Into<Box<str>>,
     {
         New::from(Call::new(
             Identifier::from("ReferenceError"),
@@ -359,7 +359,7 @@ impl Context {
     /// Throws a `ReferenceError` with the specified message.
     pub fn throw_reference_error<M>(&mut self, message: M) -> Result<Value>
     where
-        M: Into<String>,
+        M: Into<Box<str>>,
     {
         Err(self.construct_reference_error(message))
     }
@@ -367,7 +367,7 @@ impl Context {
     /// Constructs a `SyntaxError` with the specified message.
     pub fn construct_syntax_error<M>(&mut self, message: M) -> Value
     where
-        M: Into<String>,
+        M: Into<Box<str>>,
     {
         New::from(Call::new(
             Identifier::from("SyntaxError"),
@@ -380,7 +380,7 @@ impl Context {
     /// Throws a `SyntaxError` with the specified message.
     pub fn throw_syntax_error<M>(&mut self, message: M) -> Result<Value>
     where
-        M: Into<String>,
+        M: Into<Box<str>>,
     {
         Err(self.construct_syntax_error(message))
     }
@@ -388,7 +388,7 @@ impl Context {
     /// Constructs a `EvalError` with the specified message.
     pub fn construct_eval_error<M>(&mut self, message: M) -> Value
     where
-        M: Into<String>,
+        M: Into<Box<str>>,
     {
         New::from(Call::new(
             Identifier::from("EvalError"),
@@ -401,7 +401,7 @@ impl Context {
     /// Constructs a `URIError` with the specified message.
     pub fn construct_uri_error<M>(&mut self, message: M) -> Value
     where
-        M: Into<String>,
+        M: Into<Box<str>>,
     {
         New::from(Call::new(
             Identifier::from("URIError"),
@@ -414,7 +414,7 @@ impl Context {
     /// Throws a `EvalError` with the specified message.
     pub fn throw_eval_error<M>(&mut self, message: M) -> Result<Value>
     where
-        M: Into<String>,
+        M: Into<Box<str>>,
     {
         Err(self.construct_eval_error(message))
     }
@@ -422,7 +422,7 @@ impl Context {
     /// Throws a `URIError` with the specified message.
     pub fn throw_uri_error<M>(&mut self, message: M) -> Result<Value>
     where
-        M: Into<String>,
+        M: Into<Box<str>>,
     {
         Err(self.construct_uri_error(message))
     }

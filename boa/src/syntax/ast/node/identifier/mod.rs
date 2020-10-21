@@ -37,7 +37,6 @@ impl Executable for Identifier {
             .environment
             .get_binding_value(self.as_ref())
             .map_err(|e| e.to_error(interpreter))
-        // .ok_or_else(|| interpreter.construct_reference_error(self.as_ref()))
     }
 }
 

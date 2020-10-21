@@ -82,7 +82,7 @@ impl EnvironmentRecordTrait for ObjectEnvironmentRecord {
         if self.bindings.has_field(name) {
             Ok(self.bindings.get_field(name))
         } else if strict {
-            Err(ErrorKind::ReferenceError(format!(
+            Err(ErrorKind::new_reference_error(format!(
                 "{} has no binding",
                 name
             )))

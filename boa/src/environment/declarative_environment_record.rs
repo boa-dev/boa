@@ -43,9 +43,11 @@ impl EnvironmentRecordTrait for DeclarativeEnvironmentRecord {
     }
 
     fn create_mutable_binding(&mut self, name: String, deletion: bool) -> Result<(), ErrorKind> {
-        if self.env_rec.contains_key(&name) {
-            panic!("Identifier {} has already been declared", name);
-        }
+        assert!(
+            !self.env_rec.contains_key(&name),
+            "Identifier {} has already been declared",
+            name
+        );
 
         self.env_rec.insert(
             name,
@@ -60,9 +62,11 @@ impl EnvironmentRecordTrait for DeclarativeEnvironmentRecord {
     }
 
     fn create_immutable_binding(&mut self, name: String, strict: bool) -> Result<(), ErrorKind> {
-        if self.env_rec.contains_key(&name) {
-            panic!("Identifier {} has already been declared", name);
-        }
+        assert!(
+            !self.env_rec.contains_key(&name),
+            "Identifier {} has already been declared",
+            name
+        );
 
         self.env_rec.insert(
             name,
@@ -95,7 +99,10 @@ impl EnvironmentRecordTrait for DeclarativeEnvironmentRecord {
     ) -> Result<(), ErrorKind> {
         if self.env_rec.get(name).is_none() {
             if strict {
-                return Err(ErrorKind::ReferenceError(format!("{} not found", name)));
+                return Err(ErrorKind::new_reference_error(format!(
+                    "{} not found",
+                    name
+                )));
             }
 
             self.create_mutable_binding(name.to_owned(), true)?;
@@ -108,7 +115,7 @@ impl EnvironmentRecordTrait for DeclarativeEnvironmentRecord {
             strict = true
         }
         if record.value.is_none() {
-            return Err(ErrorKind::ReferenceError(format!(
+            return Err(ErrorKind::new_reference_error(format!(
                 "{} has not been initialized",
                 name
             )));
@@ -116,7 +123,7 @@ impl EnvironmentRecordTrait for DeclarativeEnvironmentRecord {
         if record.mutable {
             record.value = Some(value);
         } else if strict {
-            return Err(ErrorKind::TypeError(format!(
+            return Err(ErrorKind::new_type_error(format!(
                 "Cannot mutate an immutable binding {}",
                 name
             )));
@@ -130,7 +137,7 @@ impl EnvironmentRecordTrait for DeclarativeEnvironmentRecord {
             if let Some(ref val) = binding.value {
                 Ok(val.clone())
             } else {
-                Err(ErrorKind::ReferenceError(format!(
+                Err(ErrorKind::new_reference_error(format!(
                     "{} is an uninitialized binding",
                     name
                 )))

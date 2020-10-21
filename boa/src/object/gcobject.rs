@@ -276,7 +276,6 @@ impl GcObject {
                 // local_env gets dropped here, its no longer needed
                 let binding = ctx.realm_mut().environment.get_this_binding();
                 binding.map_err(|e| e.to_error(ctx))
-                // Ok(binding)
             }
         }
     }

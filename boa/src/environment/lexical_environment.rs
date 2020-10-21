@@ -242,7 +242,7 @@ impl LexicalEnvironment {
             .find(|env| env.borrow().has_binding(name))
             .map(|env| env.borrow().get_binding_value(name, false))
             .unwrap_or_else(|| {
-                Err(ErrorKind::ReferenceError(format!(
+                Err(ErrorKind::new_reference_error(format!(
                     "{} is not defined",
                     name
                 )))

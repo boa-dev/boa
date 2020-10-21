@@ -133,7 +133,7 @@ impl EnvironmentRecordTrait for GlobalEnvironmentRecord {
 
     fn create_mutable_binding(&mut self, name: String, deletion: bool) -> Result<(), ErrorKind> {
         if self.declarative_record.has_binding(&name) {
-            return Err(ErrorKind::TypeError(format!(
+            return Err(ErrorKind::new_type_error(format!(
                 "Binding already exists for {}",
                 name
             )));
@@ -145,7 +145,7 @@ impl EnvironmentRecordTrait for GlobalEnvironmentRecord {
 
     fn create_immutable_binding(&mut self, name: String, strict: bool) -> Result<(), ErrorKind> {
         if self.declarative_record.has_binding(&name) {
-            return Err(ErrorKind::TypeError(format!(
+            return Err(ErrorKind::new_type_error(format!(
                 "Binding already exists for {}",
                 name
             )));
