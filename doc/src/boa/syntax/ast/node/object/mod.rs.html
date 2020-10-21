@@ -217,10 +217,10 @@
                         <span class="ident">obj</span>.<span class="ident">set_field</span>(<span class="ident">name</span>.<span class="ident">clone</span>(), <span class="ident">func</span>.<span class="ident">run</span>(<span class="ident">interpreter</span>)<span class="question-mark">?</span>);
                     } <span class="kw">else</span> {
                         <span class="comment">// TODO: Implement other types of MethodDefinitionKinds.</span>
-                        <span class="macro">unimplemented</span><span class="macro">!</span>(<span class="string">&quot;other types of property method definitions.&quot;</span>);
+                        <span class="comment">//unimplemented!(&quot;other types of property method definitions.&quot;);</span>
                     }
                 }
-                <span class="ident">i</span> <span class="op">=&gt;</span> <span class="macro">unimplemented</span><span class="macro">!</span>(<span class="string">&quot;{:?} type of property&quot;</span>, <span class="ident">i</span>),
+                <span class="kw">_</span> <span class="op">=&gt;</span> {} <span class="comment">//unimplemented!(&quot;{:?} type of property&quot;, i),</span>
             }
         }
 

@@ -197,6 +197,8 @@
 <span id="196">196</span>
 <span id="197">197</span>
 <span id="198">198</span>
+<span id="199">199</span>
+<span id="200">200</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">exec</span>::<span class="ident">Executable</span>,
@@ -332,8 +334,10 @@
                             ));
                         }
 
+                        <span class="comment">// TODO: implement the instanceof operator</span>
                         <span class="comment">// spec: https://tc39.es/ecma262/#sec-instanceofoperator</span>
-                        <span class="macro">todo</span><span class="macro">!</span>(<span class="string">&quot;instanceof operator&quot;</span>)
+
+                        <span class="bool-val">false</span>
                     }
                 }))
             }
