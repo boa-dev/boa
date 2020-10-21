@@ -90,10 +90,10 @@ impl Executable for Object {
                         obj.set_field(name.clone(), func.run(interpreter)?);
                     } else {
                         // TODO: Implement other types of MethodDefinitionKinds.
-                        unimplemented!("other types of property method definitions.");
+                        //unimplemented!("other types of property method definitions.");
                     }
                 }
-                i => unimplemented!("{:?} type of property", i),
+                _ => {} //unimplemented!("{:?} type of property", i),
             }
         }
 

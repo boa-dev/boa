@@ -132,8 +132,10 @@ impl Executable for BinOp {
                             ));
                         }
 
+                        // TODO: implement the instanceof operator
                         // spec: https://tc39.es/ecma262/#sec-instanceofoperator
-                        todo!("instanceof operator")
+
+                        false
                     }
                 }))
             }
