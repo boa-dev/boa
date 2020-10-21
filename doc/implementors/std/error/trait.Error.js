@@ -14,6 +14,7 @@ implementors["rand"] = [{"text":"impl Error for BernoulliError","synthetic":fals
 implementors["rand_core"] = [{"text":"impl Error for Error","synthetic":false,"types":[]}];
 implementors["regex"] = [{"text":"impl Error for Error","synthetic":false,"types":[]}];
 implementors["regex_syntax"] = [{"text":"impl Error for Error","synthetic":false,"types":[]},{"text":"impl Error for Error","synthetic":false,"types":[]},{"text":"impl Error for Error","synthetic":false,"types":[]},{"text":"impl Error for CaseFoldError","synthetic":false,"types":[]},{"text":"impl Error for UnicodeWordError","synthetic":false,"types":[]}];
+implementors["regress"] = [{"text":"impl Error for Error","synthetic":false,"types":[]}];
 implementors["serde"] = [{"text":"impl Error for Error","synthetic":false,"types":[]}];
 implementors["serde_json"] = [{"text":"impl Error for Error","synthetic":false,"types":[]}];
 implementors["serde_yaml"] = [{"text":"impl Error for Error","synthetic":false,"types":[]}];

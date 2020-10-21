@@ -10,6 +10,7 @@ implementors["num_bigint"] = [{"text":"impl FromStr for BigInt","synthetic":fals
 implementors["num_format"] = [{"text":"impl FromStr for Locale","synthetic":false,"types":[]}];
 implementors["proc_macro2"] = [{"text":"impl FromStr for TokenStream","synthetic":false,"types":[]}];
 implementors["regex"] = [{"text":"impl FromStr for Regex","synthetic":false,"types":[]},{"text":"impl FromStr for Regex","synthetic":false,"types":[]}];
+implementors["regress"] = [{"text":"impl FromStr for Regex","synthetic":false,"types":[]}];
 implementors["serde_json"] = [{"text":"impl FromStr for Number","synthetic":false,"types":[]},{"text":"impl FromStr for Value","synthetic":false,"types":[]}];
 implementors["url"] = [{"text":"impl FromStr for Url","synthetic":false,"types":[]}];
 if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()
