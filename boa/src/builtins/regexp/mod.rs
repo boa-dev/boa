@@ -321,7 +321,7 @@ impl RegExp {
             let result =
                 if let Some(m) = regex.matcher.find_from(arg_str.as_str(), last_index).next() {
                     if regex.use_last_index {
-                        last_index = m.range().end;
+                        last_index = m.end();
                     }
                     true
                 } else {
@@ -362,7 +362,7 @@ impl RegExp {
             let result = {
                 if let Some(m) = regex.matcher.find_from(arg_str.as_str(), last_index).next() {
                     if regex.use_last_index {
-                        last_index = m.range().end;
+                        last_index = m.end();
                     }
                     let groups = m.captures.len() + 1;
                     let mut result = Vec::with_capacity(groups);
@@ -377,10 +377,7 @@ impl RegExp {
                     }
 
                     let result = Value::from(result);
-                    result.set_property(
-                        "index",
-                        DataDescriptor::new(m.range().start, Attribute::all()),
-                    );
+                    result.set_property("index", DataDescriptor::new(m.start(), Attribute::all()));
                     result.set_property("input", DataDescriptor::new(arg_str, Attribute::all()));
                     result
                 } else {
@@ -483,10 +480,7 @@ impl RegExp {
 
                 let match_val = Value::from(match_vec);
 
-                match_val.set_property(
-                    "index",
-                    DataDescriptor::new(mat.range().start, Attribute::all()),
-                );
+                match_val.set_property("index", DataDescriptor::new(mat.start(), Attribute::all()));
                 match_val.set_property(
                     "input",
                     DataDescriptor::new(arg_str.clone(), Attribute::all()),

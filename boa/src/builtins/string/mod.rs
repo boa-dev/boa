@@ -591,12 +591,12 @@ impl String {
                                 }
                                 (Some('`'), _) => {
                                     // $`
-                                    let start_of_match = mat.range().start;
+                                    let start_of_match = mat.start();
                                     result.push_str(&primitive_val[..start_of_match]);
                                 }
                                 (Some('\''), _) => {
                                     // $'
-                                    let end_of_match = mat.range().end;
+                                    let end_of_match = mat.end();
                                     result.push_str(&primitive_val[end_of_match..]);
                                 }
                                 (Some(second), Some(third))
@@ -666,7 +666,7 @@ impl String {
                         .collect();
 
                     // Returns the starting byte offset of the match
-                    let start = mat.range().start;
+                    let start = mat.start();
                     results.push(Value::from(start));
                     // Push the whole string being examined
                     results.push(Value::from(primitive_val.to_string()));
