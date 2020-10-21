@@ -17,15 +17,17 @@ use crate::{
     property::{Attribute, DataDescriptor},
     Value,
 };
+use bitflags::_core::hash::BuildHasherDefault;
 use gc::{Finalize, Trace};
-use rustc_hash::FxHashSet;
+use std::collections::HashSet;
+use twox_hash::XxHash32;
 
 #[derive(Debug, Trace, Finalize, Clone)]
 pub struct GlobalEnvironmentRecord {
     pub object_record: ObjectEnvironmentRecord,
     pub global_this_binding: Value,
     pub declarative_record: DeclarativeEnvironmentRecord,
-    pub var_names: FxHashSet<String>,
+    pub var_names: HashSet<String, BuildHasherDefault<XxHash32>>,
 }
 
 impl GlobalEnvironmentRecord {
