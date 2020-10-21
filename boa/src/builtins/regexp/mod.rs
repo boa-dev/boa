@@ -17,7 +17,7 @@ use crate::{
     value::{RcString, Value},
     BoaProfiler, Context, Result,
 };
-use regress::{Flags, Regex};
+use regress::Regex;
 
 #[cfg(test)]
 mod tests;
@@ -32,7 +32,7 @@ pub struct RegExp {
     use_last_index: bool,
 
     /// String of parsed flags.
-    flags: String,
+    flags: Box<str>,
 
     /// Flag 's' - dot matches newline characters.
     dot_all: bool,
@@ -52,10 +52,11 @@ pub struct RegExp {
     /// Flag 'u' - Unicode.
     unicode: bool,
 
-    pub(crate) original_source: String,
-    original_flags: String,
+    pub(crate) original_source: Box<str>,
+    original_flags: Box<str>,
 }
 
+// Only safe while regress::Regex doesn't implement Trace itself.
 unsafe impl Trace for RegExp {
     empty_trace!();
 }
@@ -99,26 +100,32 @@ impl RegExp {
     /// Create a new `RegExp`
     pub(crate) fn constructor(this: &Value, args: &[Value], _: &mut Context) -> Result<Value> {
         let arg = args.get(0).ok_or_else(Value::undefined)?;
-        let mut regex_body = String::new();
-        let mut regex_flags = String::new();
-        match arg {
+
+        let (regex_body, mut regex_flags) = match arg {
             Value::String(ref body) => {
                 // first argument is a string -> use it as regex pattern
-                regex_body = body.to_string();
+                (
+                    body.to_string().into_boxed_str(),
+                    String::new().into_boxed_str(),
+                )
             }
             Value::Object(ref obj) => {
                 let obj = obj.borrow();
                 if let Some(regex) = obj.as_regexp() {
                     // first argument is another `RegExp` object, so copy its pattern and flags
-                    regex_body = regex.original_source.clone();
-                    regex_flags = regex.original_flags.clone();
+                    (regex.original_source.clone(), regex.original_flags.clone())
+                } else {
+                    (
+                        String::new().into_boxed_str(),
+                        String::new().into_boxed_str(),
+                    )
                 }
             }
             _ => return Err(Value::undefined()),
-        }
+        };
         // if a second argument is given and it's a string, use it as flags
         if let Some(Value::String(flags)) = args.get(1) {
-            regex_flags = flags.to_string();
+            regex_flags = flags.to_string().into_boxed_str();
         }
 
         // parse flags
@@ -154,12 +161,12 @@ impl RegExp {
             sorted_flags.push('y');
         }
 
-        let matcher = Regex::newf(regex_body.as_str(), Flags::from(sorted_flags.as_str()))
+        let matcher = Regex::with_flags(&regex_body, sorted_flags.as_str())
             .expect("failed to create matcher");
         let regexp = RegExp {
             matcher,
             use_last_index: global || sticky,
-            flags: sorted_flags,
+            flags: sorted_flags.into_boxed_str(),
             dot_all,
             global,
             ignore_case,
@@ -314,7 +321,7 @@ impl RegExp {
             let result =
                 if let Some(m) = regex.matcher.find_from(arg_str.as_str(), last_index).next() {
                     if regex.use_last_index {
-                        last_index = m.total().end;
+                        last_index = m.range().end;
                     }
                     true
                 } else {
@@ -355,7 +362,7 @@ impl RegExp {
             let result = {
                 if let Some(m) = regex.matcher.find_from(arg_str.as_str(), last_index).next() {
                     if regex.use_last_index {
-                        last_index = m.total().end;
+                        last_index = m.range().end;
                     }
                     let groups = m.captures.len() + 1;
                     let mut result = Vec::with_capacity(groups);
@@ -372,7 +379,7 @@ impl RegExp {
                     let result = Value::from(result);
                     result.set_property(
                         "index",
-                        DataDescriptor::new(m.total().start, Attribute::all()),
+                        DataDescriptor::new(m.range().start, Attribute::all()),
                     );
                     result.set_property("input", DataDescriptor::new(arg_str, Attribute::all()));
                     result
@@ -412,7 +419,7 @@ impl RegExp {
         if flags.contains('g') {
             let mut matches = Vec::new();
             for mat in matcher.find_iter(&arg) {
-                matches.push(Value::from(&arg[mat.total()]));
+                matches.push(Value::from(&arg[mat.range()]));
             }
             if matches.is_empty() {
                 return Ok(Value::null());
@@ -478,7 +485,7 @@ impl RegExp {
 
                 match_val.set_property(
                     "index",
-                    DataDescriptor::new(mat.total().start, Attribute::all()),
+                    DataDescriptor::new(mat.range().start, Attribute::all()),
                 );
                 match_val.set_property(
                     "input",

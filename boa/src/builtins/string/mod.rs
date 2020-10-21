@@ -513,7 +513,7 @@ impl String {
 
                 if let Some(regexp) = obj.as_regexp() {
                     // first argument is another `RegExp` object, so copy its pattern and flags
-                    return regexp.original_source.clone();
+                    return regexp.original_source.clone().into();
                 }
                 "undefined".to_string()
             }
@@ -587,16 +587,16 @@ impl String {
                                 }
                                 (Some('&'), _) => {
                                     // $&
-                                    result.push_str(&primitive_val[mat.total()]);
+                                    result.push_str(&primitive_val[mat.range()]);
                                 }
                                 (Some('`'), _) => {
                                     // $`
-                                    let start_of_match = mat.total().start;
+                                    let start_of_match = mat.range().start;
                                     result.push_str(&primitive_val[..start_of_match]);
                                 }
                                 (Some('\''), _) => {
                                     // $'
-                                    let end_of_match = mat.total().end;
+                                    let end_of_match = mat.range().end;
                                     result.push_str(&primitive_val[end_of_match..]);
                                 }
                                 (Some(second), Some(third))
@@ -666,7 +666,7 @@ impl String {
                         .collect();
 
                     // Returns the starting byte offset of the match
-                    let start = mat.total().start;
+                    let start = mat.range().start;
                     results.push(Value::from(start));
                     // Push the whole string being examined
                     results.push(Value::from(primitive_val.to_string()));
@@ -682,7 +682,7 @@ impl String {
         };
 
         Ok(Value::from(primitive_val.replacen(
-            &primitive_val[mat.total()],
+            &primitive_val[mat.range()],
             &replace_value,
             1,
         )))
