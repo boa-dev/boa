@@ -89,7 +89,6 @@ impl FunctionEnvironmentRecord {
             home.as_object()
                 .expect("home_object must be an Object")
                 .prototype_instance()
-                .clone()
         }
     }
 }
