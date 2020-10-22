@@ -196,6 +196,9 @@ pub struct Context {
 
     /// Cached standard objects and their prototypes
     standard_objects: StandardObjects,
+
+    // Flag for when intrinsics are already set
+    intrinsics_set: bool,
 }
 
 impl Default for Context {
@@ -203,7 +206,7 @@ impl Default for Context {
         let realm = Realm::create();
         let executor = Interpreter::new();
         let (well_known_symbols, symbol_count) = WellKnownSymbols::new();
-        let mut context = Self {
+        Self {
             realm,
             executor,
             symbol_count,
@@ -212,14 +215,8 @@ impl Default for Context {
             well_known_symbols,
             iterator_prototypes: IteratorPrototypes::default(),
             standard_objects: Default::default(),
-        };
-
-        // Add new builtIns to Context Realm
-        // At a later date this can be removed from here and called explicitly,
-        // but for now we almost always want these default builtins
-        context.create_intrinsics();
-        context.iterator_prototypes = IteratorPrototypes::init(&mut context);
-        context
+            intrinsics_set: false,
+        }
     }
 }
 
@@ -254,10 +251,14 @@ impl Context {
     }
 
     /// Sets up the default global objects within Global
-    fn create_intrinsics(&mut self) {
+    pub(crate) fn create_intrinsics(&mut self) {
         let _timer = BoaProfiler::global().start_event("create_intrinsics", "interpreter");
         // Create intrinsics, add global objects here
-        builtins::init(self);
+        if !self.intrinsics_set {
+            builtins::init(self);
+            self.iterator_prototypes = IteratorPrototypes::init(self);
+            self.intrinsics_set = true;
+        }
     }
 
     /// Generates a new `Symbol` internal hash.
@@ -635,8 +636,15 @@ impl Context {
             .map_err(|e| e.to_string());
 
         let execution_result = match parsing_result {
-            Ok(statement_list) => statement_list.run(self),
-            Err(e) => self.throw_syntax_error(e),
+            Ok(statement_list) => {
+                // Once parsing has been successful build the realm
+                self.create_intrinsics();
+                statement_list.run(self)
+            }
+            Err(e) => Err(Value::String(RcString::from(format!(
+                "SyntaxError\": \"{}",
+                e
+            )))),
         };
 
         // The main_timer needs to be dropped before the BoaProfiler is.

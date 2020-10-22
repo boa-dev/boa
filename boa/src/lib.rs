@@ -90,15 +90,10 @@ pub(crate) fn forward(engine: &mut Context, src: &str) -> String {
     let expr = match parse(src, false) {
         Ok(res) => res,
         Err(e) => {
-            return format!(
-                "Uncaught {}",
-                engine
-                    .throw_syntax_error(e.to_string())
-                    .expect_err("interpreter.throw_syntax_error() did not return an error")
-                    .display()
-            );
+            return format!("Uncaught \"SyntaxError\": \"{}\"", e);
         }
     };
+    engine.create_intrinsics();
     expr.run(engine).map_or_else(
         |e| format!("Uncaught {}", e.display()),
         |v| v.display().to_string(),
@@ -120,7 +115,10 @@ pub(crate) fn forward_val(engine: &mut Context, src: &str) -> Result<Value> {
                 .throw_syntax_error(e.to_string())
                 .expect_err("interpreter.throw_syntax_error() did not return an error")
         })
-        .and_then(|expr| expr.run(engine));
+        .and_then(|expr| {
+            engine.create_intrinsics();
+            expr.run(engine)
+        });
 
     // The main_timer needs to be dropped before the BoaProfiler is.
     drop(main_timer);

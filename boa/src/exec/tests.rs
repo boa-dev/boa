@@ -898,6 +898,7 @@ fn function_decl_hoisting() {
 #[test]
 fn to_bigint() {
     let mut engine = Context::new();
+    engine.create_intrinsics();
 
     assert!(Value::null().to_bigint(&mut engine).is_err());
     assert!(Value::undefined().to_bigint(&mut engine).is_err());
@@ -909,6 +910,7 @@ fn to_bigint() {
 #[test]
 fn to_index() {
     let mut engine = Context::new();
+    engine.create_intrinsics();
 
     assert_eq!(Value::undefined().to_index(&mut engine).unwrap(), 0);
     assert!(Value::integer(-1).to_index(&mut engine).is_err());
@@ -917,6 +919,7 @@ fn to_index() {
 #[test]
 fn to_integer() {
     let mut engine = Context::new();
+    engine.create_intrinsics();
 
     assert!(Number::equal(
         Value::number(f64::NAN).to_integer(&mut engine).unwrap(),
@@ -954,6 +957,7 @@ fn to_integer() {
 #[test]
 fn to_length() {
     let mut engine = Context::new();
+    engine.create_intrinsics();
 
     assert_eq!(Value::number(f64::NAN).to_length(&mut engine).unwrap(), 0);
     assert_eq!(
@@ -985,6 +989,7 @@ fn to_length() {
 #[test]
 fn to_int32() {
     let mut engine = Context::new();
+    engine.create_intrinsics();
 
     macro_rules! check_to_int32 {
         ($from:expr => $to:expr) => {
@@ -1098,6 +1103,7 @@ fn to_int32() {
 #[test]
 fn to_string() {
     let mut engine = Context::new();
+    engine.create_intrinsics();
 
     assert_eq!(Value::null().to_string(&mut engine).unwrap(), "null");
     assert_eq!(
@@ -1115,6 +1121,7 @@ fn to_string() {
 #[test]
 fn calling_function_with_unspecified_arguments() {
     let mut engine = Context::new();
+    engine.create_intrinsics();
     let scenario = r#"
         function test(a, b) {
             return b;
@@ -1129,6 +1136,7 @@ fn calling_function_with_unspecified_arguments() {
 #[test]
 fn to_object() {
     let mut engine = Context::new();
+    engine.create_intrinsics();
 
     assert!(Value::undefined()
         .to_object(&mut engine)
@@ -1143,6 +1151,7 @@ fn to_object() {
 #[test]
 fn check_this_binding_in_object_literal() {
     let mut engine = Context::new();
+    engine.create_intrinsics();
     let init = r#"
         var foo = {
             a: 3,
@@ -1158,6 +1167,7 @@ fn check_this_binding_in_object_literal() {
 #[test]
 fn array_creation_benchmark() {
     let mut engine = Context::new();
+    engine.create_intrinsics();
     let init = r#"
         (function(){
             let testArr = [];
@@ -1175,6 +1185,7 @@ fn array_creation_benchmark() {
 #[test]
 fn array_pop_benchmark() {
     let mut engine = Context::new();
+    engine.create_intrinsics();
     let init = r#"
     (function(){
         let testArray = [83, 93, 27, 29, 2828, 234, 23, 56, 32, 56, 67, 77, 32,
@@ -1208,6 +1219,7 @@ fn array_pop_benchmark() {
 #[test]
 fn number_object_access_benchmark() {
     let mut engine = Context::new();
+    engine.create_intrinsics();
     let init = r#"
     new Number(
         new Number(
@@ -1224,6 +1236,7 @@ fn number_object_access_benchmark() {
 #[test]
 fn not_a_function() {
     let mut engine = Context::new();
+    engine.create_intrinsics();
     let init = r#"
         let a = {};
         let b = true;
