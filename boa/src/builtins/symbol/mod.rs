@@ -46,7 +46,7 @@ pub struct WellKnownSymbols {
 }
 
 impl WellKnownSymbols {
-    pub(crate) fn new() -> (Self, u32) {
+    pub(crate) fn new() -> (Self, u64) {
         let mut count = 0;
 
         let async_iterator = Symbol::new(count, Some("Symbol.asyncIterator".into())).into();
@@ -223,12 +223,12 @@ impl WellKnownSymbols {
 
 #[derive(Debug, Finalize, Trace, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Symbol {
-    hash: u32,
+    hash: u64,
     description: Option<RcString>,
 }
 
 impl Symbol {
-    pub(crate) fn new(hash: u32, description: Option<RcString>) -> Self {
+    pub(crate) fn new(hash: u64, description: Option<RcString>) -> Self {
         Self { hash, description }
     }
 }
@@ -300,7 +300,7 @@ impl Symbol {
     }
 
     /// Returns the `Symbol`s hash.
-    pub fn hash(&self) -> u32 {
+    pub fn hash(&self) -> u64 {
         self.hash
     }
 

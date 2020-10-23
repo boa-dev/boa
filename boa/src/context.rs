@@ -181,8 +181,8 @@ pub struct Context {
 
     /// Symbol hash.
     ///
-    /// For now this is an incremented u32 number.
-    symbol_count: u32,
+    /// For now this is an incremented u64 number.
+    symbol_count: u64,
 
     /// console object state.
     #[cfg(feature = "console")]
@@ -264,7 +264,7 @@ impl Context {
     ///
     /// This currently is an incremented value.
     #[inline]
-    fn generate_hash(&mut self) -> u32 {
+    fn generate_hash(&mut self) -> u64 {
         let hash = self.symbol_count;
         self.symbol_count += 1;
         hash
