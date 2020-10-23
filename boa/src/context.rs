@@ -10,7 +10,7 @@ use crate::{
     class::{Class, ClassBuilder},
     exec::Interpreter,
     object::{GcObject, Object, ObjectData, PROTOTYPE},
-    property::{DataDescriptor, PropertyKey},
+    property::{Attribute, DataDescriptor, PropertyKey},
     realm::Realm,
     syntax::{
         ast::{
@@ -612,6 +612,34 @@ impl Context {
             .unwrap()
             .insert(T::NAME, property);
         Ok(())
+    }
+
+    /// Register a global property.
+    ///
+    /// # Example
+    /// ```
+    /// use boa::{Context, property::Attribute, object::ObjectInitializer};
+    ///
+    /// let mut context = Context::new();
+    ///
+    /// context.register_global_property("myPrimitiveProperty", 10, Attribute::all());
+    ///
+    /// let object = ObjectInitializer::new(&mut context)
+    ///    .property("x", 0, Attribute::all())
+    ///    .property("y", 1, Attribute::all())
+    ///    .build();
+    /// context.register_global_property("myObjectProperty", object, Attribute::all());
+    /// ```
+    pub fn register_global_property<K, V>(&mut self, key: K, value: V, attribute: Attribute)
+    where
+        K: Into<PropertyKey>,
+        V: Into<Value>,
+    {
+        let property = DataDescriptor::new(value, attribute);
+        self.global_object()
+            .as_object()
+            .unwrap()
+            .insert(key, property);
     }
 
     /// Evaluates the given code.
