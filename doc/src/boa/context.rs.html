@@ -859,8 +859,8 @@
 
     <span class="doccomment">/// Symbol hash.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// For now this is an incremented u32 number.</span>
-    <span class="ident">symbol_count</span>: <span class="ident">u32</span>,
+    <span class="doccomment">/// For now this is an incremented u64 number.</span>
+    <span class="ident">symbol_count</span>: <span class="ident">u64</span>,
 
     <span class="doccomment">/// console object state.</span>
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;console&quot;</span>)]</span>
@@ -942,7 +942,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// This currently is an incremented value.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">generate_hash</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">u32</span> {
+    <span class="kw">fn</span> <span class="ident">generate_hash</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">u64</span> {
         <span class="kw">let</span> <span class="ident">hash</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">symbol_count</span>;
         <span class="self">self</span>.<span class="ident">symbol_count</span> <span class="op">+=</span> <span class="number">1</span>;
         <span class="ident">hash</span>
