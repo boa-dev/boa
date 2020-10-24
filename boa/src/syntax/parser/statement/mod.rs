@@ -270,6 +270,9 @@ impl StatementList {
             if let Some(token) = cursor.peek(0)? {
                 if break_nodes.contains(token.kind()) {
                     break;
+                } else if token.kind() == &TokenKind::Punctuator(Punctuator::Semicolon) {
+                    cursor.next()?;
+                    continue;
                 }
             } else {
                 return Err(ParseError::AbruptEnd);
@@ -285,8 +288,8 @@ impl StatementList {
 
             items.push(item);
 
-            // move the cursor forward for any consecutive semicolon.
-            while cursor.next_if(Punctuator::Semicolon)?.is_some() {}
+            // // move the cursor forward for any consecutive semicolon.
+            // while cursor.next_if(Punctuator::Semicolon)?.is_some() {}
         }
 
         items.sort_by(Node::hoistable_order);
@@ -314,6 +317,10 @@ where
                         return Err(ParseError::unexpected(token.clone(), None));
                     }
                 }
+                Some(token) if token.kind() == &TokenKind::Punctuator(Punctuator::Semicolon) => {
+                    cursor.next()?;
+                    continue;
+                }
                 None => {
                     if self.break_when_closingbraces {
                         return Err(ParseError::AbruptEnd);
@@ -332,9 +339,6 @@ where
             )
             .parse(cursor)?;
             items.push(item);
-
-            // move the cursor forward for any consecutive semicolon.
-            while cursor.next_if(Punctuator::Semicolon)?.is_some() {}
         }
 
         items.sort_by(Node::hoistable_order);
