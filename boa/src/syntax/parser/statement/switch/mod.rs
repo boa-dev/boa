@@ -131,8 +131,9 @@ where
                         self.allow_return,
                         true,
                         false,
+                        &CASE_BREAK_TOKENS,
                     )
-                    .parse_generalised(cursor, &CASE_BREAK_TOKENS)?;
+                    .parse(cursor)?;
 
                     cases.push(node::Case::new(cond, statement_list));
                 }
@@ -153,8 +154,9 @@ where
                         self.allow_return,
                         true,
                         false,
+                        &CASE_BREAK_TOKENS,
                     )
-                    .parse_generalised(cursor, &CASE_BREAK_TOKENS)?;
+                    .parse(cursor)?;
 
                     default = Some(statement_list);
                 }
