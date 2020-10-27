@@ -8,6 +8,7 @@ use crate::{
         lexer::{Token, TokenKind},
     },
 };
+use core::convert::TryFrom;
 use std::{
     io::{self, ErrorKind, Read},
     str,
@@ -58,14 +59,13 @@ impl<R> Tokenizer<R> for StringLiteral {
         let mut buf: Vec<u16> = Vec::new();
         loop {
             let next_chr_start = cursor.pos();
-            let next_chr = unsafe {
-                char::from_u32_unchecked(cursor.next_char()?.ok_or_else(|| {
-                    Error::from(io::Error::new(
-                        ErrorKind::UnexpectedEof,
-                        "unterminated string literal",
-                    ))
-                })?)
-            };
+            let next_chr = char::try_from(cursor.next_char()?.ok_or_else(|| {
+                Error::from(io::Error::new(
+                    ErrorKind::UnexpectedEof,
+                    "unterminated string literal",
+                ))
+            })?)
+            .unwrap();
 
             match next_chr {
                 '\'' if self.terminator == StringTerminator::SingleQuote => {

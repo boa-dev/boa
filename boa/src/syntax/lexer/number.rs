@@ -64,6 +64,7 @@ impl NumericKind {
     }
 }
 
+#[inline]
 fn take_signed_integer<R>(
     buf: &mut Vec<u8>,
     cursor: &mut Cursor<R>,
@@ -77,20 +78,20 @@ where
     match cursor.next_byte()? {
         Some(b'+') => {
             buf.push(b'+');
-            if !cursor.next_is_ascii_pred(&|c: char| c.is_digit(kind.base()))? {
+            if !cursor.next_is_ascii_pred(&|ch| ch.is_digit(kind.base()))? {
                 // A digit must follow the + or - symbol.
                 return Err(Error::syntax("No digit found after + symbol", cursor.pos()));
             }
         }
         Some(b'-') => {
             buf.push(b'-');
-            if !cursor.next_is_ascii_pred(&|c: char| c.is_digit(kind.base()))? {
+            if !cursor.next_is_ascii_pred(&|ch| ch.is_digit(kind.base()))? {
                 // A digit must follow the + or - symbol.
                 return Err(Error::syntax("No digit found after - symbol", cursor.pos()));
             }
         }
         Some(byte) => {
-            let ch = unsafe { char::from_u32_unchecked(byte as u32) };
+            let ch = char::from(byte);
             if ch.is_ascii() && ch.is_digit(kind.base()) {
                 buf.push(byte);
             } else {
@@ -109,10 +110,7 @@ where
     }
 
     // Consume the decimal digits.
-    cursor.take_while_pred(buf, &|byte: u8| {
-        let ch = unsafe { char::from_u32_unchecked(byte as u32) };
-        ch.is_digit(kind.base())
-    })?;
+    cursor.take_while_ascii_pred(buf, &|ch| ch.is_digit(kind.base()))?;
 
     Ok(())
 }
@@ -123,14 +121,12 @@ where
 ///  - [ECMAScript Specification][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-literals-numeric-literals
+#[inline]
 fn check_after_numeric_literal<R>(cursor: &mut Cursor<R>) -> Result<(), Error>
 where
     R: Read,
 {
-    if cursor.next_is_pred(&|byte: u8| {
-        let ch = unsafe { char::from_u32_unchecked(byte as u32) };
-        ch.is_ascii_alphanumeric() || ch == '$' || ch == '_'
-    })? {
+    if cursor.next_is_ascii_pred(&|ch| ch.is_ascii_alphanumeric() || ch == '$' || ch == '_')? {
         Err(Error::syntax(
             "a numeric literal must not be followed by an alphanumeric, $ or _ characters",
             cursor.pos(),
@@ -166,14 +162,11 @@ impl<R> Tokenizer<R> for NumberLiteral {
                         kind = NumericKind::Integer(16);
 
                         // Checks if the next char after '0x' is a digit of that base. if not return an error.
-                        if let Some(digit) = cursor.peek()? {
-                            let ch = unsafe { char::from_u32_unchecked(digit as u32) };
-                            if !ch.is_digit(16) {
-                                return Err(Error::syntax(
-                                    "expected hexadecimal digit after number base prefix",
-                                    cursor.pos(),
-                                ));
-                            }
+                        if !cursor.next_is_ascii_pred(&|ch| ch.is_digit(16))? {
+                            return Err(Error::syntax(
+                                "expected hexadecimal digit after number base prefix",
+                                cursor.pos(),
+                            ));
                         }
                     }
                     b'o' | b'O' => {
@@ -185,14 +178,11 @@ impl<R> Tokenizer<R> for NumberLiteral {
                         kind = NumericKind::Integer(8);
 
                         // Checks if the next char after '0o' is a digit of that base. if not return an error.
-                        if let Some(digit) = cursor.peek()? {
-                            let ch = unsafe { char::from_u32_unchecked(digit as u32) };
-                            if !ch.is_digit(8) {
-                                return Err(Error::syntax(
-                                    "expected hexadecimal digit after number base prefix",
-                                    cursor.pos(),
-                                ));
-                            }
+                        if !cursor.next_is_ascii_pred(&|ch| ch.is_digit(8))? {
+                            return Err(Error::syntax(
+                                "expected hexadecimal digit after number base prefix",
+                                cursor.pos(),
+                            ));
                         }
                     }
                     b'b' | b'B' => {
@@ -204,14 +194,11 @@ impl<R> Tokenizer<R> for NumberLiteral {
                         kind = NumericKind::Integer(2);
 
                         // Checks if the next char after '0b' is a digit of that base. if not return an error.
-                        if let Some(digit) = cursor.peek()? {
-                            let ch = unsafe { char::from_u32_unchecked(digit as u32) };
-                            if !ch.is_digit(2) {
-                                return Err(Error::syntax(
-                                    "expected hexadecimal digit after number base prefix",
-                                    cursor.pos(),
-                                ));
-                            }
+                        if !cursor.next_is_ascii_pred(&|ch| ch.is_digit(2))? {
+                            return Err(Error::syntax(
+                                "expected hexadecimal digit after number base prefix",
+                                cursor.pos(),
+                            ));
                         }
                     }
                     b'n' => {
@@ -224,7 +211,7 @@ impl<R> Tokenizer<R> for NumberLiteral {
                         ));
                     }
                     byte => {
-                        let ch = unsafe { char::from_u32_unchecked(byte as u32) };
+                        let ch = char::from(byte);
                         if ch.is_digit(8) {
                             // LegacyOctalIntegerLiteral
                             if cursor.strict_mode() {

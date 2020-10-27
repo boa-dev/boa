@@ -8,6 +8,7 @@ use crate::{
         lexer::{Token, TokenKind},
     },
 };
+use core::convert::TryFrom;
 use std::io::Read;
 use std::str;
 
@@ -58,7 +59,7 @@ impl<R> Tokenizer<R> for Identifier {
         buf.extend(init_buf.iter().take(self.init.len_utf8()));
 
         cursor.take_while_char_pred(&mut buf, &|c: u32| {
-            if let Some(c) = char::from_u32(c) {
+            if let Ok(c) = char::try_from(c) {
                 c.is_alphabetic() || c.is_digit(10) || c == '_'
             } else {
                 false

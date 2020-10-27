@@ -555,35 +555,35 @@ fn addition_no_spaces_e_number() {
 }
 
 #[test]
-fn take_while_pred_simple() {
+fn take_while_ascii_pred_simple() {
     let mut cur = Cursor::new(&b"abcdefghijk"[..]);
 
     let mut buf: Vec<u8> = Vec::new();
 
-    cur.take_while_pred(&mut buf, &|c| c == b'a' || c == b'b' || c == b'c')
+    cur.take_while_ascii_pred(&mut buf, &|c| c == 'a' || c == 'b' || c == 'c')
         .unwrap();
 
     assert_eq!(str::from_utf8(buf.as_slice()).unwrap(), "abc");
 }
 
 #[test]
-fn take_while_pred_immediate_stop() {
+fn take_while_ascii_pred_immediate_stop() {
     let mut cur = Cursor::new(&b"abcdefghijk"[..]);
 
     let mut buf: Vec<u8> = Vec::new();
 
-    cur.take_while_pred(&mut buf, &|_| false).unwrap();
+    cur.take_while_ascii_pred(&mut buf, &|_| false).unwrap();
 
     assert_eq!(str::from_utf8(buf.as_slice()).unwrap(), "");
 }
 
 #[test]
-fn take_while_pred_entire_str() {
+fn take_while_ascii_pred_entire_str() {
     let mut cur = Cursor::new(&b"abcdefghijk"[..]);
 
     let mut buf: Vec<u8> = Vec::new();
 
-    cur.take_while_pred(&mut buf, &|_| true).unwrap();
+    cur.take_while_ascii_pred(&mut buf, &|_| true).unwrap();
 
     assert_eq!(str::from_utf8(buf.as_slice()).unwrap(), "abcdefghijk");
 }

@@ -95,24 +95,6 @@ where
     }
 
     /// Applies the predicate to the next character and returns the result.
-    /// Returns false if there is no next character.
-    ///
-    /// The buffer is not incremented.
-    #[inline]
-    pub(super) fn next_is_pred<F>(&mut self, pred: &F) -> io::Result<bool>
-    where
-        F: Fn(u8) -> bool,
-    {
-        let _timer = BoaProfiler::global().start_event("cursor::next_is_pred()", "Lexing");
-
-        Ok(if let Some(peek) = self.peek()? {
-            pred(peek)
-        } else {
-            false
-        })
-    }
-
-    /// Applies the predicate to the next character and returns the result.
     /// Returns false if the next character is not a valid ascii or there is no next character.
     /// Otherwise returns the result from the predicate on the ascii char
     ///
@@ -126,7 +108,7 @@ where
 
         Ok(match self.peek()? {
             Some(byte) => match byte {
-                0..=127 => pred(unsafe { char::from_u32_unchecked(byte as u32) }),
+                0..=0x7F => pred(char::from(byte)),
                 _ => false,
             },
             None => false,
@@ -168,28 +150,6 @@ where
                     ErrorKind::UnexpectedEof,
                     format!("Unexpected end of file when looking for character {}", stop),
                 ));
-            }
-        }
-    }
-
-    /// Fills the buffer with characters until the first character (x) for which the predicate (pred) is false
-    /// (or the next character is none).
-    ///
-    /// Note that all characters up until x are added to the buffer including the character right before.
-    pub(super) fn take_while_pred<F>(&mut self, buf: &mut Vec<u8>, pred: &F) -> io::Result<()>
-    where
-        F: Fn(u8) -> bool,
-    {
-        let _timer = BoaProfiler::global().start_event("cursor::take_while_pred()", "Lexing");
-
-        loop {
-            if !self.next_is_pred(pred)? {
-                return Ok(());
-            } else if let Some(byte) = self.next_byte()? {
-                buf.push(byte);
-            } else {
-                // next_is_pred will return false if the next value is None so the None case should already be handled.
-                unreachable!();
             }
         }
     }

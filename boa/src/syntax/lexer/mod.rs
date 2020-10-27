@@ -42,6 +42,7 @@ use self::{
 };
 use crate::syntax::ast::{Punctuator, Span};
 pub use crate::{profiler::BoaProfiler, syntax::ast::Position};
+use core::convert::TryFrom;
 pub use error::Error;
 use std::io::Read;
 pub use token::{Token, TokenKind};
@@ -190,79 +191,92 @@ impl<R> Lexer<R> {
             }
         };
 
-        let chr = unsafe { char::from_u32_unchecked(next_ch) };
-        let token = match chr {
-            '\r' | '\n' | '\u{2028}' | '\u{2029}' => Ok(Token::new(
-                TokenKind::LineTerminator,
-                Span::new(start, self.cursor.pos()),
-            )),
-            '"' | '\'' => StringLiteral::new(chr).lex(&mut self.cursor, start),
-            '`' => TemplateLiteral.lex(&mut self.cursor, start),
-            _ if chr.is_digit(10) => NumberLiteral::new(next_ch as u8).lex(&mut self.cursor, start),
-            _ if chr.is_alphabetic() || chr == '$' || chr == '_' => {
-                Identifier::new(chr).lex(&mut self.cursor, start)
+        if let Ok(c) = char::try_from(next_ch) {
+            let token = match c {
+                '\r' | '\n' | '\u{2028}' | '\u{2029}' => Ok(Token::new(
+                    TokenKind::LineTerminator,
+                    Span::new(start, self.cursor.pos()),
+                )),
+                '"' | '\'' => StringLiteral::new(c).lex(&mut self.cursor, start),
+                '`' => TemplateLiteral.lex(&mut self.cursor, start),
+                _ if c.is_digit(10) => {
+                    NumberLiteral::new(next_ch as u8).lex(&mut self.cursor, start)
+                }
+                _ if c.is_alphabetic() || c == '$' || c == '_' => {
+                    Identifier::new(c).lex(&mut self.cursor, start)
+                }
+                ';' => Ok(Token::new(
+                    Punctuator::Semicolon.into(),
+                    Span::new(start, self.cursor.pos()),
+                )),
+                ':' => Ok(Token::new(
+                    Punctuator::Colon.into(),
+                    Span::new(start, self.cursor.pos()),
+                )),
+                '.' => SpreadLiteral::new().lex(&mut self.cursor, start),
+                '(' => Ok(Token::new(
+                    Punctuator::OpenParen.into(),
+                    Span::new(start, self.cursor.pos()),
+                )),
+                ')' => Ok(Token::new(
+                    Punctuator::CloseParen.into(),
+                    Span::new(start, self.cursor.pos()),
+                )),
+                ',' => Ok(Token::new(
+                    Punctuator::Comma.into(),
+                    Span::new(start, self.cursor.pos()),
+                )),
+                '{' => Ok(Token::new(
+                    Punctuator::OpenBlock.into(),
+                    Span::new(start, self.cursor.pos()),
+                )),
+                '}' => Ok(Token::new(
+                    Punctuator::CloseBlock.into(),
+                    Span::new(start, self.cursor.pos()),
+                )),
+                '[' => Ok(Token::new(
+                    Punctuator::OpenBracket.into(),
+                    Span::new(start, self.cursor.pos()),
+                )),
+                ']' => Ok(Token::new(
+                    Punctuator::CloseBracket.into(),
+                    Span::new(start, self.cursor.pos()),
+                )),
+                '?' => Ok(Token::new(
+                    Punctuator::Question.into(),
+                    Span::new(start, self.cursor.pos()),
+                )),
+                '/' => self.lex_slash_token(start),
+                '=' | '*' | '+' | '-' | '%' | '|' | '&' | '^' | '<' | '>' | '!' | '~' => {
+                    Operator::new(next_ch as u8).lex(&mut self.cursor, start)
+                }
+                _ => {
+                    let details = format!(
+                        "unexpected '{}' at line {}, column {}",
+                        c,
+                        start.line_number(),
+                        start.column_number()
+                    );
+                    Err(Error::syntax(details, start))
+                }
+            }?;
+
+            if token.kind() == &TokenKind::Comment {
+                // Skip comment
+                self.next()
+            } else {
+                Ok(Some(token))
             }
-            ';' => Ok(Token::new(
-                Punctuator::Semicolon.into(),
-                Span::new(start, self.cursor.pos()),
-            )),
-            ':' => Ok(Token::new(
-                Punctuator::Colon.into(),
-                Span::new(start, self.cursor.pos()),
-            )),
-            '.' => SpreadLiteral::new().lex(&mut self.cursor, start),
-            '(' => Ok(Token::new(
-                Punctuator::OpenParen.into(),
-                Span::new(start, self.cursor.pos()),
-            )),
-            ')' => Ok(Token::new(
-                Punctuator::CloseParen.into(),
-                Span::new(start, self.cursor.pos()),
-            )),
-            ',' => Ok(Token::new(
-                Punctuator::Comma.into(),
-                Span::new(start, self.cursor.pos()),
-            )),
-            '{' => Ok(Token::new(
-                Punctuator::OpenBlock.into(),
-                Span::new(start, self.cursor.pos()),
-            )),
-            '}' => Ok(Token::new(
-                Punctuator::CloseBlock.into(),
-                Span::new(start, self.cursor.pos()),
-            )),
-            '[' => Ok(Token::new(
-                Punctuator::OpenBracket.into(),
-                Span::new(start, self.cursor.pos()),
-            )),
-            ']' => Ok(Token::new(
-                Punctuator::CloseBracket.into(),
-                Span::new(start, self.cursor.pos()),
-            )),
-            '?' => Ok(Token::new(
-                Punctuator::Question.into(),
-                Span::new(start, self.cursor.pos()),
-            )),
-            '/' => self.lex_slash_token(start),
-            '=' | '*' | '+' | '-' | '%' | '|' | '&' | '^' | '<' | '>' | '!' | '~' => {
-                Operator::new(next_ch as u8).lex(&mut self.cursor, start)
-            }
-            _ => {
-                let details = format!(
-                    "unexpected '{}' at line {}, column {}",
-                    chr,
+        } else {
+            Err(Error::syntax(
+                format!(
+                    "unexpected utf-8 char '\\u{}' at line {}, column {}",
+                    next_ch,
                     start.line_number(),
                     start.column_number()
-                );
-                Err(Error::syntax(details, start))
-            }
-        }?;
-
-        if token.kind() == &TokenKind::Comment {
-            // Skip comment
-            self.next()
-        } else {
-            Ok(Some(token))
+                ),
+                start,
+            ))
         }
     }
 }

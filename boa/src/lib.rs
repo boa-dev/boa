@@ -41,7 +41,6 @@ This is an experimental Javascript lexer, parser and compiler written in Rust. C
     clippy::let_unit_value,
     missing_doc_code_examples
 )]
-#![feature(assoc_char_funcs)]
 
 pub mod builtins;
 pub mod class;
