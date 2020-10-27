@@ -281,8 +281,11 @@ where
                 let next_bytes = self.peek_n(2)?;
                 if next_bytes == 0xA8_80 || next_bytes == 0xA9_80 {
                     self.next_line();
+                } else {
+                    self.next_column();
                 }
             }
+            Some(b) if b <= 0x7F || (b >> 6) == 0x11 => self.next_column(),
             _ => {}
         }
 
@@ -322,6 +325,7 @@ where
             },
             // '\n' | '\u{2028}' | '\u{2029}'
             Some(0xA) | Some(0x2028) | Some(0x2029) => self.next_line(),
+            Some(_) => self.next_column(),
             _ => {}
         }
 
