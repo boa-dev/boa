@@ -17,6 +17,7 @@ profiler = ["measureme", "once_cell"]
 console = []
 
 [dependencies]
+ascii = { version = "1.0", default-features = false }
 gc = { version = "0.3.6", features = ["derive"] }
 serde_json = "1.0.59"
 rand = "0.7.3"

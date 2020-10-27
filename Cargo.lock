@@ -4,6 +4,7 @@
 name = "Boa"
 version = "0.10.0"
 dependencies = [
+ "ascii",
  "bitflags",
  "chrono",
  "criterion",
@@ -50,6 +51,12 @@ checksum = "cd9fd44efafa8690358b7408d253adf110036b88f55672a933f01d616ad9b1b9"
 dependencies = [
  "nodrop",
 ]
+
+[[package]]
+name = "ascii"
+version = "1.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bbf56136a5198c7b01a49e3afcbef6cf84597273d298f54432926024107b0109"
 
 [[package]]
 name = "atty"

@@ -8,11 +8,14 @@ use crate::{
         lexer::{Token, TokenKind},
     },
 };
+use ascii::AsciiChar;
 use bitflags::bitflags;
+use std::str;
 use std::{
     fmt::{self, Display, Formatter},
     io::Read,
 };
+use std::io::{self, ErrorKind};
 
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
@@ -39,11 +42,11 @@ impl<R> Tokenizer<R> for RegexLiteral {
     {
         let _timer = BoaProfiler::global().start_event("RegexLiteral", "Lexing");
 
-        let mut body = String::new();
+        let mut body = Vec::new();
 
         // Lex RegularExpressionBody.
         loop {
-            match cursor.next_char()? {
+            match cursor.next_byte()? {
                 None => {
                     // Abrupt end.
                     return Err(Error::syntax(
@@ -51,29 +54,45 @@ impl<R> Tokenizer<R> for RegexLiteral {
                         cursor.pos(),
                     ));
                 }
-                Some(c) => {
-                    match c {
-                        '/' => break, // RegularExpressionBody finished.
-                        '\n' | '\r' | '\u{2028}' | '\u{2029}' => {
+                Some(b) => {
+                    match b {
+                        b'/' => break, // RegularExpressionBody finished.
+                        b'\n' | b'\r' => {
                             // Not allowed in Regex literal.
                             return Err(Error::syntax(
                                 "new lines are not allowed in regular expressions",
                                 cursor.pos(),
                             ));
                         }
-                        '\\' => {
+                        0xE2 if (cursor.peek_n(2)? == 0xA8_80 || cursor.peek_n(2)? == 0xA9_80) => {
+                            // '\u{2028}' (e2 80 a8) and '\u{2029}' (e2 80 a9) are not allowed
+                            return Err(Error::syntax(
+                                "new lines are not allowed in regular expressions",
+                                cursor.pos(),
+                            ));
+                        }
+                        b'\\' => {
                             // Escape sequence
-                            body.push('\\');
-                            if let Some(sc) = cursor.next_char()? {
+                            body.push(b'\\');
+                            if let Some(sc) = cursor.next_byte()? {
                                 match sc {
-                                    '\n' | '\r' | '\u{2028}' | '\u{2029}' => {
+                                    b'\n' | b'\r' => {
                                         // Not allowed in Regex literal.
                                         return Err(Error::syntax(
                                             "new lines are not allowed in regular expressions",
                                             cursor.pos(),
                                         ));
                                     }
-                                    ch => body.push(ch),
+                                    0xE2 if (cursor.peek_n(2)? == 0xA8_80
+                                        || cursor.peek_n(2)? == 0xA9_80) =>
+                                    {
+                                        // '\u{2028}' (e2 80 a8) and '\u{2029}' (e2 80 a9) are not allowed
+                                        return Err(Error::syntax(
+                                            "new lines are not allowed in regular expressions",
+                                            cursor.pos(),
+                                        ));
+                                    }
+                                    b => body.push(b),
                                 }
                             } else {
                                 // Abrupt end of regex.
@@ -83,20 +102,31 @@ impl<R> Tokenizer<R> for RegexLiteral {
                                 ));
                             }
                         }
-                        _ => body.push(c),
+                        _ => body.push(b),
                     }
                 }
             }
         }
 
-        let mut flags = String::new();
+        let mut flags = Vec::new();
         let flags_start = cursor.pos();
-        cursor.take_while_pred(&mut flags, &char::is_alphabetic)?;
+        cursor.take_while_ascii_pred(&mut flags, &|c: AsciiChar| c.as_char().is_alphabetic())?;
 
-        Ok(Token::new(
-            TokenKind::regular_expression_literal(body, parse_regex_flags(&flags, flags_start)?),
-            Span::new(start_pos, cursor.pos()),
-        ))
+        let flags_str = unsafe { str::from_utf8_unchecked(flags.as_slice()) };
+        if let Ok(body_str) = str::from_utf8(body.as_slice()) {
+            Ok(Token::new(
+                TokenKind::regular_expression_literal(
+                    body_str,
+                    parse_regex_flags(flags_str, flags_start)?,
+                ),
+                Span::new(start_pos, cursor.pos()),
+            ))
+        } else {
+            Err(Error::from(io::Error::new(
+                ErrorKind::InvalidData,
+                "Invalid UTF-8 character in regular expressions",
+            )))
+        }
     }
 }
 

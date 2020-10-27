@@ -9,6 +9,7 @@ use crate::{
     },
 };
 use std::io::{self, ErrorKind, Read};
+use std::str;
 
 /// Template literal lexing.
 ///
@@ -30,23 +31,30 @@ impl<R> Tokenizer<R> for TemplateLiteral {
     {
         let _timer = BoaProfiler::global().start_event("TemplateLiteral", "Lexing");
 
-        let mut buf = String::new();
+        let mut buf = Vec::new();
         loop {
-            match cursor.next_char()? {
+            match cursor.next_byte()? {
                 None => {
                     return Err(Error::from(io::Error::new(
                         ErrorKind::UnexpectedEof,
                         "Unterminated template literal",
                     )));
                 }
-                Some('`') => break,                 // Template literal finished.
-                Some(next_ch) => buf.push(next_ch), // TODO when there is an expression inside the literal
+                Some(b'`') => break,                 // Template literal finished.
+                Some(next_byte) => buf.push(next_byte), // TODO when there is an expression inside the literal
             }
         }
 
-        Ok(Token::new(
-            TokenKind::template_literal(buf),
-            Span::new(start_pos, cursor.pos()),
-        ))
+        if let Ok(s) = str::from_utf8(buf.as_slice()) {
+            Ok(Token::new(
+                TokenKind::template_literal(s),
+                Span::new(start_pos, cursor.pos()),
+            ))
+        } else {
+            Err(Error::from(io::Error::new(
+                ErrorKind::InvalidData,
+                "Invalid UTF-8 character in template literal",
+            )))
+        }
     }
 }

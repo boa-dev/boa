@@ -38,8 +38,8 @@ impl<R> Tokenizer<R> for SpreadLiteral {
         let _timer = BoaProfiler::global().start_event("SpreadLiteral", "Lexing");
 
         // . or ...
-        if cursor.next_is('.')? {
-            if cursor.next_is('.')? {
+        if cursor.next_is(b'.')? {
+            if cursor.next_is(b'.')? {
                 Ok(Token::new(
                     Punctuator::Spread.into(),
                     Span::new(start_pos, cursor.pos()),

@@ -31,11 +31,11 @@ impl<R> Tokenizer<R> for SingleLineComment {
 
         // Skip either to the end of the line or to the end of the input
         while let Some(ch) = cursor.peek()? {
-            if ch == '\n' {
+            if ch == b'\n' {
                 break;
             } else {
                 // Consume char.
-                cursor.next_char()?.expect("Comment character vansihed");
+                cursor.next_byte()?.expect("Comment character vansihed");
             }
         }
         Ok(Token::new(
@@ -66,10 +66,10 @@ impl<R> Tokenizer<R> for MultiLineComment {
 
         let mut new_line = false;
         loop {
-            if let Some(ch) = cursor.next_char()? {
-                if ch == '*' && cursor.next_is('/')? {
+            if let Some(ch) = cursor.next_byte()? {
+                if ch == b'*' && cursor.next_is(b'/')? {
                     break;
-                } else if ch == '\n' {
+                } else if ch == b'\n' {
                     new_line = true;
                 }
             } else {

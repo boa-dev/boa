@@ -6,6 +6,7 @@ use super::token::Numeric;
 use super::*;
 use super::{Error, Position};
 use crate::syntax::ast::Keyword;
+use std::str;
 
 fn span(start: (u32, u32), end: (u32, u32)) -> Span {
     Span::new(Position::new(start.0, start.1), Position::new(end.0, end.1))
@@ -557,35 +558,34 @@ fn addition_no_spaces_e_number() {
 fn take_while_pred_simple() {
     let mut cur = Cursor::new(&b"abcdefghijk"[..]);
 
-    let mut buf: String = String::new();
+    let mut buf: Vec<u8> = Vec::new();
 
-    cur.take_while_pred(&mut buf, &|c| c == 'a' || c == 'b' || c == 'c')
+    cur.take_while_pred(&mut buf, &|c| c == b'a' || c == b'b' || c == b'c')
         .unwrap();
 
-    assert_eq!(buf, "abc");
+    assert_eq!(str::from_utf8(buf.as_slice()).unwrap(), "abc");
 }
 
 #[test]
 fn take_while_pred_immediate_stop() {
     let mut cur = Cursor::new(&b"abcdefghijk"[..]);
 
-    let mut buf: String = String::new();
+    let mut buf: Vec<u8> = Vec::new();
 
-    cur.take_while_pred(&mut buf, &|c| c == 'd').unwrap();
+    cur.take_while_pred(&mut buf, &|c| false).unwrap();
 
-    assert_eq!(buf, "");
+    assert_eq!(str::from_utf8(buf.as_slice()).unwrap(), "");
 }
 
 #[test]
 fn take_while_pred_entire_str() {
     let mut cur = Cursor::new(&b"abcdefghijk"[..]);
 
-    let mut buf: String = String::new();
+    let mut buf: Vec<u8> = Vec::new();
 
-    cur.take_while_pred(&mut buf, &|c| c.is_alphabetic())
-        .unwrap();
+    cur.take_while_pred(&mut buf, &|c| true).unwrap();
 
-    assert_eq!(buf, "abcdefghijk");
+    assert_eq!(str::from_utf8(buf.as_slice()).unwrap(), "abcdefghijk");
 }
 
 #[test]
