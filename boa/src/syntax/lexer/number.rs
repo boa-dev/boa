@@ -9,7 +9,6 @@ use crate::{
         lexer::{token::Numeric, Token},
     },
 };
-use ascii::AsciiChar;
 use std::str;
 use std::{io::Read, str::FromStr};
 
@@ -78,14 +77,14 @@ where
     match cursor.next_byte()? {
         Some(b'+') => {
             buf.push(b'+');
-            if !cursor.next_is_ascii_pred(&|c: AsciiChar| c.as_char().is_digit(kind.base()))? {
+            if !cursor.next_is_ascii_pred(&|c: char| c.is_digit(kind.base()))? {
                 // A digit must follow the + or - symbol.
                 return Err(Error::syntax("No digit found after + symbol", cursor.pos()));
             }
         }
         Some(b'-') => {
             buf.push(b'-');
-            if !cursor.next_is_ascii_pred(&|c: AsciiChar| c.as_char().is_digit(kind.base()))? {
+            if !cursor.next_is_ascii_pred(&|c: char| c.is_digit(kind.base()))? {
                 // A digit must follow the + or - symbol.
                 return Err(Error::syntax("No digit found after - symbol", cursor.pos()));
             }
@@ -117,8 +116,6 @@ where
 
     Ok(())
 }
-
-fn is_ascii_char_digit(ch: AsciiChar, radix: u32) {}
 
 /// Utility function for checking the NumericLiteral is not followed by an `IdentifierStart` or `DecimalDigit` character.
 ///
@@ -270,8 +267,7 @@ impl<R> Tokenizer<R> for NumberLiteral {
         }
 
         // Consume digits until a non-digit character is encountered or all the characters are consumed.
-        cursor
-            .take_while_ascii_pred(&mut buf, &|c: AsciiChar| c.as_char().is_digit(kind.base()))?;
+        cursor.take_while_ascii_pred(&mut buf, &|c: char| c.is_digit(kind.base()))?;
 
         // The non-digit character could be:
         // 'n' To indicate a BigIntLiteralSuffix.
@@ -297,9 +293,7 @@ impl<R> Tokenizer<R> for NumberLiteral {
                     kind = NumericKind::Rational;
 
                     // Consume digits until a non-digit character is encountered or all the characters are consumed.
-                    cursor.take_while_ascii_pred(&mut buf, &|c: AsciiChar| {
-                        c.as_char().is_digit(kind.base())
-                    })?;
+                    cursor.take_while_ascii_pred(&mut buf, &|c: char| c.is_digit(kind.base()))?;
 
                     // The non-digit character at this point must be an 'e' or 'E' to indicate an Exponent Part.
                     // Another '.' or 'n' is not allowed.

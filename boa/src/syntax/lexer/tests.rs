@@ -572,7 +572,7 @@ fn take_while_pred_immediate_stop() {
 
     let mut buf: Vec<u8> = Vec::new();
 
-    cur.take_while_pred(&mut buf, &|c| false).unwrap();
+    cur.take_while_pred(&mut buf, &|_| false).unwrap();
 
     assert_eq!(str::from_utf8(buf.as_slice()).unwrap(), "");
 }
@@ -583,7 +583,7 @@ fn take_while_pred_entire_str() {
 
     let mut buf: Vec<u8> = Vec::new();
 
-    cur.take_while_pred(&mut buf, &|c| true).unwrap();
+    cur.take_while_pred(&mut buf, &|_| true).unwrap();
 
     assert_eq!(str::from_utf8(buf.as_slice()).unwrap(), "abcdefghijk");
 }

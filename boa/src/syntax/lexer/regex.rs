@@ -8,7 +8,6 @@ use crate::{
         lexer::{Token, TokenKind},
     },
 };
-use ascii::AsciiChar;
 use bitflags::bitflags;
 use std::io::{self, ErrorKind};
 use std::str;
@@ -110,7 +109,7 @@ impl<R> Tokenizer<R> for RegexLiteral {
 
         let mut flags = Vec::new();
         let flags_start = cursor.pos();
-        cursor.take_while_ascii_pred(&mut flags, &|c: AsciiChar| c.as_char().is_alphabetic())?;
+        cursor.take_while_ascii_pred(&mut flags, &|c: char| c.is_alphabetic())?;
 
         let flags_str = unsafe { str::from_utf8_unchecked(flags.as_slice()) };
         if let Ok(body_str) = str::from_utf8(body.as_slice()) {

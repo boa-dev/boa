@@ -162,7 +162,7 @@ impl<R> Tokenizer<R> for StringLiteral {
                                 }
                             }
                             b'\'' | b'"' | b'\\' => buf.push(escape as u16),
-                            ch => {
+                            _ => {
                                 let details = format!(
                                     "invalid escape sequence at line {}, column {}",
                                     next_chr_start.line_number(),

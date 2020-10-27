@@ -1,6 +1,5 @@
 //! Module implementing the lexer cursor. This is used for managing the input byte stream.
 use crate::{profiler::BoaProfiler, syntax::ast::Position};
-use ascii::AsciiChar;
 use std::io::{self, Bytes, Error, ErrorKind, Read};
 
 /// Cursor over the source code.
@@ -121,13 +120,13 @@ where
     #[inline]
     pub(super) fn next_is_ascii_pred<F>(&mut self, pred: &F) -> io::Result<bool>
     where
-        F: Fn(AsciiChar) -> bool,
+        F: Fn(char) -> bool,
     {
         let _timer = BoaProfiler::global().start_event("cursor::next_is_ascii_pred()", "Lexing");
 
         Ok(match self.peek()? {
             Some(byte) => match byte {
-                0..=127 => pred(unsafe { AsciiChar::from_ascii_unchecked(byte) }),
+                0..=127 => pred(unsafe { char::from_u32_unchecked(byte as u32) }),
                 _ => false,
             },
             None => false,
@@ -144,7 +143,7 @@ where
     where
         F: Fn(u32) -> bool,
     {
-        let _timer = BoaProfiler::global().start_event("cursor::next_is_ascii_pred()", "Lexing");
+        let _timer = BoaProfiler::global().start_event("cursor::next_is_char_pred()", "Lexing");
 
         Ok(if let Some(peek) = self.peek_char()? {
             pred(peek)
@@ -201,7 +200,7 @@ where
     /// Note that all characters up until x are added to the buffer including the character right before.
     pub(super) fn take_while_ascii_pred<F>(&mut self, buf: &mut Vec<u8>, pred: &F) -> io::Result<()>
     where
-        F: Fn(AsciiChar) -> bool,
+        F: Fn(char) -> bool,
     {
         let _timer = BoaProfiler::global().start_event("cursor::take_while_ascii_pred()", "Lexing");
 
