@@ -334,8 +334,8 @@ where
         } else {
             match self.iter.next().transpose()? {
                 Some(byte) => {
-                    self.num_peeked_bytes += 1;
-                    self.peeked_bytes |= byte as u32;
+                    self.num_peeked_bytes = 1;
+                    self.peeked_bytes = byte as u32;
                     Ok(Some(byte))
                 }
                 None => Ok(None),
@@ -348,8 +348,8 @@ where
         while self.num_peeked_bytes < n && self.num_peeked_bytes < 4 {
             match self.iter.next().transpose()? {
                 Some(byte) => {
+                    self.peeked_bytes |= (byte as u32) << (self.num_peeked_bytes * 8);
                     self.num_peeked_bytes += 1;
-                    self.peeked_bytes = (self.peeked_bytes << 8) | byte as u32;
                 }
                 None => break,
             };
