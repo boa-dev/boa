@@ -1,7 +1,7 @@
 //! This module implements the global `SyntaxError` object.
 //!
 //! The SyntaxError object represents an error when trying to interpret syntactically invalid code.
-//! It is thrown when the JavaScript engine encounters tokens or token order that does not conform
+//! It is thrown when the JavaScript context encounters tokens or token order that does not conform
 //! to the syntax of the language when parsing code.
 //!
 //! More information:
@@ -56,9 +56,13 @@ impl SyntaxError {
     pub(crate) const LENGTH: usize = 1;
 
     /// Create a new error object.
-    pub(crate) fn constructor(this: &Value, args: &[Value], ctx: &mut Context) -> Result<Value> {
+    pub(crate) fn constructor(
+        this: &Value,
+        args: &[Value],
+        context: &mut Context,
+    ) -> Result<Value> {
         if let Some(message) = args.get(0) {
-            this.set_field("message", message.to_string(ctx)?);
+            this.set_field("message", message.to_string(context)?);
         }
 
         // This value is used by console.log and other routines to match Object type

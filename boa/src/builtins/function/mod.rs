@@ -26,7 +26,7 @@ use std::fmt::{self, Debug};
 #[cfg(test)]
 mod tests;
 
-/// _fn(this, arguments, ctx) -> ResultValue_ - The signature of a built-in function
+/// _fn(this, arguments, context) -> ResultValue_ - The signature of a built-in function
 pub type NativeFunction = fn(&Value, &[Value], &mut Context) -> Result<Value>;
 
 #[derive(Clone, Copy, Finalize)]
@@ -114,11 +114,11 @@ impl Function {
         param: &FormalParameter,
         index: usize,
         args_list: &[Value],
-        interpreter: &mut Context,
+        context: &mut Context,
         local_env: &Environment,
     ) {
         // Create array of values
-        let array = Array::new_array(interpreter).unwrap();
+        let array = Array::new_array(context).unwrap();
         Array::add_to_array_object(&array, &args_list[index..]).unwrap();
 
         // Create binding

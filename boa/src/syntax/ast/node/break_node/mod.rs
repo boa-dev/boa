@@ -52,8 +52,8 @@ impl Break {
 }
 
 impl Executable for Break {
-    fn run(&self, interpreter: &mut Context) -> Result<Value> {
-        interpreter
+    fn run(&self, context: &mut Context) -> Result<Value> {
+        context
             .executor()
             .set_current_state(InterpreterState::Break(self.label().map(Box::from)));
 

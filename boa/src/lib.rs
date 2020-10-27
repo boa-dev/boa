@@ -85,21 +85,21 @@ pub fn parse(src: &str, strict_mode: bool) -> StdResult<StatementList, ParseErro
 /// Execute the code using an existing Context
 /// The str is consumed and the state of the Context is changed
 #[cfg(test)]
-pub(crate) fn forward(engine: &mut Context, src: &str) -> String {
+pub(crate) fn forward(context: &mut Context, src: &str) -> String {
     // Setup executor
     let expr = match parse(src, false) {
         Ok(res) => res,
         Err(e) => {
             return format!(
                 "Uncaught {}",
-                engine
+                context
                     .throw_syntax_error(e.to_string())
                     .expect_err("interpreter.throw_syntax_error() did not return an error")
                     .display()
             );
         }
     };
-    expr.run(engine).map_or_else(
+    expr.run(context).map_or_else(
         |e| format!("Uncaught {}", e.display()),
         |v| v.display().to_string(),
     )
@@ -111,16 +111,16 @@ pub(crate) fn forward(engine: &mut Context, src: &str) -> String {
 /// If the interpreter fails parsing an error value is returned instead (error object)
 #[allow(clippy::unit_arg, clippy::drop_copy)]
 #[cfg(test)]
-pub(crate) fn forward_val(engine: &mut Context, src: &str) -> Result<Value> {
+pub(crate) fn forward_val(context: &mut Context, src: &str) -> Result<Value> {
     let main_timer = BoaProfiler::global().start_event("Main", "Main");
     // Setup executor
     let result = parse(src, false)
         .map_err(|e| {
-            engine
+            context
                 .throw_syntax_error(e.to_string())
                 .expect_err("interpreter.throw_syntax_error() did not return an error")
         })
-        .and_then(|expr| expr.run(engine));
+        .and_then(|expr| expr.run(context));
 
     // The main_timer needs to be dropped before the BoaProfiler is.
     drop(main_timer);

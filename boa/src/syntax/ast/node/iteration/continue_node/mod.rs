@@ -46,8 +46,8 @@ impl Continue {
 }
 
 impl Executable for Continue {
-    fn run(&self, interpreter: &mut Context) -> Result<Value> {
-        interpreter
+    fn run(&self, context: &mut Context) -> Result<Value> {
+        context
             .executor()
             .set_current_state(InterpreterState::Continue(self.label().map(Box::from)));
 

@@ -309,12 +309,12 @@ impl RegExp {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-regexp.prototype.test
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/test
-    pub(crate) fn test(this: &Value, args: &[Value], ctx: &mut Context) -> Result<Value> {
+    pub(crate) fn test(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
         let arg_str = args
             .get(0)
             .expect("could not get argument")
-            .to_string(ctx)?;
-        let mut last_index = this.get_field("lastIndex").to_index(ctx)?;
+            .to_string(context)?;
+        let mut last_index = this.get_field("lastIndex").to_index(context)?;
         let result = if let Some(object) = this.as_object() {
             let object = object.borrow();
             let regex = object.as_regexp().unwrap();
@@ -350,12 +350,12 @@ impl RegExp {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-regexp.prototype.exec
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/exec
-    pub(crate) fn exec(this: &Value, args: &[Value], ctx: &mut Context) -> Result<Value> {
+    pub(crate) fn exec(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
         let arg_str = args
             .get(0)
             .expect("could not get argument")
-            .to_string(ctx)?;
-        let mut last_index = this.get_field("lastIndex").to_index(ctx)?;
+            .to_string(context)?;
+        let mut last_index = this.get_field("lastIndex").to_index(context)?;
         let result = if let Some(object) = this.as_object() {
             let object = object.borrow();
             let regex = object.as_regexp().unwrap();
@@ -405,7 +405,7 @@ impl RegExp {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-regexp.prototype-@@match
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/@@match
-    pub(crate) fn r#match(this: &Value, arg: RcString, ctx: &mut Context) -> Result<Value> {
+    pub(crate) fn r#match(this: &Value, arg: RcString, context: &mut Context) -> Result<Value> {
         let (matcher, flags) = if let Some(object) = this.as_object() {
             let object = object.borrow();
             let regex = object.as_regexp().unwrap();
@@ -423,7 +423,7 @@ impl RegExp {
             }
             Ok(Value::from(matches))
         } else {
-            Self::exec(this, &[Value::from(arg)], ctx)
+            Self::exec(this, &[Value::from(arg)], context)
         }
     }
 

@@ -35,12 +35,12 @@ pub struct Identifier {
 }
 
 impl Executable for Identifier {
-    fn run(&self, interpreter: &mut Context) -> Result<Value> {
-        interpreter
+    fn run(&self, context: &mut Context) -> Result<Value> {
+        context
             .realm()
             .environment
             .get_binding_value(self.as_ref())
-            .ok_or_else(|| interpreter.construct_reference_error(self.as_ref()))
+            .ok_or_else(|| context.construct_reference_error(self.as_ref()))
     }
 }
 

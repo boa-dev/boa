@@ -275,11 +275,7 @@ impl Array {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-array.isarray
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/isArray
-    pub(crate) fn is_array(
-        _this: &Value,
-        args: &[Value],
-        _interpreter: &mut Context,
-    ) -> Result<Value> {
+    pub(crate) fn is_array(_: &Value, args: &[Value], _: &mut Context) -> Result<Value> {
         match args.get(0).and_then(|x| x.as_object()) {
             Some(object) => Ok(Value::from(object.borrow().is_array())),
             None => Ok(Value::from(false)),
@@ -373,7 +369,7 @@ impl Array {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.foreach
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/forEach
-    pub(crate) fn for_each(this: &Value, args: &[Value], ctx: &mut Context) -> Result<Value> {
+    pub(crate) fn for_each(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
         if args.is_empty() {
             return Err(Value::from("Missing argument for Array.prototype.forEach"));
         }
@@ -387,7 +383,7 @@ impl Array {
             let element = this.get_field(i);
             let arguments = [element, Value::from(i), this.clone()];
 
-            ctx.call(callback_arg, &this_arg, &arguments)?;
+            context.call(callback_arg, &this_arg, &arguments)?;
         }
 
         Ok(Value::undefined())
@@ -405,20 +401,20 @@ impl Array {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.join
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/join
-    pub(crate) fn join(this: &Value, args: &[Value], ctx: &mut Context) -> Result<Value> {
+    pub(crate) fn join(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
         let separator = if args.is_empty() {
             String::from(",")
         } else {
             args.get(0)
                 .expect("Could not get argument")
-                .to_string(ctx)?
+                .to_string(context)?
                 .to_string()
         };
 
         let mut elem_strs = Vec::new();
         let length = this.get_field("length").as_number().unwrap() as i32;
         for n in 0..length {
-            let elem_str = this.get_field(n).to_string(ctx)?.to_string();
+            let elem_str = this.get_field(n).to_string(context)?.to_string();
             elem_strs.push(elem_str);
         }
 
@@ -438,14 +434,14 @@ impl Array {
     /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.tostring
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/toString
     #[allow(clippy::wrong_self_convention)]
-    pub(crate) fn to_string(this: &Value, _args: &[Value], ctx: &mut Context) -> Result<Value> {
+    pub(crate) fn to_string(this: &Value, _: &[Value], context: &mut Context) -> Result<Value> {
         let method_name = "join";
         let mut arguments = vec![Value::from(",")];
         // 2.
         let mut method = this.get_field(method_name);
         // 3.
         if !method.is_function() {
-            method = ctx
+            method = context
                 .global_object()
                 .get_field("Object")
                 .get_field(PROTOTYPE)
@@ -454,7 +450,7 @@ impl Array {
             arguments = Vec::new();
         }
         // 4.
-        let join = ctx.call(&method, this, &arguments)?;
+        let join = context.call(&method, this, &arguments)?;
 
         let string = if let Value::String(ref s) = join {
             Value::from(s.as_str())
@@ -602,7 +598,7 @@ impl Array {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.every
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/every
-    pub(crate) fn every(this: &Value, args: &[Value], interpreter: &mut Context) -> Result<Value> {
+    pub(crate) fn every(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
         if args.is_empty() {
             return Err(Value::from(
                 "missing callback when calling function Array.prototype.every",
@@ -620,7 +616,7 @@ impl Array {
         while i < len {
             let element = this.get_field(i);
             let arguments = [element, Value::from(i), this.clone()];
-            let result = interpreter.call(callback, &this_arg, &arguments)?;
+            let result = context.call(callback, &this_arg, &arguments)?;
             if !result.to_boolean() {
                 return Ok(Value::from(false));
             }
@@ -798,7 +794,7 @@ impl Array {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.find
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/find
-    pub(crate) fn find(this: &Value, args: &[Value], interpreter: &mut Context) -> Result<Value> {
+    pub(crate) fn find(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
         if args.is_empty() {
             return Err(Value::from(
                 "missing callback when calling function Array.prototype.find",
@@ -810,7 +806,7 @@ impl Array {
         for i in 0..len {
             let element = this.get_field(i);
             let arguments = [element.clone(), Value::from(i), this.clone()];
-            let result = interpreter.call(callback, &this_arg, &arguments)?;
+            let result = context.call(callback, &this_arg, &arguments)?;
             if result.to_boolean() {
                 return Ok(element);
             }
@@ -830,11 +826,7 @@ impl Array {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.findindex
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/findIndex
-    pub(crate) fn find_index(
-        this: &Value,
-        args: &[Value],
-        interpreter: &mut Context,
-    ) -> Result<Value> {
+    pub(crate) fn find_index(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
         if args.is_empty() {
             return Err(Value::from(
                 "Missing argument for Array.prototype.findIndex",
@@ -851,7 +843,7 @@ impl Array {
             let element = this.get_field(i);
             let arguments = [element, Value::from(i), this.clone()];
 
-            let result = interpreter.call(predicate_arg, &this_arg, &arguments)?;
+            let result = context.call(predicate_arg, &this_arg, &arguments)?;
 
             if result.to_boolean() {
                 return Ok(Value::rational(f64::from(i)));
@@ -872,17 +864,17 @@ impl Array {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.fill
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/fill
-    pub(crate) fn fill(this: &Value, args: &[Value], ctx: &mut Context) -> Result<Value> {
+    pub(crate) fn fill(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
         let len: i32 = this.get_field("length").as_number().unwrap() as i32;
 
         let default_value = Value::undefined();
         let value = args.get(0).unwrap_or(&default_value);
-        let relative_start = args.get(1).unwrap_or(&default_value).to_number(ctx)? as i32;
+        let relative_start = args.get(1).unwrap_or(&default_value).to_number(context)? as i32;
         let relative_end_val = args.get(2).unwrap_or(&default_value);
         let relative_end = if relative_end_val.is_undefined() {
             len
         } else {
-            relative_end_val.to_number(ctx)? as i32
+            relative_end_val.to_number(context)? as i32
         };
         let start = if relative_start < 0 {
             max(len + relative_start, 0)
@@ -942,8 +934,8 @@ impl Array {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.slice
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/slice
-    pub(crate) fn slice(this: &Value, args: &[Value], interpreter: &mut Context) -> Result<Value> {
-        let new_array = Self::new_array(interpreter)?;
+    pub(crate) fn slice(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+        let new_array = Self::new_array(context)?;
         let len = this.get_field("length").as_number().unwrap() as i32;
 
         let start = match args.get(0) {
@@ -987,7 +979,7 @@ impl Array {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.filter
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/filter
-    pub(crate) fn filter(this: &Value, args: &[Value], interpreter: &mut Context) -> Result<Value> {
+    pub(crate) fn filter(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
         if args.is_empty() {
             return Err(Value::from(
                 "missing argument 0 when calling function Array.prototype.filter",
@@ -999,7 +991,7 @@ impl Array {
 
         let length = this.get_field("length").as_number().unwrap() as i32;
 
-        let new = Self::new_array(interpreter)?;
+        let new = Self::new_array(context)?;
 
         let values = (0..length)
             .filter_map(|idx| {
@@ -1007,7 +999,7 @@ impl Array {
 
                 let args = [element.clone(), Value::from(idx), new.clone()];
 
-                let callback_result = interpreter
+                let callback_result = context
                     .call(&callback, &this_val, &args)
                     .unwrap_or_else(|_| Value::undefined());
 
@@ -1037,7 +1029,7 @@ impl Array {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.some
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/some
-    pub(crate) fn some(this: &Value, args: &[Value], interpreter: &mut Context) -> Result<Value> {
+    pub(crate) fn some(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
         if args.is_empty() {
             return Err(Value::from(
                 "missing callback when calling function Array.prototype.some",
@@ -1055,7 +1047,7 @@ impl Array {
         while i < len {
             let element = this.get_field(i);
             let arguments = [element, Value::from(i), this.clone()];
-            let result = interpreter.call(callback, &this_arg, &arguments)?;
+            let result = context.call(callback, &this_arg, &arguments)?;
             if result.to_boolean() {
                 return Ok(Value::from(true));
             }
@@ -1080,16 +1072,16 @@ impl Array {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.reduce
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/reduce
-    pub(crate) fn reduce(this: &Value, args: &[Value], interpreter: &mut Context) -> Result<Value> {
-        let this: Value = this.to_object(interpreter)?.into();
+    pub(crate) fn reduce(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+        let this: Value = this.to_object(context)?.into();
         let callback = match args.get(0) {
             Some(value) if value.is_function() => value,
-            _ => return interpreter.throw_type_error("Reduce was called without a callback"),
+            _ => return context.throw_type_error("Reduce was called without a callback"),
         };
         let initial_value = args.get(1).cloned().unwrap_or_else(Value::undefined);
-        let mut length = this.get_field("length").to_length(interpreter)?;
+        let mut length = this.get_field("length").to_length(context)?;
         if length == 0 && initial_value.is_undefined() {
-            return interpreter
+            return context
                 .throw_type_error("Reduce was called on an empty array and with no initial value");
         }
         let mut k = 0;
@@ -1103,7 +1095,7 @@ impl Array {
                 k += 1;
             }
             if !k_present {
-                return interpreter.throw_type_error(
+                return context.throw_type_error(
                     "Reduce was called on an empty array and with no initial value",
                 );
             }
@@ -1116,11 +1108,11 @@ impl Array {
         while k < length {
             if this.has_field(k) {
                 let arguments = [accumulator, this.get_field(k), Value::from(k), this.clone()];
-                accumulator = interpreter.call(&callback, &Value::undefined(), &arguments)?;
+                accumulator = context.call(&callback, &Value::undefined(), &arguments)?;
                 /* We keep track of possibly shortened length in order to prevent unnecessary iteration.
                 It may also be necessary to do this since shortening the array length does not
                 delete array elements. See: https://github.com/boa-dev/boa/issues/557 */
-                length = min(length, this.get_field("length").to_length(interpreter)?);
+                length = min(length, this.get_field("length").to_length(context)?);
             }
             k += 1;
         }
@@ -1141,18 +1133,18 @@ impl Array {
     pub(crate) fn reduce_right(
         this: &Value,
         args: &[Value],
-        interpreter: &mut Context,
+        context: &mut Context,
     ) -> Result<Value> {
-        let this: Value = this.to_object(interpreter)?.into();
+        let this: Value = this.to_object(context)?.into();
         let callback = match args.get(0) {
             Some(value) if value.is_function() => value,
-            _ => return interpreter.throw_type_error("reduceRight was called without a callback"),
+            _ => return context.throw_type_error("reduceRight was called without a callback"),
         };
         let initial_value = args.get(1).cloned().unwrap_or_else(Value::undefined);
-        let mut length = this.get_field("length").to_length(interpreter)?;
+        let mut length = this.get_field("length").to_length(context)?;
         if length == 0 {
             return if initial_value.is_undefined() {
-                interpreter.throw_type_error(
+                context.throw_type_error(
                     "reduceRight was called on an empty array and with no initial value",
                 )
             } else {
@@ -1175,7 +1167,7 @@ impl Array {
                 k -= 1;
             }
             if !k_present {
-                return interpreter.throw_type_error(
+                return context.throw_type_error(
                     "reduceRight was called on an empty array and with no initial value",
                 );
             }
@@ -1189,11 +1181,11 @@ impl Array {
         while k != usize::MAX {
             if this.has_field(k) {
                 let arguments = [accumulator, this.get_field(k), Value::from(k), this.clone()];
-                accumulator = interpreter.call(&callback, &Value::undefined(), &arguments)?;
+                accumulator = context.call(&callback, &Value::undefined(), &arguments)?;
                 /* We keep track of possibly shortened length in order to prevent unnecessary iteration.
                 It may also be necessary to do this since shortening the array length does not
                 delete array elements. See: https://github.com/boa-dev/boa/issues/557 */
-                length = min(length, this.get_field("length").to_length(interpreter)?);
+                length = min(length, this.get_field("length").to_length(context)?);
 
                 // move k to the last defined element if necessary or return if the length was set to 0
                 if k >= length {
@@ -1223,8 +1215,8 @@ impl Array {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.values
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/values
-    pub(crate) fn values(this: &Value, _: &[Value], ctx: &mut Context) -> Result<Value> {
-        ArrayIterator::create_array_iterator(ctx, this.clone(), ArrayIterationKind::Value)
+    pub(crate) fn values(this: &Value, _: &[Value], context: &mut Context) -> Result<Value> {
+        ArrayIterator::create_array_iterator(context, this.clone(), ArrayIterationKind::Value)
     }
 
     /// `Array.prototype.keys( )`
@@ -1237,8 +1229,8 @@ impl Array {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.values
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/values
-    pub(crate) fn keys(this: &Value, _: &[Value], ctx: &mut Context) -> Result<Value> {
-        ArrayIterator::create_array_iterator(ctx, this.clone(), ArrayIterationKind::Key)
+    pub(crate) fn keys(this: &Value, _: &[Value], context: &mut Context) -> Result<Value> {
+        ArrayIterator::create_array_iterator(context, this.clone(), ArrayIterationKind::Key)
     }
 
     /// `Array.prototype.entries( )`
@@ -1251,7 +1243,7 @@ impl Array {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.values
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/values
-    pub(crate) fn entries(this: &Value, _: &[Value], ctx: &mut Context) -> Result<Value> {
-        ArrayIterator::create_array_iterator(ctx, this.clone(), ArrayIterationKind::KeyAndValue)
+    pub(crate) fn entries(this: &Value, _: &[Value], context: &mut Context) -> Result<Value> {
+        ArrayIterator::create_array_iterator(context, this.clone(), ArrayIterationKind::KeyAndValue)
     }
 }

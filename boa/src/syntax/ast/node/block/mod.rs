@@ -51,10 +51,10 @@ impl Block {
 }
 
 impl Executable for Block {
-    fn run(&self, interpreter: &mut Context) -> Result<Value> {
+    fn run(&self, context: &mut Context) -> Result<Value> {
         let _timer = BoaProfiler::global().start_event("Block", "exec");
         {
-            let env = &mut interpreter.realm_mut().environment;
+            let env = &mut context.realm_mut().environment;
             env.push(new_declarative_environment(Some(
                 env.get_current_environment_ref().clone(),
             )));
@@ -64,9 +64,9 @@ impl Executable for Block {
         // The return value is uninitialized, which means it defaults to Value::Undefined
         let mut obj = Value::default();
         for statement in self.statements() {
-            obj = statement.run(interpreter)?;
+            obj = statement.run(context)?;
 
-            match interpreter.executor().get_current_state() {
+            match context.executor().get_current_state() {
                 InterpreterState::Return => {
                     // Early return.
                     break;
@@ -88,7 +88,7 @@ impl Executable for Block {
         }
 
         // pop the block env
-        let _ = interpreter.realm_mut().environment.pop();
+        let _ = context.realm_mut().environment.pop();
 
         Ok(obj)
     }

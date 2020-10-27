@@ -65,17 +65,17 @@ impl WhileLoop {
 }
 
 impl Executable for WhileLoop {
-    fn run(&self, interpreter: &mut Context) -> Result<Value> {
+    fn run(&self, context: &mut Context) -> Result<Value> {
         let mut result = Value::undefined();
-        while self.cond().run(interpreter)?.to_boolean() {
-            result = self.expr().run(interpreter)?;
-            match interpreter.executor().get_current_state() {
+        while self.cond().run(context)?.to_boolean() {
+            result = self.expr().run(context)?;
+            match context.executor().get_current_state() {
                 InterpreterState::Break(label) => {
-                    handle_state_with_labels!(self, label, interpreter, break);
+                    handle_state_with_labels!(self, label, context, break);
                     break;
                 }
                 InterpreterState::Continue(label) => {
-                    handle_state_with_labels!(self, label, interpreter, continue)
+                    handle_state_with_labels!(self, label, context, continue)
                 }
                 InterpreterState::Return => {
                     return Ok(result);

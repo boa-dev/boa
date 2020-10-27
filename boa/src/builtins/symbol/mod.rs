@@ -315,16 +315,16 @@ impl Symbol {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-symbol-description
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol/Symbol
-    pub(crate) fn constructor(_: &Value, args: &[Value], ctx: &mut Context) -> Result<Value> {
+    pub(crate) fn constructor(_: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
         let description = match args.get(0) {
-            Some(ref value) if !value.is_undefined() => Some(value.to_string(ctx)?),
+            Some(ref value) if !value.is_undefined() => Some(value.to_string(context)?),
             _ => None,
         };
 
-        Ok(ctx.construct_symbol(description).into())
+        Ok(context.construct_symbol(description).into())
     }
 
-    fn this_symbol_value(value: &Value, ctx: &mut Context) -> Result<RcSymbol> {
+    fn this_symbol_value(value: &Value, context: &mut Context) -> Result<RcSymbol> {
         match value {
             Value::Symbol(ref symbol) => return Ok(symbol.clone()),
             Value::Object(ref object) => {
@@ -336,7 +336,7 @@ impl Symbol {
             _ => {}
         }
 
-        Err(ctx.construct_type_error("'this' is not a Symbol"))
+        Err(context.construct_type_error("'this' is not a Symbol"))
     }
 
     /// `Symbol.prototype.toString()`
@@ -350,8 +350,8 @@ impl Symbol {
     /// [spec]: https://tc39.es/ecma262/#sec-symbol.prototype.tostring
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol/toString
     #[allow(clippy::wrong_self_convention)]
-    pub(crate) fn to_string(this: &Value, _: &[Value], ctx: &mut Context) -> Result<Value> {
-        let symbol = Self::this_symbol_value(this, ctx)?;
+    pub(crate) fn to_string(this: &Value, _: &[Value], context: &mut Context) -> Result<Value> {
+        let symbol = Self::this_symbol_value(this, context)?;
         let description = symbol.description().unwrap_or("");
         Ok(Value::from(format!("Symbol({})", description)))
     }

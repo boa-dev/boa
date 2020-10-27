@@ -69,9 +69,16 @@ impl Map {
     pub(crate) const LENGTH: usize = 1;
 
     /// Create a new map
-    pub(crate) fn constructor(this: &Value, args: &[Value], ctx: &mut Context) -> Result<Value> {
+    pub(crate) fn constructor(
+        this: &Value,
+        args: &[Value],
+        context: &mut Context,
+    ) -> Result<Value> {
         // Set Prototype
-        let prototype = ctx.global_object().get_field("Map").get_field(PROTOTYPE);
+        let prototype = context
+            .global_object()
+            .get_field("Map")
+            .get_field(PROTOTYPE);
 
         this.as_object()
             .expect("this is map object")
@@ -89,11 +96,11 @@ impl Map {
                         map
                     } else if object.is_array() {
                         let mut map = OrderedMap::new();
-                        let len = args[0].get_field("length").to_integer(ctx)? as i32;
+                        let len = args[0].get_field("length").to_integer(context)? as i32;
                         for i in 0..len {
                             let val = &args[0].get_field(i.to_string());
                             let (key, value) = Self::get_key_value(val).ok_or_else(|| {
-                                ctx.construct_type_error(
+                                context.construct_type_error(
                                     "iterable for Map should have array-like objects",
                                 )
                             })?;
@@ -101,15 +108,14 @@ impl Map {
                         }
                         map
                     } else {
-                        return Err(ctx.construct_type_error(
+                        return Err(context.construct_type_error(
                             "iterable for Map should have array-like objects",
                         ));
                     }
                 }
                 _ => {
-                    return Err(
-                        ctx.construct_type_error("iterable for Map should have array-like objects")
-                    )
+                    return Err(context
+                        .construct_type_error("iterable for Map should have array-like objects"))
                 }
             },
         };
@@ -132,8 +138,8 @@ impl Map {
     ///
     /// [spec]: https://www.ecma-international.org/ecma-262/11.0/index.html#sec-map.prototype.entries
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/entries
-    pub(crate) fn entries(this: &Value, _: &[Value], ctx: &mut Context) -> Result<Value> {
-        MapIterator::create_map_iterator(ctx, this.clone(), MapIterationKind::KeyAndValue)
+    pub(crate) fn entries(this: &Value, _: &[Value], context: &mut Context) -> Result<Value> {
+        MapIterator::create_map_iterator(context, this.clone(), MapIterationKind::KeyAndValue)
     }
 
     /// `Map.prototype.keys()`
@@ -146,8 +152,8 @@ impl Map {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-map.prototype.keys
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/keys
-    pub(crate) fn keys(this: &Value, _: &[Value], ctx: &mut Context) -> Result<Value> {
-        MapIterator::create_map_iterator(ctx, this.clone(), MapIterationKind::Key)
+    pub(crate) fn keys(this: &Value, _: &[Value], context: &mut Context) -> Result<Value> {
+        MapIterator::create_map_iterator(context, this.clone(), MapIterationKind::Key)
     }
 
     /// Helper function to set the size property.
@@ -170,7 +176,7 @@ impl Map {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-map.prototype.set
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/set
-    pub(crate) fn set(this: &Value, args: &[Value], ctx: &mut Context) -> Result<Value> {
+    pub(crate) fn set(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
         let (key, value) = match args.len() {
             0 => (Value::Undefined, Value::Undefined),
             1 => (args[0].clone(), Value::Undefined),
@@ -183,10 +189,10 @@ impl Map {
                 map.insert(key, value);
                 map.len()
             } else {
-                return Err(ctx.construct_type_error("'this' is not a Map"));
+                return Err(context.construct_type_error("'this' is not a Map"));
             }
         } else {
-            return Err(ctx.construct_type_error("'this' is not a Map"));
+            return Err(context.construct_type_error("'this' is not a Map"));
         };
 
         Self::set_size(this, size);
@@ -203,7 +209,7 @@ impl Map {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-map.prototype.delete
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/delete
-    pub(crate) fn delete(this: &Value, args: &[Value], ctx: &mut Context) -> Result<Value> {
+    pub(crate) fn delete(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
         let undefined = Value::Undefined;
         let key = match args.len() {
             0 => &undefined,
@@ -216,10 +222,10 @@ impl Map {
                 let deleted = map.remove(key).is_some();
                 (deleted, map.len())
             } else {
-                return Err(ctx.construct_type_error("'this' is not a Map"));
+                return Err(context.construct_type_error("'this' is not a Map"));
             }
         } else {
-            return Err(ctx.construct_type_error("'this' is not a Map"));
+            return Err(context.construct_type_error("'this' is not a Map"));
         };
         Self::set_size(this, size);
         Ok(deleted.into())
@@ -235,7 +241,7 @@ impl Map {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-map.prototype.get
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/get
-    pub(crate) fn get(this: &Value, args: &[Value], ctx: &mut Context) -> Result<Value> {
+    pub(crate) fn get(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
         let undefined = Value::Undefined;
         let key = match args.len() {
             0 => &undefined,
@@ -253,7 +259,7 @@ impl Map {
             }
         }
 
-        Err(ctx.construct_type_error("'this' is not a Map"))
+        Err(context.construct_type_error("'this' is not a Map"))
     }
 
     /// `Map.prototype.clear( )`
@@ -284,7 +290,7 @@ impl Map {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-map.prototype.has
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/has
-    pub(crate) fn has(this: &Value, args: &[Value], ctx: &mut Context) -> Result<Value> {
+    pub(crate) fn has(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
         let undefined = Value::Undefined;
         let key = match args.len() {
             0 => &undefined,
@@ -298,7 +304,7 @@ impl Map {
             }
         }
 
-        Err(ctx.construct_type_error("'this' is not a Map"))
+        Err(context.construct_type_error("'this' is not a Map"))
     }
 
     /// `Map.prototype.forEach( callbackFn [ , thisArg ] )`
@@ -311,11 +317,7 @@ impl Map {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-map.prototype.foreach
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/forEach
-    pub(crate) fn for_each(
-        this: &Value,
-        args: &[Value],
-        interpreter: &mut Context,
-    ) -> Result<Value> {
+    pub(crate) fn for_each(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
         if args.is_empty() {
             return Err(Value::from("Missing argument for Map.prototype.forEach"));
         }
@@ -329,7 +331,7 @@ impl Map {
                 for (key, value) in map {
                     let arguments = [value, key, this.clone()];
 
-                    interpreter.call(callback_arg, &this_arg, &arguments)?;
+                    context.call(callback_arg, &this_arg, &arguments)?;
                 }
             }
         }
@@ -347,8 +349,8 @@ impl Map {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-map.prototype.values
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/values
-    pub(crate) fn values(this: &Value, _: &[Value], ctx: &mut Context) -> Result<Value> {
-        MapIterator::create_map_iterator(ctx, this.clone(), MapIterationKind::Value)
+    pub(crate) fn values(this: &Value, _: &[Value], context: &mut Context) -> Result<Value> {
+        MapIterator::create_map_iterator(context, this.clone(), MapIterationKind::Value)
     }
 
     /// Helper function to get a key-value pair from an array.

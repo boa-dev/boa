@@ -53,12 +53,12 @@ impl Assign {
 }
 
 impl Executable for Assign {
-    fn run(&self, interpreter: &mut Context) -> Result<Value> {
+    fn run(&self, context: &mut Context) -> Result<Value> {
         let _timer = BoaProfiler::global().start_event("Assign", "exec");
-        let val = self.rhs().run(interpreter)?;
+        let val = self.rhs().run(context)?;
         match self.lhs() {
             Node::Identifier(ref name) => {
-                let environment = &mut interpreter.realm_mut().environment;
+                let environment = &mut context.realm_mut().environment;
 
                 if environment.has_binding(name.as_ref()) {
                     // Binding already exists
@@ -73,13 +73,13 @@ impl Executable for Assign {
                 }
             }
             Node::GetConstField(ref get_const_field) => {
-                let val_obj = get_const_field.obj().run(interpreter)?;
+                let val_obj = get_const_field.obj().run(context)?;
                 val_obj.set_field(get_const_field.field(), val.clone());
             }
             Node::GetField(ref get_field) => {
-                let object = get_field.obj().run(interpreter)?;
-                let field = get_field.field().run(interpreter)?;
-                let key = field.to_property_key(interpreter)?;
+                let object = get_field.obj().run(context)?;
+                let field = get_field.field().run(context)?;
+                let key = field.to_property_key(context)?;
                 object.set_field(key, val.clone());
             }
             _ => (),

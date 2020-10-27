@@ -3,7 +3,7 @@ use crate::builtins::number::{f64_to_int32, f64_to_uint32, Number};
 
 impl Value {
     #[inline]
-    pub fn add(&self, other: &Self, ctx: &mut Context) -> Result<Value> {
+    pub fn add(&self, other: &Self, context: &mut Context) -> Result<Value> {
         Ok(match (self, other) {
             // Fast path:
             (Self::Integer(x), Self::Integer(y)) => Self::rational(f64::from(*x) + f64::from(*y)),
@@ -12,26 +12,30 @@ impl Value {
             (Self::Rational(x), Self::Integer(y)) => Self::rational(x + f64::from(*y)),
 
             (Self::String(ref x), Self::String(ref y)) => Self::string(format!("{}{}", x, y)),
-            (Self::String(ref x), ref y) => Self::string(format!("{}{}", x, y.to_string(ctx)?)),
-            (ref x, Self::String(ref y)) => Self::string(format!("{}{}", x.to_string(ctx)?, y)),
+            (Self::String(ref x), ref y) => Self::string(format!("{}{}", x, y.to_string(context)?)),
+            (ref x, Self::String(ref y)) => Self::string(format!("{}{}", x.to_string(context)?, y)),
             (Self::BigInt(ref n1), Self::BigInt(ref n2)) => {
                 Self::bigint(n1.as_inner().clone() + n2.as_inner().clone())
             }
 
             // Slow path:
             (_, _) => match (
-                self.to_primitive(ctx, PreferredType::Default)?,
-                other.to_primitive(ctx, PreferredType::Default)?,
+                self.to_primitive(context, PreferredType::Default)?,
+                other.to_primitive(context, PreferredType::Default)?,
             ) {
-                (Self::String(ref x), ref y) => Self::string(format!("{}{}", x, y.to_string(ctx)?)),
-                (ref x, Self::String(ref y)) => Self::string(format!("{}{}", x.to_string(ctx)?, y)),
-                (x, y) => match (x.to_numeric(ctx)?, y.to_numeric(ctx)?) {
+                (Self::String(ref x), ref y) => {
+                    Self::string(format!("{}{}", x, y.to_string(context)?))
+                }
+                (ref x, Self::String(ref y)) => {
+                    Self::string(format!("{}{}", x.to_string(context)?, y))
+                }
+                (x, y) => match (x.to_numeric(context)?, y.to_numeric(context)?) {
                     (Numeric::Number(x), Numeric::Number(y)) => Self::rational(x + y),
                     (Numeric::BigInt(ref n1), Numeric::BigInt(ref n2)) => {
                         Self::bigint(n1.as_inner().clone() + n2.as_inner().clone())
                     }
                     (_, _) => {
-                        return ctx.throw_type_error(
+                        return context.throw_type_error(
                             "cannot mix BigInt and other types, use explicit conversions",
                         )
                     }
@@ -41,7 +45,7 @@ impl Value {
     }
 
     #[inline]
-    pub fn sub(&self, other: &Self, ctx: &mut Context) -> Result<Value> {
+    pub fn sub(&self, other: &Self, context: &mut Context) -> Result<Value> {
         Ok(match (self, other) {
             // Fast path:
             (Self::Integer(x), Self::Integer(y)) => Self::rational(f64::from(*x) - f64::from(*y)),
@@ -54,13 +58,13 @@ impl Value {
             }
 
             // Slow path:
-            (_, _) => match (self.to_numeric(ctx)?, other.to_numeric(ctx)?) {
+            (_, _) => match (self.to_numeric(context)?, other.to_numeric(context)?) {
                 (Numeric::Number(a), Numeric::Number(b)) => Self::rational(a - b),
                 (Numeric::BigInt(ref a), Numeric::BigInt(ref b)) => {
                     Self::bigint(a.as_inner().clone() - b.as_inner().clone())
                 }
                 (_, _) => {
-                    return ctx.throw_type_error(
+                    return context.throw_type_error(
                         "cannot mix BigInt and other types, use explicit conversions",
                     );
                 }
@@ -69,7 +73,7 @@ impl Value {
     }
 
     #[inline]
-    pub fn mul(&self, other: &Self, ctx: &mut Context) -> Result<Value> {
+    pub fn mul(&self, other: &Self, context: &mut Context) -> Result<Value> {
         Ok(match (self, other) {
             // Fast path:
             (Self::Integer(x), Self::Integer(y)) => Self::rational(f64::from(*x) * f64::from(*y)),
@@ -82,13 +86,13 @@ impl Value {
             }
 
             // Slow path:
-            (_, _) => match (self.to_numeric(ctx)?, other.to_numeric(ctx)?) {
+            (_, _) => match (self.to_numeric(context)?, other.to_numeric(context)?) {
                 (Numeric::Number(a), Numeric::Number(b)) => Self::rational(a * b),
                 (Numeric::BigInt(ref a), Numeric::BigInt(ref b)) => {
                     Self::bigint(a.as_inner().clone() * b.as_inner().clone())
                 }
                 (_, _) => {
-                    return ctx.throw_type_error(
+                    return context.throw_type_error(
                         "cannot mix BigInt and other types, use explicit conversions",
                     );
                 }
@@ -97,7 +101,7 @@ impl Value {
     }
 
     #[inline]
-    pub fn div(&self, other: &Self, ctx: &mut Context) -> Result<Value> {
+    pub fn div(&self, other: &Self, context: &mut Context) -> Result<Value> {
         Ok(match (self, other) {
             // Fast path:
             (Self::Integer(x), Self::Integer(y)) => Self::rational(f64::from(*x) / f64::from(*y)),
@@ -107,22 +111,22 @@ impl Value {
 
             (Self::BigInt(ref a), Self::BigInt(ref b)) => {
                 if *b.as_inner() == BigInt::from(0) {
-                    return ctx.throw_range_error("BigInt division by zero");
+                    return context.throw_range_error("BigInt division by zero");
                 }
                 Self::bigint(a.as_inner().clone() / b.as_inner().clone())
             }
 
             // Slow path:
-            (_, _) => match (self.to_numeric(ctx)?, other.to_numeric(ctx)?) {
+            (_, _) => match (self.to_numeric(context)?, other.to_numeric(context)?) {
                 (Numeric::Number(a), Numeric::Number(b)) => Self::rational(a / b),
                 (Numeric::BigInt(ref a), Numeric::BigInt(ref b)) => {
                     if *b.as_inner() == BigInt::from(0) {
-                        return ctx.throw_range_error("BigInt division by zero");
+                        return context.throw_range_error("BigInt division by zero");
                     }
                     Self::bigint(a.as_inner().clone() / b.as_inner().clone())
                 }
                 (_, _) => {
-                    return ctx.throw_type_error(
+                    return context.throw_type_error(
                         "cannot mix BigInt and other types, use explicit conversions",
                     );
                 }
@@ -131,7 +135,7 @@ impl Value {
     }
 
     #[inline]
-    pub fn rem(&self, other: &Self, ctx: &mut Context) -> Result<Value> {
+    pub fn rem(&self, other: &Self, context: &mut Context) -> Result<Value> {
         Ok(match (self, other) {
             // Fast path:
             (Self::Integer(x), Self::Integer(y)) => {
@@ -147,19 +151,19 @@ impl Value {
 
             (Self::BigInt(ref a), Self::BigInt(ref b)) => {
                 if *b.as_inner() == BigInt::from(0) {
-                    return ctx.throw_range_error("BigInt division by zero");
+                    return context.throw_range_error("BigInt division by zero");
                 }
                 Self::bigint(a.as_inner().clone() % b.as_inner().clone())
             }
 
             // Slow path:
-            (_, _) => match (self.to_numeric(ctx)?, other.to_numeric(ctx)?) {
+            (_, _) => match (self.to_numeric(context)?, other.to_numeric(context)?) {
                 (Numeric::Number(a), Numeric::Number(b)) => Self::rational(a % b),
                 (Numeric::BigInt(ref a), Numeric::BigInt(ref b)) => {
                     Self::bigint(a.as_inner().clone() % b.as_inner().clone())
                 }
                 (_, _) => {
-                    return ctx.throw_type_error(
+                    return context.throw_type_error(
                         "cannot mix BigInt and other types, use explicit conversions",
                     );
                 }
@@ -168,7 +172,7 @@ impl Value {
     }
 
     #[inline]
-    pub fn pow(&self, other: &Self, ctx: &mut Context) -> Result<Value> {
+    pub fn pow(&self, other: &Self, context: &mut Context) -> Result<Value> {
         Ok(match (self, other) {
             // Fast path:
             (Self::Integer(x), Self::Integer(y)) => Self::rational(f64::from(*x).powi(*y)),
@@ -180,20 +184,20 @@ impl Value {
                 a.as_inner()
                     .clone()
                     .pow(b)
-                    .map_err(|msg| ctx.construct_range_error(msg))?,
+                    .map_err(|msg| context.construct_range_error(msg))?,
             ),
 
             // Slow path:
-            (_, _) => match (self.to_numeric(ctx)?, other.to_numeric(ctx)?) {
+            (_, _) => match (self.to_numeric(context)?, other.to_numeric(context)?) {
                 (Numeric::Number(a), Numeric::Number(b)) => Self::rational(a.powf(b)),
                 (Numeric::BigInt(ref a), Numeric::BigInt(ref b)) => Self::bigint(
                     a.as_inner()
                         .clone()
                         .pow(b)
-                        .map_err(|msg| ctx.construct_range_error(msg))?,
+                        .map_err(|msg| context.construct_range_error(msg))?,
                 ),
                 (_, _) => {
-                    return ctx.throw_type_error(
+                    return context.throw_type_error(
                         "cannot mix BigInt and other types, use explicit conversions",
                     );
                 }
@@ -202,7 +206,7 @@ impl Value {
     }
 
     #[inline]
-    pub fn bitand(&self, other: &Self, ctx: &mut Context) -> Result<Value> {
+    pub fn bitand(&self, other: &Self, context: &mut Context) -> Result<Value> {
         Ok(match (self, other) {
             // Fast path:
             (Self::Integer(x), Self::Integer(y)) => Self::integer(x & y),
@@ -217,7 +221,7 @@ impl Value {
             }
 
             // Slow path:
-            (_, _) => match (self.to_numeric(ctx)?, other.to_numeric(ctx)?) {
+            (_, _) => match (self.to_numeric(context)?, other.to_numeric(context)?) {
                 (Numeric::Number(a), Numeric::Number(b)) => {
                     Self::integer(f64_to_int32(a) & f64_to_int32(b))
                 }
@@ -225,7 +229,7 @@ impl Value {
                     Self::bigint(a.as_inner().clone() & b.as_inner().clone())
                 }
                 (_, _) => {
-                    return ctx.throw_type_error(
+                    return context.throw_type_error(
                         "cannot mix BigInt and other types, use explicit conversions",
                     );
                 }
@@ -234,7 +238,7 @@ impl Value {
     }
 
     #[inline]
-    pub fn bitor(&self, other: &Self, ctx: &mut Context) -> Result<Value> {
+    pub fn bitor(&self, other: &Self, context: &mut Context) -> Result<Value> {
         Ok(match (self, other) {
             // Fast path:
             (Self::Integer(x), Self::Integer(y)) => Self::integer(x | y),
@@ -249,7 +253,7 @@ impl Value {
             }
 
             // Slow path:
-            (_, _) => match (self.to_numeric(ctx)?, other.to_numeric(ctx)?) {
+            (_, _) => match (self.to_numeric(context)?, other.to_numeric(context)?) {
                 (Numeric::Number(a), Numeric::Number(b)) => {
                     Self::integer(f64_to_int32(a) | f64_to_int32(b))
                 }
@@ -257,7 +261,7 @@ impl Value {
                     Self::bigint(a.as_inner().clone() | b.as_inner().clone())
                 }
                 (_, _) => {
-                    return ctx.throw_type_error(
+                    return context.throw_type_error(
                         "cannot mix BigInt and other types, use explicit conversions",
                     );
                 }
@@ -266,7 +270,7 @@ impl Value {
     }
 
     #[inline]
-    pub fn bitxor(&self, other: &Self, ctx: &mut Context) -> Result<Value> {
+    pub fn bitxor(&self, other: &Self, context: &mut Context) -> Result<Value> {
         Ok(match (self, other) {
             // Fast path:
             (Self::Integer(x), Self::Integer(y)) => Self::integer(x ^ y),
@@ -281,7 +285,7 @@ impl Value {
             }
 
             // Slow path:
-            (_, _) => match (self.to_numeric(ctx)?, other.to_numeric(ctx)?) {
+            (_, _) => match (self.to_numeric(context)?, other.to_numeric(context)?) {
                 (Numeric::Number(a), Numeric::Number(b)) => {
                     Self::integer(f64_to_int32(a) ^ f64_to_int32(b))
                 }
@@ -289,7 +293,7 @@ impl Value {
                     Self::bigint(a.as_inner().clone() ^ b.as_inner().clone())
                 }
                 (_, _) => {
-                    return ctx.throw_type_error(
+                    return context.throw_type_error(
                         "cannot mix BigInt and other types, use explicit conversions",
                     );
                 }
@@ -298,7 +302,7 @@ impl Value {
     }
 
     #[inline]
-    pub fn shl(&self, other: &Self, ctx: &mut Context) -> Result<Value> {
+    pub fn shl(&self, other: &Self, context: &mut Context) -> Result<Value> {
         Ok(match (self, other) {
             // Fast path:
             (Self::Integer(x), Self::Integer(y)) => Self::integer(x.wrapping_shl(*y as u32)),
@@ -316,11 +320,11 @@ impl Value {
                 a.as_inner()
                     .clone()
                     .shift_left(b.as_inner().clone())
-                    .map_err(|msg| ctx.construct_range_error(&msg))?,
+                    .map_err(|msg| context.construct_range_error(&msg))?,
             ),
 
             // Slow path:
-            (_, _) => match (self.to_numeric(ctx)?, other.to_numeric(ctx)?) {
+            (_, _) => match (self.to_numeric(context)?, other.to_numeric(context)?) {
                 (Numeric::Number(x), Numeric::Number(y)) => {
                     Self::integer(f64_to_int32(x).wrapping_shl(f64_to_uint32(y)))
                 }
@@ -328,10 +332,10 @@ impl Value {
                     x.as_inner()
                         .clone()
                         .shift_left(y.as_inner().clone())
-                        .map_err(|msg| ctx.construct_range_error(&msg))?,
+                        .map_err(|msg| context.construct_range_error(&msg))?,
                 ),
                 (_, _) => {
-                    return ctx.throw_type_error(
+                    return context.throw_type_error(
                         "cannot mix BigInt and other types, use explicit conversions",
                     );
                 }
@@ -340,7 +344,7 @@ impl Value {
     }
 
     #[inline]
-    pub fn shr(&self, other: &Self, ctx: &mut Context) -> Result<Value> {
+    pub fn shr(&self, other: &Self, context: &mut Context) -> Result<Value> {
         Ok(match (self, other) {
             // Fast path:
             (Self::Integer(x), Self::Integer(y)) => Self::integer(x.wrapping_shr(*y as u32)),
@@ -358,11 +362,11 @@ impl Value {
                 a.as_inner()
                     .clone()
                     .shift_right(b.as_inner().clone())
-                    .map_err(|msg| ctx.construct_range_error(&msg))?,
+                    .map_err(|msg| context.construct_range_error(&msg))?,
             ),
 
             // Slow path:
-            (_, _) => match (self.to_numeric(ctx)?, other.to_numeric(ctx)?) {
+            (_, _) => match (self.to_numeric(context)?, other.to_numeric(context)?) {
                 (Numeric::Number(x), Numeric::Number(y)) => {
                     Self::integer(f64_to_int32(x).wrapping_shr(f64_to_uint32(y)))
                 }
@@ -370,10 +374,10 @@ impl Value {
                     x.as_inner()
                         .clone()
                         .shift_right(y.as_inner().clone())
-                        .map_err(|msg| ctx.construct_range_error(&msg))?,
+                        .map_err(|msg| context.construct_range_error(&msg))?,
                 ),
                 (_, _) => {
-                    return ctx.throw_type_error(
+                    return context.throw_type_error(
                         "cannot mix BigInt and other types, use explicit conversions",
                     );
                 }
@@ -382,7 +386,7 @@ impl Value {
     }
 
     #[inline]
-    pub fn ushr(&self, other: &Self, ctx: &mut Context) -> Result<Value> {
+    pub fn ushr(&self, other: &Self, context: &mut Context) -> Result<Value> {
         Ok(match (self, other) {
             // Fast path:
             (Self::Integer(x), Self::Integer(y)) => {
@@ -399,16 +403,16 @@ impl Value {
             }
 
             // Slow path:
-            (_, _) => match (self.to_numeric(ctx)?, other.to_numeric(ctx)?) {
+            (_, _) => match (self.to_numeric(context)?, other.to_numeric(context)?) {
                 (Numeric::Number(x), Numeric::Number(y)) => {
                     Self::rational(f64_to_uint32(x).wrapping_shr(f64_to_uint32(y)))
                 }
                 (Numeric::BigInt(_), Numeric::BigInt(_)) => {
-                    return ctx
+                    return context
                         .throw_type_error("BigInts have no unsigned right shift, use >> instead");
                 }
                 (_, _) => {
-                    return ctx.throw_type_error(
+                    return context.throw_type_error(
                         "cannot mix BigInt and other types, use explicit conversions",
                     );
                 }
@@ -417,10 +421,10 @@ impl Value {
     }
 
     #[inline]
-    pub fn neg(&self, interpreter: &mut Context) -> Result<Value> {
+    pub fn neg(&self, context: &mut Context) -> Result<Value> {
         Ok(match *self {
             Self::Symbol(_) | Self::Undefined => Self::rational(NAN),
-            Self::Object(_) => Self::rational(match self.to_numeric_number(interpreter) {
+            Self::Object(_) => Self::rational(match self.to_numeric_number(context) {
                 Ok(num) => -num,
                 Err(_) => NAN,
             }),
@@ -462,7 +466,7 @@ impl Value {
         &self,
         other: &Self,
         left_first: bool,
-        ctx: &mut Context,
+        context: &mut Context,
     ) -> Result<AbstractRelation> {
         Ok(match (self, other) {
             // Fast path (for some common operations):
@@ -475,13 +479,13 @@ impl Value {
             // Slow path:
             (_, _) => {
                 let (px, py) = if left_first {
-                    let px = self.to_primitive(ctx, PreferredType::Number)?;
-                    let py = other.to_primitive(ctx, PreferredType::Number)?;
+                    let px = self.to_primitive(context, PreferredType::Number)?;
+                    let py = other.to_primitive(context, PreferredType::Number)?;
                     (px, py)
                 } else {
                     // NOTE: The order of evaluation needs to be reversed to preserve left to right evaluation.
-                    let py = other.to_primitive(ctx, PreferredType::Number)?;
-                    let px = self.to_primitive(ctx, PreferredType::Number)?;
+                    let py = other.to_primitive(context, PreferredType::Number)?;
+                    let px = self.to_primitive(context, PreferredType::Number)?;
                     (px, py)
                 };
 
@@ -514,7 +518,7 @@ impl Value {
                             AbstractRelation::Undefined
                         }
                     }
-                    (px, py) => match (px.to_numeric(ctx)?, py.to_numeric(ctx)?) {
+                    (px, py) => match (px.to_numeric(context)?, py.to_numeric(context)?) {
                         (Numeric::Number(x), Numeric::Number(y)) => Number::less_than(x, y),
                         (Numeric::BigInt(ref x), Numeric::BigInt(ref y)) => (x < y).into(),
                         (Numeric::BigInt(ref x), Numeric::Number(y)) => {
@@ -561,8 +565,8 @@ impl Value {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Less_than
     /// [spec]: https://tc39.es/ecma262/#sec-relational-operators-runtime-semantics-evaluation
     #[inline]
-    pub fn lt(&self, other: &Self, ctx: &mut Context) -> Result<bool> {
-        match self.abstract_relation(other, true, ctx)? {
+    pub fn lt(&self, other: &Self, context: &mut Context) -> Result<bool> {
+        match self.abstract_relation(other, true, context)? {
             AbstractRelation::True => Ok(true),
             AbstractRelation::False | AbstractRelation::Undefined => Ok(false),
         }
@@ -578,8 +582,8 @@ impl Value {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Less_than_or_equal
     /// [spec]: https://tc39.es/ecma262/#sec-relational-operators-runtime-semantics-evaluation
     #[inline]
-    pub fn le(&self, other: &Self, ctx: &mut Context) -> Result<bool> {
-        match other.abstract_relation(self, false, ctx)? {
+    pub fn le(&self, other: &Self, context: &mut Context) -> Result<bool> {
+        match other.abstract_relation(self, false, context)? {
             AbstractRelation::False => Ok(true),
             AbstractRelation::True | AbstractRelation::Undefined => Ok(false),
         }
@@ -595,8 +599,8 @@ impl Value {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Greater_than
     /// [spec]: https://tc39.es/ecma262/#sec-relational-operators-runtime-semantics-evaluation
     #[inline]
-    pub fn gt(&self, other: &Self, ctx: &mut Context) -> Result<bool> {
-        match other.abstract_relation(self, false, ctx)? {
+    pub fn gt(&self, other: &Self, context: &mut Context) -> Result<bool> {
+        match other.abstract_relation(self, false, context)? {
             AbstractRelation::True => Ok(true),
             AbstractRelation::False | AbstractRelation::Undefined => Ok(false),
         }
@@ -612,8 +616,8 @@ impl Value {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Greater_than_or_equal
     /// [spec]: https://tc39.es/ecma262/#sec-relational-operators-runtime-semantics-evaluation
     #[inline]
-    pub fn ge(&self, other: &Self, ctx: &mut Context) -> Result<bool> {
-        match self.abstract_relation(other, true, ctx)? {
+    pub fn ge(&self, other: &Self, context: &mut Context) -> Result<bool> {
+        match self.abstract_relation(other, true, context)? {
             AbstractRelation::False => Ok(true),
             AbstractRelation::True | AbstractRelation::Undefined => Ok(false),
         }

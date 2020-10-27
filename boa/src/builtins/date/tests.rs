@@ -6,8 +6,8 @@ use chrono::prelude::*;
 // NOTE: Javascript Uses 0-based months, where chrono uses 1-based months. Many of the assertions look wrong because of
 // this.
 
-fn forward_dt_utc(engine: &mut Context, src: &str) -> Option<NaiveDateTime> {
-    let date_time = if let Ok(v) = forward_val(engine, src) {
+fn forward_dt_utc(context: &mut Context, src: &str) -> Option<NaiveDateTime> {
+    let date_time = if let Ok(v) = forward_val(context, src) {
         v
     } else {
         panic!("expected success")
@@ -24,8 +24,8 @@ fn forward_dt_utc(engine: &mut Context, src: &str) -> Option<NaiveDateTime> {
     }
 }
 
-fn forward_dt_local(engine: &mut Context, src: &str) -> Option<NaiveDateTime> {
-    let date_time = forward_dt_utc(engine, src);
+fn forward_dt_local(context: &mut Context, src: &str) -> Option<NaiveDateTime> {
+    let date_time = forward_dt_utc(context, src);
 
     // The timestamp is converted to UTC for internal representation
     date_time.map(|utc| {
@@ -53,10 +53,10 @@ fn date_display() {
 
 #[test]
 fn date_this_time_value() {
-    let mut engine = Context::new();
+    let mut context = Context::new();
 
     let error = forward_val(
-        &mut engine,
+        &mut context,
         "({toString: Date.prototype.toString}).toString()",
     )
     .expect_err("Expected error");
@@ -72,13 +72,13 @@ fn date_this_time_value() {
 
 #[test]
 fn date_call() -> Result<(), Box<dyn std::error::Error>> {
-    let mut engine = Context::new();
+    let mut context = Context::new();
 
-    let dt1 = forward(&mut engine, "Date()");
+    let dt1 = forward(&mut context, "Date()");
 
     std::thread::sleep(std::time::Duration::from_millis(1));
 
-    let dt2 = forward(&mut engine, "Date()");
+    let dt2 = forward(&mut context, "Date()");
 
     assert_ne!(dt1, dt2);
     Ok(())
@@ -86,13 +86,13 @@ fn date_call() -> Result<(), Box<dyn std::error::Error>> {
 
 #[test]
 fn date_ctor_call() -> Result<(), Box<dyn std::error::Error>> {
-    let mut engine = Context::new();
+    let mut context = Context::new();
 
-    let dt1 = forward_dt_local(&mut engine, "new Date()");
+    let dt1 = forward_dt_local(&mut context, "new Date()");
 
     std::thread::sleep(std::time::Duration::from_millis(1));
 
-    let dt2 = forward_dt_local(&mut engine, "new Date()");
+    let dt2 = forward_dt_local(&mut context, "new Date()");
 
     assert_ne!(dt1, dt2);
     Ok(())
@@ -100,9 +100,9 @@ fn date_ctor_call() -> Result<(), Box<dyn std::error::Error>> {
 
 #[test]
 fn date_ctor_call_string() -> Result<(), Box<dyn std::error::Error>> {
-    let mut engine = Context::new();
+    let mut context = Context::new();
 
-    let date_time = forward_dt_utc(&mut engine, "new Date('2020-06-08T09:16:15.779-06:30')");
+    let date_time = forward_dt_utc(&mut context, "new Date('2020-06-08T09:16:15.779-06:30')");
 
     // Internal date is expressed as UTC
     assert_eq!(
@@ -114,18 +114,18 @@ fn date_ctor_call_string() -> Result<(), Box<dyn std::error::Error>> {
 
 #[test]
 fn date_ctor_call_string_invalid() -> Result<(), Box<dyn std::error::Error>> {
-    let mut engine = Context::new();
+    let mut context = Context::new();
 
-    let date_time = forward_dt_local(&mut engine, "new Date('nope')");
+    let date_time = forward_dt_local(&mut context, "new Date('nope')");
     assert_eq!(None, date_time);
     Ok(())
 }
 
 #[test]
 fn date_ctor_call_number() -> Result<(), Box<dyn std::error::Error>> {
-    let mut engine = Context::new();
+    let mut context = Context::new();
 
-    let date_time = forward_dt_utc(&mut engine, "new Date(1594199775779)");
+    let date_time = forward_dt_utc(&mut context, "new Date(1594199775779)");
     assert_eq!(
         Some(NaiveDate::from_ymd(2020, 07, 08).and_hms_milli(09, 16, 15, 779)),
         date_time
@@ -135,9 +135,9 @@ fn date_ctor_call_number() -> Result<(), Box<dyn std::error::Error>> {
 
 #[test]
 fn date_ctor_call_date() -> Result<(), Box<dyn std::error::Error>> {
-    let mut engine = Context::new();
+    let mut context = Context::new();
 
-    let date_time = forward_dt_utc(&mut engine, "new Date(new Date(1594199775779))");
+    let date_time = forward_dt_utc(&mut context, "new Date(new Date(1594199775779))");
 
     assert_eq!(
         Some(NaiveDate::from_ymd(2020, 07, 08).and_hms_milli(09, 16, 15, 779)),
@@ -148,9 +148,9 @@ fn date_ctor_call_date() -> Result<(), Box<dyn std::error::Error>> {
 
 #[test]
 fn date_ctor_call_multiple() -> Result<(), Box<dyn std::error::Error>> {
-    let mut engine = Context::new();
+    let mut context = Context::new();
 
-    let date_time = forward_dt_local(&mut engine, "new Date(2020, 06, 08, 09, 16, 15, 779)");
+    let date_time = forward_dt_local(&mut context, "new Date(2020, 06, 08, 09, 16, 15, 779)");
 
     assert_eq!(
         Some(NaiveDate::from_ymd(2020, 07, 08).and_hms_milli(09, 16, 15, 779)),
@@ -161,9 +161,9 @@ fn date_ctor_call_multiple() -> Result<(), Box<dyn std::error::Error>> {
 
 #[test]
 fn date_ctor_call_multiple_90s() -> Result<(), Box<dyn std::error::Error>> {
-    let mut engine = Context::new();
+    let mut context = Context::new();
 
-    let date_time = forward_dt_local(&mut engine, "new Date(99, 06, 08, 09, 16, 15, 779)");
+    let date_time = forward_dt_local(&mut context, "new Date(99, 06, 08, 09, 16, 15, 779)");
 
     assert_eq!(
         Some(NaiveDate::from_ymd(1999, 07, 08).and_hms_milli(09, 16, 15, 779)),
@@ -175,8 +175,8 @@ fn date_ctor_call_multiple_90s() -> Result<(), Box<dyn std::error::Error>> {
 #[test]
 fn date_ctor_call_multiple_nan() -> Result<(), Box<dyn std::error::Error>> {
     fn check(src: &str) {
-        let mut engine = Context::new();
-        let date_time = forward_dt_local(&mut engine, src);
+        let mut context = Context::new();
+        let date_time = forward_dt_local(&mut context, src);
         assert_eq!(None, date_time);
     }
 
@@ -193,14 +193,14 @@ fn date_ctor_call_multiple_nan() -> Result<(), Box<dyn std::error::Error>> {
 
 #[test]
 fn date_ctor_now_call() -> Result<(), Box<dyn std::error::Error>> {
-    let mut engine = Context::new();
+    let mut context = Context::new();
 
-    let date_time = forward(&mut engine, "Date.now()");
+    let date_time = forward(&mut context, "Date.now()");
     let dt1 = u64::from_str_radix(&date_time, 10)?;
 
     std::thread::sleep(std::time::Duration::from_millis(1));
 
-    let date_time = forward(&mut engine, "Date.now()");
+    let date_time = forward(&mut context, "Date.now()");
     let dt2 = u64::from_str_radix(&date_time, 10)?;
 
     assert_ne!(dt1, dt2);
@@ -209,9 +209,9 @@ fn date_ctor_now_call() -> Result<(), Box<dyn std::error::Error>> {
 
 #[test]
 fn date_ctor_parse_call() -> Result<(), Box<dyn std::error::Error>> {
-    let mut engine = Context::new();
+    let mut context = Context::new();
 
-    let date_time = forward_val(&mut engine, "Date.parse('2020-06-08T09:16:15.779-07:30')");
+    let date_time = forward_val(&mut context, "Date.parse('2020-06-08T09:16:15.779-07:30')");
 
     assert_eq!(Ok(Value::Rational(1591634775779f64)), date_time);
     Ok(())
@@ -219,9 +219,9 @@ fn date_ctor_parse_call() -> Result<(), Box<dyn std::error::Error>> {
 
 #[test]
 fn date_ctor_utc_call() -> Result<(), Box<dyn std::error::Error>> {
-    let mut engine = Context::new();
+    let mut context = Context::new();
 
-    let date_time = forward_val(&mut engine, "Date.UTC(2020, 06, 08, 09, 16, 15, 779)");
+    let date_time = forward_val(&mut context, "Date.UTC(2020, 06, 08, 09, 16, 15, 779)");
 
     assert_eq!(Ok(Value::Rational(1594199775779f64)), date_time);
     Ok(())
@@ -230,8 +230,8 @@ fn date_ctor_utc_call() -> Result<(), Box<dyn std::error::Error>> {
 #[test]
 fn date_ctor_utc_call_nan() -> Result<(), Box<dyn std::error::Error>> {
     fn check(src: &str) {
-        let mut engine = Context::new();
-        let date_time = forward_val(&mut engine, src).expect("Expected Success");
+        let mut context = Context::new();
+        let date_time = forward_val(&mut context, src).expect("Expected Success");
         assert_eq!(Value::Rational(f64::NAN), date_time);
     }
 
@@ -248,15 +248,15 @@ fn date_ctor_utc_call_nan() -> Result<(), Box<dyn std::error::Error>> {
 
 #[test]
 fn date_proto_get_date_call() -> Result<(), Box<dyn std::error::Error>> {
-    let mut engine = Context::new();
+    let mut context = Context::new();
 
     let actual = forward_val(
-        &mut engine,
+        &mut context,
         "new Date(2020, 06, 08, 09, 16, 15, 779).getDate()",
     );
     assert_eq!(Ok(Value::Rational(08f64)), actual);
 
-    let actual = forward_val(&mut engine, "new Date(1/0).getDate()");
+    let actual = forward_val(&mut context, "new Date(1/0).getDate()");
     assert_eq!(Ok(Value::Rational(f64::NAN)), actual);
 
     Ok(())
@@ -264,90 +264,90 @@ fn date_proto_get_date_call() -> Result<(), Box<dyn std::error::Error>> {
 
 #[test]
 fn date_proto_get_day_call() -> Result<(), Box<dyn std::error::Error>> {
-    let mut engine = Context::new();
+    let mut context = Context::new();
 
     let actual = forward_val(
-        &mut engine,
+        &mut context,
         "new Date(2020, 06, 08, 09, 16, 15, 779).getDay()",
     );
     assert_eq!(Ok(Value::Rational(3f64)), actual);
 
-    let actual = forward_val(&mut engine, "new Date(1/0).getDay()");
+    let actual = forward_val(&mut context, "new Date(1/0).getDay()");
     assert_eq!(Ok(Value::Rational(f64::NAN)), actual);
     Ok(())
 }
 
 #[test]
 fn date_proto_get_full_year_call() -> Result<(), Box<dyn std::error::Error>> {
-    let mut engine = Context::new();
+    let mut context = Context::new();
 
     let actual = forward_val(
-        &mut engine,
+        &mut context,
         "new Date(2020, 06, 08, 09, 16, 15, 779).getFullYear()",
     );
     assert_eq!(Ok(Value::Rational(2020f64)), actual);
 
-    let actual = forward_val(&mut engine, "new Date(1/0).getFullYear()");
+    let actual = forward_val(&mut context, "new Date(1/0).getFullYear()");
     assert_eq!(Ok(Value::Rational(f64::NAN)), actual);
     Ok(())
 }
 
 #[test]
 fn date_proto_get_hours_call() -> Result<(), Box<dyn std::error::Error>> {
-    let mut engine = Context::new();
+    let mut context = Context::new();
 
     let actual = forward_val(
-        &mut engine,
+        &mut context,
         "new Date(2020, 06, 08, 09, 16, 15, 779).getHours()",
     );
     assert_eq!(Ok(Value::Rational(09f64)), actual);
 
-    let actual = forward_val(&mut engine, "new Date(1/0).getHours()");
+    let actual = forward_val(&mut context, "new Date(1/0).getHours()");
     assert_eq!(Ok(Value::Rational(f64::NAN)), actual);
     Ok(())
 }
 
 #[test]
 fn date_proto_get_milliseconds_call() -> Result<(), Box<dyn std::error::Error>> {
-    let mut engine = Context::new();
+    let mut context = Context::new();
 
     let actual = forward_val(
-        &mut engine,
+        &mut context,
         "new Date(2020, 06, 08, 09, 16, 15, 779).getMilliseconds()",
     );
     assert_eq!(Ok(Value::Rational(779f64)), actual);
 
-    let actual = forward_val(&mut engine, "new Date(1/0).getMilliseconds()");
+    let actual = forward_val(&mut context, "new Date(1/0).getMilliseconds()");
     assert_eq!(Ok(Value::Rational(f64::NAN)), actual);
     Ok(())
 }
 
 #[test]
 fn date_proto_get_minutes_call() -> Result<(), Box<dyn std::error::Error>> {
-    let mut engine = Context::new();
+    let mut context = Context::new();
 
     let actual = forward_val(
-        &mut engine,
+        &mut context,
         "new Date(2020, 06, 08, 09, 16, 15, 779).getMinutes()",
     );
     assert_eq!(Ok(Value::Rational(16f64)), actual);
 
-    let actual = forward_val(&mut engine, "new Date(1/0).getMinutes()");
+    let actual = forward_val(&mut context, "new Date(1/0).getMinutes()");
     assert_eq!(Ok(Value::Rational(f64::NAN)), actual);
     Ok(())
 }
 
 #[test]
 fn date_proto_get_month() -> Result<(), Box<dyn std::error::Error>> {
-    let mut engine = Context::new();
+    let mut context = Context::new();
 
     let actual = forward_val(
-        &mut engine,
+        &mut context,
         "new Date(2020, 06, 08, 09, 16, 15, 779).getMonth()",
     );
     assert_eq!(Ok(Value::Rational(06f64)), actual);
 
-    let actual = forward_val(&mut engine, "new Date(1/0).getMonth()");
+    let actual = forward_val(&mut context, "new Date(1/0).getMonth()");
     assert_eq!(Ok(Value::Rational(f64::NAN)), actual);
 
     Ok(())
@@ -355,25 +355,25 @@ fn date_proto_get_month() -> Result<(), Box<dyn std::error::Error>> {
 
 #[test]
 fn date_proto_get_seconds() -> Result<(), Box<dyn std::error::Error>> {
-    let mut engine = Context::new();
+    let mut context = Context::new();
 
     let actual = forward_val(
-        &mut engine,
+        &mut context,
         "new Date(2020, 06, 08, 09, 16, 15, 779).getSeconds()",
     );
     assert_eq!(Ok(Value::Rational(15f64)), actual);
 
-    let actual = forward_val(&mut engine, "new Date(1/0).getSeconds()");
+    let actual = forward_val(&mut context, "new Date(1/0).getSeconds()");
     assert_eq!(Ok(Value::Rational(f64::NAN)), actual);
     Ok(())
 }
 
 #[test]
 fn date_proto_get_time() -> Result<(), Box<dyn std::error::Error>> {
-    let mut engine = Context::new();
+    let mut context = Context::new();
 
     let actual = forward_val(
-        &mut engine,
+        &mut context,
         "new Date(2020, 06, 08, 09, 16, 15, 779).getTime()",
     );
 
@@ -383,32 +383,32 @@ fn date_proto_get_time() -> Result<(), Box<dyn std::error::Error>> {
         .timestamp_millis() as f64;
     assert_eq!(Ok(Value::Rational(ts)), actual);
 
-    let actual = forward_val(&mut engine, "new Date(1/0).getTime()");
+    let actual = forward_val(&mut context, "new Date(1/0).getTime()");
     assert_eq!(Ok(Value::Rational(f64::NAN)), actual);
     Ok(())
 }
 
 #[test]
 fn date_proto_get_year() -> Result<(), Box<dyn std::error::Error>> {
-    let mut engine = Context::new();
+    let mut context = Context::new();
 
     let actual = forward_val(
-        &mut engine,
+        &mut context,
         "new Date(2020, 06, 08, 09, 16, 15, 779).getYear()",
     );
     assert_eq!(Ok(Value::Rational(120f64)), actual);
 
-    let actual = forward_val(&mut engine, "new Date(1/0).getYear()");
+    let actual = forward_val(&mut context, "new Date(1/0).getYear()");
     assert_eq!(Ok(Value::Rational(f64::NAN)), actual);
     Ok(())
 }
 
 #[test]
 fn date_proto_get_timezone_offset() -> Result<(), Box<dyn std::error::Error>> {
-    let mut engine = Context::new();
+    let mut context = Context::new();
 
     let actual = forward_val(
-        &mut engine,
+        &mut context,
         "new Date('August 19, 1975 23:15:30 GMT+07:00').getTimezoneOffset() === new Date('August 19, 1975 23:15:30 GMT-02:00').getTimezoneOffset()",
     );
 
@@ -416,7 +416,7 @@ fn date_proto_get_timezone_offset() -> Result<(), Box<dyn std::error::Error>> {
     assert_eq!(Ok(Value::Boolean(true)), actual);
 
     let actual = forward_val(
-        &mut engine,
+        &mut context,
         "new Date('August 19, 1975 23:15:30 GMT+07:00').getTimezoneOffset()",
     );
 
@@ -426,7 +426,7 @@ fn date_proto_get_timezone_offset() -> Result<(), Box<dyn std::error::Error>> {
     assert_eq!(Ok(Value::Rational(offset_minutes)), actual);
 
     let actual = forward_val(
-        &mut engine,
+        &mut context,
         "new Date(1/0, 06, 08, 09, 16, 15, 779).getTimezoneOffset()",
     );
     assert_eq!(Ok(Value::Rational(offset_minutes)), actual);
@@ -435,15 +435,15 @@ fn date_proto_get_timezone_offset() -> Result<(), Box<dyn std::error::Error>> {
 
 #[test]
 fn date_proto_get_utc_date_call() -> Result<(), Box<dyn std::error::Error>> {
-    let mut engine = Context::new();
+    let mut context = Context::new();
 
     let actual = forward_val(
-        &mut engine,
+        &mut context,
         "new Date(Date.UTC(2020, 06, 08, 09, 16, 15, 779)).getUTCDate()",
     );
     assert_eq!(Ok(Value::Rational(08f64)), actual);
 
-    let actual = forward_val(&mut engine, "new Date(1/0).getUTCDate()");
+    let actual = forward_val(&mut context, "new Date(1/0).getUTCDate()");
     assert_eq!(Ok(Value::Rational(f64::NAN)), actual);
 
     Ok(())
@@ -451,90 +451,90 @@ fn date_proto_get_utc_date_call() -> Result<(), Box<dyn std::error::Error>> {
 
 #[test]
 fn date_proto_get_utc_day_call() -> Result<(), Box<dyn std::error::Error>> {
-    let mut engine = Context::new();
+    let mut context = Context::new();
 
     let actual = forward_val(
-        &mut engine,
+        &mut context,
         "new Date(Date.UTC(2020, 06, 08, 09, 16, 15, 779)).getUTCDay()",
     );
     assert_eq!(Ok(Value::Rational(3f64)), actual);
 
-    let actual = forward_val(&mut engine, "new Date(1/0).getUTCDay()");
+    let actual = forward_val(&mut context, "new Date(1/0).getUTCDay()");
     assert_eq!(Ok(Value::Rational(f64::NAN)), actual);
     Ok(())
 }
 
 #[test]
 fn date_proto_get_utc_full_year_call() -> Result<(), Box<dyn std::error::Error>> {
-    let mut engine = Context::new();
+    let mut context = Context::new();
 
     let actual = forward_val(
-        &mut engine,
+        &mut context,
         "new Date(Date.UTC(2020, 06, 08, 09, 16, 15, 779)).getUTCFullYear()",
     );
     assert_eq!(Ok(Value::Rational(2020f64)), actual);
 
-    let actual = forward_val(&mut engine, "new Date(1/0).getUTCFullYear()");
+    let actual = forward_val(&mut context, "new Date(1/0).getUTCFullYear()");
     assert_eq!(Ok(Value::Rational(f64::NAN)), actual);
     Ok(())
 }
 
 #[test]
 fn date_proto_get_utc_hours_call() -> Result<(), Box<dyn std::error::Error>> {
-    let mut engine = Context::new();
+    let mut context = Context::new();
 
     let actual = forward_val(
-        &mut engine,
+        &mut context,
         "new Date(Date.UTC(2020, 06, 08, 09, 16, 15, 779)).getUTCHours()",
     );
     assert_eq!(Ok(Value::Rational(09f64)), actual);
 
-    let actual = forward_val(&mut engine, "new Date(1/0).getUTCHours()");
+    let actual = forward_val(&mut context, "new Date(1/0).getUTCHours()");
     assert_eq!(Ok(Value::Rational(f64::NAN)), actual);
     Ok(())
 }
 
 #[test]
 fn date_proto_get_utc_milliseconds_call() -> Result<(), Box<dyn std::error::Error>> {
-    let mut engine = Context::new();
+    let mut context = Context::new();
 
     let actual = forward_val(
-        &mut engine,
+        &mut context,
         "new Date(Date.UTC(2020, 06, 08, 09, 16, 15, 779)).getUTCMilliseconds()",
     );
     assert_eq!(Ok(Value::Rational(779f64)), actual);
 
-    let actual = forward_val(&mut engine, "new Date(1/0).getUTCMilliseconds()");
+    let actual = forward_val(&mut context, "new Date(1/0).getUTCMilliseconds()");
     assert_eq!(Ok(Value::Rational(f64::NAN)), actual);
     Ok(())
 }
 
 #[test]
 fn date_proto_get_utc_minutes_call() -> Result<(), Box<dyn std::error::Error>> {
-    let mut engine = Context::new();
+    let mut context = Context::new();
 
     let actual = forward_val(
-        &mut engine,
+        &mut context,
         "new Date(Date.UTC(2020, 06, 08, 09, 16, 15, 779)).getUTCMinutes()",
     );
     assert_eq!(Ok(Value::Rational(16f64)), actual);
 
-    let actual = forward_val(&mut engine, "new Date(1/0).getUTCMinutes()");
+    let actual = forward_val(&mut context, "new Date(1/0).getUTCMinutes()");
     assert_eq!(Ok(Value::Rational(f64::NAN)), actual);
     Ok(())
 }
 
 #[test]
 fn date_proto_get_utc_month() -> Result<(), Box<dyn std::error::Error>> {
-    let mut engine = Context::new();
+    let mut context = Context::new();
 
     let actual = forward_val(
-        &mut engine,
+        &mut context,
         "new Date(Date.UTC(2020, 06, 08, 09, 16, 15, 779)).getUTCMonth()",
     );
     assert_eq!(Ok(Value::Rational(06f64)), actual);
 
-    let actual = forward_val(&mut engine, "new Date(1/0).getUTCMonth()");
+    let actual = forward_val(&mut context, "new Date(1/0).getUTCMonth()");
     assert_eq!(Ok(Value::Rational(f64::NAN)), actual);
 
     Ok(())
@@ -542,25 +542,25 @@ fn date_proto_get_utc_month() -> Result<(), Box<dyn std::error::Error>> {
 
 #[test]
 fn date_proto_get_utc_seconds() -> Result<(), Box<dyn std::error::Error>> {
-    let mut engine = Context::new();
+    let mut context = Context::new();
 
     let actual = forward_val(
-        &mut engine,
+        &mut context,
         "new Date(Date.UTC(2020, 06, 08, 09, 16, 15, 779)).getUTCSeconds()",
     );
     assert_eq!(Ok(Value::Rational(15f64)), actual);
 
-    let actual = forward_val(&mut engine, "new Date(1/0).getUTCSeconds()");
+    let actual = forward_val(&mut context, "new Date(1/0).getUTCSeconds()");
     assert_eq!(Ok(Value::Rational(f64::NAN)), actual);
     Ok(())
 }
 
 #[test]
 fn date_proto_set_date() -> Result<(), Box<dyn std::error::Error>> {
-    let mut engine = Context::new();
+    let mut context = Context::new();
 
     let actual = forward_dt_local(
-        &mut engine,
+        &mut context,
         "let dt = new Date(2020, 06, 08, 09, 16, 15, 779); dt.setDate(21); dt",
     );
     assert_eq!(
@@ -570,7 +570,7 @@ fn date_proto_set_date() -> Result<(), Box<dyn std::error::Error>> {
 
     // Date wraps to previous month for 0.
     let actual = forward_dt_local(
-        &mut engine,
+        &mut context,
         "dt = new Date(2020, 06, 08, 09, 16, 15, 779); dt.setDate(0); dt",
     );
     assert_eq!(
@@ -579,7 +579,7 @@ fn date_proto_set_date() -> Result<(), Box<dyn std::error::Error>> {
     );
 
     let actual = forward_dt_local(
-        &mut engine,
+        &mut context,
         "dt = new Date(2020, 06, 08, 09, 16, 15, 779); dt.setDate(1/0); dt",
     );
     assert_eq!(None, actual);
@@ -589,10 +589,10 @@ fn date_proto_set_date() -> Result<(), Box<dyn std::error::Error>> {
 
 #[test]
 fn date_proto_set_full_year() -> Result<(), Box<dyn std::error::Error>> {
-    let mut engine = Context::new();
+    let mut context = Context::new();
 
     let actual = forward_dt_local(
-        &mut engine,
+        &mut context,
         "let dt = new Date(2020, 06, 08, 09, 16, 15, 779); dt.setFullYear(2012); dt",
     );
     assert_eq!(
@@ -601,7 +601,7 @@ fn date_proto_set_full_year() -> Result<(), Box<dyn std::error::Error>> {
     );
 
     let actual = forward_dt_local(
-        &mut engine,
+        &mut context,
         "dt = new Date(2020, 06, 08, 09, 16, 15, 779); dt.setFullYear(2012, 8); dt",
     );
     assert_eq!(
@@ -610,7 +610,7 @@ fn date_proto_set_full_year() -> Result<(), Box<dyn std::error::Error>> {
     );
 
     let actual = forward_dt_local(
-        &mut engine,
+        &mut context,
         "dt = new Date(2020, 06, 08, 09, 16, 15, 779); dt.setFullYear(2012, 8, 10); dt",
     );
     assert_eq!(
@@ -621,7 +621,7 @@ fn date_proto_set_full_year() -> Result<(), Box<dyn std::error::Error>> {
     // Out-of-bounds
 
     let actual = forward_dt_local(
-        &mut engine,
+        &mut context,
         "dt = new Date(2020, 07, 08, 09, 16, 15, 779); dt.setFullYear(2012, 35); dt",
     );
     assert_eq!(
@@ -630,7 +630,7 @@ fn date_proto_set_full_year() -> Result<(), Box<dyn std::error::Error>> {
     );
 
     let actual = forward_dt_local(
-        &mut engine,
+        &mut context,
         "dt = new Date(2020, 07, 08, 09, 16, 15, 779); dt.setFullYear(2012, -35); dt",
     );
     assert_eq!(
@@ -639,7 +639,7 @@ fn date_proto_set_full_year() -> Result<(), Box<dyn std::error::Error>> {
     );
 
     let actual = forward_dt_local(
-        &mut engine,
+        &mut context,
         "dt = new Date(2020, 07, 08, 09, 16, 15, 779); dt.setFullYear(2012, 9, 950); dt",
     );
     assert_eq!(
@@ -648,7 +648,7 @@ fn date_proto_set_full_year() -> Result<(), Box<dyn std::error::Error>> {
     );
 
     let actual = forward_dt_local(
-        &mut engine,
+        &mut context,
         "dt = new Date(2020, 07, 08, 09, 16, 15, 779); dt.setFullYear(2012, 9, -950); dt",
     );
     assert_eq!(
@@ -661,10 +661,10 @@ fn date_proto_set_full_year() -> Result<(), Box<dyn std::error::Error>> {
 
 #[test]
 fn date_proto_set_hours() -> Result<(), Box<dyn std::error::Error>> {
-    let mut engine = Context::new();
+    let mut context = Context::new();
 
     let actual = forward_dt_local(
-        &mut engine,
+        &mut context,
         "let dt = new Date(2020, 06, 08, 09, 16, 15, 779); dt.setHours(11); dt",
     );
     assert_eq!(
@@ -673,7 +673,7 @@ fn date_proto_set_hours() -> Result<(), Box<dyn std::error::Error>> {
     );
 
     let actual = forward_dt_local(
-        &mut engine,
+        &mut context,
         "dt = new Date(2020, 06, 08, 09, 16, 15, 779); dt.setHours(11, 35); dt",
     );
     assert_eq!(
@@ -682,7 +682,7 @@ fn date_proto_set_hours() -> Result<(), Box<dyn std::error::Error>> {
     );
 
     let actual = forward_dt_local(
-        &mut engine,
+        &mut context,
         "dt = new Date(2020, 06, 08, 09, 16, 15, 779); dt.setHours(11, 35, 23); dt",
     );
     assert_eq!(
@@ -691,7 +691,7 @@ fn date_proto_set_hours() -> Result<(), Box<dyn std::error::Error>> {
     );
 
     let actual = forward_dt_local(
-        &mut engine,
+        &mut context,
         "dt = new Date(2020, 06, 08, 09, 16, 15, 779); dt.setHours(11, 35, 23, 537); dt",
     );
     assert_eq!(
@@ -702,7 +702,7 @@ fn date_proto_set_hours() -> Result<(), Box<dyn std::error::Error>> {
     // Out-of-bounds
 
     let actual = forward_dt_local(
-        &mut engine,
+        &mut context,
         "dt = new Date(2020, 06, 08, 09, 16, 15, 779); dt.setHours(10000, 20000, 30000, 40123); dt",
     );
     assert_eq!(
@@ -715,10 +715,10 @@ fn date_proto_set_hours() -> Result<(), Box<dyn std::error::Error>> {
 
 #[test]
 fn date_proto_set_milliseconds() -> Result<(), Box<dyn std::error::Error>> {
-    let mut engine = Context::new();
+    let mut context = Context::new();
 
     let actual = forward_dt_local(
-        &mut engine,
+        &mut context,
         "let dt = new Date(2020, 06, 08, 09, 16, 15, 779); dt.setMilliseconds(597); dt",
     );
     assert_eq!(
@@ -730,7 +730,7 @@ fn date_proto_set_milliseconds() -> Result<(), Box<dyn std::error::Error>> {
     // Thorough tests are done by setHours
 
     let actual = forward_dt_local(
-        &mut engine,
+        &mut context,
         "dt = new Date(2020, 06, 08, 09, 16, 15, 779); dt.setMilliseconds(40123); dt",
     );
     assert_eq!(
@@ -743,10 +743,10 @@ fn date_proto_set_milliseconds() -> Result<(), Box<dyn std::error::Error>> {
 
 #[test]
 fn date_proto_set_minutes() -> Result<(), Box<dyn std::error::Error>> {
-    let mut engine = Context::new();
+    let mut context = Context::new();
 
     let actual = forward_dt_local(
-        &mut engine,
+        &mut context,
         "let dt = new Date(2020, 06, 08, 09, 16, 15, 779); dt.setMinutes(11); dt",
     );
     assert_eq!(
@@ -755,7 +755,7 @@ fn date_proto_set_minutes() -> Result<(), Box<dyn std::error::Error>> {
     );
 
     let actual = forward_dt_local(
-        &mut engine,
+        &mut context,
         "dt = new Date(2020, 06, 08, 09, 16, 15, 779); dt.setMinutes(11, 35); dt",
     );
     assert_eq!(
@@ -764,7 +764,7 @@ fn date_proto_set_minutes() -> Result<(), Box<dyn std::error::Error>> {
     );
 
     let actual = forward_dt_local(
-        &mut engine,
+        &mut context,
         "dt = new Date(2020, 06, 08, 09, 16, 15, 779); dt.setMinutes(11, 35, 537); dt",
     );
     assert_eq!(
@@ -776,7 +776,7 @@ fn date_proto_set_minutes() -> Result<(), Box<dyn std::error::Error>> {
     // Thorough tests are done by setHours
 
     let actual = forward_dt_local(
-        &mut engine,
+        &mut context,
         "dt = new Date(2020, 06, 08, 09, 16, 15, 779); dt.setMinutes(600000, 30000, 40123); dt",
     );
     assert_eq!(
@@ -789,10 +789,10 @@ fn date_proto_set_minutes() -> Result<(), Box<dyn std::error::Error>> {
 
 #[test]
 fn date_proto_set_month() -> Result<(), Box<dyn std::error::Error>> {
-    let mut engine = Context::new();
+    let mut context = Context::new();
 
     let actual = forward_dt_local(
-        &mut engine,
+        &mut context,
         "let dt = new Date(2020, 06, 08, 09, 16, 15, 779); dt.setMonth(11); dt",
     );
     assert_eq!(
@@ -801,7 +801,7 @@ fn date_proto_set_month() -> Result<(), Box<dyn std::error::Error>> {
     );
 
     let actual = forward_dt_local(
-        &mut engine,
+        &mut context,
         "dt = new Date(2020, 06, 08, 09, 16, 15, 779); dt.setMonth(11, 16); dt",
     );
     assert_eq!(
@@ -813,7 +813,7 @@ fn date_proto_set_month() -> Result<(), Box<dyn std::error::Error>> {
     // Thorough tests are done by setFullYear
 
     let actual = forward_dt_local(
-        &mut engine,
+        &mut context,
         "dt = new Date(2020, 07, 08, 09, 16, 15, 779); dt.setMonth(40, 83); dt",
     );
     assert_eq!(
@@ -826,10 +826,10 @@ fn date_proto_set_month() -> Result<(), Box<dyn std::error::Error>> {
 
 #[test]
 fn date_proto_set_seconds() -> Result<(), Box<dyn std::error::Error>> {
-    let mut engine = Context::new();
+    let mut context = Context::new();
 
     let actual = forward_dt_local(
-        &mut engine,
+        &mut context,
         "let dt = new Date(2020, 06, 08, 09, 16, 15, 779); dt.setSeconds(11); dt",
     );
     assert_eq!(
@@ -838,7 +838,7 @@ fn date_proto_set_seconds() -> Result<(), Box<dyn std::error::Error>> {
     );
 
     let actual = forward_dt_local(
-        &mut engine,
+        &mut context,
         "dt = new Date(2020, 06, 08, 09, 16, 15, 779); dt.setSeconds(11, 487); dt",
     );
     assert_eq!(
@@ -850,7 +850,7 @@ fn date_proto_set_seconds() -> Result<(), Box<dyn std::error::Error>> {
     // Thorough tests are done by setHour
 
     let actual = forward_dt_local(
-        &mut engine,
+        &mut context,
         "dt = new Date(2020, 07, 08, 09, 16, 15, 779); dt.setSeconds(40000000, 40123); dt",
     );
     assert_eq!(
@@ -863,10 +863,10 @@ fn date_proto_set_seconds() -> Result<(), Box<dyn std::error::Error>> {
 
 #[test]
 fn set_year() -> Result<(), Box<dyn std::error::Error>> {
-    let mut engine = Context::new();
+    let mut context = Context::new();
 
     let actual = forward_dt_local(
-        &mut engine,
+        &mut context,
         "let dt = new Date(2020, 06, 08, 09, 16, 15, 779); dt.setYear(98); dt",
     );
     assert_eq!(
@@ -875,7 +875,7 @@ fn set_year() -> Result<(), Box<dyn std::error::Error>> {
     );
 
     let actual = forward_dt_local(
-        &mut engine,
+        &mut context,
         "dt = new Date(2020, 06, 08, 09, 16, 15, 779); dt.setYear(2001); dt",
     );
     assert_eq!(
@@ -888,10 +888,10 @@ fn set_year() -> Result<(), Box<dyn std::error::Error>> {
 
 #[test]
 fn date_proto_set_time() -> Result<(), Box<dyn std::error::Error>> {
-    let mut engine = Context::new();
+    let mut context = Context::new();
 
     let actual = forward_dt_local(
-        &mut engine,
+        &mut context,
         "let dt = new Date(); dt.setTime(new Date(2020, 06, 08, 09, 16, 15, 779).getTime()); dt",
     );
     assert_eq!(
@@ -904,10 +904,10 @@ fn date_proto_set_time() -> Result<(), Box<dyn std::error::Error>> {
 
 #[test]
 fn date_proto_set_utc_date() -> Result<(), Box<dyn std::error::Error>> {
-    let mut engine = Context::new();
+    let mut context = Context::new();
 
     let actual = forward_dt_utc(
-        &mut engine,
+        &mut context,
         "let dt = new Date(Date.UTC(2020, 06, 08, 09, 16, 15, 779)); dt.setUTCDate(21); dt",
     );
     assert_eq!(
@@ -917,7 +917,7 @@ fn date_proto_set_utc_date() -> Result<(), Box<dyn std::error::Error>> {
 
     // Date wraps to previous month for 0.
     let actual = forward_dt_utc(
-        &mut engine,
+        &mut context,
         "dt = new Date(Date.UTC(2020, 06, 08, 09, 16, 15, 779)); dt.setUTCDate(0); dt",
     );
     assert_eq!(
@@ -926,7 +926,7 @@ fn date_proto_set_utc_date() -> Result<(), Box<dyn std::error::Error>> {
     );
 
     let actual = forward_dt_utc(
-        &mut engine,
+        &mut context,
         "dt = new Date(Date.UTC(2020, 06, 08, 09, 16, 15, 779)); dt.setUTCDate(1/0); dt",
     );
     assert_eq!(None, actual);
@@ -936,10 +936,10 @@ fn date_proto_set_utc_date() -> Result<(), Box<dyn std::error::Error>> {
 
 #[test]
 fn date_proto_set_utc_full_year() -> Result<(), Box<dyn std::error::Error>> {
-    let mut engine = Context::new();
+    let mut context = Context::new();
 
     let actual = forward_dt_utc(
-        &mut engine,
+        &mut context,
         "let dt = new Date(Date.UTC(2020, 06, 08, 09, 16, 15, 779)); dt.setUTCFullYear(2012); dt",
     );
     assert_eq!(
@@ -948,7 +948,7 @@ fn date_proto_set_utc_full_year() -> Result<(), Box<dyn std::error::Error>> {
     );
 
     let actual = forward_dt_utc(
-        &mut engine,
+        &mut context,
         "dt = new Date(Date.UTC(2020, 06, 08, 09, 16, 15, 779)); dt.setUTCFullYear(2012, 8); dt",
     );
     assert_eq!(
@@ -957,7 +957,7 @@ fn date_proto_set_utc_full_year() -> Result<(), Box<dyn std::error::Error>> {
     );
 
     let actual = forward_dt_utc(
-        &mut engine,
+        &mut context,
         "dt = new Date(Date.UTC(2020, 06, 08, 09, 16, 15, 779)); dt.setUTCFullYear(2012, 8, 10); dt",
     );
     assert_eq!(
@@ -968,7 +968,7 @@ fn date_proto_set_utc_full_year() -> Result<(), Box<dyn std::error::Error>> {
     // Out-of-bounds
 
     let actual = forward_dt_utc(
-        &mut engine,
+        &mut context,
         "dt = new Date(Date.UTC(2020, 07, 08, 09, 16, 15, 779)); dt.setUTCFullYear(2012, 35); dt",
     );
     assert_eq!(
@@ -977,7 +977,7 @@ fn date_proto_set_utc_full_year() -> Result<(), Box<dyn std::error::Error>> {
     );
 
     let actual = forward_dt_utc(
-        &mut engine,
+        &mut context,
         "dt = new Date(Date.UTC(2020, 07, 08, 09, 16, 15, 779)); dt.setUTCFullYear(2012, -35); dt",
     );
     assert_eq!(
@@ -986,7 +986,7 @@ fn date_proto_set_utc_full_year() -> Result<(), Box<dyn std::error::Error>> {
     );
 
     let actual = forward_dt_utc(
-        &mut engine,
+        &mut context,
         "dt = new Date(Date.UTC(2020, 07, 08, 09, 16, 15, 779)); dt.setUTCFullYear(2012, 9, 950); dt",
     );
     assert_eq!(
@@ -995,7 +995,7 @@ fn date_proto_set_utc_full_year() -> Result<(), Box<dyn std::error::Error>> {
     );
 
     let actual = forward_dt_utc(
-        &mut engine,
+        &mut context,
         "dt = new Date(Date.UTC(2020, 07, 08, 09, 16, 15, 779)); dt.setUTCFullYear(2012, 9, -950); dt",
     );
     assert_eq!(
@@ -1008,10 +1008,10 @@ fn date_proto_set_utc_full_year() -> Result<(), Box<dyn std::error::Error>> {
 
 #[test]
 fn date_proto_set_utc_hours() -> Result<(), Box<dyn std::error::Error>> {
-    let mut engine = Context::new();
+    let mut context = Context::new();
 
     let actual = forward_dt_utc(
-        &mut engine,
+        &mut context,
         "let dt = new Date(Date.UTC(2020, 06, 08, 09, 16, 15, 779)); dt.setUTCHours(11); dt",
     );
     assert_eq!(
@@ -1020,7 +1020,7 @@ fn date_proto_set_utc_hours() -> Result<(), Box<dyn std::error::Error>> {
     );
 
     let actual = forward_dt_utc(
-        &mut engine,
+        &mut context,
         "dt = new Date(Date.UTC(2020, 06, 08, 09, 16, 15, 779)); dt.setUTCHours(11, 35); dt",
     );
     assert_eq!(
@@ -1029,7 +1029,7 @@ fn date_proto_set_utc_hours() -> Result<(), Box<dyn std::error::Error>> {
     );
 
     let actual = forward_dt_utc(
-        &mut engine,
+        &mut context,
         "dt = new Date(Date.UTC(2020, 06, 08, 09, 16, 15, 779)); dt.setUTCHours(11, 35, 23); dt",
     );
     assert_eq!(
@@ -1038,7 +1038,7 @@ fn date_proto_set_utc_hours() -> Result<(), Box<dyn std::error::Error>> {
     );
 
     let actual = forward_dt_utc(
-        &mut engine,
+        &mut context,
         "dt = new Date(Date.UTC(2020, 06, 08, 09, 16, 15, 779)); dt.setUTCHours(11, 35, 23, 537); dt",
     );
     assert_eq!(
@@ -1049,7 +1049,7 @@ fn date_proto_set_utc_hours() -> Result<(), Box<dyn std::error::Error>> {
     // Out-of-bounds
 
     let actual = forward_dt_utc(
-        &mut engine,
+        &mut context,
         "dt = new Date(Date.UTC(2020, 06, 08, 09, 16, 15, 779)); dt.setUTCHours(10000, 20000, 30000, 40123); dt",
     );
     assert_eq!(
@@ -1062,10 +1062,10 @@ fn date_proto_set_utc_hours() -> Result<(), Box<dyn std::error::Error>> {
 
 #[test]
 fn date_proto_set_utc_milliseconds() -> Result<(), Box<dyn std::error::Error>> {
-    let mut engine = Context::new();
+    let mut context = Context::new();
 
     let actual = forward_dt_utc(
-        &mut engine,
+        &mut context,
         "let dt = new Date(Date.UTC(2020, 06, 08, 09, 16, 15, 779)); dt.setUTCMilliseconds(597); dt",
     );
     assert_eq!(
@@ -1077,7 +1077,7 @@ fn date_proto_set_utc_milliseconds() -> Result<(), Box<dyn std::error::Error>> {
     // Thorough tests are done by setHours
 
     let actual = forward_dt_utc(
-        &mut engine,
+        &mut context,
         "dt = new Date(Date.UTC(2020, 06, 08, 09, 16, 15, 779)); dt.setUTCMilliseconds(40123); dt",
     );
     assert_eq!(
@@ -1090,10 +1090,10 @@ fn date_proto_set_utc_milliseconds() -> Result<(), Box<dyn std::error::Error>> {
 
 #[test]
 fn date_proto_set_utc_minutes() -> Result<(), Box<dyn std::error::Error>> {
-    let mut engine = Context::new();
+    let mut context = Context::new();
 
     let actual = forward_dt_utc(
-        &mut engine,
+        &mut context,
         "let dt = new Date(Date.UTC(2020, 06, 08, 09, 16, 15, 779)); dt.setUTCMinutes(11); dt",
     );
     assert_eq!(
@@ -1102,7 +1102,7 @@ fn date_proto_set_utc_minutes() -> Result<(), Box<dyn std::error::Error>> {
     );
 
     let actual = forward_dt_utc(
-        &mut engine,
+        &mut context,
         "dt = new Date(Date.UTC(2020, 06, 08, 09, 16, 15, 779)); dt.setUTCMinutes(11, 35); dt",
     );
     assert_eq!(
@@ -1111,7 +1111,7 @@ fn date_proto_set_utc_minutes() -> Result<(), Box<dyn std::error::Error>> {
     );
 
     let actual = forward_dt_utc(
-        &mut engine,
+        &mut context,
         "dt = new Date(Date.UTC(2020, 06, 08, 09, 16, 15, 779)); dt.setUTCMinutes(11, 35, 537); dt",
     );
     assert_eq!(
@@ -1123,7 +1123,7 @@ fn date_proto_set_utc_minutes() -> Result<(), Box<dyn std::error::Error>> {
     // Thorough tests are done by setHours
 
     let actual = forward_dt_utc(
-        &mut engine,
+        &mut context,
         "dt = new Date(Date.UTC(2020, 06, 08, 09, 16, 15, 779)); dt.setUTCMinutes(600000, 30000, 40123); dt",
     );
     assert_eq!(
@@ -1136,10 +1136,10 @@ fn date_proto_set_utc_minutes() -> Result<(), Box<dyn std::error::Error>> {
 
 #[test]
 fn date_proto_set_utc_month() -> Result<(), Box<dyn std::error::Error>> {
-    let mut engine = Context::new();
+    let mut context = Context::new();
 
     let actual = forward_dt_utc(
-        &mut engine,
+        &mut context,
         "let dt = new Date(Date.UTC(2020, 06, 08, 09, 16, 15, 779)); dt.setUTCMonth(11); dt",
     );
     assert_eq!(
@@ -1148,7 +1148,7 @@ fn date_proto_set_utc_month() -> Result<(), Box<dyn std::error::Error>> {
     );
 
     let actual = forward_dt_utc(
-        &mut engine,
+        &mut context,
         "dt = new Date(Date.UTC(2020, 06, 08, 09, 16, 15, 779)); dt.setUTCMonth(11, 16); dt",
     );
     assert_eq!(
@@ -1160,7 +1160,7 @@ fn date_proto_set_utc_month() -> Result<(), Box<dyn std::error::Error>> {
     // Thorough tests are done by setFullYear
 
     let actual = forward_dt_utc(
-        &mut engine,
+        &mut context,
         "dt = new Date(Date.UTC(2020, 07, 08, 09, 16, 15, 779)); dt.setUTCMonth(40, 83); dt",
     );
     assert_eq!(
@@ -1173,10 +1173,10 @@ fn date_proto_set_utc_month() -> Result<(), Box<dyn std::error::Error>> {
 
 #[test]
 fn date_proto_set_utc_seconds() -> Result<(), Box<dyn std::error::Error>> {
-    let mut engine = Context::new();
+    let mut context = Context::new();
 
     let actual = forward_dt_utc(
-        &mut engine,
+        &mut context,
         "let dt = new Date(Date.UTC(2020, 06, 08, 09, 16, 15, 779)); dt.setUTCSeconds(11); dt",
     );
     assert_eq!(
@@ -1185,7 +1185,7 @@ fn date_proto_set_utc_seconds() -> Result<(), Box<dyn std::error::Error>> {
     );
 
     let actual = forward_dt_utc(
-        &mut engine,
+        &mut context,
         "dt = new Date(Date.UTC(2020, 06, 08, 09, 16, 15, 779)); dt.setUTCSeconds(11, 487); dt",
     );
     assert_eq!(
@@ -1197,7 +1197,7 @@ fn date_proto_set_utc_seconds() -> Result<(), Box<dyn std::error::Error>> {
     // Thorough tests are done by setHour
 
     let actual = forward_dt_utc(
-        &mut engine,
+        &mut context,
         "dt = new Date(Date.UTC(2020, 07, 08, 09, 16, 15, 779)); dt.setUTCSeconds(40000000, 40123); dt",
     );
     assert_eq!(
@@ -1210,10 +1210,10 @@ fn date_proto_set_utc_seconds() -> Result<(), Box<dyn std::error::Error>> {
 
 #[test]
 fn date_proto_to_date_string() -> Result<(), Box<dyn std::error::Error>> {
-    let mut engine = Context::new();
+    let mut context = Context::new();
 
     let actual = forward_val(
-        &mut engine,
+        &mut context,
         "let dt = new Date(2020, 06, 08, 09, 16, 15, 779); dt.toDateString()",
     )
     .expect("Successful eval");
@@ -1224,10 +1224,10 @@ fn date_proto_to_date_string() -> Result<(), Box<dyn std::error::Error>> {
 
 #[test]
 fn date_proto_to_gmt_string() -> Result<(), Box<dyn std::error::Error>> {
-    let mut engine = Context::new();
+    let mut context = Context::new();
 
     let actual = forward_val(
-        &mut engine,
+        &mut context,
         "let dt = new Date(Date.UTC(2020, 06, 08, 09, 16, 15, 779)); dt.toGMTString()",
     )
     .expect("Successful eval");
@@ -1238,10 +1238,10 @@ fn date_proto_to_gmt_string() -> Result<(), Box<dyn std::error::Error>> {
 
 #[test]
 fn date_proto_to_iso_string() -> Result<(), Box<dyn std::error::Error>> {
-    let mut engine = Context::new();
+    let mut context = Context::new();
 
     let actual = forward_val(
-        &mut engine,
+        &mut context,
         "let dt = new Date(Date.UTC(2020, 06, 08, 09, 16, 15, 779)); dt.toISOString()",
     )
     .expect("Successful eval");
@@ -1252,10 +1252,10 @@ fn date_proto_to_iso_string() -> Result<(), Box<dyn std::error::Error>> {
 
 #[test]
 fn date_proto_to_json() -> Result<(), Box<dyn std::error::Error>> {
-    let mut engine = Context::new();
+    let mut context = Context::new();
 
     let actual = forward_val(
-        &mut engine,
+        &mut context,
         "let dt = new Date(Date.UTC(2020, 06, 08, 09, 16, 15, 779)); dt.toJSON()",
     )
     .expect("Successful eval");
@@ -1266,10 +1266,10 @@ fn date_proto_to_json() -> Result<(), Box<dyn std::error::Error>> {
 
 #[test]
 fn date_proto_to_string() -> Result<(), Box<dyn std::error::Error>> {
-    let mut engine = Context::new();
+    let mut context = Context::new();
 
     let actual = forward_val(
-        &mut engine,
+        &mut context,
         "let dt = new Date(2020, 06, 08, 09, 16, 15, 779); dt.toString()",
     )
     .ok();
@@ -1288,10 +1288,10 @@ fn date_proto_to_string() -> Result<(), Box<dyn std::error::Error>> {
 
 #[test]
 fn date_proto_to_time_string() -> Result<(), Box<dyn std::error::Error>> {
-    let mut engine = Context::new();
+    let mut context = Context::new();
 
     let actual = forward_val(
-        &mut engine,
+        &mut context,
         "let dt = new Date(2020, 06, 08, 09, 16, 15, 779); dt.toTimeString()",
     )
     .ok();
@@ -1308,10 +1308,10 @@ fn date_proto_to_time_string() -> Result<(), Box<dyn std::error::Error>> {
 
 #[test]
 fn date_proto_to_utc_string() -> Result<(), Box<dyn std::error::Error>> {
-    let mut engine = Context::new();
+    let mut context = Context::new();
 
     let actual = forward_val(
-        &mut engine,
+        &mut context,
         "let dt = new Date(Date.UTC(2020, 06, 08, 09, 16, 15, 779)); dt.toUTCString()",
     )
     .expect("Successful eval");
@@ -1322,10 +1322,10 @@ fn date_proto_to_utc_string() -> Result<(), Box<dyn std::error::Error>> {
 
 #[test]
 fn date_proto_value_of() -> Result<(), Box<dyn std::error::Error>> {
-    let mut engine = Context::new();
+    let mut context = Context::new();
 
     let actual = forward_val(
-        &mut engine,
+        &mut context,
         "new Date(Date.UTC(2020, 06, 08, 09, 16, 15, 779)).valueOf()",
     )
     .expect("Successful eval");
@@ -1336,10 +1336,10 @@ fn date_proto_value_of() -> Result<(), Box<dyn std::error::Error>> {
 
 #[test]
 fn date_neg() -> Result<(), Box<dyn std::error::Error>> {
-    let mut engine = Context::new();
+    let mut context = Context::new();
 
     let actual = forward_val(
-        &mut engine,
+        &mut context,
         "-new Date(Date.UTC(2020, 06, 08, 09, 16, 15, 779))",
     )
     .expect("Successful eval");
@@ -1350,10 +1350,10 @@ fn date_neg() -> Result<(), Box<dyn std::error::Error>> {
 
 #[test]
 fn date_json() -> Result<(), Box<dyn std::error::Error>> {
-    let mut engine = Context::new();
+    let mut context = Context::new();
 
     let actual = forward_val(
-        &mut engine,
+        &mut context,
         "JSON.stringify({ date: new Date(Date.UTC(2020, 06, 08, 09, 16, 15, 779)) })",
     )
     .expect("Successful eval");

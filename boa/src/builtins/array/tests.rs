@@ -2,66 +2,66 @@ use crate::{forward, Context, Value};
 
 #[test]
 fn is_array() {
-    let mut engine = Context::new();
+    let mut context = Context::new();
     let init = r#"
         var empty = [];
         var new_arr = new Array();
         var many = ["a", "b", "c"];
         "#;
-    engine.eval(init).unwrap();
+    context.eval(init).unwrap();
     assert_eq!(
-        engine.eval("Array.isArray(empty)").unwrap(),
+        context.eval("Array.isArray(empty)").unwrap(),
         Value::Boolean(true)
     );
     assert_eq!(
-        engine.eval("Array.isArray(new_arr)").unwrap(),
+        context.eval("Array.isArray(new_arr)").unwrap(),
         Value::Boolean(true)
     );
     assert_eq!(
-        engine.eval("Array.isArray(many)").unwrap(),
+        context.eval("Array.isArray(many)").unwrap(),
         Value::Boolean(true)
     );
     assert_eq!(
-        engine.eval("Array.isArray([1, 2, 3])").unwrap(),
+        context.eval("Array.isArray([1, 2, 3])").unwrap(),
         Value::Boolean(true)
     );
     assert_eq!(
-        engine.eval("Array.isArray([])").unwrap(),
+        context.eval("Array.isArray([])").unwrap(),
         Value::Boolean(true)
     );
     assert_eq!(
-        engine.eval("Array.isArray({})").unwrap(),
+        context.eval("Array.isArray({})").unwrap(),
         Value::Boolean(false)
     );
-    // assert_eq!(engine.eval("Array.isArray(new Array)"), "true");
+    // assert_eq!(context.eval("Array.isArray(new Array)"), "true");
     assert_eq!(
-        engine.eval("Array.isArray()").unwrap(),
+        context.eval("Array.isArray()").unwrap(),
         Value::Boolean(false)
     );
     assert_eq!(
-        engine
+        context
             .eval("Array.isArray({ constructor: Array })")
             .unwrap(),
         Value::Boolean(false)
     );
     assert_eq!(
-        engine
+        context
             .eval("Array.isArray({ push: Array.prototype.push, concat: Array.prototype.concat })")
             .unwrap(),
         Value::Boolean(false)
     );
     assert_eq!(
-        engine.eval("Array.isArray(17)").unwrap(),
+        context.eval("Array.isArray(17)").unwrap(),
         Value::Boolean(false)
     );
     assert_eq!(
-        engine
+        context
             .eval("Array.isArray({ __proto__: Array.prototype })")
             .unwrap(),
         Value::Boolean(false)
     );
     assert_eq!(
-        engine.eval("Array.isArray({ length: 0 })").unwrap(),
+        context.eval("Array.isArray({ length: 0 })").unwrap(),
         Value::Boolean(false)
     );
 }
@@ -70,85 +70,85 @@ fn is_array() {
 #[ignore]
 fn concat() {
     //TODO: array display formatter
-    let mut engine = Context::new();
+    let mut context = Context::new();
     let init = r#"
     var empty = new Array();
     var one = new Array(1);
     "#;
-    engine.eval(init).unwrap();
+    context.eval(init).unwrap();
     // Empty ++ Empty
-    let ee = engine
+    let ee = context
         .eval("empty.concat(empty)")
         .unwrap()
-        .to_string(&mut engine)
+        .to_string(&mut context)
         .unwrap();
     assert_eq!(ee, "[]");
     // Empty ++ NonEmpty
-    let en = engine
+    let en = context
         .eval("empty.concat(one)")
         .unwrap()
-        .to_string(&mut engine)
+        .to_string(&mut context)
         .unwrap();
     assert_eq!(en, "[a]");
     // NonEmpty ++ Empty
-    let ne = engine
+    let ne = context
         .eval("one.concat(empty)")
         .unwrap()
-        .to_string(&mut engine)
+        .to_string(&mut context)
         .unwrap();
     assert_eq!(ne, "a.b.c");
     // NonEmpty ++ NonEmpty
-    let nn = engine
+    let nn = context
         .eval("one.concat(one)")
         .unwrap()
-        .to_string(&mut engine)
+        .to_string(&mut context)
         .unwrap();
     assert_eq!(nn, "a.b.c");
 }
 
 #[test]
 fn join() {
-    let mut engine = Context::new();
+    let mut context = Context::new();
     let init = r#"
         var empty = [ ];
         var one = ["a"];
         var many = ["a", "b", "c"];
         "#;
-    eprintln!("{}", forward(&mut engine, init));
+    eprintln!("{}", forward(&mut context, init));
     // Empty
-    let empty = forward(&mut engine, "empty.join('.')");
+    let empty = forward(&mut context, "empty.join('.')");
     assert_eq!(empty, String::from("\"\""));
     // One
-    let one = forward(&mut engine, "one.join('.')");
+    let one = forward(&mut context, "one.join('.')");
     assert_eq!(one, String::from("\"a\""));
     // Many
-    let many = forward(&mut engine, "many.join('.')");
+    let many = forward(&mut context, "many.join('.')");
     assert_eq!(many, String::from("\"a.b.c\""));
 }
 
 #[test]
 fn to_string() {
-    let mut engine = Context::new();
+    let mut context = Context::new();
     let init = r#"
         var empty = [ ];
         var one = ["a"];
         var many = ["a", "b", "c"];
         "#;
-    eprintln!("{}", forward(&mut engine, init));
+    eprintln!("{}", forward(&mut context, init));
     // Empty
-    let empty = forward(&mut engine, "empty.toString()");
+    let empty = forward(&mut context, "empty.toString()");
     assert_eq!(empty, String::from("\"\""));
     // One
-    let one = forward(&mut engine, "one.toString()");
+    let one = forward(&mut context, "one.toString()");
     assert_eq!(one, String::from("\"a\""));
     // Many
-    let many = forward(&mut engine, "many.toString()");
+    let many = forward(&mut context, "many.toString()");
     assert_eq!(many, String::from("\"a,b,c\""));
 }
 
 #[test]
 fn every() {
-    let mut engine = Context::new();
+    let mut context = Context::new();
     // taken from https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/every
     let init = r#"
         var empty = [];
@@ -173,40 +173,40 @@ fn every() {
           return elem < 3;
         }
         "#;
-    eprintln!("{}", forward(&mut engine, init));
-    let result = forward(&mut engine, "array.every(callback);");
+    eprintln!("{}", forward(&mut context, init));
+    let result = forward(&mut context, "array.every(callback);");
     assert_eq!(result, "true");
 
-    let result = forward(&mut engine, "empty.every(callback);");
+    let result = forward(&mut context, "empty.every(callback);");
     assert_eq!(result, "true");
 
-    let result = forward(&mut engine, "array.every(callback2);");
+    let result = forward(&mut context, "array.every(callback2);");
     assert_eq!(result, "false");
 
-    let result = forward(&mut engine, "appendArray.every(appendingCallback);");
+    let result = forward(&mut context, "appendArray.every(appendingCallback);");
     assert_eq!(result, "true");
 
-    let result = forward(&mut engine, "delArray.every(deletingCallback);");
+    let result = forward(&mut context, "delArray.every(deletingCallback);");
     assert_eq!(result, "true");
 }
 
 #[test]
 fn find() {
-    let mut engine = Context::new();
+    let mut context = Context::new();
     let init = r#"
         function comp(a) {
             return a == "a";
         }
         var many = ["a", "b", "c"];
         "#;
-    eprintln!("{}", forward(&mut engine, init));
-    let found = forward(&mut engine, "many.find(comp)");
+    eprintln!("{}", forward(&mut context, init));
+    let found = forward(&mut context, "many.find(comp)");
     assert_eq!(found, String::from("\"a\""));
 }
 
 #[test]
 fn find_index() {
-    let mut engine = Context::new();
+    let mut context = Context::new();
 
     let code = r#"
         function comp(item) {
@@ -217,336 +217,336 @@ fn find_index() {
         var missing = [4, 5, 6];
         "#;
 
-    forward(&mut engine, code);
+    forward(&mut context, code);
 
-    let many = forward(&mut engine, "many.findIndex(comp)");
+    let many = forward(&mut context, "many.findIndex(comp)");
     assert_eq!(many, String::from("1"));
 
-    let empty = forward(&mut engine, "empty.findIndex(comp)");
+    let empty = forward(&mut context, "empty.findIndex(comp)");
     assert_eq!(empty, String::from("-1"));
 
-    let missing = forward(&mut engine, "missing.findIndex(comp)");
+    let missing = forward(&mut context, "missing.findIndex(comp)");
     assert_eq!(missing, String::from("-1"));
 }
 
 #[test]
 fn push() {
-    let mut engine = Context::new();
+    let mut context = Context::new();
     let init = r#"
         var arr = [1, 2];
         "#;
-    eprintln!("{}", forward(&mut engine, init));
+    eprintln!("{}", forward(&mut context, init));
 
-    assert_eq!(forward(&mut engine, "arr.push()"), "2");
-    assert_eq!(forward(&mut engine, "arr.push(3, 4)"), "4");
-    assert_eq!(forward(&mut engine, "arr[2]"), "3");
-    assert_eq!(forward(&mut engine, "arr[3]"), "4");
+    assert_eq!(forward(&mut context, "arr.push()"), "2");
+    assert_eq!(forward(&mut context, "arr.push(3, 4)"), "4");
+    assert_eq!(forward(&mut context, "arr[2]"), "3");
+    assert_eq!(forward(&mut context, "arr[3]"), "4");
 }
 
 #[test]
 fn pop() {
-    let mut engine = Context::new();
+    let mut context = Context::new();
     let init = r#"
         var empty = [ ];
         var one = [1];
         var many = [1, 2, 3, 4];
         "#;
-    eprintln!("{}", forward(&mut engine, init));
+    eprintln!("{}", forward(&mut context, init));
 
     assert_eq!(
-        forward(&mut engine, "empty.pop()"),
+        forward(&mut context, "empty.pop()"),
         String::from("undefined")
     );
-    assert_eq!(forward(&mut engine, "one.pop()"), "1");
-    assert_eq!(forward(&mut engine, "one.length"), "0");
-    assert_eq!(forward(&mut engine, "many.pop()"), "4");
-    assert_eq!(forward(&mut engine, "many[0]"), "1");
-    assert_eq!(forward(&mut engine, "many.length"), "3");
+    assert_eq!(forward(&mut context, "one.pop()"), "1");
+    assert_eq!(forward(&mut context, "one.length"), "0");
+    assert_eq!(forward(&mut context, "many.pop()"), "4");
+    assert_eq!(forward(&mut context, "many[0]"), "1");
+    assert_eq!(forward(&mut context, "many.length"), "3");
 }
 
 #[test]
 fn shift() {
-    let mut engine = Context::new();
+    let mut context = Context::new();
     let init = r#"
         var empty = [ ];
         var one = [1];
         var many = [1, 2, 3, 4];
         "#;
-    eprintln!("{}", forward(&mut engine, init));
+    eprintln!("{}", forward(&mut context, init));
 
     assert_eq!(
-        forward(&mut engine, "empty.shift()"),
+        forward(&mut context, "empty.shift()"),
         String::from("undefined")
     );
-    assert_eq!(forward(&mut engine, "one.shift()"), "1");
-    assert_eq!(forward(&mut engine, "one.length"), "0");
-    assert_eq!(forward(&mut engine, "many.shift()"), "1");
-    assert_eq!(forward(&mut engine, "many[0]"), "2");
-    assert_eq!(forward(&mut engine, "many.length"), "3");
+    assert_eq!(forward(&mut context, "one.shift()"), "1");
+    assert_eq!(forward(&mut context, "one.length"), "0");
+    assert_eq!(forward(&mut context, "many.shift()"), "1");
+    assert_eq!(forward(&mut context, "many[0]"), "2");
+    assert_eq!(forward(&mut context, "many.length"), "3");
 }
 
 #[test]
 fn unshift() {
-    let mut engine = Context::new();
+    let mut context = Context::new();
     let init = r#"
         var arr = [3, 4];
         "#;
-    eprintln!("{}", forward(&mut engine, init));
+    eprintln!("{}", forward(&mut context, init));
 
-    assert_eq!(forward(&mut engine, "arr.unshift()"), "2");
-    assert_eq!(forward(&mut engine, "arr.unshift(1, 2)"), "4");
-    assert_eq!(forward(&mut engine, "arr[0]"), "1");
-    assert_eq!(forward(&mut engine, "arr[1]"), "2");
+    assert_eq!(forward(&mut context, "arr.unshift()"), "2");
+    assert_eq!(forward(&mut context, "arr.unshift(1, 2)"), "4");
+    assert_eq!(forward(&mut context, "arr[0]"), "1");
+    assert_eq!(forward(&mut context, "arr[1]"), "2");
 }
 
 #[test]
 fn reverse() {
-    let mut engine = Context::new();
+    let mut context = Context::new();
     let init = r#"
         var arr = [1, 2];
         var reversed = arr.reverse();
         "#;
-    eprintln!("{}", forward(&mut engine, init));
-    assert_eq!(forward(&mut engine, "reversed[0]"), "2");
-    assert_eq!(forward(&mut engine, "reversed[1]"), "1");
-    assert_eq!(forward(&mut engine, "arr[0]"), "2");
-    assert_eq!(forward(&mut engine, "arr[1]"), "1");
+    eprintln!("{}", forward(&mut context, init));
+    assert_eq!(forward(&mut context, "reversed[0]"), "2");
+    assert_eq!(forward(&mut context, "reversed[1]"), "1");
+    assert_eq!(forward(&mut context, "arr[0]"), "2");
+    assert_eq!(forward(&mut context, "arr[1]"), "1");
 }
 
 #[test]
 fn index_of() {
-    let mut engine = Context::new();
+    let mut context = Context::new();
     let init = r#"
         var empty = [ ];
         var one = ["a"];
         var many = ["a", "b", "c"];
         var duplicates = ["a", "b", "c", "a", "b"];
         "#;
-    eprintln!("{}", forward(&mut engine, init));
+    eprintln!("{}", forward(&mut context, init));
 
     // Empty
-    let empty = forward(&mut engine, "empty.indexOf('a')");
+    let empty = forward(&mut context, "empty.indexOf('a')");
     assert_eq!(empty, String::from("-1"));
 
     // One
-    let one = forward(&mut engine, "one.indexOf('a')");
+    let one = forward(&mut context, "one.indexOf('a')");
     assert_eq!(one, String::from("0"));
     // Missing from one
-    let missing_from_one = forward(&mut engine, "one.indexOf('b')");
+    let missing_from_one = forward(&mut context, "one.indexOf('b')");
     assert_eq!(missing_from_one, String::from("-1"));
 
     // First in many
-    let first_in_many = forward(&mut engine, "many.indexOf('a')");
+    let first_in_many = forward(&mut context, "many.indexOf('a')");
     assert_eq!(first_in_many, String::from("0"));
     // Second in many
-    let second_in_many = forward(&mut engine, "many.indexOf('b')");
+    let second_in_many = forward(&mut context, "many.indexOf('b')");
     assert_eq!(second_in_many, String::from("1"));
 
     // First in duplicates
-    let first_in_many = forward(&mut engine, "duplicates.indexOf('a')");
+    let first_in_many = forward(&mut context, "duplicates.indexOf('a')");
     assert_eq!(first_in_many, String::from("0"));
     // Second in duplicates
-    let second_in_many = forward(&mut engine, "duplicates.indexOf('b')");
+    let second_in_many = forward(&mut context, "duplicates.indexOf('b')");
     assert_eq!(second_in_many, String::from("1"));
 
     // Positive fromIndex greater than array length
-    let fromindex_greater_than_length = forward(&mut engine, "one.indexOf('a', 2)");
+    let fromindex_greater_than_length = forward(&mut context, "one.indexOf('a', 2)");
     assert_eq!(fromindex_greater_than_length, String::from("-1"));
     // Positive fromIndex missed match
-    let fromindex_misses_match = forward(&mut engine, "many.indexOf('a', 1)");
+    let fromindex_misses_match = forward(&mut context, "many.indexOf('a', 1)");
     assert_eq!(fromindex_misses_match, String::from("-1"));
     // Positive fromIndex matched
-    let fromindex_matches = forward(&mut engine, "many.indexOf('b', 1)");
+    let fromindex_matches = forward(&mut context, "many.indexOf('b', 1)");
     assert_eq!(fromindex_matches, String::from("1"));
     // Positive fromIndex with duplicates
-    let first_in_many = forward(&mut engine, "duplicates.indexOf('a', 1)");
+    let first_in_many = forward(&mut context, "duplicates.indexOf('a', 1)");
     assert_eq!(first_in_many, String::from("3"));
 
     // Negative fromIndex greater than array length
-    let fromindex_greater_than_length = forward(&mut engine, "one.indexOf('a', -2)");
+    let fromindex_greater_than_length = forward(&mut context, "one.indexOf('a', -2)");
     assert_eq!(fromindex_greater_than_length, String::from("0"));
     // Negative fromIndex missed match
-    let fromindex_misses_match = forward(&mut engine, "many.indexOf('b', -1)");
+    let fromindex_misses_match = forward(&mut context, "many.indexOf('b', -1)");
     assert_eq!(fromindex_misses_match, String::from("-1"));
     // Negative fromIndex matched
-    let fromindex_matches = forward(&mut engine, "many.indexOf('c', -1)");
+    let fromindex_matches = forward(&mut context, "many.indexOf('c', -1)");
     assert_eq!(fromindex_matches, String::from("2"));
     // Negative fromIndex with duplicates
-    let second_in_many = forward(&mut engine, "duplicates.indexOf('b', -2)");
+    let second_in_many = forward(&mut context, "duplicates.indexOf('b', -2)");
     assert_eq!(second_in_many, String::from("4"));
 }
 
 #[test]
 fn last_index_of() {
-    let mut engine = Context::new();
+    let mut context = Context::new();
     let init = r#"
         var empty = [ ];
         var one = ["a"];
         var many = ["a", "b", "c"];
         var duplicates = ["a", "b", "c", "a", "b"];
         "#;
-    eprintln!("{}", forward(&mut engine, init));
+    eprintln!("{}", forward(&mut context, init));
 
     // Empty
-    let empty = forward(&mut engine, "empty.lastIndexOf('a')");
+    let empty = forward(&mut context, "empty.lastIndexOf('a')");
     assert_eq!(empty, String::from("-1"));
 
     // One
-    let one = forward(&mut engine, "one.lastIndexOf('a')");
+    let one = forward(&mut context, "one.lastIndexOf('a')");
     assert_eq!(one, String::from("0"));
     // Missing from one
-    let missing_from_one = forward(&mut engine, "one.lastIndexOf('b')");
+    let missing_from_one = forward(&mut context, "one.lastIndexOf('b')");
     assert_eq!(missing_from_one, String::from("-1"));
 
     // First in many
-    let first_in_many = forward(&mut engine, "many.lastIndexOf('a')");
+    let first_in_many = forward(&mut context, "many.lastIndexOf('a')");
     assert_eq!(first_in_many, String::from("0"));
     // Second in many
-    let second_in_many = forward(&mut engine, "many.lastIndexOf('b')");
+    let second_in_many = forward(&mut context, "many.lastIndexOf('b')");
     assert_eq!(second_in_many, String::from("1"));
 
     // 4th in duplicates
-    let first_in_many = forward(&mut engine, "duplicates.lastIndexOf('a')");
+    let first_in_many = forward(&mut context, "duplicates.lastIndexOf('a')");
     assert_eq!(first_in_many, String::from("3"));
     // 5th in duplicates
-    let second_in_many = forward(&mut engine, "duplicates.lastIndexOf('b')");
+    let second_in_many = forward(&mut context, "duplicates.lastIndexOf('b')");
     assert_eq!(second_in_many, String::from("4"));
 
     // Positive fromIndex greater than array length
-    let fromindex_greater_than_length = forward(&mut engine, "one.lastIndexOf('a', 2)");
+    let fromindex_greater_than_length = forward(&mut context, "one.lastIndexOf('a', 2)");
     assert_eq!(fromindex_greater_than_length, String::from("0"));
     // Positive fromIndex missed match
-    let fromindex_misses_match = forward(&mut engine, "many.lastIndexOf('c', 1)");
+    let fromindex_misses_match = forward(&mut context, "many.lastIndexOf('c', 1)");
     assert_eq!(fromindex_misses_match, String::from("-1"));
     // Positive fromIndex matched
-    let fromindex_matches = forward(&mut engine, "many.lastIndexOf('b', 1)");
+    let fromindex_matches = forward(&mut context, "many.lastIndexOf('b', 1)");
     assert_eq!(fromindex_matches, String::from("1"));
     // Positive fromIndex with duplicates
-    let first_in_many = forward(&mut engine, "duplicates.lastIndexOf('a', 1)");
+    let first_in_many = forward(&mut context, "duplicates.lastIndexOf('a', 1)");
     assert_eq!(first_in_many, String::from("0"));
 
     // Negative fromIndex greater than array length
-    let fromindex_greater_than_length = forward(&mut engine, "one.lastIndexOf('a', -2)");
+    let fromindex_greater_than_length = forward(&mut context, "one.lastIndexOf('a', -2)");
     assert_eq!(fromindex_greater_than_length, String::from("-1"));
     // Negative fromIndex missed match
-    let fromindex_misses_match = forward(&mut engine, "many.lastIndexOf('c', -2)");
+    let fromindex_misses_match = forward(&mut context, "many.lastIndexOf('c', -2)");
     assert_eq!(fromindex_misses_match, String::from("-1"));
     // Negative fromIndex matched
-    let fromindex_matches = forward(&mut engine, "many.lastIndexOf('c', -1)");
+    let fromindex_matches = forward(&mut context, "many.lastIndexOf('c', -1)");
     assert_eq!(fromindex_matches, String::from("2"));
     // Negative fromIndex with duplicates
-    let second_in_many = forward(&mut engine, "duplicates.lastIndexOf('b', -2)");
+    let second_in_many = forward(&mut context, "duplicates.lastIndexOf('b', -2)");
     assert_eq!(second_in_many, String::from("1"));
 }
 
 #[test]
 fn fill_obj_ref() {
-    let mut engine = Context::new();
+    let mut context = Context::new();
 
     // test object reference
-    forward(&mut engine, "a = (new Array(3)).fill({});");
-    forward(&mut engine, "a[0].hi = 'hi';");
-    assert_eq!(forward(&mut engine, "a[0].hi"), "\"hi\"");
+    forward(&mut context, "a = (new Array(3)).fill({});");
+    forward(&mut context, "a[0].hi = 'hi';");
+    assert_eq!(forward(&mut context, "a[0].hi"), "\"hi\"");
 }
 
 #[test]
 fn fill() {
-    let mut engine = Context::new();
+    let mut context = Context::new();
 
-    forward(&mut engine, "var a = [1, 2, 3];");
+    forward(&mut context, "var a = [1, 2, 3];");
     assert_eq!(
-        forward(&mut engine, "a.fill(4).join()"),
+        forward(&mut context, "a.fill(4).join()"),
         String::from("\"4,4,4\"")
     );
     // make sure the array is modified
-    assert_eq!(forward(&mut engine, "a.join()"), String::from("\"4,4,4\""));
+    assert_eq!(forward(&mut context, "a.join()"), String::from("\"4,4,4\""));
 
-    forward(&mut engine, "a = [1, 2, 3];");
+    forward(&mut context, "a = [1, 2, 3];");
     assert_eq!(
-        forward(&mut engine, "a.fill(4, '1').join()"),
+        forward(&mut context, "a.fill(4, '1').join()"),
         String::from("\"1,4,4\"")
     );
 
-    forward(&mut engine, "a = [1, 2, 3];");
+    forward(&mut context, "a = [1, 2, 3];");
     assert_eq!(
-        forward(&mut engine, "a.fill(4, 1, 2).join()"),
+        forward(&mut context, "a.fill(4, 1, 2).join()"),
         String::from("\"1,4,3\"")
     );
 
-    forward(&mut engine, "a = [1, 2, 3];");
+    forward(&mut context, "a = [1, 2, 3];");
     assert_eq!(
-        forward(&mut engine, "a.fill(4, 1, 1).join()"),
+        forward(&mut context, "a.fill(4, 1, 1).join()"),
         String::from("\"1,2,3\"")
     );
 
-    forward(&mut engine, "a = [1, 2, 3];");
+    forward(&mut context, "a = [1, 2, 3];");
     assert_eq!(
-        forward(&mut engine, "a.fill(4, 3, 3).join()"),
+        forward(&mut context, "a.fill(4, 3, 3).join()"),
         String::from("\"1,2,3\"")
     );
 
-    forward(&mut engine, "a = [1, 2, 3];");
+    forward(&mut context, "a = [1, 2, 3];");
     assert_eq!(
-        forward(&mut engine, "a.fill(4, -3, -2).join()"),
+        forward(&mut context, "a.fill(4, -3, -2).join()"),
         String::from("\"4,2,3\"")
     );
 
-    forward(&mut engine, "a = [1, 2, 3];");
+    forward(&mut context, "a = [1, 2, 3];");
     assert_eq!(
-        forward(&mut engine, "a.fill(4, NaN, NaN).join()"),
+        forward(&mut context, "a.fill(4, NaN, NaN).join()"),
         String::from("\"1,2,3\"")
     );
 
-    forward(&mut engine, "a = [1, 2, 3];");
+    forward(&mut context, "a = [1, 2, 3];");
     assert_eq!(
-        forward(&mut engine, "a.fill(4, 3, 5).join()"),
+        forward(&mut context, "a.fill(4, 3, 5).join()"),
         String::from("\"1,2,3\"")
     );
 
-    forward(&mut engine, "a = [1, 2, 3];");
+    forward(&mut context, "a = [1, 2, 3];");
     assert_eq!(
-        forward(&mut engine, "a.fill(4, '1.2', '2.5').join()"),
+        forward(&mut context, "a.fill(4, '1.2', '2.5').join()"),
         String::from("\"1,4,3\"")
     );
 
-    forward(&mut engine, "a = [1, 2, 3];");
+    forward(&mut context, "a = [1, 2, 3];");
     assert_eq!(
-        forward(&mut engine, "a.fill(4, 'str').join()"),
+        forward(&mut context, "a.fill(4, 'str').join()"),
         String::from("\"4,4,4\"")
     );
 
-    forward(&mut engine, "a = [1, 2, 3];");
+    forward(&mut context, "a = [1, 2, 3];");
     assert_eq!(
-        forward(&mut engine, "a.fill(4, 'str', 'str').join()"),
+        forward(&mut context, "a.fill(4, 'str', 'str').join()"),
         String::from("\"1,2,3\"")
     );
 
-    forward(&mut engine, "a = [1, 2, 3];");
+    forward(&mut context, "a = [1, 2, 3];");
     assert_eq!(
-        forward(&mut engine, "a.fill(4, undefined, null).join()"),
+        forward(&mut context, "a.fill(4, undefined, null).join()"),
         String::from("\"1,2,3\"")
     );
 
-    forward(&mut engine, "a = [1, 2, 3];");
+    forward(&mut context, "a = [1, 2, 3];");
     assert_eq!(
-        forward(&mut engine, "a.fill(4, undefined, undefined).join()"),
+        forward(&mut context, "a.fill(4, undefined, undefined).join()"),
         String::from("\"4,4,4\"")
     );
 
     assert_eq!(
-        forward(&mut engine, "a.fill().join()"),
+        forward(&mut context, "a.fill().join()"),
         String::from("\"undefined,undefined,undefined\"")
     );
 
     // test object reference
-    forward(&mut engine, "a = (new Array(3)).fill({});");
-    forward(&mut engine, "a[0].hi = 'hi';");
-    assert_eq!(forward(&mut engine, "a[0].hi"), String::from("\"hi\""));
+    forward(&mut context, "a = (new Array(3)).fill({});");
+    forward(&mut context, "a[0].hi = 'hi';");
+    assert_eq!(forward(&mut context, "a[0].hi"), String::from("\"hi\""));
 }
 
 #[test]
 fn includes_value() {
-    let mut engine = Context::new();
+    let mut context = Context::new();
     let init = r#"
         var empty = [ ];
         var one = ["a"];
@@ -554,37 +554,37 @@ fn includes_value() {
         var duplicates = ["a", "b", "c", "a", "b"];
         var undefined = [undefined];
         "#;
-    eprintln!("{}", forward(&mut engine, init));
+    eprintln!("{}", forward(&mut context, init));
 
     // Empty
-    let empty = forward(&mut engine, "empty.includes('a')");
+    let empty = forward(&mut context, "empty.includes('a')");
     assert_eq!(empty, String::from("false"));
 
     // One
-    let one = forward(&mut engine, "one.includes('a')");
+    let one = forward(&mut context, "one.includes('a')");
     assert_eq!(one, String::from("true"));
     // Missing from one
-    let missing_from_one = forward(&mut engine, "one.includes('b')");
+    let missing_from_one = forward(&mut context, "one.includes('b')");
     assert_eq!(missing_from_one, String::from("false"));
 
     // In many
-    let first_in_many = forward(&mut engine, "many.includes('c')");
+    let first_in_many = forward(&mut context, "many.includes('c')");
     assert_eq!(first_in_many, String::from("true"));
     // Missing from many
-    let second_in_many = forward(&mut engine, "many.includes('d')");
+    let second_in_many = forward(&mut context, "many.includes('d')");
     assert_eq!(second_in_many, String::from("false"));
 
     // In duplicates
-    let first_in_many = forward(&mut engine, "duplicates.includes('a')");
+    let first_in_many = forward(&mut context, "duplicates.includes('a')");
     assert_eq!(first_in_many, String::from("true"));
     // Missing from duplicates
-    let second_in_many = forward(&mut engine, "duplicates.includes('d')");
+    let second_in_many = forward(&mut context, "duplicates.includes('d')");
     assert_eq!(second_in_many, String::from("false"));
 }
 
 #[test]
 fn map() {
-    let mut engine = Context::new();
+    let mut context = Context::new();
 
     let js = r#"
         var empty = [];
@@ -603,37 +603,40 @@ fn map() {
         var many_mapped = many.map(v => '_' + v + '_');
         "#;
 
-    forward(&mut engine, js);
+    forward(&mut context, js);
 
     // assert the old arrays have not been modified
-    assert_eq!(forward(&mut engine, "one[0]"), String::from("\"x\""));
+    assert_eq!(forward(&mut context, "one[0]"), String::from("\"x\""));
     assert_eq!(
-        forward(&mut engine, "many[2] + many[1] + many[0]"),
+        forward(&mut context, "many[2] + many[1] + many[0]"),
         String::from("\"zyx\"")
     );
 
     // NB: These tests need to be rewritten once `Display` has been implemented for `Array`
     // Empty
     assert_eq!(
-        forward(&mut engine, "empty_mapped.length"),
+        forward(&mut context, "empty_mapped.length"),
         String::from("0")
     );
 
     // One
-    assert_eq!(forward(&mut engine, "one_mapped.length"), String::from("1"));
     assert_eq!(
-        forward(&mut engine, "one_mapped[0]"),
+        forward(&mut context, "one_mapped.length"),
+        String::from("1")
+    );
+    assert_eq!(
+        forward(&mut context, "one_mapped[0]"),
         String::from("\"_x\"")
     );
 
     // Many
     assert_eq!(
-        forward(&mut engine, "many_mapped.length"),
+        forward(&mut context, "many_mapped.length"),
         String::from("3")
     );
     assert_eq!(
         forward(
-            &mut engine,
+            &mut context,
             "many_mapped[0] + many_mapped[1] + many_mapped[2]"
         ),
         String::from("\"_x__y__z_\"")
@@ -641,13 +644,13 @@ fn map() {
 
     // TODO: uncomment when `this` has been implemented
     // One but it uses `this` inside the callback
-    // let one_with_this = forward(&mut engine, "one.map(callbackThatUsesThis, _this)[0];");
+    // let one_with_this = forward(&mut context, "one.map(callbackThatUsesThis, _this)[0];");
     // assert_eq!(one_with_this, String::from("The answer to life is: 42"))
 }
 
 #[test]
 fn slice() {
-    let mut engine = Context::new();
+    let mut context = Context::new();
     let init = r#"
         var empty = [ ].slice();
         var one = ["a"].slice();
@@ -655,22 +658,22 @@ fn slice() {
         var many2 = ["a", "b", "c", "d"].slice(2, 3);
         var many3 = ["a", "b", "c", "d"].slice(7);
         "#;
-    eprintln!("{}", forward(&mut engine, init));
+    eprintln!("{}", forward(&mut context, init));
 
-    assert_eq!(forward(&mut engine, "empty.length"), "0");
-    assert_eq!(forward(&mut engine, "one[0]"), "\"a\"");
-    assert_eq!(forward(&mut engine, "many1[0]"), "\"b\"");
-    assert_eq!(forward(&mut engine, "many1[1]"), "\"c\"");
-    assert_eq!(forward(&mut engine, "many1[2]"), "\"d\"");
-    assert_eq!(forward(&mut engine, "many1.length"), "3");
-    assert_eq!(forward(&mut engine, "many2[0]"), "\"c\"");
-    assert_eq!(forward(&mut engine, "many2.length"), "1");
-    assert_eq!(forward(&mut engine, "many3.length"), "0");
+    assert_eq!(forward(&mut context, "empty.length"), "0");
+    assert_eq!(forward(&mut context, "one[0]"), "\"a\"");
+    assert_eq!(forward(&mut context, "many1[0]"), "\"b\"");
+    assert_eq!(forward(&mut context, "many1[1]"), "\"c\"");
+    assert_eq!(forward(&mut context, "many1[2]"), "\"d\"");
+    assert_eq!(forward(&mut context, "many1.length"), "3");
+    assert_eq!(forward(&mut context, "many2[0]"), "\"c\"");
+    assert_eq!(forward(&mut context, "many2.length"), "1");
+    assert_eq!(forward(&mut context, "many3.length"), "0");
 }
 
 #[test]
 fn for_each() {
-    let mut engine = Context::new();
+    let mut context = Context::new();
     let init = r#"
         var a = [2, 3, 4, 5];
         var sum = 0;
@@ -683,16 +686,16 @@ fn for_each() {
         }
         a.forEach(callingCallback);
         "#;
-    eprintln!("{}", forward(&mut engine, init));
+    eprintln!("{}", forward(&mut context, init));
 
-    assert_eq!(forward(&mut engine, "sum"), "14");
-    assert_eq!(forward(&mut engine, "indexSum"), "6");
-    assert_eq!(forward(&mut engine, "listLengthSum"), "16");
+    assert_eq!(forward(&mut context, "sum"), "14");
+    assert_eq!(forward(&mut context, "indexSum"), "6");
+    assert_eq!(forward(&mut context, "listLengthSum"), "16");
 }
 
 #[test]
 fn for_each_push_value() {
-    let mut engine = Context::new();
+    let mut context = Context::new();
     let init = r#"
         var a = [1, 2, 3, 4];
         function callingCallback(item, index, list) {
@@ -700,19 +703,19 @@ fn for_each_push_value() {
         }
         a.forEach(callingCallback);
         "#;
-    eprintln!("{}", forward(&mut engine, init));
+    eprintln!("{}", forward(&mut context, init));
 
     // [ 1, 2, 3, 4, 2, 4, 6, 8 ]
-    assert_eq!(forward(&mut engine, "a.length"), "8");
-    assert_eq!(forward(&mut engine, "a[4]"), "2");
-    assert_eq!(forward(&mut engine, "a[5]"), "4");
-    assert_eq!(forward(&mut engine, "a[6]"), "6");
-    assert_eq!(forward(&mut engine, "a[7]"), "8");
+    assert_eq!(forward(&mut context, "a.length"), "8");
+    assert_eq!(forward(&mut context, "a[4]"), "2");
+    assert_eq!(forward(&mut context, "a[5]"), "4");
+    assert_eq!(forward(&mut context, "a[6]"), "6");
+    assert_eq!(forward(&mut context, "a[7]"), "8");
 }
 
 #[test]
 fn filter() {
-    let mut engine = Context::new();
+    let mut context = Context::new();
 
     let js = r#"
         var empty = [];
@@ -726,62 +729,62 @@ fn filter() {
         var many_zero_filtered = many.filter(v => v === "0");
         "#;
 
-    forward(&mut engine, js);
+    forward(&mut context, js);
 
     // assert the old arrays have not been modified
-    assert_eq!(forward(&mut engine, "one[0]"), String::from("\"1\""));
+    assert_eq!(forward(&mut context, "one[0]"), String::from("\"1\""));
     assert_eq!(
-        forward(&mut engine, "many[2] + many[1] + many[0]"),
+        forward(&mut context, "many[2] + many[1] + many[0]"),
         String::from("\"101\"")
     );
 
     // NB: These tests need to be rewritten once `Display` has been implemented for `Array`
     // Empty
     assert_eq!(
-        forward(&mut engine, "empty_filtered.length"),
+        forward(&mut context, "empty_filtered.length"),
         String::from("0")
     );
 
     // One filtered on "1"
     assert_eq!(
-        forward(&mut engine, "one_filtered.length"),
+        forward(&mut context, "one_filtered.length"),
         String::from("1")
     );
     assert_eq!(
-        forward(&mut engine, "one_filtered[0]"),
+        forward(&mut context, "one_filtered[0]"),
         String::from("\"1\"")
     );
 
     //  One filtered on "0"
     assert_eq!(
-        forward(&mut engine, "zero_filtered.length"),
+        forward(&mut context, "zero_filtered.length"),
         String::from("0")
     );
 
     // Many filtered on "1"
     assert_eq!(
-        forward(&mut engine, "many_one_filtered.length"),
+        forward(&mut context, "many_one_filtered.length"),
         String::from("2")
     );
     assert_eq!(
-        forward(&mut engine, "many_one_filtered[0] + many_one_filtered[1]"),
+        forward(&mut context, "many_one_filtered[0] + many_one_filtered[1]"),
         String::from("\"11\"")
     );
 
     // Many filtered on "0"
     assert_eq!(
-        forward(&mut engine, "many_zero_filtered.length"),
+        forward(&mut context, "many_zero_filtered.length"),
         String::from("1")
     );
     assert_eq!(
-        forward(&mut engine, "many_zero_filtered[0]"),
+        forward(&mut context, "many_zero_filtered[0]"),
         String::from("\"0\"")
     );
 }
 
 #[test]
 fn some() {
-    let mut engine = Context::new();
+    let mut context = Context::new();
     let init = r#"
         var empty = [];
 
@@ -806,30 +809,30 @@ fn some() {
           return elem < 3;
         }
         "#;
-    forward(&mut engine, init);
-    let result = forward(&mut engine, "array.some(lessThan10);");
+    forward(&mut context, init);
+    let result = forward(&mut context, "array.some(lessThan10);");
     assert_eq!(result, "true");
 
-    let result = forward(&mut engine, "empty.some(lessThan10);");
+    let result = forward(&mut context, "empty.some(lessThan10);");
     assert_eq!(result, "false");
 
-    let result = forward(&mut engine, "array.some(greaterThan10);");
+    let result = forward(&mut context, "array.some(greaterThan10);");
     assert_eq!(result, "false");
 
-    let result = forward(&mut engine, "appendArray.some(appendingCallback);");
-    let append_array_length = forward(&mut engine, "appendArray.length");
+    let result = forward(&mut context, "appendArray.some(appendingCallback);");
+    let append_array_length = forward(&mut context, "appendArray.length");
     assert_eq!(append_array_length, "5");
     assert_eq!(result, "true");
 
-    let result = forward(&mut engine, "delArray.some(deletingCallback);");
-    let del_array_length = forward(&mut engine, "delArray.length");
+    let result = forward(&mut context, "delArray.some(deletingCallback);");
+    let del_array_length = forward(&mut context, "delArray.length");
     assert_eq!(del_array_length, "3");
     assert_eq!(result, "true");
 }
 
 #[test]
 fn reduce() {
-    let mut engine = Context::new();
+    let mut context = Context::new();
 
     let init = r#"
         var arr = [1, 2, 3, 4];
@@ -857,39 +860,39 @@ fn reduce() {
         delete delArray[3];
 
     "#;
-    forward(&mut engine, init);
+    forward(&mut context, init);
 
     // empty array
-    let result = forward(&mut engine, "[].reduce(add, 0)");
+    let result = forward(&mut context, "[].reduce(add, 0)");
     assert_eq!(result, "0");
 
     // simple with initial value
-    let result = forward(&mut engine, "arr.reduce(add, 0)");
+    let result = forward(&mut context, "arr.reduce(add, 0)");
     assert_eq!(result, "10");
 
     // without initial value
-    let result = forward(&mut engine, "arr.reduce(add)");
+    let result = forward(&mut context, "arr.reduce(add)");
     assert_eq!(result, "10");
 
     // with some items missing
-    let result = forward(&mut engine, "delArray.reduce(add, 0)");
+    let result = forward(&mut context, "delArray.reduce(add, 0)");
     assert_eq!(result, "8");
 
     // with index
-    let result = forward(&mut engine, "arr.reduce(addIdx, 0)");
+    let result = forward(&mut context, "arr.reduce(addIdx, 0)");
     assert_eq!(result, "6");
 
     // with array
-    let result = forward(&mut engine, "arr.reduce(addLen, 0)");
+    let result = forward(&mut context, "arr.reduce(addLen, 0)");
     assert_eq!(result, "16");
 
     // resizing the array as reduce progresses
-    let result = forward(&mut engine, "arr.reduce(addResize, 0)");
+    let result = forward(&mut context, "arr.reduce(addResize, 0)");
     assert_eq!(result, "6");
 
     // Empty array
     let result = forward(
-        &mut engine,
+        &mut context,
         r#"
         try {
             [].reduce((acc, x) => acc + x);
@@ -905,7 +908,7 @@ fn reduce() {
 
     // Array with no defined elements
     let result = forward(
-        &mut engine,
+        &mut context,
         r#"
         try {
             var arr = [0, 1];
@@ -924,7 +927,7 @@ fn reduce() {
 
     // No callback
     let result = forward(
-        &mut engine,
+        &mut context,
         r#"
         try {
             arr.reduce("");
@@ -938,7 +941,7 @@ fn reduce() {
 
 #[test]
 fn reduce_right() {
-    let mut engine = Context::new();
+    let mut context = Context::new();
 
     let init = r#"
         var arr = [1, 2, 3, 4];
@@ -972,46 +975,46 @@ fn reduce_right() {
         delete delArray[3];
 
     "#;
-    forward(&mut engine, init);
+    forward(&mut context, init);
 
     // empty array
-    let result = forward(&mut engine, "[].reduceRight(sub, 0)");
+    let result = forward(&mut context, "[].reduceRight(sub, 0)");
     assert_eq!(result, "0");
 
     // simple with initial value
-    let result = forward(&mut engine, "arr.reduceRight(sub, 0)");
+    let result = forward(&mut context, "arr.reduceRight(sub, 0)");
     assert_eq!(result, "-10");
 
     // without initial value
-    let result = forward(&mut engine, "arr.reduceRight(sub)");
+    let result = forward(&mut context, "arr.reduceRight(sub)");
     assert_eq!(result, "-2");
 
     // with some items missing
-    let result = forward(&mut engine, "delArray.reduceRight(sub, 0)");
+    let result = forward(&mut context, "delArray.reduceRight(sub, 0)");
     assert_eq!(result, "-8");
 
     // with index
-    let result = forward(&mut engine, "arr.reduceRight(subIdx)");
+    let result = forward(&mut context, "arr.reduceRight(subIdx)");
     assert_eq!(result, "1");
 
     // with array
-    let result = forward(&mut engine, "arr.reduceRight(subLen)");
+    let result = forward(&mut context, "arr.reduceRight(subLen)");
     assert_eq!(result, "-8");
 
     // resizing the array as reduce progresses
-    let result = forward(&mut engine, "arr.reduceRight(subResize, 0)");
+    let result = forward(&mut context, "arr.reduceRight(subResize, 0)");
     assert_eq!(result, "-5");
 
     // reset array
-    forward(&mut engine, "arr = [1, 2, 3, 4];");
+    forward(&mut context, "arr = [1, 2, 3, 4];");
 
     // resizing the array to 0 as reduce progresses
-    let result = forward(&mut engine, "arr.reduceRight(subResize0, 0)");
+    let result = forward(&mut context, "arr.reduceRight(subResize0, 0)");
     assert_eq!(result, "-7");
 
     // Empty array
     let result = forward(
-        &mut engine,
+        &mut context,
         r#"
         try {
             [].reduceRight((acc, x) => acc + x);
@@ -1027,7 +1030,7 @@ fn reduce_right() {
 
     // Array with no defined elements
     let result = forward(
-        &mut engine,
+        &mut context,
         r#"
         try {
             var arr = [0, 1];
@@ -1046,7 +1049,7 @@ fn reduce_right() {
 
     // No callback
     let result = forward(
-        &mut engine,
+        &mut context,
         r#"
         try {
             arr.reduceRight("");
@@ -1060,7 +1063,7 @@ fn reduce_right() {
 
 #[test]
 fn call_array_constructor_with_one_argument() {
-    let mut engine = Context::new();
+    let mut context = Context::new();
     let init = r#"
         var empty = new Array(0);
 
@@ -1068,163 +1071,163 @@ fn call_array_constructor_with_one_argument() {
 
         var one = new Array("Hello, world!");
         "#;
-    forward(&mut engine, init);
-    // let result = forward(&mut engine, "empty.length");
+    forward(&mut context, init);
+    // let result = forward(&mut context, "empty.length");
     // assert_eq!(result, "0");
 
-    // let result = forward(&mut engine, "five.length");
+    // let result = forward(&mut context, "five.length");
     // assert_eq!(result, "5");
 
-    // let result = forward(&mut engine, "one.length");
+    // let result = forward(&mut context, "one.length");
     // assert_eq!(result, "1");
 }
 
 #[test]
 fn array_values_simple() {
-    let mut engine = Context::new();
+    let mut context = Context::new();
     let init = r#"
         var iterator = [1, 2, 3].values();
         var next = iterator.next();
     "#;
-    forward(&mut engine, init);
-    assert_eq!(forward(&mut engine, "next.value"), "1");
-    assert_eq!(forward(&mut engine, "next.done"), "false");
-    forward(&mut engine, "next = iterator.next()");
-    assert_eq!(forward(&mut engine, "next.value"), "2");
-    assert_eq!(forward(&mut engine, "next.done"), "false");
-    forward(&mut engine, "next = iterator.next()");
-    assert_eq!(forward(&mut engine, "next.value"), "3");
-    assert_eq!(forward(&mut engine, "next.done"), "false");
-    forward(&mut engine, "next = iterator.next()");
-    assert_eq!(forward(&mut engine, "next.value"), "undefined");
-    assert_eq!(forward(&mut engine, "next.done"), "true");
+    forward(&mut context, init);
+    assert_eq!(forward(&mut context, "next.value"), "1");
+    assert_eq!(forward(&mut context, "next.done"), "false");
+    forward(&mut context, "next = iterator.next()");
+    assert_eq!(forward(&mut context, "next.value"), "2");
+    assert_eq!(forward(&mut context, "next.done"), "false");
+    forward(&mut context, "next = iterator.next()");
+    assert_eq!(forward(&mut context, "next.value"), "3");
+    assert_eq!(forward(&mut context, "next.done"), "false");
+    forward(&mut context, "next = iterator.next()");
+    assert_eq!(forward(&mut context, "next.value"), "undefined");
+    assert_eq!(forward(&mut context, "next.done"), "true");
 }
 
 #[test]
 fn array_keys_simple() {
-    let mut engine = Context::new();
+    let mut context = Context::new();
     let init = r#"
         var iterator = [1, 2, 3].keys();
         var next = iterator.next();
     "#;
-    forward(&mut engine, init);
-    assert_eq!(forward(&mut engine, "next.value"), "0");
-    assert_eq!(forward(&mut engine, "next.done"), "false");
-    forward(&mut engine, "next = iterator.next()");
-    assert_eq!(forward(&mut engine, "next.value"), "1");
-    assert_eq!(forward(&mut engine, "next.done"), "false");
-    forward(&mut engine, "next = iterator.next()");
-    assert_eq!(forward(&mut engine, "next.value"), "2");
-    assert_eq!(forward(&mut engine, "next.done"), "false");
-    forward(&mut engine, "next = iterator.next()");
-    assert_eq!(forward(&mut engine, "next.value"), "undefined");
-    assert_eq!(forward(&mut engine, "next.done"), "true");
+    forward(&mut context, init);
+    assert_eq!(forward(&mut context, "next.value"), "0");
+    assert_eq!(forward(&mut context, "next.done"), "false");
+    forward(&mut context, "next = iterator.next()");
+    assert_eq!(forward(&mut context, "next.value"), "1");
+    assert_eq!(forward(&mut context, "next.done"), "false");
+    forward(&mut context, "next = iterator.next()");
+    assert_eq!(forward(&mut context, "next.value"), "2");
+    assert_eq!(forward(&mut context, "next.done"), "false");
+    forward(&mut context, "next = iterator.next()");
+    assert_eq!(forward(&mut context, "next.value"), "undefined");
+    assert_eq!(forward(&mut context, "next.done"), "true");
 }
 
 #[test]
 fn array_entries_simple() {
-    let mut engine = Context::new();
+    let mut context = Context::new();
     let init = r#"
         var iterator = [1, 2, 3].entries();
         var next = iterator.next();
     "#;
-    forward(&mut engine, init);
-    assert_eq!(forward(&mut engine, "next.value"), "[ 0, 1 ]");
-    assert_eq!(forward(&mut engine, "next.done"), "false");
-    forward(&mut engine, "next = iterator.next()");
-    assert_eq!(forward(&mut engine, "next.value"), "[ 1, 2 ]");
-    assert_eq!(forward(&mut engine, "next.done"), "false");
-    forward(&mut engine, "next = iterator.next()");
-    assert_eq!(forward(&mut engine, "next.value"), "[ 2, 3 ]");
-    assert_eq!(forward(&mut engine, "next.done"), "false");
-    forward(&mut engine, "next = iterator.next()");
-    assert_eq!(forward(&mut engine, "next.value"), "undefined");
-    assert_eq!(forward(&mut engine, "next.done"), "true");
+    forward(&mut context, init);
+    assert_eq!(forward(&mut context, "next.value"), "[ 0, 1 ]");
+    assert_eq!(forward(&mut context, "next.done"), "false");
+    forward(&mut context, "next = iterator.next()");
+    assert_eq!(forward(&mut context, "next.value"), "[ 1, 2 ]");
+    assert_eq!(forward(&mut context, "next.done"), "false");
+    forward(&mut context, "next = iterator.next()");
+    assert_eq!(forward(&mut context, "next.value"), "[ 2, 3 ]");
+    assert_eq!(forward(&mut context, "next.done"), "false");
+    forward(&mut context, "next = iterator.next()");
+    assert_eq!(forward(&mut context, "next.value"), "undefined");
+    assert_eq!(forward(&mut context, "next.done"), "true");
 }
 
 #[test]
 fn array_values_empty() {
-    let mut engine = Context::new();
+    let mut context = Context::new();
     let init = r#"
         var iterator = [].values();
         var next = iterator.next();
     "#;
-    forward(&mut engine, init);
-    assert_eq!(forward(&mut engine, "next.value"), "undefined");
-    assert_eq!(forward(&mut engine, "next.done"), "true");
+    forward(&mut context, init);
+    assert_eq!(forward(&mut context, "next.value"), "undefined");
+    assert_eq!(forward(&mut context, "next.done"), "true");
 }
 
 #[test]
 fn array_values_sparse() {
-    let mut engine = Context::new();
+    let mut context = Context::new();
     let init = r#"
         var array = Array();
         array[3] = 5;
         var iterator = array.values();
         var next = iterator.next();
     "#;
-    forward(&mut engine, init);
-    assert_eq!(forward(&mut engine, "next.value"), "undefined");
-    assert_eq!(forward(&mut engine, "next.done"), "false");
-    forward(&mut engine, "next = iterator.next()");
-    assert_eq!(forward(&mut engine, "next.value"), "undefined");
-    assert_eq!(forward(&mut engine, "next.done"), "false");
-    forward(&mut engine, "next = iterator.next()");
-    assert_eq!(forward(&mut engine, "next.value"), "undefined");
-    assert_eq!(forward(&mut engine, "next.done"), "false");
-    forward(&mut engine, "next = iterator.next()");
-    assert_eq!(forward(&mut engine, "next.value"), "5");
-    assert_eq!(forward(&mut engine, "next.done"), "false");
-    forward(&mut engine, "next = iterator.next()");
-    assert_eq!(forward(&mut engine, "next.value"), "undefined");
-    assert_eq!(forward(&mut engine, "next.done"), "true");
+    forward(&mut context, init);
+    assert_eq!(forward(&mut context, "next.value"), "undefined");
+    assert_eq!(forward(&mut context, "next.done"), "false");
+    forward(&mut context, "next = iterator.next()");
+    assert_eq!(forward(&mut context, "next.value"), "undefined");
+    assert_eq!(forward(&mut context, "next.done"), "false");
+    forward(&mut context, "next = iterator.next()");
+    assert_eq!(forward(&mut context, "next.value"), "undefined");
+    assert_eq!(forward(&mut context, "next.done"), "false");
+    forward(&mut context, "next = iterator.next()");
+    assert_eq!(forward(&mut context, "next.value"), "5");
+    assert_eq!(forward(&mut context, "next.done"), "false");
+    forward(&mut context, "next = iterator.next()");
+    assert_eq!(forward(&mut context, "next.value"), "undefined");
+    assert_eq!(forward(&mut context, "next.done"), "true");
 }
 
 #[test]
 fn array_symbol_iterator() {
-    let mut engine = Context::new();
+    let mut context = Context::new();
     let init = r#"
         var iterator = [1, 2, 3][Symbol.iterator]();
         var next = iterator.next();
     "#;
-    forward(&mut engine, init);
-    assert_eq!(forward(&mut engine, "next.value"), "1");
-    assert_eq!(forward(&mut engine, "next.done"), "false");
-    forward(&mut engine, "next = iterator.next()");
-    assert_eq!(forward(&mut engine, "next.value"), "2");
-    assert_eq!(forward(&mut engine, "next.done"), "false");
-    forward(&mut engine, "next = iterator.next()");
-    assert_eq!(forward(&mut engine, "next.value"), "3");
-    assert_eq!(forward(&mut engine, "next.done"), "false");
-    forward(&mut engine, "next = iterator.next()");
-    assert_eq!(forward(&mut engine, "next.value"), "undefined");
-    assert_eq!(forward(&mut engine, "next.done"), "true");
+    forward(&mut context, init);
+    assert_eq!(forward(&mut context, "next.value"), "1");
+    assert_eq!(forward(&mut context, "next.done"), "false");
+    forward(&mut context, "next = iterator.next()");
+    assert_eq!(forward(&mut context, "next.value"), "2");
+    assert_eq!(forward(&mut context, "next.done"), "false");
+    forward(&mut context, "next = iterator.next()");
+    assert_eq!(forward(&mut context, "next.value"), "3");
+    assert_eq!(forward(&mut context, "next.done"), "false");
+    forward(&mut context, "next = iterator.next()");
+    assert_eq!(forward(&mut context, "next.value"), "undefined");
+    assert_eq!(forward(&mut context, "next.done"), "true");
 }
 
 #[test]
 fn array_values_symbol_iterator() {
-    let mut engine = Context::new();
+    let mut context = Context::new();
     let init = r#"
         var iterator = [1, 2, 3].values();
         iterator === iterator[Symbol.iterator]();
     "#;
-    assert_eq!(forward(&mut engine, init), "true");
+    assert_eq!(forward(&mut context, init), "true");
 }
 
 #[test]
 fn array_spread_arrays() {
-    let mut engine = Context::new();
+    let mut context = Context::new();
     let init = r#"
         const array1 = [2, 3];
         const array2 = [1, ...array1];
         array2[0] === 1 && array2[1] === 2 && array2[2] === 3;
     "#;
-    assert_eq!(forward(&mut engine, init), "true");
+    assert_eq!(forward(&mut context, init), "true");
 }
 
 #[test]
 fn array_spread_non_iterable() {
-    let mut engine = Context::new();
+    let mut context = Context::new();
     let init = r#"
         try {
             const array2 = [...5];
@@ -1232,5 +1235,5 @@ fn array_spread_non_iterable() {
             err.name === "TypeError" && err.message === "Not an iterable"
         }
     "#;
-    assert_eq!(forward(&mut engine, init), "true");
+    assert_eq!(forward(&mut context, init), "true");
 }

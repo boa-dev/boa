@@ -56,56 +56,59 @@ fn number_is_true() {
 // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Equality_comparisons_and_sameness
 #[test]
 fn abstract_equality_comparison() {
-    let mut engine = Context::new();
+    let mut context = Context::new();
 
-    assert_eq!(forward(&mut engine, "undefined == undefined"), "true");
-    assert_eq!(forward(&mut engine, "null == null"), "true");
-    assert_eq!(forward(&mut engine, "true == true"), "true");
-    assert_eq!(forward(&mut engine, "false == false"), "true");
-    assert_eq!(forward(&mut engine, "'foo' == 'foo'"), "true");
-    assert_eq!(forward(&mut engine, "0 == 0"), "true");
-    assert_eq!(forward(&mut engine, "+0 == -0"), "true");
-    assert_eq!(forward(&mut engine, "+0 == 0"), "true");
-    assert_eq!(forward(&mut engine, "-0 == 0"), "true");
-    assert_eq!(forward(&mut engine, "0 == false"), "true");
-    assert_eq!(forward(&mut engine, "'' == false"), "true");
-    assert_eq!(forward(&mut engine, "'' == 0"), "true");
-    assert_eq!(forward(&mut engine, "'17' == 17"), "true");
-    assert_eq!(forward(&mut engine, "[1,2] == '1,2'"), "true");
-    assert_eq!(forward(&mut engine, "new String('foo') == 'foo'"), "true");
-    assert_eq!(forward(&mut engine, "null == undefined"), "true");
-    assert_eq!(forward(&mut engine, "undefined == null"), "true");
-    assert_eq!(forward(&mut engine, "null == false"), "false");
-    assert_eq!(forward(&mut engine, "[] == ![]"), "true");
+    assert_eq!(forward(&mut context, "undefined == undefined"), "true");
+    assert_eq!(forward(&mut context, "null == null"), "true");
+    assert_eq!(forward(&mut context, "true == true"), "true");
+    assert_eq!(forward(&mut context, "false == false"), "true");
+    assert_eq!(forward(&mut context, "'foo' == 'foo'"), "true");
+    assert_eq!(forward(&mut context, "0 == 0"), "true");
+    assert_eq!(forward(&mut context, "+0 == -0"), "true");
+    assert_eq!(forward(&mut context, "+0 == 0"), "true");
+    assert_eq!(forward(&mut context, "-0 == 0"), "true");
+    assert_eq!(forward(&mut context, "0 == false"), "true");
+    assert_eq!(forward(&mut context, "'' == false"), "true");
+    assert_eq!(forward(&mut context, "'' == 0"), "true");
+    assert_eq!(forward(&mut context, "'17' == 17"), "true");
+    assert_eq!(forward(&mut context, "[1,2] == '1,2'"), "true");
+    assert_eq!(forward(&mut context, "new String('foo') == 'foo'"), "true");
+    assert_eq!(forward(&mut context, "null == undefined"), "true");
+    assert_eq!(forward(&mut context, "undefined == null"), "true");
+    assert_eq!(forward(&mut context, "null == false"), "false");
+    assert_eq!(forward(&mut context, "[] == ![]"), "true");
     assert_eq!(
-        forward(&mut engine, "a = { foo: 'bar' }; b = { foo: 'bar'}; a == b"),
+        forward(
+            &mut context,
+            "a = { foo: 'bar' }; b = { foo: 'bar'}; a == b"
+        ),
         "false"
     );
     assert_eq!(
-        forward(&mut engine, "new String('foo') == new String('foo')"),
+        forward(&mut context, "new String('foo') == new String('foo')"),
         "false"
     );
-    assert_eq!(forward(&mut engine, "0 == null"), "false");
+    assert_eq!(forward(&mut context, "0 == null"), "false");
 
-    assert_eq!(forward(&mut engine, "0 == '-0'"), "true");
-    assert_eq!(forward(&mut engine, "0 == '+0'"), "true");
-    assert_eq!(forward(&mut engine, "'+0' == 0"), "true");
-    assert_eq!(forward(&mut engine, "'-0' == 0"), "true");
+    assert_eq!(forward(&mut context, "0 == '-0'"), "true");
+    assert_eq!(forward(&mut context, "0 == '+0'"), "true");
+    assert_eq!(forward(&mut context, "'+0' == 0"), "true");
+    assert_eq!(forward(&mut context, "'-0' == 0"), "true");
 
-    assert_eq!(forward(&mut engine, "0 == NaN"), "false");
-    assert_eq!(forward(&mut engine, "'foo' == NaN"), "false");
-    assert_eq!(forward(&mut engine, "NaN == NaN"), "false");
+    assert_eq!(forward(&mut context, "0 == NaN"), "false");
+    assert_eq!(forward(&mut context, "'foo' == NaN"), "false");
+    assert_eq!(forward(&mut context, "NaN == NaN"), "false");
 
     assert_eq!(
         forward(
-            &mut engine,
+            &mut context,
             "Number.POSITIVE_INFINITY === Number.POSITIVE_INFINITY"
         ),
         "true"
     );
     assert_eq!(
         forward(
-            &mut engine,
+            &mut context,
             "Number.NEGAVIVE_INFINITY === Number.NEGAVIVE_INFINITY"
         ),
         "true"
@@ -160,56 +163,56 @@ fn hash_object() {
 
 #[test]
 fn get_types() {
-    let mut engine = Context::new();
+    let mut context = Context::new();
 
     assert_eq!(
-        forward_val(&mut engine, "undefined").unwrap().get_type(),
+        forward_val(&mut context, "undefined").unwrap().get_type(),
         Type::Undefined
     );
     assert_eq!(
-        forward_val(&mut engine, "1").unwrap().get_type(),
+        forward_val(&mut context, "1").unwrap().get_type(),
         Type::Number
     );
     assert_eq!(
-        forward_val(&mut engine, "1.5").unwrap().get_type(),
+        forward_val(&mut context, "1.5").unwrap().get_type(),
         Type::Number
     );
     assert_eq!(
-        forward_val(&mut engine, "BigInt(\"123442424242424424242424242\")")
+        forward_val(&mut context, "BigInt(\"123442424242424424242424242\")")
             .unwrap()
             .get_type(),
         Type::BigInt
     );
     assert_eq!(
-        forward_val(&mut engine, "true").unwrap().get_type(),
+        forward_val(&mut context, "true").unwrap().get_type(),
         Type::Boolean
     );
     assert_eq!(
-        forward_val(&mut engine, "false").unwrap().get_type(),
+        forward_val(&mut context, "false").unwrap().get_type(),
         Type::Boolean
     );
     assert_eq!(
-        forward_val(&mut engine, "function foo() {console.log(\"foo\");}")
+        forward_val(&mut context, "function foo() {console.log(\"foo\");}")
             .unwrap()
             .get_type(),
         Type::Undefined
     );
     assert_eq!(
-        forward_val(&mut engine, "null").unwrap().get_type(),
+        forward_val(&mut context, "null").unwrap().get_type(),
         Type::Null
     );
     assert_eq!(
-        forward_val(&mut engine, "var x = {arg: \"hi\", foo: \"hello\"}; x")
+        forward_val(&mut context, "var x = {arg: \"hi\", foo: \"hello\"}; x")
             .unwrap()
             .get_type(),
         Type::Object
     );
     assert_eq!(
-        forward_val(&mut engine, "\"Hi\"").unwrap().get_type(),
+        forward_val(&mut context, "\"Hi\"").unwrap().get_type(),
         Type::String
     );
     assert_eq!(
-        forward_val(&mut engine, "Symbol()").unwrap().get_type(),
+        forward_val(&mut context, "Symbol()").unwrap().get_type(),
         Type::Symbol
     );
 }
@@ -250,146 +253,146 @@ fn to_string() {
 
 #[test]
 fn add_number_and_number() {
-    let mut engine = Context::new();
+    let mut context = Context::new();
 
-    let value = forward_val(&mut engine, "1 + 2").unwrap();
-    let value = value.to_i32(&mut engine).unwrap();
+    let value = forward_val(&mut context, "1 + 2").unwrap();
+    let value = value.to_i32(&mut context).unwrap();
     assert_eq!(value, 3);
 }
 
 #[test]
 fn add_number_and_string() {
-    let mut engine = Context::new();
+    let mut context = Context::new();
 
-    let value = forward_val(&mut engine, "1 + \" + 2 = 3\"").unwrap();
-    let value = value.to_string(&mut engine).unwrap();
+    let value = forward_val(&mut context, "1 + \" + 2 = 3\"").unwrap();
+    let value = value.to_string(&mut context).unwrap();
     assert_eq!(value, "1 + 2 = 3");
 }
 
 #[test]
 fn add_string_and_string() {
-    let mut engine = Context::new();
+    let mut context = Context::new();
 
-    let value = forward_val(&mut engine, "\"Hello\" + \", world\"").unwrap();
-    let value = value.to_string(&mut engine).unwrap();
+    let value = forward_val(&mut context, "\"Hello\" + \", world\"").unwrap();
+    let value = value.to_string(&mut context).unwrap();
     assert_eq!(value, "Hello, world");
 }
 
 #[test]
 fn add_number_object_and_number() {
-    let mut engine = Context::new();
+    let mut context = Context::new();
 
-    let value = forward_val(&mut engine, "new Number(10) + 6").unwrap();
-    let value = value.to_i32(&mut engine).unwrap();
+    let value = forward_val(&mut context, "new Number(10) + 6").unwrap();
+    let value = value.to_i32(&mut context).unwrap();
     assert_eq!(value, 16);
 }
 
 #[test]
 fn add_number_object_and_string_object() {
-    let mut engine = Context::new();
+    let mut context = Context::new();
 
-    let value = forward_val(&mut engine, "new Number(10) + new String(\"0\")").unwrap();
-    let value = value.to_string(&mut engine).unwrap();
+    let value = forward_val(&mut context, "new Number(10) + new String(\"0\")").unwrap();
+    let value = value.to_string(&mut context).unwrap();
     assert_eq!(value, "100");
 }
 
 #[test]
 fn sub_number_and_number() {
-    let mut engine = Context::new();
+    let mut context = Context::new();
 
-    let value = forward_val(&mut engine, "1 - 999").unwrap();
-    let value = value.to_i32(&mut engine).unwrap();
+    let value = forward_val(&mut context, "1 - 999").unwrap();
+    let value = value.to_i32(&mut context).unwrap();
     assert_eq!(value, -998);
 }
 
 #[test]
 fn sub_number_object_and_number_object() {
-    let mut engine = Context::new();
+    let mut context = Context::new();
 
-    let value = forward_val(&mut engine, "new Number(1) - new Number(999)").unwrap();
-    let value = value.to_i32(&mut engine).unwrap();
+    let value = forward_val(&mut context, "new Number(1) - new Number(999)").unwrap();
+    let value = value.to_i32(&mut context).unwrap();
     assert_eq!(value, -998);
 }
 
 #[test]
 fn sub_string_and_number_object() {
-    let mut engine = Context::new();
+    let mut context = Context::new();
 
-    let value = forward_val(&mut engine, "'Hello' - new Number(999)").unwrap();
-    let value = value.to_number(&mut engine).unwrap();
+    let value = forward_val(&mut context, "'Hello' - new Number(999)").unwrap();
+    let value = value.to_number(&mut context).unwrap();
     assert!(value.is_nan());
 }
 
 #[test]
 fn div_by_zero() {
-    let mut engine = Context::new();
+    let mut context = Context::new();
 
-    let value = forward_val(&mut engine, "1 / 0").unwrap();
-    let value = value.to_number(&mut engine).unwrap();
+    let value = forward_val(&mut context, "1 / 0").unwrap();
+    let value = value.to_number(&mut context).unwrap();
     assert!(value.is_infinite());
 }
 
 #[test]
 fn rem_by_zero() {
-    let mut engine = Context::new();
+    let mut context = Context::new();
 
-    let value = forward_val(&mut engine, "1 % 0").unwrap();
-    let value = value.to_number(&mut engine).unwrap();
+    let value = forward_val(&mut context, "1 % 0").unwrap();
+    let value = value.to_number(&mut context).unwrap();
     assert!(value.is_nan());
 }
 
 #[test]
 fn bitand_integer_and_integer() {
-    let mut engine = Context::new();
+    let mut context = Context::new();
 
-    let value = forward_val(&mut engine, "0xFFFF & 0xFF").unwrap();
-    let value = value.to_i32(&mut engine).unwrap();
+    let value = forward_val(&mut context, "0xFFFF & 0xFF").unwrap();
+    let value = value.to_i32(&mut context).unwrap();
     assert_eq!(value, 255);
 }
 
 #[test]
 fn bitand_integer_and_rational() {
-    let mut engine = Context::new();
+    let mut context = Context::new();
 
-    let value = forward_val(&mut engine, "0xFFFF & 255.5").unwrap();
-    let value = value.to_i32(&mut engine).unwrap();
+    let value = forward_val(&mut context, "0xFFFF & 255.5").unwrap();
+    let value = value.to_i32(&mut context).unwrap();
     assert_eq!(value, 255);
 }
 
 #[test]
 fn bitand_rational_and_rational() {
-    let mut engine = Context::new();
+    let mut context = Context::new();
 
-    let value = forward_val(&mut engine, "255.772 & 255.5").unwrap();
-    let value = value.to_i32(&mut engine).unwrap();
+    let value = forward_val(&mut context, "255.772 & 255.5").unwrap();
+    let value = value.to_i32(&mut context).unwrap();
     assert_eq!(value, 255);
 }
 
 #[test]
 #[allow(clippy::float_cmp)]
 fn pow_number_and_number() {
-    let mut engine = Context::new();
+    let mut context = Context::new();
 
-    let value = forward_val(&mut engine, "3 ** 3").unwrap();
-    let value = value.to_number(&mut engine).unwrap();
+    let value = forward_val(&mut context, "3 ** 3").unwrap();
+    let value = value.to_number(&mut context).unwrap();
     assert_eq!(value, 27.0);
 }
 
 #[test]
 fn pow_number_and_string() {
-    let mut engine = Context::new();
+    let mut context = Context::new();
 
-    let value = forward_val(&mut engine, "3 ** 'Hello'").unwrap();
-    let value = value.to_number(&mut engine).unwrap();
+    let value = forward_val(&mut context, "3 ** 'Hello'").unwrap();
+    let value = value.to_number(&mut context).unwrap();
     assert!(value.is_nan());
 }
 
 #[test]
 fn assign_pow_number_and_string() {
-    let mut engine = Context::new();
+    let mut context = Context::new();
 
     let value = forward_val(
-        &mut engine,
+        &mut context,
         r"
         let a = 3;
         a **= 'Hello'
@@ -397,7 +400,7 @@ fn assign_pow_number_and_string() {
     ",
     )
     .unwrap();
-    let value = value.to_number(&mut engine).unwrap();
+    let value = value.to_number(&mut context).unwrap();
     assert!(value.is_nan());
 }
 
@@ -410,49 +413,49 @@ fn display_string() {
 
 #[test]
 fn display_array_string() {
-    let mut engine = Context::new();
+    let mut context = Context::new();
 
-    let value = forward_val(&mut engine, "[\"Hello\"]").unwrap();
+    let value = forward_val(&mut context, "[\"Hello\"]").unwrap();
     assert_eq!(value.display().to_string(), "[ \"Hello\" ]");
 }
 
 #[test]
 fn display_boolean_object() {
-    let mut engine = Context::new();
+    let mut context = Context::new();
     let d_obj = r#"
         let bool = new Boolean(0);
         bool
     "#;
-    let value = forward_val(&mut engine, d_obj).unwrap();
+    let value = forward_val(&mut context, d_obj).unwrap();
     assert_eq!(value.display().to_string(), "Boolean { false }")
 }
 
 #[test]
 fn display_number_object() {
-    let mut engine = Context::new();
+    let mut context = Context::new();
     let d_obj = r#"
         let num = new Number(3.14);
         num
     "#;
-    let value = forward_val(&mut engine, d_obj).unwrap();
+    let value = forward_val(&mut context, d_obj).unwrap();
     assert_eq!(value.display().to_string(), "Number { 3.14 }")
 }
 
 #[test]
 fn display_negative_zero_object() {
-    let mut engine = Context::new();
+    let mut context = Context::new();
     let d_obj = r#"
         let num = new Number(-0);
         num
     "#;
-    let value = forward_val(&mut engine, d_obj).unwrap();
+    let value = forward_val(&mut context, d_obj).unwrap();
     assert_eq!(value.display().to_string(), "Number { -0 }")
 }
 
 #[test]
 fn debug_object() {
-    let mut engine = Context::new();
-    let value = forward_val(&mut engine, "new Array([new Date()])").unwrap();
+    let mut context = Context::new();
+    let value = forward_val(&mut context, "new Array([new Date()])").unwrap();
 
     // We don't care about the contents of the debug display (it is *debug* after all). In the commit that this test was
     // added, this would cause a stack overflow, so executing Debug::fmt is the assertion.
@@ -465,12 +468,12 @@ fn debug_object() {
 #[test]
 #[ignore] // TODO: Once objects are printed in a simpler way this test can be simplified and used
 fn display_object() {
-    let mut engine = Context::new();
+    let mut context = Context::new();
     let d_obj = r#"
         let o = {a: 'a'};
         o
     "#;
-    let value = forward_val(&mut engine, d_obj).unwrap();
+    let value = forward_val(&mut context, d_obj).unwrap();
     assert_eq!(
         value.display().to_string(),
         r#"{
@@ -524,7 +527,7 @@ mod cyclic_conversions {
 
     #[test]
     fn to_json_cyclic() {
-        let mut engine = Context::new();
+        let mut context = Context::new();
         let src = r#"
             let a = [];
             a[0] = a;
@@ -532,21 +535,21 @@ mod cyclic_conversions {
         "#;
 
         assert_eq!(
-            forward(&mut engine, src),
+            forward(&mut context, src),
             r#"Uncaught "TypeError": "cyclic object value""#,
         );
     }
 
     #[test]
     fn to_json_noncyclic() {
-        let mut engine = Context::new();
+        let mut context = Context::new();
         let src = r#"
             let b = [];
             let a = [b, b];
             JSON.stringify(a)
         "#;
 
-        let value = forward_val(&mut engine, src).unwrap();
+        let value = forward_val(&mut context, src).unwrap();
         let result = value.as_string().unwrap();
         assert_eq!(result, "[[],[]]",);
     }
@@ -554,28 +557,28 @@ mod cyclic_conversions {
     // These tests don't throw errors. Instead we mirror Chrome / Firefox behavior for these conversions
     #[test]
     fn to_string_cyclic() {
-        let mut engine = Context::new();
+        let mut context = Context::new();
         let src = r#"
             let a = [];
             a[0] = a;
             a.toString()
         "#;
 
-        let value = forward_val(&mut engine, src).unwrap();
+        let value = forward_val(&mut context, src).unwrap();
         let result = value.as_string().unwrap();
         assert_eq!(result, "");
     }
 
     #[test]
     fn to_number_cyclic() {
-        let mut engine = Context::new();
+        let mut context = Context::new();
         let src = r#"
             let a = [];
             a[0] = a;
             +a
         "#;
 
-        let value = forward_val(&mut engine, src).unwrap();
+        let value = forward_val(&mut context, src).unwrap();
         let result = value.as_number().unwrap();
         assert_eq!(result, 0.0);
     }
@@ -583,56 +586,56 @@ mod cyclic_conversions {
     #[test]
     fn to_boolean_cyclic() {
         // this already worked before the mitigation, but we don't want to cause a regression
-        let mut engine = Context::new();
+        let mut context = Context::new();
         let src = r#"
             let a = [];
             a[0] = a;
             !!a
         "#;
 
-        let value = forward_val(&mut engine, src).unwrap();
+        let value = forward_val(&mut context, src).unwrap();
         // There isn't an as_boolean function for some reason?
         assert_eq!(value, Value::Boolean(true));
     }
 
     #[test]
     fn to_bigint_cyclic() {
-        let mut engine = Context::new();
+        let mut context = Context::new();
         let src = r#"
             let a = [];
             a[0] = a;
             BigInt(a)
         "#;
 
-        let value = forward_val(&mut engine, src).unwrap();
+        let value = forward_val(&mut context, src).unwrap();
         let result = value.as_bigint().unwrap().to_f64();
         assert_eq!(result, 0.);
     }
 
     #[test]
     fn to_u32_cyclic() {
-        let mut engine = Context::new();
+        let mut context = Context::new();
         let src = r#"
             let a = [];
             a[0] = a;
             a | 0
         "#;
 
-        let value = forward_val(&mut engine, src).unwrap();
+        let value = forward_val(&mut context, src).unwrap();
         let result = value.as_number().unwrap();
         assert_eq!(result, 0.);
     }
 
     #[test]
     fn console_log_cyclic() {
-        let mut engine = Context::new();
+        let mut context = Context::new();
         let src = r#"
             let a = [1];
             a[1] = a;
             console.log(a);
         "#;
 
-        let _ = forward(&mut engine, src);
+        let _ = forward(&mut context, src);
         // Should not stack overflow
     }
 }
@@ -640,9 +643,9 @@ mod cyclic_conversions {
 mod abstract_relational_comparison {
     use super::*;
     macro_rules! check_comparison {
-        ($engine:ident, $string:expr => $expect:expr) => {
+        ($context:ident, $string:expr => $expect:expr) => {
             assert_eq!(
-                forward_val(&mut $engine, $string).unwrap().to_boolean(),
+                forward_val(&mut $context, $string).unwrap().to_boolean(),
                 $expect
             );
         };
@@ -650,589 +653,589 @@ mod abstract_relational_comparison {
 
     #[test]
     fn number_less_than_number() {
-        let mut engine = Context::new();
-        check_comparison!(engine, "1 < 2" => true);
-        check_comparison!(engine, "2 < 2" => false);
-        check_comparison!(engine, "3 < 2" => false);
-        check_comparison!(engine, "2 < 2.5" => true);
-        check_comparison!(engine, "2.5 < 2" => false);
+        let mut context = Context::new();
+        check_comparison!(context, "1 < 2" => true);
+        check_comparison!(context, "2 < 2" => false);
+        check_comparison!(context, "3 < 2" => false);
+        check_comparison!(context, "2 < 2.5" => true);
+        check_comparison!(context, "2.5 < 2" => false);
     }
 
     #[test]
     fn string_less_than_number() {
-        let mut engine = Context::new();
-        check_comparison!(engine, "'1' < 2" => true);
-        check_comparison!(engine, "'2' < 2" => false);
-        check_comparison!(engine, "'3' < 2" => false);
-        check_comparison!(engine, "'2' < 2.5" => true);
-        check_comparison!(engine, "'2.5' < 2" => false);
+        let mut context = Context::new();
+        check_comparison!(context, "'1' < 2" => true);
+        check_comparison!(context, "'2' < 2" => false);
+        check_comparison!(context, "'3' < 2" => false);
+        check_comparison!(context, "'2' < 2.5" => true);
+        check_comparison!(context, "'2.5' < 2" => false);
     }
 
     #[test]
     fn number_less_than_string() {
-        let mut engine = Context::new();
-        check_comparison!(engine, "1 < '2'" => true);
-        check_comparison!(engine, "2 < '2'" => false);
-        check_comparison!(engine, "3 < '2'" => false);
-        check_comparison!(engine, "2 < '2.5'" => true);
-        check_comparison!(engine, "2.5 < '2'" => false);
+        let mut context = Context::new();
+        check_comparison!(context, "1 < '2'" => true);
+        check_comparison!(context, "2 < '2'" => false);
+        check_comparison!(context, "3 < '2'" => false);
+        check_comparison!(context, "2 < '2.5'" => true);
+        check_comparison!(context, "2.5 < '2'" => false);
     }
 
     #[test]
     fn number_object_less_than_number() {
-        let mut engine = Context::new();
-        check_comparison!(engine, "new Number(1) < '2'" => true);
-        check_comparison!(engine, "new Number(2) < '2'" => false);
-        check_comparison!(engine, "new Number(3) < '2'" => false);
-        check_comparison!(engine, "new Number(2) < '2.5'" => true);
-        check_comparison!(engine, "new Number(2.5) < '2'" => false);
+        let mut context = Context::new();
+        check_comparison!(context, "new Number(1) < '2'" => true);
+        check_comparison!(context, "new Number(2) < '2'" => false);
+        check_comparison!(context, "new Number(3) < '2'" => false);
+        check_comparison!(context, "new Number(2) < '2.5'" => true);
+        check_comparison!(context, "new Number(2.5) < '2'" => false);
     }
 
     #[test]
     fn number_object_less_than_number_object() {
-        let mut engine = Context::new();
-        check_comparison!(engine, "new Number(1) < new Number(2)" => true);
-        check_comparison!(engine, "new Number(2) < new Number(2)" => false);
-        check_comparison!(engine, "new Number(3) < new Number(2)" => false);
-        check_comparison!(engine, "new Number(2) < new Number(2.5)" => true);
-        check_comparison!(engine, "new Number(2.5) < new Number(2)" => false);
+        let mut context = Context::new();
+        check_comparison!(context, "new Number(1) < new Number(2)" => true);
+        check_comparison!(context, "new Number(2) < new Number(2)" => false);
+        check_comparison!(context, "new Number(3) < new Number(2)" => false);
+        check_comparison!(context, "new Number(2) < new Number(2.5)" => true);
+        check_comparison!(context, "new Number(2.5) < new Number(2)" => false);
     }
 
     #[test]
     fn string_less_than_string() {
-        let mut engine = Context::new();
-        check_comparison!(engine, "'hello' < 'hello'" => false);
-        check_comparison!(engine, "'hell' < 'hello'" => true);
-        check_comparison!(engine, "'hello, world' < 'world'" => true);
-        check_comparison!(engine, "'aa' < 'ab'" => true);
+        let mut context = Context::new();
+        check_comparison!(context, "'hello' < 'hello'" => false);
+        check_comparison!(context, "'hell' < 'hello'" => true);
+        check_comparison!(context, "'hello, world' < 'world'" => true);
+        check_comparison!(context, "'aa' < 'ab'" => true);
     }
 
     #[test]
     fn string_object_less_than_string() {
-        let mut engine = Context::new();
-        check_comparison!(engine, "new String('hello') < 'hello'" => false);
-        check_comparison!(engine, "new String('hell') < 'hello'" => true);
-        check_comparison!(engine, "new String('hello, world') < 'world'" => true);
-        check_comparison!(engine, "new String('aa') < 'ab'" => true);
+        let mut context = Context::new();
+        check_comparison!(context, "new String('hello') < 'hello'" => false);
+        check_comparison!(context, "new String('hell') < 'hello'" => true);
+        check_comparison!(context, "new String('hello, world') < 'world'" => true);
+        check_comparison!(context, "new String('aa') < 'ab'" => true);
     }
 
     #[test]
     fn string_object_less_than_string_object() {
-        let mut engine = Context::new();
-        check_comparison!(engine, "new String('hello') < new String('hello')" => false);
-        check_comparison!(engine, "new String('hell') < new String('hello')" => true);
-        check_comparison!(engine, "new String('hello, world') < new String('world')" => true);
-        check_comparison!(engine, "new String('aa') < new String('ab')" => true);
+        let mut context = Context::new();
+        check_comparison!(context, "new String('hello') < new String('hello')" => false);
+        check_comparison!(context, "new String('hell') < new String('hello')" => true);
+        check_comparison!(context, "new String('hello, world') < new String('world')" => true);
+        check_comparison!(context, "new String('aa') < new String('ab')" => true);
     }
 
     #[test]
     fn bigint_less_than_number() {
-        let mut engine = Context::new();
-        check_comparison!(engine, "1n < 10" => true);
-        check_comparison!(engine, "10n < 10" => false);
-        check_comparison!(engine, "100n < 10" => false);
-        check_comparison!(engine, "10n < 10.9" => true);
+        let mut context = Context::new();
+        check_comparison!(context, "1n < 10" => true);
+        check_comparison!(context, "10n < 10" => false);
+        check_comparison!(context, "100n < 10" => false);
+        check_comparison!(context, "10n < 10.9" => true);
     }
 
     #[test]
     fn number_less_than_bigint() {
-        let mut engine = Context::new();
-        check_comparison!(engine, "10 < 1n" => false);
-        check_comparison!(engine, "1 < 1n" => false);
-        check_comparison!(engine, "-1 < -1n" => false);
-        check_comparison!(engine, "-1.9 < -1n" => true);
+        let mut context = Context::new();
+        check_comparison!(context, "10 < 1n" => false);
+        check_comparison!(context, "1 < 1n" => false);
+        check_comparison!(context, "-1 < -1n" => false);
+        check_comparison!(context, "-1.9 < -1n" => true);
     }
 
     #[test]
     fn negative_infnity_less_than_bigint() {
-        let mut engine = Context::new();
-        check_comparison!(engine, "-Infinity < -10000000000n" => true);
-        check_comparison!(engine, "-Infinity < (-1n << 100n)" => true);
+        let mut context = Context::new();
+        check_comparison!(context, "-Infinity < -10000000000n" => true);
+        check_comparison!(context, "-Infinity < (-1n << 100n)" => true);
     }
 
     #[test]
     fn bigint_less_than_infinity() {
-        let mut engine = Context::new();
-        check_comparison!(engine, "1000n < NaN" => false);
-        check_comparison!(engine, "(1n << 100n) < NaN" => false);
+        let mut context = Context::new();
+        check_comparison!(context, "1000n < NaN" => false);
+        check_comparison!(context, "(1n << 100n) < NaN" => false);
     }
 
     #[test]
     fn nan_less_than_bigint() {
-        let mut engine = Context::new();
-        check_comparison!(engine, "NaN < -10000000000n" => false);
-        check_comparison!(engine, "NaN < (-1n << 100n)" => false);
+        let mut context = Context::new();
+        check_comparison!(context, "NaN < -10000000000n" => false);
+        check_comparison!(context, "NaN < (-1n << 100n)" => false);
     }
 
     #[test]
     fn bigint_less_than_nan() {
-        let mut engine = Context::new();
-        check_comparison!(engine, "1000n < Infinity" => true);
-        check_comparison!(engine, "(1n << 100n) < Infinity" => true);
+        let mut context = Context::new();
+        check_comparison!(context, "1000n < Infinity" => true);
+        check_comparison!(context, "(1n << 100n) < Infinity" => true);
     }
 
     #[test]
     fn bigint_less_than_string() {
-        let mut engine = Context::new();
-        check_comparison!(engine, "1000n < '1000'" => false);
-        check_comparison!(engine, "1000n < '2000'" => true);
-        check_comparison!(engine, "1n < '-1'" => false);
-        check_comparison!(engine, "2n < '-1'" => false);
-        check_comparison!(engine, "-100n < 'InvalidBigInt'" => false);
+        let mut context = Context::new();
+        check_comparison!(context, "1000n < '1000'" => false);
+        check_comparison!(context, "1000n < '2000'" => true);
+        check_comparison!(context, "1n < '-1'" => false);
+        check_comparison!(context, "2n < '-1'" => false);
+        check_comparison!(context, "-100n < 'InvalidBigInt'" => false);
     }
 
     #[test]
     fn string_less_than_bigint() {
-        let mut engine = Context::new();
-        check_comparison!(engine, "'1000' < 1000n" => false);
-        check_comparison!(engine, "'2000' < 1000n" => false);
-        check_comparison!(engine, "'500' < 1000n" => true);
-        check_comparison!(engine, "'-1' < 1n" => true);
-        check_comparison!(engine, "'-1' < 2n" => true);
-        check_comparison!(engine, "'InvalidBigInt' < -100n" => false);
+        let mut context = Context::new();
+        check_comparison!(context, "'1000' < 1000n" => false);
+        check_comparison!(context, "'2000' < 1000n" => false);
+        check_comparison!(context, "'500' < 1000n" => true);
+        check_comparison!(context, "'-1' < 1n" => true);
+        check_comparison!(context, "'-1' < 2n" => true);
+        check_comparison!(context, "'InvalidBigInt' < -100n" => false);
     }
 
     // -------------------------------------------
 
     #[test]
     fn number_less_than_or_equal_number() {
-        let mut engine = Context::new();
-        check_comparison!(engine, "1 <= 2" => true);
-        check_comparison!(engine, "2 <= 2" => true);
-        check_comparison!(engine, "3 <= 2" => false);
-        check_comparison!(engine, "2 <= 2.5" => true);
-        check_comparison!(engine, "2.5 <= 2" => false);
+        let mut context = Context::new();
+        check_comparison!(context, "1 <= 2" => true);
+        check_comparison!(context, "2 <= 2" => true);
+        check_comparison!(context, "3 <= 2" => false);
+        check_comparison!(context, "2 <= 2.5" => true);
+        check_comparison!(context, "2.5 <= 2" => false);
     }
 
     #[test]
     fn string_less_than_or_equal_number() {
-        let mut engine = Context::new();
-        check_comparison!(engine, "'1' <= 2" => true);
-        check_comparison!(engine, "'2' <= 2" => true);
-        check_comparison!(engine, "'3' <= 2" => false);
-        check_comparison!(engine, "'2' <= 2.5" => true);
-        check_comparison!(engine, "'2.5' < 2" => false);
+        let mut context = Context::new();
+        check_comparison!(context, "'1' <= 2" => true);
+        check_comparison!(context, "'2' <= 2" => true);
+        check_comparison!(context, "'3' <= 2" => false);
+        check_comparison!(context, "'2' <= 2.5" => true);
+        check_comparison!(context, "'2.5' < 2" => false);
     }
 
     #[test]
     fn number_less_than_or_equal_string() {
-        let mut engine = Context::new();
-        check_comparison!(engine, "1 <= '2'" => true);
-        check_comparison!(engine, "2 <= '2'" => true);
-        check_comparison!(engine, "3 <= '2'" => false);
-        check_comparison!(engine, "2 <= '2.5'" => true);
-        check_comparison!(engine, "2.5 <= '2'" => false);
+        let mut context = Context::new();
+        check_comparison!(context, "1 <= '2'" => true);
+        check_comparison!(context, "2 <= '2'" => true);
+        check_comparison!(context, "3 <= '2'" => false);
+        check_comparison!(context, "2 <= '2.5'" => true);
+        check_comparison!(context, "2.5 <= '2'" => false);
     }
 
     #[test]
     fn number_object_less_than_or_equal_number() {
-        let mut engine = Context::new();
-        check_comparison!(engine, "new Number(1) <= '2'" => true);
-        check_comparison!(engine, "new Number(2) <= '2'" => true);
-        check_comparison!(engine, "new Number(3) <= '2'" => false);
-        check_comparison!(engine, "new Number(2) <= '2.5'" => true);
-        check_comparison!(engine, "new Number(2.5) <= '2'" => false);
+        let mut context = Context::new();
+        check_comparison!(context, "new Number(1) <= '2'" => true);
+        check_comparison!(context, "new Number(2) <= '2'" => true);
+        check_comparison!(context, "new Number(3) <= '2'" => false);
+        check_comparison!(context, "new Number(2) <= '2.5'" => true);
+        check_comparison!(context, "new Number(2.5) <= '2'" => false);
     }
 
     #[test]
     fn number_object_less_than_number_or_equal_object() {
-        let mut engine = Context::new();
-        check_comparison!(engine, "new Number(1) <= new Number(2)" => true);
-        check_comparison!(engine, "new Number(2) <= new Number(2)" => true);
-        check_comparison!(engine, "new Number(3) <= new Number(2)" => false);
-        check_comparison!(engine, "new Number(2) <= new Number(2.5)" => true);
-        check_comparison!(engine, "new Number(2.5) <= new Number(2)" => false);
+        let mut context = Context::new();
+        check_comparison!(context, "new Number(1) <= new Number(2)" => true);
+        check_comparison!(context, "new Number(2) <= new Number(2)" => true);
+        check_comparison!(context, "new Number(3) <= new Number(2)" => false);
+        check_comparison!(context, "new Number(2) <= new Number(2.5)" => true);
+        check_comparison!(context, "new Number(2.5) <= new Number(2)" => false);
     }
 
     #[test]
     fn string_less_than_or_equal_string() {
-        let mut engine = Context::new();
-        check_comparison!(engine, "'hello' <= 'hello'" => true);
-        check_comparison!(engine, "'hell' <= 'hello'" => true);
-        check_comparison!(engine, "'hello, world' <= 'world'" => true);
-        check_comparison!(engine, "'aa' <= 'ab'" => true);
+        let mut context = Context::new();
+        check_comparison!(context, "'hello' <= 'hello'" => true);
+        check_comparison!(context, "'hell' <= 'hello'" => true);
+        check_comparison!(context, "'hello, world' <= 'world'" => true);
+        check_comparison!(context, "'aa' <= 'ab'" => true);
     }
 
     #[test]
     fn string_object_less_than_or_equal_string() {
-        let mut engine = Context::new();
-        check_comparison!(engine, "new String('hello') <= 'hello'" => true);
-        check_comparison!(engine, "new String('hell') <= 'hello'" => true);
-        check_comparison!(engine, "new String('hello, world') <= 'world'" => true);
-        check_comparison!(engine, "new String('aa') <= 'ab'" => true);
+        let mut context = Context::new();
+        check_comparison!(context, "new String('hello') <= 'hello'" => true);
+        check_comparison!(context, "new String('hell') <= 'hello'" => true);
+        check_comparison!(context, "new String('hello, world') <= 'world'" => true);
+        check_comparison!(context, "new String('aa') <= 'ab'" => true);
     }
 
     #[test]
     fn string_object_less_than_string_or_equal_object() {
-        let mut engine = Context::new();
-        check_comparison!(engine, "new String('hello') <= new String('hello')" => true);
-        check_comparison!(engine, "new String('hell') <= new String('hello')" => true);
-        check_comparison!(engine, "new String('hello, world') <= new String('world')" => true);
-        check_comparison!(engine, "new String('aa') <= new String('ab')" => true);
+        let mut context = Context::new();
+        check_comparison!(context, "new String('hello') <= new String('hello')" => true);
+        check_comparison!(context, "new String('hell') <= new String('hello')" => true);
+        check_comparison!(context, "new String('hello, world') <= new String('world')" => true);
+        check_comparison!(context, "new String('aa') <= new String('ab')" => true);
     }
 
     #[test]
     fn bigint_less_than_or_equal_number() {
-        let mut engine = Context::new();
-        check_comparison!(engine, "1n <= 10" => true);
-        check_comparison!(engine, "10n <= 10" => true);
-        check_comparison!(engine, "100n <= 10" => false);
-        check_comparison!(engine, "10n <= 10.9" => true);
+        let mut context = Context::new();
+        check_comparison!(context, "1n <= 10" => true);
+        check_comparison!(context, "10n <= 10" => true);
+        check_comparison!(context, "100n <= 10" => false);
+        check_comparison!(context, "10n <= 10.9" => true);
     }
 
     #[test]
     fn number_less_than_or_equal_bigint() {
-        let mut engine = Context::new();
-        check_comparison!(engine, "10 <= 1n" => false);
-        check_comparison!(engine, "1 <= 1n" => true);
-        check_comparison!(engine, "-1 <= -1n" => true);
-        check_comparison!(engine, "-1.9 <= -1n" => true);
+        let mut context = Context::new();
+        check_comparison!(context, "10 <= 1n" => false);
+        check_comparison!(context, "1 <= 1n" => true);
+        check_comparison!(context, "-1 <= -1n" => true);
+        check_comparison!(context, "-1.9 <= -1n" => true);
     }
 
     #[test]
     fn negative_infnity_less_than_or_equal_bigint() {
-        let mut engine = Context::new();
-        check_comparison!(engine, "-Infinity <= -10000000000n" => true);
-        check_comparison!(engine, "-Infinity <= (-1n << 100n)" => true);
+        let mut context = Context::new();
+        check_comparison!(context, "-Infinity <= -10000000000n" => true);
+        check_comparison!(context, "-Infinity <= (-1n << 100n)" => true);
     }
 
     #[test]
     fn bigint_less_than_or_equal_infinity() {
-        let mut engine = Context::new();
-        check_comparison!(engine, "1000n <= NaN" => false);
-        check_comparison!(engine, "(1n << 100n) <= NaN" => false);
+        let mut context = Context::new();
+        check_comparison!(context, "1000n <= NaN" => false);
+        check_comparison!(context, "(1n << 100n) <= NaN" => false);
     }
 
     #[test]
     fn nan_less_than_or_equal_bigint() {
-        let mut engine = Context::new();
-        check_comparison!(engine, "NaN <= -10000000000n" => false);
-        check_comparison!(engine, "NaN <= (-1n << 100n)" => false);
+        let mut context = Context::new();
+        check_comparison!(context, "NaN <= -10000000000n" => false);
+        check_comparison!(context, "NaN <= (-1n << 100n)" => false);
     }
 
     #[test]
     fn bigint_less_than_or_equal_nan() {
-        let mut engine = Context::new();
-        check_comparison!(engine, "1000n <= Infinity" => true);
-        check_comparison!(engine, "(1n << 100n) <= Infinity" => true);
+        let mut context = Context::new();
+        check_comparison!(context, "1000n <= Infinity" => true);
+        check_comparison!(context, "(1n << 100n) <= Infinity" => true);
     }
 
     #[test]
     fn bigint_less_than_or_equal_string() {
-        let mut engine = Context::new();
-        check_comparison!(engine, "1000n <= '1000'" => true);
-        check_comparison!(engine, "1000n <= '2000'" => true);
-        check_comparison!(engine, "1n <= '-1'" => false);
-        check_comparison!(engine, "2n <= '-1'" => false);
-        check_comparison!(engine, "-100n <= 'InvalidBigInt'" => false);
+        let mut context = Context::new();
+        check_comparison!(context, "1000n <= '1000'" => true);
+        check_comparison!(context, "1000n <= '2000'" => true);
+        check_comparison!(context, "1n <= '-1'" => false);
+        check_comparison!(context, "2n <= '-1'" => false);
+        check_comparison!(context, "-100n <= 'InvalidBigInt'" => false);
     }
 
     #[test]
     fn string_less_than_or_equal_bigint() {
-        let mut engine = Context::new();
-        check_comparison!(engine, "'1000' <= 1000n" => true);
-        check_comparison!(engine, "'2000' <= 1000n" => false);
-        check_comparison!(engine, "'500' <= 1000n" => true);
-        check_comparison!(engine, "'-1' <= 1n" => true);
-        check_comparison!(engine, "'-1' <= 2n" => true);
-        check_comparison!(engine, "'InvalidBigInt' <= -100n" => false);
+        let mut context = Context::new();
+        check_comparison!(context, "'1000' <= 1000n" => true);
+        check_comparison!(context, "'2000' <= 1000n" => false);
+        check_comparison!(context, "'500' <= 1000n" => true);
+        check_comparison!(context, "'-1' <= 1n" => true);
+        check_comparison!(context, "'-1' <= 2n" => true);
+        check_comparison!(context, "'InvalidBigInt' <= -100n" => false);
     }
 
     // -------------------------------------------
 
     #[test]
     fn number_greater_than_number() {
-        let mut engine = Context::new();
-        check_comparison!(engine, "1 > 2" => false);
-        check_comparison!(engine, "2 > 2" => false);
-        check_comparison!(engine, "3 > 2" => true);
-        check_comparison!(engine, "2 > 2.5" => false);
-        check_comparison!(engine, "2.5 > 2" => true);
+        let mut context = Context::new();
+        check_comparison!(context, "1 > 2" => false);
+        check_comparison!(context, "2 > 2" => false);
+        check_comparison!(context, "3 > 2" => true);
+        check_comparison!(context, "2 > 2.5" => false);
+        check_comparison!(context, "2.5 > 2" => true);
     }
 
     #[test]
     fn string_greater_than_number() {
-        let mut engine = Context::new();
-        check_comparison!(engine, "'1' > 2" => false);
-        check_comparison!(engine, "'2' > 2" => false);
-        check_comparison!(engine, "'3' > 2" => true);
-        check_comparison!(engine, "'2' > 2.5" => false);
-        check_comparison!(engine, "'2.5' > 2" => true);
+        let mut context = Context::new();
+        check_comparison!(context, "'1' > 2" => false);
+        check_comparison!(context, "'2' > 2" => false);
+        check_comparison!(context, "'3' > 2" => true);
+        check_comparison!(context, "'2' > 2.5" => false);
+        check_comparison!(context, "'2.5' > 2" => true);
     }
 
     #[test]
     fn number_less_greater_string() {
-        let mut engine = Context::new();
-        check_comparison!(engine, "1 > '2'" => false);
-        check_comparison!(engine, "2 > '2'" => false);
-        check_comparison!(engine, "3 > '2'" => true);
-        check_comparison!(engine, "2 > '2.5'" => false);
-        check_comparison!(engine, "2.5 > '2'" => true);
+        let mut context = Context::new();
+        check_comparison!(context, "1 > '2'" => false);
+        check_comparison!(context, "2 > '2'" => false);
+        check_comparison!(context, "3 > '2'" => true);
+        check_comparison!(context, "2 > '2.5'" => false);
+        check_comparison!(context, "2.5 > '2'" => true);
     }
 
     #[test]
     fn number_object_greater_than_number() {
-        let mut engine = Context::new();
-        check_comparison!(engine, "new Number(1) > '2'" => false);
-        check_comparison!(engine, "new Number(2) > '2'" => false);
-        check_comparison!(engine, "new Number(3) > '2'" => true);
-        check_comparison!(engine, "new Number(2) > '2.5'" => false);
-        check_comparison!(engine, "new Number(2.5) > '2'" => true);
+        let mut context = Context::new();
+        check_comparison!(context, "new Number(1) > '2'" => false);
+        check_comparison!(context, "new Number(2) > '2'" => false);
+        check_comparison!(context, "new Number(3) > '2'" => true);
+        check_comparison!(context, "new Number(2) > '2.5'" => false);
+        check_comparison!(context, "new Number(2.5) > '2'" => true);
     }
 
     #[test]
     fn number_object_greater_than_number_object() {
-        let mut engine = Context::new();
-        check_comparison!(engine, "new Number(1) > new Number(2)" => false);
-        check_comparison!(engine, "new Number(2) > new Number(2)" => false);
-        check_comparison!(engine, "new Number(3) > new Number(2)" => true);
-        check_comparison!(engine, "new Number(2) > new Number(2.5)" => false);
-        check_comparison!(engine, "new Number(2.5) > new Number(2)" => true);
+        let mut context = Context::new();
+        check_comparison!(context, "new Number(1) > new Number(2)" => false);
+        check_comparison!(context, "new Number(2) > new Number(2)" => false);
+        check_comparison!(context, "new Number(3) > new Number(2)" => true);
+        check_comparison!(context, "new Number(2) > new Number(2.5)" => false);
+        check_comparison!(context, "new Number(2.5) > new Number(2)" => true);
     }
 
     #[test]
     fn string_greater_than_string() {
-        let mut engine = Context::new();
-        check_comparison!(engine, "'hello' > 'hello'" => false);
-        check_comparison!(engine, "'hell' > 'hello'" => false);
-        check_comparison!(engine, "'hello, world' > 'world'" => false);
-        check_comparison!(engine, "'aa' > 'ab'" => false);
-        check_comparison!(engine, "'ab' > 'aa'" => true);
+        let mut context = Context::new();
+        check_comparison!(context, "'hello' > 'hello'" => false);
+        check_comparison!(context, "'hell' > 'hello'" => false);
+        check_comparison!(context, "'hello, world' > 'world'" => false);
+        check_comparison!(context, "'aa' > 'ab'" => false);
+        check_comparison!(context, "'ab' > 'aa'" => true);
     }
 
     #[test]
     fn string_object_greater_than_string() {
-        let mut engine = Context::new();
-        check_comparison!(engine, "new String('hello') > 'hello'" => false);
-        check_comparison!(engine, "new String('hell') > 'hello'" => false);
-        check_comparison!(engine, "new String('hello, world') > 'world'" => false);
-        check_comparison!(engine, "new String('aa') > 'ab'" => false);
-        check_comparison!(engine, "new String('ab') > 'aa'" => true);
+        let mut context = Context::new();
+        check_comparison!(context, "new String('hello') > 'hello'" => false);
+        check_comparison!(context, "new String('hell') > 'hello'" => false);
+        check_comparison!(context, "new String('hello, world') > 'world'" => false);
+        check_comparison!(context, "new String('aa') > 'ab'" => false);
+        check_comparison!(context, "new String('ab') > 'aa'" => true);
     }
 
     #[test]
     fn string_object_greater_than_string_object() {
-        let mut engine = Context::new();
-        check_comparison!(engine, "new String('hello') > new String('hello')" => false);
-        check_comparison!(engine, "new String('hell') > new String('hello')" => false);
-        check_comparison!(engine, "new String('hello, world') > new String('world')" => false);
-        check_comparison!(engine, "new String('aa') > new String('ab')" => false);
-        check_comparison!(engine, "new String('ab') > new String('aa')" => true);
+        let mut context = Context::new();
+        check_comparison!(context, "new String('hello') > new String('hello')" => false);
+        check_comparison!(context, "new String('hell') > new String('hello')" => false);
+        check_comparison!(context, "new String('hello, world') > new String('world')" => false);
+        check_comparison!(context, "new String('aa') > new String('ab')" => false);
+        check_comparison!(context, "new String('ab') > new String('aa')" => true);
     }
 
     #[test]
     fn bigint_greater_than_number() {
-        let mut engine = Context::new();
-        check_comparison!(engine, "1n > 10" => false);
-        check_comparison!(engine, "10n > 10" => false);
-        check_comparison!(engine, "100n > 10" => true);
-        check_comparison!(engine, "10n > 10.9" => false);
+        let mut context = Context::new();
+        check_comparison!(context, "1n > 10" => false);
+        check_comparison!(context, "10n > 10" => false);
+        check_comparison!(context, "100n > 10" => true);
+        check_comparison!(context, "10n > 10.9" => false);
     }
 
     #[test]
     fn number_greater_than_bigint() {
-        let mut engine = Context::new();
-        check_comparison!(engine, "10 > 1n" => true);
-        check_comparison!(engine, "1 > 1n" => false);
-        check_comparison!(engine, "-1 > -1n" => false);
-        check_comparison!(engine, "-1.9 > -1n" => false);
+        let mut context = Context::new();
+        check_comparison!(context, "10 > 1n" => true);
+        check_comparison!(context, "1 > 1n" => false);
+        check_comparison!(context, "-1 > -1n" => false);
+        check_comparison!(context, "-1.9 > -1n" => false);
     }
 
     #[test]
     fn negative_infnity_greater_than_bigint() {
-        let mut engine = Context::new();
-        check_comparison!(engine, "-Infinity > -10000000000n" => false);
-        check_comparison!(engine, "-Infinity > (-1n << 100n)" => false);
+        let mut context = Context::new();
+        check_comparison!(context, "-Infinity > -10000000000n" => false);
+        check_comparison!(context, "-Infinity > (-1n << 100n)" => false);
     }
 
     #[test]
     fn bigint_greater_than_infinity() {
-        let mut engine = Context::new();
-        check_comparison!(engine, "1000n > NaN" => false);
-        check_comparison!(engine, "(1n << 100n) > NaN" => false);
+        let mut context = Context::new();
+        check_comparison!(context, "1000n > NaN" => false);
+        check_comparison!(context, "(1n << 100n) > NaN" => false);
     }
 
     #[test]
     fn nan_greater_than_bigint() {
-        let mut engine = Context::new();
-        check_comparison!(engine, "NaN > -10000000000n" => false);
-        check_comparison!(engine, "NaN > (-1n << 100n)" => false);
+        let mut context = Context::new();
+        check_comparison!(context, "NaN > -10000000000n" => false);
+        check_comparison!(context, "NaN > (-1n << 100n)" => false);
     }
 
     #[test]
     fn bigint_greater_than_nan() {
-        let mut engine = Context::new();
-        check_comparison!(engine, "1000n > Infinity" => false);
-        check_comparison!(engine, "(1n << 100n) > Infinity" => false);
+        let mut context = Context::new();
+        check_comparison!(context, "1000n > Infinity" => false);
+        check_comparison!(context, "(1n << 100n) > Infinity" => false);
     }
 
     #[test]
     fn bigint_greater_than_string() {
-        let mut engine = Context::new();
-        check_comparison!(engine, "1000n > '1000'" => false);
-        check_comparison!(engine, "1000n > '2000'" => false);
-        check_comparison!(engine, "1n > '-1'" => true);
-        check_comparison!(engine, "2n > '-1'" => true);
-        check_comparison!(engine, "-100n > 'InvalidBigInt'" => false);
+        let mut context = Context::new();
+        check_comparison!(context, "1000n > '1000'" => false);
+        check_comparison!(context, "1000n > '2000'" => false);
+        check_comparison!(context, "1n > '-1'" => true);
+        check_comparison!(context, "2n > '-1'" => true);
+        check_comparison!(context, "-100n > 'InvalidBigInt'" => false);
     }
 
     #[test]
     fn string_greater_than_bigint() {
-        let mut engine = Context::new();
-        check_comparison!(engine, "'1000' > 1000n" => false);
-        check_comparison!(engine, "'2000' > 1000n" => true);
-        check_comparison!(engine, "'500' > 1000n" => false);
-        check_comparison!(engine, "'-1' > 1n" => false);
-        check_comparison!(engine, "'-1' > 2n" => false);
-        check_comparison!(engine, "'InvalidBigInt' > -100n" => false);
+        let mut context = Context::new();
+        check_comparison!(context, "'1000' > 1000n" => false);
+        check_comparison!(context, "'2000' > 1000n" => true);
+        check_comparison!(context, "'500' > 1000n" => false);
+        check_comparison!(context, "'-1' > 1n" => false);
+        check_comparison!(context, "'-1' > 2n" => false);
+        check_comparison!(context, "'InvalidBigInt' > -100n" => false);
     }
 
     // ----------------------------------------------
 
     #[test]
     fn number_greater_than_or_equal_number() {
-        let mut engine = Context::new();
-        check_comparison!(engine, "1 >= 2" => false);
-        check_comparison!(engine, "2 >= 2" => true);
-        check_comparison!(engine, "3 >= 2" => true);
-        check_comparison!(engine, "2 >= 2.5" => false);
-        check_comparison!(engine, "2.5 >= 2" => true);
+        let mut context = Context::new();
+        check_comparison!(context, "1 >= 2" => false);
+        check_comparison!(context, "2 >= 2" => true);
+        check_comparison!(context, "3 >= 2" => true);
+        check_comparison!(context, "2 >= 2.5" => false);
+        check_comparison!(context, "2.5 >= 2" => true);
     }
 
     #[test]
     fn string_greater_than_or_equal_number() {
-        let mut engine = Context::new();
-        check_comparison!(engine, "'1' >= 2" => false);
-        check_comparison!(engine, "'2' >= 2" => true);
-        check_comparison!(engine, "'3' >= 2" => true);
-        check_comparison!(engine, "'2' >= 2.5" => false);
-        check_comparison!(engine, "'2.5' >= 2" => true);
+        let mut context = Context::new();
+        check_comparison!(context, "'1' >= 2" => false);
+        check_comparison!(context, "'2' >= 2" => true);
+        check_comparison!(context, "'3' >= 2" => true);
+        check_comparison!(context, "'2' >= 2.5" => false);
+        check_comparison!(context, "'2.5' >= 2" => true);
     }
 
     #[test]
     fn number_less_greater_or_equal_string() {
-        let mut engine = Context::new();
-        check_comparison!(engine, "1 >= '2'" => false);
-        check_comparison!(engine, "2 >= '2'" => true);
-        check_comparison!(engine, "3 >= '2'" => true);
-        check_comparison!(engine, "2 >= '2.5'" => false);
-        check_comparison!(engine, "2.5 >= '2'" => true);
+        let mut context = Context::new();
+        check_comparison!(context, "1 >= '2'" => false);
+        check_comparison!(context, "2 >= '2'" => true);
+        check_comparison!(context, "3 >= '2'" => true);
+        check_comparison!(context, "2 >= '2.5'" => false);
+        check_comparison!(context, "2.5 >= '2'" => true);
     }
 
     #[test]
     fn number_object_greater_than_or_equal_number() {
-        let mut engine = Context::new();
-        check_comparison!(engine, "new Number(1) >= '2'" => false);
-        check_comparison!(engine, "new Number(2) >= '2'" => true);
-        check_comparison!(engine, "new Number(3) >= '2'" => true);
-        check_comparison!(engine, "new Number(2) >= '2.5'" => false);
-        check_comparison!(engine, "new Number(2.5) >= '2'" => true);
+        let mut context = Context::new();
+        check_comparison!(context, "new Number(1) >= '2'" => false);
+        check_comparison!(context, "new Number(2) >= '2'" => true);
+        check_comparison!(context, "new Number(3) >= '2'" => true);
+        check_comparison!(context, "new Number(2) >= '2.5'" => false);
+        check_comparison!(context, "new Number(2.5) >= '2'" => true);
     }
 
     #[test]
     fn number_object_greater_than_or_equal_number_object() {
-        let mut engine = Context::new();
-        check_comparison!(engine, "new Number(1) >= new Number(2)" => false);
-        check_comparison!(engine, "new Number(2) >= new Number(2)" => true);
-        check_comparison!(engine, "new Number(3) >= new Number(2)" => true);
-        check_comparison!(engine, "new Number(2) >= new Number(2.5)" => false);
-        check_comparison!(engine, "new Number(2.5) >= new Number(2)" => true);
+        let mut context = Context::new();
+        check_comparison!(context, "new Number(1) >= new Number(2)" => false);
+        check_comparison!(context, "new Number(2) >= new Number(2)" => true);
+        check_comparison!(context, "new Number(3) >= new Number(2)" => true);
+        check_comparison!(context, "new Number(2) >= new Number(2.5)" => false);
+        check_comparison!(context, "new Number(2.5) >= new Number(2)" => true);
     }
 
     #[test]
     fn string_greater_than_or_equal_string() {
-        let mut engine = Context::new();
-        check_comparison!(engine, "'hello' >= 'hello'" => true);
-        check_comparison!(engine, "'hell' >= 'hello'" => false);
-        check_comparison!(engine, "'hello, world' >= 'world'" => false);
-        check_comparison!(engine, "'aa' >= 'ab'" => false);
-        check_comparison!(engine, "'ab' >= 'aa'" => true);
+        let mut context = Context::new();
+        check_comparison!(context, "'hello' >= 'hello'" => true);
+        check_comparison!(context, "'hell' >= 'hello'" => false);
+        check_comparison!(context, "'hello, world' >= 'world'" => false);
+        check_comparison!(context, "'aa' >= 'ab'" => false);
+        check_comparison!(context, "'ab' >= 'aa'" => true);
     }
 
     #[test]
     fn string_object_greater_or_equal_than_string() {
-        let mut engine = Context::new();
-        check_comparison!(engine, "new String('hello') >= 'hello'" => true);
-        check_comparison!(engine, "new String('hell') >= 'hello'" => false);
-        check_comparison!(engine, "new String('hello, world') >= 'world'" => false);
-        check_comparison!(engine, "new String('aa') >= 'ab'" => false);
-        check_comparison!(engine, "new String('ab') >= 'aa'" => true);
+        let mut context = Context::new();
+        check_comparison!(context, "new String('hello') >= 'hello'" => true);
+        check_comparison!(context, "new String('hell') >= 'hello'" => false);
+        check_comparison!(context, "new String('hello, world') >= 'world'" => false);
+        check_comparison!(context, "new String('aa') >= 'ab'" => false);
+        check_comparison!(context, "new String('ab') >= 'aa'" => true);
     }
 
     #[test]
     fn string_object_greater_than_or_equal_string_object() {
-        let mut engine = Context::new();
-        check_comparison!(engine, "new String('hello') >= new String('hello')" => true);
-        check_comparison!(engine, "new String('hell') >= new String('hello')" => false);
-        check_comparison!(engine, "new String('hello, world') >= new String('world')" => false);
-        check_comparison!(engine, "new String('aa') >= new String('ab')" => false);
-        check_comparison!(engine, "new String('ab') >= new String('aa')" => true);
+        let mut context = Context::new();
+        check_comparison!(context, "new String('hello') >= new String('hello')" => true);
+        check_comparison!(context, "new String('hell') >= new String('hello')" => false);
+        check_comparison!(context, "new String('hello, world') >= new String('world')" => false);
+        check_comparison!(context, "new String('aa') >= new String('ab')" => false);
+        check_comparison!(context, "new String('ab') >= new String('aa')" => true);
     }
 
     #[test]
     fn bigint_greater_than_or_equal_number() {
-        let mut engine = Context::new();
-        check_comparison!(engine, "1n >= 10" => false);
-        check_comparison!(engine, "10n >= 10" => true);
-        check_comparison!(engine, "100n >= 10" => true);
-        check_comparison!(engine, "10n >= 10.9" => false);
+        let mut context = Context::new();
+        check_comparison!(context, "1n >= 10" => false);
+        check_comparison!(context, "10n >= 10" => true);
+        check_comparison!(context, "100n >= 10" => true);
+        check_comparison!(context, "10n >= 10.9" => false);
     }
 
     #[test]
     fn number_greater_than_or_equal_bigint() {
-        let mut engine = Context::new();
-        check_comparison!(engine, "10 >= 1n" => true);
-        check_comparison!(engine, "1 >= 1n" => true);
-        check_comparison!(engine, "-1 >= -1n" => true);
-        check_comparison!(engine, "-1.9 >= -1n" => false);
+        let mut context = Context::new();
+        check_comparison!(context, "10 >= 1n" => true);
+        check_comparison!(context, "1 >= 1n" => true);
+        check_comparison!(context, "-1 >= -1n" => true);
+        check_comparison!(context, "-1.9 >= -1n" => false);
     }
 
     #[test]
     fn negative_infnity_greater_or_equal_than_bigint() {
-        let mut engine = Context::new();
-        check_comparison!(engine, "-Infinity >= -10000000000n" => false);
-        check_comparison!(engine, "-Infinity >= (-1n << 100n)" => false);
+        let mut context = Context::new();
+        check_comparison!(context, "-Infinity >= -10000000000n" => false);
+        check_comparison!(context, "-Infinity >= (-1n << 100n)" => false);
     }
 
     #[test]
     fn bigint_greater_than_or_equal_infinity() {
-        let mut engine = Context::new();
-        check_comparison!(engine, "1000n >= NaN" => false);
-        check_comparison!(engine, "(1n << 100n) >= NaN" => false);
+        let mut context = Context::new();
+        check_comparison!(context, "1000n >= NaN" => false);
+        check_comparison!(context, "(1n << 100n) >= NaN" => false);
     }
 
     #[test]
     fn nan_greater_than_or_equal_bigint() {
-        let mut engine = Context::new();
-        check_comparison!(engine, "NaN >= -10000000000n" => false);
-        check_comparison!(engine, "NaN >= (-1n << 100n)" => false);
+        let mut context = Context::new();
+        check_comparison!(context, "NaN >= -10000000000n" => false);
+        check_comparison!(context, "NaN >= (-1n << 100n)" => false);
     }
 
     #[test]
     fn bigint_greater_than_or_equal_nan() {
-        let mut engine = Context::new();
-        check_comparison!(engine, "1000n >= Infinity" => false);
-        check_comparison!(engine, "(1n << 100n) >= Infinity" => false);
+        let mut context = Context::new();
+        check_comparison!(context, "1000n >= Infinity" => false);
+        check_comparison!(context, "(1n << 100n) >= Infinity" => false);
     }
 
     #[test]
     fn bigint_greater_than_or_equal_string() {
-        let mut engine = Context::new();
-        check_comparison!(engine, "1000n >= '1000'" => true);
-        check_comparison!(engine, "1000n >= '2000'" => false);
-        check_comparison!(engine, "1n >= '-1'" => true);
-        check_comparison!(engine, "2n >= '-1'" => true);
-        check_comparison!(engine, "-100n >= 'InvalidBigInt'" => false);
+        let mut context = Context::new();
+        check_comparison!(context, "1000n >= '1000'" => true);
+        check_comparison!(context, "1000n >= '2000'" => false);
+        check_comparison!(context, "1n >= '-1'" => true);
+        check_comparison!(context, "2n >= '-1'" => true);
+        check_comparison!(context, "-100n >= 'InvalidBigInt'" => false);
     }
 
     #[test]
     fn string_greater_than_or_equal_bigint() {
-        let mut engine = Context::new();
-        check_comparison!(engine, "'1000' >= 1000n" => true);
-        check_comparison!(engine, "'2000' >= 1000n" => true);
-        check_comparison!(engine, "'500' >= 1000n" => false);
-        check_comparison!(engine, "'-1' >= 1n" => false);
-        check_comparison!(engine, "'-1' >= 2n" => false);
-        check_comparison!(engine, "'InvalidBigInt' >= -100n" => false);
+        let mut context = Context::new();
+        check_comparison!(context, "'1000' >= 1000n" => true);
+        check_comparison!(context, "'2000' >= 1000n" => true);
+        check_comparison!(context, "'500' >= 1000n" => false);
+        check_comparison!(context, "'-1' >= 1n" => false);
+        check_comparison!(context, "'-1' >= 2n" => false);
+        check_comparison!(context, "'InvalidBigInt' >= -100n" => false);
     }
 }

@@ -58,13 +58,13 @@ impl Return {
 }
 
 impl Executable for Return {
-    fn run(&self, interpreter: &mut Context) -> Result<Value> {
+    fn run(&self, context: &mut Context) -> Result<Value> {
         let result = match self.expr() {
-            Some(ref v) => v.run(interpreter),
+            Some(ref v) => v.run(context),
             None => Ok(Value::undefined()),
         };
         // Set flag for return
-        interpreter
+        context
             .executor()
             .set_current_state(InterpreterState::Return);
         result
