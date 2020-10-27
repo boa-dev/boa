@@ -119,8 +119,9 @@ impl<R> Tokenizer<R> for StringLiteral {
 
                                     cursor.next_byte()?.expect("} character vanished"); // Consume the '}'.
 
-                                    let code_point_str =
-                                        unsafe { str::from_utf8_unchecked(code_point_buf.as_slice()) };
+                                    let code_point_str = unsafe {
+                                        str::from_utf8_unchecked(code_point_buf.as_slice())
+                                    };
                                     // We know this is a single unicode codepoint, convert to u32
                                     let code_point = u32::from_str_radix(&code_point_str, 16)
                                         .map_err(|_| {

@@ -190,7 +190,7 @@ impl<R> Lexer<R> {
             }
         };
 
-        let chr =  unsafe { char::from_u32_unchecked(next_ch) };
+        let chr = unsafe { char::from_u32_unchecked(next_ch) };
         let token = match chr {
             '\r' | '\n' | '\u{2028}' | '\u{2029}' => Ok(Token::new(
                 TokenKind::LineTerminator,

@@ -10,12 +10,12 @@ use crate::{
 };
 use ascii::AsciiChar;
 use bitflags::bitflags;
+use std::io::{self, ErrorKind};
 use std::str;
 use std::{
     fmt::{self, Display, Formatter},
     io::Read,
 };
-use std::io::{self, ErrorKind};
 
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Deserializer, Serialize, Serializer};

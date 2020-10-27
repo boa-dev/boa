@@ -57,7 +57,6 @@ where
         }
     }
 
-
     /// Increments the cursor by n bytes.
     #[inline]
     pub(super) fn increment(&mut self, n: u32) -> Result<(), Error> {
@@ -322,7 +321,7 @@ where
                     let _ = self.iter.next_byte();
                 }
                 self.next_line();
-            },
+            }
             // '\n' | '\u{2028}' | '\u{2029}'
             Some(0xA) | Some(0x2028) | Some(0x2029) => self.next_line(),
             Some(_) => self.next_column(),
@@ -331,7 +330,6 @@ where
 
         Ok(ch)
     }
-
 }
 
 /// Inner iterator for a cursor.
@@ -437,12 +435,12 @@ where
                 Some(b) if b < 128 => {
                     self.peeked_char = Some(Some(b as u32));
                     return Ok(Some(b as u32));
-                },
+                }
                 Some(b) => b,
                 None => {
                     self.peeked_char = None;
                     return Ok(None);
-                },
+                }
             };
 
             // Multibyte case follows
@@ -519,7 +517,7 @@ where
             }
         };
 
-        return Ok(Some(ch))
+        return Ok(Some(ch));
     }
 }
 
