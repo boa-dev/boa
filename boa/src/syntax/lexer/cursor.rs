@@ -414,9 +414,9 @@ where
             let byte = (self.peeked_bytes & 0xFF) as u8;
             self.num_peeked_bytes -= 1;
             self.peeked_bytes >>= 8;
-            return Ok(Some(byte));
+            Ok(Some(byte))
         } else {
-            return self.iter.next().transpose();
+            self.iter.next().transpose()
         }
     }
 
@@ -456,7 +456,7 @@ where
             }
         };
 
-        return Ok(Some(ch));
+        Ok(Some(ch))
     }
 }
 
