@@ -281,19 +281,19 @@ fn check_positions_codepoint() {
     // String token starts on column 13
     assert_eq!(
         lexer.next().unwrap().unwrap().span(),
-        span((1, 13), (1, 34))
+        span((1, 13), (1, 36))
     );
 
-    // Close parenthesis token starts on column 34
+    // Close parenthesis token starts on column 36
     assert_eq!(
         lexer.next().unwrap().unwrap().span(),
-        span((1, 34), (1, 35))
+        span((1, 36), (1, 37))
     );
 
-    // Semi Colon token starts on column 35
+    // Semi Colon token starts on column 37
     assert_eq!(
         lexer.next().unwrap().unwrap().span(),
-        span((1, 35), (1, 36))
+        span((1, 37), (1, 38))
     );
 }
 

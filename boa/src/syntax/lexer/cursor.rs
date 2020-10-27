@@ -57,12 +57,6 @@ where
         }
     }
 
-    /// Increments the cursor by n bytes.
-    #[inline]
-    pub(super) fn increment(&mut self, n: u32) -> Result<(), Error> {
-        self.iter.increment(n)
-    }
-
     /// Peeks the next byte.
     #[inline]
     pub(super) fn peek(&mut self) -> Result<Option<u8>, Error> {
@@ -94,7 +88,7 @@ where
 
         Ok(match self.peek()? {
             Some(next) if next == byte => {
-                self.increment(1);
+                let _ = self.next_byte()?;
                 true
             }
             _ => false,
@@ -281,29 +275,15 @@ where
                 if next_bytes == 0xA8_80 || next_bytes == 0xA9_80 {
                     self.next_line();
                 } else {
+                    // 0xE2 is a utf8 first byte
                     self.next_column();
                 }
             }
-            Some(b) if b <= 0x7F || (b >> 6) == 0x11 => self.next_column(),
+            Some(b) if utf8_is_first_byte(b) => self.next_column(),
             _ => {}
         }
 
         Ok(byte)
-    }
-
-    /// Retrieves the next ASCII checked character.
-    #[inline]
-    pub(crate) fn next_ascii(&mut self) -> io::Result<Option<AsciiChar>> {
-        match self.next_byte()? {
-            Some(byte) => match byte {
-                0..=127 => unsafe { Ok(Some(AsciiChar::from_ascii_unchecked(byte))) },
-                _ => Err(io::Error::new(
-                    io::ErrorKind::InvalidData,
-                    "non-ASCII byte found",
-                )),
-            },
-            None => Ok(None),
-        }
     }
 
     /// Retrieves the next UTF-8 character.
@@ -378,8 +358,8 @@ where
 
     /// Increments the iter by n bytes.
     #[inline]
-    pub(super) fn increment(&mut self, n: u32) -> Result<(), Error> {
-        for i in 0..n {
+    fn increment(&mut self, n: u32) -> Result<(), Error> {
+        for _ in 0..n {
             if None == self.next_byte()? {
                 break;
             }
@@ -485,7 +465,7 @@ where
     fn next_char(&mut self) -> io::Result<Option<u32>> {
         if let Some(ch) = self.peeked_char.take() {
             if let Some(c) = ch {
-                self.increment(utf8_len(c));
+                self.increment(utf8_len(c))?;
             }
             return Ok(ch);
         }
@@ -523,8 +503,6 @@ where
 
 /// Mask of the value bits of a continuation byte.
 const CONT_MASK: u8 = 0b0011_1111;
-/// Value of the tag bits (tag mask is !CONT_MASK) of a continuation byte.
-const TAG_CONT_U8: u8 = 0b1000_0000;
 
 /// Returns the initial codepoint accumulator for the first byte.
 /// The first byte is special, only want bottom 5 bits for width 2, 4 bits
@@ -540,11 +518,11 @@ fn utf8_acc_cont_byte(ch: u32, byte: u8) -> u32 {
     (ch << 6) | (byte & CONT_MASK) as u32
 }
 
-/// Checks whether the byte is a UTF-8 continuation byte (i.e., starts with the
-/// bits `10`).
+/// Checks whether the byte is a UTF-8 first byte (i.e., ascii byte or starts with the
+/// bits `11`).
 #[inline]
-fn utf8_is_cont_byte(byte: u8) -> bool {
-    (byte & !CONT_MASK) == TAG_CONT_U8
+fn utf8_is_first_byte(byte: u8) -> bool {
+    byte <= 0x7F || (byte >> 6) == 0x11
 }
 
 #[inline]
