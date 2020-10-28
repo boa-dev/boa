@@ -745,17 +745,14 @@ impl Array {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.lastindexof
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/lastIndexOf
-    pub(crate) fn last_index_of(this: &Value, args: &[Value], _: &mut Context) -> Result<Value> {
+    pub(crate) fn last_index_of(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
         // If no arguments, return -1. Not described in spec, but is what chrome does.
         if args.is_empty() {
             return Ok(Value::from(-1));
         }
 
         let search_element = args[0].clone();
-        let len = this
-            .get_field("length")
-            .as_number()
-            .expect("length was not a number") as i32;
+        let len = this.get_field("length").to_length(context)? as isize;
 
         let mut idx = match args.get(1) {
             Some(from_idx_ptr) => {
