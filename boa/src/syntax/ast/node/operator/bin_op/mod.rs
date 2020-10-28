@@ -126,23 +126,23 @@ impl Executable for BinOp {
                     }
                     CompOp::InstanceOf => {
                         if let Some(object) = y.as_object() {
-                            let key = interpreter.well_known_symbols().has_instance_symbol();
+                            let key = context.well_known_symbols().has_instance_symbol();
 
-                            match object.get_method(interpreter, key)? {
-                                Some(instance_of_handler) => instance_of_handler
-                                    .call(&y, &[x], interpreter)?
-                                    .to_boolean(),
+                            match object.get_method(context, key)? {
+                                Some(instance_of_handler) => {
+                                    instance_of_handler.call(&y, &[x], context)?.to_boolean()
+                                }
                                 None if object.is_callable() => {
-                                    object.ordinary_has_instance(interpreter, &x)?
+                                    object.ordinary_has_instance(context, &x)?
                                 }
                                 None => {
-                                    return interpreter.throw_type_error(
+                                    return context.throw_type_error(
                                         "right-hand side of 'instanceof' is not callable",
                                     );
                                 }
                             }
                         } else {
-                            return interpreter.throw_type_error(format!(
+                            return context.throw_type_error(format!(
                                 "right-hand side of 'instanceof' should be an object, got {}",
                                 y.get_type().as_str()
                             ));
