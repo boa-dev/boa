@@ -702,13 +702,17 @@ impl Array {
 
         let mut idx = match args.get(1) {
             Some(from_idx_ptr) => {
-                let from_idx = from_idx_ptr.as_number().unwrap() as isize;
+                let from_idx = from_idx_ptr.to_number(context)?;
 
-                if from_idx < 0 {
-                    let k = len as isize + from_idx;
-                    max(0, k) as usize
+                if !from_idx.is_finite() {
+                    return Ok(Value::from(-1))
                 } else {
-                    from_idx as usize
+                    if from_idx < 0.0 {
+                        let k = len as isize + from_idx as isize;
+                        max(0, k) as usize
+                    } else {
+                        from_idx as usize
+                    }
                 }
             }
             None => 0,
@@ -756,12 +760,14 @@ impl Array {
 
         let mut idx = match args.get(1) {
             Some(from_idx_ptr) => {
-                let from_idx = from_idx_ptr.as_number().unwrap() as i32;
+                let from_idx = from_idx_ptr.to_integer(context)?;
 
-                if from_idx >= 0 {
-                    min(from_idx, len - 1)
+                if !from_idx.is_finite() {
+                    return Ok(Value::from(-1))
+                } else if from_idx >= 0.0 {
+                    min(from_idx as isize, len - 1)
                 } else {
-                    len + from_idx
+                    len + from_idx as isize
                 }
             }
             None => len - 1,
@@ -771,7 +777,8 @@ impl Array {
             let check_element = this.get_field(idx).clone();
 
             if check_element.strict_equals(&search_element) {
-                return Ok(Value::from(idx));
+                // TODO: make the cast from isize to i32 safe
+                return Ok(Value::from(idx as i32));
             }
 
             idx -= 1;
@@ -942,23 +949,27 @@ impl Array {
         let len = this.get_field("length").to_length(context)? as isize;
 
         let start = match args.get(0) {
-            Some(v) => v.as_number().unwrap() as isize,
-            None => 0,
+            Some(v) => v.to_integer(interpreter)?,
+            None => 0.0,
         };
         let end = match args.get(1) {
-            Some(v) => v.as_number().unwrap() as isize,
-            None => len,
+            Some(v) => v.to_integer(interpreter)?,
+            None => len as f64,
         };
 
-        let from = if start < 0 {
-            max(len.wrapping_add(start), 0)
+        let from = if !start.is_finite() {
+            0
+        } else if start < 0.0 {
+            max(len.wrapping_add(start as isize), 0)
         } else {
-            min(start, len)
+            min(start as isize, len)
         };
-        let to = if end < 0 {
-            max(len.wrapping_add(end), 0)
+        let to = if !end.is_finite() {
+            0
+        } else if end < 0.0 {
+            max(len.wrapping_add(end as isize), 0)
         } else {
-            min(end, len)
+            min(end as isize, len)
         };
 
         let span = max(to.wrapping_sub(from), 0);
