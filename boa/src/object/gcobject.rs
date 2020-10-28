@@ -676,6 +676,67 @@ impl GcObject {
     pub fn is_native_object(&self) -> bool {
         self.borrow().is_native_object()
     }
+
+    /// Retrieves value of specific property, when the value of the property is expected to be a function.
+    ///
+    /// More information:
+    /// - [EcmaScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-getmethod
+    #[inline]
+    pub fn get_method<K>(&self, context: &mut Context, key: K) -> Result<Option<GcObject>>
+    where
+        K: Into<PropertyKey>,
+    {
+        let key = key.into();
+        let value = self.get(&key);
+
+        if value.is_null_or_undefined() {
+            return Ok(None);
+        }
+
+        match value.as_object() {
+            Some(object) if object.is_callable() => Ok(Some(object)),
+            _ => Err(context
+                .construct_type_error("value returned for property of object is not a function")),
+        }
+    }
+
+    /// Determines if `value` inherits from the instance object inheritance path.
+    ///
+    /// More information:
+    /// - [EcmaScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-ordinaryhasinstance
+    #[inline]
+    pub fn ordinary_has_instance(&self, context: &mut Context, value: &Value) -> Result<bool> {
+        if !self.is_callable() {
+            return Ok(false);
+        }
+
+        // TODO: If C has a [[BoundTargetFunction]] internal slot, then
+        //           Let BC be C.[[BoundTargetFunction]].
+        //           Return ? InstanceofOperator(O, BC).
+
+        if let Some(object) = value.as_object() {
+            if let Some(prototype) = self.get(&"prototype".into()).as_object() {
+                let mut object = object.get_prototype_of();
+                while let Some(object_prototype) = object.as_object() {
+                    if GcObject::equals(&prototype, &object_prototype) {
+                        return Ok(true);
+                    }
+                    object = object_prototype.get_prototype_of();
+                }
+
+                Ok(false)
+            } else {
+                Err(context
+                    .construct_type_error("function has non-object prototype in instanceof check"))
+            }
+        } else {
+            Ok(false)
+        }
+    }
 }
 
 impl AsRef<GcCell<Object>> for GcObject {
