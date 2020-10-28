@@ -22,6 +22,9 @@ use std::{
     ops::{Deref, DerefMut},
 };
 
+#[cfg(test)]
+mod tests;
+
 mod gcobject;
 mod internal_methods;
 mod iter;

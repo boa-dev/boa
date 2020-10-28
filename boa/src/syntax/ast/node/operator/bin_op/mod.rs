@@ -125,17 +125,28 @@ impl Executable for BinOp {
                         interpreter.has_property(&y, &key)
                     }
                     CompOp::InstanceOf => {
-                        if !y.is_object() {
+                        if let Some(object) = y.as_object() {
+                            let key = interpreter.well_known_symbols().has_instance_symbol();
+
+                            match object.get_method(interpreter, key)? {
+                                Some(instance_of_handler) => instance_of_handler
+                                    .call(&y, &[x], interpreter)?
+                                    .to_boolean(),
+                                None if object.is_callable() => {
+                                    object.ordinary_has_instance(interpreter, &x)?
+                                }
+                                None => {
+                                    return interpreter.throw_type_error(
+                                        "right-hand side of 'instanceof' is not callable",
+                                    );
+                                }
+                            }
+                        } else {
                             return interpreter.throw_type_error(format!(
                                 "right-hand side of 'instanceof' should be an object, got {}",
                                 y.get_type().as_str()
                             ));
                         }
-
-                        // TODO: implement the instanceof operator
-                        // spec: https://tc39.es/ecma262/#sec-instanceofoperator
-
-                        false
                     }
                 }))
             }

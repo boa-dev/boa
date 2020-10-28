@@ -113,7 +113,7 @@ impl WellKnownSymbols {
     /// Called by the semantics of the instanceof operator.
     #[inline]
     pub fn has_instance_symbol(&self) -> RcSymbol {
-        self.async_iterator.clone()
+        self.has_instance.clone()
     }
 
     /// The `Symbol.isConcatSpreadable` well known symbol.
