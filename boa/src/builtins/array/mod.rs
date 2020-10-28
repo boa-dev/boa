@@ -224,11 +224,15 @@ impl Array {
     ///
     /// `array_obj` can be any array with prototype already set (it will be wiped and
     /// recreated from `array_contents`)
-    pub(crate) fn construct_array(array_obj: &Value, array_contents: &[Value]) -> Result<Value> {
+    pub(crate) fn construct_array(
+        array_obj: &Value,
+        array_contents: &[Value],
+        context: &mut Context,
+    ) -> Result<Value> {
         let array_obj_ptr = array_obj.clone();
 
         // Wipe existing contents of the array object
-        let orig_length = array_obj.get_field("length").as_number().unwrap() as i32;
+        let orig_length = array_obj.get_field("length").to_length(context)?;
         for n in 0..orig_length {
             array_obj_ptr.remove_property(n);
         }
@@ -248,17 +252,21 @@ impl Array {
 
     /// Utility function which takes an existing array object and puts additional
     /// values on the end, correctly rewriting the length
-    pub(crate) fn add_to_array_object(array_ptr: &Value, add_values: &[Value]) -> Result<Value> {
-        let orig_length = array_ptr.get_field("length").as_number().unwrap() as i32;
+    pub(crate) fn add_to_array_object(
+        array_ptr: &Value,
+        add_values: &[Value],
+        context: &mut Context,
+    ) -> Result<Value> {
+        let orig_length = array_ptr.get_field("length").to_length(context)?;
 
         for (n, value) in add_values.iter().enumerate() {
-            let new_index = orig_length.wrapping_add(n as i32);
+            let new_index = orig_length.wrapping_add(n);
             array_ptr.set_field(new_index, value);
         }
 
         array_ptr.set_field(
             "length",
-            Value::from(orig_length.wrapping_add(add_values.len() as i32)),
+            Value::from(orig_length.wrapping_add(add_values.len())),
         );
 
         Ok(array_ptr.clone())
@@ -294,7 +302,7 @@ impl Array {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.concat
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/concat
-    pub(crate) fn concat(this: &Value, args: &[Value], _: &mut Context) -> Result<Value> {
+    pub(crate) fn concat(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
         if args.is_empty() {
             // If concat is called with no arguments, it returns the original array
             return Ok(this.clone());
@@ -304,19 +312,19 @@ impl Array {
         // one)
         let mut new_values: Vec<Value> = Vec::new();
 
-        let this_length = this.get_field("length").as_number().unwrap() as i32;
+        let this_length = this.get_field("length").to_length(context)?;
         for n in 0..this_length {
             new_values.push(this.get_field(n));
         }
 
         for concat_array in args {
-            let concat_length = concat_array.get_field("length").as_number().unwrap() as i32;
+            let concat_length = concat_array.get_field("length").to_length(context)?;
             for n in 0..concat_length {
                 new_values.push(concat_array.get_field(n));
             }
         }
 
-        Self::construct_array(this, &new_values)
+        Self::construct_array(this, &new_values, context)
     }
 
     /// `Array.prototype.push( ...items )`
@@ -331,8 +339,8 @@ impl Array {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.push
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/push
-    pub(crate) fn push(this: &Value, args: &[Value], _: &mut Context) -> Result<Value> {
-        let new_array = Self::add_to_array_object(this, args)?;
+    pub(crate) fn push(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+        let new_array = Self::add_to_array_object(this, args, context)?;
         Ok(new_array.get_field("length"))
     }
 
@@ -346,8 +354,8 @@ impl Array {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.pop
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/pop
-    pub(crate) fn pop(this: &Value, _: &[Value], _: &mut Context) -> Result<Value> {
-        let curr_length = this.get_field("length").as_number().unwrap() as i32;
+    pub(crate) fn pop(this: &Value, _: &[Value], context: &mut Context) -> Result<Value> {
+        let curr_length = this.get_field("length").to_length(context)?;
 
         if curr_length < 1 {
             return Ok(Value::undefined());
@@ -377,7 +385,7 @@ impl Array {
         let callback_arg = args.get(0).expect("Could not get `callbackFn` argument.");
         let this_arg = args.get(1).cloned().unwrap_or_else(Value::undefined);
 
-        let length = this.get_field("length").as_number().unwrap() as i32;
+        let length = this.get_field("length").to_length(context)?;
 
         for i in 0..length {
             let element = this.get_field(i);
@@ -412,7 +420,7 @@ impl Array {
         };
 
         let mut elem_strs = Vec::new();
-        let length = this.get_field("length").as_number().unwrap() as i32;
+        let length = this.get_field("length").to_length(context)?;
         for n in 0..length {
             let elem_str = this.get_field(n).to_string(context)?.to_string();
             elem_strs.push(elem_str);
@@ -473,10 +481,10 @@ impl Array {
     /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.reverse
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/reverse
     #[allow(clippy::else_if_without_else)]
-    pub(crate) fn reverse(this: &Value, _: &[Value], _: &mut Context) -> Result<Value> {
-        let len = this.get_field("length").as_number().unwrap() as i32;
+    pub(crate) fn reverse(this: &Value, _: &[Value], context: &mut Context) -> Result<Value> {
+        let len = this.get_field("length").to_length(context)?;
 
-        let middle: i32 = len.wrapping_div(2);
+        let middle = len.wrapping_div(2);
 
         for lower in 0..middle {
             let upper = len.wrapping_sub(lower).wrapping_sub(1);
@@ -512,8 +520,8 @@ impl Array {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.shift
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/shift
-    pub(crate) fn shift(this: &Value, _: &[Value], _: &mut Context) -> Result<Value> {
-        let len = this.get_field("length").as_number().unwrap() as i32;
+    pub(crate) fn shift(this: &Value, _: &[Value], context: &mut Context) -> Result<Value> {
+        let len = this.get_field("length").to_length(context)?;
 
         if len == 0 {
             this.set_field("length", 0);
@@ -553,10 +561,10 @@ impl Array {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.unshift
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/unshift
-    pub(crate) fn unshift(this: &Value, args: &[Value], _: &mut Context) -> Result<Value> {
-        let len = this.get_field("length").as_number().unwrap() as i32;
+    pub(crate) fn unshift(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+        let len = this.get_field("length").to_length(context)?;
 
-        let arg_c: i32 = args.len() as i32;
+        let arg_c = args.len();
 
         if arg_c > 0 {
             for k in (1..=len).rev() {
@@ -571,12 +579,7 @@ impl Array {
                 }
             }
             for j in 0..arg_c {
-                this.set_field(
-                    j,
-                    args.get(j as usize)
-                        .expect("Could not get argument")
-                        .clone(),
-                );
+                this.set_field(j, args.get(j).expect("Could not get argument").clone());
             }
         }
 
@@ -611,7 +614,7 @@ impl Array {
             Value::undefined()
         };
         let mut i = 0;
-        let max_len = this.get_field("length").as_number().unwrap() as i32;
+        let max_len = this.get_field("length").to_length(context)?;
         let mut len = max_len;
         while i < len {
             let element = this.get_field(i);
@@ -620,10 +623,7 @@ impl Array {
             if !result.to_boolean() {
                 return Ok(Value::from(false));
             }
-            len = min(
-                max_len,
-                this.get_field("length").as_number().unwrap() as i32,
-            );
+            len = min(max_len, this.get_field("length").to_length(context)?);
             i += 1;
         }
         Ok(Value::from(true))
@@ -669,7 +669,7 @@ impl Array {
             })
             .collect();
 
-        Self::construct_array(&new, &values)
+        Self::construct_array(&new, &values, context)
     }
 
     /// `Array.prototype.indexOf( searchElement[, fromIndex ] )`
@@ -691,23 +691,24 @@ impl Array {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.indexof
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/indexOf
-    pub(crate) fn index_of(this: &Value, args: &[Value], _: &mut Context) -> Result<Value> {
+    pub(crate) fn index_of(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
         // If no arguments, return -1. Not described in spec, but is what chrome does.
         if args.is_empty() {
             return Ok(Value::from(-1));
         }
 
         let search_element = args[0].clone();
-        let len = this.get_field("length").as_number().unwrap() as i32;
+        let len = this.get_field("length").to_length(context)?;
 
         let mut idx = match args.get(1) {
             Some(from_idx_ptr) => {
-                let from_idx = from_idx_ptr.as_number().unwrap() as i32;
+                let from_idx = from_idx_ptr.as_number().unwrap() as isize;
 
                 if from_idx < 0 {
-                    len + from_idx
+                    let k = len as isize + from_idx;
+                    max(0, k) as usize
                 } else {
-                    from_idx
+                    from_idx as usize
                 }
             }
             None => 0,
@@ -802,7 +803,7 @@ impl Array {
         }
         let callback = &args[0];
         let this_arg = args.get(1).cloned().unwrap_or_else(Value::undefined);
-        let len = this.get_field("length").as_number().unwrap() as i32;
+        let len = this.get_field("length").to_length(context)?;
         for i in 0..len {
             let element = this.get_field(i);
             let arguments = [element.clone(), Value::from(i), this.clone()];
@@ -837,7 +838,7 @@ impl Array {
 
         let this_arg = args.get(1).cloned().unwrap_or_else(Value::undefined);
 
-        let length = this.get_field("length").as_number().unwrap() as i32;
+        let length = this.get_field("length").to_length(context)?;
 
         for i in 0..length {
             let element = this.get_field(i);
@@ -846,11 +847,12 @@ impl Array {
             let result = context.call(predicate_arg, &this_arg, &arguments)?;
 
             if result.to_boolean() {
-                return Ok(Value::rational(f64::from(i)));
+                // TODO: make the case safe
+                return Ok(Value::integer(i as i32));
             }
         }
 
-        Ok(Value::rational(-1_f64))
+        Ok(Value::integer(-1))
     }
 
     /// `Array.prototype.fill( value[, start[, end]] )`
@@ -865,16 +867,16 @@ impl Array {
     /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.fill
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/fill
     pub(crate) fn fill(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
-        let len: i32 = this.get_field("length").as_number().unwrap() as i32;
+        let len = this.get_field("length").to_length(context)? as isize;
 
         let default_value = Value::undefined();
         let value = args.get(0).unwrap_or(&default_value);
-        let relative_start = args.get(1).unwrap_or(&default_value).to_number(context)? as i32;
+        let relative_start = args.get(1).unwrap_or(&default_value).to_number(context)? as isize;
         let relative_end_val = args.get(2).unwrap_or(&default_value);
         let relative_end = if relative_end_val.is_undefined() {
             len
         } else {
-            relative_end_val.to_number(context)? as i32
+            relative_end_val.to_number(context)? as isize
         };
         let start = if relative_start < 0 {
             max(len + relative_start, 0)
@@ -904,10 +906,14 @@ impl Array {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.includes
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/includes
-    pub(crate) fn includes_value(this: &Value, args: &[Value], _: &mut Context) -> Result<Value> {
+    pub(crate) fn includes_value(
+        this: &Value,
+        args: &[Value],
+        context: &mut Context,
+    ) -> Result<Value> {
         let search_element = args.get(0).cloned().unwrap_or_else(Value::undefined);
 
-        let length = this.get_field("length").as_number().unwrap() as i32;
+        let length = this.get_field("length").to_length(context)?;
 
         for idx in 0..length {
             let check_element = this.get_field(idx).clone();
@@ -936,14 +942,14 @@ impl Array {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/slice
     pub(crate) fn slice(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
         let new_array = Self::new_array(context)?;
-        let len = this.get_field("length").as_number().unwrap() as i32;
+        let len = this.get_field("length").to_length(context)? as isize;
 
         let start = match args.get(0) {
-            Some(v) => v.as_number().unwrap() as i32,
+            Some(v) => v.as_number().unwrap() as isize,
             None => 0,
         };
         let end = match args.get(1) {
-            Some(v) => v.as_number().unwrap() as i32,
+            Some(v) => v.as_number().unwrap() as isize,
             None => len,
         };
 
@@ -989,7 +995,7 @@ impl Array {
         let callback = args.get(0).cloned().unwrap_or_else(Value::undefined);
         let this_val = args.get(1).cloned().unwrap_or_else(Value::undefined);
 
-        let length = this.get_field("length").as_number().unwrap() as i32;
+        let length = this.get_field("length").to_length(context)?;
 
         let new = Self::new_array(context)?;
 
@@ -1011,7 +1017,7 @@ impl Array {
             })
             .collect::<Vec<Value>>();
 
-        Self::construct_array(&new, &values)
+        Self::construct_array(&new, &values, context)
     }
 
     /// Array.prototype.some ( callbackfn [ , thisArg ] )
@@ -1042,7 +1048,7 @@ impl Array {
             Value::undefined()
         };
         let mut i = 0;
-        let max_len = this.get_field("length").as_number().unwrap() as i32;
+        let max_len = this.get_field("length").to_length(context)?;
         let mut len = max_len;
         while i < len {
             let element = this.get_field(i);
@@ -1052,10 +1058,7 @@ impl Array {
                 return Ok(Value::from(true));
             }
             // the length of the array must be updated because the callback can mutate it.
-            len = min(
-                max_len,
-                this.get_field("length").as_number().unwrap() as i32,
-            );
+            len = min(max_len, this.get_field("length").to_length(context)?);
             i += 1;
         }
         Ok(Value::from(false))

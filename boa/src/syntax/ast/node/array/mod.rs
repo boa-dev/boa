@@ -61,7 +61,7 @@ impl Executable for ArrayDecl {
             }
         }
 
-        Array::add_to_array_object(&array, &elements)?;
+        Array::add_to_array_object(&array, &elements, context)?;
         Ok(array)
     }
 }
