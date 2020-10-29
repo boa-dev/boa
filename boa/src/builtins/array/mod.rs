@@ -951,11 +951,11 @@ impl Array {
         let len = this.get_field("length").to_length(context)? as isize;
 
         let start = match args.get(0) {
-            Some(v) => v.to_integer(interpreter)?,
+            Some(v) => v.to_integer(context)?,
             None => 0.0,
         };
         let end = match args.get(1) {
-            Some(v) => v.to_integer(interpreter)?,
+            Some(v) => v.to_integer(context)?,
             None => len as f64,
         };
 
