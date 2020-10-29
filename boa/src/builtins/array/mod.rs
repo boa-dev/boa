@@ -705,14 +705,12 @@ impl Array {
                 let from_idx = from_idx_ptr.to_number(context)?;
 
                 if !from_idx.is_finite() {
-                    return Ok(Value::from(-1))
+                    return Ok(Value::from(-1));
+                } else if from_idx < 0.0 {
+                    let k = len as isize + from_idx as isize;
+                    max(0, k) as usize
                 } else {
-                    if from_idx < 0.0 {
-                        let k = len as isize + from_idx as isize;
-                        max(0, k) as usize
-                    } else {
-                        from_idx as usize
-                    }
+                    from_idx as usize
                 }
             }
             None => 0,
