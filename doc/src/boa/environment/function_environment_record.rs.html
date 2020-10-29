@@ -265,10 +265,10 @@
         <span class="ident">environment_record_trait</span>::<span class="ident">EnvironmentRecordTrait</span>,
         <span class="ident">lexical_environment</span>::{<span class="ident">Environment</span>, <span class="ident">EnvironmentType</span>},
     },
+    <span class="ident">gc</span>::{<span class="ident">empty_trace</span>, <span class="ident">Finalize</span>, <span class="ident">Trace</span>},
     <span class="ident">object</span>::<span class="ident">GcObject</span>,
     <span class="ident">Value</span>,
 };
-<span class="kw">use</span> <span class="ident">gc</span>::{<span class="ident">unsafe_empty_trace</span>, <span class="ident">Finalize</span>, <span class="ident">Trace</span>};
 <span class="kw">use</span> <span class="ident">rustc_hash</span>::<span class="ident">FxHashMap</span>;
 
 <span class="doccomment">/// Different binding status for `this`.</span>
@@ -284,7 +284,7 @@
 }
 
 <span class="kw">unsafe</span> <span class="kw">impl</span> <span class="ident">Trace</span> <span class="kw">for</span> <span class="ident">BindingStatus</span> {
-    <span class="macro">unsafe_empty_trace</span><span class="macro">!</span>();
+    <span class="macro">empty_trace</span><span class="macro">!</span>();
 }
 
 <span class="doccomment">/// &lt;https://tc39.es/ecma262/#table-16&gt;</span>

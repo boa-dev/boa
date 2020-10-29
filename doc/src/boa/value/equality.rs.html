@@ -236,7 +236,7 @@
     <span class="doccomment">/// This method is executed when doing abstract equality comparisons with the `==` operator.</span>
     <span class="doccomment">///  For more information, check &lt;https://tc39.es/ecma262/#sec-abstract-equality-comparison&gt;</span>
     <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy</span>::<span class="ident">float_cmp</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">equals</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>, <span class="ident">interpreter</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">equals</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> {
         <span class="comment">// 1. If Type(x) is the same as Type(y), then</span>
         <span class="comment">//     a. Return the result of performing Strict Equality Comparison x === y.</span>
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">get_type</span>() <span class="op">==</span> <span class="ident">other</span>.<span class="ident">get_type</span>() {
@@ -258,8 +258,8 @@
             <span class="op">|</span> (<span class="self">Self</span>::<span class="ident">String</span>(<span class="kw">_</span>), <span class="self">Self</span>::<span class="ident">Rational</span>(<span class="kw">_</span>))
             <span class="op">|</span> (<span class="self">Self</span>::<span class="ident">Rational</span>(<span class="kw">_</span>), <span class="self">Self</span>::<span class="ident">Boolean</span>(<span class="kw">_</span>))
             <span class="op">|</span> (<span class="self">Self</span>::<span class="ident">Integer</span>(<span class="kw">_</span>), <span class="self">Self</span>::<span class="ident">Boolean</span>(<span class="kw">_</span>)) <span class="op">=&gt;</span> {
-                <span class="kw">let</span> <span class="ident">x</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">to_number</span>(<span class="ident">interpreter</span>)<span class="question-mark">?</span>;
-                <span class="kw">let</span> <span class="ident">y</span> <span class="op">=</span> <span class="ident">other</span>.<span class="ident">to_number</span>(<span class="ident">interpreter</span>)<span class="question-mark">?</span>;
+                <span class="kw">let</span> <span class="ident">x</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">to_number</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+                <span class="kw">let</span> <span class="ident">y</span> <span class="op">=</span> <span class="ident">other</span>.<span class="ident">to_number</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
                 <span class="ident">Number</span>::<span class="ident">equal</span>(<span class="ident">x</span>, <span class="ident">y</span>)
             }
 
@@ -279,23 +279,23 @@
             },
 
             <span class="comment">// 8. If Type(x) is Boolean, return the result of the comparison ! ToNumber(x) == y.</span>
-            (<span class="self">Self</span>::<span class="ident">Boolean</span>(<span class="ident">x</span>), <span class="kw">_</span>) <span class="op">=&gt;</span> <span class="kw">return</span> <span class="ident">other</span>.<span class="ident">equals</span>(<span class="kw-2">&amp;</span><span class="ident">Value</span>::<span class="ident">from</span>(<span class="kw-2">*</span><span class="ident">x</span> <span class="kw">as</span> <span class="ident">i32</span>), <span class="ident">interpreter</span>),
+            (<span class="self">Self</span>::<span class="ident">Boolean</span>(<span class="ident">x</span>), <span class="kw">_</span>) <span class="op">=&gt;</span> <span class="kw">return</span> <span class="ident">other</span>.<span class="ident">equals</span>(<span class="kw-2">&amp;</span><span class="ident">Value</span>::<span class="ident">from</span>(<span class="kw-2">*</span><span class="ident">x</span> <span class="kw">as</span> <span class="ident">i32</span>), <span class="ident">context</span>),
 
             <span class="comment">// 9. If Type(y) is Boolean, return the result of the comparison x == ! ToNumber(y).</span>
-            (<span class="kw">_</span>, <span class="self">Self</span>::<span class="ident">Boolean</span>(<span class="ident">y</span>)) <span class="op">=&gt;</span> <span class="kw">return</span> <span class="self">self</span>.<span class="ident">equals</span>(<span class="kw-2">&amp;</span><span class="ident">Value</span>::<span class="ident">from</span>(<span class="kw-2">*</span><span class="ident">y</span> <span class="kw">as</span> <span class="ident">i32</span>), <span class="ident">interpreter</span>),
+            (<span class="kw">_</span>, <span class="self">Self</span>::<span class="ident">Boolean</span>(<span class="ident">y</span>)) <span class="op">=&gt;</span> <span class="kw">return</span> <span class="self">self</span>.<span class="ident">equals</span>(<span class="kw-2">&amp;</span><span class="ident">Value</span>::<span class="ident">from</span>(<span class="kw-2">*</span><span class="ident">y</span> <span class="kw">as</span> <span class="ident">i32</span>), <span class="ident">context</span>),
 
             <span class="comment">// 10. If Type(x) is either String, Number, BigInt, or Symbol and Type(y) is Object, return the result</span>
             <span class="comment">// of the comparison x == ? ToPrimitive(y).</span>
             (<span class="self">Self</span>::<span class="ident">Object</span>(<span class="kw">_</span>), <span class="kw">_</span>) <span class="op">=&gt;</span> {
-                <span class="kw">let</span> <span class="ident">primitive</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">to_primitive</span>(<span class="ident">interpreter</span>, <span class="ident">PreferredType</span>::<span class="ident">Default</span>)<span class="question-mark">?</span>;
-                <span class="kw">return</span> <span class="ident">primitive</span>.<span class="ident">equals</span>(<span class="ident">other</span>, <span class="ident">interpreter</span>);
+                <span class="kw">let</span> <span class="ident">primitive</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">to_primitive</span>(<span class="ident">context</span>, <span class="ident">PreferredType</span>::<span class="ident">Default</span>)<span class="question-mark">?</span>;
+                <span class="kw">return</span> <span class="ident">primitive</span>.<span class="ident">equals</span>(<span class="ident">other</span>, <span class="ident">context</span>);
             }
 
             <span class="comment">// 11. If Type(x) is Object and Type(y) is either String, Number, BigInt, or Symbol, return the result</span>
             <span class="comment">// of the comparison ? ToPrimitive(x) == y.</span>
             (<span class="kw">_</span>, <span class="self">Self</span>::<span class="ident">Object</span>(<span class="kw">_</span>)) <span class="op">=&gt;</span> {
-                <span class="kw">let</span> <span class="ident">primitive</span> <span class="op">=</span> <span class="ident">other</span>.<span class="ident">to_primitive</span>(<span class="ident">interpreter</span>, <span class="ident">PreferredType</span>::<span class="ident">Default</span>)<span class="question-mark">?</span>;
-                <span class="kw">return</span> <span class="ident">primitive</span>.<span class="ident">equals</span>(<span class="self">self</span>, <span class="ident">interpreter</span>);
+                <span class="kw">let</span> <span class="ident">primitive</span> <span class="op">=</span> <span class="ident">other</span>.<span class="ident">to_primitive</span>(<span class="ident">context</span>, <span class="ident">PreferredType</span>::<span class="ident">Default</span>)<span class="question-mark">?</span>;
+                <span class="kw">return</span> <span class="ident">primitive</span>.<span class="ident">equals</span>(<span class="self">self</span>, <span class="ident">context</span>);
             }
 
             <span class="comment">// 12. If Type(x) is BigInt and Type(y) is Number, or if Type(x) is Number and Type(y) is BigInt, then</span>

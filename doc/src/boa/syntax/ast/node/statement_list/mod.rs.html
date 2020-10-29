@@ -134,20 +134,16 @@
 <span id="133">133</span>
 <span id="134">134</span>
 <span id="135">135</span>
-<span id="136">136</span>
-<span id="137">137</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Statement list node.</span>
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">exec</span>::{<span class="ident">Executable</span>, <span class="ident">InterpreterState</span>},
+    <span class="ident">gc</span>::{<span class="ident">empty_trace</span>, <span class="ident">Finalize</span>, <span class="ident">Trace</span>},
     <span class="ident">syntax</span>::<span class="ident">ast</span>::<span class="ident">node</span>::<span class="ident">Node</span>,
     <span class="ident">BoaProfiler</span>, <span class="ident">Context</span>, <span class="prelude-ty">Result</span>, <span class="ident">Value</span>,
 };
-<span class="kw">use</span> <span class="ident">gc</span>::{<span class="ident">unsafe_empty_trace</span>, <span class="ident">Finalize</span>, <span class="ident">Trace</span>};
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">fmt</span>;
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">ops</span>::<span class="ident">Deref</span>;
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">rc</span>::<span class="ident">Rc</span>;
+<span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">fmt</span>, <span class="ident">ops</span>::<span class="ident">Deref</span>, <span class="ident">rc</span>::<span class="ident">Rc</span>};
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde&quot;</span>)]</span>
 <span class="kw">use</span> <span class="ident">serde</span>::{<span class="ident">Deserialize</span>, <span class="ident">Serialize</span>};
@@ -196,18 +192,18 @@
 }
 
 <span class="kw">impl</span> <span class="ident">Executable</span> <span class="kw">for</span> <span class="ident">StatementList</span> {
-    <span class="kw">fn</span> <span class="ident">run</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">interpreter</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">run</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">BoaProfiler</span>::<span class="ident">global</span>().<span class="ident">start_event</span>(<span class="string">&quot;StatementList&quot;</span>, <span class="string">&quot;exec&quot;</span>);
 
         <span class="comment">// https://tc39.es/ecma262/#sec-block-runtime-semantics-evaluation</span>
         <span class="comment">// The return value is uninitialized, which means it defaults to Value::Undefined</span>
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">Value</span>::<span class="ident">default</span>();
-        <span class="ident">interpreter</span>
+        <span class="ident">context</span>
             .<span class="ident">executor</span>()
             .<span class="ident">set_current_state</span>(<span class="ident">InterpreterState</span>::<span class="ident">Executing</span>);
         <span class="kw">for</span> (<span class="ident">i</span>, <span class="ident">item</span>) <span class="kw">in</span> <span class="self">self</span>.<span class="ident">statements</span>().<span class="ident">iter</span>().<span class="ident">enumerate</span>() {
-            <span class="kw">let</span> <span class="ident">val</span> <span class="op">=</span> <span class="ident">item</span>.<span class="ident">run</span>(<span class="ident">interpreter</span>)<span class="question-mark">?</span>;
-            <span class="kw">match</span> <span class="ident">interpreter</span>.<span class="ident">executor</span>().<span class="ident">get_current_state</span>() {
+            <span class="kw">let</span> <span class="ident">val</span> <span class="op">=</span> <span class="ident">item</span>.<span class="ident">run</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+            <span class="kw">match</span> <span class="ident">context</span>.<span class="ident">executor</span>().<span class="ident">get_current_state</span>() {
                 <span class="ident">InterpreterState</span>::<span class="ident">Return</span> <span class="op">=&gt;</span> {
                     <span class="comment">// Early return.</span>
                     <span class="ident">obj</span> <span class="op">=</span> <span class="ident">val</span>;
@@ -272,7 +268,7 @@
 
 <span class="comment">// SAFETY: This is safe for types not containing any `Trace` types.</span>
 <span class="kw">unsafe</span> <span class="kw">impl</span> <span class="ident">Trace</span> <span class="kw">for</span> <span class="ident">RcStatementList</span> {
-    <span class="macro">unsafe_empty_trace</span><span class="macro">!</span>();
+    <span class="macro">empty_trace</span><span class="macro">!</span>();
 }
 </pre></div>
 </section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../../../../../../";window.currentCrate = "boa";</script><script src="../../../../../../main.js"></script><script src="../../../../../../source-script.js"></script><script src="../../../../../../source-files.js"></script><script defer src="../../../../../../search-index.js"></script></body></html>

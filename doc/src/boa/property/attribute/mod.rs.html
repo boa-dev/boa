@@ -115,8 +115,8 @@
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements the `Attribute` struct which contains the attibutes for property descriptors.</span>
 
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">gc</span>::{<span class="ident">empty_trace</span>, <span class="ident">Finalize</span>, <span class="ident">Trace</span>};
 <span class="kw">use</span> <span class="ident">bitflags</span>::<span class="ident">bitflags</span>;
-<span class="kw">use</span> <span class="ident">gc</span>::{<span class="ident">unsafe_empty_trace</span>, <span class="ident">Finalize</span>, <span class="ident">Trace</span>};
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">tests</span>;
@@ -159,7 +159,7 @@
 <span class="comment">// SAFETY: The `Attribute` struct only contains an `u8`</span>
 <span class="comment">// and therefore it should be safe to implement an empty trace.</span>
 <span class="kw">unsafe</span> <span class="kw">impl</span> <span class="ident">Trace</span> <span class="kw">for</span> <span class="ident">Attribute</span> {
-    <span class="macro">unsafe_empty_trace</span><span class="macro">!</span>();
+    <span class="macro">empty_trace</span><span class="macro">!</span>();
 }
 
 <span class="kw">impl</span> <span class="ident">Attribute</span> {

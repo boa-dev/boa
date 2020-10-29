@@ -213,10 +213,10 @@
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">environment</span>::<span class="ident">lexical_environment</span>::<span class="ident">new_declarative_environment</span>,
     <span class="ident">exec</span>::{<span class="ident">Executable</span>, <span class="ident">InterpreterState</span>},
+    <span class="ident">gc</span>::{<span class="ident">Finalize</span>, <span class="ident">Trace</span>},
     <span class="ident">syntax</span>::<span class="ident">ast</span>::<span class="ident">node</span>::<span class="ident">Node</span>,
     <span class="ident">BoaProfiler</span>, <span class="ident">Context</span>, <span class="prelude-ty">Result</span>, <span class="ident">Value</span>,
 };
-<span class="kw">use</span> <span class="ident">gc</span>::{<span class="ident">Finalize</span>, <span class="ident">Trace</span>};
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">fmt</span>;
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde&quot;</span>)]</span>
@@ -310,35 +310,35 @@
 }
 
 <span class="kw">impl</span> <span class="ident">Executable</span> <span class="kw">for</span> <span class="ident">ForLoop</span> {
-    <span class="kw">fn</span> <span class="ident">run</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">interpreter</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">run</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
         <span class="comment">// Create the block environment.</span>
         <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">BoaProfiler</span>::<span class="ident">global</span>().<span class="ident">start_event</span>(<span class="string">&quot;ForLoop&quot;</span>, <span class="string">&quot;exec&quot;</span>);
         {
-            <span class="kw">let</span> <span class="ident">env</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">interpreter</span>.<span class="ident">realm_mut</span>().<span class="ident">environment</span>;
+            <span class="kw">let</span> <span class="ident">env</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">context</span>.<span class="ident">realm_mut</span>().<span class="ident">environment</span>;
             <span class="ident">env</span>.<span class="ident">push</span>(<span class="ident">new_declarative_environment</span>(<span class="prelude-val">Some</span>(
                 <span class="ident">env</span>.<span class="ident">get_current_environment_ref</span>().<span class="ident">clone</span>(),
             )));
         }
 
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">init</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">init</span>() {
-            <span class="ident">init</span>.<span class="ident">run</span>(<span class="ident">interpreter</span>)<span class="question-mark">?</span>;
+            <span class="ident">init</span>.<span class="ident">run</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
         }
 
         <span class="kw">while</span> <span class="self">self</span>
             .<span class="ident">condition</span>()
-            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">cond</span><span class="op">|</span> <span class="ident">cond</span>.<span class="ident">run</span>(<span class="ident">interpreter</span>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> <span class="ident">v</span>.<span class="ident">to_boolean</span>()))
+            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">cond</span><span class="op">|</span> <span class="ident">cond</span>.<span class="ident">run</span>(<span class="ident">context</span>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> <span class="ident">v</span>.<span class="ident">to_boolean</span>()))
             .<span class="ident">transpose</span>()<span class="question-mark">?</span>
             .<span class="ident">unwrap_or</span>(<span class="bool-val">true</span>)
         {
-            <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">body</span>().<span class="ident">run</span>(<span class="ident">interpreter</span>)<span class="question-mark">?</span>;
+            <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">body</span>().<span class="ident">run</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
 
-            <span class="kw">match</span> <span class="ident">interpreter</span>.<span class="ident">executor</span>().<span class="ident">get_current_state</span>() {
+            <span class="kw">match</span> <span class="ident">context</span>.<span class="ident">executor</span>().<span class="ident">get_current_state</span>() {
                 <span class="ident">InterpreterState</span>::<span class="ident">Break</span>(<span class="ident">label</span>) <span class="op">=&gt;</span> {
-                    <span class="macro">handle_state_with_labels</span><span class="macro">!</span>(<span class="self">self</span>, <span class="ident">label</span>, <span class="ident">interpreter</span>, <span class="kw">break</span>);
+                    <span class="macro">handle_state_with_labels</span><span class="macro">!</span>(<span class="self">self</span>, <span class="ident">label</span>, <span class="ident">context</span>, <span class="kw">break</span>);
                     <span class="kw">break</span>;
                 }
                 <span class="ident">InterpreterState</span>::<span class="ident">Continue</span>(<span class="ident">label</span>) <span class="op">=&gt;</span> {
-                    <span class="macro">handle_state_with_labels</span><span class="macro">!</span>(<span class="self">self</span>, <span class="ident">label</span>, <span class="ident">interpreter</span>, <span class="kw">continue</span>);
+                    <span class="macro">handle_state_with_labels</span><span class="macro">!</span>(<span class="self">self</span>, <span class="ident">label</span>, <span class="ident">context</span>, <span class="kw">continue</span>);
                 }
 
                 <span class="ident">InterpreterState</span>::<span class="ident">Return</span> <span class="op">=&gt;</span> {
@@ -350,12 +350,12 @@
             }
 
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">final_expr</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">final_expr</span>() {
-                <span class="ident">final_expr</span>.<span class="ident">run</span>(<span class="ident">interpreter</span>)<span class="question-mark">?</span>;
+                <span class="ident">final_expr</span>.<span class="ident">run</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
             }
         }
 
         <span class="comment">// pop the block env</span>
-        <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">interpreter</span>.<span class="ident">realm_mut</span>().<span class="ident">environment</span>.<span class="ident">pop</span>();
+        <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">realm_mut</span>().<span class="ident">environment</span>.<span class="ident">pop</span>();
 
         <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">undefined</span>())
     }

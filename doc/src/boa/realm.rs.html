@@ -97,7 +97,7 @@
 <span class="doccomment">/// In the specification these are called Realm Records.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Realm</span> {
-    <span class="kw">pub</span> <span class="ident">global_obj</span>: <span class="ident">Value</span>,
+    <span class="kw">pub</span> <span class="ident">global_object</span>: <span class="ident">Value</span>,
     <span class="kw">pub</span> <span class="ident">global_env</span>: <span class="ident">Gc</span><span class="op">&lt;</span><span class="ident">GcCell</span><span class="op">&lt;</span><span class="ident">GlobalEnvironmentRecord</span><span class="op">&gt;&gt;</span>,
     <span class="kw">pub</span> <span class="ident">environment</span>: <span class="ident">LexicalEnvironment</span>,
 }
@@ -116,7 +116,7 @@
         <span class="kw">let</span> <span class="ident">global_env</span> <span class="op">=</span> <span class="ident">new_global_environment</span>(<span class="ident">global</span>.<span class="ident">clone</span>(), <span class="ident">global</span>.<span class="ident">clone</span>());
 
         <span class="self">Self</span> {
-            <span class="ident">global_obj</span>: <span class="ident">global</span>.<span class="ident">clone</span>(),
+            <span class="ident">global_object</span>: <span class="ident">global</span>.<span class="ident">clone</span>(),
             <span class="ident">global_env</span>,
             <span class="ident">environment</span>: <span class="ident">LexicalEnvironment</span>::<span class="ident">new</span>(<span class="ident">global</span>),
         }

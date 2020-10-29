@@ -88,11 +88,11 @@
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">exec</span>::<span class="ident">Executable</span>,
+    <span class="ident">gc</span>::{<span class="ident">Finalize</span>, <span class="ident">Trace</span>},
     <span class="ident">syntax</span>::<span class="ident">ast</span>::<span class="ident">node</span>::<span class="ident">Node</span>,
     <span class="ident">value</span>::{<span class="ident">Type</span>, <span class="ident">Value</span>},
     <span class="ident">Context</span>, <span class="prelude-ty">Result</span>,
 };
-<span class="kw">use</span> <span class="ident">gc</span>::{<span class="ident">Finalize</span>, <span class="ident">Trace</span>};
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">fmt</span>;
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde&quot;</span>)]</span>
@@ -151,10 +151,10 @@
 }
 
 <span class="kw">impl</span> <span class="ident">Executable</span> <span class="kw">for</span> <span class="ident">GetConstField</span> {
-    <span class="kw">fn</span> <span class="ident">run</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">interpreter</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">obj</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">obj</span>().<span class="ident">run</span>(<span class="ident">interpreter</span>)<span class="question-mark">?</span>;
+    <span class="kw">fn</span> <span class="ident">run</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">obj</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">obj</span>().<span class="ident">run</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
         <span class="kw">if</span> <span class="ident">obj</span>.<span class="ident">get_type</span>() <span class="op">!=</span> <span class="ident">Type</span>::<span class="ident">Object</span> {
-            <span class="ident">obj</span> <span class="op">=</span> <span class="ident">Value</span>::<span class="ident">Object</span>(<span class="ident">obj</span>.<span class="ident">to_object</span>(<span class="ident">interpreter</span>)<span class="question-mark">?</span>);
+            <span class="ident">obj</span> <span class="op">=</span> <span class="ident">Value</span>::<span class="ident">Object</span>(<span class="ident">obj</span>.<span class="ident">to_object</span>(<span class="ident">context</span>)<span class="question-mark">?</span>);
         }
 
         <span class="prelude-val">Ok</span>(<span class="ident">obj</span>.<span class="ident">get_field</span>(<span class="self">self</span>.<span class="ident">field</span>()))

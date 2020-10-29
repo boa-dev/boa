@@ -150,12 +150,16 @@
 <span id="149">149</span>
 <span id="150">150</span>
 <span id="151">151</span>
+<span id="152">152</span>
+<span id="153">153</span>
 </pre><div class="example-wrap"><pre class="rust ">
-<span class="kw">use</span> <span class="ident">gc</span>::{<span class="ident">custom_trace</span>, <span class="ident">Finalize</span>, <span class="ident">Trace</span>};
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">gc</span>::{<span class="ident">custom_trace</span>, <span class="ident">Finalize</span>, <span class="ident">Trace</span>};
 <span class="kw">use</span> <span class="ident">indexmap</span>::{<span class="ident">map</span>::<span class="ident">IntoIter</span>, <span class="ident">map</span>::<span class="ident">Iter</span>, <span class="ident">map</span>::<span class="ident">IterMut</span>, <span class="ident">IndexMap</span>};
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">collections</span>::<span class="ident">hash_map</span>::<span class="ident">RandomState</span>;
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">fmt</span>::<span class="ident">Debug</span>;
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">hash</span>::{<span class="ident">BuildHasher</span>, <span class="ident">Hash</span>};
+<span class="kw">use</span> <span class="ident">std</span>::{
+    <span class="ident">collections</span>::<span class="ident">hash_map</span>::<span class="ident">RandomState</span>,
+    <span class="ident">fmt</span>::<span class="ident">Debug</span>,
+    <span class="ident">hash</span>::{<span class="ident">BuildHasher</span>, <span class="ident">Hash</span>},
+};
 
 <span class="doccomment">/// A newtype wrapping indexmap::IndexMap</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>)]</span>

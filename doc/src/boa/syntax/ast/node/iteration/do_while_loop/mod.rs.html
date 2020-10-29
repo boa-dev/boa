@@ -140,10 +140,10 @@
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">exec</span>::{<span class="ident">Executable</span>, <span class="ident">InterpreterState</span>},
+    <span class="ident">gc</span>::{<span class="ident">Finalize</span>, <span class="ident">Trace</span>},
     <span class="ident">syntax</span>::<span class="ident">ast</span>::<span class="ident">node</span>::<span class="ident">Node</span>,
     <span class="ident">Context</span>, <span class="prelude-ty">Result</span>, <span class="ident">Value</span>,
 };
-<span class="kw">use</span> <span class="ident">gc</span>::{<span class="ident">Finalize</span>, <span class="ident">Trace</span>};
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">fmt</span>;
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde&quot;</span>)]</span>
@@ -207,21 +207,21 @@
 }
 
 <span class="kw">impl</span> <span class="ident">Executable</span> <span class="kw">for</span> <span class="ident">DoWhileLoop</span> {
-    <span class="kw">fn</span> <span class="ident">run</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">interpreter</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">result</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">body</span>().<span class="ident">run</span>(<span class="ident">interpreter</span>)<span class="question-mark">?</span>;
-        <span class="kw">match</span> <span class="ident">interpreter</span>.<span class="ident">executor</span>().<span class="ident">get_current_state</span>() {
+    <span class="kw">fn</span> <span class="ident">run</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">result</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">body</span>().<span class="ident">run</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="kw">match</span> <span class="ident">context</span>.<span class="ident">executor</span>().<span class="ident">get_current_state</span>() {
             <span class="ident">InterpreterState</span>::<span class="ident">Break</span>(<span class="ident">_label</span>) <span class="op">=&gt;</span> {
                 <span class="comment">// TODO break to label.</span>
 
                 <span class="comment">// Loops &#39;consume&#39; breaks.</span>
-                <span class="ident">interpreter</span>
+                <span class="ident">context</span>
                     .<span class="ident">executor</span>()
                     .<span class="ident">set_current_state</span>(<span class="ident">InterpreterState</span>::<span class="ident">Executing</span>);
                 <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">result</span>);
             }
             <span class="ident">InterpreterState</span>::<span class="ident">Continue</span>(<span class="ident">_label</span>) <span class="op">=&gt;</span> {
                 <span class="comment">// TODO continue to label;</span>
-                <span class="ident">interpreter</span>
+                <span class="ident">context</span>
                     .<span class="ident">executor</span>()
                     .<span class="ident">set_current_state</span>(<span class="ident">InterpreterState</span>::<span class="ident">Executing</span>);
                 <span class="comment">// after breaking out of the block, continue execution of the loop</span>
@@ -234,21 +234,21 @@
             }
         }
 
-        <span class="kw">while</span> <span class="self">self</span>.<span class="ident">cond</span>().<span class="ident">run</span>(<span class="ident">interpreter</span>)<span class="question-mark">?</span>.<span class="ident">to_boolean</span>() {
-            <span class="ident">result</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">body</span>().<span class="ident">run</span>(<span class="ident">interpreter</span>)<span class="question-mark">?</span>;
-            <span class="kw">match</span> <span class="ident">interpreter</span>.<span class="ident">executor</span>().<span class="ident">get_current_state</span>() {
+        <span class="kw">while</span> <span class="self">self</span>.<span class="ident">cond</span>().<span class="ident">run</span>(<span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">to_boolean</span>() {
+            <span class="ident">result</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">body</span>().<span class="ident">run</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+            <span class="kw">match</span> <span class="ident">context</span>.<span class="ident">executor</span>().<span class="ident">get_current_state</span>() {
                 <span class="ident">InterpreterState</span>::<span class="ident">Break</span>(<span class="ident">_label</span>) <span class="op">=&gt;</span> {
                     <span class="comment">// TODO break to label.</span>
 
                     <span class="comment">// Loops &#39;consume&#39; breaks.</span>
-                    <span class="ident">interpreter</span>
+                    <span class="ident">context</span>
                         .<span class="ident">executor</span>()
                         .<span class="ident">set_current_state</span>(<span class="ident">InterpreterState</span>::<span class="ident">Executing</span>);
                     <span class="kw">break</span>;
                 }
                 <span class="ident">InterpreterState</span>::<span class="ident">Continue</span>(<span class="ident">_label</span>) <span class="op">=&gt;</span> {
                     <span class="comment">// TODO continue to label.</span>
-                    <span class="ident">interpreter</span>
+                    <span class="ident">context</span>
                         .<span class="ident">executor</span>()
                         .<span class="ident">set_current_state</span>(<span class="ident">InterpreterState</span>::<span class="ident">Executing</span>);
                     <span class="comment">// after breaking out of the block, continue execution of the loop</span>

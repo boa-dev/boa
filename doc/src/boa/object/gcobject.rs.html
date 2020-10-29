@@ -989,7 +989,7 @@
     <span class="comment">// &lt;https://tc39.es/ecma262/#sec-prepareforordinarycall&gt;</span>
     <span class="comment">// &lt;https://tc39.es/ecma262/#sec-ecmascript-function-objects-call-thisargument-argumentslist&gt;</span>
     <span class="attribute">#[<span class="ident">track_caller</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">call</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">call</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">this_function_object</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">clone</span>();
         <span class="kw">let</span> <span class="ident">f_body</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">function</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">borrow</span>().<span class="ident">as_function</span>() {
             <span class="kw">if</span> <span class="ident">function</span>.<span class="ident">is_callable</span>() {
@@ -1025,7 +1025,7 @@
                         <span class="kw">for</span> (<span class="ident">i</span>, <span class="ident">param</span>) <span class="kw">in</span> <span class="ident">params</span>.<span class="ident">iter</span>().<span class="ident">enumerate</span>() {
                             <span class="comment">// Rest Parameters</span>
                             <span class="kw">if</span> <span class="ident">param</span>.<span class="ident">is_rest_param</span>() {
-                                <span class="ident">function</span>.<span class="ident">add_rest_param</span>(<span class="ident">param</span>, <span class="ident">i</span>, <span class="ident">args</span>, <span class="ident">ctx</span>, <span class="kw-2">&amp;</span><span class="ident">local_env</span>);
+                                <span class="ident">function</span>.<span class="ident">add_rest_param</span>(<span class="ident">param</span>, <span class="ident">i</span>, <span class="ident">args</span>, <span class="ident">context</span>, <span class="kw-2">&amp;</span><span class="ident">local_env</span>);
                                 <span class="kw">break</span>;
                             }
 
@@ -1042,23 +1042,23 @@
                             .<span class="ident">borrow_mut</span>()
                             .<span class="ident">initialize_binding</span>(<span class="string">&quot;arguments&quot;</span>, <span class="ident">arguments_obj</span>);
 
-                        <span class="ident">ctx</span>.<span class="ident">realm_mut</span>().<span class="ident">environment</span>.<span class="ident">push</span>(<span class="ident">local_env</span>);
+                        <span class="ident">context</span>.<span class="ident">realm_mut</span>().<span class="ident">environment</span>.<span class="ident">push</span>(<span class="ident">local_env</span>);
 
                         <span class="ident">FunctionBody</span>::<span class="ident">Ordinary</span>(<span class="ident">body</span>.<span class="ident">clone</span>())
                     }
                 }
             } <span class="kw">else</span> {
-                <span class="kw">return</span> <span class="ident">ctx</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;function object is not callable&quot;</span>);
+                <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;function object is not callable&quot;</span>);
             }
         } <span class="kw">else</span> {
-            <span class="kw">return</span> <span class="ident">ctx</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;not a function&quot;</span>);
+            <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;not a function&quot;</span>);
         };
 
         <span class="kw">match</span> <span class="ident">f_body</span> {
-            <span class="ident">FunctionBody</span>::<span class="ident">BuiltIn</span>(<span class="ident">func</span>) <span class="op">=&gt;</span> <span class="ident">func</span>(<span class="ident">this</span>, <span class="ident">args</span>, <span class="ident">ctx</span>),
+            <span class="ident">FunctionBody</span>::<span class="ident">BuiltIn</span>(<span class="ident">func</span>) <span class="op">=&gt;</span> <span class="ident">func</span>(<span class="ident">this</span>, <span class="ident">args</span>, <span class="ident">context</span>),
             <span class="ident">FunctionBody</span>::<span class="ident">Ordinary</span>(<span class="ident">body</span>) <span class="op">=&gt;</span> {
-                <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">body</span>.<span class="ident">run</span>(<span class="ident">ctx</span>);
-                <span class="ident">ctx</span>.<span class="ident">realm_mut</span>().<span class="ident">environment</span>.<span class="ident">pop</span>();
+                <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">body</span>.<span class="ident">run</span>(<span class="ident">context</span>);
+                <span class="ident">context</span>.<span class="ident">realm_mut</span>().<span class="ident">environment</span>.<span class="ident">pop</span>();
 
                 <span class="ident">result</span>
             }
@@ -1072,7 +1072,7 @@
     <span class="doccomment">/// Panics if the object is currently mutably borrowed.</span>
     <span class="comment">// &lt;https://tc39.es/ecma262/#sec-ecmascript-function-objects-construct-argumentslist-newtarget&gt;</span>
     <span class="attribute">#[<span class="ident">track_caller</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">construct</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">construct</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">this</span>: <span class="ident">Value</span> <span class="op">=</span> <span class="ident">Object</span>::<span class="ident">create</span>(<span class="self">self</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">PROTOTYPE</span>.<span class="ident">into</span>())).<span class="ident">into</span>();
 
         <span class="kw">let</span> <span class="ident">this_function_object</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">clone</span>();
@@ -1106,7 +1106,7 @@
                         <span class="kw">for</span> (<span class="ident">i</span>, <span class="ident">param</span>) <span class="kw">in</span> <span class="ident">params</span>.<span class="ident">iter</span>().<span class="ident">enumerate</span>() {
                             <span class="comment">// Rest Parameters</span>
                             <span class="kw">if</span> <span class="ident">param</span>.<span class="ident">is_rest_param</span>() {
-                                <span class="ident">function</span>.<span class="ident">add_rest_param</span>(<span class="ident">param</span>, <span class="ident">i</span>, <span class="ident">args</span>, <span class="ident">ctx</span>, <span class="kw-2">&amp;</span><span class="ident">local_env</span>);
+                                <span class="ident">function</span>.<span class="ident">add_rest_param</span>(<span class="ident">param</span>, <span class="ident">i</span>, <span class="ident">args</span>, <span class="ident">context</span>, <span class="kw-2">&amp;</span><span class="ident">local_env</span>);
                                 <span class="kw">break</span>;
                             }
 
@@ -1123,29 +1123,29 @@
                             .<span class="ident">borrow_mut</span>()
                             .<span class="ident">initialize_binding</span>(<span class="string">&quot;arguments&quot;</span>, <span class="ident">arguments_obj</span>);
 
-                        <span class="ident">ctx</span>.<span class="ident">realm_mut</span>().<span class="ident">environment</span>.<span class="ident">push</span>(<span class="ident">local_env</span>);
+                        <span class="ident">context</span>.<span class="ident">realm_mut</span>().<span class="ident">environment</span>.<span class="ident">push</span>(<span class="ident">local_env</span>);
 
                         <span class="ident">FunctionBody</span>::<span class="ident">Ordinary</span>(<span class="ident">body</span>.<span class="ident">clone</span>())
                     }
                 }
             } <span class="kw">else</span> {
                 <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="string">&quot;name&quot;</span>).<span class="ident">display</span>().<span class="ident">to_string</span>();
-                <span class="kw">return</span> <span class="ident">ctx</span>.<span class="ident">throw_type_error</span>(<span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{} is not a constructor&quot;</span>, <span class="ident">name</span>));
+                <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{} is not a constructor&quot;</span>, <span class="ident">name</span>));
             }
         } <span class="kw">else</span> {
-            <span class="kw">return</span> <span class="ident">ctx</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;not a function&quot;</span>);
+            <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;not a function&quot;</span>);
         };
 
         <span class="kw">match</span> <span class="ident">body</span> {
             <span class="ident">FunctionBody</span>::<span class="ident">BuiltIn</span>(<span class="ident">function</span>) <span class="op">=&gt;</span> {
-                <span class="ident">function</span>(<span class="kw-2">&amp;</span><span class="ident">this</span>, <span class="ident">args</span>, <span class="ident">ctx</span>)<span class="question-mark">?</span>;
+                <span class="ident">function</span>(<span class="kw-2">&amp;</span><span class="ident">this</span>, <span class="ident">args</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
                 <span class="prelude-val">Ok</span>(<span class="ident">this</span>)
             }
             <span class="ident">FunctionBody</span>::<span class="ident">Ordinary</span>(<span class="ident">body</span>) <span class="op">=&gt;</span> {
-                <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">body</span>.<span class="ident">run</span>(<span class="ident">ctx</span>);
+                <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">body</span>.<span class="ident">run</span>(<span class="ident">context</span>);
 
                 <span class="comment">// local_env gets dropped here, its no longer needed</span>
-                <span class="kw">let</span> <span class="ident">binding</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">realm_mut</span>().<span class="ident">environment</span>.<span class="ident">get_this_binding</span>();
+                <span class="kw">let</span> <span class="ident">binding</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">realm_mut</span>().<span class="ident">environment</span>.<span class="ident">get_this_binding</span>();
                 <span class="prelude-val">Ok</span>(<span class="ident">binding</span>)
             }
         }
@@ -1171,7 +1171,7 @@
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-ordinarytoprimitive</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">ordinary_to_primitive</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">interpreter</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
+        <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
         <span class="ident">hint</span>: <span class="ident">PreferredType</span>,
     ) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Assert: Type(O) is Object.</span>
@@ -1211,7 +1211,7 @@
             <span class="comment">// b. If IsCallable(method) is true, then</span>
             <span class="kw">if</span> <span class="ident">method</span>.<span class="ident">is_function</span>() {
                 <span class="comment">// i. Let result be ? Call(method, O).</span>
-                <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">interpreter</span>.<span class="ident">call</span>(<span class="kw-2">&amp;</span><span class="ident">method</span>, <span class="kw-2">&amp;</span><span class="ident">this</span>, <span class="kw-2">&amp;</span>[])<span class="question-mark">?</span>;
+                <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">call</span>(<span class="kw-2">&amp;</span><span class="ident">method</span>, <span class="kw-2">&amp;</span><span class="ident">this</span>, <span class="kw-2">&amp;</span>[])<span class="question-mark">?</span>;
                 <span class="comment">// ii. If Type(result) is not Object, return result.</span>
                 <span class="kw">if</span> <span class="op">!</span><span class="ident">result</span>.<span class="ident">is_object</span>() {
                     <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">result</span>);
@@ -1220,14 +1220,14 @@
         }
 
         <span class="comment">// 6. Throw a TypeError exception.</span>
-        <span class="ident">interpreter</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;cannot convert object to primitive value&quot;</span>)
+        <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;cannot convert object to primitive value&quot;</span>)
     }
 
     <span class="doccomment">/// Converts an object to JSON, checking for reference cycles and throwing a TypeError if one is found</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">to_json</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">interpreter</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">JSONValue</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">to_json</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">JSONValue</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">rec_limiter</span> <span class="op">=</span> <span class="ident">RecursionLimiter</span>::<span class="ident">new</span>(<span class="self">self</span>);
         <span class="kw">if</span> <span class="ident">rec_limiter</span>.<span class="ident">live</span> {
-            <span class="prelude-val">Err</span>(<span class="ident">interpreter</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;cyclic object value&quot;</span>))
+            <span class="prelude-val">Err</span>(<span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;cyclic object value&quot;</span>))
         } <span class="kw">else</span> <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_array</span>() {
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">keys</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">borrow</span>().<span class="ident">index_property_keys</span>().<span class="ident">cloned</span>().<span class="ident">collect</span>();
             <span class="ident">keys</span>.<span class="ident">sort_unstable</span>();
@@ -1238,7 +1238,7 @@
                 <span class="kw">if</span> <span class="ident">value</span>.<span class="ident">is_undefined</span>() <span class="op">||</span> <span class="ident">value</span>.<span class="ident">is_function</span>() <span class="op">||</span> <span class="ident">value</span>.<span class="ident">is_symbol</span>() {
                     <span class="ident">arr</span>.<span class="ident">push</span>(<span class="ident">JSONValue</span>::<span class="ident">Null</span>);
                 } <span class="kw">else</span> {
-                    <span class="ident">arr</span>.<span class="ident">push</span>(<span class="ident">value</span>.<span class="ident">to_json</span>(<span class="ident">interpreter</span>)<span class="question-mark">?</span>);
+                    <span class="ident">arr</span>.<span class="ident">push</span>(<span class="ident">value</span>.<span class="ident">to_json</span>(<span class="ident">context</span>)<span class="question-mark">?</span>);
                 }
             }
             <span class="prelude-val">Ok</span>(<span class="ident">JSONValue</span>::<span class="ident">Array</span>(<span class="ident">arr</span>))
@@ -1249,7 +1249,7 @@
                 <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="ident">k</span>.<span class="ident">clone</span>();
                 <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="ident">k</span>.<span class="ident">to_string</span>());
                 <span class="kw">if</span> <span class="op">!</span><span class="ident">value</span>.<span class="ident">is_undefined</span>() <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">value</span>.<span class="ident">is_function</span>() <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">value</span>.<span class="ident">is_symbol</span>() {
-                    <span class="ident">new_obj</span>.<span class="ident">insert</span>(<span class="ident">key</span>.<span class="ident">to_string</span>(), <span class="ident">value</span>.<span class="ident">to_json</span>(<span class="ident">interpreter</span>)<span class="question-mark">?</span>);
+                    <span class="ident">new_obj</span>.<span class="ident">insert</span>(<span class="ident">key</span>.<span class="ident">to_string</span>(), <span class="ident">value</span>.<span class="ident">to_json</span>(<span class="ident">context</span>)<span class="question-mark">?</span>);
                 }
             }
             <span class="prelude-val">Ok</span>(<span class="ident">JSONValue</span>::<span class="ident">Object</span>(<span class="ident">new_obj</span>))

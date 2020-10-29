@@ -102,9 +102,9 @@
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">builtins</span>::{<span class="ident">iterable</span>, <span class="ident">Array</span>},
     <span class="ident">exec</span>::<span class="ident">Executable</span>,
+    <span class="ident">gc</span>::{<span class="ident">Finalize</span>, <span class="ident">Trace</span>},
     <span class="ident">BoaProfiler</span>, <span class="ident">Context</span>, <span class="prelude-ty">Result</span>, <span class="ident">Value</span>,
 };
-<span class="kw">use</span> <span class="ident">gc</span>::{<span class="ident">Finalize</span>, <span class="ident">Trace</span>};
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">fmt</span>;
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde&quot;</span>)]</span>
@@ -134,19 +134,19 @@
 }
 
 <span class="kw">impl</span> <span class="ident">Executable</span> <span class="kw">for</span> <span class="ident">ArrayDecl</span> {
-    <span class="kw">fn</span> <span class="ident">run</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">interpreter</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">run</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">BoaProfiler</span>::<span class="ident">global</span>().<span class="ident">start_event</span>(<span class="string">&quot;ArrayDecl&quot;</span>, <span class="string">&quot;exec&quot;</span>);
-        <span class="kw">let</span> <span class="ident">array</span> <span class="op">=</span> <span class="ident">Array</span>::<span class="ident">new_array</span>(<span class="ident">interpreter</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">array</span> <span class="op">=</span> <span class="ident">Array</span>::<span class="ident">new_array</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">elements</span> <span class="op">=</span> <span class="ident">Vec</span>::<span class="ident">new</span>();
         <span class="kw">for</span> <span class="ident">elem</span> <span class="kw">in</span> <span class="self">self</span>.<span class="ident">as_ref</span>() {
             <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Node</span>::<span class="ident">Spread</span>(<span class="kw-2">ref</span> <span class="ident">x</span>) <span class="op">=</span> <span class="ident">elem</span> {
-                <span class="kw">let</span> <span class="ident">val</span> <span class="op">=</span> <span class="ident">x</span>.<span class="ident">run</span>(<span class="ident">interpreter</span>)<span class="question-mark">?</span>;
-                <span class="kw">let</span> <span class="ident">iterator_record</span> <span class="op">=</span> <span class="ident">iterable</span>::<span class="ident">get_iterator</span>(<span class="ident">interpreter</span>, <span class="ident">val</span>)<span class="question-mark">?</span>;
+                <span class="kw">let</span> <span class="ident">val</span> <span class="op">=</span> <span class="ident">x</span>.<span class="ident">run</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+                <span class="kw">let</span> <span class="ident">iterator_record</span> <span class="op">=</span> <span class="ident">iterable</span>::<span class="ident">get_iterator</span>(<span class="ident">context</span>, <span class="ident">val</span>)<span class="question-mark">?</span>;
                 <span class="comment">// TODO after proper internal Array representation as per https://github.com/boa-dev/boa/pull/811#discussion_r502460858</span>
                 <span class="comment">// next_index variable should be utilized here as per https://tc39.es/ecma262/#sec-runtime-semantics-arrayaccumulation</span>
                 <span class="comment">// let mut next_index = 0;</span>
                 <span class="kw">loop</span> {
-                    <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> <span class="ident">iterator_record</span>.<span class="ident">next</span>(<span class="ident">interpreter</span>)<span class="question-mark">?</span>;
+                    <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> <span class="ident">iterator_record</span>.<span class="ident">next</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
                     <span class="kw">if</span> <span class="ident">next</span>.<span class="ident">is_done</span>() {
                         <span class="kw">break</span>;
                     }
@@ -155,7 +155,7 @@
                     <span class="ident">elements</span>.<span class="ident">push</span>(<span class="ident">next_value</span>.<span class="ident">clone</span>());
                 }
             } <span class="kw">else</span> {
-                <span class="ident">elements</span>.<span class="ident">push</span>(<span class="ident">elem</span>.<span class="ident">run</span>(<span class="ident">interpreter</span>)<span class="question-mark">?</span>);
+                <span class="ident">elements</span>.<span class="ident">push</span>(<span class="ident">elem</span>.<span class="ident">run</span>(<span class="ident">context</span>)<span class="question-mark">?</span>);
             }
         }
 
