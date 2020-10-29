@@ -747,7 +747,11 @@ impl Array {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.lastindexof
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/lastIndexOf
-    pub(crate) fn last_index_of(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+    pub(crate) fn last_index_of(
+        this: &Value,
+        args: &[Value],
+        context: &mut Context,
+    ) -> Result<Value> {
         // If no arguments, return -1. Not described in spec, but is what chrome does.
         if args.is_empty() {
             return Ok(Value::from(-1));
@@ -761,7 +765,7 @@ impl Array {
                 let from_idx = from_idx_ptr.to_integer(context)?;
 
                 if !from_idx.is_finite() {
-                    return Ok(Value::from(-1))
+                    return Ok(Value::from(-1));
                 } else if from_idx >= 0.0 {
                     min(from_idx as isize, len - 1)
                 } else {
