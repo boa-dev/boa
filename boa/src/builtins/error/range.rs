@@ -54,9 +54,13 @@ impl RangeError {
     pub(crate) const LENGTH: usize = 1;
 
     /// Create a new error object.
-    pub(crate) fn constructor(this: &Value, args: &[Value], ctx: &mut Context) -> Result<Value> {
+    pub(crate) fn constructor(
+        this: &Value,
+        args: &[Value],
+        context: &mut Context,
+    ) -> Result<Value> {
         if let Some(message) = args.get(0) {
-            this.set_field("message", message.to_string(ctx)?);
+            this.set_field("message", message.to_string(context)?);
         }
 
         // This value is used by console.log and other routines to match Object type

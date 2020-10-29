@@ -1,10 +1,10 @@
 use crate::{
     environment::lexical_environment::VariableScope,
     exec::Executable,
+    gc::{Finalize, Trace},
     syntax::ast::node::{join_nodes, Identifier, Node},
     Context, Result, Value,
 };
-use gc::{Finalize, Trace};
 use std::fmt;
 
 #[cfg(feature = "serde")]
@@ -36,20 +36,21 @@ pub struct ConstDeclList {
 }
 
 impl Executable for ConstDeclList {
-    fn run(&self, interpreter: &mut Context) -> Result<Value> {
+    fn run(&self, context: &mut Context) -> Result<Value> {
         for decl in self.as_ref() {
             let val = if let Some(init) = decl.init() {
-                init.run(interpreter)?
+                init.run(context)?
             } else {
-                return interpreter.throw_syntax_error("missing = in const declaration");
+                return context.throw_syntax_error("missing = in const declaration");
             };
 
-            interpreter
-                .realm_mut()
-                .environment
-                .create_immutable_binding(decl.name().to_owned(), false, VariableScope::Block);
+            context.realm_mut().environment.create_immutable_binding(
+                decl.name().to_owned(),
+                false,
+                VariableScope::Block,
+            );
 
-            interpreter
+            context
                 .realm_mut()
                 .environment
                 .initialize_binding(decl.name(), val);

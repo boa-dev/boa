@@ -1,10 +1,10 @@
 use crate::{
     exec::Executable,
+    gc::{Finalize, Trace},
     syntax::ast::node::Node,
     value::{Type, Value},
     Context, Result,
 };
-use gc::{Finalize, Trace};
 use std::fmt;
 
 #[cfg(feature = "serde")]
@@ -62,14 +62,14 @@ impl GetField {
 }
 
 impl Executable for GetField {
-    fn run(&self, interpreter: &mut Context) -> Result<Value> {
-        let mut obj = self.obj().run(interpreter)?;
+    fn run(&self, context: &mut Context) -> Result<Value> {
+        let mut obj = self.obj().run(context)?;
         if obj.get_type() != Type::Object {
-            obj = Value::Object(obj.to_object(interpreter)?);
+            obj = Value::Object(obj.to_object(context)?);
         }
-        let field = self.field().run(interpreter)?;
+        let field = self.field().run(context)?;
 
-        Ok(obj.get_field(field.to_property_key(interpreter)?))
+        Ok(obj.get_field(field.to_property_key(context)?))
     }
 }
 

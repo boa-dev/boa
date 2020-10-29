@@ -1,5 +1,9 @@
-use crate::{exec::Executable, syntax::ast::node::Node, Context, Result, Value};
-use gc::{Finalize, Trace};
+use crate::{
+    exec::Executable,
+    gc::{Finalize, Trace},
+    syntax::ast::node::Node,
+    Context, Result, Value,
+};
 use std::fmt;
 
 #[cfg(feature = "serde")]
@@ -43,8 +47,8 @@ impl Throw {
 
 impl Executable for Throw {
     #[inline]
-    fn run(&self, interpreter: &mut Context) -> Result<Value> {
-        Err(self.expr().run(interpreter)?)
+    fn run(&self, context: &mut Context) -> Result<Value> {
+        Err(self.expr().run(context)?)
     }
 }
 

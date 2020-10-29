@@ -1,9 +1,9 @@
 use crate::{
     exec::Executable,
+    gc::{Finalize, Trace},
     syntax::ast::{node::Node, op},
     Context, Result, Value,
 };
-use gc::{Finalize, Trace};
 use std::fmt;
 
 #[cfg(feature = "serde")]
@@ -48,35 +48,35 @@ impl UnaryOp {
 }
 
 impl Executable for UnaryOp {
-    fn run(&self, interpreter: &mut Context) -> Result<Value> {
-        let x = self.target().run(interpreter)?;
+    fn run(&self, context: &mut Context) -> Result<Value> {
+        let x = self.target().run(context)?;
 
         Ok(match self.op() {
-            op::UnaryOp::Minus => x.neg(interpreter)?,
-            op::UnaryOp::Plus => Value::from(x.to_number(interpreter)?),
+            op::UnaryOp::Minus => x.neg(context)?,
+            op::UnaryOp::Plus => Value::from(x.to_number(context)?),
             op::UnaryOp::IncrementPost => {
                 let ret = x.clone();
-                let result = x.to_number(interpreter)? + 1.0;
-                interpreter.set_value(self.target(), result.into())?;
+                let result = x.to_number(context)? + 1.0;
+                context.set_value(self.target(), result.into())?;
                 ret
             }
             op::UnaryOp::IncrementPre => {
-                let result = x.to_number(interpreter)? + 1.0;
-                interpreter.set_value(self.target(), result.into())?
+                let result = x.to_number(context)? + 1.0;
+                context.set_value(self.target(), result.into())?
             }
             op::UnaryOp::DecrementPost => {
                 let ret = x.clone();
-                let result = x.to_number(interpreter)? - 1.0;
-                interpreter.set_value(self.target(), result.into())?;
+                let result = x.to_number(context)? - 1.0;
+                context.set_value(self.target(), result.into())?;
                 ret
             }
             op::UnaryOp::DecrementPre => {
-                let result = x.to_number(interpreter)? - 1.0;
-                interpreter.set_value(self.target(), result.into())?
+                let result = x.to_number(context)? - 1.0;
+                context.set_value(self.target(), result.into())?
             }
-            op::UnaryOp::Not => x.not(interpreter)?.into(),
+            op::UnaryOp::Not => x.not(context)?.into(),
             op::UnaryOp::Tilde => {
-                let num_v_a = x.to_number(interpreter)?;
+                let num_v_a = x.to_number(context)?;
                 Value::from(if num_v_a.is_nan() {
                     -1
                 } else {
@@ -89,13 +89,13 @@ impl Executable for UnaryOp {
                 Node::GetConstField(ref get_const_field) => Value::boolean(
                     get_const_field
                         .obj()
-                        .run(interpreter)?
+                        .run(context)?
                         .remove_property(get_const_field.field()),
                 ),
                 Node::GetField(ref get_field) => {
-                    let obj = get_field.obj().run(interpreter)?;
-                    let field = &get_field.field().run(interpreter)?;
-                    let res = obj.remove_property(field.to_string(interpreter)?.as_str());
+                    let obj = get_field.obj().run(context)?;
+                    let field = &get_field.field().run(context)?;
+                    let res = obj.remove_property(field.to_string(context)?.as_str());
                     return Ok(Value::boolean(res));
                 }
                 Node::Identifier(_) => Value::boolean(false),

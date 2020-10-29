@@ -7,7 +7,7 @@ use crate::{Context, Result, Value};
 
 pub trait Executable {
     /// Runs this executable in the given context.
-    fn run(&self, interpreter: &mut Context) -> Result<Value>;
+    fn run(&self, context: &mut Context) -> Result<Value>;
 }
 
 #[derive(Debug, Eq, PartialEq)]

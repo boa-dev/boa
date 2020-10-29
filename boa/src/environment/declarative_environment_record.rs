@@ -10,9 +10,9 @@ use crate::{
         environment_record_trait::EnvironmentRecordTrait,
         lexical_environment::{Environment, EnvironmentType},
     },
+    gc::{Finalize, Trace},
     Value,
 };
-use gc::{Finalize, Trace};
 use rustc_hash::FxHashMap;
 
 /// Declarative Bindings have a few properties for book keeping purposes, such as mutability (const vs let).

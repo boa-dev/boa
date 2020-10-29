@@ -118,7 +118,7 @@ fn object_field_set() {
 
 #[test]
 fn spread_with_arguments() {
-    let mut engine = Context::new();
+    let mut context = Context::new();
 
     let scenario = r#"
             const a = [1, "test", 3, 4];
@@ -128,30 +128,30 @@ fn spread_with_arguments() {
 
             var result = foo(...a);
         "#;
-    forward(&mut engine, scenario);
-    let one = forward(&mut engine, "result[0]");
+    forward(&mut context, scenario);
+    let one = forward(&mut context, "result[0]");
     assert_eq!(one, String::from("1"));
 
-    let two = forward(&mut engine, "result[1]");
+    let two = forward(&mut context, "result[1]");
     assert_eq!(two, String::from("\"test\""));
 
-    let three = forward(&mut engine, "result[2]");
+    let three = forward(&mut context, "result[2]");
     assert_eq!(three, String::from("3"));
 
-    let four = forward(&mut engine, "result[3]");
+    let four = forward(&mut context, "result[3]");
     assert_eq!(four, String::from("4"));
 }
 
 #[test]
 fn array_rest_with_arguments() {
-    let mut engine = Context::new();
+    let mut context = Context::new();
 
     let scenario = r#"
                 var b = [4, 5, 6]
                 var a = [1, 2, 3, ...b];
             "#;
-    forward(&mut engine, scenario);
-    let one = forward(&mut engine, "a");
+    forward(&mut context, scenario);
+    let one = forward(&mut context, "a");
     assert_eq!(one, String::from("[ 1, 2, 3, 4, 5, 6 ]"));
 }
 
@@ -722,7 +722,7 @@ mod in_operator {
 
     #[test]
     fn should_type_error_when_rhs_not_object() {
-        let mut engine = Context::new();
+        let mut context = Context::new();
 
         let scenario = r#"
             var x = false;
@@ -733,13 +733,13 @@ mod in_operator {
             }
         "#;
 
-        forward(&mut engine, scenario);
-        assert_eq!(forward(&mut engine, "x"), "true");
+        forward(&mut context, scenario);
+        assert_eq!(forward(&mut context, "x"), "true");
     }
 
     #[test]
     fn should_set_this_value() {
-        let mut engine = Context::new();
+        let mut context = Context::new();
 
         let scenario = r#"
         function Foo() {
@@ -749,37 +749,37 @@ mod in_operator {
 
           var bar = new Foo();
         "#;
-        forward(&mut engine, scenario);
-        assert_eq!(forward(&mut engine, "bar.a"), "\"a\"");
-        assert_eq!(forward(&mut engine, "bar.b"), "\"b\"");
+        forward(&mut context, scenario);
+        assert_eq!(forward(&mut context, "bar.a"), "\"a\"");
+        assert_eq!(forward(&mut context, "bar.b"), "\"b\"");
     }
 
     #[test]
     fn should_type_error_when_new_is_not_constructor() {
-        let mut engine = Context::new();
+        let mut context = Context::new();
 
         let scenario = r#"
             const a = "";
             new a();
         "#;
 
-        let result = forward(&mut engine, scenario);
+        let result = forward(&mut context, scenario);
         assert_eq!(result, "Uncaught \"TypeError\": \"a is not a constructor\"");
     }
 
     #[test]
     fn new_instance_should_point_to_prototype() {
         // A new instance should point to a prototype object created with the constructor function
-        let mut engine = Context::new();
+        let mut context = Context::new();
 
         let scenario = r#"
             function Foo() {}
             var bar = new Foo();
         "#;
-        forward(&mut engine, scenario);
-        let bar_val = forward_val(&mut engine, "bar").unwrap();
+        forward(&mut context, scenario);
+        let bar_val = forward_val(&mut context, "bar").unwrap();
         let bar_obj = bar_val.as_object().unwrap();
-        let foo_val = forward_val(&mut engine, "Foo").unwrap();
+        let foo_val = forward_val(&mut context, "Foo").unwrap();
         assert!(bar_obj
             .prototype_instance()
             .strict_equals(&foo_val.get_field("prototype")));
@@ -897,98 +897,100 @@ fn function_decl_hoisting() {
 
 #[test]
 fn to_bigint() {
-    let mut engine = Context::new();
+    let mut context = Context::new();
 
-    assert!(Value::null().to_bigint(&mut engine).is_err());
-    assert!(Value::undefined().to_bigint(&mut engine).is_err());
-    assert!(Value::integer(55).to_bigint(&mut engine).is_ok());
-    assert!(Value::rational(10.0).to_bigint(&mut engine).is_ok());
-    assert!(Value::string("100").to_bigint(&mut engine).is_ok());
+    assert!(Value::null().to_bigint(&mut context).is_err());
+    assert!(Value::undefined().to_bigint(&mut context).is_err());
+    assert!(Value::integer(55).to_bigint(&mut context).is_ok());
+    assert!(Value::rational(10.0).to_bigint(&mut context).is_ok());
+    assert!(Value::string("100").to_bigint(&mut context).is_ok());
 }
 
 #[test]
 fn to_index() {
-    let mut engine = Context::new();
+    let mut context = Context::new();
 
-    assert_eq!(Value::undefined().to_index(&mut engine).unwrap(), 0);
-    assert!(Value::integer(-1).to_index(&mut engine).is_err());
+    assert_eq!(Value::undefined().to_index(&mut context).unwrap(), 0);
+    assert!(Value::integer(-1).to_index(&mut context).is_err());
 }
 
 #[test]
 fn to_integer() {
-    let mut engine = Context::new();
+    let mut context = Context::new();
 
     assert!(Number::equal(
-        Value::number(f64::NAN).to_integer(&mut engine).unwrap(),
+        Value::number(f64::NAN).to_integer(&mut context).unwrap(),
         0.0
     ));
     assert!(Number::equal(
         Value::number(f64::NEG_INFINITY)
-            .to_integer(&mut engine)
+            .to_integer(&mut context)
             .unwrap(),
         f64::NEG_INFINITY
     ));
     assert!(Number::equal(
         Value::number(f64::INFINITY)
-            .to_integer(&mut engine)
+            .to_integer(&mut context)
             .unwrap(),
         f64::INFINITY
     ));
     assert!(Number::equal(
-        Value::number(0.0).to_integer(&mut engine).unwrap(),
+        Value::number(0.0).to_integer(&mut context).unwrap(),
         0.0
     ));
-    let number = Value::number(-0.0).to_integer(&mut engine).unwrap();
+    let number = Value::number(-0.0).to_integer(&mut context).unwrap();
     assert!(!number.is_sign_negative());
     assert!(Number::equal(number, 0.0));
     assert!(Number::equal(
-        Value::number(20.9).to_integer(&mut engine).unwrap(),
+        Value::number(20.9).to_integer(&mut context).unwrap(),
         20.0
     ));
     assert!(Number::equal(
-        Value::number(-20.9).to_integer(&mut engine).unwrap(),
+        Value::number(-20.9).to_integer(&mut context).unwrap(),
         -20.0
     ));
 }
 
 #[test]
 fn to_length() {
-    let mut engine = Context::new();
+    let mut context = Context::new();
 
-    assert_eq!(Value::number(f64::NAN).to_length(&mut engine).unwrap(), 0);
+    assert_eq!(Value::number(f64::NAN).to_length(&mut context).unwrap(), 0);
     assert_eq!(
         Value::number(f64::NEG_INFINITY)
-            .to_length(&mut engine)
+            .to_length(&mut context)
             .unwrap(),
         0
     );
     assert_eq!(
-        Value::number(f64::INFINITY).to_length(&mut engine).unwrap(),
+        Value::number(f64::INFINITY)
+            .to_length(&mut context)
+            .unwrap(),
         Number::MAX_SAFE_INTEGER as usize
     );
-    assert_eq!(Value::number(0.0).to_length(&mut engine).unwrap(), 0);
-    assert_eq!(Value::number(-0.0).to_length(&mut engine).unwrap(), 0);
-    assert_eq!(Value::number(20.9).to_length(&mut engine).unwrap(), 20);
-    assert_eq!(Value::number(-20.9).to_length(&mut engine).unwrap(), 0);
+    assert_eq!(Value::number(0.0).to_length(&mut context).unwrap(), 0);
+    assert_eq!(Value::number(-0.0).to_length(&mut context).unwrap(), 0);
+    assert_eq!(Value::number(20.9).to_length(&mut context).unwrap(), 20);
+    assert_eq!(Value::number(-20.9).to_length(&mut context).unwrap(), 0);
     assert_eq!(
         Value::number(100000000000.0)
-            .to_length(&mut engine)
+            .to_length(&mut context)
             .unwrap() as u64,
         100000000000
     );
     assert_eq!(
-        Value::number(4010101101.0).to_length(&mut engine).unwrap(),
+        Value::number(4010101101.0).to_length(&mut context).unwrap(),
         4010101101
     );
 }
 
 #[test]
 fn to_int32() {
-    let mut engine = Context::new();
+    let mut context = Context::new();
 
     macro_rules! check_to_int32 {
         ($from:expr => $to:expr) => {
-            assert_eq!(Value::from($from).to_i32(&mut engine).unwrap(), $to);
+            assert_eq!(Value::from($from).to_i32(&mut context).unwrap(), $to);
         };
     };
 
@@ -1097,24 +1099,24 @@ fn to_int32() {
 
 #[test]
 fn to_string() {
-    let mut engine = Context::new();
+    let mut context = Context::new();
 
-    assert_eq!(Value::null().to_string(&mut engine).unwrap(), "null");
+    assert_eq!(Value::null().to_string(&mut context).unwrap(), "null");
     assert_eq!(
-        Value::undefined().to_string(&mut engine).unwrap(),
+        Value::undefined().to_string(&mut context).unwrap(),
         "undefined"
     );
-    assert_eq!(Value::integer(55).to_string(&mut engine).unwrap(), "55");
-    assert_eq!(Value::rational(55.0).to_string(&mut engine).unwrap(), "55");
+    assert_eq!(Value::integer(55).to_string(&mut context).unwrap(), "55");
+    assert_eq!(Value::rational(55.0).to_string(&mut context).unwrap(), "55");
     assert_eq!(
-        Value::string("hello").to_string(&mut engine).unwrap(),
+        Value::string("hello").to_string(&mut context).unwrap(),
         "hello"
     );
 }
 
 #[test]
 fn calling_function_with_unspecified_arguments() {
-    let mut engine = Context::new();
+    let mut context = Context::new();
     let scenario = r#"
         function test(a, b) {
             return b;
@@ -1123,26 +1125,26 @@ fn calling_function_with_unspecified_arguments() {
         test(10)
     "#;
 
-    assert_eq!(forward(&mut engine, scenario), "undefined");
+    assert_eq!(forward(&mut context, scenario), "undefined");
 }
 
 #[test]
 fn to_object() {
-    let mut engine = Context::new();
+    let mut context = Context::new();
 
     assert!(Value::undefined()
-        .to_object(&mut engine)
+        .to_object(&mut context)
         .unwrap_err()
         .is_object());
     assert!(Value::null()
-        .to_object(&mut engine)
+        .to_object(&mut context)
         .unwrap_err()
         .is_object());
 }
 
 #[test]
 fn check_this_binding_in_object_literal() {
-    let mut engine = Context::new();
+    let mut context = Context::new();
     let init = r#"
         var foo = {
             a: 3,
@@ -1152,12 +1154,12 @@ fn check_this_binding_in_object_literal() {
         foo.bar()
         "#;
 
-    assert_eq!(forward(&mut engine, init), "8");
+    assert_eq!(forward(&mut context, init), "8");
 }
 
 #[test]
 fn array_creation_benchmark() {
-    let mut engine = Context::new();
+    let mut context = Context::new();
     let init = r#"
         (function(){
             let testArr = [];
@@ -1169,12 +1171,12 @@ fn array_creation_benchmark() {
         })();
         "#;
 
-    assert_eq!(forward(&mut engine, init), "[ \"p0\", \"p1\", \"p2\", \"p3\", \"p4\", \"p5\", \"p6\", \"p7\", \"p8\", \"p9\", \"p10\", \"p11\", \"p12\", \"p13\", \"p14\", \"p15\", \"p16\", \"p17\", \"p18\", \"p19\", \"p20\", \"p21\", \"p22\", \"p23\", \"p24\", \"p25\", \"p26\", \"p27\", \"p28\", \"p29\", \"p30\", \"p31\", \"p32\", \"p33\", \"p34\", \"p35\", \"p36\", \"p37\", \"p38\", \"p39\", \"p40\", \"p41\", \"p42\", \"p43\", \"p44\", \"p45\", \"p46\", \"p47\", \"p48\", \"p49\", \"p50\", \"p51\", \"p52\", \"p53\", \"p54\", \"p55\", \"p56\", \"p57\", \"p58\", \"p59\", \"p60\", \"p61\", \"p62\", \"p63\", \"p64\", \"p65\", \"p66\", \"p67\", \"p68\", \"p69\", \"p70\", \"p71\", \"p72\", \"p73\", \"p74\", \"p75\", \"p76\", \"p77\", \"p78\", \"p79\", \"p80\", \"p81\", \"p82\", \"p83\", \"p84\", \"p85\", \"p86\", \"p87\", \"p88\", \"p89\", \"p90\", \"p91\", \"p92\", \"p93\", \"p94\", \"p95\", \"p96\", \"p97\", \"p98\", \"p99\", \"p100\", \"p101\", \"p102\", \"p103\", \"p104\", \"p105\", \"p106\", \"p107\", \"p108\", \"p109\", \"p110\", \"p111\", \"p112\", \"p113\", \"p114\", \"p115\", \"p116\", \"p117\", \"p118\", \"p119\", \"p120\", \"p121\", \"p122\", \"p123\", \"p124\", \"p125\", \"p126\", \"p127\", \"p128\", \"p129\", \"p130\", \"p131\", \"p132\", \"p133\", \"p134\", \"p135\", \"p136\", \"p137\", \"p138\", \"p139\", \"p140\", \"p141\", \"p142\", \"p143\", \"p144\", \"p145\", \"p146\", \"p147\", \"p148\", \"p149\", \"p150\", \"p151\", \"p152\", \"p153\", \"p154\", \"p155\", \"p156\", \"p157\", \"p158\", \"p159\", \"p160\", \"p161\", \"p162\", \"p163\", \"p164\", \"p165\", \"p166\", \"p167\", \"p168\", \"p169\", \"p170\", \"p171\", \"p172\", \"p173\", \"p174\", \"p175\", \"p176\", \"p177\", \"p178\", \"p179\", \"p180\", \"p181\", \"p182\", \"p183\", \"p184\", \"p185\", \"p186\", \"p187\", \"p188\", \"p189\", \"p190\", \"p191\", \"p192\", \"p193\", \"p194\", \"p195\", \"p196\", \"p197\", \"p198\", \"p199\", \"p200\", \"p201\", \"p202\", \"p203\", \"p204\", \"p205\", \"p206\", \"p207\", \"p208\", \"p209\", \"p210\", \"p211\", \"p212\", \"p213\", \"p214\", \"p215\", \"p216\", \"p217\", \"p218\", \"p219\", \"p220\", \"p221\", \"p222\", \"p223\", \"p224\", \"p225\", \"p226\", \"p227\", \"p228\", \"p229\", \"p230\", \"p231\", \"p232\", \"p233\", \"p234\", \"p235\", \"p236\", \"p237\", \"p238\", \"p239\", \"p240\", \"p241\", \"p242\", \"p243\", \"p244\", \"p245\", \"p246\", \"p247\", \"p248\", \"p249\", \"p250\", \"p251\", \"p252\", \"p253\", \"p254\", \"p255\", \"p256\", \"p257\", \"p258\", \"p259\", \"p260\", \"p261\", \"p262\", \"p263\", \"p264\", \"p265\", \"p266\", \"p267\", \"p268\", \"p269\", \"p270\", \"p271\", \"p272\", \"p273\", \"p274\", \"p275\", \"p276\", \"p277\", \"p278\", \"p279\", \"p280\", \"p281\", \"p282\", \"p283\", \"p284\", \"p285\", \"p286\", \"p287\", \"p288\", \"p289\", \"p290\", \"p291\", \"p292\", \"p293\", \"p294\", \"p295\", \"p296\", \"p297\", \"p298\", \"p299\", \"p300\", \"p301\", \"p302\", \"p303\", \"p304\", \"p305\", \"p306\", \"p307\", \"p308\", \"p309\", \"p310\", \"p311\", \"p312\", \"p313\", \"p314\", \"p315\", \"p316\", \"p317\", \"p318\", \"p319\", \"p320\", \"p321\", \"p322\", \"p323\", \"p324\", \"p325\", \"p326\", \"p327\", \"p328\", \"p329\", \"p330\", \"p331\", \"p332\", \"p333\", \"p334\", \"p335\", \"p336\", \"p337\", \"p338\", \"p339\", \"p340\", \"p341\", \"p342\", \"p343\", \"p344\", \"p345\", \"p346\", \"p347\", \"p348\", \"p349\", \"p350\", \"p351\", \"p352\", \"p353\", \"p354\", \"p355\", \"p356\", \"p357\", \"p358\", \"p359\", \"p360\", \"p361\", \"p362\", \"p363\", \"p364\", \"p365\", \"p366\", \"p367\", \"p368\", \"p369\", \"p370\", \"p371\", \"p372\", \"p373\", \"p374\", \"p375\", \"p376\", \"p377\", \"p378\", \"p379\", \"p380\", \"p381\", \"p382\", \"p383\", \"p384\", \"p385\", \"p386\", \"p387\", \"p388\", \"p389\", \"p390\", \"p391\", \"p392\", \"p393\", \"p394\", \"p395\", \"p396\", \"p397\", \"p398\", \"p399\", \"p400\", \"p401\", \"p402\", \"p403\", \"p404\", \"p405\", \"p406\", \"p407\", \"p408\", \"p409\", \"p410\", \"p411\", \"p412\", \"p413\", \"p414\", \"p415\", \"p416\", \"p417\", \"p418\", \"p419\", \"p420\", \"p421\", \"p422\", \"p423\", \"p424\", \"p425\", \"p426\", \"p427\", \"p428\", \"p429\", \"p430\", \"p431\", \"p432\", \"p433\", \"p434\", \"p435\", \"p436\", \"p437\", \"p438\", \"p439\", \"p440\", \"p441\", \"p442\", \"p443\", \"p444\", \"p445\", \"p446\", \"p447\", \"p448\", \"p449\", \"p450\", \"p451\", \"p452\", \"p453\", \"p454\", \"p455\", \"p456\", \"p457\", \"p458\", \"p459\", \"p460\", \"p461\", \"p462\", \"p463\", \"p464\", \"p465\", \"p466\", \"p467\", \"p468\", \"p469\", \"p470\", \"p471\", \"p472\", \"p473\", \"p474\", \"p475\", \"p476\", \"p477\", \"p478\", \"p479\", \"p480\", \"p481\", \"p482\", \"p483\", \"p484\", \"p485\", \"p486\", \"p487\", \"p488\", \"p489\", \"p490\", \"p491\", \"p492\", \"p493\", \"p494\", \"p495\", \"p496\", \"p497\", \"p498\", \"p499\", \"p500\" ]");
+    assert_eq!(forward(&mut context, init), "[ \"p0\", \"p1\", \"p2\", \"p3\", \"p4\", \"p5\", \"p6\", \"p7\", \"p8\", \"p9\", \"p10\", \"p11\", \"p12\", \"p13\", \"p14\", \"p15\", \"p16\", \"p17\", \"p18\", \"p19\", \"p20\", \"p21\", \"p22\", \"p23\", \"p24\", \"p25\", \"p26\", \"p27\", \"p28\", \"p29\", \"p30\", \"p31\", \"p32\", \"p33\", \"p34\", \"p35\", \"p36\", \"p37\", \"p38\", \"p39\", \"p40\", \"p41\", \"p42\", \"p43\", \"p44\", \"p45\", \"p46\", \"p47\", \"p48\", \"p49\", \"p50\", \"p51\", \"p52\", \"p53\", \"p54\", \"p55\", \"p56\", \"p57\", \"p58\", \"p59\", \"p60\", \"p61\", \"p62\", \"p63\", \"p64\", \"p65\", \"p66\", \"p67\", \"p68\", \"p69\", \"p70\", \"p71\", \"p72\", \"p73\", \"p74\", \"p75\", \"p76\", \"p77\", \"p78\", \"p79\", \"p80\", \"p81\", \"p82\", \"p83\", \"p84\", \"p85\", \"p86\", \"p87\", \"p88\", \"p89\", \"p90\", \"p91\", \"p92\", \"p93\", \"p94\", \"p95\", \"p96\", \"p97\", \"p98\", \"p99\", \"p100\", \"p101\", \"p102\", \"p103\", \"p104\", \"p105\", \"p106\", \"p107\", \"p108\", \"p109\", \"p110\", \"p111\", \"p112\", \"p113\", \"p114\", \"p115\", \"p116\", \"p117\", \"p118\", \"p119\", \"p120\", \"p121\", \"p122\", \"p123\", \"p124\", \"p125\", \"p126\", \"p127\", \"p128\", \"p129\", \"p130\", \"p131\", \"p132\", \"p133\", \"p134\", \"p135\", \"p136\", \"p137\", \"p138\", \"p139\", \"p140\", \"p141\", \"p142\", \"p143\", \"p144\", \"p145\", \"p146\", \"p147\", \"p148\", \"p149\", \"p150\", \"p151\", \"p152\", \"p153\", \"p154\", \"p155\", \"p156\", \"p157\", \"p158\", \"p159\", \"p160\", \"p161\", \"p162\", \"p163\", \"p164\", \"p165\", \"p166\", \"p167\", \"p168\", \"p169\", \"p170\", \"p171\", \"p172\", \"p173\", \"p174\", \"p175\", \"p176\", \"p177\", \"p178\", \"p179\", \"p180\", \"p181\", \"p182\", \"p183\", \"p184\", \"p185\", \"p186\", \"p187\", \"p188\", \"p189\", \"p190\", \"p191\", \"p192\", \"p193\", \"p194\", \"p195\", \"p196\", \"p197\", \"p198\", \"p199\", \"p200\", \"p201\", \"p202\", \"p203\", \"p204\", \"p205\", \"p206\", \"p207\", \"p208\", \"p209\", \"p210\", \"p211\", \"p212\", \"p213\", \"p214\", \"p215\", \"p216\", \"p217\", \"p218\", \"p219\", \"p220\", \"p221\", \"p222\", \"p223\", \"p224\", \"p225\", \"p226\", \"p227\", \"p228\", \"p229\", \"p230\", \"p231\", \"p232\", \"p233\", \"p234\", \"p235\", \"p236\", \"p237\", \"p238\", \"p239\", \"p240\", \"p241\", \"p242\", \"p243\", \"p244\", \"p245\", \"p246\", \"p247\", \"p248\", \"p249\", \"p250\", \"p251\", \"p252\", \"p253\", \"p254\", \"p255\", \"p256\", \"p257\", \"p258\", \"p259\", \"p260\", \"p261\", \"p262\", \"p263\", \"p264\", \"p265\", \"p266\", \"p267\", \"p268\", \"p269\", \"p270\", \"p271\", \"p272\", \"p273\", \"p274\", \"p275\", \"p276\", \"p277\", \"p278\", \"p279\", \"p280\", \"p281\", \"p282\", \"p283\", \"p284\", \"p285\", \"p286\", \"p287\", \"p288\", \"p289\", \"p290\", \"p291\", \"p292\", \"p293\", \"p294\", \"p295\", \"p296\", \"p297\", \"p298\", \"p299\", \"p300\", \"p301\", \"p302\", \"p303\", \"p304\", \"p305\", \"p306\", \"p307\", \"p308\", \"p309\", \"p310\", \"p311\", \"p312\", \"p313\", \"p314\", \"p315\", \"p316\", \"p317\", \"p318\", \"p319\", \"p320\", \"p321\", \"p322\", \"p323\", \"p324\", \"p325\", \"p326\", \"p327\", \"p328\", \"p329\", \"p330\", \"p331\", \"p332\", \"p333\", \"p334\", \"p335\", \"p336\", \"p337\", \"p338\", \"p339\", \"p340\", \"p341\", \"p342\", \"p343\", \"p344\", \"p345\", \"p346\", \"p347\", \"p348\", \"p349\", \"p350\", \"p351\", \"p352\", \"p353\", \"p354\", \"p355\", \"p356\", \"p357\", \"p358\", \"p359\", \"p360\", \"p361\", \"p362\", \"p363\", \"p364\", \"p365\", \"p366\", \"p367\", \"p368\", \"p369\", \"p370\", \"p371\", \"p372\", \"p373\", \"p374\", \"p375\", \"p376\", \"p377\", \"p378\", \"p379\", \"p380\", \"p381\", \"p382\", \"p383\", \"p384\", \"p385\", \"p386\", \"p387\", \"p388\", \"p389\", \"p390\", \"p391\", \"p392\", \"p393\", \"p394\", \"p395\", \"p396\", \"p397\", \"p398\", \"p399\", \"p400\", \"p401\", \"p402\", \"p403\", \"p404\", \"p405\", \"p406\", \"p407\", \"p408\", \"p409\", \"p410\", \"p411\", \"p412\", \"p413\", \"p414\", \"p415\", \"p416\", \"p417\", \"p418\", \"p419\", \"p420\", \"p421\", \"p422\", \"p423\", \"p424\", \"p425\", \"p426\", \"p427\", \"p428\", \"p429\", \"p430\", \"p431\", \"p432\", \"p433\", \"p434\", \"p435\", \"p436\", \"p437\", \"p438\", \"p439\", \"p440\", \"p441\", \"p442\", \"p443\", \"p444\", \"p445\", \"p446\", \"p447\", \"p448\", \"p449\", \"p450\", \"p451\", \"p452\", \"p453\", \"p454\", \"p455\", \"p456\", \"p457\", \"p458\", \"p459\", \"p460\", \"p461\", \"p462\", \"p463\", \"p464\", \"p465\", \"p466\", \"p467\", \"p468\", \"p469\", \"p470\", \"p471\", \"p472\", \"p473\", \"p474\", \"p475\", \"p476\", \"p477\", \"p478\", \"p479\", \"p480\", \"p481\", \"p482\", \"p483\", \"p484\", \"p485\", \"p486\", \"p487\", \"p488\", \"p489\", \"p490\", \"p491\", \"p492\", \"p493\", \"p494\", \"p495\", \"p496\", \"p497\", \"p498\", \"p499\", \"p500\" ]");
 }
 
 #[test]
 fn array_pop_benchmark() {
-    let mut engine = Context::new();
+    let mut context = Context::new();
     let init = r#"
     (function(){
         let testArray = [83, 93, 27, 29, 2828, 234, 23, 56, 32, 56, 67, 77, 32,
@@ -1202,12 +1204,12 @@ fn array_pop_benchmark() {
     })();
     "#;
 
-    assert_eq!(forward(&mut engine, init), "[]");
+    assert_eq!(forward(&mut context, init), "[]");
 }
 
 #[test]
 fn number_object_access_benchmark() {
-    let mut engine = Context::new();
+    let mut context = Context::new();
     let init = r#"
     new Number(
         new Number(
@@ -1218,17 +1220,17 @@ fn number_object_access_benchmark() {
     )
     "#;
 
-    assert!(forward_val(&mut engine, init).is_ok());
+    assert!(forward_val(&mut context, init).is_ok());
 }
 
 #[test]
 fn not_a_function() {
-    let mut engine = Context::new();
+    let mut context = Context::new();
     let init = r#"
         let a = {};
         let b = true;
         "#;
-    forward(&mut engine, init);
+    forward(&mut context, init);
     let scenario = r#"
         try {
             a();
@@ -1237,7 +1239,7 @@ fn not_a_function() {
         }
     "#;
     assert_eq!(
-        forward(&mut engine, scenario),
+        forward(&mut context, scenario),
         "\"TypeError: not a function\""
     );
     let scenario = r#"
@@ -1248,7 +1250,7 @@ fn not_a_function() {
         }
     "#;
     assert_eq!(
-        forward(&mut engine, scenario),
+        forward(&mut context, scenario),
         "\"TypeError: not a function\""
     );
     let scenario = r#"
@@ -1259,7 +1261,7 @@ fn not_a_function() {
         }
     "#;
     assert_eq!(
-        forward(&mut engine, scenario),
+        forward(&mut context, scenario),
         "\"TypeError: not a function\""
     );
 }
@@ -1287,7 +1289,7 @@ fn comma_operator() {
 fn assignment_to_non_assignable() {
     // Relates to the behaviour described at
     // https://tc39.es/ecma262/#sec-assignment-operators-static-semantics-early-errors
-    let mut engine = Context::new();
+    let mut context = Context::new();
 
     // Tests all assignment operators as per [spec] and [mdn]
     //
@@ -1298,7 +1300,7 @@ fn assignment_to_non_assignable() {
     ];
 
     for case in test_cases.iter() {
-        let string = forward(&mut engine, case);
+        let string = forward(&mut context, case);
 
         assert!(string.starts_with("Uncaught \"SyntaxError\": "));
         assert!(string.contains("1:3"));
@@ -1309,12 +1311,12 @@ fn assignment_to_non_assignable() {
 fn multicharacter_assignment_to_non_assignable() {
     // Relates to the behaviour described at
     // https://tc39.es/ecma262/#sec-assignment-operators-static-semantics-early-errors
-    let mut engine = Context::new();
+    let mut context = Context::new();
 
     let test_cases = ["3 **= 5", "3 <<= 5", "3 >>= 5"];
 
     for case in test_cases.iter() {
-        let string = dbg!(forward(&mut engine, case));
+        let string = dbg!(forward(&mut context, case));
 
         assert!(string.starts_with("Uncaught \"SyntaxError\": "));
         assert!(string.contains("1:3"));
@@ -1324,13 +1326,13 @@ fn multicharacter_assignment_to_non_assignable() {
 #[test]
 #[ignore]
 fn multicharacter_bitwise_assignment_to_non_assignable() {
-    let mut engine = Context::new();
+    let mut context = Context::new();
 
     // Disabled - awaiting implementation.
     let test_cases = ["3 >>>= 5", "3 &&= 5", "3 ||= 5", "3 ??= 5"];
 
     for case in test_cases.iter() {
-        let string = dbg!(forward(&mut engine, case));
+        let string = dbg!(forward(&mut context, case));
 
         assert!(string.starts_with("Uncaught \"SyntaxError\": "));
         assert!(string.contains("1:3"));
@@ -1339,22 +1341,22 @@ fn multicharacter_bitwise_assignment_to_non_assignable() {
 
 #[test]
 fn assign_to_array_decl() {
-    let mut engine = Context::new();
+    let mut context = Context::new();
 
-    assert!(forward(&mut engine, "[1] = [2]").starts_with("Uncaught \"SyntaxError\": "));
-    assert!(forward(&mut engine, "[3, 5] = [7, 8]").starts_with("Uncaught \"SyntaxError\": "));
-    assert!(forward(&mut engine, "[6, 8] = [2]").starts_with("Uncaught \"SyntaxError\": "));
-    assert!(forward(&mut engine, "[6] = [2, 9]").starts_with("Uncaught \"SyntaxError\": "));
+    assert!(forward(&mut context, "[1] = [2]").starts_with("Uncaught \"SyntaxError\": "));
+    assert!(forward(&mut context, "[3, 5] = [7, 8]").starts_with("Uncaught \"SyntaxError\": "));
+    assert!(forward(&mut context, "[6, 8] = [2]").starts_with("Uncaught \"SyntaxError\": "));
+    assert!(forward(&mut context, "[6] = [2, 9]").starts_with("Uncaught \"SyntaxError\": "));
 }
 
 #[test]
 fn assign_to_object_decl() {
-    let mut engine = Context::new();
+    let mut context = Context::new();
 
     const ERR_MSG: &str =
         "Uncaught \"SyntaxError\": \"unexpected token '=', primary expression at line 1, col 8\"";
 
-    assert_eq!(forward(&mut engine, "{a: 3} = {a: 5};"), ERR_MSG);
+    assert_eq!(forward(&mut context, "{a: 3} = {a: 5};"), ERR_MSG);
 }
 
 #[test]
@@ -1407,9 +1409,9 @@ fn test_strict_mode_octal() {
     var n = 023;
     "#;
 
-    let mut engine = Context::new();
+    let mut context = Context::new();
 
-    let string = dbg!(forward(&mut engine, scenario));
+    let string = dbg!(forward(&mut context, scenario));
 
     assert!(string.starts_with("Uncaught \"SyntaxError\": "));
 }
@@ -1428,9 +1430,9 @@ fn test_strict_mode_with() {
     }
     "#;
 
-    let mut engine = Context::new();
+    let mut context = Context::new();
 
-    let string = dbg!(forward(&mut engine, scenario));
+    let string = dbg!(forward(&mut context, scenario));
 
     assert!(string.starts_with("Uncaught \"SyntaxError\": "));
 }
@@ -1446,9 +1448,9 @@ fn test_strict_mode_delete() {
     delete x;
     "#;
 
-    let mut engine = Context::new();
+    let mut context = Context::new();
 
-    let string = dbg!(forward(&mut engine, scenario));
+    let string = dbg!(forward(&mut context, scenario));
 
     assert!(string.starts_with("Uncaught \"SyntaxError\": "));
 }
@@ -1473,10 +1475,10 @@ fn test_strict_mode_reserved_name() {
     ];
 
     for case in test_cases.iter() {
-        let mut engine = Context::new();
+        let mut context = Context::new();
         let scenario = format!("'use strict'; \n {}", case);
 
-        let string = dbg!(forward(&mut engine, &scenario));
+        let string = dbg!(forward(&mut context, &scenario));
 
         assert!(string.starts_with("Uncaught \"SyntaxError\": "));
     }
@@ -1494,9 +1496,9 @@ fn test_strict_mode_func_decl_in_block() {
     if (a < b) { function f() {} }
     "#;
 
-    let mut engine = Context::new();
+    let mut context = Context::new();
 
-    let string = dbg!(forward(&mut engine, scenario));
+    let string = dbg!(forward(&mut context, scenario));
 
     assert!(string.starts_with("Uncaught \"SyntaxError\": "));
 }
@@ -1511,9 +1513,9 @@ fn test_strict_mode_dup_func_parameters() {
     function f(a, b, b) {}
     "#;
 
-    let mut engine = Context::new();
+    let mut context = Context::new();
 
-    let string = dbg!(forward(&mut engine, scenario));
+    let string = dbg!(forward(&mut context, scenario));
 
     assert!(string.starts_with("Uncaught \"SyntaxError\": "));
 }

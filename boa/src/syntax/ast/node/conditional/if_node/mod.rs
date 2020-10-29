@@ -1,5 +1,9 @@
-use crate::{exec::Executable, syntax::ast::node::Node, Context, Result, Value};
-use gc::{Finalize, Trace};
+use crate::{
+    exec::Executable,
+    gc::{Finalize, Trace},
+    syntax::ast::node::Node,
+    Context, Result, Value,
+};
 use std::fmt;
 
 #[cfg(feature = "serde")]
@@ -75,11 +79,11 @@ impl If {
 }
 
 impl Executable for If {
-    fn run(&self, interpreter: &mut Context) -> Result<Value> {
-        Ok(if self.cond().run(interpreter)?.to_boolean() {
-            self.body().run(interpreter)?
+    fn run(&self, context: &mut Context) -> Result<Value> {
+        Ok(if self.cond().run(context)?.to_boolean() {
+            self.body().run(context)?
         } else if let Some(ref else_e) = self.else_node() {
-            else_e.run(interpreter)?
+            else_e.run(context)?
         } else {
             Value::undefined()
         })

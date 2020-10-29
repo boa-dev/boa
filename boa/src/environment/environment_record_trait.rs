@@ -10,9 +10,9 @@
 //!
 use crate::{
     environment::lexical_environment::{Environment, EnvironmentType},
+    gc::{Finalize, Trace},
     Value,
 };
-use gc::{Finalize, Trace};
 use std::fmt::Debug;
 
 /// <https://tc39.es/ecma262/#sec-environment-records>

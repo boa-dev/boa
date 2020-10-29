@@ -4,9 +4,9 @@ use super::{join_nodes, Node};
 use crate::{
     builtins::{iterable, Array},
     exec::Executable,
+    gc::{Finalize, Trace},
     BoaProfiler, Context, Result, Value,
 };
-use gc::{Finalize, Trace};
 use std::fmt;
 
 #[cfg(feature = "serde")]
@@ -36,19 +36,19 @@ pub struct ArrayDecl {
 }
 
 impl Executable for ArrayDecl {
-    fn run(&self, interpreter: &mut Context) -> Result<Value> {
+    fn run(&self, context: &mut Context) -> Result<Value> {
         let _timer = BoaProfiler::global().start_event("ArrayDecl", "exec");
-        let array = Array::new_array(interpreter)?;
+        let array = Array::new_array(context)?;
         let mut elements = Vec::new();
         for elem in self.as_ref() {
             if let Node::Spread(ref x) = elem {
-                let val = x.run(interpreter)?;
-                let iterator_record = iterable::get_iterator(interpreter, val)?;
+                let val = x.run(context)?;
+                let iterator_record = iterable::get_iterator(context, val)?;
                 // TODO after proper internal Array representation as per https://github.com/boa-dev/boa/pull/811#discussion_r502460858
                 // next_index variable should be utilized here as per https://tc39.es/ecma262/#sec-runtime-semantics-arrayaccumulation
                 // let mut next_index = 0;
                 loop {
-                    let next = iterator_record.next(interpreter)?;
+                    let next = iterator_record.next(context)?;
                     if next.is_done() {
                         break;
                     }
@@ -57,7 +57,7 @@ impl Executable for ArrayDecl {
                     elements.push(next_value.clone());
                 }
             } else {
-                elements.push(elem.run(interpreter)?);
+                elements.push(elem.run(context)?);
             }
         }
 

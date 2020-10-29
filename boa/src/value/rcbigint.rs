@@ -1,16 +1,19 @@
-use crate::builtins::BigInt;
+use crate::{
+    builtins::BigInt,
+    gc::{empty_trace, Finalize, Trace},
+};
 
-use std::fmt::{self, Display};
-use std::ops::Deref;
-use std::rc::Rc;
-
-use gc::{unsafe_empty_trace, Finalize, Trace};
+use std::{
+    fmt::{self, Display},
+    ops::Deref,
+    rc::Rc,
+};
 
 #[derive(Debug, Finalize, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct RcBigInt(Rc<BigInt>);
 
 unsafe impl Trace for RcBigInt {
-    unsafe_empty_trace!();
+    empty_trace!();
 }
 
 impl RcBigInt {

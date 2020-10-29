@@ -7,8 +7,10 @@
 //! [spec]: https://tc39.es/ecma262/#sec-primary-expression-literals
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Grammar_and_types#Literals
 
-use crate::builtins::bigint::BigInt;
-use gc::{Finalize, Trace};
+use crate::{
+    builtins::bigint::BigInt,
+    gc::{Finalize, Trace},
+};
 use std::fmt::{Display, Formatter, Result};
 
 #[cfg(feature = "serde")]

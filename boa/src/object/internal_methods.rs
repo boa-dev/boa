@@ -252,8 +252,8 @@ impl GcObject {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-object.defineproperties
     #[inline]
-    pub fn define_properties(&mut self, props: Value, ctx: &mut Context) -> Result<()> {
-        let props = props.to_object(ctx)?;
+    pub fn define_properties(&mut self, props: Value, context: &mut Context) -> Result<()> {
+        let props = props.to_object(context)?;
         let keys = props.own_property_keys();
         let mut descriptors: Vec<(PropertyKey, PropertyDescriptor)> = Vec::new();
 
@@ -261,7 +261,7 @@ impl GcObject {
             if let Some(prop_desc) = props.get_own_property(&next_key) {
                 if prop_desc.enumerable() {
                     let desc_obj = props.get(&next_key);
-                    let desc = desc_obj.to_property_descriptor(ctx)?;
+                    let desc = desc_obj.to_property_descriptor(context)?;
                     descriptors.push((next_key, desc));
                 }
             }

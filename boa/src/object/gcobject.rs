@@ -114,7 +114,7 @@ impl GcObject {
     // <https://tc39.es/ecma262/#sec-prepareforordinarycall>
     // <https://tc39.es/ecma262/#sec-ecmascript-function-objects-call-thisargument-argumentslist>
     #[track_caller]
-    pub fn call(&self, this: &Value, args: &[Value], ctx: &mut Context) -> Result<Value> {
+    pub fn call(&self, this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
         let this_function_object = self.clone();
         let f_body = if let Some(function) = self.borrow().as_function() {
             if function.is_callable() {
@@ -150,7 +150,7 @@ impl GcObject {
                         for (i, param) in params.iter().enumerate() {
                             // Rest Parameters
                             if param.is_rest_param() {
-                                function.add_rest_param(param, i, args, ctx, &local_env);
+                                function.add_rest_param(param, i, args, context, &local_env);
                                 break;
                             }
 
@@ -167,23 +167,23 @@ impl GcObject {
                             .borrow_mut()
                             .initialize_binding("arguments", arguments_obj);
 
-                        ctx.realm_mut().environment.push(local_env);
+                        context.realm_mut().environment.push(local_env);
 
                         FunctionBody::Ordinary(body.clone())
                     }
                 }
             } else {
-                return ctx.throw_type_error("function object is not callable");
+                return context.throw_type_error("function object is not callable");
             }
         } else {
-            return ctx.throw_type_error("not a function");
+            return context.throw_type_error("not a function");
         };
 
         match f_body {
-            FunctionBody::BuiltIn(func) => func(this, args, ctx),
+            FunctionBody::BuiltIn(func) => func(this, args, context),
             FunctionBody::Ordinary(body) => {
-                let result = body.run(ctx);
-                ctx.realm_mut().environment.pop();
+                let result = body.run(context);
+                context.realm_mut().environment.pop();
 
                 result
             }
@@ -197,7 +197,7 @@ impl GcObject {
     /// Panics if the object is currently mutably borrowed.
     // <https://tc39.es/ecma262/#sec-ecmascript-function-objects-construct-argumentslist-newtarget>
     #[track_caller]
-    pub fn construct(&self, args: &[Value], ctx: &mut Context) -> Result<Value> {
+    pub fn construct(&self, args: &[Value], context: &mut Context) -> Result<Value> {
         let this: Value = Object::create(self.get(&PROTOTYPE.into())).into();
 
         let this_function_object = self.clone();
@@ -231,7 +231,7 @@ impl GcObject {
                         for (i, param) in params.iter().enumerate() {
                             // Rest Parameters
                             if param.is_rest_param() {
-                                function.add_rest_param(param, i, args, ctx, &local_env);
+                                function.add_rest_param(param, i, args, context, &local_env);
                                 break;
                             }
 
@@ -248,29 +248,29 @@ impl GcObject {
                             .borrow_mut()
                             .initialize_binding("arguments", arguments_obj);
 
-                        ctx.realm_mut().environment.push(local_env);
+                        context.realm_mut().environment.push(local_env);
 
                         FunctionBody::Ordinary(body.clone())
                     }
                 }
             } else {
                 let name = this.get_field("name").display().to_string();
-                return ctx.throw_type_error(format!("{} is not a constructor", name));
+                return context.throw_type_error(format!("{} is not a constructor", name));
             }
         } else {
-            return ctx.throw_type_error("not a function");
+            return context.throw_type_error("not a function");
         };
 
         match body {
             FunctionBody::BuiltIn(function) => {
-                function(&this, args, ctx)?;
+                function(&this, args, context)?;
                 Ok(this)
             }
             FunctionBody::Ordinary(body) => {
-                let _ = body.run(ctx);
+                let _ = body.run(context);
 
                 // local_env gets dropped here, its no longer needed
-                let binding = ctx.realm_mut().environment.get_this_binding();
+                let binding = context.realm_mut().environment.get_this_binding();
                 Ok(binding)
             }
         }
@@ -296,7 +296,7 @@ impl GcObject {
     /// [spec]: https://tc39.es/ecma262/#sec-ordinarytoprimitive
     pub(crate) fn ordinary_to_primitive(
         &self,
-        interpreter: &mut Context,
+        context: &mut Context,
         hint: PreferredType,
     ) -> Result<Value> {
         // 1. Assert: Type(O) is Object.
@@ -336,7 +336,7 @@ impl GcObject {
             // b. If IsCallable(method) is true, then
             if method.is_function() {
                 // i. Let result be ? Call(method, O).
-                let result = interpreter.call(&method, &this, &[])?;
+                let result = context.call(&method, &this, &[])?;
                 // ii. If Type(result) is not Object, return result.
                 if !result.is_object() {
                     return Ok(result);
@@ -345,14 +345,14 @@ impl GcObject {
         }
 
         // 6. Throw a TypeError exception.
-        interpreter.throw_type_error("cannot convert object to primitive value")
+        context.throw_type_error("cannot convert object to primitive value")
     }
 
     /// Converts an object to JSON, checking for reference cycles and throwing a TypeError if one is found
-    pub(crate) fn to_json(&self, interpreter: &mut Context) -> Result<JSONValue> {
+    pub(crate) fn to_json(&self, context: &mut Context) -> Result<JSONValue> {
         let rec_limiter = RecursionLimiter::new(self);
         if rec_limiter.live {
-            Err(interpreter.construct_type_error("cyclic object value"))
+            Err(context.construct_type_error("cyclic object value"))
         } else if self.is_array() {
             let mut keys: Vec<u32> = self.borrow().index_property_keys().cloned().collect();
             keys.sort_unstable();
@@ -363,7 +363,7 @@ impl GcObject {
                 if value.is_undefined() || value.is_function() || value.is_symbol() {
                     arr.push(JSONValue::Null);
                 } else {
-                    arr.push(value.to_json(interpreter)?);
+                    arr.push(value.to_json(context)?);
                 }
             }
             Ok(JSONValue::Array(arr))
@@ -374,7 +374,7 @@ impl GcObject {
                 let key = k.clone();
                 let value = this.get_field(k.to_string());
                 if !value.is_undefined() && !value.is_function() && !value.is_symbol() {
-                    new_obj.insert(key.to_string(), value.to_json(interpreter)?);
+                    new_obj.insert(key.to_string(), value.to_json(context)?);
                 }
             }
             Ok(JSONValue::Object(new_obj))
