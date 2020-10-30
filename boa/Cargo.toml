@@ -24,7 +24,7 @@ num-traits = "0.2.12"
 regress = "0.2.0"
 rustc-hash = "1.1.0"
 num-bigint = { version = "0.3.0", features = ["serde"] }
-num-integer = "0.1.43"
+num-integer = "0.1.44"
 bitflags = "1.2.1"
 indexmap = "1.6.0"
 ryu-js = "0.2.1"
