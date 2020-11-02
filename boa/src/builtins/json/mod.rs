@@ -60,26 +60,26 @@ impl Json {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-json.parse
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/parse
-    pub(crate) fn parse(_: &Value, args: &[Value], ctx: &mut Context) -> Result<Value> {
+    pub(crate) fn parse(_: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
         let arg = args
             .get(0)
             .cloned()
             .unwrap_or_else(Value::undefined)
-            .to_string(ctx)?;
+            .to_string(context)?;
 
         match serde_json::from_str::<JSONValue>(&arg) {
             Ok(json) => {
-                let j = Value::from_json(json, ctx);
+                let j = Value::from_json(json, context);
                 match args.get(1) {
                     Some(reviver) if reviver.is_function() => {
                         let mut holder = Value::new_object(None);
                         holder.set_field("", j);
-                        Self::walk(reviver, ctx, &mut holder, &PropertyKey::from(""))
+                        Self::walk(reviver, context, &mut holder, &PropertyKey::from(""))
                     }
                     _ => Ok(j),
                 }
             }
-            Err(err) => ctx.throw_syntax_error(err.to_string()),
+            Err(err) => context.throw_syntax_error(err.to_string()),
         }
     }
 
@@ -91,7 +91,7 @@ impl Json {
     /// [polyfill]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/parse
     fn walk(
         reviver: &Value,
-        ctx: &mut Context,
+        context: &mut Context,
         holder: &mut Value,
         key: &PropertyKey,
     ) -> Result<Value> {
@@ -101,7 +101,7 @@ impl Json {
             let keys: Vec<_> = object.borrow().keys().collect();
 
             for key in keys {
-                let v = Self::walk(reviver, ctx, &mut value.clone(), &key);
+                let v = Self::walk(reviver, context, &mut value.clone(), &key);
                 match v {
                     Ok(v) if !v.is_undefined() => {
                         value.set_field(key, v);
@@ -113,7 +113,7 @@ impl Json {
                 }
             }
         }
-        ctx.call(reviver, holder, &[key.into(), value])
+        context.call(reviver, holder, &[key.into(), value])
     }
 
     /// `JSON.stringify( value[, replacer[, space]] )`
@@ -132,7 +132,7 @@ impl Json {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-json.stringify
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify
-    pub(crate) fn stringify(_: &Value, args: &[Value], ctx: &mut Context) -> Result<Value> {
+    pub(crate) fn stringify(_: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
         let object = match args.get(0) {
             Some(obj) if obj.is_symbol() || obj.is_function() || obj.is_undefined() => {
                 return Ok(Value::undefined())
@@ -142,7 +142,7 @@ impl Json {
         };
         let replacer = match args.get(1) {
             Some(replacer) if replacer.is_object() => replacer,
-            _ => return Ok(Value::from(object.to_json(ctx)?.to_string())),
+            _ => return Ok(Value::from(object.to_json(context)?.to_string())),
         };
 
         let replacer_as_object = replacer
@@ -163,7 +163,7 @@ impl Json {
                         object_to_return.set_property(
                             key.to_owned(),
                             DataDescriptor::new(
-                                ctx.call(
+                                context.call(
                                     replacer,
                                     &this_arg,
                                     &[Value::from(key.clone()), val.clone()],
@@ -172,7 +172,7 @@ impl Json {
                             ),
                         );
                     }
-                    Ok(Value::from(object_to_return.to_json(ctx)?.to_string()))
+                    Ok(Value::from(object_to_return.to_json(context)?.to_string()))
                 })
                 .ok_or_else(Value::undefined)?
         } else if replacer_as_object.is_array() {
@@ -187,17 +187,17 @@ impl Json {
             });
             for field in fields {
                 if let Some(value) = object
-                    .get_property(field.to_string(ctx)?)
+                    .get_property(field.to_string(context)?)
                     // FIXME: handle accessor descriptors
-                    .map(|prop| prop.as_data_descriptor().unwrap().value().to_json(ctx))
+                    .map(|prop| prop.as_data_descriptor().unwrap().value().to_json(context))
                     .transpose()?
                 {
-                    obj_to_return.insert(field.to_string(ctx)?.to_string(), value);
+                    obj_to_return.insert(field.to_string(context)?.to_string(), value);
                 }
             }
             Ok(Value::from(JSONValue::Object(obj_to_return).to_string()))
         } else {
-            Ok(Value::from(object.to_json(ctx)?.to_string()))
+            Ok(Value::from(object.to_json(context)?.to_string()))
         }
     }
 }

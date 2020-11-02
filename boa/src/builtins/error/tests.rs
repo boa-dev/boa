@@ -2,7 +2,7 @@ use crate::{forward, Context};
 
 #[test]
 fn error_to_string() {
-    let mut ctx = Context::new();
+    let mut context = Context::new();
     let init = r#"
         let e = new Error('1');
         let name = new Error();
@@ -13,68 +13,74 @@ fn error_to_string() {
         let syntax_e = new SyntaxError('4');
         let type_e = new TypeError('5');
     "#;
-    forward(&mut ctx, init);
-    assert_eq!(forward(&mut ctx, "e.toString()"), "\"Error: 1\"");
-    assert_eq!(forward(&mut ctx, "name.toString()"), "\"Error\"");
-    assert_eq!(forward(&mut ctx, "message.toString()"), "\"message\"");
-    assert_eq!(forward(&mut ctx, "range_e.toString()"), "\"RangeError: 2\"");
+    forward(&mut context, init);
+    assert_eq!(forward(&mut context, "e.toString()"), "\"Error: 1\"");
+    assert_eq!(forward(&mut context, "name.toString()"), "\"Error\"");
+    assert_eq!(forward(&mut context, "message.toString()"), "\"message\"");
     assert_eq!(
-        forward(&mut ctx, "ref_e.toString()"),
+        forward(&mut context, "range_e.toString()"),
+        "\"RangeError: 2\""
+    );
+    assert_eq!(
+        forward(&mut context, "ref_e.toString()"),
         "\"ReferenceError: 3\""
     );
     assert_eq!(
-        forward(&mut ctx, "syntax_e.toString()"),
+        forward(&mut context, "syntax_e.toString()"),
         "\"SyntaxError: 4\""
     );
-    assert_eq!(forward(&mut ctx, "type_e.toString()"), "\"TypeError: 5\"");
+    assert_eq!(
+        forward(&mut context, "type_e.toString()"),
+        "\"TypeError: 5\""
+    );
 }
 
 #[test]
 fn eval_error_name() {
-    let mut ctx = Context::new();
-    assert_eq!(forward(&mut ctx, "EvalError.name"), "\"EvalError\"");
+    let mut context = Context::new();
+    assert_eq!(forward(&mut context, "EvalError.name"), "\"EvalError\"");
 }
 
 #[test]
 fn eval_error_length() {
-    let mut ctx = Context::new();
-    assert_eq!(forward(&mut ctx, "EvalError.length"), "1");
+    let mut context = Context::new();
+    assert_eq!(forward(&mut context, "EvalError.length"), "1");
 }
 
 #[test]
 fn eval_error_to_string() {
-    let mut ctx = Context::new();
+    let mut context = Context::new();
     assert_eq!(
-        forward(&mut ctx, "new EvalError('hello').toString()"),
+        forward(&mut context, "new EvalError('hello').toString()"),
         "\"EvalError: hello\""
     );
     assert_eq!(
-        forward(&mut ctx, "new EvalError().toString()"),
+        forward(&mut context, "new EvalError().toString()"),
         "\"EvalError\""
     );
 }
 
 #[test]
 fn uri_error_name() {
-    let mut ctx = Context::new();
-    assert_eq!(forward(&mut ctx, "URIError.name"), "\"URIError\"");
+    let mut context = Context::new();
+    assert_eq!(forward(&mut context, "URIError.name"), "\"URIError\"");
 }
 
 #[test]
 fn uri_error_length() {
-    let mut ctx = Context::new();
-    assert_eq!(forward(&mut ctx, "URIError.length"), "1");
+    let mut context = Context::new();
+    assert_eq!(forward(&mut context, "URIError.length"), "1");
 }
 
 #[test]
 fn uri_error_to_string() {
-    let mut ctx = Context::new();
+    let mut context = Context::new();
     assert_eq!(
-        forward(&mut ctx, "new URIError('hello').toString()"),
+        forward(&mut context, "new URIError('hello').toString()"),
         "\"URIError: hello\""
     );
     assert_eq!(
-        forward(&mut ctx, "new URIError().toString()"),
+        forward(&mut context, "new URIError().toString()"),
         "\"URIError\""
     );
 }

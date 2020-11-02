@@ -1,10 +1,10 @@
 use crate::{
     builtins::function::FunctionFlags,
     exec::Executable,
+    gc::{Finalize, Trace},
     syntax::ast::node::{join_nodes, FormalParameter, Node, StatementList},
     Context, Result, Value,
 };
-use gc::{Finalize, Trace};
 use std::fmt;
 
 #[cfg(feature = "serde")]
@@ -85,8 +85,8 @@ impl FunctionExpr {
 }
 
 impl Executable for FunctionExpr {
-    fn run(&self, interpreter: &mut Context) -> Result<Value> {
-        let val = interpreter.create_function(
+    fn run(&self, context: &mut Context) -> Result<Value> {
+        let val = context.create_function(
             self.parameters().to_vec(),
             self.body().to_vec(),
             FunctionFlags::CALLABLE | FunctionFlags::CONSTRUCTABLE,

@@ -1,5 +1,9 @@
-use crate::{exec::Executable, syntax::ast::node::Node, Context, Result, Value};
-use gc::{Finalize, Trace};
+use crate::{
+    exec::Executable,
+    gc::{Finalize, Trace},
+    syntax::ast::node::Node,
+    Context, Result, Value,
+};
 use std::fmt;
 
 #[cfg(feature = "serde")]
@@ -45,9 +49,9 @@ impl Spread {
 }
 
 impl Executable for Spread {
-    fn run(&self, interpreter: &mut Context) -> Result<Value> {
+    fn run(&self, context: &mut Context) -> Result<Value> {
         // TODO: for now we can do nothing but return the value as-is
-        self.val().run(interpreter)
+        self.val().run(context)
     }
 }
 

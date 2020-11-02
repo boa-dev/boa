@@ -1,10 +1,10 @@
 use crate::{
     exec::Executable,
+    gc::{Finalize, Trace},
     syntax::ast::node::{Call, Node},
     value::Value,
     BoaProfiler, Context, Result,
 };
-use gc::{Finalize, Trace};
 use std::fmt;
 
 #[cfg(feature = "serde")]
@@ -44,18 +44,18 @@ impl New {
 }
 
 impl Executable for New {
-    fn run(&self, interpreter: &mut Context) -> Result<Value> {
+    fn run(&self, context: &mut Context) -> Result<Value> {
         let _timer = BoaProfiler::global().start_event("New", "exec");
 
-        let func_object = self.expr().run(interpreter)?;
+        let func_object = self.expr().run(context)?;
         let mut v_args = Vec::with_capacity(self.args().len());
         for arg in self.args() {
-            v_args.push(arg.run(interpreter)?);
+            v_args.push(arg.run(context)?);
         }
 
         match func_object {
-            Value::Object(ref object) => object.construct(&v_args, interpreter),
-            _ => interpreter
+            Value::Object(ref object) => object.construct(&v_args, context),
+            _ => context
                 .throw_type_error(format!("{} is not a constructor", self.expr().to_string(),)),
         }
     }

@@ -70,7 +70,7 @@ impl Boolean {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-thisbooleanvalue
-    fn this_boolean_value(value: &Value, ctx: &mut Context) -> Result<bool> {
+    fn this_boolean_value(value: &Value, context: &mut Context) -> Result<bool> {
         match value {
             Value::Boolean(boolean) => return Ok(*boolean),
             Value::Object(ref object) => {
@@ -82,7 +82,7 @@ impl Boolean {
             _ => {}
         }
 
-        Err(ctx.construct_type_error("'this' is not a boolean"))
+        Err(context.construct_type_error("'this' is not a boolean"))
     }
 
     /// The `toString()` method returns a string representing the specified `Boolean` object.
@@ -94,8 +94,8 @@ impl Boolean {
     /// [spec]: https://tc39.es/ecma262/#sec-boolean-object
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean/toString
     #[allow(clippy::wrong_self_convention)]
-    pub(crate) fn to_string(this: &Value, _: &[Value], ctx: &mut Context) -> Result<Value> {
-        let boolean = Self::this_boolean_value(this, ctx)?;
+    pub(crate) fn to_string(this: &Value, _: &[Value], context: &mut Context) -> Result<Value> {
+        let boolean = Self::this_boolean_value(this, context)?;
         Ok(Value::from(boolean.to_string()))
     }
 
@@ -108,7 +108,7 @@ impl Boolean {
     /// [spec]: https://tc39.es/ecma262/#sec-boolean.prototype.valueof
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean/valueOf
     #[inline]
-    pub(crate) fn value_of(this: &Value, _: &[Value], ctx: &mut Context) -> Result<Value> {
-        Ok(Value::from(Self::this_boolean_value(this, ctx)?))
+    pub(crate) fn value_of(this: &Value, _: &[Value], context: &mut Context) -> Result<Value> {
+        Ok(Value::from(Self::this_boolean_value(this, context)?))
     }
 }

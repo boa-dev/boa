@@ -11,10 +11,10 @@ use crate::{
         environment_record_trait::EnvironmentRecordTrait,
         lexical_environment::{Environment, EnvironmentType},
     },
+    gc::{Finalize, Trace},
     property::{Attribute, DataDescriptor},
     Value,
 };
-use gc::{Finalize, Trace};
 
 #[derive(Debug, Trace, Finalize, Clone)]
 pub struct ObjectEnvironmentRecord {

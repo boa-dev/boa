@@ -41,8 +41,11 @@ impl RLHelper {
 }
 
 impl Validator for RLHelper {
-    fn validate(&self, ctx: &mut ValidationContext<'_>) -> Result<ValidationResult, ReadlineError> {
-        self.validator.validate(ctx)
+    fn validate(
+        &self,
+        context: &mut ValidationContext<'_>,
+    ) -> Result<ValidationResult, ReadlineError> {
+        self.validator.validate(context)
     }
 
     fn validate_while_typing(&self) -> bool {

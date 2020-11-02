@@ -1,9 +1,9 @@
 use crate::{
     exec::{Executable, InterpreterState},
+    gc::{Finalize, Trace},
     syntax::ast::node::Node,
     Context, Result, Value,
 };
-use gc::{Finalize, Trace};
 use std::fmt;
 
 #[cfg(feature = "serde")]
@@ -58,13 +58,13 @@ impl Return {
 }
 
 impl Executable for Return {
-    fn run(&self, interpreter: &mut Context) -> Result<Value> {
+    fn run(&self, context: &mut Context) -> Result<Value> {
         let result = match self.expr() {
-            Some(ref v) => v.run(interpreter),
+            Some(ref v) => v.run(context),
             None => Ok(Value::undefined()),
         };
         // Set flag for return
-        interpreter
+        context
             .executor()
             .set_current_state(InterpreterState::Return);
         result

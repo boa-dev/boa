@@ -1,10 +1,10 @@
 use crate::{
     environment::lexical_environment::new_declarative_environment,
     exec::{Executable, InterpreterState},
+    gc::{Finalize, Trace},
     syntax::ast::node::Node,
     BoaProfiler, Context, Result, Value,
 };
-use gc::{Finalize, Trace};
 use std::fmt;
 
 #[cfg(feature = "serde")]
@@ -98,35 +98,35 @@ impl ForLoop {
 }
 
 impl Executable for ForLoop {
-    fn run(&self, interpreter: &mut Context) -> Result<Value> {
+    fn run(&self, context: &mut Context) -> Result<Value> {
         // Create the block environment.
         let _timer = BoaProfiler::global().start_event("ForLoop", "exec");
         {
-            let env = &mut interpreter.realm_mut().environment;
+            let env = &mut context.realm_mut().environment;
             env.push(new_declarative_environment(Some(
                 env.get_current_environment_ref().clone(),
             )));
         }
 
         if let Some(init) = self.init() {
-            init.run(interpreter)?;
+            init.run(context)?;
         }
 
         while self
             .condition()
-            .map(|cond| cond.run(interpreter).map(|v| v.to_boolean()))
+            .map(|cond| cond.run(context).map(|v| v.to_boolean()))
             .transpose()?
             .unwrap_or(true)
         {
-            let result = self.body().run(interpreter)?;
+            let result = self.body().run(context)?;
 
-            match interpreter.executor().get_current_state() {
+            match context.executor().get_current_state() {
                 InterpreterState::Break(label) => {
-                    handle_state_with_labels!(self, label, interpreter, break);
+                    handle_state_with_labels!(self, label, context, break);
                     break;
                 }
                 InterpreterState::Continue(label) => {
-                    handle_state_with_labels!(self, label, interpreter, continue);
+                    handle_state_with_labels!(self, label, context, continue);
                 }
 
                 InterpreterState::Return => {
@@ -138,12 +138,12 @@ impl Executable for ForLoop {
             }
 
             if let Some(final_expr) = self.final_expr() {
-                final_expr.run(interpreter)?;
+                final_expr.run(context)?;
             }
         }
 
         // pop the block env
-        let _ = interpreter.realm_mut().environment.pop();
+        let _ = context.realm_mut().environment.pop();
 
         Ok(Value::undefined())
     }

@@ -2,10 +2,10 @@ use crate::{
     builtins::function::FunctionFlags,
     environment::lexical_environment::VariableScope,
     exec::Executable,
+    gc::{Finalize, Trace},
     syntax::ast::node::{join_nodes, FormalParameter, Node, StatementList},
     BoaProfiler, Context, Result, Value,
 };
-use gc::{Finalize, Trace};
 use std::fmt;
 
 #[cfg(feature = "serde")]
@@ -84,9 +84,9 @@ impl FunctionDecl {
 }
 
 impl Executable for FunctionDecl {
-    fn run(&self, interpreter: &mut Context) -> Result<Value> {
+    fn run(&self, context: &mut Context) -> Result<Value> {
         let _timer = BoaProfiler::global().start_event("FunctionDecl", "exec");
-        let val = interpreter.create_function(
+        let val = context.create_function(
             self.parameters().to_vec(),
             self.body().to_vec(),
             FunctionFlags::CALLABLE | FunctionFlags::CONSTRUCTABLE,
@@ -94,13 +94,13 @@ impl Executable for FunctionDecl {
 
         // Set the name and assign it in the current environment
         val.set_field("name", self.name());
-        interpreter.realm_mut().environment.create_mutable_binding(
+        context.realm_mut().environment.create_mutable_binding(
             self.name().to_owned(),
             false,
             VariableScope::Function,
         );
 
-        interpreter
+        context
             .realm_mut()
             .environment
             .initialize_binding(self.name(), val);

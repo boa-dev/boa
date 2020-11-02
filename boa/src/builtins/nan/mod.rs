@@ -26,7 +26,7 @@ impl BuiltIn for NaN {
         Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT
     }
 
-    fn init(_context: &mut Context) -> (&'static str, Value, Attribute) {
+    fn init(_: &mut Context) -> (&'static str, Value, Attribute) {
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
         (Self::NAME, f64::NAN.into(), Self::attribute())

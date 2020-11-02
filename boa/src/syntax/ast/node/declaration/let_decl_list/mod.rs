@@ -1,10 +1,10 @@
 use crate::{
     environment::lexical_environment::VariableScope,
     exec::Executable,
+    gc::{Finalize, Trace},
     syntax::ast::node::{join_nodes, Identifier, Node},
     Context, Result, Value,
 };
-use gc::{Finalize, Trace};
 use std::fmt;
 
 #[cfg(feature = "serde")]
@@ -35,18 +35,18 @@ pub struct LetDeclList {
 }
 
 impl Executable for LetDeclList {
-    fn run(&self, interpreter: &mut Context) -> Result<Value> {
+    fn run(&self, context: &mut Context) -> Result<Value> {
         for var in self.as_ref() {
             let val = match var.init() {
-                Some(v) => v.run(interpreter)?,
+                Some(v) => v.run(context)?,
                 None => Value::undefined(),
             };
-            interpreter.realm_mut().environment.create_mutable_binding(
+            context.realm_mut().environment.create_mutable_binding(
                 var.name().to_owned(),
                 false,
                 VariableScope::Block,
             );
-            interpreter
+            context
                 .realm_mut()
                 .environment
                 .initialize_binding(var.name(), val);

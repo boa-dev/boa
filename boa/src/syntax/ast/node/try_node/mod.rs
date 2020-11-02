@@ -1,10 +1,10 @@
 use crate::{
     environment::lexical_environment::{new_declarative_environment, VariableScope},
     exec::Executable,
+    gc::{Finalize, Trace},
     syntax::ast::node::{Block, Identifier, Node},
     BoaProfiler, Context, Result, Value,
 };
-use gc::{Finalize, Trace};
 use std::fmt;
 
 #[cfg(feature = "serde")]
@@ -92,13 +92,13 @@ impl Try {
 }
 
 impl Executable for Try {
-    fn run(&self, interpreter: &mut Context) -> Result<Value> {
+    fn run(&self, context: &mut Context) -> Result<Value> {
         let _timer = BoaProfiler::global().start_event("Try", "exec");
-        let res = self.block().run(interpreter).map_or_else(
+        let res = self.block().run(context).map_or_else(
             |err| {
                 if let Some(catch) = self.catch() {
                     {
-                        let env = &mut interpreter.realm_mut().environment;
+                        let env = &mut context.realm_mut().environment;
                         env.push(new_declarative_environment(Some(
                             env.get_current_environment_ref().clone(),
                         )));
@@ -114,10 +114,10 @@ impl Executable for Try {
                         }
                     }
 
-                    let res = catch.block().run(interpreter);
+                    let res = catch.block().run(context);
 
                     // pop the block env
-                    let _ = interpreter.realm_mut().environment.pop();
+                    let _ = context.realm_mut().environment.pop();
 
                     res
                 } else {
@@ -128,7 +128,7 @@ impl Executable for Try {
         );
 
         if let Some(finally) = self.finally() {
-            finally.run(interpreter)?;
+            finally.run(context)?;
         }
 
         res

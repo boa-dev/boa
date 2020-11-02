@@ -194,46 +194,46 @@ fn do_while_loop_continue() {
 
 #[test]
 fn for_of_loop_declaration() {
-    let mut engine = Context::new();
+    let mut context = Context::new();
     let scenario = r#"
         var result = 0;
         for (i of [1, 2, 3]) {
             result = i;
         }
     "#;
-    engine.eval(scenario).unwrap();
-    assert_eq!(&forward(&mut engine, "result"), "3");
-    assert_eq!(&forward(&mut engine, "i"), "3");
+    context.eval(scenario).unwrap();
+    assert_eq!(&forward(&mut context, "result"), "3");
+    assert_eq!(&forward(&mut context, "i"), "3");
 }
 
 #[test]
 fn for_of_loop_var() {
-    let mut engine = Context::new();
+    let mut context = Context::new();
     let scenario = r#"
         var result = 0;
         for (var i of [1, 2, 3]) {
             result = i;
         }
     "#;
-    engine.eval(scenario).unwrap();
-    assert_eq!(&forward(&mut engine, "result"), "3");
-    assert_eq!(&forward(&mut engine, "i"), "3");
+    context.eval(scenario).unwrap();
+    assert_eq!(&forward(&mut context, "result"), "3");
+    assert_eq!(&forward(&mut context, "i"), "3");
 }
 
 #[test]
 fn for_of_loop_let() {
-    let mut engine = Context::new();
+    let mut context = Context::new();
     let scenario = r#"
         var result = 0;
         for (let i of [1, 2, 3]) {
             result = i;
         }
     "#;
-    engine.eval(scenario).unwrap();
-    assert_eq!(&forward(&mut engine, "result"), "3");
+    context.eval(scenario).unwrap();
+    assert_eq!(&forward(&mut context, "result"), "3");
     assert_eq!(
         &forward(
-            &mut engine,
+            &mut context,
             r#"
         try {
             i
@@ -248,18 +248,18 @@ fn for_of_loop_let() {
 
 #[test]
 fn for_of_loop_const() {
-    let mut engine = Context::new();
+    let mut context = Context::new();
     let scenario = r#"
         var result = 0;
         for (let i of [1, 2, 3]) {
             result = i;
         }
     "#;
-    engine.eval(scenario).unwrap();
-    assert_eq!(&forward(&mut engine, "result"), "3");
+    context.eval(scenario).unwrap();
+    assert_eq!(&forward(&mut context, "result"), "3");
     assert_eq!(
         &forward(
-            &mut engine,
+            &mut context,
             r#"
         try {
             i
@@ -274,7 +274,7 @@ fn for_of_loop_const() {
 
 #[test]
 fn for_of_loop_break() {
-    let mut engine = Context::new();
+    let mut context = Context::new();
     let scenario = r#"
         var result = 0;
         for (var i of [1, 2, 3]) {
@@ -283,14 +283,14 @@ fn for_of_loop_break() {
             result = i
         }
     "#;
-    engine.eval(scenario).unwrap();
-    assert_eq!(&forward(&mut engine, "result"), "1");
-    assert_eq!(&forward(&mut engine, "i"), "2");
+    context.eval(scenario).unwrap();
+    assert_eq!(&forward(&mut context, "result"), "1");
+    assert_eq!(&forward(&mut context, "i"), "2");
 }
 
 #[test]
 fn for_of_loop_continue() {
-    let mut engine = Context::new();
+    let mut context = Context::new();
     let scenario = r#"
         var result = 0;
         for (var i of [1, 2, 3]) {
@@ -299,14 +299,14 @@ fn for_of_loop_continue() {
             result = i
         }
     "#;
-    engine.eval(scenario).unwrap();
-    assert_eq!(&forward(&mut engine, "result"), "2");
-    assert_eq!(&forward(&mut engine, "i"), "3");
+    context.eval(scenario).unwrap();
+    assert_eq!(&forward(&mut context, "result"), "2");
+    assert_eq!(&forward(&mut context, "i"), "3");
 }
 
 #[test]
 fn for_of_loop_return() {
-    let mut engine = Context::new();
+    let mut context = Context::new();
     let scenario = r#"
         function foo() {
             for (i of [1, 2, 3]) {
@@ -315,8 +315,8 @@ fn for_of_loop_return() {
             }
         }
     "#;
-    engine.eval(scenario).unwrap();
-    assert_eq!(&forward(&mut engine, "foo()"), "2");
+    context.eval(scenario).unwrap();
+    assert_eq!(&forward(&mut context, "foo()"), "2");
 }
 
 #[test]

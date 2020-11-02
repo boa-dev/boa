@@ -127,8 +127,8 @@ impl Test {
                     // TODO: implement async and add `harness/doneprintHandle.js` to the includes.
 
                     match self.set_up_env(&harness, strict) {
-                        Ok(mut engine) => {
-                            let res = engine.eval(&self.content);
+                        Ok(mut context) => {
+                            let res = context.eval(&self.content);
 
                             let passed = res.is_ok();
                             let text = match res {
@@ -173,7 +173,7 @@ impl Test {
                         (false, format!("Uncaught {}", e))
                     } else {
                         match self.set_up_env(&harness, strict) {
-                            Ok(mut engine) => match engine.eval(&self.content) {
+                            Ok(mut context) => match context.eval(&self.content) {
                                 Ok(res) => (false, format!("{}", res.display())),
                                 Err(e) => {
                                     let passed =
@@ -251,10 +251,10 @@ impl Test {
     fn set_up_env(&self, harness: &Harness, strict: bool) -> Result<Context, String> {
         // Create new Realm
         // TODO: in parallel.
-        let mut engine = Context::new();
+        let mut context = Context::new();
 
         // Register the print() function.
-        engine
+        context
             .register_global_function("print", 1, test262_print)
             .map_err(|e| {
                 format!(
@@ -265,20 +265,20 @@ impl Test {
         // TODO: add the $262 object.
 
         if strict {
-            engine
+            context
                 .eval(r#""use strict";"#)
                 .map_err(|e| format!("could not set strict mode:\n{}", e.display()))?;
         }
 
-        engine
+        context
             .eval(&harness.assert)
             .map_err(|e| format!("could not run assert.js:\n{}", e.display()))?;
-        engine
+        context
             .eval(&harness.sta)
             .map_err(|e| format!("could not run sta.js:\n{}", e.display()))?;
 
         for include in self.includes.iter() {
-            engine
+            context
                 .eval(
                     &harness
                         .includes
@@ -294,11 +294,11 @@ impl Test {
                 })?;
         }
 
-        Ok(engine)
+        Ok(context)
     }
 }
 
 /// `print()` function required by the test262 suite.
-fn test262_print(_this: &Value, _args: &[Value], _context: &mut Context) -> boa::Result<Value> {
+fn test262_print(_this: &Value, _: &[Value], _context: &mut Context) -> boa::Result<Value> {
     todo!("print() function");
 }

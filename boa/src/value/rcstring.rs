@@ -1,15 +1,17 @@
-use std::borrow::Borrow;
-use std::fmt::{self, Display};
-use std::ops::Deref;
-use std::rc::Rc;
+use crate::gc::{empty_trace, Finalize, Trace};
 
-use gc::{unsafe_empty_trace, Finalize, Trace};
+use std::{
+    borrow::Borrow,
+    fmt::{self, Display},
+    ops::Deref,
+    rc::Rc,
+};
 
 #[derive(Debug, Finalize, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct RcString(Rc<str>);
 
 unsafe impl Trace for RcString {
-    unsafe_empty_trace!();
+    empty_trace!();
 }
 
 impl RcString {

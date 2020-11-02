@@ -1,16 +1,19 @@
-use crate::builtins::Symbol;
+use crate::{
+    builtins::Symbol,
+    gc::{empty_trace, Finalize, Trace},
+};
 
-use std::fmt::{self, Display};
-use std::ops::Deref;
-use std::rc::Rc;
-
-use gc::{unsafe_empty_trace, Finalize, Trace};
+use std::{
+    fmt::{self, Display},
+    ops::Deref,
+    rc::Rc,
+};
 
 #[derive(Debug, Finalize, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct RcSymbol(Rc<Symbol>);
 
 unsafe impl Trace for RcSymbol {
-    unsafe_empty_trace!();
+    empty_trace!();
 }
 
 impl Display for RcSymbol {

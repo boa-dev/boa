@@ -25,9 +25,9 @@
 //!     const LENGTH: usize = 1;
 //!
 //!     // This is what is called when we do `new Animal()`
-//!     fn constructor(_this: &Value, args: &[Value], ctx: &mut Context) -> Result<Self> {
+//!     fn constructor(_this: &Value, args: &[Value], context: &mut Context) -> Result<Self> {
 //!         // This is equivalent to `String(arg)`.
-//!         let kind = args.get(0).cloned().unwrap_or_default().to_string(ctx)?;
+//!         let kind = args.get(0).cloned().unwrap_or_default().to_string(context)?;
 //!
 //!         let animal = match kind.as_str() {
 //!             "cat" => Self::Cat,
@@ -77,7 +77,7 @@ pub trait Class: NativeObject + Sized {
     const ATTRIBUTE: Attribute = Attribute::all();
 
     /// The constructor of the class.
-    fn constructor(this: &Value, args: &[Value], ctx: &mut Context) -> Result<Self>;
+    fn constructor(this: &Value, args: &[Value], context: &mut Context) -> Result<Self>;
 
     /// Initializes the internals and the methods of the class.
     fn init(class: &mut ClassBuilder<'_>) -> Result<()>;
@@ -88,17 +88,17 @@ pub trait Class: NativeObject + Sized {
 /// This is automatically implemented, when a type implements `Class`.
 pub trait ClassConstructor: Class {
     /// The raw constructor that mathces the `NativeFunction` signature.
-    fn raw_constructor(this: &Value, args: &[Value], ctx: &mut Context) -> Result<Value>
+    fn raw_constructor(this: &Value, args: &[Value], context: &mut Context) -> Result<Value>
     where
         Self: Sized;
 }
 
 impl<T: Class> ClassConstructor for T {
-    fn raw_constructor(this: &Value, args: &[Value], ctx: &mut Context) -> Result<Value>
+    fn raw_constructor(this: &Value, args: &[Value], context: &mut Context) -> Result<Value>
     where
         Self: Sized,
     {
-        let object_instance = Self::constructor(this, args, ctx)?;
+        let object_instance = Self::constructor(this, args, context)?;
         this.set_data(ObjectData::NativeObject(Box::new(object_instance)));
         Ok(this.clone())
     }

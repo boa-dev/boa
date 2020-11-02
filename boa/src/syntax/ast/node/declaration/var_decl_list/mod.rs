@@ -1,10 +1,10 @@
 use crate::{
     environment::lexical_environment::VariableScope,
     exec::Executable,
+    gc::{Finalize, Trace},
     syntax::ast::node::{join_nodes, Identifier, Node},
     Context, Result, Value,
 };
-use gc::{Finalize, Trace};
 use std::fmt;
 
 #[cfg(feature = "serde")]
@@ -36,13 +36,13 @@ pub struct VarDeclList {
 }
 
 impl Executable for VarDeclList {
-    fn run(&self, interpreter: &mut Context) -> Result<Value> {
+    fn run(&self, context: &mut Context) -> Result<Value> {
         for var in self.as_ref() {
             let val = match var.init() {
-                Some(v) => v.run(interpreter)?,
+                Some(v) => v.run(context)?,
                 None => Value::undefined(),
             };
-            let environment = &mut interpreter.realm_mut().environment;
+            let environment = &mut context.realm_mut().environment;
 
             if environment.has_binding(var.name()) {
                 if var.init().is_some() {

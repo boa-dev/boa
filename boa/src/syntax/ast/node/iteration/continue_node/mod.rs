@@ -1,9 +1,9 @@
 use crate::{
     exec::{Executable, InterpreterState},
+    gc::{Finalize, Trace},
     syntax::ast::node::Node,
     Context, Result, Value,
 };
-use gc::{Finalize, Trace};
 use std::fmt;
 
 #[cfg(feature = "serde")]
@@ -46,8 +46,8 @@ impl Continue {
 }
 
 impl Executable for Continue {
-    fn run(&self, interpreter: &mut Context) -> Result<Value> {
-        interpreter
+    fn run(&self, context: &mut Context) -> Result<Value> {
+        context
             .executor()
             .set_current_state(InterpreterState::Continue(self.label().map(Box::from)));
 

@@ -46,16 +46,16 @@ impl MapIterator {
     ///
     /// [spec]: https://www.ecma-international.org/ecma-262/11.0/index.html#sec-createmapiterator
     pub(crate) fn create_map_iterator(
-        ctx: &Context,
+        context: &Context,
         map: Value,
         kind: MapIterationKind,
     ) -> Result<Value> {
-        let map_iterator = Value::new_object(Some(ctx.global_object()));
+        let map_iterator = Value::new_object(Some(context.global_object()));
         map_iterator.set_data(ObjectData::MapIterator(Self::new(map, kind)));
         map_iterator
             .as_object()
             .expect("map iterator object")
-            .set_prototype_instance(ctx.iterator_prototypes().map_iterator().into());
+            .set_prototype_instance(context.iterator_prototypes().map_iterator().into());
         Ok(map_iterator)
     }
 
@@ -67,7 +67,7 @@ impl MapIterator {
     ///  - [ECMA reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-%mapiteratorprototype%.next
-    pub(crate) fn next(this: &Value, _args: &[Value], ctx: &mut Context) -> Result<Value> {
+    pub(crate) fn next(this: &Value, _: &[Value], context: &mut Context) -> Result<Value> {
         if let Value::Object(ref object) = this {
             let mut object = object.borrow_mut();
             if let Some(map_iterator) = object.as_map_iterator_mut() {
@@ -76,7 +76,7 @@ impl MapIterator {
                 let item_kind = &map_iterator.map_iteration_kind;
 
                 if map_iterator.iterated_map.is_undefined() {
-                    return Ok(create_iter_result_object(ctx, Value::undefined(), true));
+                    return Ok(create_iter_result_object(context, Value::undefined(), true));
                 }
 
                 if let Value::Object(ref object) = m {
@@ -90,42 +90,44 @@ impl MapIterator {
                                 match item_kind {
                                     MapIterationKind::Key => {
                                         return Ok(create_iter_result_object(
-                                            ctx,
+                                            context,
                                             key.clone(),
                                             false,
                                         ));
                                     }
                                     MapIterationKind::Value => {
                                         return Ok(create_iter_result_object(
-                                            ctx,
+                                            context,
                                             value.clone(),
                                             false,
                                         ));
                                     }
                                     MapIterationKind::KeyAndValue => {
                                         let result = Array::construct_array(
-                                            &Array::new_array(ctx)?,
+                                            &Array::new_array(context)?,
                                             &[key.clone(), value.clone()],
                                         )?;
-                                        return Ok(create_iter_result_object(ctx, result, false));
+                                        return Ok(create_iter_result_object(
+                                            context, result, false,
+                                        ));
                                     }
                                 }
                             }
                         }
                     } else {
-                        return Err(ctx.construct_type_error("'this' is not a Map"));
+                        return Err(context.construct_type_error("'this' is not a Map"));
                     }
                 } else {
-                    return Err(ctx.construct_type_error("'this' is not a Map"));
+                    return Err(context.construct_type_error("'this' is not a Map"));
                 }
 
                 map_iterator.iterated_map = Value::undefined();
-                Ok(create_iter_result_object(ctx, Value::undefined(), true))
+                Ok(create_iter_result_object(context, Value::undefined(), true))
             } else {
-                ctx.throw_type_error("`this` is not an MapIterator")
+                context.throw_type_error("`this` is not an MapIterator")
             }
         } else {
-            ctx.throw_type_error("`this` is not an MapIterator")
+            context.throw_type_error("`this` is not an MapIterator")
         }
     }
 
@@ -135,19 +137,19 @@ impl MapIterator {
     ///  - [ECMA reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-%mapiteratorprototype%-object
-    pub(crate) fn create_prototype(ctx: &mut Context, iterator_prototype: Value) -> Value {
-        let global = ctx.global_object();
+    pub(crate) fn create_prototype(context: &mut Context, iterator_prototype: Value) -> Value {
+        let global = context.global_object();
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
         // Create prototype
         let map_iterator = Value::new_object(Some(global));
-        make_builtin_fn(Self::next, "next", &map_iterator, 0, ctx);
+        make_builtin_fn(Self::next, "next", &map_iterator, 0, context);
         map_iterator
             .as_object()
             .expect("map iterator prototype object")
             .set_prototype_instance(iterator_prototype);
 
-        let to_string_tag = ctx.well_known_symbols().to_string_tag_symbol();
+        let to_string_tag = context.well_known_symbols().to_string_tag_symbol();
         let to_string_tag_property = DataDescriptor::new("Map Iterator", Attribute::CONFIGURABLE);
         map_iterator.set_property(to_string_tag, to_string_tag_property);
         map_iterator

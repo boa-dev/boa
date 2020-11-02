@@ -139,7 +139,7 @@ fn dump(src: &str, args: &Opt) -> Result<(), String> {
 pub fn main() -> Result<(), std::io::Error> {
     let args = Opt::from_args();
 
-    let mut engine = Context::new();
+    let mut context = Context::new();
 
     for file in &args.files {
         let buffer = read_to_string(file)?;
@@ -149,7 +149,7 @@ pub fn main() -> Result<(), std::io::Error> {
                 eprintln!("{}", e);
             }
         } else {
-            match engine.eval(&buffer) {
+            match context.eval(&buffer) {
                 Ok(v) => println!("{}", v.display()),
                 Err(v) => eprintln!("Uncaught {}", v.display()),
             }
@@ -185,7 +185,7 @@ pub fn main() -> Result<(), std::io::Error> {
                             eprintln!("{}", e);
                         }
                     } else {
-                        match engine.eval(line.trim_end()) {
+                        match context.eval(line.trim_end()) {
                             Ok(v) => println!("{}", v.display()),
                             Err(v) => {
                                 eprintln!("{}: {}", "Uncaught".red(), v.display().to_string().red())

@@ -2,10 +2,10 @@
 //!
 use crate::{
     exec::{Executable, InterpreterState},
+    gc::{Finalize, Trace},
     syntax::ast::node::Node,
     Context, Result, Value,
 };
-use gc::{Finalize, Trace};
 use std::fmt;
 
 use crate::syntax::ast::node::StatementList;
@@ -122,11 +122,11 @@ impl Switch {
 }
 
 impl Executable for Switch {
-    fn run(&self, interpreter: &mut Context) -> Result<Value> {
-        let val = self.val().run(interpreter)?;
+    fn run(&self, context: &mut Context) -> Result<Value> {
+        let val = self.val().run(context)?;
         let mut result = Value::null();
         let mut matched = false;
-        interpreter
+        context
             .executor()
             .set_current_state(InterpreterState::Executing);
 
@@ -137,10 +137,10 @@ impl Executable for Switch {
         for case in self.cases().iter() {
             let cond = case.condition();
             let block = case.body();
-            if fall_through || val.strict_equals(&cond.run(interpreter)?) {
+            if fall_through || val.strict_equals(&cond.run(context)?) {
                 matched = true;
-                let result = block.run(interpreter)?;
-                match interpreter.executor().get_current_state() {
+                let result = block.run(context)?;
+                match context.executor().get_current_state() {
                     InterpreterState::Return => {
                         // Early return.
                         return Ok(result);
@@ -148,7 +148,7 @@ impl Executable for Switch {
                     InterpreterState::Break(_label) => {
                         // TODO, break to a label.
                         // Break statement encountered so therefore end switch statement.
-                        interpreter
+                        context
                             .executor()
                             .set_current_state(InterpreterState::Executing);
                         break;
@@ -167,12 +167,12 @@ impl Executable for Switch {
 
         if !matched {
             if let Some(default) = self.default() {
-                interpreter
+                context
                     .executor()
                     .set_current_state(InterpreterState::Executing);
                 for (i, item) in default.iter().enumerate() {
-                    let val = item.run(interpreter)?;
-                    match interpreter.executor().get_current_state() {
+                    let val = item.run(context)?;
+                    match context.executor().get_current_state() {
                         InterpreterState::Return => {
                             // Early return.
                             result = val;
