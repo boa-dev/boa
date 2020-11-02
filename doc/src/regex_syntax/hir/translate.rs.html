@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-syntax-0.6.20/src/hir/translate.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>translate.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script src="../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="shortcut icon" href="../../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../regex_syntax/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-syntax-0.6.21/src/hir/translate.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>translate.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script src="../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="shortcut icon" href="../../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../regex_syntax/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
                 <a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
 <span id="3">   3</span>
@@ -3148,6 +3148,26 @@
 <span id="3147">3147</span>
 <span id="3148">3148</span>
 <span id="3149">3149</span>
+<span id="3150">3150</span>
+<span id="3151">3151</span>
+<span id="3152">3152</span>
+<span id="3153">3153</span>
+<span id="3154">3154</span>
+<span id="3155">3155</span>
+<span id="3156">3156</span>
+<span id="3157">3157</span>
+<span id="3158">3158</span>
+<span id="3159">3159</span>
+<span id="3160">3160</span>
+<span id="3161">3161</span>
+<span id="3162">3162</span>
+<span id="3163">3163</span>
+<span id="3164">3164</span>
+<span id="3165">3165</span>
+<span id="3166">3166</span>
+<span id="3167">3167</span>
+<span id="3168">3168</span>
+<span id="3169">3169</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">/*!
 Defines a translator that converts an `Ast` to an `Hir`.
@@ -3473,7 +3493,7 @@ Defines a translator that converts an `Ast` to an `Hir`.
                         <span class="ident">ast</span>.<span class="ident">negated</span>,
                         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">cls</span>,
                     )<span class="question-mark">?</span>;
-                    <span class="kw">if</span> <span class="ident">cls</span>.<span class="ident">iter</span>().<span class="ident">next</span>().<span class="ident">is_none</span>() {
+                    <span class="kw">if</span> <span class="ident">cls</span>.<span class="ident">ranges</span>().<span class="ident">is_empty</span>() {
                         <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="self">self</span>.<span class="ident">error</span>(
                             <span class="ident">ast</span>.<span class="ident">span</span>,
                             <span class="ident">ErrorKind</span>::<span class="ident">EmptyClassNotAllowed</span>,
@@ -3488,7 +3508,7 @@ Defines a translator that converts an `Ast` to an `Hir`.
                         <span class="ident">ast</span>.<span class="ident">negated</span>,
                         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">cls</span>,
                     )<span class="question-mark">?</span>;
-                    <span class="kw">if</span> <span class="ident">cls</span>.<span class="ident">iter</span>().<span class="ident">next</span>().<span class="ident">is_none</span>() {
+                    <span class="kw">if</span> <span class="ident">cls</span>.<span class="ident">ranges</span>().<span class="ident">is_empty</span>() {
                         <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="self">self</span>.<span class="ident">error</span>(
                             <span class="ident">ast</span>.<span class="ident">span</span>,
                             <span class="ident">ErrorKind</span>::<span class="ident">EmptyClassNotAllowed</span>,
@@ -3995,6 +4015,11 @@ Defines a translator that converts an `Ast` to an `Hir`.
                 <span class="ident">ast_class</span>.<span class="ident">negated</span>,
                 <span class="ident">class</span>,
             )<span class="question-mark">?</span>;
+            <span class="kw">if</span> <span class="ident">class</span>.<span class="ident">ranges</span>().<span class="ident">is_empty</span>() {
+                <span class="kw">let</span> <span class="ident">err</span> <span class="op">=</span> <span class="self">self</span>
+                    .<span class="ident">error</span>(<span class="ident">ast_class</span>.<span class="ident">span</span>, <span class="ident">ErrorKind</span>::<span class="ident">EmptyClassNotAllowed</span>);
+                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">err</span>);
+            }
         }
         <span class="ident">result</span>
     }
@@ -5463,6 +5488,21 @@ Defines a translator that converts an `Ast` to an `Hir`.
                 <span class="ident">span</span>: <span class="ident">Span</span>::<span class="ident">new</span>(
                     <span class="ident">Position</span>::<span class="ident">new</span>(<span class="number">0</span>, <span class="number">1</span>, <span class="number">1</span>),
                     <span class="ident">Position</span>::<span class="ident">new</span>(<span class="number">11</span>, <span class="number">1</span>, <span class="number">12</span>)
+                ),
+            }
+        );
+    }
+
+    <span class="attribute">#[<span class="ident">test</span>]</span>
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;unicode-gencat&quot;</span>)]</span>
+    <span class="kw">fn</span> <span class="ident">class_unicode_any_empty</span>() {
+        <span class="macro">assert_eq</span><span class="macro">!</span>(
+            <span class="ident">t_err</span>(<span class="string">r&quot;\P{any}&quot;</span>),
+            <span class="ident">TestError</span> {
+                <span class="ident">kind</span>: <span class="ident">hir</span>::<span class="ident">ErrorKind</span>::<span class="ident">EmptyClassNotAllowed</span>,
+                <span class="ident">span</span>: <span class="ident">Span</span>::<span class="ident">new</span>(
+                    <span class="ident">Position</span>::<span class="ident">new</span>(<span class="number">0</span>, <span class="number">1</span>, <span class="number">1</span>),
+                    <span class="ident">Position</span>::<span class="ident">new</span>(<span class="number">7</span>, <span class="number">1</span>, <span class="number">8</span>)
                 ),
             }
         );
