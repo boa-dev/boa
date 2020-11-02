@@ -186,3 +186,9 @@ where
         }
     }
 }
+
+impl From<std::num::TryFromIntError> for Value {
+    fn from(err: std::num::TryFromIntError) -> Self {
+        Value::string(format!("{}", err))
+    }
+}

@@ -22,7 +22,11 @@ use crate::{
     value::{same_value_zero, Value},
     BoaProfiler, Context, Result,
 };
-use std::cmp::{max, min};
+use num_traits::*;
+use std::{
+    cmp::{max, min},
+    convert::{TryFrom, TryInto},
+};
 
 /// JavaScript `Array` built-in implementation.
 #[derive(Debug, Clone, Copy)]
@@ -160,7 +164,7 @@ impl Array {
         context: &mut Context,
     ) -> Result<Value> {
         let prototype = context.standard_objects().array_object().prototype();
-        let array = Array::array_create(this, items.len() as u32, Some(prototype), context)?;
+        let array = Array::array_create(this, items.len().try_into()?, Some(prototype), context)?;
 
         for (k, item) in items.iter().enumerate() {
             array.set_field(k, item.clone());
@@ -707,10 +711,10 @@ impl Array {
                 if !from_idx.is_finite() {
                     return Ok(Value::from(-1));
                 } else if from_idx < 0.0 {
-                    let k = len as isize + from_idx as isize;
-                    max(0, k) as usize
+                    let k = isize::try_from(len)? + f64_to_isize(from_idx)?;
+                    usize::try_from(max(0, k))?
                 } else {
-                    from_idx as usize
+                    f64_to_usize(from_idx)?
                 }
             }
             None => 0,
@@ -758,7 +762,7 @@ impl Array {
         }
 
         let search_element = args[0].clone();
-        let len = this.get_field("length").to_length(context)? as isize;
+        let len: isize = this.get_field("length").to_length(context)?.try_into()?;
 
         let mut idx = match args.get(1) {
             Some(from_idx_ptr) => {
@@ -766,10 +770,10 @@ impl Array {
 
                 if !from_idx.is_finite() {
                     return Ok(Value::from(-1));
-                } else if from_idx >= 0.0 {
-                    min(from_idx as isize, len - 1)
+                } else if from_idx < 0.0 {
+                    len + f64_to_isize(from_idx)?
                 } else {
-                    len + from_idx as isize
+                    min(f64_to_isize(from_idx)?, len - 1)
                 }
             }
             None => len - 1,
@@ -779,8 +783,7 @@ impl Array {
             let check_element = this.get_field(idx).clone();
 
             if check_element.strict_equals(&search_element) {
-                // TODO: make the cast from isize to i32 safe
-                return Ok(Value::from(idx as i32));
+                return Ok(Value::from(i32::try_from(idx)?));
             }
 
             idx -= 1;
@@ -853,8 +856,7 @@ impl Array {
             let result = context.call(predicate_arg, &this_arg, &arguments)?;
 
             if result.to_boolean() {
-                // TODO: make the case safe
-                return Ok(Value::integer(i as i32));
+                return Ok(Value::integer(i32::try_from(i)?));
             }
         }
 
@@ -873,16 +875,17 @@ impl Array {
     /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.fill
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/fill
     pub(crate) fn fill(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
-        let len = this.get_field("length").to_length(context)? as isize;
+        let len: isize = this.get_field("length").to_length(context)?.try_into()?;
 
         let default_value = Value::undefined();
         let value = args.get(0).unwrap_or(&default_value);
-        let relative_start = args.get(1).unwrap_or(&default_value).to_number(context)? as isize;
+        let relative_start =
+            f64_to_isize(args.get(1).unwrap_or(&default_value).to_number(context)?)?;
         let relative_end_val = args.get(2).unwrap_or(&default_value);
         let relative_end = if relative_end_val.is_undefined() {
             len
         } else {
-            relative_end_val.to_number(context)? as isize
+            f64_to_isize(relative_end_val.to_number(context)?)?
         };
         let start = if relative_start < 0 {
             max(len + relative_start, 0)
@@ -948,7 +951,7 @@ impl Array {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/slice
     pub(crate) fn slice(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
         let new_array = Self::new_array(context)?;
-        let len = this.get_field("length").to_length(context)? as isize;
+        let len: isize = this.get_field("length").to_length(context)?.try_into()?;
 
         let start = match args.get(0) {
             Some(v) => v.to_integer(context)?,
@@ -962,16 +965,16 @@ impl Array {
         let from = if !start.is_finite() {
             0
         } else if start < 0.0 {
-            max(len.wrapping_add(start as isize), 0)
+            max(len.wrapping_add(f64_to_isize(start)?), 0)
         } else {
-            min(start as isize, len)
+            min(f64_to_isize(start)?, len)
         };
         let to = if !end.is_finite() {
             0
         } else if end < 0.0 {
-            max(len.wrapping_add(end as isize), 0)
+            max(len.wrapping_add(f64_to_isize(end)?), 0)
         } else {
-            min(end as isize, len)
+            min(f64_to_isize(end)?, len)
         };
 
         let span = max(to.wrapping_sub(from), 0);
@@ -1259,4 +1262,14 @@ impl Array {
     pub(crate) fn entries(this: &Value, _: &[Value], context: &mut Context) -> Result<Value> {
         ArrayIterator::create_array_iterator(context, this.clone(), ArrayIterationKind::KeyAndValue)
     }
+}
+
+fn f64_to_isize(v: f64) -> Result<isize> {
+    v.to_isize()
+        .ok_or_else(|| Value::string("cannot convert f64 to isize - out of range"))
+}
+
+fn f64_to_usize(v: f64) -> Result<usize> {
+    v.to_usize()
+        .ok_or_else(|| Value::string("cannot convert f64 to usize - out of range"))
 }
