@@ -879,23 +879,31 @@ impl Array {
 
         let default_value = Value::undefined();
         let value = args.get(0).unwrap_or(&default_value);
-        let relative_start =
-            f64_to_isize(args.get(1).unwrap_or(&default_value).to_number(context)?)?;
+        let relative_start_val = args.get(1).unwrap_or(&default_value);
+        let relative_start = if relative_start_val.is_undefined() {
+            0.0
+        } else {
+            relative_start_val.to_number(context)?
+        };
         let relative_end_val = args.get(2).unwrap_or(&default_value);
         let relative_end = if relative_end_val.is_undefined() {
-            len
+            len as f64
         } else {
-            f64_to_isize(relative_end_val.to_number(context)?)?
+            relative_end_val.to_number(context)?
         };
-        let start = if relative_start < 0 {
-            max(len + relative_start, 0)
+        let start = if !relative_start.is_finite() {
+            0
+        } else if relative_start < 0.0 {
+            max(len + f64_to_isize(relative_start)?, 0)
         } else {
-            min(relative_start, len)
+            min(f64_to_isize(relative_start)?, len)
         };
-        let fin = if relative_end < 0 {
-            max(len + relative_end, 0)
+        let fin = if !relative_end.is_finite() {
+            0
+        } else if relative_end < 0.0 {
+            max(len + f64_to_isize(relative_end)?, 0)
         } else {
-            min(relative_end, len)
+            min(f64_to_isize(relative_end)?, len)
         };
 
         for i in start..fin {
