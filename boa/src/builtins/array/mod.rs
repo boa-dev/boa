@@ -875,36 +875,20 @@ impl Array {
     /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.fill
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/fill
     pub(crate) fn fill(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
-        let len: isize = this.get_field("length").to_length(context)?.try_into()?;
+        let len = this.get_field("length").to_length(context)?;
 
         let default_value = Value::undefined();
         let value = args.get(0).unwrap_or(&default_value);
-        let relative_start_val = args.get(1).unwrap_or(&default_value);
-        let relative_start = if relative_start_val.is_undefined() {
-            0.0
-        } else {
-            relative_start_val.to_number(context)?
-        };
-        let relative_end_val = args.get(2).unwrap_or(&default_value);
-        let relative_end = if relative_end_val.is_undefined() {
-            len as f64
-        } else {
-            relative_end_val.to_number(context)?
-        };
-        let start = if !relative_start.is_finite() {
-            0
-        } else if relative_start < 0.0 {
-            max(len + f64_to_isize(relative_start)?, 0)
-        } else {
-            min(f64_to_isize(relative_start)?, len)
-        };
-        let fin = if !relative_end.is_finite() {
-            0
-        } else if relative_end < 0.0 {
-            max(len + f64_to_isize(relative_end)?, 0)
-        } else {
-            min(f64_to_isize(relative_end)?, len)
-        };
+        let start = args
+            .get(1)
+            .unwrap_or(&default_value)
+            .to_integer_or_infinity(context)?
+            .as_relative_start(len);
+        let fin = args
+            .get(2)
+            .unwrap_or(&default_value)
+            .to_integer_or_infinity(context)?
+            .as_relative_end(len);
 
         for i in start..fin {
             this.set_field(i, value.clone());
@@ -959,37 +943,26 @@ impl Array {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/slice
     pub(crate) fn slice(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
         let new_array = Self::new_array(context)?;
-        let len: isize = this.get_field("length").to_length(context)?.try_into()?;
 
-        let start = match args.get(0) {
-            Some(v) => v.to_integer(context)?,
-            None => 0.0,
-        };
-        let end = match args.get(1) {
-            Some(v) => v.to_integer(context)?,
-            None => len as f64,
-        };
+        let len = this.get_field("length").to_length(context)?;
 
-        let from = if !start.is_finite() {
-            0
-        } else if start < 0.0 {
-            max(len.wrapping_add(f64_to_isize(start)?), 0)
-        } else {
-            min(f64_to_isize(start)?, len)
-        };
-        let to = if !end.is_finite() {
-            0
-        } else if end < 0.0 {
-            max(len.wrapping_add(f64_to_isize(end)?), 0)
-        } else {
-            min(f64_to_isize(end)?, len)
-        };
+        let default_value = Value::undefined();
+        let from = args
+            .get(0)
+            .unwrap_or(&default_value)
+            .to_integer_or_infinity(context)?
+            .as_relative_start(len);
+        let to = args
+            .get(1)
+            .unwrap_or(&default_value)
+            .to_integer_or_infinity(context)?
+            .as_relative_end(len);
 
-        let span = max(to.wrapping_sub(from), 0);
+        let span = max(to.saturating_sub(from), 0);
         let mut new_array_len: i32 = 0;
-        for i in from..from.wrapping_add(span) {
+        for i in from..from.saturating_add(span) {
             new_array.set_field(new_array_len, this.get_field(i));
-            new_array_len = new_array_len.wrapping_add(1);
+            new_array_len = new_array_len.saturating_add(1);
         }
         new_array.set_field("length", Value::from(new_array_len));
         Ok(new_array)

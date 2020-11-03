@@ -32,6 +32,7 @@ mod operations;
 mod rcbigint;
 mod rcstring;
 mod rcsymbol;
+mod to_integer_or_infinity;
 mod r#type;
 
 pub use conversions::*;
@@ -43,6 +44,7 @@ pub use r#type::Type;
 pub use rcbigint::RcBigInt;
 pub use rcstring::RcString;
 pub use rcsymbol::RcSymbol;
+pub use to_integer_or_infinity::*;
 
 /// A Javascript value
 #[derive(Trace, Finalize, Debug, Clone)]

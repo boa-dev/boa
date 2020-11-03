@@ -519,6 +519,81 @@ toString: {
     );
 }
 
+#[test]
+fn to_integer_or_infinity() {
+    let mut context = Context::new();
+
+    assert_eq!(
+        Value::undefined().to_integer_or_infinity(&mut context),
+        Ok(IntegerOrInfinity::Undefined)
+    );
+    assert_eq!(
+        Value::from(NAN).to_integer_or_infinity(&mut context),
+        Ok(IntegerOrInfinity::Integer(0))
+    );
+    assert_eq!(
+        Value::from(0.0).to_integer_or_infinity(&mut context),
+        Ok(IntegerOrInfinity::Integer(0))
+    );
+    assert_eq!(
+        Value::from(-0.0).to_integer_or_infinity(&mut context),
+        Ok(IntegerOrInfinity::Integer(0))
+    );
+
+    assert_eq!(
+        Value::from(f64::INFINITY).to_integer_or_infinity(&mut context),
+        Ok(IntegerOrInfinity::PositiveInfinity)
+    );
+    assert_eq!(
+        Value::from(f64::NEG_INFINITY).to_integer_or_infinity(&mut context),
+        Ok(IntegerOrInfinity::NegativeInfinity)
+    );
+
+    assert_eq!(
+        Value::from(10).to_integer_or_infinity(&mut context),
+        Ok(IntegerOrInfinity::Integer(10))
+    );
+    assert_eq!(
+        Value::from(11.0).to_integer_or_infinity(&mut context),
+        Ok(IntegerOrInfinity::Integer(11))
+    );
+    assert_eq!(
+        Value::from("12").to_integer_or_infinity(&mut context),
+        Ok(IntegerOrInfinity::Integer(12))
+    );
+    assert_eq!(
+        Value::from(true).to_integer_or_infinity(&mut context),
+        Ok(IntegerOrInfinity::Integer(1))
+    );
+
+    assert_eq!(IntegerOrInfinity::Undefined.as_relative_start(10), 0);
+    assert_eq!(IntegerOrInfinity::NegativeInfinity.as_relative_start(10), 0);
+    assert_eq!(
+        IntegerOrInfinity::PositiveInfinity.as_relative_start(10),
+        10
+    );
+    assert_eq!(IntegerOrInfinity::Integer(-1).as_relative_start(10), 9);
+    assert_eq!(IntegerOrInfinity::Integer(1).as_relative_start(10), 1);
+    assert_eq!(IntegerOrInfinity::Integer(-11).as_relative_start(10), 0);
+    assert_eq!(IntegerOrInfinity::Integer(11).as_relative_start(10), 10);
+    assert_eq!(
+        IntegerOrInfinity::Integer(isize::MIN).as_relative_start(10),
+        0
+    );
+
+    assert_eq!(IntegerOrInfinity::Undefined.as_relative_end(10), 10);
+    assert_eq!(IntegerOrInfinity::NegativeInfinity.as_relative_end(10), 0);
+    assert_eq!(IntegerOrInfinity::PositiveInfinity.as_relative_end(10), 10);
+    assert_eq!(IntegerOrInfinity::Integer(-1).as_relative_end(10), 9);
+    assert_eq!(IntegerOrInfinity::Integer(1).as_relative_end(10), 1);
+    assert_eq!(IntegerOrInfinity::Integer(-11).as_relative_end(10), 0);
+    assert_eq!(IntegerOrInfinity::Integer(11).as_relative_end(10), 10);
+    assert_eq!(
+        IntegerOrInfinity::Integer(isize::MIN).as_relative_end(10),
+        0
+    );
+}
+
 /// Test cyclic conversions that previously caused stack overflows
 /// Relevant mitigations for these are in `GcObject::ordinary_to_primitive` and
 /// `GcObject::to_json`
