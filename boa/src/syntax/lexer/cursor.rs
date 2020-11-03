@@ -64,7 +64,7 @@ where
         self.iter.peek_byte()
     }
 
-    /// Peeks the next n bytes, the maximum number of peeked bytes is 4 (n <= 4)
+    /// Peeks the next n bytes, the maximum number of peeked bytes is 4 (n <= 4).
     #[inline]
     pub(super) fn peek_n(&mut self, n: u8) -> Result<u32, Error> {
         let _timer = BoaProfiler::global().start_event("cursor::peek_n()", "Lexing");
@@ -72,7 +72,7 @@ where
         self.iter.peek_n_bytes(n)
     }
 
-    /// Peeks the next character.
+    /// Peeks the next UTF-8 character in u32 code point.
     #[inline]
     pub(super) fn peek_char(&mut self) -> Result<Option<u32>, Error> {
         let _timer = BoaProfiler::global().start_event("cursor::peek_char()", "Lexing");
@@ -80,7 +80,7 @@ where
         self.iter.peek_char()
     }
 
-    /// Compares the character passed in to the next character, if they match true is returned and the buffer is incremented
+    /// Compares the byte passed in to the next byte, if they match true is returned and the buffer is incremented
     #[inline]
     pub(super) fn next_is(&mut self, byte: u8) -> io::Result<bool> {
         let _timer = BoaProfiler::global().start_event("cursor::next_is()", "Lexing");
@@ -96,7 +96,7 @@ where
 
     /// Applies the predicate to the next character and returns the result.
     /// Returns false if the next character is not a valid ascii or there is no next character.
-    /// Otherwise returns the result from the predicate on the ascii char
+    /// Otherwise returns the result from the predicate on the ascii in char
     ///
     /// The buffer is not incremented.
     #[inline]
@@ -115,9 +115,9 @@ where
         })
     }
 
-    /// Applies the predicate to the next character and returns the result.
-    /// Returns false if the next character is not a valid ascii or there is no next character.
-    /// Otherwise returns the result from the predicate on the ascii char
+    /// Applies the predicate to the next UTF-8 character and returns the result.
+    /// Returns false if there is no next character, otherwise returns the result from the
+    /// predicate on the ascii char
     ///
     /// The buffer is not incremented.
     #[inline]
@@ -134,9 +134,10 @@ where
         })
     }
 
-    /// Fills the buffer with all characters until the stop character is found.
+    /// Fills the buffer with all bytes until the stop byte is found.
+    /// Returns error when reaching the end of the buffer.
     ///
-    /// Note: It will not add the stop character to the buffer.
+    /// Note that all bytes up until the stop byte are added to the buffer, including the byte right before.
     pub(super) fn take_until(&mut self, stop: u8, buf: &mut Vec<u8>) -> io::Result<()> {
         let _timer = BoaProfiler::global().start_event("cursor::take_until()", "Lexing");
 
@@ -154,10 +155,10 @@ where
         }
     }
 
-    /// Fills the buffer with characters until the first ascii character (x) for which the predicate (pred) is false
-    /// (or the next character is none).
+    /// Fills the buffer with characters until the first ascii character for which the predicate (pred) is false.
+    /// It also stops when the next character is not an ascii or there is no next character.
     ///
-    /// Note that all characters up until x are added to the buffer including the character right before.
+    /// Note that all characters up until the stop character are added to the buffer, including the character right before.
     pub(super) fn take_while_ascii_pred<F>(&mut self, buf: &mut Vec<u8>, pred: &F) -> io::Result<()>
     where
         F: Fn(char) -> bool,
@@ -176,10 +177,10 @@ where
         }
     }
 
-    /// Fills the buffer with characters until the first ascii character (x) for which the predicate (pred) is false
-    /// (or the next character is none).
+    /// Fills the buffer with characters until the first character for which the predicate (pred) is false.
+    /// It also stops when there is no next character.
     ///
-    /// Note that all characters up until x are added to the buffer including the character right before.
+    /// Note that all characters up until the stop character are added to the buffer, including the character right before.
     pub(super) fn take_while_char_pred<F>(&mut self, buf: &mut Vec<u8>, pred: &F) -> io::Result<()>
     where
         F: Fn(u32) -> bool,
@@ -211,7 +212,7 @@ where
         self.iter.fill_bytes(buf)
     }
 
-    /// Retrieves the next UTF-8 character.
+    /// Retrieves the next byte.
     #[inline]
     pub(crate) fn next_byte(&mut self) -> Result<Option<u8>, Error> {
         let _timer = BoaProfiler::global().start_event("cursor::next_byte()", "Lexing");
@@ -298,7 +299,7 @@ impl<R> InnerIter<R>
 where
     R: Read,
 {
-    /// It will fill the buffer with checked ASCII bytes.
+    /// It will fill the buffer with checked ascii bytes.
     ///
     /// This expects for the buffer to be fully filled. If it's not, it will fail with an
     /// `UnexpectedEof` I/O error.
@@ -327,6 +328,7 @@ where
     }
 
     /// Peeks the next byte.
+    #[inline]
     pub(super) fn peek_byte(&mut self) -> Result<Option<u8>, Error> {
         if self.num_peeked_bytes > 0 {
             let byte = self.peeked_bytes as u8;
@@ -343,7 +345,8 @@ where
         }
     }
 
-    /// Peeks the next n bytes, the maximum number of peeked bytes is 4 (n <= 4)
+    /// Peeks the next n bytes, the maximum number of peeked bytes is 4 (n <= 4).
+    #[inline]
     pub(super) fn peek_n_bytes(&mut self, n: u8) -> Result<u32, Error> {
         while self.num_peeked_bytes < n && self.num_peeked_bytes < 4 {
             match self.iter.next().transpose()? {
@@ -364,7 +367,8 @@ where
         }
     }
 
-    /// Peeks the next unchecked code point
+    /// Peeks the next unchecked character in u32 code point.
+    #[inline]
     pub(super) fn peek_char(&mut self) -> Result<Option<u32>, Error> {
         if let Some(ch) = self.peeked_char {
             Ok(ch)
@@ -408,6 +412,7 @@ where
     }
 
     /// Retrieves the next byte
+    #[inline]
     fn next_byte(&mut self) -> io::Result<Option<u8>> {
         self.peeked_char = None;
         if self.num_peeked_bytes > 0 {
@@ -421,6 +426,7 @@ where
     }
 
     /// Retrieves the next unchecked char in u32 code point.
+    #[inline]
     fn next_char(&mut self) -> io::Result<Option<u32>> {
         if let Some(ch) = self.peeked_char.take() {
             if let Some(c) = ch {
