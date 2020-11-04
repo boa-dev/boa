@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/num-bigint-0.3.0/src/algorithms.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>algorithms.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../num_bigint/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/num-bigint-0.3.1/src/algorithms.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>algorithms.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../num_bigint/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
                 <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
@@ -846,6 +846,94 @@
 <span id="845">845</span>
 <span id="846">846</span>
 <span id="847">847</span>
+<span id="848">848</span>
+<span id="849">849</span>
+<span id="850">850</span>
+<span id="851">851</span>
+<span id="852">852</span>
+<span id="853">853</span>
+<span id="854">854</span>
+<span id="855">855</span>
+<span id="856">856</span>
+<span id="857">857</span>
+<span id="858">858</span>
+<span id="859">859</span>
+<span id="860">860</span>
+<span id="861">861</span>
+<span id="862">862</span>
+<span id="863">863</span>
+<span id="864">864</span>
+<span id="865">865</span>
+<span id="866">866</span>
+<span id="867">867</span>
+<span id="868">868</span>
+<span id="869">869</span>
+<span id="870">870</span>
+<span id="871">871</span>
+<span id="872">872</span>
+<span id="873">873</span>
+<span id="874">874</span>
+<span id="875">875</span>
+<span id="876">876</span>
+<span id="877">877</span>
+<span id="878">878</span>
+<span id="879">879</span>
+<span id="880">880</span>
+<span id="881">881</span>
+<span id="882">882</span>
+<span id="883">883</span>
+<span id="884">884</span>
+<span id="885">885</span>
+<span id="886">886</span>
+<span id="887">887</span>
+<span id="888">888</span>
+<span id="889">889</span>
+<span id="890">890</span>
+<span id="891">891</span>
+<span id="892">892</span>
+<span id="893">893</span>
+<span id="894">894</span>
+<span id="895">895</span>
+<span id="896">896</span>
+<span id="897">897</span>
+<span id="898">898</span>
+<span id="899">899</span>
+<span id="900">900</span>
+<span id="901">901</span>
+<span id="902">902</span>
+<span id="903">903</span>
+<span id="904">904</span>
+<span id="905">905</span>
+<span id="906">906</span>
+<span id="907">907</span>
+<span id="908">908</span>
+<span id="909">909</span>
+<span id="910">910</span>
+<span id="911">911</span>
+<span id="912">912</span>
+<span id="913">913</span>
+<span id="914">914</span>
+<span id="915">915</span>
+<span id="916">916</span>
+<span id="917">917</span>
+<span id="918">918</span>
+<span id="919">919</span>
+<span id="920">920</span>
+<span id="921">921</span>
+<span id="922">922</span>
+<span id="923">923</span>
+<span id="924">924</span>
+<span id="925">925</span>
+<span id="926">926</span>
+<span id="927">927</span>
+<span id="928">928</span>
+<span id="929">929</span>
+<span id="930">930</span>
+<span id="931">931</span>
+<span id="932">932</span>
+<span id="933">933</span>
+<span id="934">934</span>
+<span id="935">935</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">std_alloc</span>::{<span class="ident">Cow</span>, <span class="ident">Vec</span>};
 <span class="kw">use</span> <span class="ident">core</span>::<span class="ident">cmp</span>;
@@ -854,6 +942,12 @@
 <span class="kw">use</span> <span class="ident">core</span>::<span class="ident">mem</span>;
 <span class="kw">use</span> <span class="ident">num_traits</span>::{<span class="ident">One</span>, <span class="ident">PrimInt</span>, <span class="ident">Zero</span>};
 
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">use_addcarry</span>, <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;x86_64&quot;</span>))]</span>
+<span class="kw">use</span> <span class="ident">core</span>::<span class="ident">arch</span>::<span class="ident">x86_64</span> <span class="kw">as</span> <span class="ident">arch</span>;
+
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">use_addcarry</span>, <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;x86&quot;</span>))]</span>
+<span class="kw">use</span> <span class="ident">core</span>::<span class="ident">arch</span>::<span class="ident">x86</span> <span class="kw">as</span> <span class="ident">arch</span>;
+
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">biguint</span>::<span class="ident">biguint_from_vec</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">biguint</span>::<span class="ident">BigUint</span>;
 
@@ -861,28 +955,67 @@
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">bigint</span>::<span class="ident">Sign</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">bigint</span>::<span class="ident">Sign</span>::{<span class="ident">Minus</span>, <span class="ident">NoSign</span>, <span class="ident">Plus</span>};
 
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">big_digit</span>::{<span class="self">self</span>, <span class="ident">BigDigit</span>, <span class="ident">DoubleBigDigit</span>, <span class="ident">SignedDoubleBigDigit</span>};
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">big_digit</span>::{<span class="self">self</span>, <span class="ident">BigDigit</span>, <span class="ident">DoubleBigDigit</span>};
 
-<span class="comment">// Generic functions for add/subtract/multiply with carry/borrow:</span>
+<span class="comment">// only needed for the fallback implementation of `sbb`</span>
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">use_addcarry</span>))]</span>
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">big_digit</span>::<span class="ident">SignedDoubleBigDigit</span>;
+
+<span class="comment">// Generic functions for add/subtract/multiply with carry/borrow. These are specialized</span>
+<span class="comment">// for some platforms to take advantage of intrinsics, etc.</span>
 
 <span class="comment">// Add with carry:</span>
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">use_addcarry</span>, <span class="ident">u64_digit</span>))]</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">fn</span> <span class="ident">adc</span>(<span class="ident">a</span>: <span class="ident">BigDigit</span>, <span class="ident">b</span>: <span class="ident">BigDigit</span>, <span class="ident">acc</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">DoubleBigDigit</span>) <span class="op">-&gt;</span> <span class="ident">BigDigit</span> {
-    <span class="kw-2">*</span><span class="ident">acc</span> <span class="op">+=</span> <span class="ident">DoubleBigDigit</span>::<span class="ident">from</span>(<span class="ident">a</span>);
-    <span class="kw-2">*</span><span class="ident">acc</span> <span class="op">+=</span> <span class="ident">DoubleBigDigit</span>::<span class="ident">from</span>(<span class="ident">b</span>);
-    <span class="kw">let</span> <span class="ident">lo</span> <span class="op">=</span> <span class="kw-2">*</span><span class="ident">acc</span> <span class="kw">as</span> <span class="ident">BigDigit</span>;
-    <span class="kw-2">*</span><span class="ident">acc</span> <span class="op">&gt;&gt;</span><span class="op">=</span> <span class="ident">big_digit</span>::<span class="ident">BITS</span>;
-    <span class="ident">lo</span>
+<span class="kw">fn</span> <span class="ident">adc</span>(<span class="ident">carry</span>: <span class="ident">u8</span>, <span class="ident">a</span>: <span class="ident">u64</span>, <span class="ident">b</span>: <span class="ident">u64</span>, <span class="ident">out</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">u64</span>) <span class="op">-&gt;</span> <span class="ident">u8</span> {
+    <span class="comment">// Safety: There are absolutely no safety concerns with calling `_addcarry_u64`.</span>
+    <span class="comment">// It&#39;s just unsafe for API consistency with other intrinsics.</span>
+    <span class="kw">unsafe</span> { <span class="ident">arch</span>::<span class="ident">_addcarry_u64</span>(<span class="ident">carry</span>, <span class="ident">a</span>, <span class="ident">b</span>, <span class="ident">out</span>) }
+}
+
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">use_addcarry</span>, <span class="ident">not</span>(<span class="ident">u64_digit</span>)))]</span>
+<span class="attribute">#[<span class="ident">inline</span>]</span>
+<span class="kw">fn</span> <span class="ident">adc</span>(<span class="ident">carry</span>: <span class="ident">u8</span>, <span class="ident">a</span>: <span class="ident">u32</span>, <span class="ident">b</span>: <span class="ident">u32</span>, <span class="ident">out</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">u32</span>) <span class="op">-&gt;</span> <span class="ident">u8</span> {
+    <span class="comment">// Safety: There are absolutely no safety concerns with calling `_addcarry_u32`.</span>
+    <span class="comment">// It&#39;s just unsafe for API consistency with other intrinsics.</span>
+    <span class="kw">unsafe</span> { <span class="ident">arch</span>::<span class="ident">_addcarry_u32</span>(<span class="ident">carry</span>, <span class="ident">a</span>, <span class="ident">b</span>, <span class="ident">out</span>) }
+}
+
+<span class="comment">// fallback for environments where we don&#39;t have an addcarry intrinsic</span>
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">use_addcarry</span>))]</span>
+<span class="attribute">#[<span class="ident">inline</span>]</span>
+<span class="kw">fn</span> <span class="ident">adc</span>(<span class="ident">carry</span>: <span class="ident">u8</span>, <span class="ident">a</span>: <span class="ident">BigDigit</span>, <span class="ident">b</span>: <span class="ident">BigDigit</span>, <span class="ident">out</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">BigDigit</span>) <span class="op">-&gt;</span> <span class="ident">u8</span> {
+    <span class="kw">let</span> <span class="ident">sum</span> <span class="op">=</span> <span class="ident">DoubleBigDigit</span>::<span class="ident">from</span>(<span class="ident">a</span>) <span class="op">+</span> <span class="ident">DoubleBigDigit</span>::<span class="ident">from</span>(<span class="ident">b</span>) <span class="op">+</span> <span class="ident">DoubleBigDigit</span>::<span class="ident">from</span>(<span class="ident">carry</span>);
+    <span class="kw-2">*</span><span class="ident">out</span> <span class="op">=</span> <span class="ident">sum</span> <span class="kw">as</span> <span class="ident">BigDigit</span>;
+    (<span class="ident">sum</span> <span class="op">&gt;&gt;</span> <span class="ident">big_digit</span>::<span class="ident">BITS</span>) <span class="kw">as</span> <span class="ident">u8</span>
 }
 
 <span class="comment">// Subtract with borrow:</span>
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">use_addcarry</span>, <span class="ident">u64_digit</span>))]</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">fn</span> <span class="ident">sbb</span>(<span class="ident">a</span>: <span class="ident">BigDigit</span>, <span class="ident">b</span>: <span class="ident">BigDigit</span>, <span class="ident">acc</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">SignedDoubleBigDigit</span>) <span class="op">-&gt;</span> <span class="ident">BigDigit</span> {
-    <span class="kw-2">*</span><span class="ident">acc</span> <span class="op">+=</span> <span class="ident">SignedDoubleBigDigit</span>::<span class="ident">from</span>(<span class="ident">a</span>);
-    <span class="kw-2">*</span><span class="ident">acc</span> <span class="op">-=</span> <span class="ident">SignedDoubleBigDigit</span>::<span class="ident">from</span>(<span class="ident">b</span>);
-    <span class="kw">let</span> <span class="ident">lo</span> <span class="op">=</span> <span class="kw-2">*</span><span class="ident">acc</span> <span class="kw">as</span> <span class="ident">BigDigit</span>;
-    <span class="kw-2">*</span><span class="ident">acc</span> <span class="op">&gt;&gt;</span><span class="op">=</span> <span class="ident">big_digit</span>::<span class="ident">BITS</span>;
-    <span class="ident">lo</span>
+<span class="kw">fn</span> <span class="ident">sbb</span>(<span class="ident">borrow</span>: <span class="ident">u8</span>, <span class="ident">a</span>: <span class="ident">u64</span>, <span class="ident">b</span>: <span class="ident">u64</span>, <span class="ident">out</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">u64</span>) <span class="op">-&gt;</span> <span class="ident">u8</span> {
+    <span class="comment">// Safety: There are absolutely no safety concerns with calling `_subborrow_u64`.</span>
+    <span class="comment">// It&#39;s just unsafe for API consistency with other intrinsics.</span>
+    <span class="kw">unsafe</span> { <span class="ident">arch</span>::<span class="ident">_subborrow_u64</span>(<span class="ident">borrow</span>, <span class="ident">a</span>, <span class="ident">b</span>, <span class="ident">out</span>) }
+}
+
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">use_addcarry</span>, <span class="ident">not</span>(<span class="ident">u64_digit</span>)))]</span>
+<span class="attribute">#[<span class="ident">inline</span>]</span>
+<span class="kw">fn</span> <span class="ident">sbb</span>(<span class="ident">borrow</span>: <span class="ident">u8</span>, <span class="ident">a</span>: <span class="ident">u32</span>, <span class="ident">b</span>: <span class="ident">u32</span>, <span class="ident">out</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">u32</span>) <span class="op">-&gt;</span> <span class="ident">u8</span> {
+    <span class="comment">// Safety: There are absolutely no safety concerns with calling `_subborrow_u32`.</span>
+    <span class="comment">// It&#39;s just unsafe for API consistency with other intrinsics.</span>
+    <span class="kw">unsafe</span> { <span class="ident">arch</span>::<span class="ident">_subborrow_u32</span>(<span class="ident">borrow</span>, <span class="ident">a</span>, <span class="ident">b</span>, <span class="ident">out</span>) }
+}
+
+<span class="comment">// fallback for environments where we don&#39;t have a subborrow intrinsic</span>
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">use_addcarry</span>))]</span>
+<span class="attribute">#[<span class="ident">inline</span>]</span>
+<span class="kw">fn</span> <span class="ident">sbb</span>(<span class="ident">borrow</span>: <span class="ident">u8</span>, <span class="ident">a</span>: <span class="ident">BigDigit</span>, <span class="ident">b</span>: <span class="ident">BigDigit</span>, <span class="ident">out</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">BigDigit</span>) <span class="op">-&gt;</span> <span class="ident">u8</span> {
+    <span class="kw">let</span> <span class="ident">difference</span> <span class="op">=</span> <span class="ident">SignedDoubleBigDigit</span>::<span class="ident">from</span>(<span class="ident">a</span>)
+        <span class="op">-</span> <span class="ident">SignedDoubleBigDigit</span>::<span class="ident">from</span>(<span class="ident">b</span>)
+        <span class="op">-</span> <span class="ident">SignedDoubleBigDigit</span>::<span class="ident">from</span>(<span class="ident">borrow</span>);
+    <span class="kw-2">*</span><span class="ident">out</span> <span class="op">=</span> <span class="ident">difference</span> <span class="kw">as</span> <span class="ident">BigDigit</span>;
+    <span class="ident">u8</span>::<span class="ident">from</span>(<span class="ident">difference</span> <span class="op">&lt;</span> <span class="number">0</span>)
 }
 
 <span class="attribute">#[<span class="ident">inline</span>]</span>
@@ -989,12 +1122,12 @@
     <span class="kw">let</span> (<span class="ident">a_lo</span>, <span class="ident">a_hi</span>) <span class="op">=</span> <span class="ident">a</span>.<span class="ident">split_at_mut</span>(<span class="ident">b</span>.<span class="ident">len</span>());
 
     <span class="kw">for</span> (<span class="ident">a</span>, <span class="ident">b</span>) <span class="kw">in</span> <span class="ident">a_lo</span>.<span class="ident">iter_mut</span>().<span class="ident">zip</span>(<span class="ident">b</span>) {
-        <span class="kw-2">*</span><span class="ident">a</span> <span class="op">=</span> <span class="ident">adc</span>(<span class="kw-2">*</span><span class="ident">a</span>, <span class="kw-2">*</span><span class="ident">b</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">carry</span>);
+        <span class="ident">carry</span> <span class="op">=</span> <span class="ident">adc</span>(<span class="ident">carry</span>, <span class="kw-2">*</span><span class="ident">a</span>, <span class="kw-2">*</span><span class="ident">b</span>, <span class="ident">a</span>);
     }
 
     <span class="kw">if</span> <span class="ident">carry</span> <span class="op">!=</span> <span class="number">0</span> {
         <span class="kw">for</span> <span class="ident">a</span> <span class="kw">in</span> <span class="ident">a_hi</span> {
-            <span class="kw-2">*</span><span class="ident">a</span> <span class="op">=</span> <span class="ident">adc</span>(<span class="kw-2">*</span><span class="ident">a</span>, <span class="number">0</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">carry</span>);
+            <span class="ident">carry</span> <span class="op">=</span> <span class="ident">adc</span>(<span class="ident">carry</span>, <span class="kw-2">*</span><span class="ident">a</span>, <span class="number">0</span>, <span class="ident">a</span>);
             <span class="kw">if</span> <span class="ident">carry</span> <span class="op">==</span> <span class="number">0</span> {
                 <span class="kw">break</span>;
             }
@@ -1023,12 +1156,12 @@
     <span class="kw">let</span> (<span class="ident">b_lo</span>, <span class="ident">b_hi</span>) <span class="op">=</span> <span class="ident">b</span>.<span class="ident">split_at</span>(<span class="ident">len</span>);
 
     <span class="kw">for</span> (<span class="ident">a</span>, <span class="ident">b</span>) <span class="kw">in</span> <span class="ident">a_lo</span>.<span class="ident">iter_mut</span>().<span class="ident">zip</span>(<span class="ident">b_lo</span>) {
-        <span class="kw-2">*</span><span class="ident">a</span> <span class="op">=</span> <span class="ident">sbb</span>(<span class="kw-2">*</span><span class="ident">a</span>, <span class="kw-2">*</span><span class="ident">b</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">borrow</span>);
+        <span class="ident">borrow</span> <span class="op">=</span> <span class="ident">sbb</span>(<span class="ident">borrow</span>, <span class="kw-2">*</span><span class="ident">a</span>, <span class="kw-2">*</span><span class="ident">b</span>, <span class="ident">a</span>);
     }
 
     <span class="kw">if</span> <span class="ident">borrow</span> <span class="op">!=</span> <span class="number">0</span> {
         <span class="kw">for</span> <span class="ident">a</span> <span class="kw">in</span> <span class="ident">a_hi</span> {
-            <span class="kw-2">*</span><span class="ident">a</span> <span class="op">=</span> <span class="ident">sbb</span>(<span class="kw-2">*</span><span class="ident">a</span>, <span class="number">0</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">borrow</span>);
+            <span class="ident">borrow</span> <span class="op">=</span> <span class="ident">sbb</span>(<span class="ident">borrow</span>, <span class="kw-2">*</span><span class="ident">a</span>, <span class="number">0</span>, <span class="ident">a</span>);
             <span class="kw">if</span> <span class="ident">borrow</span> <span class="op">==</span> <span class="number">0</span> {
                 <span class="kw">break</span>;
             }
@@ -1044,16 +1177,16 @@
 
 <span class="comment">// Only for the Sub impl. `a` and `b` must have same length.</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">__sub2rev</span>(<span class="ident">a</span>: <span class="kw-2">&amp;</span>[<span class="ident">BigDigit</span>], <span class="ident">b</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">BigDigit</span>]) <span class="op">-&gt;</span> <span class="ident">BigDigit</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">__sub2rev</span>(<span class="ident">a</span>: <span class="kw-2">&amp;</span>[<span class="ident">BigDigit</span>], <span class="ident">b</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">BigDigit</span>]) <span class="op">-&gt;</span> <span class="ident">u8</span> {
     <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="ident">b</span>.<span class="ident">len</span>() <span class="op">==</span> <span class="ident">a</span>.<span class="ident">len</span>());
 
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">borrow</span> <span class="op">=</span> <span class="number">0</span>;
 
     <span class="kw">for</span> (<span class="ident">ai</span>, <span class="ident">bi</span>) <span class="kw">in</span> <span class="ident">a</span>.<span class="ident">iter</span>().<span class="ident">zip</span>(<span class="ident">b</span>) {
-        <span class="kw-2">*</span><span class="ident">bi</span> <span class="op">=</span> <span class="ident">sbb</span>(<span class="kw-2">*</span><span class="ident">ai</span>, <span class="kw-2">*</span><span class="ident">bi</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">borrow</span>);
+        <span class="ident">borrow</span> <span class="op">=</span> <span class="ident">sbb</span>(<span class="ident">borrow</span>, <span class="kw-2">*</span><span class="ident">ai</span>, <span class="kw-2">*</span><span class="ident">bi</span>, <span class="ident">bi</span>);
     }
 
-    <span class="ident">borrow</span> <span class="kw">as</span> <span class="ident">BigDigit</span>
+    <span class="ident">borrow</span>
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">sub2rev</span>(<span class="ident">a</span>: <span class="kw-2">&amp;</span>[<span class="ident">BigDigit</span>], <span class="ident">b</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">BigDigit</span>]) {
@@ -1108,11 +1241,43 @@
         <span class="kw-2">*</span><span class="ident">a</span> <span class="op">=</span> <span class="ident">mac_with_carry</span>(<span class="kw-2">*</span><span class="ident">a</span>, <span class="ident">b</span>, <span class="ident">c</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">carry</span>);
     }
 
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">a</span> <span class="op">=</span> <span class="ident">a_hi</span>.<span class="ident">iter_mut</span>();
-    <span class="kw">while</span> <span class="ident">carry</span> <span class="op">!=</span> <span class="number">0</span> {
-        <span class="kw">let</span> <span class="ident">a</span> <span class="op">=</span> <span class="ident">a</span>.<span class="ident">next</span>().<span class="ident">expect</span>(<span class="string">&quot;carry overflow during multiplication!&quot;</span>);
-        <span class="kw-2">*</span><span class="ident">a</span> <span class="op">=</span> <span class="ident">adc</span>(<span class="kw-2">*</span><span class="ident">a</span>, <span class="number">0</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">carry</span>);
+    <span class="kw">let</span> (<span class="ident">carry_hi</span>, <span class="ident">carry_lo</span>) <span class="op">=</span> <span class="ident">big_digit</span>::<span class="ident">from_doublebigdigit</span>(<span class="ident">carry</span>);
+
+    <span class="kw">let</span> <span class="ident">final_carry</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">carry_hi</span> <span class="op">==</span> <span class="number">0</span> {
+        <span class="ident">__add2</span>(<span class="ident">a_hi</span>, <span class="kw-2">&amp;</span>[<span class="ident">carry_lo</span>])
+    } <span class="kw">else</span> {
+        <span class="ident">__add2</span>(<span class="ident">a_hi</span>, <span class="kw-2">&amp;</span>[<span class="ident">carry_hi</span>, <span class="ident">carry_lo</span>])
+    };
+    <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">final_carry</span>, <span class="number">0</span>, <span class="string">&quot;carry overflow during multiplication!&quot;</span>);
+}
+
+<span class="doccomment">/// Subtract a multiple.</span>
+<span class="doccomment">/// a -= b * c</span>
+<span class="doccomment">/// Returns a borrow (if a &lt; b then borrow &gt; 0).</span>
+<span class="kw">fn</span> <span class="ident">sub_mul_digit_same_len</span>(<span class="ident">a</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">BigDigit</span>], <span class="ident">b</span>: <span class="kw-2">&amp;</span>[<span class="ident">BigDigit</span>], <span class="ident">c</span>: <span class="ident">BigDigit</span>) <span class="op">-&gt;</span> <span class="ident">BigDigit</span> {
+    <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="ident">a</span>.<span class="ident">len</span>() <span class="op">==</span> <span class="ident">b</span>.<span class="ident">len</span>());
+
+    <span class="comment">// carry is between -big_digit::MAX and 0, so to avoid overflow we store</span>
+    <span class="comment">// offset_carry = carry + big_digit::MAX</span>
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">offset_carry</span> <span class="op">=</span> <span class="ident">big_digit</span>::<span class="ident">MAX</span>;
+
+    <span class="kw">for</span> (<span class="ident">x</span>, <span class="ident">y</span>) <span class="kw">in</span> <span class="ident">a</span>.<span class="ident">iter_mut</span>().<span class="ident">zip</span>(<span class="ident">b</span>) {
+        <span class="comment">// We want to calculate sum = x - y * c + carry.</span>
+        <span class="comment">// sum &gt;= -(big_digit::MAX * big_digit::MAX) - big_digit::MAX</span>
+        <span class="comment">// sum &lt;= big_digit::MAX</span>
+        <span class="comment">// Offsetting sum by (big_digit::MAX &lt;&lt; big_digit::BITS) puts it in DoubleBigDigit range.</span>
+        <span class="kw">let</span> <span class="ident">offset_sum</span> <span class="op">=</span> <span class="ident">big_digit</span>::<span class="ident">to_doublebigdigit</span>(<span class="ident">big_digit</span>::<span class="ident">MAX</span>, <span class="kw-2">*</span><span class="ident">x</span>)
+            <span class="op">-</span> <span class="ident">big_digit</span>::<span class="ident">MAX</span> <span class="kw">as</span> <span class="ident">DoubleBigDigit</span>
+            <span class="op">+</span> <span class="ident">offset_carry</span> <span class="kw">as</span> <span class="ident">DoubleBigDigit</span>
+            <span class="op">-</span> <span class="kw-2">*</span><span class="ident">y</span> <span class="kw">as</span> <span class="ident">DoubleBigDigit</span> <span class="op">*</span> <span class="ident">c</span> <span class="kw">as</span> <span class="ident">DoubleBigDigit</span>;
+
+        <span class="kw">let</span> (<span class="ident">new_offset_carry</span>, <span class="ident">new_x</span>) <span class="op">=</span> <span class="ident">big_digit</span>::<span class="ident">from_doublebigdigit</span>(<span class="ident">offset_sum</span>);
+        <span class="ident">offset_carry</span> <span class="op">=</span> <span class="ident">new_offset_carry</span>;
+        <span class="kw-2">*</span><span class="ident">x</span> <span class="op">=</span> <span class="ident">new_x</span>;
     }
+
+    <span class="comment">// Return the borrow.</span>
+    <span class="ident">big_digit</span>::<span class="ident">MAX</span> <span class="op">-</span> <span class="ident">offset_carry</span>
 }
 
 <span class="kw">fn</span> <span class="ident">bigint_from_slice</span>(<span class="ident">slice</span>: <span class="kw-2">&amp;</span>[<span class="ident">BigDigit</span>]) <span class="op">-&gt;</span> <span class="ident">BigInt</span> {
@@ -1141,81 +1306,75 @@
             <span class="ident">mac_digit</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">acc</span>[<span class="ident">i</span>..], <span class="ident">y</span>, <span class="kw-2">*</span><span class="ident">xi</span>);
         }
     } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">x</span>.<span class="ident">len</span>() <span class="op">&lt;=</span> <span class="number">256</span> {
-        <span class="comment">/*
-         * Karatsuba multiplication:
-         *
-         * The idea is that we break x and y up into two smaller numbers that each have about half
-         * as many digits, like so (note that multiplying by b is just a shift):
-         *
-         * x = x0 + x1 * b
-         * y = y0 + y1 * b
-         *
-         * With some algebra, we can compute x * y with three smaller products, where the inputs to
-         * each of the smaller products have only about half as many digits as x and y:
-         *
-         * x * y = (x0 + x1 * b) * (y0 + y1 * b)
-         *
-         * x * y = x0 * y0
-         *       + x0 * y1 * b
-         *       + x1 * y0 * b
-         *       + x1 * y1 * b^2
-         *
-         * Let p0 = x0 * y0 and p2 = x1 * y1:
-         *
-         * x * y = p0
-         *       + (x0 * y1 + x1 * y0) * b
-         *       + p2 * b^2
-         *
-         * The real trick is that middle term:
-         *
-         *         x0 * y1 + x1 * y0
-         *
-         *       = x0 * y1 + x1 * y0 - p0 + p0 - p2 + p2
-         *
-         *       = x0 * y1 + x1 * y0 - x0 * y0 - x1 * y1 + p0 + p2
-         *
-         * Now we complete the square:
-         *
-         *       = -(x0 * y0 - x0 * y1 - x1 * y0 + x1 * y1) + p0 + p2
-         *
-         *       = -((x1 - x0) * (y1 - y0)) + p0 + p2
-         *
-         * Let p1 = (x1 - x0) * (y1 - y0), and substitute back into our original formula:
-         *
-         * x * y = p0
-         *       + (p0 + p2 - p1) * b
-         *       + p2 * b^2
-         *
-         * Where the three intermediate products are:
-         *
-         * p0 = x0 * y0
-         * p1 = (x1 - x0) * (y1 - y0)
-         * p2 = x1 * y1
-         *
-         * In doing the computation, we take great care to avoid unnecessary temporary variables
-         * (since creating a BigUint requires a heap allocation): thus, we rearrange the formula a
-         * bit so we can use the same temporary variable for all the intermediate products:
-         *
-         * x * y = p2 * b^2 + p2 * b
-         *       + p0 * b + p0
-         *       - p1 * b
-         *
-         * The other trick we use is instead of doing explicit shifts, we slice acc at the
-         * appropriate offset when doing the add.
-         */</span>
+        <span class="comment">// Karatsuba multiplication:</span>
+        <span class="comment">//</span>
+        <span class="comment">// The idea is that we break x and y up into two smaller numbers that each have about half</span>
+        <span class="comment">// as many digits, like so (note that multiplying by b is just a shift):</span>
+        <span class="comment">//</span>
+        <span class="comment">// x = x0 + x1 * b</span>
+        <span class="comment">// y = y0 + y1 * b</span>
+        <span class="comment">//</span>
+        <span class="comment">// With some algebra, we can compute x * y with three smaller products, where the inputs to</span>
+        <span class="comment">// each of the smaller products have only about half as many digits as x and y:</span>
+        <span class="comment">//</span>
+        <span class="comment">// x * y = (x0 + x1 * b) * (y0 + y1 * b)</span>
+        <span class="comment">//</span>
+        <span class="comment">// x * y = x0 * y0</span>
+        <span class="comment">//       + x0 * y1 * b</span>
+        <span class="comment">//       + x1 * y0 * b</span>
+        <span class="comment">//       + x1 * y1 * b^2</span>
+        <span class="comment">//</span>
+        <span class="comment">// Let p0 = x0 * y0 and p2 = x1 * y1:</span>
+        <span class="comment">//</span>
+        <span class="comment">// x * y = p0</span>
+        <span class="comment">//       + (x0 * y1 + x1 * y0) * b</span>
+        <span class="comment">//       + p2 * b^2</span>
+        <span class="comment">//</span>
+        <span class="comment">// The real trick is that middle term:</span>
+        <span class="comment">//</span>
+        <span class="comment">//         x0 * y1 + x1 * y0</span>
+        <span class="comment">//</span>
+        <span class="comment">//       = x0 * y1 + x1 * y0 - p0 + p0 - p2 + p2</span>
+        <span class="comment">//</span>
+        <span class="comment">//       = x0 * y1 + x1 * y0 - x0 * y0 - x1 * y1 + p0 + p2</span>
+        <span class="comment">//</span>
+        <span class="comment">// Now we complete the square:</span>
+        <span class="comment">//</span>
+        <span class="comment">//       = -(x0 * y0 - x0 * y1 - x1 * y0 + x1 * y1) + p0 + p2</span>
+        <span class="comment">//</span>
+        <span class="comment">//       = -((x1 - x0) * (y1 - y0)) + p0 + p2</span>
+        <span class="comment">//</span>
+        <span class="comment">// Let p1 = (x1 - x0) * (y1 - y0), and substitute back into our original formula:</span>
+        <span class="comment">//</span>
+        <span class="comment">// x * y = p0</span>
+        <span class="comment">//       + (p0 + p2 - p1) * b</span>
+        <span class="comment">//       + p2 * b^2</span>
+        <span class="comment">//</span>
+        <span class="comment">// Where the three intermediate products are:</span>
+        <span class="comment">//</span>
+        <span class="comment">// p0 = x0 * y0</span>
+        <span class="comment">// p1 = (x1 - x0) * (y1 - y0)</span>
+        <span class="comment">// p2 = x1 * y1</span>
+        <span class="comment">//</span>
+        <span class="comment">// In doing the computation, we take great care to avoid unnecessary temporary variables</span>
+        <span class="comment">// (since creating a BigUint requires a heap allocation): thus, we rearrange the formula a</span>
+        <span class="comment">// bit so we can use the same temporary variable for all the intermediate products:</span>
+        <span class="comment">//</span>
+        <span class="comment">// x * y = p2 * b^2 + p2 * b</span>
+        <span class="comment">//       + p0 * b + p0</span>
+        <span class="comment">//       - p1 * b</span>
+        <span class="comment">//</span>
+        <span class="comment">// The other trick we use is instead of doing explicit shifts, we slice acc at the</span>
+        <span class="comment">// appropriate offset when doing the add.</span>
 
-        <span class="comment">/*
-         * When x is smaller than y, it&#39;s significantly faster to pick b such that x is split in
-         * half, not y:
-         */</span>
+        <span class="comment">// When x is smaller than y, it&#39;s significantly faster to pick b such that x is split in</span>
+        <span class="comment">// half, not y:</span>
         <span class="kw">let</span> <span class="ident">b</span> <span class="op">=</span> <span class="ident">x</span>.<span class="ident">len</span>() <span class="op">/</span> <span class="number">2</span>;
         <span class="kw">let</span> (<span class="ident">x0</span>, <span class="ident">x1</span>) <span class="op">=</span> <span class="ident">x</span>.<span class="ident">split_at</span>(<span class="ident">b</span>);
         <span class="kw">let</span> (<span class="ident">y0</span>, <span class="ident">y1</span>) <span class="op">=</span> <span class="ident">y</span>.<span class="ident">split_at</span>(<span class="ident">b</span>);
 
-        <span class="comment">/*
-         * We reuse the same BigUint for all the intermediate multiplies and have to size p
-         * appropriately here: x1.len() &gt;= x0.len and y1.len() &gt;= y0.len():
-         */</span>
+        <span class="comment">// We reuse the same BigUint for all the intermediate multiplies and have to size p</span>
+        <span class="comment">// appropriately here: x1.len() &gt;= x0.len and y1.len() &gt;= y0.len():</span>
         <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">x1</span>.<span class="ident">len</span>() <span class="op">+</span> <span class="ident">y1</span>.<span class="ident">len</span>() <span class="op">+</span> <span class="number">1</span>;
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">p</span> <span class="op">=</span> <span class="ident">BigUint</span> { <span class="ident">data</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="number">0</span>; <span class="ident">len</span>] };
 
@@ -1486,81 +1645,98 @@
     (<span class="ident">q</span>, <span class="ident">r</span> <span class="op">&gt;&gt;</span> <span class="ident">shift</span>)
 }
 
-<span class="doccomment">/// an implementation of Knuth, TAOCP vol 2 section 4.3, algorithm D</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Correctness</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This function requires the following conditions to run correctly and/or effectively</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// - `a &gt; b`</span>
-<span class="doccomment">/// - `d.data.len() &gt; 1`</span>
-<span class="doccomment">/// - `d.data.last().unwrap().leading_zeros() == 0`</span>
+<span class="doccomment">/// An implementation of the base division algorithm.</span>
+<span class="doccomment">/// Knuth, TAOCP vol 2 section 4.3.1, algorithm D, with an improvement from exercises 19-21.</span>
 <span class="kw">fn</span> <span class="ident">div_rem_core</span>(<span class="kw-2">mut</span> <span class="ident">a</span>: <span class="ident">BigUint</span>, <span class="ident">b</span>: <span class="kw-2">&amp;</span><span class="ident">BigUint</span>) <span class="op">-&gt;</span> (<span class="ident">BigUint</span>, <span class="ident">BigUint</span>) {
-    <span class="comment">// The algorithm works by incrementally calculating &quot;guesses&quot;, q0, for part of the</span>
-    <span class="comment">// remainder. Once we have any number q0 such that q0 * b &lt;= a, we can set</span>
+    <span class="macro">debug_assert</span><span class="macro">!</span>(
+        <span class="ident">a</span>.<span class="ident">data</span>.<span class="ident">len</span>() <span class="op">&gt;=</span> <span class="ident">b</span>.<span class="ident">data</span>.<span class="ident">len</span>()
+            <span class="op">&amp;&amp;</span> <span class="ident">b</span>.<span class="ident">data</span>.<span class="ident">len</span>() <span class="op">&gt;</span> <span class="number">1</span>
+            <span class="op">&amp;&amp;</span> <span class="ident">b</span>.<span class="ident">data</span>.<span class="ident">last</span>().<span class="ident">unwrap</span>().<span class="ident">leading_zeros</span>() <span class="op">==</span> <span class="number">0</span>
+    );
+
+    <span class="comment">// The algorithm works by incrementally calculating &quot;guesses&quot;, q0, for the next digit of the</span>
+    <span class="comment">// quotient. Once we have any number q0 such that (q0 &lt;&lt; j) * b &lt;= a, we can set</span>
     <span class="comment">//</span>
-    <span class="comment">//     q += q0</span>
-    <span class="comment">//     a -= q0 * b</span>
+    <span class="comment">//     q += q0 &lt;&lt; j</span>
+    <span class="comment">//     a -= (q0 &lt;&lt; j) * b</span>
     <span class="comment">//</span>
     <span class="comment">// and then iterate until a &lt; b. Then, (q, a) will be our desired quotient and remainder.</span>
     <span class="comment">//</span>
-    <span class="comment">// q0, our guess, is calculated by dividing the last few digits of a by the last digit of b</span>
-    <span class="comment">// - this should give us a guess that is &quot;close&quot; to the actual quotient, but is possibly</span>
-    <span class="comment">// greater than the actual quotient. If q0 * b &gt; a, we simply use iterated subtraction</span>
-    <span class="comment">// until we have a guess such that q0 * b &lt;= a.</span>
+    <span class="comment">// q0, our guess, is calculated by dividing the last three digits of a by the last two digits of</span>
+    <span class="comment">// b - this will give us a guess that is close to the actual quotient, but is possibly greater.</span>
+    <span class="comment">// It can only be greater by 1 and only in rare cases, with probability at most</span>
+    <span class="comment">// 2^-(big_digit::BITS-1) for random a, see TAOCP 4.3.1 exercise 21.</span>
     <span class="comment">//</span>
+    <span class="comment">// If the quotient turns out to be too large, we adjust it by 1:</span>
+    <span class="comment">// q -= 1 &lt;&lt; j</span>
+    <span class="comment">// a += b &lt;&lt; j</span>
 
-    <span class="kw">let</span> <span class="ident">bn</span> <span class="op">=</span> <span class="kw-2">*</span><span class="ident">b</span>.<span class="ident">data</span>.<span class="ident">last</span>().<span class="ident">unwrap</span>();
+    <span class="comment">// a0 stores an additional extra most significant digit of the dividend, not stored in a.</span>
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">a0</span> <span class="op">=</span> <span class="number">0</span>;
+
+    <span class="comment">// [b1, b0] are the two most significant digits of the divisor. They never change.</span>
+    <span class="kw">let</span> <span class="ident">b0</span> <span class="op">=</span> <span class="kw-2">*</span><span class="ident">b</span>.<span class="ident">data</span>.<span class="ident">last</span>().<span class="ident">unwrap</span>();
+    <span class="kw">let</span> <span class="ident">b1</span> <span class="op">=</span> <span class="ident">b</span>.<span class="ident">data</span>[<span class="ident">b</span>.<span class="ident">data</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="number">2</span>];
+
     <span class="kw">let</span> <span class="ident">q_len</span> <span class="op">=</span> <span class="ident">a</span>.<span class="ident">data</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="ident">b</span>.<span class="ident">data</span>.<span class="ident">len</span>() <span class="op">+</span> <span class="number">1</span>;
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">q</span> <span class="op">=</span> <span class="ident">BigUint</span> {
         <span class="ident">data</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="number">0</span>; <span class="ident">q_len</span>],
     };
 
-    <span class="comment">// We reuse the same temporary to avoid hitting the allocator in our inner loop - this is</span>
-    <span class="comment">// sized to hold a0 (in the common case; if a particular digit of the quotient is zero a0</span>
-    <span class="comment">// can be bigger).</span>
-    <span class="comment">//</span>
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">tmp</span> <span class="op">=</span> <span class="ident">BigUint</span> {
-        <span class="ident">data</span>: <span class="ident">Vec</span>::<span class="ident">with_capacity</span>(<span class="number">2</span>),
-    };
-
     <span class="kw">for</span> <span class="ident">j</span> <span class="kw">in</span> (<span class="number">0</span>..<span class="ident">q_len</span>).<span class="ident">rev</span>() {
-        <span class="comment">/*
-         * When calculating our next guess q0, we don&#39;t need to consider the digits below j
-         * + b.data.len() - 1: we&#39;re guessing digit j of the quotient (i.e. q0 &lt;&lt; j) from
-         * digit bn of the divisor (i.e. bn &lt;&lt; (b.data.len() - 1) - so the product of those
-         * two numbers will be zero in all digits up to (j + b.data.len() - 1).
-         */</span>
-        <span class="kw">let</span> <span class="ident">offset</span> <span class="op">=</span> <span class="ident">j</span> <span class="op">+</span> <span class="ident">b</span>.<span class="ident">data</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="number">1</span>;
-        <span class="kw">if</span> <span class="ident">offset</span> <span class="op">&gt;=</span> <span class="ident">a</span>.<span class="ident">data</span>.<span class="ident">len</span>() {
-            <span class="kw">continue</span>;
+        <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="ident">a</span>.<span class="ident">data</span>.<span class="ident">len</span>() <span class="op">==</span> <span class="ident">b</span>.<span class="ident">data</span>.<span class="ident">len</span>() <span class="op">+</span> <span class="ident">j</span>);
+
+        <span class="kw">let</span> <span class="ident">a1</span> <span class="op">=</span> <span class="kw-2">*</span><span class="ident">a</span>.<span class="ident">data</span>.<span class="ident">last</span>().<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">a2</span> <span class="op">=</span> <span class="ident">a</span>.<span class="ident">data</span>[<span class="ident">a</span>.<span class="ident">data</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="number">2</span>];
+
+        <span class="comment">// The first q0 estimate is [a1,a0] / b0. It will never be too small, it may be too large</span>
+        <span class="comment">// by at most 2.</span>
+        <span class="kw">let</span> (<span class="kw-2">mut</span> <span class="ident">q0</span>, <span class="kw-2">mut</span> <span class="ident">r</span>) <span class="op">=</span> <span class="kw">if</span> <span class="ident">a0</span> <span class="op">&lt;</span> <span class="ident">b0</span> {
+            <span class="kw">let</span> (<span class="ident">q0</span>, <span class="ident">r</span>) <span class="op">=</span> <span class="ident">div_wide</span>(<span class="ident">a0</span>, <span class="ident">a1</span>, <span class="ident">b0</span>);
+            (<span class="ident">q0</span>, <span class="ident">r</span> <span class="kw">as</span> <span class="ident">DoubleBigDigit</span>)
+        } <span class="kw">else</span> {
+            <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="ident">a0</span> <span class="op">==</span> <span class="ident">b0</span>);
+            <span class="comment">// Avoid overflowing q0, we know the quotient fits in BigDigit.</span>
+            <span class="comment">// [a1,a0] = b0 * (1&lt;&lt;BITS - 1) + (a0 + a1)</span>
+            (<span class="ident">big_digit</span>::<span class="ident">MAX</span>, <span class="ident">a0</span> <span class="kw">as</span> <span class="ident">DoubleBigDigit</span> <span class="op">+</span> <span class="ident">a1</span> <span class="kw">as</span> <span class="ident">DoubleBigDigit</span>)
+        };
+
+        <span class="comment">// r = [a1,a0] - q0 * b0</span>
+        <span class="comment">//</span>
+        <span class="comment">// Now we want to compute a more precise estimate [a2,a1,a0] / [b1,b0] which can only be</span>
+        <span class="comment">// less or equal to the current q0.</span>
+        <span class="comment">//</span>
+        <span class="comment">// q0 is too large if:</span>
+        <span class="comment">// [a2,a1,a0] &lt; q0 * [b1,b0]</span>
+        <span class="comment">// (r &lt;&lt; BITS) + a2 &lt; q0 * b1</span>
+        <span class="kw">while</span> <span class="ident">r</span> <span class="op">&lt;=</span> <span class="ident">big_digit</span>::<span class="ident">MAX</span> <span class="kw">as</span> <span class="ident">DoubleBigDigit</span>
+            <span class="op">&amp;&amp;</span> <span class="ident">big_digit</span>::<span class="ident">to_doublebigdigit</span>(<span class="ident">r</span> <span class="kw">as</span> <span class="ident">BigDigit</span>, <span class="ident">a2</span>)
+                <span class="op">&lt;</span> <span class="ident">q0</span> <span class="kw">as</span> <span class="ident">DoubleBigDigit</span> <span class="op">*</span> <span class="ident">b1</span> <span class="kw">as</span> <span class="ident">DoubleBigDigit</span>
+        {
+            <span class="ident">q0</span> <span class="op">-=</span> <span class="number">1</span>;
+            <span class="ident">r</span> <span class="op">+=</span> <span class="ident">b0</span> <span class="kw">as</span> <span class="ident">DoubleBigDigit</span>;
         }
 
-        <span class="comment">/* just avoiding a heap allocation: */</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">a0</span> <span class="op">=</span> <span class="ident">tmp</span>;
-        <span class="ident">a0</span>.<span class="ident">data</span>.<span class="ident">truncate</span>(<span class="number">0</span>);
-        <span class="ident">a0</span>.<span class="ident">data</span>.<span class="ident">extend</span>(<span class="ident">a</span>.<span class="ident">data</span>[<span class="ident">offset</span>..].<span class="ident">iter</span>().<span class="ident">cloned</span>());
+        <span class="comment">// q0 is now either the correct quotient digit, or in rare cases 1 too large.</span>
+        <span class="comment">// Subtract (q0 &lt;&lt; j) from a. This may overflow, in which case we will have to correct.</span>
 
-        <span class="comment">/*
-         * q0 &lt;&lt; j * big_digit::BITS is our actual quotient estimate - we do the shifts
-         * implicitly at the end, when adding and subtracting to a and q. Not only do we
-         * save the cost of the shifts, the rest of the arithmetic gets to work with
-         * smaller numbers.
-         */</span>
-        <span class="kw">let</span> (<span class="kw-2">mut</span> <span class="ident">q0</span>, <span class="kw">_</span>) <span class="op">=</span> <span class="ident">div_rem_digit</span>(<span class="ident">a0</span>, <span class="ident">bn</span>);
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">prod</span> <span class="op">=</span> <span class="ident">b</span> <span class="op">*</span> <span class="kw-2">&amp;</span><span class="ident">q0</span>;
-
-        <span class="kw">while</span> <span class="ident">cmp_slice</span>(<span class="kw-2">&amp;</span><span class="ident">prod</span>.<span class="ident">data</span>[..], <span class="kw-2">&amp;</span><span class="ident">a</span>.<span class="ident">data</span>[<span class="ident">j</span>..]) <span class="op">==</span> <span class="ident">Greater</span> {
-            <span class="ident">q0</span> <span class="op">-=</span> <span class="number">1u32</span>;
-            <span class="ident">prod</span> <span class="op">-=</span> <span class="ident">b</span>;
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">borrow</span> <span class="op">=</span> <span class="ident">sub_mul_digit_same_len</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">a</span>.<span class="ident">data</span>[<span class="ident">j</span>..], <span class="kw-2">&amp;</span><span class="ident">b</span>.<span class="ident">data</span>, <span class="ident">q0</span>);
+        <span class="kw">if</span> <span class="ident">borrow</span> <span class="op">&gt;</span> <span class="ident">a0</span> {
+            <span class="comment">// q0 is too large. We need to add back one multiple of b.</span>
+            <span class="ident">q0</span> <span class="op">-=</span> <span class="number">1</span>;
+            <span class="ident">borrow</span> <span class="op">-=</span> <span class="ident">__add2</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">a</span>.<span class="ident">data</span>[<span class="ident">j</span>..], <span class="kw-2">&amp;</span><span class="ident">b</span>.<span class="ident">data</span>);
         }
+        <span class="comment">// The top digit of a, stored in a0, has now been zeroed.</span>
+        <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="ident">borrow</span> <span class="op">==</span> <span class="ident">a0</span>);
 
-        <span class="ident">add2</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">q</span>.<span class="ident">data</span>[<span class="ident">j</span>..], <span class="kw-2">&amp;</span><span class="ident">q0</span>.<span class="ident">data</span>[..]);
-        <span class="ident">sub2</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">a</span>.<span class="ident">data</span>[<span class="ident">j</span>..], <span class="kw-2">&amp;</span><span class="ident">prod</span>.<span class="ident">data</span>[..]);
-        <span class="ident">a</span>.<span class="ident">normalize</span>();
+        <span class="ident">q</span>.<span class="ident">data</span>[<span class="ident">j</span>] <span class="op">=</span> <span class="ident">q0</span>;
 
-        <span class="ident">tmp</span> <span class="op">=</span> <span class="ident">q0</span>;
+        <span class="comment">// Pop off the next top digit of a.</span>
+        <span class="ident">a0</span> <span class="op">=</span> <span class="ident">a</span>.<span class="ident">data</span>.<span class="ident">pop</span>().<span class="ident">unwrap</span>();
     }
+
+    <span class="ident">a</span>.<span class="ident">data</span>.<span class="ident">push</span>(<span class="ident">a0</span>);
+    <span class="ident">a</span>.<span class="ident">normalize</span>();
 
     <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="ident">a</span> <span class="op">&lt;</span> <span class="kw-2">*</span><span class="ident">b</span>);
 

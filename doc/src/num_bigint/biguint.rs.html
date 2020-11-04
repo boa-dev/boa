@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/num-bigint-0.3.0/src/biguint.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>biguint.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../num_bigint/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/num-bigint-0.3.1/src/biguint.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>biguint.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../num_bigint/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
                 <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
 <span id="3">   3</span>
@@ -3059,8 +3059,20 @@
 <span id="3058">3058</span>
 <span id="3059">3059</span>
 <span id="3060">3060</span>
+<span id="3061">3061</span>
+<span id="3062">3062</span>
+<span id="3063">3063</span>
+<span id="3064">3064</span>
+<span id="3065">3065</span>
+<span id="3066">3066</span>
+<span id="3067">3067</span>
+<span id="3068">3068</span>
+<span id="3069">3069</span>
+<span id="3070">3070</span>
+<span id="3071">3071</span>
+<span id="3072">3072</span>
 </pre><div class="example-wrap"><pre class="rust ">
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;quickcheck&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;quickcheck&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;arbitrary&quot;</span>))]</span>
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">std_alloc</span>::<span class="ident">Box</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">std_alloc</span>::{<span class="ident">Cow</span>, <span class="ident">String</span>, <span class="ident">Vec</span>};
 <span class="kw">use</span> <span class="ident">core</span>::<span class="ident">cmp</span>;
@@ -3079,9 +3091,6 @@
 <span class="kw">use</span> <span class="ident">core</span>::<span class="ident">str</span>::{<span class="self">self</span>, <span class="ident">FromStr</span>};
 <span class="kw">use</span> <span class="ident">core</span>::{<span class="ident">f32</span>, <span class="ident">f64</span>};
 <span class="kw">use</span> <span class="ident">core</span>::{<span class="ident">u32</span>, <span class="ident">u64</span>, <span class="ident">u8</span>};
-
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde&quot;</span>)]</span>
-<span class="kw">use</span> <span class="ident">serde</span>;
 
 <span class="kw">use</span> <span class="ident">num_integer</span>::{<span class="ident">Integer</span>, <span class="ident">Roots</span>};
 <span class="kw">use</span> <span class="ident">num_traits</span>::<span class="ident">float</span>::<span class="ident">FloatCore</span>;
@@ -3110,9 +3119,6 @@
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">has_try_from</span>)]</span>
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">TryFromBigIntError</span>;
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;quickcheck&quot;</span>)]</span>
-<span class="kw">use</span> <span class="ident">quickcheck</span>::{<span class="ident">Arbitrary</span>, <span class="ident">Gen</span>};
-
 <span class="doccomment">/// A big unsigned integer type.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">BigUint</span> {
@@ -3136,8 +3142,8 @@
 }
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;quickcheck&quot;</span>)]</span>
-<span class="kw">impl</span> <span class="ident">Arbitrary</span> <span class="kw">for</span> <span class="ident">BigUint</span> {
-    <span class="kw">fn</span> <span class="ident">arbitrary</span><span class="op">&lt;</span><span class="ident">G</span>: <span class="ident">Gen</span><span class="op">&gt;</span>(<span class="ident">g</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">G</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
+<span class="kw">impl</span> <span class="ident">quickcheck</span>::<span class="ident">Arbitrary</span> <span class="kw">for</span> <span class="ident">BigUint</span> {
+    <span class="kw">fn</span> <span class="ident">arbitrary</span><span class="op">&lt;</span><span class="ident">G</span>: <span class="ident">quickcheck</span>::<span class="ident">Gen</span><span class="op">&gt;</span>(<span class="ident">g</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">G</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
         <span class="comment">// Use arbitrary from Vec</span>
         <span class="ident">biguint_from_vec</span>(<span class="ident">Vec</span>::<span class="op">&lt;</span><span class="ident">BigDigit</span><span class="op">&gt;</span>::<span class="ident">arbitrary</span>(<span class="ident">g</span>))
     }
@@ -3145,6 +3151,22 @@
     <span class="kw">fn</span> <span class="ident">shrink</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="self">Self</span><span class="op">&gt;&gt;</span> {
         <span class="comment">// Use shrinker from Vec</span>
         <span class="ident">Box</span>::<span class="ident">new</span>(<span class="self">self</span>.<span class="ident">data</span>.<span class="ident">shrink</span>().<span class="ident">map</span>(<span class="ident">biguint_from_vec</span>))
+    }
+}
+
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;arbitrary&quot;</span>)]</span>
+<span class="kw">mod</span> <span class="ident">abitrary_impl</span> {
+    <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
+    <span class="kw">use</span> <span class="ident">arbitrary</span>::{<span class="ident">Arbitrary</span>, <span class="prelude-ty">Result</span>, <span class="ident">Unstructured</span>};
+
+    <span class="kw">impl</span> <span class="ident">Arbitrary</span> <span class="kw">for</span> <span class="ident">BigUint</span> {
+        <span class="kw">fn</span> <span class="ident">arbitrary</span>(<span class="ident">u</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Unstructured</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
+            <span class="prelude-val">Ok</span>(<span class="ident">biguint_from_vec</span>(<span class="ident">Vec</span>::<span class="op">&lt;</span><span class="ident">BigDigit</span><span class="op">&gt;</span>::<span class="ident">arbitrary</span>(<span class="ident">u</span>)<span class="question-mark">?</span>))
+        }
+
+        <span class="kw">fn</span> <span class="ident">shrink</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="self">Self</span><span class="op">&gt;&gt;</span> {
+            <span class="ident">Box</span>::<span class="ident">new</span>(<span class="self">self</span>.<span class="ident">data</span>.<span class="ident">shrink</span>().<span class="ident">map</span>(<span class="ident">biguint_from_vec</span>))
+        }
     }
 }
 
@@ -4752,19 +4774,22 @@
         <span class="kw">let</span> <span class="ident">max_bits</span> <span class="op">=</span> <span class="ident">bits</span> <span class="op">/</span> <span class="ident">n64</span> <span class="op">+</span> <span class="number">1</span>;
 
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span>
-        <span class="kw">let</span> <span class="ident">guess</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">f</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">to_f64</span>() {
-            <span class="comment">// We fit in `f64` (lossy), so get a better initial guess from that.</span>
-            <span class="ident">BigUint</span>::<span class="ident">from_f64</span>((<span class="ident">f</span>.<span class="ident">ln</span>() <span class="op">/</span> <span class="ident">f64</span>::<span class="ident">from</span>(<span class="ident">n</span>)).<span class="ident">exp</span>()).<span class="ident">unwrap</span>()
-        } <span class="kw">else</span> {
-            <span class="comment">// Try to guess by scaling down such that it does fit in `f64`.</span>
-            <span class="comment">// With some (x * 2ⁿᵏ), its nth root ≈ (ⁿ√x * 2ᵏ)</span>
-            <span class="kw">let</span> <span class="ident">extra_bits</span> <span class="op">=</span> <span class="ident">bits</span> <span class="op">-</span> (<span class="ident">f64</span>::<span class="ident">MAX_EXP</span> <span class="kw">as</span> <span class="ident">u64</span> <span class="op">-</span> <span class="number">1</span>);
-            <span class="kw">let</span> <span class="ident">root_scale</span> <span class="op">=</span> <span class="ident">extra_bits</span>.<span class="ident">div_ceil</span>(<span class="kw-2">&amp;</span><span class="ident">n64</span>);
-            <span class="kw">let</span> <span class="ident">scale</span> <span class="op">=</span> <span class="ident">root_scale</span> <span class="op">*</span> <span class="ident">n64</span>;
-            <span class="kw">if</span> <span class="ident">scale</span> <span class="op">&lt;</span> <span class="ident">bits</span> <span class="op">&amp;&amp;</span> <span class="ident">bits</span> <span class="op">-</span> <span class="ident">scale</span> <span class="op">&gt;</span> <span class="ident">n64</span> {
-                (<span class="self">self</span> <span class="op">&gt;&gt;</span> <span class="ident">scale</span>).<span class="ident">nth_root</span>(<span class="ident">n</span>) <span class="op">&lt;&lt;</span> <span class="ident">root_scale</span>
-            } <span class="kw">else</span> {
-                <span class="ident">BigUint</span>::<span class="ident">one</span>() <span class="op">&lt;&lt;</span> <span class="ident">max_bits</span>
+        <span class="kw">let</span> <span class="ident">guess</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">to_f64</span>() {
+            <span class="prelude-val">Some</span>(<span class="ident">f</span>) <span class="kw">if</span> <span class="ident">f</span>.<span class="ident">is_finite</span>() <span class="op">=&gt;</span> {
+                <span class="comment">// We fit in `f64` (lossy), so get a better initial guess from that.</span>
+                <span class="ident">BigUint</span>::<span class="ident">from_f64</span>((<span class="ident">f</span>.<span class="ident">ln</span>() <span class="op">/</span> <span class="ident">f64</span>::<span class="ident">from</span>(<span class="ident">n</span>)).<span class="ident">exp</span>()).<span class="ident">unwrap</span>()
+            }
+            <span class="kw">_</span> <span class="op">=&gt;</span> {
+                <span class="comment">// Try to guess by scaling down such that it does fit in `f64`.</span>
+                <span class="comment">// With some (x * 2ⁿᵏ), its nth root ≈ (ⁿ√x * 2ᵏ)</span>
+                <span class="kw">let</span> <span class="ident">extra_bits</span> <span class="op">=</span> <span class="ident">bits</span> <span class="op">-</span> (<span class="ident">f64</span>::<span class="ident">MAX_EXP</span> <span class="kw">as</span> <span class="ident">u64</span> <span class="op">-</span> <span class="number">1</span>);
+                <span class="kw">let</span> <span class="ident">root_scale</span> <span class="op">=</span> <span class="ident">extra_bits</span>.<span class="ident">div_ceil</span>(<span class="kw-2">&amp;</span><span class="ident">n64</span>);
+                <span class="kw">let</span> <span class="ident">scale</span> <span class="op">=</span> <span class="ident">root_scale</span> <span class="op">*</span> <span class="ident">n64</span>;
+                <span class="kw">if</span> <span class="ident">scale</span> <span class="op">&lt;</span> <span class="ident">bits</span> <span class="op">&amp;&amp;</span> <span class="ident">bits</span> <span class="op">-</span> <span class="ident">scale</span> <span class="op">&gt;</span> <span class="ident">n64</span> {
+                    (<span class="self">self</span> <span class="op">&gt;&gt;</span> <span class="ident">scale</span>).<span class="ident">nth_root</span>(<span class="ident">n</span>) <span class="op">&lt;&lt;</span> <span class="ident">root_scale</span>
+                } <span class="kw">else</span> {
+                    <span class="ident">BigUint</span>::<span class="ident">one</span>() <span class="op">&lt;&lt;</span> <span class="ident">max_bits</span>
+                }
             }
         };
 
@@ -4795,16 +4820,19 @@
         <span class="kw">let</span> <span class="ident">max_bits</span> <span class="op">=</span> <span class="ident">bits</span> <span class="op">/</span> <span class="number">2</span> <span class="op">+</span> <span class="number">1</span>;
 
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span>
-        <span class="kw">let</span> <span class="ident">guess</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">f</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">to_f64</span>() {
-            <span class="comment">// We fit in `f64` (lossy), so get a better initial guess from that.</span>
-            <span class="ident">BigUint</span>::<span class="ident">from_f64</span>(<span class="ident">f</span>.<span class="ident">sqrt</span>()).<span class="ident">unwrap</span>()
-        } <span class="kw">else</span> {
-            <span class="comment">// Try to guess by scaling down such that it does fit in `f64`.</span>
-            <span class="comment">// With some (x * 2²ᵏ), its sqrt ≈ (√x * 2ᵏ)</span>
-            <span class="kw">let</span> <span class="ident">extra_bits</span> <span class="op">=</span> <span class="ident">bits</span> <span class="op">-</span> (<span class="ident">f64</span>::<span class="ident">MAX_EXP</span> <span class="kw">as</span> <span class="ident">u64</span> <span class="op">-</span> <span class="number">1</span>);
-            <span class="kw">let</span> <span class="ident">root_scale</span> <span class="op">=</span> (<span class="ident">extra_bits</span> <span class="op">+</span> <span class="number">1</span>) <span class="op">/</span> <span class="number">2</span>;
-            <span class="kw">let</span> <span class="ident">scale</span> <span class="op">=</span> <span class="ident">root_scale</span> <span class="op">*</span> <span class="number">2</span>;
-            (<span class="self">self</span> <span class="op">&gt;&gt;</span> <span class="ident">scale</span>).<span class="ident">sqrt</span>() <span class="op">&lt;&lt;</span> <span class="ident">root_scale</span>
+        <span class="kw">let</span> <span class="ident">guess</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">to_f64</span>() {
+            <span class="prelude-val">Some</span>(<span class="ident">f</span>) <span class="kw">if</span> <span class="ident">f</span>.<span class="ident">is_finite</span>() <span class="op">=&gt;</span> {
+                <span class="comment">// We fit in `f64` (lossy), so get a better initial guess from that.</span>
+                <span class="ident">BigUint</span>::<span class="ident">from_f64</span>(<span class="ident">f</span>.<span class="ident">sqrt</span>()).<span class="ident">unwrap</span>()
+            }
+            <span class="kw">_</span> <span class="op">=&gt;</span> {
+                <span class="comment">// Try to guess by scaling down such that it does fit in `f64`.</span>
+                <span class="comment">// With some (x * 2²ᵏ), its sqrt ≈ (√x * 2ᵏ)</span>
+                <span class="kw">let</span> <span class="ident">extra_bits</span> <span class="op">=</span> <span class="ident">bits</span> <span class="op">-</span> (<span class="ident">f64</span>::<span class="ident">MAX_EXP</span> <span class="kw">as</span> <span class="ident">u64</span> <span class="op">-</span> <span class="number">1</span>);
+                <span class="kw">let</span> <span class="ident">root_scale</span> <span class="op">=</span> (<span class="ident">extra_bits</span> <span class="op">+</span> <span class="number">1</span>) <span class="op">/</span> <span class="number">2</span>;
+                <span class="kw">let</span> <span class="ident">scale</span> <span class="op">=</span> <span class="ident">root_scale</span> <span class="op">*</span> <span class="number">2</span>;
+                (<span class="self">self</span> <span class="op">&gt;&gt;</span> <span class="ident">scale</span>).<span class="ident">sqrt</span>() <span class="op">&lt;&lt;</span> <span class="ident">root_scale</span>
+            }
         };
 
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>))]</span>
@@ -4831,16 +4859,19 @@
         <span class="kw">let</span> <span class="ident">max_bits</span> <span class="op">=</span> <span class="ident">bits</span> <span class="op">/</span> <span class="number">3</span> <span class="op">+</span> <span class="number">1</span>;
 
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span>
-        <span class="kw">let</span> <span class="ident">guess</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">f</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">to_f64</span>() {
-            <span class="comment">// We fit in `f64` (lossy), so get a better initial guess from that.</span>
-            <span class="ident">BigUint</span>::<span class="ident">from_f64</span>(<span class="ident">f</span>.<span class="ident">cbrt</span>()).<span class="ident">unwrap</span>()
-        } <span class="kw">else</span> {
-            <span class="comment">// Try to guess by scaling down such that it does fit in `f64`.</span>
-            <span class="comment">// With some (x * 2³ᵏ), its cbrt ≈ (∛x * 2ᵏ)</span>
-            <span class="kw">let</span> <span class="ident">extra_bits</span> <span class="op">=</span> <span class="ident">bits</span> <span class="op">-</span> (<span class="ident">f64</span>::<span class="ident">MAX_EXP</span> <span class="kw">as</span> <span class="ident">u64</span> <span class="op">-</span> <span class="number">1</span>);
-            <span class="kw">let</span> <span class="ident">root_scale</span> <span class="op">=</span> (<span class="ident">extra_bits</span> <span class="op">+</span> <span class="number">2</span>) <span class="op">/</span> <span class="number">3</span>;
-            <span class="kw">let</span> <span class="ident">scale</span> <span class="op">=</span> <span class="ident">root_scale</span> <span class="op">*</span> <span class="number">3</span>;
-            (<span class="self">self</span> <span class="op">&gt;&gt;</span> <span class="ident">scale</span>).<span class="ident">cbrt</span>() <span class="op">&lt;&lt;</span> <span class="ident">root_scale</span>
+        <span class="kw">let</span> <span class="ident">guess</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">to_f64</span>() {
+            <span class="prelude-val">Some</span>(<span class="ident">f</span>) <span class="kw">if</span> <span class="ident">f</span>.<span class="ident">is_finite</span>() <span class="op">=&gt;</span> {
+                <span class="comment">// We fit in `f64` (lossy), so get a better initial guess from that.</span>
+                <span class="ident">BigUint</span>::<span class="ident">from_f64</span>(<span class="ident">f</span>.<span class="ident">cbrt</span>()).<span class="ident">unwrap</span>()
+            }
+            <span class="kw">_</span> <span class="op">=&gt;</span> {
+                <span class="comment">// Try to guess by scaling down such that it does fit in `f64`.</span>
+                <span class="comment">// With some (x * 2³ᵏ), its cbrt ≈ (∛x * 2ᵏ)</span>
+                <span class="kw">let</span> <span class="ident">extra_bits</span> <span class="op">=</span> <span class="ident">bits</span> <span class="op">-</span> (<span class="ident">f64</span>::<span class="ident">MAX_EXP</span> <span class="kw">as</span> <span class="ident">u64</span> <span class="op">-</span> <span class="number">1</span>);
+                <span class="kw">let</span> <span class="ident">root_scale</span> <span class="op">=</span> (<span class="ident">extra_bits</span> <span class="op">+</span> <span class="number">2</span>) <span class="op">/</span> <span class="number">3</span>;
+                <span class="kw">let</span> <span class="ident">scale</span> <span class="op">=</span> <span class="ident">root_scale</span> <span class="op">*</span> <span class="number">3</span>;
+                (<span class="self">self</span> <span class="op">&gt;&gt;</span> <span class="ident">scale</span>).<span class="ident">cbrt</span>() <span class="op">&lt;&lt;</span> <span class="ident">root_scale</span>
+            }
         };
 
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>))]</span>
@@ -4935,14 +4966,9 @@
         <span class="kw">let</span> <span class="ident">exponent</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">bits</span>() <span class="op">-</span> <span class="ident">u64</span>::<span class="ident">from</span>(<span class="ident">fls</span>(<span class="ident">mantissa</span>));
 
         <span class="kw">if</span> <span class="ident">exponent</span> <span class="op">&gt;</span> <span class="ident">f32</span>::<span class="ident">MAX_EXP</span> <span class="kw">as</span> <span class="ident">u64</span> {
-            <span class="prelude-val">None</span>
+            <span class="prelude-val">Some</span>(<span class="ident">f32</span>::<span class="ident">INFINITY</span>)
         } <span class="kw">else</span> {
-            <span class="kw">let</span> <span class="ident">ret</span> <span class="op">=</span> (<span class="ident">mantissa</span> <span class="kw">as</span> <span class="ident">f32</span>) <span class="op">*</span> <span class="number">2.0f32</span>.<span class="ident">powi</span>(<span class="ident">exponent</span> <span class="kw">as</span> <span class="ident">i32</span>);
-            <span class="kw">if</span> <span class="ident">ret</span>.<span class="ident">is_infinite</span>() {
-                <span class="prelude-val">None</span>
-            } <span class="kw">else</span> {
-                <span class="prelude-val">Some</span>(<span class="ident">ret</span>)
-            }
+            <span class="prelude-val">Some</span>((<span class="ident">mantissa</span> <span class="kw">as</span> <span class="ident">f32</span>) <span class="op">*</span> <span class="number">2.0f32</span>.<span class="ident">powi</span>(<span class="ident">exponent</span> <span class="kw">as</span> <span class="ident">i32</span>))
         }
     }
 
@@ -4952,14 +4978,9 @@
         <span class="kw">let</span> <span class="ident">exponent</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">bits</span>() <span class="op">-</span> <span class="ident">u64</span>::<span class="ident">from</span>(<span class="ident">fls</span>(<span class="ident">mantissa</span>));
 
         <span class="kw">if</span> <span class="ident">exponent</span> <span class="op">&gt;</span> <span class="ident">f64</span>::<span class="ident">MAX_EXP</span> <span class="kw">as</span> <span class="ident">u64</span> {
-            <span class="prelude-val">None</span>
+            <span class="prelude-val">Some</span>(<span class="ident">f64</span>::<span class="ident">INFINITY</span>)
         } <span class="kw">else</span> {
-            <span class="kw">let</span> <span class="ident">ret</span> <span class="op">=</span> (<span class="ident">mantissa</span> <span class="kw">as</span> <span class="ident">f64</span>) <span class="op">*</span> <span class="number">2.0f64</span>.<span class="ident">powi</span>(<span class="ident">exponent</span> <span class="kw">as</span> <span class="ident">i32</span>);
-            <span class="kw">if</span> <span class="ident">ret</span>.<span class="ident">is_infinite</span>() {
-                <span class="prelude-val">None</span>
-            } <span class="kw">else</span> {
-                <span class="prelude-val">Some</span>(<span class="ident">ret</span>)
-            }
+            <span class="prelude-val">Some</span>((<span class="ident">mantissa</span> <span class="kw">as</span> <span class="ident">f64</span>) <span class="op">*</span> <span class="number">2.0f64</span>.<span class="ident">powi</span>(<span class="ident">exponent</span> <span class="kw">as</span> <span class="ident">i32</span>))
         }
     }
 }
@@ -5681,6 +5702,9 @@
     <span class="kw">fn</span> <span class="ident">normalize</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
         <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="number">0</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">data</span>.<span class="ident">last</span>() {
             <span class="self">self</span>.<span class="ident">data</span>.<span class="ident">pop</span>();
+        }
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">data</span>.<span class="ident">len</span>() <span class="op">&lt;</span> <span class="self">self</span>.<span class="ident">data</span>.<span class="ident">capacity</span>() <span class="op">/</span> <span class="number">4</span> {
+            <span class="self">self</span>.<span class="ident">data</span>.<span class="ident">shrink_to_fit</span>();
         }
     }
 
