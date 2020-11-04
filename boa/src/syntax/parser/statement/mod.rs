@@ -267,10 +267,6 @@ where
         loop {
             match cursor.peek(0)? {
                 Some(token) if self.break_nodes.contains(token.kind()) => break,
-                Some(token) if token.kind() == &TokenKind::Punctuator(Punctuator::Semicolon) => {
-                    cursor.next()?;
-                    continue;
-                }
                 None => break,
                 _ => {}
             }
@@ -283,6 +279,9 @@ where
             )
             .parse(cursor)?;
             items.push(item);
+
+            // move the cursor forward for any consecutive semicolon.
+            while cursor.next_if(Punctuator::Semicolon)?.is_some() {}
         }
 
         items.sort_by(Node::hoistable_order);
