@@ -207,31 +207,27 @@ where
 
 /// Reads a list of statements.
 ///
-/// If `break_when_closingbrase` is `true`, it will stop as soon as it finds a `}` character.
-///
 /// More information:
 ///  - [ECMAScript specification][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-StatementList
 #[derive(Debug, Clone, Copy)]
-pub(super) struct StatementList<'a> {
+pub(super) struct StatementList {
     allow_yield: AllowYield,
     allow_await: AllowAwait,
     allow_return: AllowReturn,
-    break_when_closingbraces: bool,
     in_block: bool,
-    break_nodes: &'a [TokenKind],
+    break_nodes: &'static [TokenKind],
 }
 
-impl<'a> StatementList<'a> {
+impl StatementList {
     /// Creates a new `StatementList` parser.
     pub(super) fn new<Y, A, R>(
         allow_yield: Y,
         allow_await: A,
         allow_return: R,
-        break_when_closingbraces: bool,
         in_block: bool,
-        break_nodes: &'a [TokenKind],
+        break_nodes: &'static [TokenKind],
     ) -> Self
     where
         Y: Into<AllowYield>,
@@ -242,14 +238,13 @@ impl<'a> StatementList<'a> {
             allow_yield: allow_yield.into(),
             allow_await: allow_await.into(),
             allow_return: allow_return.into(),
-            break_when_closingbraces,
             in_block,
             break_nodes,
         }
     }
 }
 
-impl<R> TokenParser<R> for StatementList<'_>
+impl<R> TokenParser<R> for StatementList
 where
     R: Read,
 {
@@ -271,24 +266,12 @@ where
 
         loop {
             match cursor.peek(0)? {
-                Some(token) if self.break_nodes.contains(token.kind()) => {
-                    if self.break_when_closingbraces {
-                        break;
-                    } else {
-                        return Err(ParseError::unexpected(token.clone(), None));
-                    }
-                }
+                Some(token) if self.break_nodes.contains(token.kind()) => break,
                 Some(token) if token.kind() == &TokenKind::Punctuator(Punctuator::Semicolon) => {
                     cursor.next()?;
                     continue;
                 }
-                None => {
-                    if self.break_when_closingbraces {
-                        return Err(ParseError::AbruptEnd);
-                    } else {
-                        break;
-                    }
-                }
+                None => break,
                 _ => {}
             }
 

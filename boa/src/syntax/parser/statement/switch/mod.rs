@@ -129,7 +129,6 @@ where
                         self.allow_yield,
                         self.allow_await,
                         self.allow_return,
-                        true,
                         false,
                         &CASE_BREAK_TOKENS,
                     )
@@ -152,7 +151,6 @@ where
                         self.allow_yield,
                         self.allow_await,
                         self.allow_return,
-                        true,
                         false,
                         &CASE_BREAK_TOKENS,
                     )

@@ -86,7 +86,6 @@ where
             self.allow_await,
             self.allow_return,
             true,
-            true,
             &BLOCK_BREAK_TOKENS,
         )
         .parse(cursor)

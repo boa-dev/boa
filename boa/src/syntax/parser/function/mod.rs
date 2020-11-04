@@ -283,7 +283,6 @@ where
             self.allow_await,
             true,
             true,
-            true,
             &FUNCTION_BREAK_TOKENS,
         )
         .parse(cursor);

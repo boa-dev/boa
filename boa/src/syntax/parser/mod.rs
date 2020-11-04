@@ -9,7 +9,7 @@ mod statement;
 mod tests;
 
 pub use self::error::{ParseError, ParseResult};
-use crate::syntax::{ast::node::StatementList, ast::Punctuator, lexer::TokenKind};
+use crate::syntax::{ast::node::StatementList, lexer::TokenKind};
 
 use cursor::Cursor;
 
@@ -139,9 +139,6 @@ where
     }
 }
 
-/// The possible TokenKind which indicate the end of a case statement.
-const SCRIPT_BREAK_TOKENS: [TokenKind; 1] = [TokenKind::Punctuator(Punctuator::CloseBlock)];
-
 /// Parses a script body.
 ///
 /// More information:
@@ -158,7 +155,6 @@ where
     type Output = StatementList;
 
     fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
-        self::statement::StatementList::new(false, false, false, false, true, &SCRIPT_BREAK_TOKENS)
-            .parse(cursor)
+        self::statement::StatementList::new(false, false, false, true, &[]).parse(cursor)
     }
 }
