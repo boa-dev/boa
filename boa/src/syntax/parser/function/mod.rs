@@ -225,6 +225,9 @@ where
 /// [spec]: https://tc39.es/ecma262/#prod-FunctionBody
 pub(in crate::syntax::parser) type FunctionBody = FunctionStatementList;
 
+/// The possible TokenKind which indicate the end of a function statement.
+const FUNCTION_BREAK_TOKENS: [TokenKind; 1] = [TokenKind::Punctuator(Punctuator::CloseBlock)];
+
 /// A function statement list
 ///
 /// More information:
@@ -275,8 +278,14 @@ where
             }
         }
 
-        let stmlist =
-            StatementList::new(self.allow_yield, self.allow_await, true, true, true).parse(cursor);
+        let stmlist = StatementList::new(
+            self.allow_yield,
+            self.allow_await,
+            true,
+            true,
+            &FUNCTION_BREAK_TOKENS,
+        )
+        .parse(cursor);
 
         // Reset strict mode back to the global scope.
         cursor.set_strict_mode(global_strict_mode);

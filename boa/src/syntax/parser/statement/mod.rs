@@ -207,8 +207,6 @@ where
 
 /// Reads a list of statements.
 ///
-/// If `break_when_closingbrase` is `true`, it will stop as soon as it finds a `}` character.
-///
 /// More information:
 ///  - [ECMAScript specification][spec]
 ///
@@ -218,8 +216,8 @@ pub(super) struct StatementList {
     allow_yield: AllowYield,
     allow_await: AllowAwait,
     allow_return: AllowReturn,
-    break_when_closingbraces: bool,
     in_block: bool,
+    break_nodes: &'static [TokenKind],
 }
 
 impl StatementList {
@@ -228,8 +226,8 @@ impl StatementList {
         allow_yield: Y,
         allow_await: A,
         allow_return: R,
-        break_when_closingbraces: bool,
         in_block: bool,
+        break_nodes: &'static [TokenKind],
     ) -> Self
     where
         Y: Into<AllowYield>,
@@ -240,58 +238,9 @@ impl StatementList {
             allow_yield: allow_yield.into(),
             allow_await: allow_await.into(),
             allow_return: allow_return.into(),
-            break_when_closingbraces,
             in_block,
+            break_nodes,
         }
-    }
-
-    /// The function parses a node::StatementList using the given break_nodes to know when to terminate.
-    ///
-    /// This ignores the break_when_closingbraces flag.
-    ///
-    /// Returns a ParseError::AbruptEnd if end of stream is reached before a break token.
-    ///
-    /// This is a more general version of the TokenParser parse function for StatementList which can exit based on multiple
-    /// different tokens. This may eventually replace the parse() function but is currently seperate to allow testing the
-    /// performance impact of this more general mechanism.
-    ///
-    /// Note that the last token which causes the parse to finish is not consumed.
-    pub(crate) fn parse_generalised<R>(
-        self,
-        cursor: &mut Cursor<R>,
-        break_nodes: &[TokenKind],
-    ) -> Result<node::StatementList, ParseError>
-    where
-        R: Read,
-    {
-        let mut items = Vec::new();
-
-        loop {
-            if let Some(token) = cursor.peek(0)? {
-                if break_nodes.contains(token.kind()) {
-                    break;
-                }
-            } else {
-                return Err(ParseError::AbruptEnd);
-            }
-
-            let item = StatementListItem::new(
-                self.allow_yield,
-                self.allow_await,
-                self.allow_return,
-                self.in_block,
-            )
-            .parse(cursor)?;
-
-            items.push(item);
-
-            // move the cursor forward for any consecutive semicolon.
-            while cursor.next_if(Punctuator::Semicolon)?.is_some() {}
-        }
-
-        items.sort_by(Node::hoistable_order);
-
-        Ok(items.into())
     }
 }
 
@@ -301,26 +250,24 @@ where
 {
     type Output = node::StatementList;
 
+    /// The function parses a node::StatementList using the StatementList's
+    /// break_nodes to know when to terminate.
+    ///
+    /// Returns a ParseError::AbruptEnd if end of stream is reached before a
+    /// break token.
+    ///
+    /// Returns a ParseError::unexpected if an unexpected token is found.
+    ///
+    /// Note that the last token which causes the parse to finish is not
+    /// consumed.
     fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("StatementList", "Parsing");
         let mut items = Vec::new();
 
         loop {
             match cursor.peek(0)? {
-                Some(token) if token.kind() == &TokenKind::Punctuator(Punctuator::CloseBlock) => {
-                    if self.break_when_closingbraces {
-                        break;
-                    } else {
-                        return Err(ParseError::unexpected(token.clone(), None));
-                    }
-                }
-                None => {
-                    if self.break_when_closingbraces {
-                        return Err(ParseError::AbruptEnd);
-                    } else {
-                        break;
-                    }
-                }
+                Some(token) if self.break_nodes.contains(token.kind()) => break,
+                None => break,
                 _ => {}
             }
 
