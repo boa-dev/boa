@@ -93,6 +93,9 @@
 <span id="92">92</span>
 <span id="93">93</span>
 <span id="94">94</span>
+<span id="95">95</span>
+<span id="96">96</span>
+<span id="97">97</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Block statement parsing.</span>
 <span class="doccomment">//!</span>
@@ -118,6 +121,9 @@
 };
 
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">Read</span>;
+
+<span class="doccomment">/// The possible TokenKind which indicate the end of a block statement.</span>
+<span class="kw">const</span> <span class="ident">BLOCK_BREAK_TOKENS</span>: [<span class="ident">TokenKind</span>; <span class="number">1</span>] <span class="op">=</span> [<span class="ident">TokenKind</span>::<span class="ident">Punctuator</span>(<span class="ident">Punctuator</span>::<span class="ident">CloseBlock</span>)];
 
 <span class="doccomment">/// A `BlockStatement` is equivalent to a `Block`.</span>
 <span class="doccomment">///</span>
@@ -179,7 +185,7 @@
             <span class="self">self</span>.<span class="ident">allow_await</span>,
             <span class="self">self</span>.<span class="ident">allow_return</span>,
             <span class="bool-val">true</span>,
-            <span class="bool-val">true</span>,
+            <span class="kw-2">&amp;</span><span class="ident">BLOCK_BREAK_TOKENS</span>,
         )
         .<span class="ident">parse</span>(<span class="ident">cursor</span>)
         .<span class="ident">map</span>(<span class="ident">node</span>::<span class="ident">Block</span>::<span class="ident">from</span>)<span class="question-mark">?</span>;
