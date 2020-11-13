@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/once_cell-1.5.0/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../once_cell/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/once_cell-1.5.2/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../once_cell/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
                 <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
 <span id="3">   3</span>
@@ -1046,473 +1046,289 @@
 <span id="1045">1045</span>
 <span id="1046">1046</span>
 <span id="1047">1047</span>
-<span id="1048">1048</span>
-<span id="1049">1049</span>
-<span id="1050">1050</span>
-<span id="1051">1051</span>
-<span id="1052">1052</span>
-<span id="1053">1053</span>
-<span id="1054">1054</span>
-<span id="1055">1055</span>
-<span id="1056">1056</span>
-<span id="1057">1057</span>
-<span id="1058">1058</span>
-<span id="1059">1059</span>
-<span id="1060">1060</span>
-<span id="1061">1061</span>
-<span id="1062">1062</span>
-<span id="1063">1063</span>
-<span id="1064">1064</span>
-<span id="1065">1065</span>
-<span id="1066">1066</span>
-<span id="1067">1067</span>
-<span id="1068">1068</span>
-<span id="1069">1069</span>
-<span id="1070">1070</span>
-<span id="1071">1071</span>
-<span id="1072">1072</span>
-<span id="1073">1073</span>
-<span id="1074">1074</span>
-<span id="1075">1075</span>
-<span id="1076">1076</span>
-<span id="1077">1077</span>
-<span id="1078">1078</span>
-<span id="1079">1079</span>
-<span id="1080">1080</span>
-<span id="1081">1081</span>
-<span id="1082">1082</span>
-<span id="1083">1083</span>
-<span id="1084">1084</span>
-<span id="1085">1085</span>
-<span id="1086">1086</span>
-<span id="1087">1087</span>
-<span id="1088">1088</span>
-<span id="1089">1089</span>
-<span id="1090">1090</span>
-<span id="1091">1091</span>
-<span id="1092">1092</span>
-<span id="1093">1093</span>
-<span id="1094">1094</span>
-<span id="1095">1095</span>
-<span id="1096">1096</span>
-<span id="1097">1097</span>
-<span id="1098">1098</span>
-<span id="1099">1099</span>
-<span id="1100">1100</span>
-<span id="1101">1101</span>
-<span id="1102">1102</span>
-<span id="1103">1103</span>
-<span id="1104">1104</span>
-<span id="1105">1105</span>
-<span id="1106">1106</span>
-<span id="1107">1107</span>
-<span id="1108">1108</span>
-<span id="1109">1109</span>
-<span id="1110">1110</span>
-<span id="1111">1111</span>
-<span id="1112">1112</span>
-<span id="1113">1113</span>
-<span id="1114">1114</span>
-<span id="1115">1115</span>
-<span id="1116">1116</span>
-<span id="1117">1117</span>
-<span id="1118">1118</span>
-<span id="1119">1119</span>
-<span id="1120">1120</span>
-<span id="1121">1121</span>
-<span id="1122">1122</span>
-<span id="1123">1123</span>
-<span id="1124">1124</span>
-<span id="1125">1125</span>
-<span id="1126">1126</span>
-<span id="1127">1127</span>
-<span id="1128">1128</span>
-<span id="1129">1129</span>
-<span id="1130">1130</span>
-<span id="1131">1131</span>
-<span id="1132">1132</span>
-<span id="1133">1133</span>
-<span id="1134">1134</span>
-<span id="1135">1135</span>
-<span id="1136">1136</span>
-<span id="1137">1137</span>
-<span id="1138">1138</span>
-<span id="1139">1139</span>
-<span id="1140">1140</span>
-<span id="1141">1141</span>
-<span id="1142">1142</span>
-<span id="1143">1143</span>
-<span id="1144">1144</span>
-<span id="1145">1145</span>
-<span id="1146">1146</span>
-<span id="1147">1147</span>
-<span id="1148">1148</span>
-<span id="1149">1149</span>
-<span id="1150">1150</span>
-<span id="1151">1151</span>
-<span id="1152">1152</span>
-<span id="1153">1153</span>
-<span id="1154">1154</span>
-<span id="1155">1155</span>
-<span id="1156">1156</span>
-<span id="1157">1157</span>
-<span id="1158">1158</span>
-<span id="1159">1159</span>
-<span id="1160">1160</span>
-<span id="1161">1161</span>
-<span id="1162">1162</span>
-<span id="1163">1163</span>
-<span id="1164">1164</span>
-<span id="1165">1165</span>
-<span id="1166">1166</span>
-<span id="1167">1167</span>
-<span id="1168">1168</span>
-<span id="1169">1169</span>
-<span id="1170">1170</span>
-<span id="1171">1171</span>
-<span id="1172">1172</span>
-<span id="1173">1173</span>
-<span id="1174">1174</span>
-<span id="1175">1175</span>
-<span id="1176">1176</span>
-<span id="1177">1177</span>
-<span id="1178">1178</span>
-<span id="1179">1179</span>
-<span id="1180">1180</span>
-<span id="1181">1181</span>
-<span id="1182">1182</span>
-<span id="1183">1183</span>
-<span id="1184">1184</span>
-<span id="1185">1185</span>
-<span id="1186">1186</span>
-<span id="1187">1187</span>
-<span id="1188">1188</span>
-<span id="1189">1189</span>
-<span id="1190">1190</span>
-<span id="1191">1191</span>
-<span id="1192">1192</span>
-<span id="1193">1193</span>
-<span id="1194">1194</span>
-<span id="1195">1195</span>
-<span id="1196">1196</span>
-<span id="1197">1197</span>
-<span id="1198">1198</span>
-<span id="1199">1199</span>
-<span id="1200">1200</span>
-<span id="1201">1201</span>
-<span id="1202">1202</span>
-<span id="1203">1203</span>
-<span id="1204">1204</span>
-<span id="1205">1205</span>
-<span id="1206">1206</span>
-<span id="1207">1207</span>
-<span id="1208">1208</span>
-<span id="1209">1209</span>
-<span id="1210">1210</span>
-<span id="1211">1211</span>
-<span id="1212">1212</span>
-<span id="1213">1213</span>
-<span id="1214">1214</span>
-<span id="1215">1215</span>
-<span id="1216">1216</span>
-<span id="1217">1217</span>
-<span id="1218">1218</span>
-<span id="1219">1219</span>
-<span id="1220">1220</span>
-<span id="1221">1221</span>
-<span id="1222">1222</span>
-<span id="1223">1223</span>
-<span id="1224">1224</span>
-<span id="1225">1225</span>
-<span id="1226">1226</span>
-<span id="1227">1227</span>
-<span id="1228">1228</span>
-<span id="1229">1229</span>
-<span id="1230">1230</span>
-<span id="1231">1231</span>
-<span id="1232">1232</span>
-<span id="1233">1233</span>
-<span id="1234">1234</span>
 </pre><div class="example-wrap"><pre class="rust ">
-<span class="doccomment">/*!
-# Overview
-
-`once_cell` provides two new cell-like types, [`unsync::OnceCell`] and [`sync::OnceCell`]. A `OnceCell`
-might store arbitrary non-`Copy` types, can be assigned to at most once and provides direct access
-to the stored contents. The core API looks *roughly* like this (and there&#39;s much more inside, read on!):
-
-```rust,ignore
-impl&lt;T&gt; OnceCell&lt;T&gt; {
-    fn new() -&gt; OnceCell&lt;T&gt; { ... }
-    fn set(&amp;self, value: T) -&gt; Result&lt;(), T&gt; { ... }
-    fn get(&amp;self) -&gt; Option&lt;&amp;T&gt; { ... }
-}
-```
-
-Note that, like with [`RefCell`] and [`Mutex`], the `set` method requires only a shared reference.
-Because of the single assignment restriction `get` can return a `&amp;T` instead of `Ref&lt;T&gt;`
-or `MutexGuard&lt;T&gt;`.
-
-The `sync` flavor is thread-safe (that is, implements the [`Sync`] trait), while the `unsync` one is not.
-
-[`unsync::OnceCell`]: unsync/struct.OnceCell.html
-[`sync::OnceCell`]: sync/struct.OnceCell.html
-[`RefCell`]: https://doc.rust-lang.org/std/cell/struct.RefCell.html
-[`Mutex`]: https://doc.rust-lang.org/std/sync/struct.Mutex.html
-[`Sync`]: https://doc.rust-lang.org/std/marker/trait.Sync.html
-
-# Patterns
-
-`OnceCell` might be useful for a variety of patterns.
-
-## Safe Initialization of global data
-
-```rust
-use std::{env, io};
-
-use once_cell::sync::OnceCell;
-
-#[derive(Debug)]
-pub struct Logger {
-    // ...
-}
-static INSTANCE: OnceCell&lt;Logger&gt; = OnceCell::new();
-
-impl Logger {
-    pub fn global() -&gt; &amp;&#39;static Logger {
-        INSTANCE.get().expect(&quot;logger is not initialized&quot;)
-    }
-
-    fn from_cli(args: env::Args) -&gt; Result&lt;Logger, std::io::Error&gt; {
-       // ...
-#      Ok(Logger {})
-    }
-}
-
-fn main() {
-    let logger = Logger::from_cli(env::args()).unwrap();
-    INSTANCE.set(logger).unwrap();
-    // use `Logger::global()` from now on
-}
-```
-
-## Lazy initialized global data
-
-This is essentially the `lazy_static!` macro, but without a macro.
-
-```rust
-use std::{sync::Mutex, collections::HashMap};
-
-use once_cell::sync::OnceCell;
-
-fn global_data() -&gt; &amp;&#39;static Mutex&lt;HashMap&lt;i32, String&gt;&gt; {
-    static INSTANCE: OnceCell&lt;Mutex&lt;HashMap&lt;i32, String&gt;&gt;&gt; = OnceCell::new();
-    INSTANCE.get_or_init(|| {
-        let mut m = HashMap::new();
-        m.insert(13, &quot;Spica&quot;.to_string());
-        m.insert(74, &quot;Hoyten&quot;.to_string());
-        Mutex::new(m)
-    })
-}
-```
-
-There are also the [`sync::Lazy`] and [`unsync::Lazy`] convenience types to streamline this pattern:
-
-```rust
-use std::{sync::Mutex, collections::HashMap};
-use once_cell::sync::Lazy;
-
-static GLOBAL_DATA: Lazy&lt;Mutex&lt;HashMap&lt;i32, String&gt;&gt;&gt; = Lazy::new(|| {
-    let mut m = HashMap::new();
-    m.insert(13, &quot;Spica&quot;.to_string());
-    m.insert(74, &quot;Hoyten&quot;.to_string());
-    Mutex::new(m)
-});
-
-fn main() {
-    println!(&quot;{:?}&quot;, GLOBAL_DATA.lock().unwrap());
-}
-```
-
-[`sync::Lazy`]: sync/struct.Lazy.html
-[`unsync::Lazy`]: unsync/struct.Lazy.html
-
-## General purpose lazy evaluation
-
-Unlike `lazy_static!`, `Lazy` works with local variables.
-
-```rust
-use once_cell::unsync::Lazy;
-
-fn main() {
-    let ctx = vec![1, 2, 3];
-    let thunk = Lazy::new(|| {
-        ctx.iter().sum::&lt;i32&gt;()
-    });
-    assert_eq!(*thunk, 6);
-}
-```
-
-If you need a lazy field in a struct, you probably should use `OnceCell`
-directly, because that will allow you to access `self` during initialization.
-
-```rust
-use std::{fs, path::PathBuf};
-
-use once_cell::unsync::OnceCell;
-
-struct Ctx {
-    config_path: PathBuf,
-    config: OnceCell&lt;String&gt;,
-}
-
-impl Ctx {
-    pub fn get_config(&amp;self) -&gt; Result&lt;&amp;str, std::io::Error&gt; {
-        let cfg = self.config.get_or_try_init(|| {
-            fs::read_to_string(&amp;self.config_path)
-        })?;
-        Ok(cfg.as_str())
-    }
-}
-```
-
-## Building block
-
-Naturally, it is  possible to build other abstractions on top of `OnceCell`.
-For example, this is a `regex!` macro which takes a string literal and returns an
-*expression* that evaluates to a `&amp;&#39;static Regex`:
-
-```
-macro_rules! regex {
-    ($re:literal $(,)?) =&gt; {{
-        static RE: once_cell::sync::OnceCell&lt;regex::Regex&gt; = once_cell::sync::OnceCell::new();
-        RE.get_or_init(|| regex::Regex::new($re).unwrap())
-    }};
-}
-```
-
-This macro can be useful to avoid the &quot;compile regex on every loop iteration&quot; problem.
-
-Another pattern would be a `LateInit` type for delayed initialization:
-
-
-```
-use once_cell::sync::OnceCell;
-
-#[derive(Debug)]
-pub struct LateInit&lt;T&gt; { cell: OnceCell&lt;T&gt; }
-
-impl&lt;T&gt; LateInit&lt;T&gt; {
-    pub fn init(&amp;self, value: T) {
-        assert!(self.cell.set(value).is_ok())
-    }
-}
-
-impl&lt;T&gt; Default for LateInit&lt;T&gt; {
-    fn default() -&gt; Self { LateInit { cell: OnceCell::default() } }
-}
-
-impl&lt;T&gt; std::ops::Deref for LateInit&lt;T&gt; {
-    type Target = T;
-    fn deref(&amp;self) -&gt; &amp;T {
-        self.cell.get().unwrap()
-    }
-}
-
-#[derive(Default, Debug)]
-struct A&lt;&#39;a&gt; {
-    b: LateInit&lt;&amp;&#39;a B&lt;&#39;a&gt;&gt;,
-}
-
-#[derive(Default, Debug)]
-struct B&lt;&#39;a&gt; {
-    a: LateInit&lt;&amp;&#39;a A&lt;&#39;a&gt;&gt;
-}
-
-fn build_cycle() {
-    let a = A::default();
-    let b = B::default();
-    a.b.init(&amp;b);
-    b.a.init(&amp;a);
-    println!(&quot;{:?}&quot;, a.b.a.b.a);
-}
-```
-
-# Comparison with std
-
-|`!Sync` types         | Access Mode            | Drawbacks                                     |
-|----------------------|------------------------|-----------------------------------------------|
-|`Cell&lt;T&gt;`             | `T`                    | requires `T: Copy` for `get`                  |
-|`RefCell&lt;T&gt;`          | `RefMut&lt;T&gt;` / `Ref&lt;T&gt;` | may panic at runtime                          |
-|`unsync::OnceCell&lt;T&gt;` | `&amp;T`                   | assignable only once                          |
-
-|`Sync` types          | Access Mode            | Drawbacks                                     |
-|----------------------|------------------------|-----------------------------------------------|
-|`AtomicT`             | `T`                    | works only with certain `Copy` types          |
-|`Mutex&lt;T&gt;`            | `MutexGuard&lt;T&gt;`        | may deadlock at runtime, may block the thread |
-|`sync::OnceCell&lt;T&gt;`   | `&amp;T`                   | assignable only once, may block the thread    |
-
-Technically, calling `get_or_init` will also cause a panic or a deadlock if it recursively calls
-itself. However, because the assignment can happen only once, such cases should be more rare than
-equivalents with `RefCell` and `Mutex`.
-
-# Minimum Supported `rustc` Version
-
-This crate&#39;s minimum supported `rustc` version is `1.31.1` (or `1.36.0` with the
-`parking_lot` feature enabled).
-
-If only the `std` feature is enabled, MSRV will be updated conservatively.
-When using other features, like `parking_lot`, MSRV might be updated more frequently, up to the latest stable.
-In both cases, increasing MSRV is *not* considered a semver-breaking change.
-
-# Implementation details
-
-The implementation is based on the [`lazy_static`](https://github.com/rust-lang-nursery/lazy-static.rs/)
-and [`lazy_cell`](https://github.com/indiv0/lazycell/) crates and [`std::sync::Once`]. In some sense,
-`once_cell` just streamlines and unifies those APIs.
-
-To implement a sync flavor of `OnceCell`, this crates uses either a custom re-implementation of
-`std::sync::Once` or `parking_lot::Mutex`. This is controlled by the `parking_lot` feature, which
-is enabled by default. Performance is the same for both cases, but the `parking_lot` based `OnceCell&lt;T&gt;`
-is smaller by up to 16 bytes.
-
-This crate uses `unsafe`.
-
-[`std::sync::Once`]: https://doc.rust-lang.org/std/sync/struct.Once.html
-
-# F.A.Q.
-
-**Should I use lazy_static or once_cell?**
-
-To the first approximation, `once_cell` is both more flexible and more convenient than `lazy_static`
-and should be preferred.
-
-Unlike `once_cell`, `lazy_static` supports spinlock-based implementation of blocking which works with
-`#![no_std]`.
-
-`lazy_static` has received significantly more real world testing, but `once_cell` is also a widely
-used crate.
-
-**Should I use the sync or unsync flavor?**
-
-Because Rust compiler checks thread safety for you, it&#39;s impossible to accidentally use `unsync` where
-`sync` is required. So, use `unsync` in single-threaded code and `sync` in multi-threaded. It&#39;s easy
-to switch between the two if code becomes multi-threaded later.
-
-At the moment, `unsync` has an additional benefit that reentrant initialization causes a panic, which
-might be easier to debug than a deadlock.
-
-# Related crates
-
-* [double-checked-cell](https://github.com/niklasf/double-checked-cell)
-* [lazy-init](https://crates.io/crates/lazy-init)
-* [lazycell](https://crates.io/crates/lazycell)
-* [mitochondria](https://crates.io/crates/mitochondria)
-* [lazy_static](https://crates.io/crates/lazy_static)
-
-*/</span>
+<span class="doccomment">//! # Overview</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! `once_cell` provides two new cell-like types, [`unsync::OnceCell`] and [`sync::OnceCell`]. A `OnceCell`</span>
+<span class="doccomment">//! might store arbitrary non-`Copy` types, can be assigned to at most once and provides direct access</span>
+<span class="doccomment">//! to the stored contents. The core API looks *roughly* like this (and there&#39;s much more inside, read on!):</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! ```rust,ignore</span>
+<span class="doccomment">//! impl&lt;T&gt; OnceCell&lt;T&gt; {</span>
+<span class="doccomment">//!     fn new() -&gt; OnceCell&lt;T&gt; { ... }</span>
+<span class="doccomment">//!     fn set(&amp;self, value: T) -&gt; Result&lt;(), T&gt; { ... }</span>
+<span class="doccomment">//!     fn get(&amp;self) -&gt; Option&lt;&amp;T&gt; { ... }</span>
+<span class="doccomment">//! }</span>
+<span class="doccomment">//! ```</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! Note that, like with [`RefCell`] and [`Mutex`], the `set` method requires only a shared reference.</span>
+<span class="doccomment">//! Because of the single assignment restriction `get` can return a `&amp;T` instead of `Ref&lt;T&gt;`</span>
+<span class="doccomment">//! or `MutexGuard&lt;T&gt;`.</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! The `sync` flavor is thread-safe (that is, implements the [`Sync`] trait), while the `unsync` one is not.</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! [`unsync::OnceCell`]: unsync/struct.OnceCell.html</span>
+<span class="doccomment">//! [`sync::OnceCell`]: sync/struct.OnceCell.html</span>
+<span class="doccomment">//! [`RefCell`]: https://doc.rust-lang.org/std/cell/struct.RefCell.html</span>
+<span class="doccomment">//! [`Mutex`]: https://doc.rust-lang.org/std/sync/struct.Mutex.html</span>
+<span class="doccomment">//! [`Sync`]: https://doc.rust-lang.org/std/marker/trait.Sync.html</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! # Patterns</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! `OnceCell` might be useful for a variety of patterns.</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! ## Safe Initialization of global data</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! ```rust</span>
+<span class="doccomment">//! use std::{env, io};</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! use once_cell::sync::OnceCell;</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! #[derive(Debug)]</span>
+<span class="doccomment">//! pub struct Logger {</span>
+<span class="doccomment">//!     // ...</span>
+<span class="doccomment">//! }</span>
+<span class="doccomment">//! static INSTANCE: OnceCell&lt;Logger&gt; = OnceCell::new();</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! impl Logger {</span>
+<span class="doccomment">//!     pub fn global() -&gt; &amp;&#39;static Logger {</span>
+<span class="doccomment">//!         INSTANCE.get().expect(&quot;logger is not initialized&quot;)</span>
+<span class="doccomment">//!     }</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//!     fn from_cli(args: env::Args) -&gt; Result&lt;Logger, std::io::Error&gt; {</span>
+<span class="doccomment">//!        // ...</span>
+<span class="doccomment">//! #      Ok(Logger {})</span>
+<span class="doccomment">//!     }</span>
+<span class="doccomment">//! }</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! fn main() {</span>
+<span class="doccomment">//!     let logger = Logger::from_cli(env::args()).unwrap();</span>
+<span class="doccomment">//!     INSTANCE.set(logger).unwrap();</span>
+<span class="doccomment">//!     // use `Logger::global()` from now on</span>
+<span class="doccomment">//! }</span>
+<span class="doccomment">//! ```</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! ## Lazy initialized global data</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! This is essentially the `lazy_static!` macro, but without a macro.</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! ```rust</span>
+<span class="doccomment">//! use std::{sync::Mutex, collections::HashMap};</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! use once_cell::sync::OnceCell;</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! fn global_data() -&gt; &amp;&#39;static Mutex&lt;HashMap&lt;i32, String&gt;&gt; {</span>
+<span class="doccomment">//!     static INSTANCE: OnceCell&lt;Mutex&lt;HashMap&lt;i32, String&gt;&gt;&gt; = OnceCell::new();</span>
+<span class="doccomment">//!     INSTANCE.get_or_init(|| {</span>
+<span class="doccomment">//!         let mut m = HashMap::new();</span>
+<span class="doccomment">//!         m.insert(13, &quot;Spica&quot;.to_string());</span>
+<span class="doccomment">//!         m.insert(74, &quot;Hoyten&quot;.to_string());</span>
+<span class="doccomment">//!         Mutex::new(m)</span>
+<span class="doccomment">//!     })</span>
+<span class="doccomment">//! }</span>
+<span class="doccomment">//! ```</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! There are also the [`sync::Lazy`] and [`unsync::Lazy`] convenience types to streamline this pattern:</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! ```rust</span>
+<span class="doccomment">//! use std::{sync::Mutex, collections::HashMap};</span>
+<span class="doccomment">//! use once_cell::sync::Lazy;</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! static GLOBAL_DATA: Lazy&lt;Mutex&lt;HashMap&lt;i32, String&gt;&gt;&gt; = Lazy::new(|| {</span>
+<span class="doccomment">//!     let mut m = HashMap::new();</span>
+<span class="doccomment">//!     m.insert(13, &quot;Spica&quot;.to_string());</span>
+<span class="doccomment">//!     m.insert(74, &quot;Hoyten&quot;.to_string());</span>
+<span class="doccomment">//!     Mutex::new(m)</span>
+<span class="doccomment">//! });</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! fn main() {</span>
+<span class="doccomment">//!     println!(&quot;{:?}&quot;, GLOBAL_DATA.lock().unwrap());</span>
+<span class="doccomment">//! }</span>
+<span class="doccomment">//! ```</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! [`sync::Lazy`]: sync/struct.Lazy.html</span>
+<span class="doccomment">//! [`unsync::Lazy`]: unsync/struct.Lazy.html</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! ## General purpose lazy evaluation</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! Unlike `lazy_static!`, `Lazy` works with local variables.</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! ```rust</span>
+<span class="doccomment">//! use once_cell::unsync::Lazy;</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! fn main() {</span>
+<span class="doccomment">//!     let ctx = vec![1, 2, 3];</span>
+<span class="doccomment">//!     let thunk = Lazy::new(|| {</span>
+<span class="doccomment">//!         ctx.iter().sum::&lt;i32&gt;()</span>
+<span class="doccomment">//!     });</span>
+<span class="doccomment">//!     assert_eq!(*thunk, 6);</span>
+<span class="doccomment">//! }</span>
+<span class="doccomment">//! ```</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! If you need a lazy field in a struct, you probably should use `OnceCell`</span>
+<span class="doccomment">//! directly, because that will allow you to access `self` during initialization.</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! ```rust</span>
+<span class="doccomment">//! use std::{fs, path::PathBuf};</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! use once_cell::unsync::OnceCell;</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! struct Ctx {</span>
+<span class="doccomment">//!     config_path: PathBuf,</span>
+<span class="doccomment">//!     config: OnceCell&lt;String&gt;,</span>
+<span class="doccomment">//! }</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! impl Ctx {</span>
+<span class="doccomment">//!     pub fn get_config(&amp;self) -&gt; Result&lt;&amp;str, std::io::Error&gt; {</span>
+<span class="doccomment">//!         let cfg = self.config.get_or_try_init(|| {</span>
+<span class="doccomment">//!             fs::read_to_string(&amp;self.config_path)</span>
+<span class="doccomment">//!         })?;</span>
+<span class="doccomment">//!         Ok(cfg.as_str())</span>
+<span class="doccomment">//!     }</span>
+<span class="doccomment">//! }</span>
+<span class="doccomment">//! ```</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! ## Building block</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! Naturally, it is  possible to build other abstractions on top of `OnceCell`.</span>
+<span class="doccomment">//! For example, this is a `regex!` macro which takes a string literal and returns an</span>
+<span class="doccomment">//! *expression* that evaluates to a `&amp;&#39;static Regex`:</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! ```</span>
+<span class="doccomment">//! macro_rules! regex {</span>
+<span class="doccomment">//!     ($re:literal $(,)?) =&gt; {{</span>
+<span class="doccomment">//!         static RE: once_cell::sync::OnceCell&lt;regex::Regex&gt; = once_cell::sync::OnceCell::new();</span>
+<span class="doccomment">//!         RE.get_or_init(|| regex::Regex::new($re).unwrap())</span>
+<span class="doccomment">//!     }};</span>
+<span class="doccomment">//! }</span>
+<span class="doccomment">//! ```</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! This macro can be useful to avoid the &quot;compile regex on every loop iteration&quot; problem.</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! Another pattern would be a `LateInit` type for delayed initialization:</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! ```</span>
+<span class="doccomment">//! use once_cell::sync::OnceCell;</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! #[derive(Debug)]</span>
+<span class="doccomment">//! pub struct LateInit&lt;T&gt; { cell: OnceCell&lt;T&gt; }</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! impl&lt;T&gt; LateInit&lt;T&gt; {</span>
+<span class="doccomment">//!     pub fn init(&amp;self, value: T) {</span>
+<span class="doccomment">//!         assert!(self.cell.set(value).is_ok())</span>
+<span class="doccomment">//!     }</span>
+<span class="doccomment">//! }</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! impl&lt;T&gt; Default for LateInit&lt;T&gt; {</span>
+<span class="doccomment">//!     fn default() -&gt; Self { LateInit { cell: OnceCell::default() } }</span>
+<span class="doccomment">//! }</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! impl&lt;T&gt; std::ops::Deref for LateInit&lt;T&gt; {</span>
+<span class="doccomment">//!     type Target = T;</span>
+<span class="doccomment">//!     fn deref(&amp;self) -&gt; &amp;T {</span>
+<span class="doccomment">//!         self.cell.get().unwrap()</span>
+<span class="doccomment">//!     }</span>
+<span class="doccomment">//! }</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! #[derive(Default, Debug)]</span>
+<span class="doccomment">//! struct A&lt;&#39;a&gt; {</span>
+<span class="doccomment">//!     b: LateInit&lt;&amp;&#39;a B&lt;&#39;a&gt;&gt;,</span>
+<span class="doccomment">//! }</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! #[derive(Default, Debug)]</span>
+<span class="doccomment">//! struct B&lt;&#39;a&gt; {</span>
+<span class="doccomment">//!     a: LateInit&lt;&amp;&#39;a A&lt;&#39;a&gt;&gt;</span>
+<span class="doccomment">//! }</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! fn build_cycle() {</span>
+<span class="doccomment">//!     let a = A::default();</span>
+<span class="doccomment">//!     let b = B::default();</span>
+<span class="doccomment">//!     a.b.init(&amp;b);</span>
+<span class="doccomment">//!     b.a.init(&amp;a);</span>
+<span class="doccomment">//!     println!(&quot;{:?}&quot;, a.b.a.b.a);</span>
+<span class="doccomment">//! }</span>
+<span class="doccomment">//! ```</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! # Comparison with std</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! |`!Sync` types         | Access Mode            | Drawbacks                                     |</span>
+<span class="doccomment">//! |----------------------|------------------------|-----------------------------------------------|</span>
+<span class="doccomment">//! |`Cell&lt;T&gt;`             | `T`                    | requires `T: Copy` for `get`                  |</span>
+<span class="doccomment">//! |`RefCell&lt;T&gt;`          | `RefMut&lt;T&gt;` / `Ref&lt;T&gt;` | may panic at runtime                          |</span>
+<span class="doccomment">//! |`unsync::OnceCell&lt;T&gt;` | `&amp;T`                   | assignable only once                          |</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! |`Sync` types          | Access Mode            | Drawbacks                                     |</span>
+<span class="doccomment">//! |----------------------|------------------------|-----------------------------------------------|</span>
+<span class="doccomment">//! |`AtomicT`             | `T`                    | works only with certain `Copy` types          |</span>
+<span class="doccomment">//! |`Mutex&lt;T&gt;`            | `MutexGuard&lt;T&gt;`        | may deadlock at runtime, may block the thread |</span>
+<span class="doccomment">//! |`sync::OnceCell&lt;T&gt;`   | `&amp;T`                   | assignable only once, may block the thread    |</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! Technically, calling `get_or_init` will also cause a panic or a deadlock if it recursively calls</span>
+<span class="doccomment">//! itself. However, because the assignment can happen only once, such cases should be more rare than</span>
+<span class="doccomment">//! equivalents with `RefCell` and `Mutex`.</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! # Minimum Supported `rustc` Version</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! This crate&#39;s minimum supported `rustc` version is `1.36.0`.</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! If only the `std` feature is enabled, MSRV will be updated conservatively.</span>
+<span class="doccomment">//! When using other features, like `parking_lot`, MSRV might be updated more frequently, up to the latest stable.</span>
+<span class="doccomment">//! In both cases, increasing MSRV is *not* considered a semver-breaking change.</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! # Implementation details</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! The implementation is based on the [`lazy_static`](https://github.com/rust-lang-nursery/lazy-static.rs/)</span>
+<span class="doccomment">//! and [`lazy_cell`](https://github.com/indiv0/lazycell/) crates and [`std::sync::Once`]. In some sense,</span>
+<span class="doccomment">//! `once_cell` just streamlines and unifies those APIs.</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! To implement a sync flavor of `OnceCell`, this crates uses either a custom re-implementation of</span>
+<span class="doccomment">//! `std::sync::Once` or `parking_lot::Mutex`. This is controlled by the `parking_lot` feature, which</span>
+<span class="doccomment">//! is enabled by default. Performance is the same for both cases, but the `parking_lot` based `OnceCell&lt;T&gt;`</span>
+<span class="doccomment">//! is smaller by up to 16 bytes.</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! This crate uses `unsafe`.</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! [`std::sync::Once`]: https://doc.rust-lang.org/std/sync/struct.Once.html</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! # F.A.Q.</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! **Should I use lazy_static or once_cell?**</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! To the first approximation, `once_cell` is both more flexible and more convenient than `lazy_static`</span>
+<span class="doccomment">//! and should be preferred.</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! Unlike `once_cell`, `lazy_static` supports spinlock-based implementation of blocking which works with</span>
+<span class="doccomment">//! `#![no_std]`.</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! `lazy_static` has received significantly more real world testing, but `once_cell` is also a widely</span>
+<span class="doccomment">//! used crate.</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! **Should I use the sync or unsync flavor?**</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! Because Rust compiler checks thread safety for you, it&#39;s impossible to accidentally use `unsync` where</span>
+<span class="doccomment">//! `sync` is required. So, use `unsync` in single-threaded code and `sync` in multi-threaded. It&#39;s easy</span>
+<span class="doccomment">//! to switch between the two if code becomes multi-threaded later.</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! At the moment, `unsync` has an additional benefit that reentrant initialization causes a panic, which</span>
+<span class="doccomment">//! might be easier to debug than a deadlock.</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! # Related crates</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! * [double-checked-cell](https://github.com/niklasf/double-checked-cell)</span>
+<span class="doccomment">//! * [lazy-init](https://crates.io/crates/lazy-init)</span>
+<span class="doccomment">//! * [lazycell](https://crates.io/crates/lazycell)</span>
+<span class="doccomment">//! * [mitochondria](https://crates.io/crates/mitochondria)</span>
+<span class="doccomment">//! * [lazy_static](https://crates.io/crates/lazy_static)</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! Most of this crate&#39;s functionality is available in `std` in nightly Rust.</span>
+<span class="doccomment">//! See the [tracking issue](https://github.com/rust-lang/rust/issues/74465).</span>
 
 <span class="attribute">#![<span class="ident">cfg_attr</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>), <span class="ident">no_std</span>)]</span>
+
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;unstable&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;alloc&quot;</span>)]</span>
+<span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">alloc</span>;
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span>
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;parking_lot&quot;</span>)]</span>
@@ -2276,197 +2092,7 @@ might be easier to debug than a deadlock.
     <span class="kw">fn</span> <span class="ident">_dummy</span>() {}
 }
 
-<span class="doccomment">/// &quot;First one wins&quot; flavor of `OnceCell`.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// If two threads race to initialize a type from the `race` module, they</span>
-<span class="doccomment">/// don&#39;t block, execute initialization function together, but only one of</span>
-<span class="doccomment">/// them stores the result.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This module does not require `std` feature.</span>
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;unstable&quot;</span>)]</span>
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">race</span> {
-    <span class="kw">use</span> <span class="ident">core</span>::{
-        <span class="ident">num</span>::<span class="ident">NonZeroUsize</span>,
-        <span class="ident">sync</span>::<span class="ident">atomic</span>::{<span class="ident">AtomicUsize</span>, <span class="ident">Ordering</span>},
-    };
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span>
-    <span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">marker</span>::<span class="ident">PhantomData</span>, <span class="ident">ptr</span>, <span class="ident">sync</span>::<span class="ident">atomic</span>::<span class="ident">AtomicPtr</span>};
-
-    <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Default</span>, <span class="ident">Debug</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">OnceNonZeroUsize</span> {
-        <span class="ident">inner</span>: <span class="ident">AtomicUsize</span>,
-    }
-
-    <span class="kw">impl</span> <span class="ident">OnceNonZeroUsize</span> {
-        <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-&gt;</span> <span class="ident">OnceNonZeroUsize</span> {
-            <span class="ident">OnceNonZeroUsize</span> { <span class="ident">inner</span>: <span class="ident">AtomicUsize</span>::<span class="ident">new</span>(<span class="number">0</span>) }
-        }
-
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">NonZeroUsize</span><span class="op">&gt;</span> {
-            <span class="kw">let</span> <span class="ident">val</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">load</span>(<span class="ident">Ordering</span>::<span class="ident">Acquire</span>);
-            <span class="ident">NonZeroUsize</span>::<span class="ident">new</span>(<span class="ident">val</span>)
-        }
-
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">value</span>: <span class="ident">NonZeroUsize</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), ()<span class="op">&gt;</span> {
-            <span class="kw">let</span> <span class="ident">val</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">compare_and_swap</span>(<span class="number">0</span>, <span class="ident">value</span>.<span class="ident">get</span>(), <span class="ident">Ordering</span>::<span class="ident">AcqRel</span>);
-            <span class="kw">if</span> <span class="ident">val</span> <span class="op">==</span> <span class="number">0</span> {
-                <span class="prelude-val">Ok</span>(())
-            } <span class="kw">else</span> {
-                <span class="prelude-val">Err</span>(())
-            }
-        }
-
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_or_init</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="ident">F</span>) <span class="op">-&gt;</span> <span class="ident">NonZeroUsize</span>
-        <span class="kw">where</span>
-            <span class="ident">F</span>: <span class="ident">FnOnce</span>() <span class="op">-&gt;</span> <span class="ident">NonZeroUsize</span>,
-        {
-            <span class="kw">enum</span> <span class="ident">Void</span> {}
-            <span class="kw">match</span> <span class="self">self</span>.<span class="ident">get_or_try_init</span>(<span class="op">||</span> <span class="prelude-val">Ok</span>::<span class="op">&lt;</span><span class="ident">NonZeroUsize</span>, <span class="ident">Void</span><span class="op">&gt;</span>(<span class="ident">f</span>())) {
-                <span class="prelude-val">Ok</span>(<span class="ident">val</span>) <span class="op">=&gt;</span> <span class="ident">val</span>,
-                <span class="prelude-val">Err</span>(<span class="ident">void</span>) <span class="op">=&gt;</span> <span class="kw">match</span> <span class="ident">void</span> {},
-            }
-        }
-
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_or_try_init</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">E</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="ident">F</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">NonZeroUsize</span>, <span class="ident">E</span><span class="op">&gt;</span>
-        <span class="kw">where</span>
-            <span class="ident">F</span>: <span class="ident">FnOnce</span>() <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">NonZeroUsize</span>, <span class="ident">E</span><span class="op">&gt;</span>,
-        {
-            <span class="kw">let</span> <span class="ident">val</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">load</span>(<span class="ident">Ordering</span>::<span class="ident">Acquire</span>);
-            <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">NonZeroUsize</span>::<span class="ident">new</span>(<span class="ident">val</span>) {
-                <span class="prelude-val">Some</span>(<span class="ident">it</span>) <span class="op">=&gt;</span> <span class="ident">it</span>,
-                <span class="prelude-val">None</span> <span class="op">=&gt;</span> {
-                    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">val</span> <span class="op">=</span> <span class="ident">f</span>()<span class="question-mark">?</span>.<span class="ident">get</span>();
-                    <span class="kw">let</span> <span class="ident">old_val</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">compare_and_swap</span>(<span class="number">0</span>, <span class="ident">val</span>, <span class="ident">Ordering</span>::<span class="ident">AcqRel</span>);
-                    <span class="kw">if</span> <span class="ident">old_val</span> <span class="op">!=</span> <span class="number">0</span> {
-                        <span class="ident">val</span> <span class="op">=</span> <span class="ident">old_val</span>;
-                    }
-                    <span class="kw">unsafe</span> { <span class="ident">NonZeroUsize</span>::<span class="ident">new_unchecked</span>(<span class="ident">val</span>) }
-                }
-            };
-            <span class="prelude-val">Ok</span>(<span class="ident">res</span>)
-        }
-    }
-
-    <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Default</span>, <span class="ident">Debug</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">OnceBool</span> {
-        <span class="ident">inner</span>: <span class="ident">OnceNonZeroUsize</span>,
-    }
-
-    <span class="kw">impl</span> <span class="ident">OnceBool</span> {
-        <span class="kw">fn</span> <span class="ident">from_usize</span>(<span class="ident">value</span>: <span class="ident">NonZeroUsize</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
-            <span class="ident">value</span>.<span class="ident">get</span>() <span class="op">==</span> <span class="number">1</span>
-        }
-        <span class="kw">fn</span> <span class="ident">to_usize</span>(<span class="ident">value</span>: <span class="ident">bool</span>) <span class="op">-&gt;</span> <span class="ident">NonZeroUsize</span> {
-            <span class="kw">unsafe</span> { <span class="ident">NonZeroUsize</span>::<span class="ident">new_unchecked</span>(<span class="kw">if</span> <span class="ident">value</span> { <span class="number">1</span> } <span class="kw">else</span> { <span class="number">2</span> }) }
-        }
-
-        <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-&gt;</span> <span class="ident">OnceBool</span> {
-            <span class="ident">OnceBool</span> { <span class="ident">inner</span>: <span class="ident">OnceNonZeroUsize</span>::<span class="ident">new</span>() }
-        }
-
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> {
-            <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">get</span>().<span class="ident">map</span>(<span class="ident">OnceBool</span>::<span class="ident">from_usize</span>)
-        }
-
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">value</span>: <span class="ident">bool</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), ()<span class="op">&gt;</span> {
-            <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">set</span>(<span class="ident">OnceBool</span>::<span class="ident">to_usize</span>(<span class="ident">value</span>))
-        }
-
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_or_init</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="ident">F</span>) <span class="op">-&gt;</span> <span class="ident">bool</span>
-        <span class="kw">where</span>
-            <span class="ident">F</span>: <span class="ident">FnOnce</span>() <span class="op">-&gt;</span> <span class="ident">bool</span>,
-        {
-            <span class="ident">OnceBool</span>::<span class="ident">from_usize</span>(<span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">get_or_init</span>(<span class="op">||</span> <span class="ident">OnceBool</span>::<span class="ident">to_usize</span>(<span class="ident">f</span>())))
-        }
-
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_or_try_init</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">E</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="ident">F</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">bool</span>, <span class="ident">E</span><span class="op">&gt;</span>
-        <span class="kw">where</span>
-            <span class="ident">F</span>: <span class="ident">FnOnce</span>() <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">bool</span>, <span class="ident">E</span><span class="op">&gt;</span>,
-        {
-            <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">get_or_try_init</span>(<span class="op">||</span> <span class="ident">f</span>().<span class="ident">map</span>(<span class="ident">OnceBool</span>::<span class="ident">to_usize</span>)).<span class="ident">map</span>(<span class="ident">OnceBool</span>::<span class="ident">from_usize</span>)
-        }
-    }
-
-    <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Default</span>, <span class="ident">Debug</span>)]</span>
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">OnceBox</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-        <span class="ident">inner</span>: <span class="ident">AtomicPtr</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
-        <span class="ident">ghost</span>: <span class="ident">PhantomData</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;&gt;</span><span class="op">&gt;</span>,
-    }
-
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span>
-    <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">Drop</span> <span class="kw">for</span> <span class="ident">OnceBox</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-        <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
-            <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <span class="kw-2">*</span><span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">get_mut</span>();
-            <span class="kw">if</span> <span class="op">!</span><span class="ident">ptr</span>.<span class="ident">is_null</span>() {
-                <span class="ident">drop</span>(<span class="kw">unsafe</span> { <span class="ident">Box</span>::<span class="ident">from_raw</span>(<span class="ident">ptr</span>) })
-            }
-        }
-    }
-
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span>
-    <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">OnceBox</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-        <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-&gt;</span> <span class="ident">OnceBox</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-            <span class="ident">OnceBox</span> { <span class="ident">inner</span>: <span class="ident">AtomicPtr</span>::<span class="ident">new</span>(<span class="ident">ptr</span>::<span class="ident">null_mut</span>()), <span class="ident">ghost</span>: <span class="ident">PhantomData</span> }
-        }
-
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">T</span><span class="op">&gt;</span> {
-            <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">load</span>(<span class="ident">Ordering</span>::<span class="ident">Acquire</span>);
-            <span class="kw">if</span> <span class="ident">ptr</span>.<span class="ident">is_null</span>() {
-                <span class="kw">return</span> <span class="prelude-val">None</span>;
-            }
-            <span class="prelude-val">Some</span>(<span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">ptr</span> })
-        }
-
-        <span class="comment">// Result&lt;(), Box&lt;T&gt;&gt; here?</span>
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">value</span>: <span class="ident">T</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), ()<span class="op">&gt;</span> {
-            <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <span class="ident">Box</span>::<span class="ident">into_raw</span>(<span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">value</span>));
-            <span class="kw">if</span> <span class="ident">ptr</span>.<span class="ident">is_null</span>() {
-                <span class="ident">drop</span>(<span class="kw">unsafe</span> { <span class="ident">Box</span>::<span class="ident">from_raw</span>(<span class="ident">ptr</span>) });
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(());
-            }
-            <span class="prelude-val">Ok</span>(())
-        }
-
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_or_init</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="ident">F</span>) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="ident">T</span>
-        <span class="kw">where</span>
-            <span class="ident">F</span>: <span class="ident">FnOnce</span>() <span class="op">-&gt;</span> <span class="ident">T</span>,
-        {
-            <span class="kw">enum</span> <span class="ident">Void</span> {}
-            <span class="kw">match</span> <span class="self">self</span>.<span class="ident">get_or_try_init</span>(<span class="op">||</span> <span class="prelude-val">Ok</span>::<span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">Void</span><span class="op">&gt;</span>(<span class="ident">f</span>())) {
-                <span class="prelude-val">Ok</span>(<span class="ident">val</span>) <span class="op">=&gt;</span> <span class="ident">val</span>,
-                <span class="prelude-val">Err</span>(<span class="ident">void</span>) <span class="op">=&gt;</span> <span class="kw">match</span> <span class="ident">void</span> {},
-            }
-        }
-
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_or_try_init</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">E</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="ident">F</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">T</span>, <span class="ident">E</span><span class="op">&gt;</span>
-        <span class="kw">where</span>
-            <span class="ident">F</span>: <span class="ident">FnOnce</span>() <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">E</span><span class="op">&gt;</span>,
-        {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">ptr</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">load</span>(<span class="ident">Ordering</span>::<span class="ident">Acquire</span>);
-
-            <span class="kw">if</span> <span class="ident">ptr</span>.<span class="ident">is_null</span>() {
-                <span class="kw">let</span> <span class="ident">val</span> <span class="op">=</span> <span class="ident">f</span>()<span class="question-mark">?</span>;
-                <span class="ident">ptr</span> <span class="op">=</span> <span class="ident">Box</span>::<span class="ident">into_raw</span>(<span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">val</span>));
-                <span class="kw">let</span> <span class="ident">old_ptr</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">compare_and_swap</span>(<span class="ident">ptr</span>::<span class="ident">null_mut</span>(), <span class="ident">ptr</span>, <span class="ident">Ordering</span>::<span class="ident">AcqRel</span>);
-                <span class="kw">if</span> <span class="op">!</span><span class="ident">old_ptr</span>.<span class="ident">is_null</span>() {
-                    <span class="ident">drop</span>(<span class="kw">unsafe</span> { <span class="ident">Box</span>::<span class="ident">from_raw</span>(<span class="ident">ptr</span>) });
-                    <span class="ident">ptr</span> <span class="op">=</span> <span class="ident">old_ptr</span>;
-                }
-            };
-            <span class="prelude-val">Ok</span>(<span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">ptr</span> })
-        }
-    }
-
-    <span class="doccomment">/// ```compile_fail</span>
-    <span class="doccomment">/// struct S(*mut ());</span>
-    <span class="doccomment">/// unsafe impl Sync for S {}</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// fn share&lt;T: Sync&gt;(_: &amp;T) {}</span>
-    <span class="doccomment">/// share(&amp;once_cell::race::OnceBox::&lt;S&gt;::new());</span>
-    <span class="doccomment">/// ```</span>
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span>
-    <span class="kw">unsafe</span> <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Sync</span> <span class="op">+</span> <span class="ident">Send</span><span class="op">&gt;</span> <span class="ident">Sync</span> <span class="kw">for</span> <span class="ident">OnceBox</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {}
-}
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">race</span>;
 </pre></div>
 </section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../../";window.currentCrate = "once_cell";</script><script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script><script defer src="../../search-index.js"></script></body></html>
