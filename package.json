@@ -14,7 +14,7 @@
     "prettier": "2.1.2",
     "style-loader": "^2.0.0",
     "text-encoding": "^0.7.0",
-    "webpack": "^5.5.0",
+    "webpack": "^5.5.1",
     "webpack-cli": "^4.2.0",
     "webpack-dev-server": "^3.11.0"
   },
