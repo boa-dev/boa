@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/regress-0.2.0/src/pikevm.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>pikevm.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../regress/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/regress-0.2.0/src/pikevm.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>pikevm.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+<link rel="alternate icon" type="image/png" href="../../favicon-16x16.png">
+<link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../regress/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
                 <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
@@ -456,8 +458,8 @@
     <span class="ident">Complete</span>,
 }
 
-<span class="kw">fn</span> <span class="ident">run_loop</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">State</span>, <span class="ident">lf</span>: <span class="kw-2">&amp;</span><span class="ident">LoopFields</span>, <span class="ident">is_initial_entry</span>: <span class="ident">bool</span>) <span class="op">-&gt;</span> <span class="ident">StateMatch</span> {
-    <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="ident">lf</span>.<span class="ident">max_iters</span> <span class="op">&gt;=</span> <span class="ident">lf</span>.<span class="ident">min_iters</span>);
+<span class="kw">fn</span> <span class="ident">run_loop</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">State</span>, <span class="ident">lf</span>: <span class="kw-2">&amp;</span><span class="ident">LoopFields</span>, <span class="ident">is_initial_entry</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">StateMatch</span> {
+    <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="ident">lf</span>.<span class="ident">max_iters</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">lf</span>.<span class="ident">min_iters</span>);
     <span class="kw">let</span> <span class="ident">ld</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">s</span>.<span class="ident">loops</span>[<span class="ident">lf</span>.<span class="ident">loop_id</span> <span class="kw">as</span> <span class="ident">usize</span>];
     <span class="kw">let</span> <span class="ident">exit</span> <span class="op">=</span> <span class="ident">lf</span>.<span class="ident">exit</span> <span class="kw">as</span> <span class="ident">usize</span>;
     <span class="kw">let</span> <span class="ident">skip_ok</span>;
@@ -466,28 +468,28 @@
         <span class="comment">// Entering the loop for the &quot;first&quot; time.</span>
         <span class="ident">ld</span>.<span class="ident">iters</span> <span class="op">=</span> <span class="number">0</span>;
         <span class="ident">enter_ok</span> <span class="op">=</span> <span class="ident">lf</span>.<span class="ident">max_iters</span> <span class="op">&gt;</span> <span class="number">0</span>;
-        <span class="ident">skip_ok</span> <span class="op">=</span> <span class="ident">lf</span>.<span class="ident">min_iters</span> <span class="op">==</span> <span class="number">0</span>;
+        <span class="ident">skip_ok</span> <span class="op">=</span> <span class="ident">lf</span>.<span class="ident">min_iters</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span>;
     } <span class="kw">else</span> {
         <span class="comment">// Note that iters is the number of complete iterations.</span>
-        <span class="ident">ld</span>.<span class="ident">iters</span> <span class="op">+=</span> <span class="number">1</span>;
+        <span class="ident">ld</span>.<span class="ident">iters</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
         <span class="comment">// We can enter the loop if we have iterated less than the maximum number of</span>
         <span class="comment">// times.</span>
         <span class="ident">enter_ok</span> <span class="op">=</span> <span class="ident">ld</span>.<span class="ident">iters</span> <span class="op">&lt;</span> <span class="ident">lf</span>.<span class="ident">max_iters</span>;
 
         <span class="comment">// We can skip the loop if we have iterated at least the minimum number of</span>
         <span class="comment">// times.</span>
-        <span class="ident">skip_ok</span> <span class="op">=</span> <span class="ident">ld</span>.<span class="ident">iters</span> <span class="op">&gt;=</span> <span class="ident">lf</span>.<span class="ident">min_iters</span>;
+        <span class="ident">skip_ok</span> <span class="op">=</span> <span class="ident">ld</span>.<span class="ident">iters</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">lf</span>.<span class="ident">min_iters</span>;
 
         <span class="comment">// Check if this iteration was beyond the minimum number of times, and our entry</span>
         <span class="comment">// position is the same as last time (ES6 21.2.2.5.1 note 4).</span>
         <span class="comment">// If so, we matched the empty string and we stop.</span>
-        <span class="kw">if</span> <span class="ident">ld</span>.<span class="ident">iters</span> <span class="op">&gt;</span> <span class="ident">lf</span>.<span class="ident">min_iters</span> <span class="op">&amp;&amp;</span> <span class="ident">ld</span>.<span class="ident">entry</span> <span class="op">==</span> <span class="ident">s</span>.<span class="ident">pos</span> {
+        <span class="kw">if</span> <span class="ident">ld</span>.<span class="ident">iters</span> <span class="op">&gt;</span> <span class="ident">lf</span>.<span class="ident">min_iters</span> <span class="op">&amp;&amp;</span> <span class="ident">ld</span>.<span class="ident">entry</span> <span class="op">=</span><span class="op">=</span> <span class="ident">s</span>.<span class="ident">pos</span> {
             <span class="kw">return</span> <span class="ident">StateMatch</span>::<span class="ident">Fail</span>;
         }
     }
     <span class="comment">// Set up our fields as if we are going to enter the loop.</span>
     <span class="ident">ld</span>.<span class="ident">entry</span> <span class="op">=</span> <span class="ident">s</span>.<span class="ident">pos</span>;
-    <span class="ident">s</span>.<span class="ident">ip</span> <span class="op">+=</span> <span class="number">1</span>;
+    <span class="ident">s</span>.<span class="ident">ip</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
 
     <span class="kw">if</span> <span class="op">!</span><span class="ident">enter_ok</span> <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">skip_ok</span> {
         <span class="ident">StateMatch</span>::<span class="ident">Fail</span>
@@ -510,11 +512,11 @@
     <span class="ident">re</span>: <span class="kw-2">&amp;</span><span class="ident">CompiledRegex</span>,
     <span class="ident">cursor</span>: <span class="ident">Cursor</span>,
     <span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">State</span>,
-) <span class="op">-&gt;</span> <span class="ident">StateMatch</span> {
+) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">StateMatch</span> {
     <span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">nextinsn_or_fail</span> {
-        (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">e</span>:<span class="ident">expr</span>) <span class="op">=&gt;</span> {
+        (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">e</span>:<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> {
             <span class="kw">if</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">e</span> {
-                <span class="ident">s</span>.<span class="ident">ip</span> <span class="op">+=</span> <span class="number">1</span>;
+                <span class="ident">s</span>.<span class="ident">ip</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
                 <span class="ident">StateMatch</span>::<span class="ident">Continue</span>
             } <span class="kw">else</span> {
                 <span class="ident">StateMatch</span>::<span class="ident">Fail</span>
@@ -522,86 +524,86 @@
         };
     };
     <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="ident">re</span>.<span class="ident">insns</span>[<span class="ident">s</span>.<span class="ident">ip</span>] {
-        <span class="ident">Insn</span>::<span class="ident">Goal</span> <span class="op">=&gt;</span> <span class="ident">StateMatch</span>::<span class="ident">Complete</span>,
-        <span class="ident">Insn</span>::<span class="ident">JustFail</span> <span class="op">=&gt;</span> <span class="ident">StateMatch</span>::<span class="ident">Fail</span>,
-        <span class="kw-2">&amp;</span><span class="ident">Insn</span>::<span class="ident">Char</span>(<span class="ident">c</span>) <span class="op">=&gt;</span> <span class="kw">match</span> <span class="ident">cursor</span>.<span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">s</span>.<span class="ident">pos</span>) {
-            <span class="prelude-val">Some</span>(<span class="ident">c2</span>) <span class="op">=&gt;</span> <span class="macro">nextinsn_or_fail</span><span class="macro">!</span>(<span class="ident">c</span> <span class="op">==</span> <span class="ident">c2</span>.<span class="ident">as_char</span>()),
-            <span class="kw">_</span> <span class="op">=&gt;</span> <span class="ident">StateMatch</span>::<span class="ident">Fail</span>,
+        <span class="ident">Insn</span>::<span class="ident">Goal</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">StateMatch</span>::<span class="ident">Complete</span>,
+        <span class="ident">Insn</span>::<span class="ident">JustFail</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">StateMatch</span>::<span class="ident">Fail</span>,
+        <span class="kw-2">&amp;</span><span class="ident">Insn</span>::<span class="ident">Char</span>(<span class="ident">c</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">cursor</span>.<span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">s</span>.<span class="ident">pos</span>) {
+            <span class="prelude-val">Some</span>(<span class="ident">c2</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">nextinsn_or_fail</span><span class="macro">!</span>(<span class="ident">c</span> <span class="op">=</span><span class="op">=</span> <span class="ident">c2</span>.<span class="ident">as_char</span>()),
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">StateMatch</span>::<span class="ident">Fail</span>,
         },
-        <span class="kw-2">&amp;</span><span class="ident">Insn</span>::<span class="ident">CharICase</span>(<span class="ident">c</span>) <span class="op">=&gt;</span> {
+        <span class="kw-2">&amp;</span><span class="ident">Insn</span>::<span class="ident">CharICase</span>(<span class="ident">c</span>) <span class="op">=</span><span class="op">&gt;</span> {
             <span class="kw">let</span> <span class="ident">c</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">Cursor</span>::<span class="ident">Element</span>::<span class="ident">try_from</span>(<span class="ident">c</span>) {
-                <span class="prelude-val">Some</span>(<span class="ident">c</span>) <span class="op">=&gt;</span> <span class="ident">c</span>,
-                <span class="prelude-val">None</span> <span class="op">=&gt;</span> <span class="kw">return</span> <span class="ident">StateMatch</span>::<span class="ident">Fail</span>,
+                <span class="prelude-val">Some</span>(<span class="ident">c</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">c</span>,
+                <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident">StateMatch</span>::<span class="ident">Fail</span>,
             };
             <span class="kw">match</span> <span class="ident">cursor</span>.<span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">s</span>.<span class="ident">pos</span>) {
-                <span class="prelude-val">Some</span>(<span class="ident">c2</span>) <span class="op">=&gt;</span> <span class="macro">nextinsn_or_fail</span><span class="macro">!</span>(<span class="ident">c</span> <span class="op">==</span> <span class="ident">c2</span> <span class="op">||</span> <span class="ident">Cursor</span>::<span class="ident">CharProps</span>::<span class="ident">fold</span>(<span class="ident">c2</span>) <span class="op">==</span> <span class="ident">c</span>),
-                <span class="kw">_</span> <span class="op">=&gt;</span> <span class="ident">StateMatch</span>::<span class="ident">Fail</span>,
+                <span class="prelude-val">Some</span>(<span class="ident">c2</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">nextinsn_or_fail</span><span class="macro">!</span>(<span class="ident">c</span> <span class="op">=</span><span class="op">=</span> <span class="ident">c2</span> <span class="op">|</span><span class="op">|</span> <span class="ident">Cursor</span>::<span class="ident">CharProps</span>::<span class="ident">fold</span>(<span class="ident">c2</span>) <span class="op">=</span><span class="op">=</span> <span class="ident">c</span>),
+                <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">StateMatch</span>::<span class="ident">Fail</span>,
             }
         }
 
-        <span class="ident">Insn</span>::<span class="ident">CharSet</span>(<span class="ident">v</span>) <span class="op">=&gt;</span> <span class="kw">match</span> <span class="ident">cursor</span>.<span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">s</span>.<span class="ident">pos</span>) {
-            <span class="prelude-val">Some</span>(<span class="ident">c</span>) <span class="op">=&gt;</span> <span class="macro">nextinsn_or_fail</span><span class="macro">!</span>(<span class="ident">charset_contains</span>(<span class="ident">v</span>, <span class="ident">c</span>.<span class="ident">as_char</span>())),
-            <span class="kw">_</span> <span class="op">=&gt;</span> <span class="ident">StateMatch</span>::<span class="ident">Fail</span>,
+        <span class="ident">Insn</span>::<span class="ident">CharSet</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">cursor</span>.<span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">s</span>.<span class="ident">pos</span>) {
+            <span class="prelude-val">Some</span>(<span class="ident">c</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">nextinsn_or_fail</span><span class="macro">!</span>(<span class="ident">charset_contains</span>(<span class="ident">v</span>, <span class="ident">c</span>.<span class="ident">as_char</span>())),
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">StateMatch</span>::<span class="ident">Fail</span>,
         },
 
-        <span class="ident">Insn</span>::<span class="ident">ByteSeq1</span>(<span class="ident">v</span>) <span class="op">=&gt;</span> <span class="macro">nextinsn_or_fail</span><span class="macro">!</span>(<span class="ident">cursor</span>.<span class="ident">try_match_lit</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">s</span>.<span class="ident">pos</span>, <span class="ident">v</span>)),
-        <span class="ident">Insn</span>::<span class="ident">ByteSeq2</span>(<span class="ident">v</span>) <span class="op">=&gt;</span> <span class="macro">nextinsn_or_fail</span><span class="macro">!</span>(<span class="ident">cursor</span>.<span class="ident">try_match_lit</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">s</span>.<span class="ident">pos</span>, <span class="ident">v</span>)),
-        <span class="ident">Insn</span>::<span class="ident">ByteSeq3</span>(<span class="ident">v</span>) <span class="op">=&gt;</span> <span class="macro">nextinsn_or_fail</span><span class="macro">!</span>(<span class="ident">cursor</span>.<span class="ident">try_match_lit</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">s</span>.<span class="ident">pos</span>, <span class="ident">v</span>)),
-        <span class="ident">Insn</span>::<span class="ident">ByteSeq4</span>(<span class="ident">v</span>) <span class="op">=&gt;</span> <span class="macro">nextinsn_or_fail</span><span class="macro">!</span>(<span class="ident">cursor</span>.<span class="ident">try_match_lit</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">s</span>.<span class="ident">pos</span>, <span class="ident">v</span>)),
-        <span class="ident">Insn</span>::<span class="ident">ByteSeq5</span>(<span class="ident">v</span>) <span class="op">=&gt;</span> <span class="macro">nextinsn_or_fail</span><span class="macro">!</span>(<span class="ident">cursor</span>.<span class="ident">try_match_lit</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">s</span>.<span class="ident">pos</span>, <span class="ident">v</span>)),
-        <span class="ident">Insn</span>::<span class="ident">ByteSeq6</span>(<span class="ident">v</span>) <span class="op">=&gt;</span> <span class="macro">nextinsn_or_fail</span><span class="macro">!</span>(<span class="ident">cursor</span>.<span class="ident">try_match_lit</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">s</span>.<span class="ident">pos</span>, <span class="ident">v</span>)),
-        <span class="ident">Insn</span>::<span class="ident">ByteSeq7</span>(<span class="ident">v</span>) <span class="op">=&gt;</span> <span class="macro">nextinsn_or_fail</span><span class="macro">!</span>(<span class="ident">cursor</span>.<span class="ident">try_match_lit</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">s</span>.<span class="ident">pos</span>, <span class="ident">v</span>)),
-        <span class="ident">Insn</span>::<span class="ident">ByteSeq8</span>(<span class="ident">v</span>) <span class="op">=&gt;</span> <span class="macro">nextinsn_or_fail</span><span class="macro">!</span>(<span class="ident">cursor</span>.<span class="ident">try_match_lit</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">s</span>.<span class="ident">pos</span>, <span class="ident">v</span>)),
-        <span class="ident">Insn</span>::<span class="ident">ByteSeq9</span>(<span class="ident">v</span>) <span class="op">=&gt;</span> <span class="macro">nextinsn_or_fail</span><span class="macro">!</span>(<span class="ident">cursor</span>.<span class="ident">try_match_lit</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">s</span>.<span class="ident">pos</span>, <span class="ident">v</span>)),
-        <span class="ident">Insn</span>::<span class="ident">ByteSeq10</span>(<span class="ident">v</span>) <span class="op">=&gt;</span> <span class="macro">nextinsn_or_fail</span><span class="macro">!</span>(<span class="ident">cursor</span>.<span class="ident">try_match_lit</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">s</span>.<span class="ident">pos</span>, <span class="ident">v</span>)),
-        <span class="ident">Insn</span>::<span class="ident">ByteSeq11</span>(<span class="ident">v</span>) <span class="op">=&gt;</span> <span class="macro">nextinsn_or_fail</span><span class="macro">!</span>(<span class="ident">cursor</span>.<span class="ident">try_match_lit</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">s</span>.<span class="ident">pos</span>, <span class="ident">v</span>)),
-        <span class="ident">Insn</span>::<span class="ident">ByteSeq12</span>(<span class="ident">v</span>) <span class="op">=&gt;</span> <span class="macro">nextinsn_or_fail</span><span class="macro">!</span>(<span class="ident">cursor</span>.<span class="ident">try_match_lit</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">s</span>.<span class="ident">pos</span>, <span class="ident">v</span>)),
-        <span class="ident">Insn</span>::<span class="ident">ByteSeq13</span>(<span class="ident">v</span>) <span class="op">=&gt;</span> <span class="macro">nextinsn_or_fail</span><span class="macro">!</span>(<span class="ident">cursor</span>.<span class="ident">try_match_lit</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">s</span>.<span class="ident">pos</span>, <span class="ident">v</span>)),
-        <span class="ident">Insn</span>::<span class="ident">ByteSeq14</span>(<span class="ident">v</span>) <span class="op">=&gt;</span> <span class="macro">nextinsn_or_fail</span><span class="macro">!</span>(<span class="ident">cursor</span>.<span class="ident">try_match_lit</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">s</span>.<span class="ident">pos</span>, <span class="ident">v</span>)),
-        <span class="ident">Insn</span>::<span class="ident">ByteSeq15</span>(<span class="ident">v</span>) <span class="op">=&gt;</span> <span class="macro">nextinsn_or_fail</span><span class="macro">!</span>(<span class="ident">cursor</span>.<span class="ident">try_match_lit</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">s</span>.<span class="ident">pos</span>, <span class="ident">v</span>)),
-        <span class="ident">Insn</span>::<span class="ident">ByteSeq16</span>(<span class="ident">v</span>) <span class="op">=&gt;</span> <span class="macro">nextinsn_or_fail</span><span class="macro">!</span>(<span class="ident">cursor</span>.<span class="ident">try_match_lit</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">s</span>.<span class="ident">pos</span>, <span class="ident">v</span>)),
+        <span class="ident">Insn</span>::<span class="ident">ByteSeq1</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">nextinsn_or_fail</span><span class="macro">!</span>(<span class="ident">cursor</span>.<span class="ident">try_match_lit</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">s</span>.<span class="ident">pos</span>, <span class="ident">v</span>)),
+        <span class="ident">Insn</span>::<span class="ident">ByteSeq2</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">nextinsn_or_fail</span><span class="macro">!</span>(<span class="ident">cursor</span>.<span class="ident">try_match_lit</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">s</span>.<span class="ident">pos</span>, <span class="ident">v</span>)),
+        <span class="ident">Insn</span>::<span class="ident">ByteSeq3</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">nextinsn_or_fail</span><span class="macro">!</span>(<span class="ident">cursor</span>.<span class="ident">try_match_lit</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">s</span>.<span class="ident">pos</span>, <span class="ident">v</span>)),
+        <span class="ident">Insn</span>::<span class="ident">ByteSeq4</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">nextinsn_or_fail</span><span class="macro">!</span>(<span class="ident">cursor</span>.<span class="ident">try_match_lit</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">s</span>.<span class="ident">pos</span>, <span class="ident">v</span>)),
+        <span class="ident">Insn</span>::<span class="ident">ByteSeq5</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">nextinsn_or_fail</span><span class="macro">!</span>(<span class="ident">cursor</span>.<span class="ident">try_match_lit</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">s</span>.<span class="ident">pos</span>, <span class="ident">v</span>)),
+        <span class="ident">Insn</span>::<span class="ident">ByteSeq6</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">nextinsn_or_fail</span><span class="macro">!</span>(<span class="ident">cursor</span>.<span class="ident">try_match_lit</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">s</span>.<span class="ident">pos</span>, <span class="ident">v</span>)),
+        <span class="ident">Insn</span>::<span class="ident">ByteSeq7</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">nextinsn_or_fail</span><span class="macro">!</span>(<span class="ident">cursor</span>.<span class="ident">try_match_lit</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">s</span>.<span class="ident">pos</span>, <span class="ident">v</span>)),
+        <span class="ident">Insn</span>::<span class="ident">ByteSeq8</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">nextinsn_or_fail</span><span class="macro">!</span>(<span class="ident">cursor</span>.<span class="ident">try_match_lit</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">s</span>.<span class="ident">pos</span>, <span class="ident">v</span>)),
+        <span class="ident">Insn</span>::<span class="ident">ByteSeq9</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">nextinsn_or_fail</span><span class="macro">!</span>(<span class="ident">cursor</span>.<span class="ident">try_match_lit</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">s</span>.<span class="ident">pos</span>, <span class="ident">v</span>)),
+        <span class="ident">Insn</span>::<span class="ident">ByteSeq10</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">nextinsn_or_fail</span><span class="macro">!</span>(<span class="ident">cursor</span>.<span class="ident">try_match_lit</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">s</span>.<span class="ident">pos</span>, <span class="ident">v</span>)),
+        <span class="ident">Insn</span>::<span class="ident">ByteSeq11</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">nextinsn_or_fail</span><span class="macro">!</span>(<span class="ident">cursor</span>.<span class="ident">try_match_lit</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">s</span>.<span class="ident">pos</span>, <span class="ident">v</span>)),
+        <span class="ident">Insn</span>::<span class="ident">ByteSeq12</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">nextinsn_or_fail</span><span class="macro">!</span>(<span class="ident">cursor</span>.<span class="ident">try_match_lit</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">s</span>.<span class="ident">pos</span>, <span class="ident">v</span>)),
+        <span class="ident">Insn</span>::<span class="ident">ByteSeq13</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">nextinsn_or_fail</span><span class="macro">!</span>(<span class="ident">cursor</span>.<span class="ident">try_match_lit</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">s</span>.<span class="ident">pos</span>, <span class="ident">v</span>)),
+        <span class="ident">Insn</span>::<span class="ident">ByteSeq14</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">nextinsn_or_fail</span><span class="macro">!</span>(<span class="ident">cursor</span>.<span class="ident">try_match_lit</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">s</span>.<span class="ident">pos</span>, <span class="ident">v</span>)),
+        <span class="ident">Insn</span>::<span class="ident">ByteSeq15</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">nextinsn_or_fail</span><span class="macro">!</span>(<span class="ident">cursor</span>.<span class="ident">try_match_lit</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">s</span>.<span class="ident">pos</span>, <span class="ident">v</span>)),
+        <span class="ident">Insn</span>::<span class="ident">ByteSeq16</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">nextinsn_or_fail</span><span class="macro">!</span>(<span class="ident">cursor</span>.<span class="ident">try_match_lit</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">s</span>.<span class="ident">pos</span>, <span class="ident">v</span>)),
 
-        <span class="ident">Insn</span>::<span class="ident">StartOfLine</span> <span class="op">=&gt;</span> {
+        <span class="ident">Insn</span>::<span class="ident">StartOfLine</span> <span class="op">=</span><span class="op">&gt;</span> {
             <span class="kw">let</span> <span class="ident">matches</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">cursor</span>.<span class="ident">peek_left</span>(<span class="ident">s</span>.<span class="ident">pos</span>) {
-                <span class="prelude-val">None</span> <span class="op">=&gt;</span> <span class="bool-val">true</span>,
-                <span class="prelude-val">Some</span>(<span class="ident">c</span>) <span class="kw">if</span> <span class="ident">re</span>.<span class="ident">flags</span>.<span class="ident">multiline</span> <span class="op">&amp;&amp;</span> <span class="ident">Cursor</span>::<span class="ident">CharProps</span>::<span class="ident">is_line_terminator</span>(<span class="ident">c</span>) <span class="op">=&gt;</span> <span class="bool-val">true</span>,
-                <span class="kw">_</span> <span class="op">=&gt;</span> <span class="bool-val">false</span>,
+                <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
+                <span class="prelude-val">Some</span>(<span class="ident">c</span>) <span class="kw">if</span> <span class="ident">re</span>.<span class="ident">flags</span>.<span class="ident">multiline</span> <span class="op">&amp;&amp;</span> <span class="ident">Cursor</span>::<span class="ident">CharProps</span>::<span class="ident">is_line_terminator</span>(<span class="ident">c</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
+                <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
             };
             <span class="macro">nextinsn_or_fail</span><span class="macro">!</span>(<span class="ident">matches</span>)
         }
 
-        <span class="ident">Insn</span>::<span class="ident">EndOfLine</span> <span class="op">=&gt;</span> {
+        <span class="ident">Insn</span>::<span class="ident">EndOfLine</span> <span class="op">=</span><span class="op">&gt;</span> {
             <span class="kw">let</span> <span class="ident">matches</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">cursor</span>.<span class="ident">peek_right</span>(<span class="ident">s</span>.<span class="ident">pos</span>) {
-                <span class="prelude-val">None</span> <span class="op">=&gt;</span> <span class="bool-val">true</span>, <span class="comment">// we&#39;re at the right of the string</span>
-                <span class="prelude-val">Some</span>(<span class="ident">c</span>) <span class="kw">if</span> <span class="ident">re</span>.<span class="ident">flags</span>.<span class="ident">multiline</span> <span class="op">&amp;&amp;</span> <span class="ident">Cursor</span>::<span class="ident">CharProps</span>::<span class="ident">is_line_terminator</span>(<span class="ident">c</span>) <span class="op">=&gt;</span> <span class="bool-val">true</span>,
-                <span class="kw">_</span> <span class="op">=&gt;</span> <span class="bool-val">false</span>,
+                <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>, <span class="comment">// we&#39;re at the right of the string</span>
+                <span class="prelude-val">Some</span>(<span class="ident">c</span>) <span class="kw">if</span> <span class="ident">re</span>.<span class="ident">flags</span>.<span class="ident">multiline</span> <span class="op">&amp;&amp;</span> <span class="ident">Cursor</span>::<span class="ident">CharProps</span>::<span class="ident">is_line_terminator</span>(<span class="ident">c</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
+                <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
             };
             <span class="macro">nextinsn_or_fail</span><span class="macro">!</span>(<span class="ident">matches</span>)
         }
 
-        <span class="ident">Insn</span>::<span class="ident">MatchAny</span> <span class="op">=&gt;</span> <span class="kw">match</span> <span class="ident">cursor</span>.<span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">s</span>.<span class="ident">pos</span>) {
-            <span class="prelude-val">Some</span>(<span class="kw">_</span>) <span class="op">=&gt;</span> <span class="macro">nextinsn_or_fail</span><span class="macro">!</span>(<span class="bool-val">true</span>),
-            <span class="kw">_</span> <span class="op">=&gt;</span> <span class="ident">StateMatch</span>::<span class="ident">Fail</span>,
+        <span class="ident">Insn</span>::<span class="ident">MatchAny</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">cursor</span>.<span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">s</span>.<span class="ident">pos</span>) {
+            <span class="prelude-val">Some</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">nextinsn_or_fail</span><span class="macro">!</span>(<span class="bool-val">true</span>),
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">StateMatch</span>::<span class="ident">Fail</span>,
         },
 
-        <span class="ident">Insn</span>::<span class="ident">MatchAnyExceptLineTerminator</span> <span class="op">=&gt;</span> <span class="kw">match</span> <span class="ident">cursor</span>.<span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">s</span>.<span class="ident">pos</span>) {
-            <span class="prelude-val">Some</span>(<span class="ident">c2</span>) <span class="op">=&gt;</span> <span class="macro">nextinsn_or_fail</span><span class="macro">!</span>(<span class="op">!</span><span class="ident">Cursor</span>::<span class="ident">CharProps</span>::<span class="ident">is_line_terminator</span>(<span class="ident">c2</span>)),
-            <span class="kw">_</span> <span class="op">=&gt;</span> <span class="ident">StateMatch</span>::<span class="ident">Fail</span>,
+        <span class="ident">Insn</span>::<span class="ident">MatchAnyExceptLineTerminator</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">cursor</span>.<span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">s</span>.<span class="ident">pos</span>) {
+            <span class="prelude-val">Some</span>(<span class="ident">c2</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">nextinsn_or_fail</span><span class="macro">!</span>(<span class="op">!</span><span class="ident">Cursor</span>::<span class="ident">CharProps</span>::<span class="ident">is_line_terminator</span>(<span class="ident">c2</span>)),
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">StateMatch</span>::<span class="ident">Fail</span>,
         },
 
-        <span class="kw-2">&amp;</span><span class="ident">Insn</span>::<span class="ident">Jump</span> { <span class="ident">target</span> } <span class="op">=&gt;</span> {
+        <span class="kw-2">&amp;</span><span class="ident">Insn</span>::<span class="ident">Jump</span> { <span class="ident">target</span> } <span class="op">=</span><span class="op">&gt;</span> {
             <span class="ident">s</span>.<span class="ident">ip</span> <span class="op">=</span> <span class="ident">target</span> <span class="kw">as</span> <span class="ident">usize</span>;
             <span class="ident">StateMatch</span>::<span class="ident">Continue</span>
         }
 
-        <span class="kw-2">&amp;</span><span class="ident">Insn</span>::<span class="ident">Alt</span> { <span class="ident">secondary</span> } <span class="op">=&gt;</span> {
+        <span class="kw-2">&amp;</span><span class="ident">Insn</span>::<span class="ident">Alt</span> { <span class="ident">secondary</span> } <span class="op">=</span><span class="op">&gt;</span> {
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">left</span> <span class="op">=</span> <span class="ident">s</span>.<span class="ident">clone</span>();
-            <span class="ident">left</span>.<span class="ident">ip</span> <span class="op">+=</span> <span class="number">1</span>;
+            <span class="ident">left</span>.<span class="ident">ip</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
             <span class="ident">s</span>.<span class="ident">ip</span> <span class="op">=</span> <span class="ident">secondary</span> <span class="kw">as</span> <span class="ident">usize</span>;
             <span class="ident">StateMatch</span>::<span class="ident">Split</span>(<span class="ident">left</span>)
         }
 
-        <span class="kw-2">&amp;</span><span class="ident">Insn</span>::<span class="ident">BeginCaptureGroup</span>(<span class="ident">group_idx</span>) <span class="op">=&gt;</span> {
+        <span class="kw-2">&amp;</span><span class="ident">Insn</span>::<span class="ident">BeginCaptureGroup</span>(<span class="ident">group_idx</span>) <span class="op">=</span><span class="op">&gt;</span> {
             <span class="kw">let</span> <span class="ident">group</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">s</span>.<span class="ident">groups</span>[<span class="ident">group_idx</span> <span class="kw">as</span> <span class="ident">usize</span>];
             <span class="kw">if</span> <span class="ident">Cursor</span>::<span class="ident">FORWARD</span> {
                 <span class="ident">std</span>::<span class="macro">debug_assert</span><span class="macro">!</span>(<span class="op">!</span><span class="ident">group</span>.<span class="ident">start_matched</span>(), <span class="string">&quot;Group should not have been entered&quot;</span>);
@@ -613,7 +615,7 @@
             <span class="macro">nextinsn_or_fail</span><span class="macro">!</span>(<span class="bool-val">true</span>)
         }
 
-        <span class="kw-2">&amp;</span><span class="ident">Insn</span>::<span class="ident">EndCaptureGroup</span>(<span class="ident">group_idx</span>) <span class="op">=&gt;</span> {
+        <span class="kw-2">&amp;</span><span class="ident">Insn</span>::<span class="ident">EndCaptureGroup</span>(<span class="ident">group_idx</span>) <span class="op">=</span><span class="op">&gt;</span> {
             <span class="kw">let</span> <span class="ident">group</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">s</span>.<span class="ident">groups</span>[<span class="ident">group_idx</span> <span class="kw">as</span> <span class="ident">usize</span>];
             <span class="kw">if</span> <span class="ident">Cursor</span>::<span class="ident">FORWARD</span> {
                 <span class="ident">std</span>::<span class="macro">debug_assert</span><span class="macro">!</span>(<span class="ident">group</span>.<span class="ident">start_matched</span>(), <span class="string">&quot;Group should have been entered&quot;</span>);
@@ -623,18 +625,18 @@
                 <span class="ident">group</span>.<span class="ident">start</span> <span class="op">=</span> <span class="ident">s</span>.<span class="ident">pos</span>;
             }
             <span class="ident">std</span>::<span class="macro">debug_assert</span><span class="macro">!</span>(
-                <span class="ident">group</span>.<span class="ident">end</span>.<span class="ident">pos</span> <span class="op">&gt;=</span> <span class="ident">group</span>.<span class="ident">start</span>.<span class="ident">pos</span>,
+                <span class="ident">group</span>.<span class="ident">end</span>.<span class="ident">pos</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">group</span>.<span class="ident">start</span>.<span class="ident">pos</span>,
                 <span class="string">&quot;Exit pos should be after start pos&quot;</span>
             );
             <span class="macro">nextinsn_or_fail</span><span class="macro">!</span>(<span class="bool-val">true</span>)
         }
 
-        <span class="kw-2">&amp;</span><span class="ident">Insn</span>::<span class="ident">ResetCaptureGroup</span>(<span class="ident">group_idx</span>) <span class="op">=&gt;</span> {
+        <span class="kw-2">&amp;</span><span class="ident">Insn</span>::<span class="ident">ResetCaptureGroup</span>(<span class="ident">group_idx</span>) <span class="op">=</span><span class="op">&gt;</span> {
             <span class="ident">s</span>.<span class="ident">groups</span>[<span class="ident">group_idx</span> <span class="kw">as</span> <span class="ident">usize</span>].<span class="ident">reset</span>();
             <span class="macro">nextinsn_or_fail</span><span class="macro">!</span>(<span class="bool-val">true</span>)
         }
 
-        <span class="kw-2">&amp;</span><span class="ident">Insn</span>::<span class="ident">BackRef</span>(<span class="ident">group_idx</span>) <span class="op">=&gt;</span> {
+        <span class="kw-2">&amp;</span><span class="ident">Insn</span>::<span class="ident">BackRef</span>(<span class="ident">group_idx</span>) <span class="op">=</span><span class="op">&gt;</span> {
             <span class="kw">let</span> <span class="ident">matched</span>;
             <span class="kw">let</span> <span class="ident">group</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">s</span>.<span class="ident">groups</span>[<span class="ident">group_idx</span> <span class="kw">as</span> <span class="ident">usize</span>];
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">orig_range</span>) <span class="op">=</span> <span class="ident">group</span>.<span class="ident">as_range</span>() {
@@ -656,12 +658,12 @@
             <span class="ident">start_group</span>: <span class="kw">_</span>,
             <span class="ident">end_group</span>: <span class="kw">_</span>,
             <span class="ident">continuation</span>,
-        } <span class="op">=&gt;</span> {
+        } <span class="op">=</span><span class="op">&gt;</span> {
             <span class="comment">// Enter into the lookaround&#39;s instruction stream.</span>
-            <span class="ident">s</span>.<span class="ident">ip</span> <span class="op">+=</span> <span class="number">1</span>;
+            <span class="ident">s</span>.<span class="ident">ip</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
             <span class="kw">let</span> <span class="ident">saved_pos</span> <span class="op">=</span> <span class="ident">s</span>.<span class="ident">pos</span>;
             <span class="kw">let</span> <span class="ident">attempt_succeeded</span> <span class="op">=</span> <span class="ident">MatchAttempter</span>::<span class="ident">new</span>(<span class="ident">re</span>).<span class="ident">try_at_pos</span>(<span class="ident">s</span>, <span class="ident">cursor</span>.<span class="ident">as_forward</span>());
-            <span class="kw">let</span> <span class="ident">matched</span> <span class="op">=</span> <span class="ident">attempt_succeeded</span> <span class="op">!=</span> <span class="ident">negate</span>;
+            <span class="kw">let</span> <span class="ident">matched</span> <span class="op">=</span> <span class="ident">attempt_succeeded</span> <span class="op">!</span><span class="op">=</span> <span class="ident">negate</span>;
             <span class="kw">if</span> <span class="ident">matched</span> {
                 <span class="ident">s</span>.<span class="ident">ip</span> <span class="op">=</span> <span class="ident">continuation</span> <span class="kw">as</span> <span class="ident">usize</span>;
                 <span class="ident">s</span>.<span class="ident">pos</span> <span class="op">=</span> <span class="ident">saved_pos</span>;
@@ -676,12 +678,12 @@
             <span class="ident">start_group</span>: <span class="kw">_</span>,
             <span class="ident">end_group</span>: <span class="kw">_</span>,
             <span class="ident">continuation</span>,
-        } <span class="op">=&gt;</span> {
+        } <span class="op">=</span><span class="op">&gt;</span> {
             <span class="comment">// Enter into the lookaround&#39;s instruction stream.</span>
-            <span class="ident">s</span>.<span class="ident">ip</span> <span class="op">+=</span> <span class="number">1</span>;
+            <span class="ident">s</span>.<span class="ident">ip</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
             <span class="kw">let</span> <span class="ident">saved_pos</span> <span class="op">=</span> <span class="ident">s</span>.<span class="ident">pos</span>;
             <span class="kw">let</span> <span class="ident">attempt_succeeded</span> <span class="op">=</span> <span class="ident">MatchAttempter</span>::<span class="ident">new</span>(<span class="ident">re</span>).<span class="ident">try_at_pos</span>(<span class="ident">s</span>, <span class="ident">cursor</span>.<span class="ident">as_backward</span>());
-            <span class="kw">let</span> <span class="ident">matched</span> <span class="op">=</span> <span class="ident">attempt_succeeded</span> <span class="op">!=</span> <span class="ident">negate</span>;
+            <span class="kw">let</span> <span class="ident">matched</span> <span class="op">=</span> <span class="ident">attempt_succeeded</span> <span class="op">!</span><span class="op">=</span> <span class="ident">negate</span>;
             <span class="kw">if</span> <span class="ident">matched</span> {
                 <span class="ident">s</span>.<span class="ident">ip</span> <span class="op">=</span> <span class="ident">continuation</span> <span class="kw">as</span> <span class="ident">usize</span>;
                 <span class="ident">s</span>.<span class="ident">pos</span> <span class="op">=</span> <span class="ident">saved_pos</span>;
@@ -690,54 +692,54 @@
                 <span class="ident">StateMatch</span>::<span class="ident">Fail</span>
             }
         }
-        <span class="ident">Insn</span>::<span class="ident">EnterLoop</span>(<span class="ident">lf</span>) <span class="op">=&gt;</span> <span class="ident">run_loop</span>(<span class="ident">s</span>, <span class="ident">lf</span>, <span class="bool-val">true</span>),
-        <span class="kw-2">&amp;</span><span class="ident">Insn</span>::<span class="ident">LoopAgain</span> { <span class="ident">begin</span> } <span class="op">=&gt;</span> {
+        <span class="ident">Insn</span>::<span class="ident">EnterLoop</span>(<span class="ident">lf</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">run_loop</span>(<span class="ident">s</span>, <span class="ident">lf</span>, <span class="bool-val">true</span>),
+        <span class="kw-2">&amp;</span><span class="ident">Insn</span>::<span class="ident">LoopAgain</span> { <span class="ident">begin</span> } <span class="op">=</span><span class="op">&gt;</span> {
             <span class="ident">s</span>.<span class="ident">ip</span> <span class="op">=</span> <span class="ident">begin</span> <span class="kw">as</span> <span class="ident">usize</span>;
             <span class="kw">match</span> <span class="ident">re</span>.<span class="ident">insns</span>.<span class="ident">iat</span>(<span class="ident">s</span>.<span class="ident">ip</span>) {
-                <span class="ident">Insn</span>::<span class="ident">EnterLoop</span>(<span class="kw-2">ref</span> <span class="ident">lf</span>) <span class="op">=&gt;</span> <span class="ident">run_loop</span>(<span class="ident">s</span>, <span class="kw-2">&amp;</span><span class="ident">lf</span>, <span class="bool-val">false</span>),
-                <span class="kw">_</span> <span class="op">=&gt;</span> <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;LoopAgain does not point at EnterLoop&quot;</span>),
+                <span class="ident">Insn</span>::<span class="ident">EnterLoop</span>(<span class="kw-2">ref</span> <span class="ident">lf</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">run_loop</span>(<span class="ident">s</span>, <span class="kw-2">&amp;</span><span class="ident">lf</span>, <span class="bool-val">false</span>),
+                <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;LoopAgain does not point at EnterLoop&quot;</span>),
             }
         }
-        <span class="ident">Insn</span>::<span class="ident">Loop1CharBody</span> { .. } <span class="op">=&gt;</span> <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;Loop1CharBody unimplemented for pikevm&quot;</span>),
-        <span class="ident">Insn</span>::<span class="ident">Bracket</span>(<span class="ident">bc</span>) <span class="op">=&gt;</span> <span class="kw">match</span> <span class="ident">cursor</span>.<span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">s</span>.<span class="ident">pos</span>) {
-            <span class="prelude-val">Some</span>(<span class="ident">c</span>) <span class="op">=&gt;</span> <span class="macro">nextinsn_or_fail</span><span class="macro">!</span>(<span class="ident">Cursor</span>::<span class="ident">CharProps</span>::<span class="ident">bracket</span>(<span class="ident">bc</span>, <span class="ident">c</span>)),
-            <span class="kw">_</span> <span class="op">=&gt;</span> <span class="ident">StateMatch</span>::<span class="ident">Fail</span>,
+        <span class="ident">Insn</span>::<span class="ident">Loop1CharBody</span> { .. } <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;Loop1CharBody unimplemented for pikevm&quot;</span>),
+        <span class="ident">Insn</span>::<span class="ident">Bracket</span>(<span class="ident">bc</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">cursor</span>.<span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">s</span>.<span class="ident">pos</span>) {
+            <span class="prelude-val">Some</span>(<span class="ident">c</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">nextinsn_or_fail</span><span class="macro">!</span>(<span class="ident">Cursor</span>::<span class="ident">CharProps</span>::<span class="ident">bracket</span>(<span class="ident">bc</span>, <span class="ident">c</span>)),
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">StateMatch</span>::<span class="ident">Fail</span>,
         },
 
-        <span class="ident">Insn</span>::<span class="ident">AsciiBracket</span>(<span class="ident">bitmap</span>) <span class="op">=&gt;</span> <span class="kw">match</span> <span class="ident">cursor</span>.<span class="ident">next_byte</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">s</span>.<span class="ident">pos</span>) {
-            <span class="prelude-val">Some</span>(<span class="ident">c</span>) <span class="op">=&gt;</span> <span class="macro">nextinsn_or_fail</span><span class="macro">!</span>(<span class="ident">bitmap</span>.<span class="ident">contains</span>(<span class="ident">c</span>)),
-            <span class="kw">_</span> <span class="op">=&gt;</span> <span class="ident">StateMatch</span>::<span class="ident">Fail</span>,
+        <span class="ident">Insn</span>::<span class="ident">AsciiBracket</span>(<span class="ident">bitmap</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">cursor</span>.<span class="ident">next_byte</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">s</span>.<span class="ident">pos</span>) {
+            <span class="prelude-val">Some</span>(<span class="ident">c</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">nextinsn_or_fail</span><span class="macro">!</span>(<span class="ident">bitmap</span>.<span class="ident">contains</span>(<span class="ident">c</span>)),
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">StateMatch</span>::<span class="ident">Fail</span>,
         },
 
-        <span class="kw-2">&amp;</span><span class="ident">Insn</span>::<span class="ident">ByteSet2</span>(<span class="ident">bytes</span>) <span class="op">=&gt;</span> <span class="kw">match</span> <span class="ident">cursor</span>.<span class="ident">next_byte</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">s</span>.<span class="ident">pos</span>) {
-            <span class="prelude-val">Some</span>(<span class="ident">c</span>) <span class="op">=&gt;</span> <span class="macro">nextinsn_or_fail</span><span class="macro">!</span>(<span class="ident">bytes</span>.<span class="ident">contains</span>(<span class="ident">c</span>)),
-            <span class="kw">_</span> <span class="op">=&gt;</span> <span class="ident">StateMatch</span>::<span class="ident">Fail</span>,
+        <span class="kw-2">&amp;</span><span class="ident">Insn</span>::<span class="ident">ByteSet2</span>(<span class="ident">bytes</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">cursor</span>.<span class="ident">next_byte</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">s</span>.<span class="ident">pos</span>) {
+            <span class="prelude-val">Some</span>(<span class="ident">c</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">nextinsn_or_fail</span><span class="macro">!</span>(<span class="ident">bytes</span>.<span class="ident">contains</span>(<span class="ident">c</span>)),
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">StateMatch</span>::<span class="ident">Fail</span>,
         },
 
-        <span class="kw-2">&amp;</span><span class="ident">Insn</span>::<span class="ident">ByteSet3</span>(<span class="ident">bytes</span>) <span class="op">=&gt;</span> <span class="kw">match</span> <span class="ident">cursor</span>.<span class="ident">next_byte</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">s</span>.<span class="ident">pos</span>) {
-            <span class="prelude-val">Some</span>(<span class="ident">c</span>) <span class="op">=&gt;</span> <span class="macro">nextinsn_or_fail</span><span class="macro">!</span>(<span class="ident">bytes</span>.<span class="ident">contains</span>(<span class="ident">c</span>)),
-            <span class="kw">_</span> <span class="op">=&gt;</span> <span class="ident">StateMatch</span>::<span class="ident">Fail</span>,
+        <span class="kw-2">&amp;</span><span class="ident">Insn</span>::<span class="ident">ByteSet3</span>(<span class="ident">bytes</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">cursor</span>.<span class="ident">next_byte</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">s</span>.<span class="ident">pos</span>) {
+            <span class="prelude-val">Some</span>(<span class="ident">c</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">nextinsn_or_fail</span><span class="macro">!</span>(<span class="ident">bytes</span>.<span class="ident">contains</span>(<span class="ident">c</span>)),
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">StateMatch</span>::<span class="ident">Fail</span>,
         },
 
-        <span class="kw-2">&amp;</span><span class="ident">Insn</span>::<span class="ident">ByteSet4</span>(<span class="ident">bytes</span>) <span class="op">=&gt;</span> <span class="kw">match</span> <span class="ident">cursor</span>.<span class="ident">next_byte</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">s</span>.<span class="ident">pos</span>) {
-            <span class="prelude-val">Some</span>(<span class="ident">c</span>) <span class="op">=&gt;</span> <span class="macro">nextinsn_or_fail</span><span class="macro">!</span>(<span class="ident">bytes</span>.<span class="ident">contains</span>(<span class="ident">c</span>)),
-            <span class="kw">_</span> <span class="op">=&gt;</span> <span class="ident">StateMatch</span>::<span class="ident">Fail</span>,
+        <span class="kw-2">&amp;</span><span class="ident">Insn</span>::<span class="ident">ByteSet4</span>(<span class="ident">bytes</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">cursor</span>.<span class="ident">next_byte</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">s</span>.<span class="ident">pos</span>) {
+            <span class="prelude-val">Some</span>(<span class="ident">c</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">nextinsn_or_fail</span><span class="macro">!</span>(<span class="ident">bytes</span>.<span class="ident">contains</span>(<span class="ident">c</span>)),
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">StateMatch</span>::<span class="ident">Fail</span>,
         },
 
-        <span class="kw-2">&amp;</span><span class="ident">Insn</span>::<span class="ident">WordBoundary</span> { <span class="ident">invert</span> } <span class="op">=&gt;</span> {
+        <span class="kw-2">&amp;</span><span class="ident">Insn</span>::<span class="ident">WordBoundary</span> { <span class="ident">invert</span> } <span class="op">=</span><span class="op">&gt;</span> {
             <span class="kw">let</span> <span class="ident">prev_wordchar</span> <span class="op">=</span> <span class="ident">cursor</span>
                 .<span class="ident">peek_left</span>(<span class="ident">s</span>.<span class="ident">pos</span>)
                 .<span class="ident">map_or</span>(<span class="bool-val">false</span>, <span class="ident">Cursor</span>::<span class="ident">CharProps</span>::<span class="ident">is_word_char</span>);
             <span class="kw">let</span> <span class="ident">curr_wordchar</span> <span class="op">=</span> <span class="ident">cursor</span>
                 .<span class="ident">peek_right</span>(<span class="ident">s</span>.<span class="ident">pos</span>)
                 .<span class="ident">map_or</span>(<span class="bool-val">false</span>, <span class="ident">Cursor</span>::<span class="ident">CharProps</span>::<span class="ident">is_word_char</span>);
-            <span class="kw">let</span> <span class="ident">is_boundary</span> <span class="op">=</span> <span class="ident">prev_wordchar</span> <span class="op">!=</span> <span class="ident">curr_wordchar</span>;
-            <span class="macro">nextinsn_or_fail</span><span class="macro">!</span>(<span class="ident">is_boundary</span> <span class="op">!=</span> <span class="ident">invert</span>)
+            <span class="kw">let</span> <span class="ident">is_boundary</span> <span class="op">=</span> <span class="ident">prev_wordchar</span> <span class="op">!</span><span class="op">=</span> <span class="ident">curr_wordchar</span>;
+            <span class="macro">nextinsn_or_fail</span><span class="macro">!</span>(<span class="ident">is_boundary</span> <span class="op">!</span><span class="op">=</span> <span class="ident">invert</span>)
         }
     }
 }
 
-<span class="kw">fn</span> <span class="ident">successful_match</span>(<span class="ident">start</span>: <span class="ident">usize</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="ident">State</span>) <span class="op">-&gt;</span> <span class="ident">Match</span> {
+<span class="kw">fn</span> <span class="ident">successful_match</span>(<span class="ident">start</span>: <span class="ident">usize</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="ident">State</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Match</span> {
     <span class="kw">let</span> <span class="ident">captures</span> <span class="op">=</span> <span class="ident">state</span>.<span class="ident">groups</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="ident">GroupData</span>::<span class="ident">as_range</span>).<span class="ident">collect</span>();
     <span class="ident">Match</span> {
         <span class="ident">range</span>: <span class="ident">start</span>..<span class="ident">state</span>.<span class="ident">pos</span>.<span class="ident">pos</span>,
@@ -752,30 +754,30 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">MatchAttempter</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">re</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">CompiledRegex</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">re</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">CompiledRegex</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="self">Self</span> {
             <span class="ident">states</span>: <span class="ident">Vec</span>::<span class="ident">new</span>(),
             <span class="ident">re</span>,
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">try_at_pos</span><span class="op">&lt;</span><span class="ident">Cursor</span>: <span class="ident">Cursorable</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">init_state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">State</span>, <span class="ident">cursor</span>: <span class="ident">Cursor</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">try_at_pos</span><span class="op">&lt;</span><span class="ident">Cursor</span>: <span class="ident">Cursorable</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">init_state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">State</span>, <span class="ident">cursor</span>: <span class="ident">Cursor</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
         <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="self">self</span>.<span class="ident">states</span>.<span class="ident">is_empty</span>(), <span class="string">&quot;Should be no states&quot;</span>);
         <span class="self">self</span>.<span class="ident">states</span>.<span class="ident">push</span>(<span class="ident">init_state</span>.<span class="ident">clone</span>());
         <span class="kw">while</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">states</span>.<span class="ident">is_empty</span>() {
             <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">states</span>.<span class="ident">last_mut</span>().<span class="ident">unwrap</span>();
             <span class="kw">match</span> <span class="ident">try_match_state</span>(<span class="self">self</span>.<span class="ident">re</span>, <span class="ident">cursor</span>, <span class="ident">s</span>) {
-                <span class="ident">StateMatch</span>::<span class="ident">Fail</span> <span class="op">=&gt;</span> {
+                <span class="ident">StateMatch</span>::<span class="ident">Fail</span> <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="self">self</span>.<span class="ident">states</span>.<span class="ident">pop</span>();
                 }
-                <span class="ident">StateMatch</span>::<span class="ident">Continue</span> <span class="op">=&gt;</span> {}
-                <span class="ident">StateMatch</span>::<span class="ident">Complete</span> <span class="op">=&gt;</span> {
+                <span class="ident">StateMatch</span>::<span class="ident">Continue</span> <span class="op">=</span><span class="op">&gt;</span> {}
+                <span class="ident">StateMatch</span>::<span class="ident">Complete</span> <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="comment">// Give the successful state to the caller.</span>
                     <span class="ident">std</span>::<span class="ident">mem</span>::<span class="ident">swap</span>(<span class="ident">init_state</span>, <span class="ident">s</span>);
                     <span class="self">self</span>.<span class="ident">states</span>.<span class="ident">clear</span>();
                     <span class="kw">return</span> <span class="bool-val">true</span>;
                 }
-                <span class="ident">StateMatch</span>::<span class="ident">Split</span>(<span class="ident">newstate</span>) <span class="op">=&gt;</span> <span class="self">self</span>.<span class="ident">states</span>.<span class="ident">push</span>(<span class="ident">newstate</span>),
+                <span class="ident">StateMatch</span>::<span class="ident">Split</span>(<span class="ident">newstate</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">states</span>.<span class="ident">push</span>(<span class="ident">newstate</span>),
             }
         }
         <span class="bool-val">false</span>
@@ -788,10 +790,10 @@
     <span class="ident">matcher</span>: <span class="ident">MatchAttempter</span><span class="op">&lt;</span><span class="lifetime">&#39;r</span><span class="op">&gt;</span>,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;r</span>, <span class="lifetime">&#39;t</span><span class="op">&gt;</span> <span class="ident">exec</span>::<span class="ident">Executor</span><span class="op">&lt;</span><span class="lifetime">&#39;r</span>, <span class="lifetime">&#39;t</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">PikeVMExecutor</span><span class="op">&lt;</span><span class="lifetime">&#39;r</span>, <span class="ident">Utf8Input</span><span class="op">&lt;</span><span class="lifetime">&#39;t</span><span class="op">&gt;&gt;</span> {
-    <span class="kw">type</span> <span class="ident">AsAscii</span> <span class="op">=</span> <span class="ident">PikeVMExecutor</span><span class="op">&lt;</span><span class="lifetime">&#39;r</span>, <span class="ident">AsciiInput</span><span class="op">&lt;</span><span class="lifetime">&#39;t</span><span class="op">&gt;&gt;</span>;
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;r</span>, <span class="lifetime">&#39;t</span><span class="op">&gt;</span> <span class="ident">exec</span>::<span class="ident">Executor</span><span class="op">&lt;</span><span class="lifetime">&#39;r</span>, <span class="lifetime">&#39;t</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">PikeVMExecutor</span><span class="op">&lt;</span><span class="lifetime">&#39;r</span>, <span class="ident">Utf8Input</span><span class="op">&lt;</span><span class="lifetime">&#39;t</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">type</span> <span class="ident">AsAscii</span> <span class="op">=</span> <span class="ident">PikeVMExecutor</span><span class="op">&lt;</span><span class="lifetime">&#39;r</span>, <span class="ident">AsciiInput</span><span class="op">&lt;</span><span class="lifetime">&#39;t</span><span class="op">&gt;</span><span class="op">&gt;</span>;
 
-    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">re</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;r</span> <span class="ident">CompiledRegex</span>, <span class="ident">text</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;t</span> <span class="ident">str</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">re</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;r</span> <span class="ident">CompiledRegex</span>, <span class="ident">text</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;t</span> <span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="kw">let</span> <span class="ident">input</span> <span class="op">=</span> <span class="ident">Utf8Input</span>::<span class="ident">new</span>(<span class="ident">text</span>);
         <span class="self">Self</span> {
             <span class="ident">cursor</span>: <span class="ident">cursor</span>::<span class="ident">starting_cursor</span>(<span class="ident">input</span>),
@@ -800,10 +802,10 @@
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;r</span>, <span class="lifetime">&#39;t</span><span class="op">&gt;</span> <span class="ident">exec</span>::<span class="ident">Executor</span><span class="op">&lt;</span><span class="lifetime">&#39;r</span>, <span class="lifetime">&#39;t</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">PikeVMExecutor</span><span class="op">&lt;</span><span class="lifetime">&#39;r</span>, <span class="ident">AsciiInput</span><span class="op">&lt;</span><span class="lifetime">&#39;t</span><span class="op">&gt;&gt;</span> {
-    <span class="kw">type</span> <span class="ident">AsAscii</span> <span class="op">=</span> <span class="ident">PikeVMExecutor</span><span class="op">&lt;</span><span class="lifetime">&#39;r</span>, <span class="ident">AsciiInput</span><span class="op">&lt;</span><span class="lifetime">&#39;t</span><span class="op">&gt;&gt;</span>;
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;r</span>, <span class="lifetime">&#39;t</span><span class="op">&gt;</span> <span class="ident">exec</span>::<span class="ident">Executor</span><span class="op">&lt;</span><span class="lifetime">&#39;r</span>, <span class="lifetime">&#39;t</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">PikeVMExecutor</span><span class="op">&lt;</span><span class="lifetime">&#39;r</span>, <span class="ident">AsciiInput</span><span class="op">&lt;</span><span class="lifetime">&#39;t</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">type</span> <span class="ident">AsAscii</span> <span class="op">=</span> <span class="ident">PikeVMExecutor</span><span class="op">&lt;</span><span class="lifetime">&#39;r</span>, <span class="ident">AsciiInput</span><span class="op">&lt;</span><span class="lifetime">&#39;t</span><span class="op">&gt;</span><span class="op">&gt;</span>;
 
-    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">re</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;r</span> <span class="ident">CompiledRegex</span>, <span class="ident">text</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;t</span> <span class="ident">str</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">re</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;r</span> <span class="ident">CompiledRegex</span>, <span class="ident">text</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;t</span> <span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="kw">let</span> <span class="ident">input</span> <span class="op">=</span> <span class="ident">AsciiInput</span>::<span class="ident">new</span>(<span class="ident">text</span>);
         <span class="self">Self</span> {
             <span class="ident">cursor</span>: <span class="ident">cursor</span>::<span class="ident">starting_cursor</span>(<span class="ident">input</span>),
@@ -813,7 +815,7 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Input</span>: <span class="ident">InputIndexer</span><span class="op">&gt;</span> <span class="ident">exec</span>::<span class="ident">MatchProducer</span> <span class="kw">for</span> <span class="ident">PikeVMExecutor</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Input</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">next_match</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">pos</span>: <span class="ident">usize</span>, <span class="ident">next_start</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Match</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">next_match</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">pos</span>: <span class="ident">usize</span>, <span class="ident">next_start</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Match</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">re</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">matcher</span>.<span class="ident">re</span>;
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">state</span> <span class="op">=</span> <span class="ident">State</span> {
             <span class="ident">pos</span>: <span class="ident">Position</span> { <span class="ident">pos</span> },
@@ -825,7 +827,7 @@
             <span class="ident">state</span>.<span class="ident">pos</span>.<span class="ident">pos</span> <span class="op">=</span> <span class="ident">pos</span>;
             <span class="kw">if</span> <span class="self">self</span>.<span class="ident">matcher</span>.<span class="ident">try_at_pos</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">state</span>, <span class="self">self</span>.<span class="ident">cursor</span>) {
                 <span class="kw">let</span> <span class="ident">end</span> <span class="op">=</span> <span class="ident">state</span>.<span class="ident">pos</span>;
-                <span class="kw-2">*</span><span class="ident">next_start</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">end</span>.<span class="ident">pos</span> <span class="op">!=</span> <span class="ident">pos</span> {
+                <span class="kw-2">*</span><span class="ident">next_start</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">end</span>.<span class="ident">pos</span> <span class="op">!</span><span class="op">=</span> <span class="ident">pos</span> {
                     <span class="prelude-val">Some</span>(<span class="ident">end</span>.<span class="ident">pos</span>)
                 } <span class="kw">else</span> {
                     <span class="self">self</span>.<span class="ident">cursor</span>.<span class="ident">input</span>.<span class="ident">index_after_inc</span>(<span class="ident">end</span>.<span class="ident">pos</span>)
@@ -833,8 +835,8 @@
                 <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="ident">successful_match</span>(<span class="ident">pos</span>, <span class="kw-2">&amp;</span><span class="ident">state</span>));
             }
             <span class="kw">match</span> <span class="self">self</span>.<span class="ident">cursor</span>.<span class="ident">input</span>.<span class="ident">index_after_inc</span>(<span class="ident">pos</span>) {
-                <span class="prelude-val">Some</span>(<span class="ident">nextpos</span>) <span class="op">=&gt;</span> <span class="ident">pos</span> <span class="op">=</span> <span class="ident">nextpos</span>,
-                <span class="prelude-val">None</span> <span class="op">=&gt;</span> <span class="kw">break</span>,
+                <span class="prelude-val">Some</span>(<span class="ident">nextpos</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">pos</span> <span class="op">=</span> <span class="ident">nextpos</span>,
+                <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">break</span>,
             }
         }
         <span class="prelude-val">None</span>

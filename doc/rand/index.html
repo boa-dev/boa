@@ -4,9 +4,9 @@
 useful types and distributions, and some randomness-related algorithms.</p>
 <h1 id="quick-start" class="section-header"><a href="#quick-start">Quick Start</a></h1>
 <p>To get you started quickly, the easiest and highest-level way to get
-a random value is to use [<code>random()</code>]; alternatively you can use
-[<code>thread_rng()</code>]. The [<code>Rng</code>] trait provides a useful API on all RNGs, while
-the [<code>distributions</code>] and [<code>seq</code>] modules provide further
+a random value is to use <a href="../rand/fn.random.html" title="random()"><code>random()</code></a>; alternatively you can use
+<a href="../rand/fn.thread_rng.html" title="thread_rng()"><code>thread_rng()</code></a>. The <a href="../rand/trait.Rng.html" title="Rng"><code>Rng</code></a> trait provides a useful API on all RNGs, while
+the <a href="../rand/distributions/index.html" title="distributions"><code>distributions</code></a> and <a href="../rand/seq/index.html" title="seq"><code>seq</code></a> modules provide further
 functionality on top of RNGs.</p>
 
 <div class="example-wrap"><pre class="rust rust-example-rendered">
@@ -34,9 +34,9 @@ functionality on top of RNGs.</p>
 <table><tr class='module-item'><td><a class="struct" href="struct.Error.html" title='rand::Error struct'>Error</a></td><td class='docblock-short'><p>Error type of random number generators</p>
 </td></tr></table><h2 id='traits' class='section-header'><a href="#traits">Traits</a></h2>
 <table><tr class='module-item'><td><a class="trait" href="trait.AsByteSliceMut.html" title='rand::AsByteSliceMut trait'>AsByteSliceMut</a></td><td class='docblock-short'><p>Trait for casting types to byte slices</p>
-</td></tr><tr class='module-item'><td><a class="trait" href="trait.CryptoRng.html" title='rand::CryptoRng trait'>CryptoRng</a></td><td class='docblock-short'><p>A marker trait used to indicate that an [<code>RngCore</code>] or <a href="block::BlockRngCore"><code>BlockRngCore</code></a>
+</td></tr><tr class='module-item'><td><a class="trait" href="trait.CryptoRng.html" title='rand::CryptoRng trait'>CryptoRng</a></td><td class='docblock-short'><p>A marker trait used to indicate that an <a href="../rand/trait.RngCore.html" title="RngCore"><code>RngCore</code></a> or <a href="../rand_core/block/trait.BlockRngCore.html"><code>BlockRngCore</code></a>
 implementation is supposed to be cryptographically secure.</p>
-</td></tr><tr class='module-item'><td><a class="trait" href="trait.Rng.html" title='rand::Rng trait'>Rng</a></td><td class='docblock-short'><p>An automatically-implemented extension trait on [<code>RngCore</code>] providing high-level
+</td></tr><tr class='module-item'><td><a class="trait" href="trait.Rng.html" title='rand::Rng trait'>Rng</a></td><td class='docblock-short'><p>An automatically-implemented extension trait on <a href="../rand/trait.RngCore.html" title="RngCore"><code>RngCore</code></a> providing high-level
 generic methods for sampling values and other convenience methods.</p>
 </td></tr><tr class='module-item'><td><a class="trait" href="trait.RngCore.html" title='rand::RngCore trait'>RngCore</a></td><td class='docblock-short'><p>The core of a random number generator.</p>
 </td></tr><tr class='module-item'><td><a class="trait" href="trait.SeedableRng.html" title='rand::SeedableRng trait'>SeedableRng</a></td><td class='docblock-short'><p>A random number generator that can be explicitly seeded.</p>

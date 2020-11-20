@@ -635,7 +635,7 @@
     <span class="doccomment">/// the case this method is not implemented directly, it can be implemented</span>
     <span class="doccomment">/// using `self.next_u64() as u32` or via</span>
     <span class="doccomment">/// [`fill_bytes`](impls::next_u32_via_fill).</span>
-    <span class="kw">fn</span> <span class="ident">next_u32</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">u32</span>;
+    <span class="kw">fn</span> <span class="ident">next_u32</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span>;
 
     <span class="doccomment">/// Return the next random `u64`.</span>
     <span class="doccomment">///</span>
@@ -643,7 +643,7 @@
     <span class="doccomment">/// the case this method is not implemented directly, it can be implemented</span>
     <span class="doccomment">/// via [`next_u32`](impls::next_u64_via_u32) or via</span>
     <span class="doccomment">/// [`fill_bytes`](impls::next_u64_via_fill).</span>
-    <span class="kw">fn</span> <span class="ident">next_u64</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">u64</span>;
+    <span class="kw">fn</span> <span class="ident">next_u64</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u64</span>;
 
     <span class="doccomment">/// Fill `dest` with random data.</span>
     <span class="doccomment">///</span>
@@ -674,7 +674,7 @@
     <span class="doccomment">/// `self.try_fill_bytes(dest).unwrap()` or more specific error handling.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [`fill_bytes`]: RngCore::fill_bytes</span>
-    <span class="kw">fn</span> <span class="ident">try_fill_bytes</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">dest</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>]) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Error</span><span class="op">&gt;</span>;
+    <span class="kw">fn</span> <span class="ident">try_fill_bytes</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">dest</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Error</span><span class="op">&gt;</span>;
 }
 
 <span class="doccomment">/// A marker trait used to indicate that an [`RngCore`] or [`BlockRngCore`]</span>
@@ -780,7 +780,7 @@
     <span class="doccomment">/// seeds it is preferable to map these to alternative constant value(s),</span>
     <span class="doccomment">/// for example `0xBAD5EEDu32` or `0x0DDB1A5E5BAD5EEDu64` (&quot;odd biases? bad</span>
     <span class="doccomment">/// seed&quot;). This is assuming only a small number of values must be rejected.</span>
-    <span class="kw">fn</span> <span class="ident">from_seed</span>(<span class="ident">seed</span>: <span class="self">Self</span>::<span class="ident">Seed</span>) <span class="op">-&gt;</span> <span class="self">Self</span>;
+    <span class="kw">fn</span> <span class="ident">from_seed</span>(<span class="ident">seed</span>: <span class="self">Self</span>::<span class="ident">Seed</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
 
     <span class="doccomment">/// Create a new PRNG using a `u64` seed.</span>
     <span class="doccomment">///</span>
@@ -796,7 +796,7 @@
     <span class="doccomment">/// this function, but the default implementation should be good enough for</span>
     <span class="doccomment">/// all purposes. *Changing* the implementation of this function should be</span>
     <span class="doccomment">/// considered a value-breaking change.</span>
-    <span class="kw">fn</span> <span class="ident">seed_from_u64</span>(<span class="kw-2">mut</span> <span class="ident">state</span>: <span class="ident">u64</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">seed_from_u64</span>(<span class="kw-2">mut</span> <span class="ident">state</span>: <span class="ident">u64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="comment">// We use PCG32 to generate a u32 sequence, and copy to the seed</span>
         <span class="kw">const</span> <span class="ident">MUL</span>: <span class="ident">u64</span> <span class="op">=</span> <span class="number">6364136223846793005</span>;
         <span class="kw">const</span> <span class="ident">INC</span>: <span class="ident">u64</span> <span class="op">=</span> <span class="number">11634580027462260723</span>;
@@ -808,8 +808,8 @@
             <span class="ident">state</span> <span class="op">=</span> <span class="ident">state</span>.<span class="ident">wrapping_mul</span>(<span class="ident">MUL</span>).<span class="ident">wrapping_add</span>(<span class="ident">INC</span>);
 
             <span class="comment">// Use PCG output function with to_le to generate x:</span>
-            <span class="kw">let</span> <span class="ident">xorshifted</span> <span class="op">=</span> (((<span class="ident">state</span> <span class="op">&gt;&gt;</span> <span class="number">18</span>) <span class="op">^</span> <span class="ident">state</span>) <span class="op">&gt;&gt;</span> <span class="number">27</span>) <span class="kw">as</span> <span class="ident">u32</span>;
-            <span class="kw">let</span> <span class="ident">rot</span> <span class="op">=</span> (<span class="ident">state</span> <span class="op">&gt;&gt;</span> <span class="number">59</span>) <span class="kw">as</span> <span class="ident">u32</span>;
+            <span class="kw">let</span> <span class="ident">xorshifted</span> <span class="op">=</span> (((<span class="ident">state</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">18</span>) <span class="op">^</span> <span class="ident">state</span>) <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">27</span>) <span class="kw">as</span> <span class="ident">u32</span>;
+            <span class="kw">let</span> <span class="ident">rot</span> <span class="op">=</span> (<span class="ident">state</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">59</span>) <span class="kw">as</span> <span class="ident">u32</span>;
             <span class="kw">let</span> <span class="ident">x</span> <span class="op">=</span> <span class="ident">xorshifted</span>.<span class="ident">rotate_right</span>(<span class="ident">rot</span>).<span class="ident">to_le</span>();
 
             <span class="kw">unsafe</span> {
@@ -846,7 +846,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [`rand`]: https://docs.rs/rand</span>
     <span class="doccomment">/// [`rand_os`]: https://docs.rs/rand_os</span>
-    <span class="kw">fn</span> <span class="ident">from_rng</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">RngCore</span><span class="op">&gt;</span>(<span class="kw-2">mut</span> <span class="ident">rng</span>: <span class="ident">R</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">from_rng</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">RngCore</span><span class="op">&gt;</span>(<span class="kw-2">mut</span> <span class="ident">rng</span>: <span class="ident">R</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">seed</span> <span class="op">=</span> <span class="self">Self</span>::<span class="ident">Seed</span>::<span class="ident">default</span>();
         <span class="ident">rng</span>.<span class="ident">try_fill_bytes</span>(<span class="ident">seed</span>.<span class="ident">as_mut</span>())<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(<span class="self">Self</span>::<span class="ident">from_seed</span>(<span class="ident">seed</span>))
@@ -867,7 +867,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [`getrandom`]: https://docs.rs/getrandom</span>
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span><span class="op">=</span><span class="string">&quot;getrandom&quot;</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">from_entropy</span>() <span class="op">-&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">from_entropy</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">seed</span> <span class="op">=</span> <span class="self">Self</span>::<span class="ident">Seed</span>::<span class="ident">default</span>();
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=</span> <span class="ident">getrandom</span>::<span class="ident">getrandom</span>(<span class="ident">seed</span>.<span class="ident">as_mut</span>()) {
             <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;from_entropy failed: {}&quot;</span>, <span class="ident">err</span>);
@@ -881,12 +881,12 @@
 <span class="comment">// implementation and the optimizer to decide on inlining.</span>
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">R</span>: <span class="ident">RngCore</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span><span class="op">&gt;</span> <span class="ident">RngCore</span> <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">R</span> {
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">next_u32</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">u32</span> {
+    <span class="kw">fn</span> <span class="ident">next_u32</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span> {
         (<span class="kw-2">*</span><span class="kw-2">*</span><span class="self">self</span>).<span class="ident">next_u32</span>()
     }
 
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">next_u64</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">u64</span> {
+    <span class="kw">fn</span> <span class="ident">next_u64</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u64</span> {
         (<span class="kw-2">*</span><span class="kw-2">*</span><span class="self">self</span>).<span class="ident">next_u64</span>()
     }
 
@@ -896,7 +896,7 @@
     }
 
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">try_fill_bytes</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">dest</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>]) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Error</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">try_fill_bytes</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">dest</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Error</span><span class="op">&gt;</span> {
         (<span class="kw-2">*</span><span class="kw-2">*</span><span class="self">self</span>).<span class="ident">try_fill_bytes</span>(<span class="ident">dest</span>)
     }
 }
@@ -907,12 +907,12 @@
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span><span class="op">=</span><span class="string">&quot;alloc&quot;</span>)]</span>
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">RngCore</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span><span class="op">&gt;</span> <span class="ident">RngCore</span> <span class="kw">for</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">next_u32</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">u32</span> {
+    <span class="kw">fn</span> <span class="ident">next_u32</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span> {
         (<span class="kw-2">*</span><span class="kw-2">*</span><span class="self">self</span>).<span class="ident">next_u32</span>()
     }
 
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">next_u64</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">u64</span> {
+    <span class="kw">fn</span> <span class="ident">next_u64</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u64</span> {
         (<span class="kw-2">*</span><span class="kw-2">*</span><span class="self">self</span>).<span class="ident">next_u64</span>()
     }
 
@@ -922,14 +922,14 @@
     }
 
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">try_fill_bytes</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">dest</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>]) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Error</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">try_fill_bytes</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">dest</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Error</span><span class="op">&gt;</span> {
         (<span class="kw-2">*</span><span class="kw-2">*</span><span class="self">self</span>).<span class="ident">try_fill_bytes</span>(<span class="ident">dest</span>)
     }
 }
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span><span class="op">=</span><span class="string">&quot;std&quot;</span>)]</span>
-<span class="kw">impl</span> <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">Read</span> <span class="kw">for</span> <span class="kw">dyn</span> <span class="ident">RngCore</span> {
-    <span class="kw">fn</span> <span class="ident">read</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>]) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span>, <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">Error</span><span class="op">&gt;</span> {
+<span class="kw">impl</span> <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">Read</span> <span class="kw">for</span> <span class="ident">dyn</span> <span class="ident">RngCore</span> {
+    <span class="kw">fn</span> <span class="ident">read</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span>, <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">Error</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">try_fill_bytes</span>(<span class="ident">buf</span>)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(<span class="ident">buf</span>.<span class="ident">len</span>())
     }
@@ -951,7 +951,7 @@
         <span class="kw">struct</span> <span class="ident">SeedableNum</span>(<span class="ident">u64</span>);
         <span class="kw">impl</span> <span class="ident">SeedableRng</span> <span class="kw">for</span> <span class="ident">SeedableNum</span> {
             <span class="kw">type</span> <span class="ident">Seed</span> <span class="op">=</span> [<span class="ident">u8</span>; <span class="number">8</span>];
-            <span class="kw">fn</span> <span class="ident">from_seed</span>(<span class="ident">seed</span>: <span class="self">Self</span>::<span class="ident">Seed</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
+            <span class="kw">fn</span> <span class="ident">from_seed</span>(<span class="ident">seed</span>: <span class="self">Self</span>::<span class="ident">Seed</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">x</span> <span class="op">=</span> [<span class="number">0u64</span>; <span class="number">1</span>];
                 <span class="ident">le</span>::<span class="ident">read_u64_into</span>(<span class="kw-2">&amp;</span><span class="ident">seed</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">x</span>);
                 <span class="ident">SeedableNum</span>(<span class="ident">x</span>[<span class="number">0</span>])
@@ -971,12 +971,12 @@
             <span class="comment">// This is the binomial distribution B(64, 0.5), so chance of</span>
             <span class="comment">// weight &lt; 20 is binocdf(19, 64, 0.5) = 7.8e-4, and same for</span>
             <span class="comment">// weight &gt; 44.</span>
-            <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">weight</span> <span class="op">&gt;=</span> <span class="number">20</span> <span class="op">&amp;&amp;</span> <span class="ident">weight</span> <span class="op">&lt;=</span> <span class="number">44</span>);
+            <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">weight</span> <span class="op">&gt;</span><span class="op">=</span> <span class="number">20</span> <span class="op">&amp;&amp;</span> <span class="ident">weight</span> <span class="op">&lt;</span><span class="op">=</span> <span class="number">44</span>);
 
             <span class="kw">for</span> (<span class="ident">i2</span>, <span class="ident">r2</span>) <span class="kw">in</span> <span class="ident">results</span>.<span class="ident">iter</span>().<span class="ident">enumerate</span>() {
-                <span class="kw">if</span> <span class="ident">i1</span> <span class="op">==</span> <span class="ident">i2</span> { <span class="kw">continue</span>; }
+                <span class="kw">if</span> <span class="ident">i1</span> <span class="op">=</span><span class="op">=</span> <span class="ident">i2</span> { <span class="kw">continue</span>; }
                 <span class="kw">let</span> <span class="ident">diff_weight</span> <span class="op">=</span> (<span class="ident">r1</span> <span class="op">^</span> <span class="ident">r2</span>).<span class="ident">count_ones</span>();
-                <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">diff_weight</span> <span class="op">&gt;=</span> <span class="number">20</span>);
+                <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">diff_weight</span> <span class="op">&gt;</span><span class="op">=</span> <span class="number">20</span>);
             }
         }
 

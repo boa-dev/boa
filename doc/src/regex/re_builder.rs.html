@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-1.4.2/src/re_builder.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>re_builder.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../regex/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-1.4.2/src/re_builder.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>re_builder.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+<link rel="alternate icon" type="image/png" href="../../favicon-16x16.png">
+<link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../regex/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
                 <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
@@ -437,11 +439,11 @@
 }
 
 <span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">RegexOptions</span> {
-    <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">RegexOptions</span> {
             <span class="ident">pats</span>: <span class="macro">vec</span><span class="macro">!</span>[],
-            <span class="ident">size_limit</span>: <span class="number">10</span> <span class="op">*</span> (<span class="number">1</span> <span class="op">&lt;&lt;</span> <span class="number">20</span>),
-            <span class="ident">dfa_size_limit</span>: <span class="number">2</span> <span class="op">*</span> (<span class="number">1</span> <span class="op">&lt;&lt;</span> <span class="number">20</span>),
+            <span class="ident">size_limit</span>: <span class="number">10</span> <span class="op">*</span> (<span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">20</span>),
+            <span class="ident">dfa_size_limit</span>: <span class="number">2</span> <span class="op">*</span> (<span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">20</span>),
             <span class="ident">nest_limit</span>: <span class="number">250</span>,
             <span class="ident">case_insensitive</span>: <span class="bool-val">false</span>,
             <span class="ident">multi_line</span>: <span class="bool-val">false</span>,
@@ -455,7 +457,7 @@
 }
 
 <span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">define_builder</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">regex_mod</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">only_utf8</span>:<span class="ident">expr</span>) <span class="op">=&gt;</span> {
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">regex_mod</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">only_utf8</span>:<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> {
         <span class="kw">pub</span> <span class="kw">mod</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span> {
             <span class="kw">use</span> <span class="kw">super</span>::<span class="ident">RegexOptions</span>;
             <span class="kw">use</span> <span class="ident">error</span>::<span class="ident">Error</span>;
@@ -475,7 +477,7 @@
                 <span class="doccomment">///</span>
                 <span class="doccomment">/// If the pattern is invalid, then an error will be returned when</span>
                 <span class="doccomment">/// `build` is called.</span>
-                <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">pattern</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-&gt;</span> <span class="ident">RegexBuilder</span> {
+                <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">pattern</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">RegexBuilder</span> {
                     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">builder</span> <span class="op">=</span> <span class="ident">RegexBuilder</span>(<span class="ident">RegexOptions</span>::<span class="ident">default</span>());
                     <span class="ident">builder</span>.<span class="number">0</span>.<span class="ident">pats</span>.<span class="ident">push</span>(<span class="ident">pattern</span>.<span class="ident">to_owned</span>());
                     <span class="ident">builder</span>
@@ -486,7 +488,7 @@
                 <span class="doccomment">/// Note that calling `as_str` on the resulting `Regex` will produce the</span>
                 <span class="doccomment">/// pattern given to `new` verbatim. Notably, it will not incorporate any</span>
                 <span class="doccomment">/// of the flags set on this builder.</span>
-                <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">build</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Regex</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
+                <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">build</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Regex</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
                     <span class="ident">ExecBuilder</span>::<span class="ident">new_options</span>(<span class="self">self</span>.<span class="number">0</span>.<span class="ident">clone</span>())
                         .<span class="ident">only_utf8</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">only_utf8</span>)
                         .<span class="ident">build</span>()
@@ -500,7 +502,7 @@
                 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">case_insensitive</span>(
                     <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
                     <span class="ident">yes</span>: <span class="ident">bool</span>,
-                ) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">RegexBuilder</span> {
+                ) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">RegexBuilder</span> {
                     <span class="self">self</span>.<span class="number">0</span>.<span class="ident">case_insensitive</span> <span class="op">=</span> <span class="ident">yes</span>;
                     <span class="self">self</span>
                 }
@@ -511,7 +513,7 @@
                 <span class="doccomment">/// end of lines.</span>
                 <span class="doccomment">///</span>
                 <span class="doccomment">/// By default, they match beginning/end of the input.</span>
-                <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">multi_line</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">yes</span>: <span class="ident">bool</span>) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">RegexBuilder</span> {
+                <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">multi_line</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">yes</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">RegexBuilder</span> {
                     <span class="self">self</span>.<span class="number">0</span>.<span class="ident">multi_line</span> <span class="op">=</span> <span class="ident">yes</span>;
                     <span class="self">self</span>
                 }
@@ -526,7 +528,7 @@
                 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">dot_matches_new_line</span>(
                     <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
                     <span class="ident">yes</span>: <span class="ident">bool</span>,
-                ) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">RegexBuilder</span> {
+                ) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">RegexBuilder</span> {
                     <span class="self">self</span>.<span class="number">0</span>.<span class="ident">dot_matches_new_line</span> <span class="op">=</span> <span class="ident">yes</span>;
                     <span class="self">self</span>
                 }
@@ -537,7 +539,7 @@
                 <span class="doccomment">/// match) and `a*?` is greedy (tries to find longest match).</span>
                 <span class="doccomment">///</span>
                 <span class="doccomment">/// By default, `a*` is greedy and `a*?` is lazy.</span>
-                <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">swap_greed</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">yes</span>: <span class="ident">bool</span>) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">RegexBuilder</span> {
+                <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">swap_greed</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">yes</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">RegexBuilder</span> {
                     <span class="self">self</span>.<span class="number">0</span>.<span class="ident">swap_greed</span> <span class="op">=</span> <span class="ident">yes</span>;
                     <span class="self">self</span>
                 }
@@ -550,7 +552,7 @@
                 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ignore_whitespace</span>(
                     <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
                     <span class="ident">yes</span>: <span class="ident">bool</span>,
-                ) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">RegexBuilder</span> {
+                ) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">RegexBuilder</span> {
                     <span class="self">self</span>.<span class="number">0</span>.<span class="ident">ignore_whitespace</span> <span class="op">=</span> <span class="ident">yes</span>;
                     <span class="self">self</span>
                 }
@@ -559,7 +561,7 @@
                 <span class="doccomment">///</span>
                 <span class="doccomment">/// Enabled by default. When disabled, character classes such as `\w` only</span>
                 <span class="doccomment">/// match ASCII word characters instead of all Unicode word characters.</span>
-                <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">unicode</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">yes</span>: <span class="ident">bool</span>) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">RegexBuilder</span> {
+                <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">unicode</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">yes</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">RegexBuilder</span> {
                     <span class="self">self</span>.<span class="number">0</span>.<span class="ident">unicode</span> <span class="op">=</span> <span class="ident">yes</span>;
                     <span class="self">self</span>
                 }
@@ -579,7 +581,7 @@
                 <span class="doccomment">/// message will explicitly mention that backreferences aren&#39;t supported.</span>
                 <span class="doccomment">///</span>
                 <span class="doccomment">/// Octal syntax is disabled by default.</span>
-                <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">octal</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">yes</span>: <span class="ident">bool</span>) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">RegexBuilder</span> {
+                <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">octal</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">yes</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">RegexBuilder</span> {
                     <span class="self">self</span>.<span class="number">0</span>.<span class="ident">octal</span> <span class="op">=</span> <span class="ident">yes</span>;
                     <span class="self">self</span>
                 }
@@ -592,7 +594,7 @@
                 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">size_limit</span>(
                     <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
                     <span class="ident">limit</span>: <span class="ident">usize</span>,
-                ) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">RegexBuilder</span> {
+                ) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">RegexBuilder</span> {
                     <span class="self">self</span>.<span class="number">0</span>.<span class="ident">size_limit</span> <span class="op">=</span> <span class="ident">limit</span>;
                     <span class="self">self</span>
                 }
@@ -609,7 +611,7 @@
                 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">dfa_size_limit</span>(
                     <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
                     <span class="ident">limit</span>: <span class="ident">usize</span>,
-                ) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">RegexBuilder</span> {
+                ) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">RegexBuilder</span> {
                     <span class="self">self</span>.<span class="number">0</span>.<span class="ident">dfa_size_limit</span> <span class="op">=</span> <span class="ident">limit</span>;
                     <span class="self">self</span>
                 }
@@ -639,7 +641,7 @@
                 <span class="doccomment">/// depth of `1`. In general, a nest limit is not something that manifests</span>
                 <span class="doccomment">/// in an obvious way in the concrete syntax, therefore, it should not be</span>
                 <span class="doccomment">/// used in a granular way.</span>
-                <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">nest_limit</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">limit</span>: <span class="ident">u32</span>) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">RegexBuilder</span> {
+                <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">nest_limit</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">limit</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">RegexBuilder</span> {
                     <span class="self">self</span>.<span class="number">0</span>.<span class="ident">nest_limit</span> <span class="op">=</span> <span class="ident">limit</span>;
                     <span class="self">self</span>
                 }
@@ -652,7 +654,7 @@
 <span class="macro">define_builder</span><span class="macro">!</span>(<span class="ident">unicode</span>, <span class="ident">re_unicode</span>, <span class="bool-val">true</span>);
 
 <span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">define_set_builder</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">regex_mod</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">only_utf8</span>:<span class="ident">expr</span>) <span class="op">=&gt;</span> {
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">regex_mod</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">only_utf8</span>:<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> {
         <span class="kw">pub</span> <span class="kw">mod</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span> {
             <span class="kw">use</span> <span class="kw">super</span>::<span class="ident">RegexOptions</span>;
             <span class="kw">use</span> <span class="ident">error</span>::<span class="ident">Error</span>;
@@ -672,7 +674,7 @@
                 <span class="doccomment">///</span>
                 <span class="doccomment">/// If the pattern is invalid, then an error will be returned when</span>
                 <span class="doccomment">/// `build` is called.</span>
-                <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">S</span><span class="op">&gt;</span>(<span class="ident">patterns</span>: <span class="ident">I</span>) <span class="op">-&gt;</span> <span class="ident">RegexSetBuilder</span>
+                <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">S</span><span class="op">&gt;</span>(<span class="ident">patterns</span>: <span class="ident">I</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">RegexSetBuilder</span>
                 <span class="kw">where</span>
                     <span class="ident">S</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span>,
                     <span class="ident">I</span>: <span class="ident">IntoIterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">S</span><span class="op">&gt;</span>,
@@ -685,7 +687,7 @@
                 }
 
                 <span class="doccomment">/// Consume the builder and compile the regular expressions into a set.</span>
-                <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">build</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">RegexSet</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
+                <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">build</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">RegexSet</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
                     <span class="ident">ExecBuilder</span>::<span class="ident">new_options</span>(<span class="self">self</span>.<span class="number">0</span>.<span class="ident">clone</span>())
                         .<span class="ident">only_utf8</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">only_utf8</span>)
                         .<span class="ident">build</span>()
@@ -696,7 +698,7 @@
                 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">case_insensitive</span>(
                     <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
                     <span class="ident">yes</span>: <span class="ident">bool</span>,
-                ) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">RegexSetBuilder</span> {
+                ) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">RegexSetBuilder</span> {
                     <span class="self">self</span>.<span class="number">0</span>.<span class="ident">case_insensitive</span> <span class="op">=</span> <span class="ident">yes</span>;
                     <span class="self">self</span>
                 }
@@ -705,7 +707,7 @@
                 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">multi_line</span>(
                     <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
                     <span class="ident">yes</span>: <span class="ident">bool</span>,
-                ) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">RegexSetBuilder</span> {
+                ) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">RegexSetBuilder</span> {
                     <span class="self">self</span>.<span class="number">0</span>.<span class="ident">multi_line</span> <span class="op">=</span> <span class="ident">yes</span>;
                     <span class="self">self</span>
                 }
@@ -720,7 +722,7 @@
                 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">dot_matches_new_line</span>(
                     <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
                     <span class="ident">yes</span>: <span class="ident">bool</span>,
-                ) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">RegexSetBuilder</span> {
+                ) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">RegexSetBuilder</span> {
                     <span class="self">self</span>.<span class="number">0</span>.<span class="ident">dot_matches_new_line</span> <span class="op">=</span> <span class="ident">yes</span>;
                     <span class="self">self</span>
                 }
@@ -729,7 +731,7 @@
                 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">swap_greed</span>(
                     <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
                     <span class="ident">yes</span>: <span class="ident">bool</span>,
-                ) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">RegexSetBuilder</span> {
+                ) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">RegexSetBuilder</span> {
                     <span class="self">self</span>.<span class="number">0</span>.<span class="ident">swap_greed</span> <span class="op">=</span> <span class="ident">yes</span>;
                     <span class="self">self</span>
                 }
@@ -738,13 +740,13 @@
                 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ignore_whitespace</span>(
                     <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
                     <span class="ident">yes</span>: <span class="ident">bool</span>,
-                ) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">RegexSetBuilder</span> {
+                ) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">RegexSetBuilder</span> {
                     <span class="self">self</span>.<span class="number">0</span>.<span class="ident">ignore_whitespace</span> <span class="op">=</span> <span class="ident">yes</span>;
                     <span class="self">self</span>
                 }
 
                 <span class="doccomment">/// Set the value for the Unicode (`u`) flag.</span>
-                <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">unicode</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">yes</span>: <span class="ident">bool</span>) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">RegexSetBuilder</span> {
+                <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">unicode</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">yes</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">RegexSetBuilder</span> {
                     <span class="self">self</span>.<span class="number">0</span>.<span class="ident">unicode</span> <span class="op">=</span> <span class="ident">yes</span>;
                     <span class="self">self</span>
                 }
@@ -764,7 +766,7 @@
                 <span class="doccomment">/// message will explicitly mention that backreferences aren&#39;t supported.</span>
                 <span class="doccomment">///</span>
                 <span class="doccomment">/// Octal syntax is disabled by default.</span>
-                <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">octal</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">yes</span>: <span class="ident">bool</span>) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">RegexSetBuilder</span> {
+                <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">octal</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">yes</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">RegexSetBuilder</span> {
                     <span class="self">self</span>.<span class="number">0</span>.<span class="ident">octal</span> <span class="op">=</span> <span class="ident">yes</span>;
                     <span class="self">self</span>
                 }
@@ -777,7 +779,7 @@
                 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">size_limit</span>(
                     <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
                     <span class="ident">limit</span>: <span class="ident">usize</span>,
-                ) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">RegexSetBuilder</span> {
+                ) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">RegexSetBuilder</span> {
                     <span class="self">self</span>.<span class="number">0</span>.<span class="ident">size_limit</span> <span class="op">=</span> <span class="ident">limit</span>;
                     <span class="self">self</span>
                 }
@@ -794,7 +796,7 @@
                 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">dfa_size_limit</span>(
                     <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
                     <span class="ident">limit</span>: <span class="ident">usize</span>,
-                ) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">RegexSetBuilder</span> {
+                ) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">RegexSetBuilder</span> {
                     <span class="self">self</span>.<span class="number">0</span>.<span class="ident">dfa_size_limit</span> <span class="op">=</span> <span class="ident">limit</span>;
                     <span class="self">self</span>
                 }
@@ -827,7 +829,7 @@
                 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">nest_limit</span>(
                     <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
                     <span class="ident">limit</span>: <span class="ident">u32</span>,
-                ) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">RegexSetBuilder</span> {
+                ) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">RegexSetBuilder</span> {
                     <span class="self">self</span>.<span class="number">0</span>.<span class="ident">nest_limit</span> <span class="op">=</span> <span class="ident">limit</span>;
                     <span class="self">self</span>
                 }

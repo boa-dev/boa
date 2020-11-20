@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-syntax-0.6.21/src/parser.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>parser.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../regex_syntax/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-syntax-0.6.21/src/parser.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>parser.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+<link rel="alternate icon" type="image/png" href="../../favicon-16x16.png">
+<link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../regex_syntax/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
                 <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
@@ -221,12 +223,12 @@
 
 <span class="kw">impl</span> <span class="ident">ParserBuilder</span> {
     <span class="doccomment">/// Create a new parser builder with a default configuration.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-&gt;</span> <span class="ident">ParserBuilder</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ParserBuilder</span> {
         <span class="ident">ParserBuilder</span>::<span class="ident">default</span>()
     }
 
     <span class="doccomment">/// Build a parser from this configuration with the given pattern.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">build</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">Parser</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">build</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Parser</span> {
         <span class="ident">Parser</span> { <span class="ident">ast</span>: <span class="self">self</span>.<span class="ident">ast</span>.<span class="ident">build</span>(), <span class="ident">hir</span>: <span class="self">self</span>.<span class="ident">hir</span>.<span class="ident">build</span>() }
     }
 
@@ -255,7 +257,7 @@
     <span class="doccomment">/// depth of `1`. In general, a nest limit is not something that manifests</span>
     <span class="doccomment">/// in an obvious way in the concrete syntax, therefore, it should not be</span>
     <span class="doccomment">/// used in a granular way.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">nest_limit</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">limit</span>: <span class="ident">u32</span>) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ParserBuilder</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">nest_limit</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">limit</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ParserBuilder</span> {
         <span class="self">self</span>.<span class="ident">ast</span>.<span class="ident">nest_limit</span>(<span class="ident">limit</span>);
         <span class="self">self</span>
     }
@@ -275,7 +277,7 @@
     <span class="doccomment">/// message will explicitly mention that backreferences aren&#39;t supported.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Octal syntax is disabled by default.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">octal</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">yes</span>: <span class="ident">bool</span>) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ParserBuilder</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">octal</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">yes</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ParserBuilder</span> {
         <span class="self">self</span>.<span class="ident">ast</span>.<span class="ident">octal</span>(<span class="ident">yes</span>);
         <span class="self">self</span>
     }
@@ -291,7 +293,7 @@
     <span class="doccomment">/// word boundary (uttered as `(?-u:\B)` in the concrete syntax) will cause</span>
     <span class="doccomment">/// the parser to return an error. Namely, a negated ASCII word boundary</span>
     <span class="doccomment">/// can result in matching positions that aren&#39;t valid UTF-8 boundaries.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">allow_invalid_utf8</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">yes</span>: <span class="ident">bool</span>) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ParserBuilder</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">allow_invalid_utf8</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">yes</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ParserBuilder</span> {
         <span class="self">self</span>.<span class="ident">hir</span>.<span class="ident">allow_invalid_utf8</span>(<span class="ident">yes</span>);
         <span class="self">self</span>
     }
@@ -304,7 +306,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// By default, this is disabled. It may be selectively enabled in the</span>
     <span class="doccomment">/// regular expression by using the `x` flag regardless of this setting.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ignore_whitespace</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">yes</span>: <span class="ident">bool</span>) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ParserBuilder</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ignore_whitespace</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">yes</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ParserBuilder</span> {
         <span class="self">self</span>.<span class="ident">ast</span>.<span class="ident">ignore_whitespace</span>(<span class="ident">yes</span>);
         <span class="self">self</span>
     }
@@ -313,7 +315,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// By default this is disabled. It may alternatively be selectively</span>
     <span class="doccomment">/// enabled in the regular expression itself via the `i` flag.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">case_insensitive</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">yes</span>: <span class="ident">bool</span>) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ParserBuilder</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">case_insensitive</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">yes</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ParserBuilder</span> {
         <span class="self">self</span>.<span class="ident">hir</span>.<span class="ident">case_insensitive</span>(<span class="ident">yes</span>);
         <span class="self">self</span>
     }
@@ -322,7 +324,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// By default this is disabled. It may alternatively be selectively</span>
     <span class="doccomment">/// enabled in the regular expression itself via the `m` flag.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">multi_line</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">yes</span>: <span class="ident">bool</span>) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ParserBuilder</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">multi_line</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">yes</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ParserBuilder</span> {
         <span class="self">self</span>.<span class="ident">hir</span>.<span class="ident">multi_line</span>(<span class="ident">yes</span>);
         <span class="self">self</span>
     }
@@ -331,7 +333,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// By default this is disabled. It may alternatively be selectively</span>
     <span class="doccomment">/// enabled in the regular expression itself via the `s` flag.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">dot_matches_new_line</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">yes</span>: <span class="ident">bool</span>) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ParserBuilder</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">dot_matches_new_line</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">yes</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ParserBuilder</span> {
         <span class="self">self</span>.<span class="ident">hir</span>.<span class="ident">dot_matches_new_line</span>(<span class="ident">yes</span>);
         <span class="self">self</span>
     }
@@ -340,7 +342,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// By default this is disabled. It may alternatively be selectively</span>
     <span class="doccomment">/// enabled in the regular expression itself via the `U` flag.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">swap_greed</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">yes</span>: <span class="ident">bool</span>) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ParserBuilder</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">swap_greed</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">yes</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ParserBuilder</span> {
         <span class="self">self</span>.<span class="ident">hir</span>.<span class="ident">swap_greed</span>(<span class="ident">yes</span>);
         <span class="self">self</span>
     }
@@ -353,7 +355,7 @@
     <span class="doccomment">/// Note that unless `allow_invalid_utf8` is enabled (it&#39;s disabled by</span>
     <span class="doccomment">/// default), a regular expression will fail to parse if Unicode mode is</span>
     <span class="doccomment">/// disabled and a sub-expression could possibly match invalid UTF-8.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">unicode</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">yes</span>: <span class="ident">bool</span>) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ParserBuilder</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">unicode</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">yes</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ParserBuilder</span> {
         <span class="self">self</span>.<span class="ident">hir</span>.<span class="ident">unicode</span>(<span class="ident">yes</span>);
         <span class="self">self</span>
     }
@@ -388,13 +390,13 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// To set configuration options on the parser, use</span>
     <span class="doccomment">/// [`ParserBuilder`](struct.ParserBuilder.html).</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-&gt;</span> <span class="ident">Parser</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Parser</span> {
         <span class="ident">ParserBuilder</span>::<span class="ident">new</span>().<span class="ident">build</span>()
     }
 
     <span class="doccomment">/// Parse the regular expression into a high level intermediate</span>
     <span class="doccomment">/// representation.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">parse</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">pattern</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">hir</span>::<span class="ident">Hir</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">parse</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">pattern</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">hir</span>::<span class="ident">Hir</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">ast</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">ast</span>.<span class="ident">parse</span>(<span class="ident">pattern</span>)<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">hir</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">hir</span>.<span class="ident">translate</span>(<span class="ident">pattern</span>, <span class="kw-2">&amp;</span><span class="ident">ast</span>)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(<span class="ident">hir</span>)

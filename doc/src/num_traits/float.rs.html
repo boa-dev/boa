@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/num-traits-0.2.14/src/float.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>float.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../num_traits/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/num-traits-0.2.14/src/float.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>float.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+<link rel="alternate icon" type="image/png" href="../../favicon-16x16.png">
+<link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../num_traits/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
                 <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
 <span id="3">   3</span>
@@ -2421,7 +2423,7 @@
     <span class="doccomment">/// check(f32::INFINITY);</span>
     <span class="doccomment">/// check(f64::INFINITY);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">infinity</span>() <span class="op">-&gt;</span> <span class="self">Self</span>;
+    <span class="kw">fn</span> <span class="ident">infinity</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
 
     <span class="doccomment">/// Returns negative infinity.</span>
     <span class="doccomment">///</span>
@@ -2438,7 +2440,7 @@
     <span class="doccomment">/// check(f32::NEG_INFINITY);</span>
     <span class="doccomment">/// check(f64::NEG_INFINITY);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">neg_infinity</span>() <span class="op">-&gt;</span> <span class="self">Self</span>;
+    <span class="kw">fn</span> <span class="ident">neg_infinity</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
 
     <span class="doccomment">/// Returns NaN.</span>
     <span class="doccomment">///</span>
@@ -2455,7 +2457,7 @@
     <span class="doccomment">/// check::&lt;f32&gt;();</span>
     <span class="doccomment">/// check::&lt;f64&gt;();</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">nan</span>() <span class="op">-&gt;</span> <span class="self">Self</span>;
+    <span class="kw">fn</span> <span class="ident">nan</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
 
     <span class="doccomment">/// Returns `-0.0`.</span>
     <span class="doccomment">///</span>
@@ -2474,7 +2476,7 @@
     <span class="doccomment">/// check(f32::NEG_INFINITY);</span>
     <span class="doccomment">/// check(f64::NEG_INFINITY);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">neg_zero</span>() <span class="op">-&gt;</span> <span class="self">Self</span>;
+    <span class="kw">fn</span> <span class="ident">neg_zero</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
 
     <span class="doccomment">/// Returns the smallest finite value that this type can represent.</span>
     <span class="doccomment">///</span>
@@ -2491,7 +2493,7 @@
     <span class="doccomment">/// check(f32::MIN);</span>
     <span class="doccomment">/// check(f64::MIN);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">min_value</span>() <span class="op">-&gt;</span> <span class="self">Self</span>;
+    <span class="kw">fn</span> <span class="ident">min_value</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
 
     <span class="doccomment">/// Returns the smallest positive, normalized value that this type can represent.</span>
     <span class="doccomment">///</span>
@@ -2508,7 +2510,7 @@
     <span class="doccomment">/// check(f32::MIN_POSITIVE);</span>
     <span class="doccomment">/// check(f64::MIN_POSITIVE);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">min_positive_value</span>() <span class="op">-&gt;</span> <span class="self">Self</span>;
+    <span class="kw">fn</span> <span class="ident">min_positive_value</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
 
     <span class="doccomment">/// Returns epsilon, a small positive value.</span>
     <span class="doccomment">///</span>
@@ -2525,7 +2527,7 @@
     <span class="doccomment">/// check(f32::EPSILON);</span>
     <span class="doccomment">/// check(f64::EPSILON);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">epsilon</span>() <span class="op">-&gt;</span> <span class="self">Self</span>;
+    <span class="kw">fn</span> <span class="ident">epsilon</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
 
     <span class="doccomment">/// Returns the largest finite value that this type can represent.</span>
     <span class="doccomment">///</span>
@@ -2542,7 +2544,7 @@
     <span class="doccomment">/// check(f32::MAX);</span>
     <span class="doccomment">/// check(f64::MAX);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">max_value</span>() <span class="op">-&gt;</span> <span class="self">Self</span>;
+    <span class="kw">fn</span> <span class="ident">max_value</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
 
     <span class="doccomment">/// Returns `true` if the number is NaN.</span>
     <span class="doccomment">///</span>
@@ -2562,8 +2564,8 @@
     <span class="doccomment">/// check(0.0f64, false);</span>
     <span class="doccomment">/// ```</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">is_nan</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
-        <span class="self">self</span> <span class="op">!=</span> <span class="self">self</span>
+    <span class="kw">fn</span> <span class="ident">is_nan</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        <span class="self">self</span> <span class="op">!</span><span class="op">=</span> <span class="self">self</span>
     }
 
     <span class="doccomment">/// Returns `true` if the number is infinite.</span>
@@ -2586,8 +2588,8 @@
     <span class="doccomment">/// check(0.0f64, false);</span>
     <span class="doccomment">/// ```</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">is_infinite</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
-        <span class="self">self</span> <span class="op">==</span> <span class="self">Self</span>::<span class="ident">infinity</span>() <span class="op">||</span> <span class="self">self</span> <span class="op">==</span> <span class="self">Self</span>::<span class="ident">neg_infinity</span>()
+    <span class="kw">fn</span> <span class="ident">is_infinite</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        <span class="self">self</span> <span class="op">=</span><span class="op">=</span> <span class="self">Self</span>::<span class="ident">infinity</span>() <span class="op">|</span><span class="op">|</span> <span class="self">self</span> <span class="op">=</span><span class="op">=</span> <span class="self">Self</span>::<span class="ident">neg_infinity</span>()
     }
 
     <span class="doccomment">/// Returns `true` if the number is neither infinite or NaN.</span>
@@ -2609,8 +2611,8 @@
     <span class="doccomment">/// check(f64::NAN, false);</span>
     <span class="doccomment">/// ```</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">is_finite</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
-        <span class="op">!</span>(<span class="self">self</span>.<span class="ident">is_nan</span>() <span class="op">||</span> <span class="self">self</span>.<span class="ident">is_infinite</span>())
+    <span class="kw">fn</span> <span class="ident">is_finite</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        <span class="op">!</span>(<span class="self">self</span>.<span class="ident">is_nan</span>() <span class="op">|</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">is_infinite</span>())
     }
 
     <span class="doccomment">/// Returns `true` if the number is neither zero, infinite, subnormal or NaN.</span>
@@ -2632,8 +2634,8 @@
     <span class="doccomment">/// check(0.0f64, false);</span>
     <span class="doccomment">/// ```</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">is_normal</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">classify</span>() <span class="op">==</span> <span class="ident">FpCategory</span>::<span class="ident">Normal</span>
+    <span class="kw">fn</span> <span class="ident">is_normal</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        <span class="self">self</span>.<span class="ident">classify</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">FpCategory</span>::<span class="ident">Normal</span>
     }
 
     <span class="doccomment">/// Returns the floating point category of the number. If only one property</span>
@@ -2658,7 +2660,7 @@
     <span class="doccomment">/// check(f64::MIN_POSITIVE / 2.0, FpCategory::Subnormal);</span>
     <span class="doccomment">/// check(0.0f64, FpCategory::Zero);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">classify</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">FpCategory</span>;
+    <span class="kw">fn</span> <span class="ident">classify</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">FpCategory</span>;
 
     <span class="doccomment">/// Returns the largest integer less than or equal to a number.</span>
     <span class="doccomment">///</span>
@@ -2683,9 +2685,9 @@
     <span class="doccomment">/// check(f64::MIN, f64::MIN);</span>
     <span class="doccomment">/// ```</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">floor</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">floor</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="kw">let</span> <span class="ident">f</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">fract</span>();
-        <span class="kw">if</span> <span class="ident">f</span>.<span class="ident">is_nan</span>() <span class="op">||</span> <span class="ident">f</span>.<span class="ident">is_zero</span>() {
+        <span class="kw">if</span> <span class="ident">f</span>.<span class="ident">is_nan</span>() <span class="op">|</span><span class="op">|</span> <span class="ident">f</span>.<span class="ident">is_zero</span>() {
             <span class="self">self</span>
         } <span class="kw">else</span> <span class="kw">if</span> <span class="self">self</span> <span class="op">&lt;</span> <span class="self">Self</span>::<span class="ident">zero</span>() {
             <span class="self">self</span> <span class="op">-</span> <span class="ident">f</span> <span class="op">-</span> <span class="self">Self</span>::<span class="ident">one</span>()
@@ -2717,9 +2719,9 @@
     <span class="doccomment">/// check(f64::MIN, f64::MIN);</span>
     <span class="doccomment">/// ```</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">ceil</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">ceil</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="kw">let</span> <span class="ident">f</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">fract</span>();
-        <span class="kw">if</span> <span class="ident">f</span>.<span class="ident">is_nan</span>() <span class="op">||</span> <span class="ident">f</span>.<span class="ident">is_zero</span>() {
+        <span class="kw">if</span> <span class="ident">f</span>.<span class="ident">is_nan</span>() <span class="op">|</span><span class="op">|</span> <span class="ident">f</span>.<span class="ident">is_zero</span>() {
             <span class="self">self</span>
         } <span class="kw">else</span> <span class="kw">if</span> <span class="self">self</span> <span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">zero</span>() {
             <span class="self">self</span> <span class="op">-</span> <span class="ident">f</span> <span class="op">+</span> <span class="self">Self</span>::<span class="ident">one</span>()
@@ -2750,11 +2752,11 @@
     <span class="doccomment">/// check(f64::MIN, f64::MIN);</span>
     <span class="doccomment">/// ```</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">round</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">round</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="kw">let</span> <span class="ident">one</span> <span class="op">=</span> <span class="self">Self</span>::<span class="ident">one</span>();
         <span class="kw">let</span> <span class="ident">h</span> <span class="op">=</span> <span class="self">Self</span>::<span class="ident">from</span>(<span class="number">0.5</span>).<span class="ident">expect</span>(<span class="string">&quot;Unable to cast from 0.5&quot;</span>);
         <span class="kw">let</span> <span class="ident">f</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">fract</span>();
-        <span class="kw">if</span> <span class="ident">f</span>.<span class="ident">is_nan</span>() <span class="op">||</span> <span class="ident">f</span>.<span class="ident">is_zero</span>() {
+        <span class="kw">if</span> <span class="ident">f</span>.<span class="ident">is_nan</span>() <span class="op">|</span><span class="op">|</span> <span class="ident">f</span>.<span class="ident">is_zero</span>() {
             <span class="self">self</span>
         } <span class="kw">else</span> <span class="kw">if</span> <span class="self">self</span> <span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">zero</span>() {
             <span class="kw">if</span> <span class="ident">f</span> <span class="op">&lt;</span> <span class="ident">h</span> {
@@ -2794,7 +2796,7 @@
     <span class="doccomment">/// check(f64::MIN, f64::MIN);</span>
     <span class="doccomment">/// ```</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">trunc</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">trunc</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="kw">let</span> <span class="ident">f</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">fract</span>();
         <span class="kw">if</span> <span class="ident">f</span>.<span class="ident">is_nan</span>() {
             <span class="self">self</span>
@@ -2826,7 +2828,7 @@
     <span class="doccomment">/// check(f64::MIN, 0.0);</span>
     <span class="doccomment">/// ```</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">fract</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">fract</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_zero</span>() {
             <span class="self">Self</span>::<span class="ident">zero</span>()
         } <span class="kw">else</span> {
@@ -2855,7 +2857,7 @@
     <span class="doccomment">/// check(f64::MIN, f64::MAX);</span>
     <span class="doccomment">/// ```</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">abs</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">abs</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_sign_positive</span>() {
             <span class="kw">return</span> <span class="self">self</span>;
         }
@@ -2889,7 +2891,7 @@
     <span class="doccomment">/// check(f64::MIN, -1.0);</span>
     <span class="doccomment">/// ```</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">signum</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">signum</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_nan</span>() {
             <span class="self">Self</span>::<span class="ident">nan</span>()
         } <span class="kw">else</span> <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_sign_negative</span>() {
@@ -2922,7 +2924,7 @@
     <span class="doccomment">/// check(-f64::NAN, false);</span>
     <span class="doccomment">/// ```</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">is_sign_positive</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">is_sign_positive</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
         <span class="op">!</span><span class="self">self</span>.<span class="ident">is_sign_negative</span>()
     }
 
@@ -2949,7 +2951,7 @@
     <span class="doccomment">/// check(f64::NAN, false);</span>
     <span class="doccomment">/// ```</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">is_sign_negative</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">is_sign_negative</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
         <span class="kw">let</span> (<span class="kw">_</span>, <span class="kw">_</span>, <span class="ident">sign</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">integer_decode</span>();
         <span class="ident">sign</span> <span class="op">&lt;</span> <span class="number">0</span>
     }
@@ -2974,7 +2976,7 @@
     <span class="doccomment">/// check(1.0f64, f64::NAN, 1.0);</span>
     <span class="doccomment">/// ```</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">min</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">min</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_nan</span>() {
             <span class="kw">return</span> <span class="ident">other</span>;
         }
@@ -3008,7 +3010,7 @@
     <span class="doccomment">/// check(-1.0f64, f64::NAN, -1.0);</span>
     <span class="doccomment">/// ```</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">max</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">max</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_nan</span>() {
             <span class="kw">return</span> <span class="ident">other</span>;
         }
@@ -3041,7 +3043,7 @@
     <span class="doccomment">/// check(-0.0f64, f64::NEG_INFINITY);</span>
     <span class="doccomment">/// ```</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">recip</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">recip</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="self">Self</span>::<span class="ident">one</span>() <span class="op">/</span> <span class="self">self</span>
     }
 
@@ -3065,7 +3067,7 @@
     <span class="doccomment">/// check(-1.0f64, std::i32::MIN, 1.0);</span>
     <span class="doccomment">/// ```</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">powi</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">exp</span>: <span class="ident">i32</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">powi</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">exp</span>: <span class="ident">i32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="kw">if</span> <span class="ident">exp</span> <span class="op">&lt;</span> <span class="number">0</span> {
             <span class="ident">exp</span> <span class="op">=</span> <span class="ident">exp</span>.<span class="ident">wrapping_neg</span>();
             <span class="self">self</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">recip</span>();
@@ -3093,7 +3095,7 @@
     <span class="doccomment">/// check(f64::consts::FRAC_PI_4, 45.0);</span>
     <span class="doccomment">/// check(f64::INFINITY, f64::INFINITY);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">to_degrees</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span>;
+    <span class="kw">fn</span> <span class="ident">to_degrees</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
 
     <span class="doccomment">/// Converts to radians, assuming the number is in degrees.</span>
     <span class="doccomment">///</span>
@@ -3112,7 +3114,7 @@
     <span class="doccomment">/// check(45.0, f64::consts::FRAC_PI_4);</span>
     <span class="doccomment">/// check(f64::INFINITY, f64::INFINITY);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">to_radians</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span>;
+    <span class="kw">fn</span> <span class="ident">to_radians</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
 
     <span class="doccomment">/// Returns the mantissa, base 2 exponent, and sign as integers, respectively.</span>
     <span class="doccomment">/// The original number can be recovered by `sign * mantissa * 2 ^ exponent`.</span>
@@ -3135,29 +3137,29 @@
     <span class="doccomment">/// check(f32::INFINITY, 1 &lt;&lt; 23, 105, 1);</span>
     <span class="doccomment">/// check(f64::NEG_INFINITY, 1 &lt;&lt; 52, 972, -1);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">integer_decode</span>(<span class="self">self</span>) <span class="op">-&gt;</span> (<span class="ident">u64</span>, <span class="ident">i16</span>, <span class="ident">i8</span>);
+    <span class="kw">fn</span> <span class="ident">integer_decode</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="ident">u64</span>, <span class="ident">i16</span>, <span class="ident">i8</span>);
 }
 
 <span class="kw">impl</span> <span class="ident">FloatCore</span> <span class="kw">for</span> <span class="ident">f32</span> {
     <span class="macro">constant</span><span class="macro">!</span> {
-        <span class="ident">infinity</span>() <span class="op">-&gt;</span> <span class="ident">f32</span>::<span class="ident">INFINITY</span>;
-        <span class="ident">neg_infinity</span>() <span class="op">-&gt;</span> <span class="ident">f32</span>::<span class="ident">NEG_INFINITY</span>;
-        <span class="ident">nan</span>() <span class="op">-&gt;</span> <span class="ident">f32</span>::<span class="ident">NAN</span>;
-        <span class="ident">neg_zero</span>() <span class="op">-&gt;</span> <span class="op">-</span><span class="number">0.0</span>;
-        <span class="ident">min_value</span>() <span class="op">-&gt;</span> <span class="ident">f32</span>::<span class="ident">MIN</span>;
-        <span class="ident">min_positive_value</span>() <span class="op">-&gt;</span> <span class="ident">f32</span>::<span class="ident">MIN_POSITIVE</span>;
-        <span class="ident">epsilon</span>() <span class="op">-&gt;</span> <span class="ident">f32</span>::<span class="ident">EPSILON</span>;
-        <span class="ident">max_value</span>() <span class="op">-&gt;</span> <span class="ident">f32</span>::<span class="ident">MAX</span>;
+        <span class="ident">infinity</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">f32</span>::<span class="ident">INFINITY</span>;
+        <span class="ident">neg_infinity</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">f32</span>::<span class="ident">NEG_INFINITY</span>;
+        <span class="ident">nan</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">f32</span>::<span class="ident">NAN</span>;
+        <span class="ident">neg_zero</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="op">-</span><span class="number">0.0</span>;
+        <span class="ident">min_value</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">f32</span>::<span class="ident">MIN</span>;
+        <span class="ident">min_positive_value</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">f32</span>::<span class="ident">MIN_POSITIVE</span>;
+        <span class="ident">epsilon</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">f32</span>::<span class="ident">EPSILON</span>;
+        <span class="ident">max_value</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">f32</span>::<span class="ident">MAX</span>;
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">integer_decode</span>(<span class="self">self</span>) <span class="op">-&gt;</span> (<span class="ident">u64</span>, <span class="ident">i16</span>, <span class="ident">i8</span>) {
+    <span class="kw">fn</span> <span class="ident">integer_decode</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="ident">u64</span>, <span class="ident">i16</span>, <span class="ident">i8</span>) {
         <span class="ident">integer_decode_f32</span>(<span class="self">self</span>)
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>))]</span>
-    <span class="kw">fn</span> <span class="ident">classify</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">FpCategory</span> {
+    <span class="kw">fn</span> <span class="ident">classify</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">FpCategory</span> {
         <span class="kw">const</span> <span class="ident">EXP_MASK</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">0x7f800000</span>;
         <span class="kw">const</span> <span class="ident">MAN_MASK</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">0x007fffff</span>;
 
@@ -3165,17 +3167,17 @@
         <span class="comment">// which is only available starting at Rust 1.20</span>
         <span class="kw">let</span> <span class="ident">bits</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">mem</span>::<span class="ident">transmute</span>(<span class="self">self</span>) };
         <span class="kw">match</span> (<span class="ident">bits</span> <span class="op">&amp;</span> <span class="ident">MAN_MASK</span>, <span class="ident">bits</span> <span class="op">&amp;</span> <span class="ident">EXP_MASK</span>) {
-            (<span class="number">0</span>, <span class="number">0</span>) <span class="op">=&gt;</span> <span class="ident">FpCategory</span>::<span class="ident">Zero</span>,
-            (<span class="kw">_</span>, <span class="number">0</span>) <span class="op">=&gt;</span> <span class="ident">FpCategory</span>::<span class="ident">Subnormal</span>,
-            (<span class="number">0</span>, <span class="ident">EXP_MASK</span>) <span class="op">=&gt;</span> <span class="ident">FpCategory</span>::<span class="ident">Infinite</span>,
-            (<span class="kw">_</span>, <span class="ident">EXP_MASK</span>) <span class="op">=&gt;</span> <span class="ident">FpCategory</span>::<span class="ident">Nan</span>,
-            <span class="kw">_</span> <span class="op">=&gt;</span> <span class="ident">FpCategory</span>::<span class="ident">Normal</span>,
+            (<span class="number">0</span>, <span class="number">0</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">FpCategory</span>::<span class="ident">Zero</span>,
+            (<span class="kw">_</span>, <span class="number">0</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">FpCategory</span>::<span class="ident">Subnormal</span>,
+            (<span class="number">0</span>, <span class="ident">EXP_MASK</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">FpCategory</span>::<span class="ident">Infinite</span>,
+            (<span class="kw">_</span>, <span class="ident">EXP_MASK</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">FpCategory</span>::<span class="ident">Nan</span>,
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">FpCategory</span>::<span class="ident">Normal</span>,
         }
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>))]</span>
-    <span class="kw">fn</span> <span class="ident">to_degrees</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">to_degrees</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="comment">// Use a constant for better precision.</span>
         <span class="kw">const</span> <span class="ident">PIS_IN_180</span>: <span class="ident">f32</span> <span class="op">=</span> <span class="number">57.2957795130823208767981548141051703_f32</span>;
         <span class="self">self</span> <span class="op">*</span> <span class="ident">PIS_IN_180</span>
@@ -3183,55 +3185,55 @@
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>))]</span>
-    <span class="kw">fn</span> <span class="ident">to_radians</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">to_radians</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="self">self</span> <span class="op">*</span> (<span class="ident">f32</span>::<span class="ident">consts</span>::<span class="ident">PI</span> <span class="op">/</span> <span class="number">180.0</span>)
     }
 
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span>
     <span class="macro">forward</span><span class="macro">!</span> {
-        <span class="self">Self</span>::<span class="ident">is_nan</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span>;
-        <span class="self">Self</span>::<span class="ident">is_infinite</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span>;
-        <span class="self">Self</span>::<span class="ident">is_finite</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span>;
-        <span class="self">Self</span>::<span class="ident">is_normal</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span>;
-        <span class="self">Self</span>::<span class="ident">classify</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">FpCategory</span>;
-        <span class="self">Self</span>::<span class="ident">floor</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span>;
-        <span class="self">Self</span>::<span class="ident">ceil</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span>;
-        <span class="self">Self</span>::<span class="ident">round</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span>;
-        <span class="self">Self</span>::<span class="ident">trunc</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span>;
-        <span class="self">Self</span>::<span class="ident">fract</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span>;
-        <span class="self">Self</span>::<span class="ident">abs</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span>;
-        <span class="self">Self</span>::<span class="ident">signum</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span>;
-        <span class="self">Self</span>::<span class="ident">is_sign_positive</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span>;
-        <span class="self">Self</span>::<span class="ident">is_sign_negative</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span>;
-        <span class="self">Self</span>::<span class="ident">min</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) <span class="op">-&gt;</span> <span class="self">Self</span>;
-        <span class="self">Self</span>::<span class="ident">max</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) <span class="op">-&gt;</span> <span class="self">Self</span>;
-        <span class="self">Self</span>::<span class="ident">recip</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span>;
-        <span class="self">Self</span>::<span class="ident">powi</span>(<span class="self">self</span>, <span class="ident">n</span>: <span class="ident">i32</span>) <span class="op">-&gt;</span> <span class="self">Self</span>;
-        <span class="self">Self</span>::<span class="ident">to_degrees</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span>;
-        <span class="self">Self</span>::<span class="ident">to_radians</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span>;
+        <span class="self">Self</span>::<span class="ident">is_nan</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span>;
+        <span class="self">Self</span>::<span class="ident">is_infinite</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span>;
+        <span class="self">Self</span>::<span class="ident">is_finite</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span>;
+        <span class="self">Self</span>::<span class="ident">is_normal</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span>;
+        <span class="self">Self</span>::<span class="ident">classify</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">FpCategory</span>;
+        <span class="self">Self</span>::<span class="ident">floor</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
+        <span class="self">Self</span>::<span class="ident">ceil</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
+        <span class="self">Self</span>::<span class="ident">round</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
+        <span class="self">Self</span>::<span class="ident">trunc</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
+        <span class="self">Self</span>::<span class="ident">fract</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
+        <span class="self">Self</span>::<span class="ident">abs</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
+        <span class="self">Self</span>::<span class="ident">signum</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
+        <span class="self">Self</span>::<span class="ident">is_sign_positive</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span>;
+        <span class="self">Self</span>::<span class="ident">is_sign_negative</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span>;
+        <span class="self">Self</span>::<span class="ident">min</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
+        <span class="self">Self</span>::<span class="ident">max</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
+        <span class="self">Self</span>::<span class="ident">recip</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
+        <span class="self">Self</span>::<span class="ident">powi</span>(<span class="self">self</span>, <span class="ident">n</span>: <span class="ident">i32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
+        <span class="self">Self</span>::<span class="ident">to_degrees</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
+        <span class="self">Self</span>::<span class="ident">to_radians</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
     }
 }
 
 <span class="kw">impl</span> <span class="ident">FloatCore</span> <span class="kw">for</span> <span class="ident">f64</span> {
     <span class="macro">constant</span><span class="macro">!</span> {
-        <span class="ident">infinity</span>() <span class="op">-&gt;</span> <span class="ident">f64</span>::<span class="ident">INFINITY</span>;
-        <span class="ident">neg_infinity</span>() <span class="op">-&gt;</span> <span class="ident">f64</span>::<span class="ident">NEG_INFINITY</span>;
-        <span class="ident">nan</span>() <span class="op">-&gt;</span> <span class="ident">f64</span>::<span class="ident">NAN</span>;
-        <span class="ident">neg_zero</span>() <span class="op">-&gt;</span> <span class="op">-</span><span class="number">0.0</span>;
-        <span class="ident">min_value</span>() <span class="op">-&gt;</span> <span class="ident">f64</span>::<span class="ident">MIN</span>;
-        <span class="ident">min_positive_value</span>() <span class="op">-&gt;</span> <span class="ident">f64</span>::<span class="ident">MIN_POSITIVE</span>;
-        <span class="ident">epsilon</span>() <span class="op">-&gt;</span> <span class="ident">f64</span>::<span class="ident">EPSILON</span>;
-        <span class="ident">max_value</span>() <span class="op">-&gt;</span> <span class="ident">f64</span>::<span class="ident">MAX</span>;
+        <span class="ident">infinity</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">f64</span>::<span class="ident">INFINITY</span>;
+        <span class="ident">neg_infinity</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">f64</span>::<span class="ident">NEG_INFINITY</span>;
+        <span class="ident">nan</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">f64</span>::<span class="ident">NAN</span>;
+        <span class="ident">neg_zero</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="op">-</span><span class="number">0.0</span>;
+        <span class="ident">min_value</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">f64</span>::<span class="ident">MIN</span>;
+        <span class="ident">min_positive_value</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">f64</span>::<span class="ident">MIN_POSITIVE</span>;
+        <span class="ident">epsilon</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">f64</span>::<span class="ident">EPSILON</span>;
+        <span class="ident">max_value</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">f64</span>::<span class="ident">MAX</span>;
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">integer_decode</span>(<span class="self">self</span>) <span class="op">-&gt;</span> (<span class="ident">u64</span>, <span class="ident">i16</span>, <span class="ident">i8</span>) {
+    <span class="kw">fn</span> <span class="ident">integer_decode</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="ident">u64</span>, <span class="ident">i16</span>, <span class="ident">i8</span>) {
         <span class="ident">integer_decode_f64</span>(<span class="self">self</span>)
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>))]</span>
-    <span class="kw">fn</span> <span class="ident">classify</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">FpCategory</span> {
+    <span class="kw">fn</span> <span class="ident">classify</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">FpCategory</span> {
         <span class="kw">const</span> <span class="ident">EXP_MASK</span>: <span class="ident">u64</span> <span class="op">=</span> <span class="number">0x7ff0000000000000</span>;
         <span class="kw">const</span> <span class="ident">MAN_MASK</span>: <span class="ident">u64</span> <span class="op">=</span> <span class="number">0x000fffffffffffff</span>;
 
@@ -3239,17 +3241,17 @@
         <span class="comment">// which is only available starting at Rust 1.20</span>
         <span class="kw">let</span> <span class="ident">bits</span>: <span class="ident">u64</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">mem</span>::<span class="ident">transmute</span>(<span class="self">self</span>) };
         <span class="kw">match</span> (<span class="ident">bits</span> <span class="op">&amp;</span> <span class="ident">MAN_MASK</span>, <span class="ident">bits</span> <span class="op">&amp;</span> <span class="ident">EXP_MASK</span>) {
-            (<span class="number">0</span>, <span class="number">0</span>) <span class="op">=&gt;</span> <span class="ident">FpCategory</span>::<span class="ident">Zero</span>,
-            (<span class="kw">_</span>, <span class="number">0</span>) <span class="op">=&gt;</span> <span class="ident">FpCategory</span>::<span class="ident">Subnormal</span>,
-            (<span class="number">0</span>, <span class="ident">EXP_MASK</span>) <span class="op">=&gt;</span> <span class="ident">FpCategory</span>::<span class="ident">Infinite</span>,
-            (<span class="kw">_</span>, <span class="ident">EXP_MASK</span>) <span class="op">=&gt;</span> <span class="ident">FpCategory</span>::<span class="ident">Nan</span>,
-            <span class="kw">_</span> <span class="op">=&gt;</span> <span class="ident">FpCategory</span>::<span class="ident">Normal</span>,
+            (<span class="number">0</span>, <span class="number">0</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">FpCategory</span>::<span class="ident">Zero</span>,
+            (<span class="kw">_</span>, <span class="number">0</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">FpCategory</span>::<span class="ident">Subnormal</span>,
+            (<span class="number">0</span>, <span class="ident">EXP_MASK</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">FpCategory</span>::<span class="ident">Infinite</span>,
+            (<span class="kw">_</span>, <span class="ident">EXP_MASK</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">FpCategory</span>::<span class="ident">Nan</span>,
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">FpCategory</span>::<span class="ident">Normal</span>,
         }
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>))]</span>
-    <span class="kw">fn</span> <span class="ident">to_degrees</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">to_degrees</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="comment">// The division here is correctly rounded with respect to the true</span>
         <span class="comment">// value of 180/π. (This differs from f32, where a constant must be</span>
         <span class="comment">// used to ensure a correctly rounded result.)</span>
@@ -3258,32 +3260,32 @@
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>))]</span>
-    <span class="kw">fn</span> <span class="ident">to_radians</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">to_radians</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="self">self</span> <span class="op">*</span> (<span class="ident">f64</span>::<span class="ident">consts</span>::<span class="ident">PI</span> <span class="op">/</span> <span class="number">180.0</span>)
     }
 
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span>
     <span class="macro">forward</span><span class="macro">!</span> {
-        <span class="self">Self</span>::<span class="ident">is_nan</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span>;
-        <span class="self">Self</span>::<span class="ident">is_infinite</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span>;
-        <span class="self">Self</span>::<span class="ident">is_finite</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span>;
-        <span class="self">Self</span>::<span class="ident">is_normal</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span>;
-        <span class="self">Self</span>::<span class="ident">classify</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">FpCategory</span>;
-        <span class="self">Self</span>::<span class="ident">floor</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span>;
-        <span class="self">Self</span>::<span class="ident">ceil</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span>;
-        <span class="self">Self</span>::<span class="ident">round</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span>;
-        <span class="self">Self</span>::<span class="ident">trunc</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span>;
-        <span class="self">Self</span>::<span class="ident">fract</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span>;
-        <span class="self">Self</span>::<span class="ident">abs</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span>;
-        <span class="self">Self</span>::<span class="ident">signum</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span>;
-        <span class="self">Self</span>::<span class="ident">is_sign_positive</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span>;
-        <span class="self">Self</span>::<span class="ident">is_sign_negative</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span>;
-        <span class="self">Self</span>::<span class="ident">min</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) <span class="op">-&gt;</span> <span class="self">Self</span>;
-        <span class="self">Self</span>::<span class="ident">max</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) <span class="op">-&gt;</span> <span class="self">Self</span>;
-        <span class="self">Self</span>::<span class="ident">recip</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span>;
-        <span class="self">Self</span>::<span class="ident">powi</span>(<span class="self">self</span>, <span class="ident">n</span>: <span class="ident">i32</span>) <span class="op">-&gt;</span> <span class="self">Self</span>;
-        <span class="self">Self</span>::<span class="ident">to_degrees</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span>;
-        <span class="self">Self</span>::<span class="ident">to_radians</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span>;
+        <span class="self">Self</span>::<span class="ident">is_nan</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span>;
+        <span class="self">Self</span>::<span class="ident">is_infinite</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span>;
+        <span class="self">Self</span>::<span class="ident">is_finite</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span>;
+        <span class="self">Self</span>::<span class="ident">is_normal</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span>;
+        <span class="self">Self</span>::<span class="ident">classify</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">FpCategory</span>;
+        <span class="self">Self</span>::<span class="ident">floor</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
+        <span class="self">Self</span>::<span class="ident">ceil</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
+        <span class="self">Self</span>::<span class="ident">round</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
+        <span class="self">Self</span>::<span class="ident">trunc</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
+        <span class="self">Self</span>::<span class="ident">fract</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
+        <span class="self">Self</span>::<span class="ident">abs</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
+        <span class="self">Self</span>::<span class="ident">signum</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
+        <span class="self">Self</span>::<span class="ident">is_sign_positive</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span>;
+        <span class="self">Self</span>::<span class="ident">is_sign_negative</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span>;
+        <span class="self">Self</span>::<span class="ident">min</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
+        <span class="self">Self</span>::<span class="ident">max</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
+        <span class="self">Self</span>::<span class="ident">recip</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
+        <span class="self">Self</span>::<span class="ident">powi</span>(<span class="self">self</span>, <span class="ident">n</span>: <span class="ident">i32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
+        <span class="self">Self</span>::<span class="ident">to_degrees</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
+        <span class="self">Self</span>::<span class="ident">to_radians</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
     }
 }
 
@@ -3304,7 +3306,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// assert!(nan.is_nan());</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">nan</span>() <span class="op">-&gt;</span> <span class="self">Self</span>;
+    <span class="kw">fn</span> <span class="ident">nan</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
     <span class="doccomment">/// Returns the infinite value.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// ```</span>
@@ -3317,7 +3319,7 @@
     <span class="doccomment">/// assert!(!infinity.is_finite());</span>
     <span class="doccomment">/// assert!(infinity &gt; f32::MAX);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">infinity</span>() <span class="op">-&gt;</span> <span class="self">Self</span>;
+    <span class="kw">fn</span> <span class="ident">infinity</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
     <span class="doccomment">/// Returns the negative infinite value.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// ```</span>
@@ -3330,7 +3332,7 @@
     <span class="doccomment">/// assert!(!neg_infinity.is_finite());</span>
     <span class="doccomment">/// assert!(neg_infinity &lt; f32::MIN);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">neg_infinity</span>() <span class="op">-&gt;</span> <span class="self">Self</span>;
+    <span class="kw">fn</span> <span class="ident">neg_infinity</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
     <span class="doccomment">/// Returns `-0.0`.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// ```</span>
@@ -3344,7 +3346,7 @@
     <span class="doccomment">/// assert_eq!(7.0f32/inf, zero);</span>
     <span class="doccomment">/// assert_eq!(zero * 10.0, zero);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">neg_zero</span>() <span class="op">-&gt;</span> <span class="self">Self</span>;
+    <span class="kw">fn</span> <span class="ident">neg_zero</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
 
     <span class="doccomment">/// Returns the smallest finite value that this type can represent.</span>
     <span class="doccomment">///</span>
@@ -3356,7 +3358,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// assert_eq!(x, f64::MIN);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">min_value</span>() <span class="op">-&gt;</span> <span class="self">Self</span>;
+    <span class="kw">fn</span> <span class="ident">min_value</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
 
     <span class="doccomment">/// Returns the smallest positive, normalized value that this type can represent.</span>
     <span class="doccomment">///</span>
@@ -3368,7 +3370,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// assert_eq!(x, f64::MIN_POSITIVE);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">min_positive_value</span>() <span class="op">-&gt;</span> <span class="self">Self</span>;
+    <span class="kw">fn</span> <span class="ident">min_positive_value</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
 
     <span class="doccomment">/// Returns epsilon, a small positive value.</span>
     <span class="doccomment">///</span>
@@ -3385,7 +3387,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// The default implementation will panic if `f32::EPSILON` cannot</span>
     <span class="doccomment">/// be cast to `Self`.</span>
-    <span class="kw">fn</span> <span class="ident">epsilon</span>() <span class="op">-&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">epsilon</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="self">Self</span>::<span class="ident">from</span>(<span class="ident">f32</span>::<span class="ident">EPSILON</span>).<span class="ident">expect</span>(<span class="string">&quot;Unable to cast from f32::EPSILON&quot;</span>)
     }
 
@@ -3398,7 +3400,7 @@
     <span class="doccomment">/// let x: f64 = Float::max_value();</span>
     <span class="doccomment">/// assert_eq!(x, f64::MAX);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">max_value</span>() <span class="op">-&gt;</span> <span class="self">Self</span>;
+    <span class="kw">fn</span> <span class="ident">max_value</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
 
     <span class="doccomment">/// Returns `true` if this value is `NaN` and false otherwise.</span>
     <span class="doccomment">///</span>
@@ -3412,7 +3414,7 @@
     <span class="doccomment">/// assert!(nan.is_nan());</span>
     <span class="doccomment">/// assert!(!f.is_nan());</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">is_nan</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span>;
+    <span class="kw">fn</span> <span class="ident">is_nan</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span>;
 
     <span class="doccomment">/// Returns `true` if this value is positive infinity or negative infinity and</span>
     <span class="doccomment">/// false otherwise.</span>
@@ -3432,7 +3434,7 @@
     <span class="doccomment">/// assert!(inf.is_infinite());</span>
     <span class="doccomment">/// assert!(neg_inf.is_infinite());</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">is_infinite</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span>;
+    <span class="kw">fn</span> <span class="ident">is_infinite</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span>;
 
     <span class="doccomment">/// Returns `true` if this number is neither infinite nor `NaN`.</span>
     <span class="doccomment">///</span>
@@ -3451,7 +3453,7 @@
     <span class="doccomment">/// assert!(!inf.is_finite());</span>
     <span class="doccomment">/// assert!(!neg_inf.is_finite());</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">is_finite</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span>;
+    <span class="kw">fn</span> <span class="ident">is_finite</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span>;
 
     <span class="doccomment">/// Returns `true` if the number is neither zero, infinite,</span>
     <span class="doccomment">/// [subnormal][subnormal], or `NaN`.</span>
@@ -3475,7 +3477,7 @@
     <span class="doccomment">/// assert!(!lower_than_min.is_normal());</span>
     <span class="doccomment">/// ```</span>
     <span class="doccomment">/// [subnormal]: http://en.wikipedia.org/wiki/Denormal_number</span>
-    <span class="kw">fn</span> <span class="ident">is_normal</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span>;
+    <span class="kw">fn</span> <span class="ident">is_normal</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span>;
 
     <span class="doccomment">/// Returns the floating point category of the number. If only one property</span>
     <span class="doccomment">/// is going to be tested, it is generally faster to use the specific</span>
@@ -3492,7 +3494,7 @@
     <span class="doccomment">/// assert_eq!(num.classify(), FpCategory::Normal);</span>
     <span class="doccomment">/// assert_eq!(inf.classify(), FpCategory::Infinite);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">classify</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">FpCategory</span>;
+    <span class="kw">fn</span> <span class="ident">classify</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">FpCategory</span>;
 
     <span class="doccomment">/// Returns the largest integer less than or equal to a number.</span>
     <span class="doccomment">///</span>
@@ -3505,7 +3507,7 @@
     <span class="doccomment">/// assert_eq!(f.floor(), 3.0);</span>
     <span class="doccomment">/// assert_eq!(g.floor(), 3.0);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">floor</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span>;
+    <span class="kw">fn</span> <span class="ident">floor</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
 
     <span class="doccomment">/// Returns the smallest integer greater than or equal to a number.</span>
     <span class="doccomment">///</span>
@@ -3518,7 +3520,7 @@
     <span class="doccomment">/// assert_eq!(f.ceil(), 4.0);</span>
     <span class="doccomment">/// assert_eq!(g.ceil(), 4.0);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">ceil</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span>;
+    <span class="kw">fn</span> <span class="ident">ceil</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
 
     <span class="doccomment">/// Returns the nearest integer to a number. Round half-way cases away from</span>
     <span class="doccomment">/// `0.0`.</span>
@@ -3532,7 +3534,7 @@
     <span class="doccomment">/// assert_eq!(f.round(), 3.0);</span>
     <span class="doccomment">/// assert_eq!(g.round(), -3.0);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">round</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span>;
+    <span class="kw">fn</span> <span class="ident">round</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
 
     <span class="doccomment">/// Return the integer part of a number.</span>
     <span class="doccomment">///</span>
@@ -3545,7 +3547,7 @@
     <span class="doccomment">/// assert_eq!(f.trunc(), 3.0);</span>
     <span class="doccomment">/// assert_eq!(g.trunc(), -3.0);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">trunc</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span>;
+    <span class="kw">fn</span> <span class="ident">trunc</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
 
     <span class="doccomment">/// Returns the fractional part of a number.</span>
     <span class="doccomment">///</span>
@@ -3560,7 +3562,7 @@
     <span class="doccomment">/// assert!(abs_difference_x &lt; 1e-10);</span>
     <span class="doccomment">/// assert!(abs_difference_y &lt; 1e-10);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">fract</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span>;
+    <span class="kw">fn</span> <span class="ident">fract</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
 
     <span class="doccomment">/// Computes the absolute value of `self`. Returns `Float::nan()` if the</span>
     <span class="doccomment">/// number is `Float::nan()`.</span>
@@ -3580,7 +3582,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// assert!(f64::NAN.abs().is_nan());</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">abs</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span>;
+    <span class="kw">fn</span> <span class="ident">abs</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
 
     <span class="doccomment">/// Returns a number that represents the sign of `self`.</span>
     <span class="doccomment">///</span>
@@ -3599,7 +3601,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// assert!(f64::NAN.signum().is_nan());</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">signum</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span>;
+    <span class="kw">fn</span> <span class="ident">signum</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
 
     <span class="doccomment">/// Returns `true` if `self` is positive, including `+0.0`,</span>
     <span class="doccomment">/// `Float::infinity()`, and since Rust 1.20 also `Float::nan()`.</span>
@@ -3617,7 +3619,7 @@
     <span class="doccomment">/// assert!(!g.is_sign_positive());</span>
     <span class="doccomment">/// assert!(!neg_nan.is_sign_positive());</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">is_sign_positive</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span>;
+    <span class="kw">fn</span> <span class="ident">is_sign_positive</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span>;
 
     <span class="doccomment">/// Returns `true` if `self` is negative, including `-0.0`,</span>
     <span class="doccomment">/// `Float::neg_infinity()`, and since Rust 1.20 also `-Float::nan()`.</span>
@@ -3635,7 +3637,7 @@
     <span class="doccomment">/// assert!(g.is_sign_negative());</span>
     <span class="doccomment">/// assert!(!nan.is_sign_negative());</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">is_sign_negative</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span>;
+    <span class="kw">fn</span> <span class="ident">is_sign_negative</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span>;
 
     <span class="doccomment">/// Fused multiply-add. Computes `(self * a) + b` with only one rounding</span>
     <span class="doccomment">/// error, yielding a more accurate result than an unfused multiply-add.</span>
@@ -3655,7 +3657,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// assert!(abs_difference &lt; 1e-10);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">mul_add</span>(<span class="self">self</span>, <span class="ident">a</span>: <span class="self">Self</span>, <span class="ident">b</span>: <span class="self">Self</span>) <span class="op">-&gt;</span> <span class="self">Self</span>;
+    <span class="kw">fn</span> <span class="ident">mul_add</span>(<span class="self">self</span>, <span class="ident">a</span>: <span class="self">Self</span>, <span class="ident">b</span>: <span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
     <span class="doccomment">/// Take the reciprocal (inverse) of a number, `1/x`.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// ```</span>
@@ -3666,7 +3668,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// assert!(abs_difference &lt; 1e-10);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">recip</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span>;
+    <span class="kw">fn</span> <span class="ident">recip</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
 
     <span class="doccomment">/// Raise a number to an integer power.</span>
     <span class="doccomment">///</span>
@@ -3680,7 +3682,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// assert!(abs_difference &lt; 1e-10);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">powi</span>(<span class="self">self</span>, <span class="ident">n</span>: <span class="ident">i32</span>) <span class="op">-&gt;</span> <span class="self">Self</span>;
+    <span class="kw">fn</span> <span class="ident">powi</span>(<span class="self">self</span>, <span class="ident">n</span>: <span class="ident">i32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
 
     <span class="doccomment">/// Raise a number to a floating point power.</span>
     <span class="doccomment">///</span>
@@ -3692,7 +3694,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// assert!(abs_difference &lt; 1e-10);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">powf</span>(<span class="self">self</span>, <span class="ident">n</span>: <span class="self">Self</span>) <span class="op">-&gt;</span> <span class="self">Self</span>;
+    <span class="kw">fn</span> <span class="ident">powf</span>(<span class="self">self</span>, <span class="ident">n</span>: <span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
 
     <span class="doccomment">/// Take the square root of a number.</span>
     <span class="doccomment">///</span>
@@ -3709,7 +3711,7 @@
     <span class="doccomment">/// assert!(abs_difference &lt; 1e-10);</span>
     <span class="doccomment">/// assert!(negative.sqrt().is_nan());</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">sqrt</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span>;
+    <span class="kw">fn</span> <span class="ident">sqrt</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
 
     <span class="doccomment">/// Returns `e^(self)`, (the exponential function).</span>
     <span class="doccomment">///</span>
@@ -3725,7 +3727,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// assert!(abs_difference &lt; 1e-10);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">exp</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span>;
+    <span class="kw">fn</span> <span class="ident">exp</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
 
     <span class="doccomment">/// Returns `2^(self)`.</span>
     <span class="doccomment">///</span>
@@ -3739,7 +3741,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// assert!(abs_difference &lt; 1e-10);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">exp2</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span>;
+    <span class="kw">fn</span> <span class="ident">exp2</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
 
     <span class="doccomment">/// Returns the natural logarithm of the number.</span>
     <span class="doccomment">///</span>
@@ -3755,7 +3757,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// assert!(abs_difference &lt; 1e-10);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">ln</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span>;
+    <span class="kw">fn</span> <span class="ident">ln</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
 
     <span class="doccomment">/// Returns the logarithm of the number with respect to an arbitrary base.</span>
     <span class="doccomment">///</span>
@@ -3774,7 +3776,7 @@
     <span class="doccomment">/// assert!(abs_difference_10 &lt; 1e-10);</span>
     <span class="doccomment">/// assert!(abs_difference_2 &lt; 1e-10);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">log</span>(<span class="self">self</span>, <span class="ident">base</span>: <span class="self">Self</span>) <span class="op">-&gt;</span> <span class="self">Self</span>;
+    <span class="kw">fn</span> <span class="ident">log</span>(<span class="self">self</span>, <span class="ident">base</span>: <span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
 
     <span class="doccomment">/// Returns the base 2 logarithm of the number.</span>
     <span class="doccomment">///</span>
@@ -3788,7 +3790,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// assert!(abs_difference &lt; 1e-10);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">log2</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span>;
+    <span class="kw">fn</span> <span class="ident">log2</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
 
     <span class="doccomment">/// Returns the base 10 logarithm of the number.</span>
     <span class="doccomment">///</span>
@@ -3802,7 +3804,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// assert!(abs_difference &lt; 1e-10);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">log10</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span>;
+    <span class="kw">fn</span> <span class="ident">log10</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
 
     <span class="doccomment">/// Converts radians to degrees.</span>
     <span class="doccomment">///</span>
@@ -3816,7 +3818,7 @@
     <span class="doccomment">/// assert!(abs_difference &lt; 1e-10);</span>
     <span class="doccomment">/// ```</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">to_degrees</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">to_degrees</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="kw">let</span> <span class="ident">halfpi</span> <span class="op">=</span> <span class="self">Self</span>::<span class="ident">zero</span>().<span class="ident">acos</span>();
         <span class="kw">let</span> <span class="ident">ninety</span> <span class="op">=</span> <span class="self">Self</span>::<span class="ident">from</span>(<span class="number">90u8</span>).<span class="ident">unwrap</span>();
         <span class="self">self</span> <span class="op">*</span> <span class="ident">ninety</span> <span class="op">/</span> <span class="ident">halfpi</span>
@@ -3834,7 +3836,7 @@
     <span class="doccomment">/// assert!(abs_difference &lt; 1e-10);</span>
     <span class="doccomment">/// ```</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">to_radians</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">to_radians</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="kw">let</span> <span class="ident">halfpi</span> <span class="op">=</span> <span class="self">Self</span>::<span class="ident">zero</span>().<span class="ident">acos</span>();
         <span class="kw">let</span> <span class="ident">ninety</span> <span class="op">=</span> <span class="self">Self</span>::<span class="ident">from</span>(<span class="number">90u8</span>).<span class="ident">unwrap</span>();
         <span class="self">self</span> <span class="op">*</span> <span class="ident">halfpi</span> <span class="op">/</span> <span class="ident">ninety</span>
@@ -3850,7 +3852,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// assert_eq!(x.max(y), y);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">max</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) <span class="op">-&gt;</span> <span class="self">Self</span>;
+    <span class="kw">fn</span> <span class="ident">max</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
 
     <span class="doccomment">/// Returns the minimum of the two numbers.</span>
     <span class="doccomment">///</span>
@@ -3862,7 +3864,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// assert_eq!(x.min(y), x);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">min</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) <span class="op">-&gt;</span> <span class="self">Self</span>;
+    <span class="kw">fn</span> <span class="ident">min</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
 
     <span class="doccomment">/// The positive difference of two numbers.</span>
     <span class="doccomment">///</span>
@@ -3881,7 +3883,7 @@
     <span class="doccomment">/// assert!(abs_difference_x &lt; 1e-10);</span>
     <span class="doccomment">/// assert!(abs_difference_y &lt; 1e-10);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">abs_sub</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) <span class="op">-&gt;</span> <span class="self">Self</span>;
+    <span class="kw">fn</span> <span class="ident">abs_sub</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
 
     <span class="doccomment">/// Take the cubic root of a number.</span>
     <span class="doccomment">///</span>
@@ -3895,7 +3897,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// assert!(abs_difference &lt; 1e-10);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">cbrt</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span>;
+    <span class="kw">fn</span> <span class="ident">cbrt</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
 
     <span class="doccomment">/// Calculate the length of the hypotenuse of a right-angle triangle given</span>
     <span class="doccomment">/// legs of length `x` and `y`.</span>
@@ -3911,7 +3913,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// assert!(abs_difference &lt; 1e-10);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">hypot</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) <span class="op">-&gt;</span> <span class="self">Self</span>;
+    <span class="kw">fn</span> <span class="ident">hypot</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
 
     <span class="doccomment">/// Computes the sine of a number (in radians).</span>
     <span class="doccomment">///</span>
@@ -3925,7 +3927,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// assert!(abs_difference &lt; 1e-10);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">sin</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span>;
+    <span class="kw">fn</span> <span class="ident">sin</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
 
     <span class="doccomment">/// Computes the cosine of a number (in radians).</span>
     <span class="doccomment">///</span>
@@ -3939,7 +3941,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// assert!(abs_difference &lt; 1e-10);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">cos</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span>;
+    <span class="kw">fn</span> <span class="ident">cos</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
 
     <span class="doccomment">/// Computes the tangent of a number (in radians).</span>
     <span class="doccomment">///</span>
@@ -3952,7 +3954,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// assert!(abs_difference &lt; 1e-14);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">tan</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span>;
+    <span class="kw">fn</span> <span class="ident">tan</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
 
     <span class="doccomment">/// Computes the arcsine of a number. Return value is in radians in</span>
     <span class="doccomment">/// the range [-pi/2, pi/2] or NaN if the number is outside the range</span>
@@ -3969,7 +3971,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// assert!(abs_difference &lt; 1e-10);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">asin</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span>;
+    <span class="kw">fn</span> <span class="ident">asin</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
 
     <span class="doccomment">/// Computes the arccosine of a number. Return value is in radians in</span>
     <span class="doccomment">/// the range [0, pi] or NaN if the number is outside the range</span>
@@ -3986,7 +3988,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// assert!(abs_difference &lt; 1e-10);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">acos</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span>;
+    <span class="kw">fn</span> <span class="ident">acos</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
 
     <span class="doccomment">/// Computes the arctangent of a number. Return value is in radians in the</span>
     <span class="doccomment">/// range [-pi/2, pi/2];</span>
@@ -4001,7 +4003,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// assert!(abs_difference &lt; 1e-10);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">atan</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span>;
+    <span class="kw">fn</span> <span class="ident">atan</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
 
     <span class="doccomment">/// Computes the four quadrant arctangent of `self` (`y`) and `other` (`x`).</span>
     <span class="doccomment">///</span>
@@ -4030,7 +4032,7 @@
     <span class="doccomment">/// assert!(abs_difference_1 &lt; 1e-10);</span>
     <span class="doccomment">/// assert!(abs_difference_2 &lt; 1e-10);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">atan2</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) <span class="op">-&gt;</span> <span class="self">Self</span>;
+    <span class="kw">fn</span> <span class="ident">atan2</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
 
     <span class="doccomment">/// Simultaneously computes the sine and cosine of the number, `x`. Returns</span>
     <span class="doccomment">/// `(sin(x), cos(x))`.</span>
@@ -4048,7 +4050,7 @@
     <span class="doccomment">/// assert!(abs_difference_0 &lt; 1e-10);</span>
     <span class="doccomment">/// assert!(abs_difference_0 &lt; 1e-10);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">sin_cos</span>(<span class="self">self</span>) <span class="op">-&gt;</span> (<span class="self">Self</span>, <span class="self">Self</span>);
+    <span class="kw">fn</span> <span class="ident">sin_cos</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="self">Self</span>, <span class="self">Self</span>);
 
     <span class="doccomment">/// Returns `e^(self) - 1` in a way that is accurate even if the</span>
     <span class="doccomment">/// number is close to zero.</span>
@@ -4063,7 +4065,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// assert!(abs_difference &lt; 1e-10);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">exp_m1</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span>;
+    <span class="kw">fn</span> <span class="ident">exp_m1</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
 
     <span class="doccomment">/// Returns `ln(1+n)` (natural logarithm) more accurately than if</span>
     <span class="doccomment">/// the operations were performed separately.</span>
@@ -4079,7 +4081,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// assert!(abs_difference &lt; 1e-10);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">ln_1p</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span>;
+    <span class="kw">fn</span> <span class="ident">ln_1p</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
 
     <span class="doccomment">/// Hyperbolic sine function.</span>
     <span class="doccomment">///</span>
@@ -4097,7 +4099,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// assert!(abs_difference &lt; 1e-10);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">sinh</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span>;
+    <span class="kw">fn</span> <span class="ident">sinh</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
 
     <span class="doccomment">/// Hyperbolic cosine function.</span>
     <span class="doccomment">///</span>
@@ -4115,7 +4117,7 @@
     <span class="doccomment">/// // Same result</span>
     <span class="doccomment">/// assert!(abs_difference &lt; 1.0e-10);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">cosh</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span>;
+    <span class="kw">fn</span> <span class="ident">cosh</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
 
     <span class="doccomment">/// Hyperbolic tangent function.</span>
     <span class="doccomment">///</span>
@@ -4133,7 +4135,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// assert!(abs_difference &lt; 1.0e-10);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">tanh</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span>;
+    <span class="kw">fn</span> <span class="ident">tanh</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
 
     <span class="doccomment">/// Inverse hyperbolic sine function.</span>
     <span class="doccomment">///</span>
@@ -4147,7 +4149,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// assert!(abs_difference &lt; 1.0e-10);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">asinh</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span>;
+    <span class="kw">fn</span> <span class="ident">asinh</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
 
     <span class="doccomment">/// Inverse hyperbolic cosine function.</span>
     <span class="doccomment">///</span>
@@ -4161,7 +4163,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// assert!(abs_difference &lt; 1.0e-10);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">acosh</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span>;
+    <span class="kw">fn</span> <span class="ident">acosh</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
 
     <span class="doccomment">/// Inverse hyperbolic tangent function.</span>
     <span class="doccomment">///</span>
@@ -4176,7 +4178,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// assert!(abs_difference &lt; 1.0e-10);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">atanh</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span>;
+    <span class="kw">fn</span> <span class="ident">atanh</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
 
     <span class="doccomment">/// Returns the mantissa, base 2 exponent, and sign as integers, respectively.</span>
     <span class="doccomment">/// The original number can be recovered by `sign * mantissa * 2 ^ exponent`.</span>
@@ -4197,83 +4199,83 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// assert!(abs_difference &lt; 1e-10);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">integer_decode</span>(<span class="self">self</span>) <span class="op">-&gt;</span> (<span class="ident">u64</span>, <span class="ident">i16</span>, <span class="ident">i8</span>);
+    <span class="kw">fn</span> <span class="ident">integer_decode</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="ident">u64</span>, <span class="ident">i16</span>, <span class="ident">i8</span>);
 }
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span>
 <span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">float_impl_std</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>:<span class="ident">ident</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">decode</span>:<span class="ident">ident</span>) <span class="op">=&gt;</span> {
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>:<span class="ident">ident</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">decode</span>:<span class="ident">ident</span>) <span class="op">=</span><span class="op">&gt;</span> {
         <span class="kw">impl</span> <span class="ident">Float</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span> {
             <span class="macro">constant</span><span class="macro">!</span> {
-                <span class="ident">nan</span>() <span class="op">-&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>::<span class="ident">NAN</span>;
-                <span class="ident">infinity</span>() <span class="op">-&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>::<span class="ident">INFINITY</span>;
-                <span class="ident">neg_infinity</span>() <span class="op">-&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>::<span class="ident">NEG_INFINITY</span>;
-                <span class="ident">neg_zero</span>() <span class="op">-&gt;</span> <span class="op">-</span><span class="number">0.0</span>;
-                <span class="ident">min_value</span>() <span class="op">-&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>::<span class="ident">MIN</span>;
-                <span class="ident">min_positive_value</span>() <span class="op">-&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>::<span class="ident">MIN_POSITIVE</span>;
-                <span class="ident">epsilon</span>() <span class="op">-&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>::<span class="ident">EPSILON</span>;
-                <span class="ident">max_value</span>() <span class="op">-&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>::<span class="ident">MAX</span>;
+                <span class="ident">nan</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>::<span class="ident">NAN</span>;
+                <span class="ident">infinity</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>::<span class="ident">INFINITY</span>;
+                <span class="ident">neg_infinity</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>::<span class="ident">NEG_INFINITY</span>;
+                <span class="ident">neg_zero</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="op">-</span><span class="number">0.0</span>;
+                <span class="ident">min_value</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>::<span class="ident">MIN</span>;
+                <span class="ident">min_positive_value</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>::<span class="ident">MIN_POSITIVE</span>;
+                <span class="ident">epsilon</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>::<span class="ident">EPSILON</span>;
+                <span class="ident">max_value</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>::<span class="ident">MAX</span>;
             }
 
             <span class="attribute">#[<span class="ident">inline</span>]</span>
             <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">deprecated</span>)]</span>
-            <span class="kw">fn</span> <span class="ident">abs_sub</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
+            <span class="kw">fn</span> <span class="ident">abs_sub</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
                 <span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span><span class="op">&gt;</span>::<span class="ident">abs_sub</span>(<span class="self">self</span>, <span class="ident">other</span>)
             }
 
             <span class="attribute">#[<span class="ident">inline</span>]</span>
-            <span class="kw">fn</span> <span class="ident">integer_decode</span>(<span class="self">self</span>) <span class="op">-&gt;</span> (<span class="ident">u64</span>, <span class="ident">i16</span>, <span class="ident">i8</span>) {
+            <span class="kw">fn</span> <span class="ident">integer_decode</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="ident">u64</span>, <span class="ident">i16</span>, <span class="ident">i8</span>) {
                 <span class="macro-nonterminal">$</span><span class="macro-nonterminal">decode</span>(<span class="self">self</span>)
             }
 
             <span class="macro">forward</span><span class="macro">!</span> {
-                <span class="self">Self</span>::<span class="ident">is_nan</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span>;
-                <span class="self">Self</span>::<span class="ident">is_infinite</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span>;
-                <span class="self">Self</span>::<span class="ident">is_finite</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span>;
-                <span class="self">Self</span>::<span class="ident">is_normal</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span>;
-                <span class="self">Self</span>::<span class="ident">classify</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">FpCategory</span>;
-                <span class="self">Self</span>::<span class="ident">floor</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span>;
-                <span class="self">Self</span>::<span class="ident">ceil</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span>;
-                <span class="self">Self</span>::<span class="ident">round</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span>;
-                <span class="self">Self</span>::<span class="ident">trunc</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span>;
-                <span class="self">Self</span>::<span class="ident">fract</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span>;
-                <span class="self">Self</span>::<span class="ident">abs</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span>;
-                <span class="self">Self</span>::<span class="ident">signum</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span>;
-                <span class="self">Self</span>::<span class="ident">is_sign_positive</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span>;
-                <span class="self">Self</span>::<span class="ident">is_sign_negative</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span>;
-                <span class="self">Self</span>::<span class="ident">mul_add</span>(<span class="self">self</span>, <span class="ident">a</span>: <span class="self">Self</span>, <span class="ident">b</span>: <span class="self">Self</span>) <span class="op">-&gt;</span> <span class="self">Self</span>;
-                <span class="self">Self</span>::<span class="ident">recip</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span>;
-                <span class="self">Self</span>::<span class="ident">powi</span>(<span class="self">self</span>, <span class="ident">n</span>: <span class="ident">i32</span>) <span class="op">-&gt;</span> <span class="self">Self</span>;
-                <span class="self">Self</span>::<span class="ident">powf</span>(<span class="self">self</span>, <span class="ident">n</span>: <span class="self">Self</span>) <span class="op">-&gt;</span> <span class="self">Self</span>;
-                <span class="self">Self</span>::<span class="ident">sqrt</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span>;
-                <span class="self">Self</span>::<span class="ident">exp</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span>;
-                <span class="self">Self</span>::<span class="ident">exp2</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span>;
-                <span class="self">Self</span>::<span class="ident">ln</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span>;
-                <span class="self">Self</span>::<span class="ident">log</span>(<span class="self">self</span>, <span class="ident">base</span>: <span class="self">Self</span>) <span class="op">-&gt;</span> <span class="self">Self</span>;
-                <span class="self">Self</span>::<span class="ident">log2</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span>;
-                <span class="self">Self</span>::<span class="ident">log10</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span>;
-                <span class="self">Self</span>::<span class="ident">to_degrees</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span>;
-                <span class="self">Self</span>::<span class="ident">to_radians</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span>;
-                <span class="self">Self</span>::<span class="ident">max</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) <span class="op">-&gt;</span> <span class="self">Self</span>;
-                <span class="self">Self</span>::<span class="ident">min</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) <span class="op">-&gt;</span> <span class="self">Self</span>;
-                <span class="self">Self</span>::<span class="ident">cbrt</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span>;
-                <span class="self">Self</span>::<span class="ident">hypot</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) <span class="op">-&gt;</span> <span class="self">Self</span>;
-                <span class="self">Self</span>::<span class="ident">sin</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span>;
-                <span class="self">Self</span>::<span class="ident">cos</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span>;
-                <span class="self">Self</span>::<span class="ident">tan</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span>;
-                <span class="self">Self</span>::<span class="ident">asin</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span>;
-                <span class="self">Self</span>::<span class="ident">acos</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span>;
-                <span class="self">Self</span>::<span class="ident">atan</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span>;
-                <span class="self">Self</span>::<span class="ident">atan2</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) <span class="op">-&gt;</span> <span class="self">Self</span>;
-                <span class="self">Self</span>::<span class="ident">sin_cos</span>(<span class="self">self</span>) <span class="op">-&gt;</span> (<span class="self">Self</span>, <span class="self">Self</span>);
-                <span class="self">Self</span>::<span class="ident">exp_m1</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span>;
-                <span class="self">Self</span>::<span class="ident">ln_1p</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span>;
-                <span class="self">Self</span>::<span class="ident">sinh</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span>;
-                <span class="self">Self</span>::<span class="ident">cosh</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span>;
-                <span class="self">Self</span>::<span class="ident">tanh</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span>;
-                <span class="self">Self</span>::<span class="ident">asinh</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span>;
-                <span class="self">Self</span>::<span class="ident">acosh</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span>;
-                <span class="self">Self</span>::<span class="ident">atanh</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span>;
+                <span class="self">Self</span>::<span class="ident">is_nan</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span>;
+                <span class="self">Self</span>::<span class="ident">is_infinite</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span>;
+                <span class="self">Self</span>::<span class="ident">is_finite</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span>;
+                <span class="self">Self</span>::<span class="ident">is_normal</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span>;
+                <span class="self">Self</span>::<span class="ident">classify</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">FpCategory</span>;
+                <span class="self">Self</span>::<span class="ident">floor</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
+                <span class="self">Self</span>::<span class="ident">ceil</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
+                <span class="self">Self</span>::<span class="ident">round</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
+                <span class="self">Self</span>::<span class="ident">trunc</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
+                <span class="self">Self</span>::<span class="ident">fract</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
+                <span class="self">Self</span>::<span class="ident">abs</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
+                <span class="self">Self</span>::<span class="ident">signum</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
+                <span class="self">Self</span>::<span class="ident">is_sign_positive</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span>;
+                <span class="self">Self</span>::<span class="ident">is_sign_negative</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span>;
+                <span class="self">Self</span>::<span class="ident">mul_add</span>(<span class="self">self</span>, <span class="ident">a</span>: <span class="self">Self</span>, <span class="ident">b</span>: <span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
+                <span class="self">Self</span>::<span class="ident">recip</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
+                <span class="self">Self</span>::<span class="ident">powi</span>(<span class="self">self</span>, <span class="ident">n</span>: <span class="ident">i32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
+                <span class="self">Self</span>::<span class="ident">powf</span>(<span class="self">self</span>, <span class="ident">n</span>: <span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
+                <span class="self">Self</span>::<span class="ident">sqrt</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
+                <span class="self">Self</span>::<span class="ident">exp</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
+                <span class="self">Self</span>::<span class="ident">exp2</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
+                <span class="self">Self</span>::<span class="ident">ln</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
+                <span class="self">Self</span>::<span class="ident">log</span>(<span class="self">self</span>, <span class="ident">base</span>: <span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
+                <span class="self">Self</span>::<span class="ident">log2</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
+                <span class="self">Self</span>::<span class="ident">log10</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
+                <span class="self">Self</span>::<span class="ident">to_degrees</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
+                <span class="self">Self</span>::<span class="ident">to_radians</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
+                <span class="self">Self</span>::<span class="ident">max</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
+                <span class="self">Self</span>::<span class="ident">min</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
+                <span class="self">Self</span>::<span class="ident">cbrt</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
+                <span class="self">Self</span>::<span class="ident">hypot</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
+                <span class="self">Self</span>::<span class="ident">sin</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
+                <span class="self">Self</span>::<span class="ident">cos</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
+                <span class="self">Self</span>::<span class="ident">tan</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
+                <span class="self">Self</span>::<span class="ident">asin</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
+                <span class="self">Self</span>::<span class="ident">acos</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
+                <span class="self">Self</span>::<span class="ident">atan</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
+                <span class="self">Self</span>::<span class="ident">atan2</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
+                <span class="self">Self</span>::<span class="ident">sin_cos</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="self">Self</span>, <span class="self">Self</span>);
+                <span class="self">Self</span>::<span class="ident">exp_m1</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
+                <span class="self">Self</span>::<span class="ident">ln_1p</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
+                <span class="self">Self</span>::<span class="ident">sinh</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
+                <span class="self">Self</span>::<span class="ident">cosh</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
+                <span class="self">Self</span>::<span class="ident">tanh</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
+                <span class="self">Self</span>::<span class="ident">asinh</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
+                <span class="self">Self</span>::<span class="ident">acosh</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
+                <span class="self">Self</span>::<span class="ident">atanh</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
             }
         }
     };
@@ -4281,81 +4283,81 @@
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>), <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;libm&quot;</span>))]</span>
 <span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">float_impl_libm</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>:<span class="ident">ident</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">decode</span>:<span class="ident">ident</span>) <span class="op">=&gt;</span> {
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>:<span class="ident">ident</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">decode</span>:<span class="ident">ident</span>) <span class="op">=</span><span class="op">&gt;</span> {
         <span class="macro">constant</span><span class="macro">!</span> {
-            <span class="ident">nan</span>() <span class="op">-&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>::<span class="ident">NAN</span>;
-            <span class="ident">infinity</span>() <span class="op">-&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>::<span class="ident">INFINITY</span>;
-            <span class="ident">neg_infinity</span>() <span class="op">-&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>::<span class="ident">NEG_INFINITY</span>;
-            <span class="ident">neg_zero</span>() <span class="op">-&gt;</span> <span class="op">-</span><span class="number">0.0</span>;
-            <span class="ident">min_value</span>() <span class="op">-&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>::<span class="ident">MIN</span>;
-            <span class="ident">min_positive_value</span>() <span class="op">-&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>::<span class="ident">MIN_POSITIVE</span>;
-            <span class="ident">epsilon</span>() <span class="op">-&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>::<span class="ident">EPSILON</span>;
-            <span class="ident">max_value</span>() <span class="op">-&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>::<span class="ident">MAX</span>;
+            <span class="ident">nan</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>::<span class="ident">NAN</span>;
+            <span class="ident">infinity</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>::<span class="ident">INFINITY</span>;
+            <span class="ident">neg_infinity</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>::<span class="ident">NEG_INFINITY</span>;
+            <span class="ident">neg_zero</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="op">-</span><span class="number">0.0</span>;
+            <span class="ident">min_value</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>::<span class="ident">MIN</span>;
+            <span class="ident">min_positive_value</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>::<span class="ident">MIN_POSITIVE</span>;
+            <span class="ident">epsilon</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>::<span class="ident">EPSILON</span>;
+            <span class="ident">max_value</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>::<span class="ident">MAX</span>;
         }
 
         <span class="attribute">#[<span class="ident">inline</span>]</span>
-        <span class="kw">fn</span> <span class="ident">integer_decode</span>(<span class="self">self</span>) <span class="op">-&gt;</span> (<span class="ident">u64</span>, <span class="ident">i16</span>, <span class="ident">i8</span>) {
+        <span class="kw">fn</span> <span class="ident">integer_decode</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="ident">u64</span>, <span class="ident">i16</span>, <span class="ident">i8</span>) {
             <span class="macro-nonterminal">$</span><span class="macro-nonterminal">decode</span>(<span class="self">self</span>)
         }
 
         <span class="attribute">#[<span class="ident">inline</span>]</span>
-        <span class="kw">fn</span> <span class="ident">fract</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
+        <span class="kw">fn</span> <span class="ident">fract</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
             <span class="self">self</span> <span class="op">-</span> <span class="ident">FloatCore</span>::<span class="ident">trunc</span>(<span class="self">self</span>)
         }
 
         <span class="attribute">#[<span class="ident">inline</span>]</span>
-        <span class="kw">fn</span> <span class="ident">log</span>(<span class="self">self</span>, <span class="ident">base</span>: <span class="self">Self</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
+        <span class="kw">fn</span> <span class="ident">log</span>(<span class="self">self</span>, <span class="ident">base</span>: <span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
             <span class="self">self</span>.<span class="ident">ln</span>() <span class="op">/</span> <span class="ident">base</span>.<span class="ident">ln</span>()
         }
 
         <span class="macro">forward</span><span class="macro">!</span> {
-            <span class="ident">FloatCore</span>::<span class="ident">is_nan</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span>;
-            <span class="ident">FloatCore</span>::<span class="ident">is_infinite</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span>;
-            <span class="ident">FloatCore</span>::<span class="ident">is_finite</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span>;
-            <span class="ident">FloatCore</span>::<span class="ident">is_normal</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span>;
-            <span class="ident">FloatCore</span>::<span class="ident">classify</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">FpCategory</span>;
-            <span class="ident">FloatCore</span>::<span class="ident">signum</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span>;
-            <span class="ident">FloatCore</span>::<span class="ident">is_sign_positive</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span>;
-            <span class="ident">FloatCore</span>::<span class="ident">is_sign_negative</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span>;
-            <span class="ident">FloatCore</span>::<span class="ident">recip</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span>;
-            <span class="ident">FloatCore</span>::<span class="ident">powi</span>(<span class="self">self</span>, <span class="ident">n</span>: <span class="ident">i32</span>) <span class="op">-&gt;</span> <span class="self">Self</span>;
-            <span class="ident">FloatCore</span>::<span class="ident">to_degrees</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span>;
-            <span class="ident">FloatCore</span>::<span class="ident">to_radians</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span>;
-            <span class="ident">FloatCore</span>::<span class="ident">max</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) <span class="op">-&gt;</span> <span class="self">Self</span>;
-            <span class="ident">FloatCore</span>::<span class="ident">min</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) <span class="op">-&gt;</span> <span class="self">Self</span>;
+            <span class="ident">FloatCore</span>::<span class="ident">is_nan</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span>;
+            <span class="ident">FloatCore</span>::<span class="ident">is_infinite</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span>;
+            <span class="ident">FloatCore</span>::<span class="ident">is_finite</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span>;
+            <span class="ident">FloatCore</span>::<span class="ident">is_normal</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span>;
+            <span class="ident">FloatCore</span>::<span class="ident">classify</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">FpCategory</span>;
+            <span class="ident">FloatCore</span>::<span class="ident">signum</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
+            <span class="ident">FloatCore</span>::<span class="ident">is_sign_positive</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span>;
+            <span class="ident">FloatCore</span>::<span class="ident">is_sign_negative</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span>;
+            <span class="ident">FloatCore</span>::<span class="ident">recip</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
+            <span class="ident">FloatCore</span>::<span class="ident">powi</span>(<span class="self">self</span>, <span class="ident">n</span>: <span class="ident">i32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
+            <span class="ident">FloatCore</span>::<span class="ident">to_degrees</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
+            <span class="ident">FloatCore</span>::<span class="ident">to_radians</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
+            <span class="ident">FloatCore</span>::<span class="ident">max</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
+            <span class="ident">FloatCore</span>::<span class="ident">min</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
         }
     };
 }
 
-<span class="kw">fn</span> <span class="ident">integer_decode_f32</span>(<span class="ident">f</span>: <span class="ident">f32</span>) <span class="op">-&gt;</span> (<span class="ident">u64</span>, <span class="ident">i16</span>, <span class="ident">i8</span>) {
+<span class="kw">fn</span> <span class="ident">integer_decode_f32</span>(<span class="ident">f</span>: <span class="ident">f32</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="ident">u64</span>, <span class="ident">i16</span>, <span class="ident">i8</span>) {
     <span class="comment">// Safety: this identical to the implementation of f32::to_bits(),</span>
     <span class="comment">// which is only available starting at Rust 1.20</span>
     <span class="kw">let</span> <span class="ident">bits</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">mem</span>::<span class="ident">transmute</span>(<span class="ident">f</span>) };
-    <span class="kw">let</span> <span class="ident">sign</span>: <span class="ident">i8</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">bits</span> <span class="op">&gt;&gt;</span> <span class="number">31</span> <span class="op">==</span> <span class="number">0</span> { <span class="number">1</span> } <span class="kw">else</span> { <span class="op">-</span><span class="number">1</span> };
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">exponent</span>: <span class="ident">i16</span> <span class="op">=</span> ((<span class="ident">bits</span> <span class="op">&gt;&gt;</span> <span class="number">23</span>) <span class="op">&amp;</span> <span class="number">0xff</span>) <span class="kw">as</span> <span class="ident">i16</span>;
-    <span class="kw">let</span> <span class="ident">mantissa</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">exponent</span> <span class="op">==</span> <span class="number">0</span> {
-        (<span class="ident">bits</span> <span class="op">&amp;</span> <span class="number">0x7fffff</span>) <span class="op">&lt;&lt;</span> <span class="number">1</span>
+    <span class="kw">let</span> <span class="ident">sign</span>: <span class="ident">i8</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">bits</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">31</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> { <span class="number">1</span> } <span class="kw">else</span> { <span class="op">-</span><span class="number">1</span> };
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">exponent</span>: <span class="ident">i16</span> <span class="op">=</span> ((<span class="ident">bits</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">23</span>) <span class="op">&amp;</span> <span class="number">0xff</span>) <span class="kw">as</span> <span class="ident">i16</span>;
+    <span class="kw">let</span> <span class="ident">mantissa</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">exponent</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+        (<span class="ident">bits</span> <span class="op">&amp;</span> <span class="number">0x7fffff</span>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">1</span>
     } <span class="kw">else</span> {
         (<span class="ident">bits</span> <span class="op">&amp;</span> <span class="number">0x7fffff</span>) <span class="op">|</span> <span class="number">0x800000</span>
     };
     <span class="comment">// Exponent bias + mantissa shift</span>
-    <span class="ident">exponent</span> <span class="op">-=</span> <span class="number">127</span> <span class="op">+</span> <span class="number">23</span>;
+    <span class="ident">exponent</span> <span class="op">-</span><span class="op">=</span> <span class="number">127</span> <span class="op">+</span> <span class="number">23</span>;
     (<span class="ident">mantissa</span> <span class="kw">as</span> <span class="ident">u64</span>, <span class="ident">exponent</span>, <span class="ident">sign</span>)
 }
 
-<span class="kw">fn</span> <span class="ident">integer_decode_f64</span>(<span class="ident">f</span>: <span class="ident">f64</span>) <span class="op">-&gt;</span> (<span class="ident">u64</span>, <span class="ident">i16</span>, <span class="ident">i8</span>) {
+<span class="kw">fn</span> <span class="ident">integer_decode_f64</span>(<span class="ident">f</span>: <span class="ident">f64</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="ident">u64</span>, <span class="ident">i16</span>, <span class="ident">i8</span>) {
     <span class="comment">// Safety: this identical to the implementation of f64::to_bits(),</span>
     <span class="comment">// which is only available starting at Rust 1.20</span>
     <span class="kw">let</span> <span class="ident">bits</span>: <span class="ident">u64</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">mem</span>::<span class="ident">transmute</span>(<span class="ident">f</span>) };
-    <span class="kw">let</span> <span class="ident">sign</span>: <span class="ident">i8</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">bits</span> <span class="op">&gt;&gt;</span> <span class="number">63</span> <span class="op">==</span> <span class="number">0</span> { <span class="number">1</span> } <span class="kw">else</span> { <span class="op">-</span><span class="number">1</span> };
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">exponent</span>: <span class="ident">i16</span> <span class="op">=</span> ((<span class="ident">bits</span> <span class="op">&gt;&gt;</span> <span class="number">52</span>) <span class="op">&amp;</span> <span class="number">0x7ff</span>) <span class="kw">as</span> <span class="ident">i16</span>;
-    <span class="kw">let</span> <span class="ident">mantissa</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">exponent</span> <span class="op">==</span> <span class="number">0</span> {
-        (<span class="ident">bits</span> <span class="op">&amp;</span> <span class="number">0xfffffffffffff</span>) <span class="op">&lt;&lt;</span> <span class="number">1</span>
+    <span class="kw">let</span> <span class="ident">sign</span>: <span class="ident">i8</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">bits</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">63</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> { <span class="number">1</span> } <span class="kw">else</span> { <span class="op">-</span><span class="number">1</span> };
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">exponent</span>: <span class="ident">i16</span> <span class="op">=</span> ((<span class="ident">bits</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">52</span>) <span class="op">&amp;</span> <span class="number">0x7ff</span>) <span class="kw">as</span> <span class="ident">i16</span>;
+    <span class="kw">let</span> <span class="ident">mantissa</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">exponent</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+        (<span class="ident">bits</span> <span class="op">&amp;</span> <span class="number">0xfffffffffffff</span>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">1</span>
     } <span class="kw">else</span> {
         (<span class="ident">bits</span> <span class="op">&amp;</span> <span class="number">0xfffffffffffff</span>) <span class="op">|</span> <span class="number">0x10000000000000</span>
     };
     <span class="comment">// Exponent bias + mantissa shift</span>
-    <span class="ident">exponent</span> <span class="op">-=</span> <span class="number">1023</span> <span class="op">+</span> <span class="number">52</span>;
+    <span class="ident">exponent</span> <span class="op">-</span><span class="op">=</span> <span class="number">1023</span> <span class="op">+</span> <span class="number">52</span>;
     (<span class="ident">mantissa</span>, <span class="ident">exponent</span>, <span class="ident">sign</span>)
 }
 
@@ -4370,131 +4372,131 @@
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">deprecated</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">abs_sub</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">abs_sub</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">libm</span>::<span class="ident">fdimf</span>(<span class="self">self</span>, <span class="ident">other</span>)
     }
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">floor</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">floor</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">libm</span>::<span class="ident">floorf</span>(<span class="self">self</span>)
     }
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">ceil</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">ceil</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">libm</span>::<span class="ident">ceilf</span>(<span class="self">self</span>)
     }
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">round</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">round</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">libm</span>::<span class="ident">roundf</span>(<span class="self">self</span>)
     }
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">trunc</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">trunc</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">libm</span>::<span class="ident">truncf</span>(<span class="self">self</span>)
     }
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">abs</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">abs</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">libm</span>::<span class="ident">fabsf</span>(<span class="self">self</span>)
     }
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">mul_add</span>(<span class="self">self</span>, <span class="ident">a</span>: <span class="self">Self</span>, <span class="ident">b</span>: <span class="self">Self</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">mul_add</span>(<span class="self">self</span>, <span class="ident">a</span>: <span class="self">Self</span>, <span class="ident">b</span>: <span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">libm</span>::<span class="ident">fmaf</span>(<span class="self">self</span>, <span class="ident">a</span>, <span class="ident">b</span>)
     }
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">powf</span>(<span class="self">self</span>, <span class="ident">n</span>: <span class="self">Self</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">powf</span>(<span class="self">self</span>, <span class="ident">n</span>: <span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">libm</span>::<span class="ident">powf</span>(<span class="self">self</span>, <span class="ident">n</span>)
     }
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">sqrt</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">sqrt</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">libm</span>::<span class="ident">sqrtf</span>(<span class="self">self</span>)
     }
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">exp</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">exp</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">libm</span>::<span class="ident">expf</span>(<span class="self">self</span>)
     }
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">exp2</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">exp2</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">libm</span>::<span class="ident">exp2f</span>(<span class="self">self</span>)
     }
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">ln</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">ln</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">libm</span>::<span class="ident">logf</span>(<span class="self">self</span>)
     }
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">log2</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">log2</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">libm</span>::<span class="ident">log2f</span>(<span class="self">self</span>)
     }
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">log10</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">log10</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">libm</span>::<span class="ident">log10f</span>(<span class="self">self</span>)
     }
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">cbrt</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">cbrt</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">libm</span>::<span class="ident">cbrtf</span>(<span class="self">self</span>)
     }
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">hypot</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">hypot</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">libm</span>::<span class="ident">hypotf</span>(<span class="self">self</span>, <span class="ident">other</span>)
     }
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">sin</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">sin</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">libm</span>::<span class="ident">sinf</span>(<span class="self">self</span>)
     }
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">cos</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">cos</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">libm</span>::<span class="ident">cosf</span>(<span class="self">self</span>)
     }
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">tan</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">tan</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">libm</span>::<span class="ident">tanf</span>(<span class="self">self</span>)
     }
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">asin</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">asin</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">libm</span>::<span class="ident">asinf</span>(<span class="self">self</span>)
     }
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">acos</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">acos</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">libm</span>::<span class="ident">acosf</span>(<span class="self">self</span>)
     }
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">atan</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">atan</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">libm</span>::<span class="ident">atanf</span>(<span class="self">self</span>)
     }
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">atan2</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">atan2</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">libm</span>::<span class="ident">atan2f</span>(<span class="self">self</span>, <span class="ident">other</span>)
     }
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">sin_cos</span>(<span class="self">self</span>) <span class="op">-&gt;</span> (<span class="self">Self</span>, <span class="self">Self</span>) {
+    <span class="kw">fn</span> <span class="ident">sin_cos</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="self">Self</span>, <span class="self">Self</span>) {
         <span class="ident">libm</span>::<span class="ident">sincosf</span>(<span class="self">self</span>)
     }
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">exp_m1</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">exp_m1</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">libm</span>::<span class="ident">expm1f</span>(<span class="self">self</span>)
     }
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">ln_1p</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">ln_1p</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">libm</span>::<span class="ident">log1pf</span>(<span class="self">self</span>)
     }
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">sinh</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">sinh</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">libm</span>::<span class="ident">sinhf</span>(<span class="self">self</span>)
     }
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">cosh</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">cosh</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">libm</span>::<span class="ident">coshf</span>(<span class="self">self</span>)
     }
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">tanh</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">tanh</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">libm</span>::<span class="ident">tanhf</span>(<span class="self">self</span>)
     }
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">asinh</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">asinh</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">libm</span>::<span class="ident">asinhf</span>(<span class="self">self</span>)
     }
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">acosh</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">acosh</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">libm</span>::<span class="ident">acoshf</span>(<span class="self">self</span>)
     }
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">atanh</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">atanh</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">libm</span>::<span class="ident">atanhf</span>(<span class="self">self</span>)
     }
 }
@@ -4505,166 +4507,166 @@
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">deprecated</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">abs_sub</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">abs_sub</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">libm</span>::<span class="ident">fdim</span>(<span class="self">self</span>, <span class="ident">other</span>)
     }
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">floor</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">floor</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">libm</span>::<span class="ident">floor</span>(<span class="self">self</span>)
     }
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">ceil</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">ceil</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">libm</span>::<span class="ident">ceil</span>(<span class="self">self</span>)
     }
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">round</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">round</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">libm</span>::<span class="ident">round</span>(<span class="self">self</span>)
     }
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">trunc</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">trunc</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">libm</span>::<span class="ident">trunc</span>(<span class="self">self</span>)
     }
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">abs</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">abs</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">libm</span>::<span class="ident">fabs</span>(<span class="self">self</span>)
     }
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">mul_add</span>(<span class="self">self</span>, <span class="ident">a</span>: <span class="self">Self</span>, <span class="ident">b</span>: <span class="self">Self</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">mul_add</span>(<span class="self">self</span>, <span class="ident">a</span>: <span class="self">Self</span>, <span class="ident">b</span>: <span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">libm</span>::<span class="ident">fma</span>(<span class="self">self</span>, <span class="ident">a</span>, <span class="ident">b</span>)
     }
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">powf</span>(<span class="self">self</span>, <span class="ident">n</span>: <span class="self">Self</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">powf</span>(<span class="self">self</span>, <span class="ident">n</span>: <span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">libm</span>::<span class="ident">pow</span>(<span class="self">self</span>, <span class="ident">n</span>)
     }
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">sqrt</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">sqrt</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">libm</span>::<span class="ident">sqrt</span>(<span class="self">self</span>)
     }
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">exp</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">exp</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">libm</span>::<span class="ident">exp</span>(<span class="self">self</span>)
     }
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">exp2</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">exp2</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">libm</span>::<span class="ident">exp2</span>(<span class="self">self</span>)
     }
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">ln</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">ln</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">libm</span>::<span class="ident">log</span>(<span class="self">self</span>)
     }
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">log2</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">log2</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">libm</span>::<span class="ident">log2</span>(<span class="self">self</span>)
     }
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">log10</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">log10</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">libm</span>::<span class="ident">log10</span>(<span class="self">self</span>)
     }
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">cbrt</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">cbrt</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">libm</span>::<span class="ident">cbrt</span>(<span class="self">self</span>)
     }
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">hypot</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">hypot</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">libm</span>::<span class="ident">hypot</span>(<span class="self">self</span>, <span class="ident">other</span>)
     }
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">sin</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">sin</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">libm</span>::<span class="ident">sin</span>(<span class="self">self</span>)
     }
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">cos</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">cos</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">libm</span>::<span class="ident">cos</span>(<span class="self">self</span>)
     }
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">tan</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">tan</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">libm</span>::<span class="ident">tan</span>(<span class="self">self</span>)
     }
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">asin</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">asin</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">libm</span>::<span class="ident">asin</span>(<span class="self">self</span>)
     }
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">acos</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">acos</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">libm</span>::<span class="ident">acos</span>(<span class="self">self</span>)
     }
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">atan</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">atan</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">libm</span>::<span class="ident">atan</span>(<span class="self">self</span>)
     }
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">atan2</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">atan2</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">libm</span>::<span class="ident">atan2</span>(<span class="self">self</span>, <span class="ident">other</span>)
     }
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">sin_cos</span>(<span class="self">self</span>) <span class="op">-&gt;</span> (<span class="self">Self</span>, <span class="self">Self</span>) {
+    <span class="kw">fn</span> <span class="ident">sin_cos</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="self">Self</span>, <span class="self">Self</span>) {
         <span class="ident">libm</span>::<span class="ident">sincos</span>(<span class="self">self</span>)
     }
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">exp_m1</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">exp_m1</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">libm</span>::<span class="ident">expm1</span>(<span class="self">self</span>)
     }
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">ln_1p</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">ln_1p</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">libm</span>::<span class="ident">log1p</span>(<span class="self">self</span>)
     }
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">sinh</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">sinh</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">libm</span>::<span class="ident">sinh</span>(<span class="self">self</span>)
     }
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">cosh</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">cosh</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">libm</span>::<span class="ident">cosh</span>(<span class="self">self</span>)
     }
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">tanh</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">tanh</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">libm</span>::<span class="ident">tanh</span>(<span class="self">self</span>)
     }
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">asinh</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">asinh</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">libm</span>::<span class="ident">asinh</span>(<span class="self">self</span>)
     }
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">acosh</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">acosh</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">libm</span>::<span class="ident">acosh</span>(<span class="self">self</span>)
     }
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">atanh</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">atanh</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">libm</span>::<span class="ident">atanh</span>(<span class="self">self</span>)
     }
 }
 
 <span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">float_const_impl</span> {
-    ($(<span class="attribute">#[<span class="macro-nonterminal">$</span><span class="macro-nonterminal">doc</span>:<span class="ident">meta</span>]</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">constant</span>:<span class="ident">ident</span>,)<span class="op">+</span>) <span class="op">=&gt;</span> (
+    ($(<span class="attribute">#[<span class="macro-nonterminal">$</span><span class="macro-nonterminal">doc</span>:<span class="ident">meta</span>]</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">constant</span>:<span class="ident">ident</span>,)<span class="op">+</span>) <span class="op">=</span><span class="op">&gt;</span> (
         <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">non_snake_case</span>)]</span>
         <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">FloatConst</span> {
-            $(<span class="attribute">#[<span class="macro-nonterminal">$</span><span class="macro-nonterminal">doc</span>]</span> <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">constant</span>() <span class="op">-&gt;</span> <span class="self">Self</span>;)<span class="op">+</span>
+            $(<span class="attribute">#[<span class="macro-nonterminal">$</span><span class="macro-nonterminal">doc</span>]</span> <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">constant</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;)<span class="op">+</span>
             <span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot;Return the full circle constant `τ`.&quot;</span>]</span>
             <span class="attribute">#[<span class="ident">inline</span>]</span>
-            <span class="kw">fn</span> <span class="ident">TAU</span>() <span class="op">-&gt;</span> <span class="self">Self</span> <span class="kw">where</span> <span class="self">Self</span>: <span class="ident">Sized</span> <span class="op">+</span> <span class="ident">Add</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">Output</span> <span class="op">=</span> <span class="self">Self</span><span class="op">&gt;</span> {
+            <span class="kw">fn</span> <span class="ident">TAU</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> <span class="kw">where</span> <span class="self">Self</span>: <span class="ident">Sized</span> <span class="op">+</span> <span class="ident">Add</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">Output</span> <span class="op">=</span> <span class="self">Self</span><span class="op">&gt;</span> {
                 <span class="self">Self</span>::<span class="ident">PI</span>() <span class="op">+</span> <span class="self">Self</span>::<span class="ident">PI</span>()
             }
             <span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot;Return `log10(2.0)`.&quot;</span>]</span>
             <span class="attribute">#[<span class="ident">inline</span>]</span>
-            <span class="kw">fn</span> <span class="ident">LOG10_2</span>() <span class="op">-&gt;</span> <span class="self">Self</span> <span class="kw">where</span> <span class="self">Self</span>: <span class="ident">Sized</span> <span class="op">+</span> <span class="ident">Div</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">Output</span> <span class="op">=</span> <span class="self">Self</span><span class="op">&gt;</span> {
+            <span class="kw">fn</span> <span class="ident">LOG10_2</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> <span class="kw">where</span> <span class="self">Self</span>: <span class="ident">Sized</span> <span class="op">+</span> <span class="ident">Div</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">Output</span> <span class="op">=</span> <span class="self">Self</span><span class="op">&gt;</span> {
                 <span class="self">Self</span>::<span class="ident">LN_2</span>() <span class="op">/</span> <span class="self">Self</span>::<span class="ident">LN_10</span>()
             }
             <span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot;Return `log2(10.0)`.&quot;</span>]</span>
             <span class="attribute">#[<span class="ident">inline</span>]</span>
-            <span class="kw">fn</span> <span class="ident">LOG2_10</span>() <span class="op">-&gt;</span> <span class="self">Self</span> <span class="kw">where</span> <span class="self">Self</span>: <span class="ident">Sized</span> <span class="op">+</span> <span class="ident">Div</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">Output</span> <span class="op">=</span> <span class="self">Self</span><span class="op">&gt;</span> {
+            <span class="kw">fn</span> <span class="ident">LOG2_10</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> <span class="kw">where</span> <span class="self">Self</span>: <span class="ident">Sized</span> <span class="op">+</span> <span class="ident">Div</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">Output</span> <span class="op">=</span> <span class="self">Self</span><span class="op">&gt;</span> {
                 <span class="self">Self</span>::<span class="ident">LN_10</span>() <span class="op">/</span> <span class="self">Self</span>::<span class="ident">LN_2</span>()
             }
         }
         <span class="macro">float_const_impl</span><span class="macro">!</span> { @<span class="ident">float</span> <span class="ident">f32</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">constant</span>,)<span class="op">+</span> }
         <span class="macro">float_const_impl</span><span class="macro">!</span> { @<span class="ident">float</span> <span class="ident">f64</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">constant</span>,)<span class="op">+</span> }
     );
-    (@<span class="ident">float</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>:<span class="ident">ident</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">constant</span>:<span class="ident">ident</span>,)<span class="op">+</span>) <span class="op">=&gt;</span> (
+    (@<span class="ident">float</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>:<span class="ident">ident</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">constant</span>:<span class="ident">ident</span>,)<span class="op">+</span>) <span class="op">=</span><span class="op">&gt;</span> (
         <span class="kw">impl</span> <span class="ident">FloatConst</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span> {
             <span class="macro">constant</span><span class="macro">!</span> {
-                $( <span class="macro-nonterminal">$</span><span class="macro-nonterminal">constant</span>() <span class="op">-&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>::<span class="ident">consts</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">constant</span>; )<span class="op">+</span>
-                <span class="ident">TAU</span>() <span class="op">-&gt;</span> <span class="number">6.28318530717958647692528676655900577</span>;
-                <span class="ident">LOG10_2</span>() <span class="op">-&gt;</span> <span class="number">0.301029995663981195213738894724493027</span>;
-                <span class="ident">LOG2_10</span>() <span class="op">-&gt;</span> <span class="number">3.32192809488736234787031942948939018</span>;
+                $( <span class="macro-nonterminal">$</span><span class="macro-nonterminal">constant</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>::<span class="ident">consts</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">constant</span>; )<span class="op">+</span>
+                <span class="ident">TAU</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="number">6.28318530717958647692528676655900577</span>;
+                <span class="ident">LOG10_2</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="number">0.301029995663981195213738894724493027</span>;
+                <span class="ident">LOG2_10</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="number">3.32192809488736234787031942948939018</span>;
             }
         }
     );

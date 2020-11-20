@@ -154,13 +154,13 @@
     } <span class="kw">else</span> <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;dragonfly&quot;</span>)]</span> {
         <span class="comment">// Until rust-lang/rust#29594 is stable, we cannot get the errno value</span>
         <span class="comment">// on DragonFlyBSD. So we just return an out-of-range errno.</span>
-        <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">get_errno</span>() <span class="op">-&gt;</span> <span class="ident">libc</span>::<span class="ident">c_int</span> { <span class="op">-</span><span class="number">1</span> }
+        <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">get_errno</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">libc</span>::<span class="ident">c_int</span> { <span class="op">-</span><span class="number">1</span> }
     } <span class="kw">else</span> {
-        <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">get_errno</span>() <span class="op">-&gt;</span> <span class="ident">libc</span>::<span class="ident">c_int</span> { <span class="kw-2">*</span><span class="ident">errno_location</span>() }
+        <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">get_errno</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">libc</span>::<span class="ident">c_int</span> { <span class="kw-2">*</span><span class="ident">errno_location</span>() }
     }
 }
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">last_os_error</span>() <span class="op">-&gt;</span> <span class="ident">Error</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">last_os_error</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Error</span> {
     <span class="kw">let</span> <span class="ident">errno</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">get_errno</span>() };
     <span class="kw">if</span> <span class="ident">errno</span> <span class="op">&gt;</span> <span class="number">0</span> {
         <span class="ident">Error</span>::<span class="ident">from</span>(<span class="ident">NonZeroU32</span>::<span class="ident">new</span>(<span class="ident">errno</span> <span class="kw">as</span> <span class="ident">u32</span>).<span class="ident">unwrap</span>())
@@ -174,14 +174,14 @@
 <span class="comment">//   - should return the number of bytes written on success</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">sys_fill_exact</span>(
     <span class="kw-2">mut</span> <span class="ident">buf</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>],
-    <span class="ident">sys_fill</span>: <span class="kw">impl</span> <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>]) <span class="op">-&gt;</span> <span class="ident">libc</span>::<span class="ident">ssize_t</span>,
-) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Error</span><span class="op">&gt;</span> {
+    <span class="ident">sys_fill</span>: <span class="kw">impl</span> <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">libc</span>::<span class="ident">ssize_t</span>,
+) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Error</span><span class="op">&gt;</span> {
     <span class="kw">while</span> <span class="op">!</span><span class="ident">buf</span>.<span class="ident">is_empty</span>() {
         <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">sys_fill</span>(<span class="ident">buf</span>);
         <span class="kw">if</span> <span class="ident">res</span> <span class="op">&lt;</span> <span class="number">0</span> {
             <span class="kw">let</span> <span class="ident">err</span> <span class="op">=</span> <span class="ident">last_os_error</span>();
             <span class="comment">// We should try again if the call was interrupted.</span>
-            <span class="kw">if</span> <span class="ident">err</span>.<span class="ident">raw_os_error</span>() <span class="op">!=</span> <span class="prelude-val">Some</span>(<span class="ident">libc</span>::<span class="ident">EINTR</span>) {
+            <span class="kw">if</span> <span class="ident">err</span>.<span class="ident">raw_os_error</span>() <span class="op">!</span><span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">libc</span>::<span class="ident">EINTR</span>) {
                 <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">err</span>);
             }
         } <span class="kw">else</span> {
@@ -205,7 +205,7 @@
 <span class="kw">impl</span> <span class="ident">Weak</span> {
     <span class="comment">// Construct a binding to a C function with a given name. This function is</span>
     <span class="comment">// unsafe because `name` _must_ be null terminated.</span>
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="self">Self</span> {
             <span class="ident">name</span>,
             <span class="ident">addr</span>: <span class="ident">LazyUsize</span>::<span class="ident">new</span>(),
@@ -213,8 +213,8 @@
     }
 
     <span class="comment">// Return a function pointer if present at runtime. Otherwise, return null.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ptr</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">NonNull</span><span class="op">&lt;</span><span class="ident">libc</span>::<span class="ident">c_void</span><span class="op">&gt;&gt;</span> {
-        <span class="kw">let</span> <span class="ident">addr</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">addr</span>.<span class="ident">unsync_init</span>(<span class="op">||</span> <span class="kw">unsafe</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ptr</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">NonNull</span><span class="op">&lt;</span><span class="ident">libc</span>::<span class="ident">c_void</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">addr</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">addr</span>.<span class="ident">unsync_init</span>(<span class="op">|</span><span class="op">|</span> <span class="kw">unsafe</span> {
             <span class="ident">libc</span>::<span class="ident">dlsym</span>(<span class="ident">libc</span>::<span class="ident">RTLD_DEFAULT</span>, <span class="self">self</span>.<span class="ident">name</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="kw">_</span>) <span class="kw">as</span> <span class="ident">usize</span>
         });
         <span class="ident">NonNull</span>::<span class="ident">new</span>(<span class="ident">addr</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw">_</span>)
@@ -230,8 +230,8 @@
 }
 
 <span class="comment">// SAFETY: path must be null terminated, FD must be manually closed.</span>
-<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">open_readonly</span>(<span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">libc</span>::<span class="ident">c_int</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
-    <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="ident">path</span>.<span class="ident">as_bytes</span>().<span class="ident">last</span>() <span class="op">==</span> <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="number">0</span>));
+<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">open_readonly</span>(<span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">libc</span>::<span class="ident">c_int</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
+    <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="ident">path</span>.<span class="ident">as_bytes</span>().<span class="ident">last</span>() <span class="op">=</span><span class="op">=</span> <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="number">0</span>));
     <span class="kw">let</span> <span class="ident">fd</span> <span class="op">=</span> <span class="ident">open</span>(<span class="ident">path</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="kw">_</span>, <span class="ident">libc</span>::<span class="ident">O_RDONLY</span> <span class="op">|</span> <span class="ident">libc</span>::<span class="ident">O_CLOEXEC</span>);
     <span class="kw">if</span> <span class="ident">fd</span> <span class="op">&lt;</span> <span class="number">0</span> {
         <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">last_os_error</span>());

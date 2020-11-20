@@ -180,7 +180,7 @@
 }
 
 <span class="kw">impl</span> <span class="ident">IteratorPrototypes</span> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">init</span>(<span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">init</span>(<span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="kw">let</span> <span class="ident">iterator_prototype</span> <span class="op">=</span> <span class="ident">create_iterator_prototype</span>(<span class="ident">context</span>);
         <span class="self">Self</span> {
             <span class="ident">iterator_prototype</span>: <span class="ident">iterator_prototype</span>
@@ -199,21 +199,21 @@
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">array_iterator</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">GcObject</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">array_iterator</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">GcObject</span> {
         <span class="self">self</span>.<span class="ident">array_iterator</span>.<span class="ident">clone</span>()
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">iterator_prototype</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">GcObject</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">iterator_prototype</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">GcObject</span> {
         <span class="self">self</span>.<span class="ident">iterator_prototype</span>.<span class="ident">clone</span>()
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">string_iterator</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">GcObject</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">string_iterator</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">GcObject</span> {
         <span class="self">self</span>.<span class="ident">string_iterator</span>.<span class="ident">clone</span>()
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">map_iterator</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">GcObject</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">map_iterator</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">GcObject</span> {
         <span class="self">self</span>.<span class="ident">map_iterator</span>.<span class="ident">clone</span>()
     }
 }
@@ -221,7 +221,7 @@
 <span class="doccomment">/// CreateIterResultObject( value, done )</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// Generates an object supporting the IteratorResult interface.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">create_iter_result_object</span>(<span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>, <span class="ident">value</span>: <span class="ident">Value</span>, <span class="ident">done</span>: <span class="ident">bool</span>) <span class="op">-&gt;</span> <span class="ident">Value</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">create_iter_result_object</span>(<span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>, <span class="ident">value</span>: <span class="ident">Value</span>, <span class="ident">done</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Value</span> {
     <span class="kw">let</span> <span class="ident">object</span> <span class="op">=</span> <span class="ident">Value</span>::<span class="ident">new_object</span>(<span class="prelude-val">Some</span>(<span class="ident">context</span>.<span class="ident">global_object</span>()));
     <span class="comment">// TODO: Fix attributes of value and done</span>
     <span class="kw">let</span> <span class="ident">value_property</span> <span class="op">=</span> <span class="ident">DataDescriptor</span>::<span class="ident">new</span>(<span class="ident">value</span>, <span class="ident">Attribute</span>::<span class="ident">all</span>());
@@ -232,17 +232,17 @@
 }
 
 <span class="doccomment">/// Get an iterator record</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_iterator</span>(<span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>, <span class="ident">iterable</span>: <span class="ident">Value</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">IteratorRecord</span><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_iterator</span>(<span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>, <span class="ident">iterable</span>: <span class="ident">Value</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">IteratorRecord</span><span class="op">&gt;</span> {
     <span class="comment">// TODO: Fix the accessor handling</span>
     <span class="kw">let</span> <span class="ident">iterator_function</span> <span class="op">=</span> <span class="ident">iterable</span>
         .<span class="ident">get_property</span>(<span class="ident">context</span>.<span class="ident">well_known_symbols</span>().<span class="ident">iterator_symbol</span>())
         .<span class="ident">map</span>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <span class="ident">p</span>.<span class="ident">as_data_descriptor</span>().<span class="ident">unwrap</span>().<span class="ident">value</span>())
-        .<span class="ident">ok_or_else</span>(<span class="op">||</span> <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Not an iterable&quot;</span>))<span class="question-mark">?</span>;
+        .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Not an iterable&quot;</span>))<span class="question-mark">?</span>;
     <span class="kw">let</span> <span class="ident">iterator_object</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">call</span>(<span class="kw-2">&amp;</span><span class="ident">iterator_function</span>, <span class="kw-2">&amp;</span><span class="ident">iterable</span>, <span class="kw-2">&amp;</span>[])<span class="question-mark">?</span>;
     <span class="kw">let</span> <span class="ident">next_function</span> <span class="op">=</span> <span class="ident">iterator_object</span>
         .<span class="ident">get_property</span>(<span class="string">&quot;next&quot;</span>)
         .<span class="ident">map</span>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <span class="ident">p</span>.<span class="ident">as_data_descriptor</span>().<span class="ident">unwrap</span>().<span class="ident">value</span>())
-        .<span class="ident">ok_or_else</span>(<span class="op">||</span> <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Could not find property `next`&quot;</span>))<span class="question-mark">?</span>;
+        .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Could not find property `next`&quot;</span>))<span class="question-mark">?</span>;
     <span class="prelude-val">Ok</span>(<span class="ident">IteratorRecord</span>::<span class="ident">new</span>(<span class="ident">iterator_object</span>, <span class="ident">next_function</span>))
 }
 
@@ -252,7 +252,7 @@
 <span class="doccomment">///  - [ECMA reference][spec]</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-%iteratorprototype%-object</span>
-<span class="kw">fn</span> <span class="ident">create_iterator_prototype</span>(<span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-&gt;</span> <span class="ident">Value</span> {
+<span class="kw">fn</span> <span class="ident">create_iterator_prototype</span>(<span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Value</span> {
     <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">BoaProfiler</span>::<span class="ident">global</span>().<span class="ident">start_event</span>(<span class="string">&quot;Iterator Prototype&quot;</span>, <span class="string">&quot;init&quot;</span>);
 
     <span class="kw">let</span> <span class="ident">symbol_iterator</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">well_known_symbols</span>().<span class="ident">iterator_symbol</span>();
@@ -274,7 +274,7 @@
 }
 
 <span class="kw">impl</span> <span class="ident">IteratorRecord</span> {
-    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">iterator_object</span>: <span class="ident">Value</span>, <span class="ident">next_function</span>: <span class="ident">Value</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">iterator_object</span>: <span class="ident">Value</span>, <span class="ident">next_function</span>: <span class="ident">Value</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="self">Self</span> {
             <span class="ident">iterator_object</span>,
             <span class="ident">next_function</span>,
@@ -287,14 +287,14 @@
     <span class="doccomment">///  - [ECMA reference][spec]</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-iteratornext</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">IteratorResult</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">IteratorResult</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">call</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">next_function</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">iterator_object</span>, <span class="kw-2">&amp;</span>[])<span class="question-mark">?</span>;
         <span class="comment">// FIXME: handle accessor descriptors</span>
         <span class="kw">let</span> <span class="ident">done</span> <span class="op">=</span> <span class="ident">next</span>
             .<span class="ident">get_property</span>(<span class="string">&quot;done&quot;</span>)
             .<span class="ident">map</span>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <span class="ident">p</span>.<span class="ident">as_data_descriptor</span>().<span class="ident">unwrap</span>().<span class="ident">value</span>())
             .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> <span class="ident">v</span>.<span class="ident">as_boolean</span>())
-            .<span class="ident">ok_or_else</span>(<span class="op">||</span> <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Could not find property `done`&quot;</span>))<span class="question-mark">?</span>;
+            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Could not find property `done`&quot;</span>))<span class="question-mark">?</span>;
 
         <span class="comment">// FIXME: handle accessor descriptors</span>
         <span class="kw">let</span> <span class="ident">next_result</span> <span class="op">=</span> <span class="ident">next</span>
@@ -312,15 +312,15 @@
 }
 
 <span class="kw">impl</span> <span class="ident">IteratorResult</span> {
-    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">value</span>: <span class="ident">Value</span>, <span class="ident">done</span>: <span class="ident">bool</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">value</span>: <span class="ident">Value</span>, <span class="ident">done</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="self">Self</span> { <span class="ident">value</span>, <span class="ident">done</span> }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_done</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_done</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
         <span class="self">self</span>.<span class="ident">done</span>
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">value</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">Value</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">value</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Value</span> {
         <span class="self">self</span>.<span class="ident">value</span>
     }
 }

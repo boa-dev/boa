@@ -13,7 +13,7 @@ as <code>filled_u8 / 4</code> rounded up.</p>
 <span class="kw">fn</span> <span class="ident">fill_bytes</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">dest</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>]) {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">read_len</span> <span class="op">=</span> <span class="number">0</span>;
     <span class="kw">while</span> <span class="ident">read_len</span> <span class="op">&lt;</span> <span class="ident">dest</span>.<span class="ident">len</span>() {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">index</span> <span class="op">&gt;=</span> <span class="self">self</span>.<span class="ident">rsl</span>.<span class="ident">len</span>() {
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">index</span> <span class="op">&gt;</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">rsl</span>.<span class="ident">len</span>() {
             <span class="self">self</span>.<span class="ident">isaac</span>();
         }
 
@@ -21,8 +21,8 @@ as <code>filled_u8 / 4</code> rounded up.</p>
             <span class="ident">impls</span>::<span class="ident">fill_via_u32_chunks</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">rsl</span>[<span class="self">self</span>.<span class="ident">index</span>..],
                                        <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">dest</span>[<span class="ident">read_len</span>..]);
 
-        <span class="self">self</span>.<span class="ident">index</span> <span class="op">+=</span> <span class="ident">consumed_u32</span>;
-        <span class="ident">read_len</span> <span class="op">+=</span> <span class="ident">filled_u8</span>;
+        <span class="self">self</span>.<span class="ident">index</span> <span class="op">+</span><span class="op">=</span> <span class="ident">consumed_u32</span>;
+        <span class="ident">read_len</span> <span class="op">+</span><span class="op">=</span> <span class="ident">filled_u8</span>;
     }
 }</pre></div>
 </div></section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../../";window.currentCrate = "rand_core";</script><script src="../../main.js"></script><script defer src="../../search-index.js"></script></body></html>

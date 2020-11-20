@@ -208,7 +208,7 @@
     <span class="doccomment">/// to [Unicode Standard Annex #11](http://www.unicode.org/reports/tr11/)</span>
     <span class="doccomment">/// as 1 column wide. This is consistent with the recommendations for non-CJK</span>
     <span class="doccomment">/// contexts, or when the context cannot be reliably determined.</span>
-    <span class="kw">fn</span> <span class="ident">width</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>;
+    <span class="kw">fn</span> <span class="ident">width</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>;
 
     <span class="doccomment">/// Returns the character&#39;s displayed width in columns, or `None` if the</span>
     <span class="doccomment">/// character is a control character other than `&#39;\x00&#39;`.</span>
@@ -217,15 +217,15 @@
     <span class="doccomment">/// to [Unicode Standard Annex #11](http://www.unicode.org/reports/tr11/)</span>
     <span class="doccomment">/// as 2 columns wide. This is consistent with the recommendations for</span>
     <span class="doccomment">/// CJK contexts.</span>
-    <span class="kw">fn</span> <span class="ident">width_cjk</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>;
+    <span class="kw">fn</span> <span class="ident">width_cjk</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>;
 }
 
 <span class="kw">impl</span> <span class="ident">UnicodeWidthChar</span> <span class="kw">for</span> <span class="ident">char</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">width</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> { <span class="ident">cw</span>::<span class="ident">width</span>(<span class="self">self</span>, <span class="bool-val">false</span>) }
+    <span class="kw">fn</span> <span class="ident">width</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> { <span class="ident">cw</span>::<span class="ident">width</span>(<span class="self">self</span>, <span class="bool-val">false</span>) }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">width_cjk</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> { <span class="ident">cw</span>::<span class="ident">width</span>(<span class="self">self</span>, <span class="bool-val">true</span>) }
+    <span class="kw">fn</span> <span class="ident">width_cjk</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> { <span class="ident">cw</span>::<span class="ident">width</span>(<span class="self">self</span>, <span class="bool-val">true</span>) }
 }
 
 <span class="doccomment">/// Methods for determining displayed width of Unicode strings.</span>
@@ -238,7 +238,7 @@
     <span class="doccomment">/// to [Unicode Standard Annex #11](http://www.unicode.org/reports/tr11/)</span>
     <span class="doccomment">/// as 1 column wide. This is consistent with the recommendations for</span>
     <span class="doccomment">/// non-CJK contexts, or when the context cannot be reliably determined.</span>
-    <span class="kw">fn</span> <span class="ident">width</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">usize</span>;
+    <span class="kw">fn</span> <span class="ident">width</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span>;
 
     <span class="doccomment">/// Returns the string&#39;s displayed width in columns.</span>
     <span class="doccomment">///</span>
@@ -248,17 +248,17 @@
     <span class="doccomment">/// to [Unicode Standard Annex #11](http://www.unicode.org/reports/tr11/)</span>
     <span class="doccomment">/// as 2 column wide. This is consistent with the recommendations for</span>
     <span class="doccomment">/// CJK contexts.</span>
-    <span class="kw">fn</span> <span class="ident">width_cjk</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">usize</span>;
+    <span class="kw">fn</span> <span class="ident">width_cjk</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span>;
 }
 
 <span class="kw">impl</span> <span class="ident">UnicodeWidthStr</span> <span class="kw">for</span> <span class="ident">str</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">width</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">usize</span> {
+    <span class="kw">fn</span> <span class="ident">width</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
         <span class="self">self</span>.<span class="ident">chars</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">c</span><span class="op">|</span> <span class="ident">cw</span>::<span class="ident">width</span>(<span class="ident">c</span>, <span class="bool-val">false</span>).<span class="ident">unwrap_or</span>(<span class="number">0</span>)).<span class="ident">fold</span>(<span class="number">0</span>, <span class="ident">Add</span>::<span class="ident">add</span>)
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">width_cjk</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">usize</span> {
+    <span class="kw">fn</span> <span class="ident">width_cjk</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
         <span class="self">self</span>.<span class="ident">chars</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">c</span><span class="op">|</span> <span class="ident">cw</span>::<span class="ident">width</span>(<span class="ident">c</span>, <span class="bool-val">true</span>).<span class="ident">unwrap_or</span>(<span class="number">0</span>)).<span class="ident">fold</span>(<span class="number">0</span>, <span class="ident">Add</span>::<span class="ident">add</span>)
     }
 }

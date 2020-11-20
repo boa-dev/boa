@@ -173,15 +173,15 @@
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_writable</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">value</span>: <span class="ident">bool</span>) {
         <span class="kw">if</span> <span class="ident">value</span> {
-            <span class="kw-2">*</span><span class="self">self</span> <span class="op">|=</span> <span class="self">Self</span>::<span class="ident">WRITABLE</span>;
+            <span class="kw-2">*</span><span class="self">self</span> <span class="op">|</span><span class="op">=</span> <span class="self">Self</span>::<span class="ident">WRITABLE</span>;
         } <span class="kw">else</span> {
-            <span class="kw-2">*</span><span class="self">self</span> <span class="op">|=</span> <span class="kw-2">*</span><span class="self">self</span> <span class="op">&amp;</span> <span class="op">!</span><span class="self">Self</span>::<span class="ident">WRITABLE</span>;
+            <span class="kw-2">*</span><span class="self">self</span> <span class="op">|</span><span class="op">=</span> <span class="kw-2">*</span><span class="self">self</span> <span class="op">&amp;</span> <span class="op">!</span><span class="self">Self</span>::<span class="ident">WRITABLE</span>;
         }
     }
 
     <span class="doccomment">/// Gets the `writable` flag.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">writable</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">writable</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
         <span class="self">self</span>.<span class="ident">contains</span>(<span class="self">Self</span>::<span class="ident">WRITABLE</span>)
     }
 
@@ -189,15 +189,15 @@
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_enumerable</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">value</span>: <span class="ident">bool</span>) {
         <span class="kw">if</span> <span class="ident">value</span> {
-            <span class="kw-2">*</span><span class="self">self</span> <span class="op">|=</span> <span class="self">Self</span>::<span class="ident">ENUMERABLE</span>;
+            <span class="kw-2">*</span><span class="self">self</span> <span class="op">|</span><span class="op">=</span> <span class="self">Self</span>::<span class="ident">ENUMERABLE</span>;
         } <span class="kw">else</span> {
-            <span class="kw-2">*</span><span class="self">self</span> <span class="op">|=</span> <span class="kw-2">*</span><span class="self">self</span> <span class="op">&amp;</span> <span class="op">!</span><span class="self">Self</span>::<span class="ident">ENUMERABLE</span>;
+            <span class="kw-2">*</span><span class="self">self</span> <span class="op">|</span><span class="op">=</span> <span class="kw-2">*</span><span class="self">self</span> <span class="op">&amp;</span> <span class="op">!</span><span class="self">Self</span>::<span class="ident">ENUMERABLE</span>;
         }
     }
 
     <span class="doccomment">/// Gets the `enumerable` flag.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">enumerable</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">enumerable</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
         <span class="self">self</span>.<span class="ident">contains</span>(<span class="self">Self</span>::<span class="ident">ENUMERABLE</span>)
     }
 
@@ -205,15 +205,15 @@
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_configurable</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">value</span>: <span class="ident">bool</span>) {
         <span class="kw">if</span> <span class="ident">value</span> {
-            <span class="kw-2">*</span><span class="self">self</span> <span class="op">|=</span> <span class="self">Self</span>::<span class="ident">CONFIGURABLE</span>;
+            <span class="kw-2">*</span><span class="self">self</span> <span class="op">|</span><span class="op">=</span> <span class="self">Self</span>::<span class="ident">CONFIGURABLE</span>;
         } <span class="kw">else</span> {
-            <span class="kw-2">*</span><span class="self">self</span> <span class="op">|=</span> <span class="kw-2">*</span><span class="self">self</span> <span class="op">&amp;</span> <span class="op">!</span><span class="self">Self</span>::<span class="ident">CONFIGURABLE</span>;
+            <span class="kw-2">*</span><span class="self">self</span> <span class="op">|</span><span class="op">=</span> <span class="kw-2">*</span><span class="self">self</span> <span class="op">&amp;</span> <span class="op">!</span><span class="self">Self</span>::<span class="ident">CONFIGURABLE</span>;
         }
     }
 
     <span class="doccomment">/// Gets the `configurable` flag.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">configurable</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">configurable</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
         <span class="self">self</span>.<span class="ident">contains</span>(<span class="self">Self</span>::<span class="ident">CONFIGURABLE</span>)
     }
 }
@@ -222,7 +222,7 @@
     <span class="doccomment">/// Returns the default flags according to the [ECMAScript specification][spec].</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#table-default-attribute-values</span>
-    <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="self">Self</span>::<span class="ident">READONLY</span> <span class="op">|</span> <span class="self">Self</span>::<span class="ident">NON_ENUMERABLE</span> <span class="op">|</span> <span class="self">Self</span>::<span class="ident">PERMANENT</span>
     }
 }

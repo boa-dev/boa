@@ -1437,7 +1437,7 @@
 <span class="doccomment">/// that this version of unicode-xid is based on.</span>
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">UNICODE_VERSION</span>: (<span class="ident">u64</span>, <span class="ident">u64</span>, <span class="ident">u64</span>) <span class="op">=</span> (<span class="number">13</span>, <span class="number">0</span>, <span class="number">0</span>);
 
-<span class="kw">fn</span> <span class="ident">bsearch_range_table</span>(<span class="ident">c</span>: <span class="ident">char</span>, <span class="ident">r</span>: <span class="kw-2">&amp;</span>[(<span class="ident">char</span>, <span class="ident">char</span>)]) <span class="op">-&gt;</span> <span class="ident">bool</span> {
+<span class="kw">fn</span> <span class="ident">bsearch_range_table</span>(<span class="ident">c</span>: <span class="ident">char</span>, <span class="ident">r</span>: <span class="kw-2">&amp;</span>[(<span class="ident">char</span>, <span class="ident">char</span>)]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
     <span class="kw">use</span> <span class="ident">core</span>::<span class="ident">cmp</span>::<span class="ident">Ordering</span>::{<span class="ident">Equal</span>, <span class="ident">Greater</span>, <span class="ident">Less</span>};
 
     <span class="ident">r</span>.<span class="ident">binary_search_by</span>(<span class="op">|</span><span class="kw-2">&amp;</span>(<span class="ident">lo</span>, <span class="ident">hi</span>)<span class="op">|</span> {
@@ -2198,7 +2198,7 @@
         (<span class="string">&#39;\u{e0100}&#39;</span>, <span class="string">&#39;\u{e01ef}&#39;</span>),
     ];
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">XID_Continue</span>(<span class="ident">c</span>: <span class="ident">char</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">XID_Continue</span>(<span class="ident">c</span>: <span class="ident">char</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
         <span class="kw">super</span>::<span class="ident">bsearch_range_table</span>(<span class="ident">c</span>, <span class="ident">XID_Continue_table</span>)
     }
 
@@ -2834,7 +2834,7 @@
         (<span class="string">&#39;\u{30000}&#39;</span>, <span class="string">&#39;\u{3134a}&#39;</span>),
     ];
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">XID_Start</span>(<span class="ident">c</span>: <span class="ident">char</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">XID_Start</span>(<span class="ident">c</span>: <span class="ident">char</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
         <span class="kw">super</span>::<span class="ident">bsearch_range_table</span>(<span class="ident">c</span>, <span class="ident">XID_Start_table</span>)
     }
 }

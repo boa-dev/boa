@@ -1546,7 +1546,7 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">X</span>: <span class="ident">SampleUniform</span><span class="op">&gt;</span> <span class="ident">Uniform</span><span class="op">&lt;</span><span class="ident">X</span><span class="op">&gt;</span> {
     <span class="doccomment">/// Create a new `Uniform` instance which samples uniformly from the half</span>
     <span class="doccomment">/// open range `[low, high)` (excluding `high`). Panics if `low &gt;= high`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">B1</span>, <span class="ident">B2</span><span class="op">&gt;</span>(<span class="ident">low</span>: <span class="ident">B1</span>, <span class="ident">high</span>: <span class="ident">B2</span>) <span class="op">-&gt;</span> <span class="ident">Uniform</span><span class="op">&lt;</span><span class="ident">X</span><span class="op">&gt;</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">B1</span>, <span class="ident">B2</span><span class="op">&gt;</span>(<span class="ident">low</span>: <span class="ident">B1</span>, <span class="ident">high</span>: <span class="ident">B2</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Uniform</span><span class="op">&lt;</span><span class="ident">X</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">B1</span>: <span class="ident">SampleBorrow</span><span class="op">&lt;</span><span class="ident">X</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Sized</span>,
         <span class="ident">B2</span>: <span class="ident">SampleBorrow</span><span class="op">&lt;</span><span class="ident">X</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Sized</span>,
@@ -1556,7 +1556,7 @@
 
     <span class="doccomment">/// Create a new `Uniform` instance which samples uniformly from the closed</span>
     <span class="doccomment">/// range `[low, high]` (inclusive). Panics if `low &gt; high`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_inclusive</span><span class="op">&lt;</span><span class="ident">B1</span>, <span class="ident">B2</span><span class="op">&gt;</span>(<span class="ident">low</span>: <span class="ident">B1</span>, <span class="ident">high</span>: <span class="ident">B2</span>) <span class="op">-&gt;</span> <span class="ident">Uniform</span><span class="op">&lt;</span><span class="ident">X</span><span class="op">&gt;</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_inclusive</span><span class="op">&lt;</span><span class="ident">B1</span>, <span class="ident">B2</span><span class="op">&gt;</span>(<span class="ident">low</span>: <span class="ident">B1</span>, <span class="ident">high</span>: <span class="ident">B2</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Uniform</span><span class="op">&lt;</span><span class="ident">X</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">B1</span>: <span class="ident">SampleBorrow</span><span class="op">&lt;</span><span class="ident">X</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Sized</span>,
         <span class="ident">B2</span>: <span class="ident">SampleBorrow</span><span class="op">&lt;</span><span class="ident">X</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Sized</span>,
@@ -1566,7 +1566,7 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">X</span>: <span class="ident">SampleUniform</span><span class="op">&gt;</span> <span class="ident">Distribution</span><span class="op">&lt;</span><span class="ident">X</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Uniform</span><span class="op">&lt;</span><span class="ident">X</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">sample</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">Rng</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">rng</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">R</span>) <span class="op">-&gt;</span> <span class="ident">X</span> {
+    <span class="kw">fn</span> <span class="ident">sample</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">Rng</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">rng</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">R</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">X</span> {
         <span class="self">self</span>.<span class="number">0</span>.<span class="ident">sample</span>(<span class="ident">rng</span>)
     }
 }
@@ -1602,7 +1602,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// Usually users should not call this directly but instead use</span>
     <span class="doccomment">/// `Uniform::new`, which asserts that `low &lt; high` before calling this.</span>
-    <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">B1</span>, <span class="ident">B2</span><span class="op">&gt;</span>(<span class="ident">low</span>: <span class="ident">B1</span>, <span class="ident">high</span>: <span class="ident">B2</span>) <span class="op">-&gt;</span> <span class="self">Self</span>
+    <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">B1</span>, <span class="ident">B2</span><span class="op">&gt;</span>(<span class="ident">low</span>: <span class="ident">B1</span>, <span class="ident">high</span>: <span class="ident">B2</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>
     <span class="kw">where</span>
         <span class="ident">B1</span>: <span class="ident">SampleBorrow</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">X</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Sized</span>,
         <span class="ident">B2</span>: <span class="ident">SampleBorrow</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">X</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Sized</span>;
@@ -1612,13 +1612,13 @@
     <span class="doccomment">/// Usually users should not call this directly but instead use</span>
     <span class="doccomment">/// `Uniform::new_inclusive`, which asserts that `low &lt;= high` before</span>
     <span class="doccomment">/// calling this.</span>
-    <span class="kw">fn</span> <span class="ident">new_inclusive</span><span class="op">&lt;</span><span class="ident">B1</span>, <span class="ident">B2</span><span class="op">&gt;</span>(<span class="ident">low</span>: <span class="ident">B1</span>, <span class="ident">high</span>: <span class="ident">B2</span>) <span class="op">-&gt;</span> <span class="self">Self</span>
+    <span class="kw">fn</span> <span class="ident">new_inclusive</span><span class="op">&lt;</span><span class="ident">B1</span>, <span class="ident">B2</span><span class="op">&gt;</span>(<span class="ident">low</span>: <span class="ident">B1</span>, <span class="ident">high</span>: <span class="ident">B2</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>
     <span class="kw">where</span>
         <span class="ident">B1</span>: <span class="ident">SampleBorrow</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">X</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Sized</span>,
         <span class="ident">B2</span>: <span class="ident">SampleBorrow</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">X</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Sized</span>;
 
     <span class="doccomment">/// Sample a value.</span>
-    <span class="kw">fn</span> <span class="ident">sample</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">Rng</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">rng</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">R</span>) <span class="op">-&gt;</span> <span class="self">Self</span>::<span class="ident">X</span>;
+    <span class="kw">fn</span> <span class="ident">sample</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">Rng</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">rng</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">R</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">X</span>;
 
     <span class="doccomment">/// Sample a single value uniformly from a range with inclusive lower bound</span>
     <span class="doccomment">/// and exclusive upper bound `[low, high)`.</span>
@@ -1639,7 +1639,7 @@
     <span class="doccomment">///     &lt;T as SampleUniform&gt;::Sampler::sample_single(lb, ub, &amp;mut rng)</span>
     <span class="doccomment">/// }</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">sample_single</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">Rng</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span>, <span class="ident">B1</span>, <span class="ident">B2</span><span class="op">&gt;</span>(<span class="ident">low</span>: <span class="ident">B1</span>, <span class="ident">high</span>: <span class="ident">B2</span>, <span class="ident">rng</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">R</span>) <span class="op">-&gt;</span> <span class="self">Self</span>::<span class="ident">X</span>
+    <span class="kw">fn</span> <span class="ident">sample_single</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">Rng</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span>, <span class="ident">B1</span>, <span class="ident">B2</span><span class="op">&gt;</span>(<span class="ident">low</span>: <span class="ident">B1</span>, <span class="ident">high</span>: <span class="ident">B2</span>, <span class="ident">rng</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">R</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">X</span>
     <span class="kw">where</span>
         <span class="ident">B1</span>: <span class="ident">SampleBorrow</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">X</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Sized</span>,
         <span class="ident">B2</span>: <span class="ident">SampleBorrow</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">X</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Sized</span>,
@@ -1649,14 +1649,14 @@
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">X</span>: <span class="ident">SampleUniform</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span>::<span class="ident">core</span>::<span class="ident">ops</span>::<span class="ident">Range</span><span class="op">&lt;</span><span class="ident">X</span><span class="op">&gt;&gt;</span> <span class="kw">for</span> <span class="ident">Uniform</span><span class="op">&lt;</span><span class="ident">X</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">r</span>: ::<span class="ident">core</span>::<span class="ident">ops</span>::<span class="ident">Range</span><span class="op">&lt;</span><span class="ident">X</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="ident">Uniform</span><span class="op">&lt;</span><span class="ident">X</span><span class="op">&gt;</span> {
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">X</span>: <span class="ident">SampleUniform</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span>::<span class="ident">core</span>::<span class="ident">ops</span>::<span class="ident">Range</span><span class="op">&lt;</span><span class="ident">X</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Uniform</span><span class="op">&lt;</span><span class="ident">X</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">r</span>: ::<span class="ident">core</span>::<span class="ident">ops</span>::<span class="ident">Range</span><span class="op">&lt;</span><span class="ident">X</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Uniform</span><span class="op">&lt;</span><span class="ident">X</span><span class="op">&gt;</span> {
         <span class="ident">Uniform</span>::<span class="ident">new</span>(<span class="ident">r</span>.<span class="ident">start</span>, <span class="ident">r</span>.<span class="ident">end</span>)
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">X</span>: <span class="ident">SampleUniform</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span>::<span class="ident">core</span>::<span class="ident">ops</span>::<span class="ident">RangeInclusive</span><span class="op">&lt;</span><span class="ident">X</span><span class="op">&gt;&gt;</span> <span class="kw">for</span> <span class="ident">Uniform</span><span class="op">&lt;</span><span class="ident">X</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">r</span>: ::<span class="ident">core</span>::<span class="ident">ops</span>::<span class="ident">RangeInclusive</span><span class="op">&lt;</span><span class="ident">X</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="ident">Uniform</span><span class="op">&lt;</span><span class="ident">X</span><span class="op">&gt;</span> {
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">X</span>: <span class="ident">SampleUniform</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span>::<span class="ident">core</span>::<span class="ident">ops</span>::<span class="ident">RangeInclusive</span><span class="op">&lt;</span><span class="ident">X</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Uniform</span><span class="op">&lt;</span><span class="ident">X</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">r</span>: ::<span class="ident">core</span>::<span class="ident">ops</span>::<span class="ident">RangeInclusive</span><span class="op">&lt;</span><span class="ident">X</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Uniform</span><span class="op">&lt;</span><span class="ident">X</span><span class="op">&gt;</span> {
         <span class="ident">Uniform</span>::<span class="ident">new_inclusive</span>(<span class="ident">r</span>.<span class="ident">start</span>(), <span class="ident">r</span>.<span class="ident">end</span>())
     }
 }
@@ -1670,13 +1670,13 @@
     <span class="doccomment">/// Immutably borrows from an owned value. See [`Borrow::borrow`]</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [`Borrow::borrow`]: std::borrow::Borrow::borrow</span>
-    <span class="kw">fn</span> <span class="ident">borrow</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="ident">Borrowed</span>;
+    <span class="kw">fn</span> <span class="ident">borrow</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">Borrowed</span>;
 }
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Borrowed</span><span class="op">&gt;</span> <span class="ident">SampleBorrow</span><span class="op">&lt;</span><span class="ident">Borrowed</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Borrowed</span>
 <span class="kw">where</span> <span class="ident">Borrowed</span>: <span class="ident">SampleUniform</span>
 {
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">borrow</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="ident">Borrowed</span> {
+    <span class="kw">fn</span> <span class="ident">borrow</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">Borrowed</span> {
         <span class="self">self</span>
     }
 }
@@ -1684,7 +1684,7 @@
 <span class="kw">where</span> <span class="ident">Borrowed</span>: <span class="ident">SampleUniform</span>
 {
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">borrow</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="ident">Borrowed</span> {
+    <span class="kw">fn</span> <span class="ident">borrow</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">Borrowed</span> {
         <span class="kw-2">*</span><span class="self">self</span>
     }
 }
@@ -1736,7 +1736,7 @@
 }
 
 <span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">uniform_int_impl</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span>:<span class="ident">ty</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">unsigned</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">u_large</span>:<span class="ident">ident</span>) <span class="op">=&gt;</span> {
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span>:<span class="ident">ty</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">unsigned</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">u_large</span>:<span class="ident">ident</span>) <span class="op">=</span><span class="op">&gt;</span> {
         <span class="kw">impl</span> <span class="ident">SampleUniform</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span> {
             <span class="kw">type</span> <span class="ident">Sampler</span> <span class="op">=</span> <span class="ident">UniformInt</span><span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span><span class="op">&gt;</span>;
         }
@@ -1751,7 +1751,7 @@
 
             <span class="attribute">#[<span class="ident">inline</span>]</span> <span class="comment">// if the range is constant, this helps LLVM to do the</span>
                       <span class="comment">// calculations at compile-time.</span>
-            <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">B1</span>, <span class="ident">B2</span><span class="op">&gt;</span>(<span class="ident">low_b</span>: <span class="ident">B1</span>, <span class="ident">high_b</span>: <span class="ident">B2</span>) <span class="op">-&gt;</span> <span class="self">Self</span>
+            <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">B1</span>, <span class="ident">B2</span><span class="op">&gt;</span>(<span class="ident">low_b</span>: <span class="ident">B1</span>, <span class="ident">high_b</span>: <span class="ident">B2</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>
             <span class="kw">where</span>
                 <span class="ident">B1</span>: <span class="ident">SampleBorrow</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">X</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Sized</span>,
                 <span class="ident">B2</span>: <span class="ident">SampleBorrow</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">X</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Sized</span>,
@@ -1764,7 +1764,7 @@
 
             <span class="attribute">#[<span class="ident">inline</span>]</span> <span class="comment">// if the range is constant, this helps LLVM to do the</span>
                       <span class="comment">// calculations at compile-time.</span>
-            <span class="kw">fn</span> <span class="ident">new_inclusive</span><span class="op">&lt;</span><span class="ident">B1</span>, <span class="ident">B2</span><span class="op">&gt;</span>(<span class="ident">low_b</span>: <span class="ident">B1</span>, <span class="ident">high_b</span>: <span class="ident">B2</span>) <span class="op">-&gt;</span> <span class="self">Self</span>
+            <span class="kw">fn</span> <span class="ident">new_inclusive</span><span class="op">&lt;</span><span class="ident">B1</span>, <span class="ident">B2</span><span class="op">&gt;</span>(<span class="ident">low_b</span>: <span class="ident">B1</span>, <span class="ident">high_b</span>: <span class="ident">B2</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>
             <span class="kw">where</span>
                 <span class="ident">B1</span>: <span class="ident">SampleBorrow</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">X</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Sized</span>,
                 <span class="ident">B2</span>: <span class="ident">SampleBorrow</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">X</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Sized</span>,
@@ -1772,7 +1772,7 @@
                 <span class="kw">let</span> <span class="ident">low</span> <span class="op">=</span> <span class="kw-2">*</span><span class="ident">low_b</span>.<span class="ident">borrow</span>();
                 <span class="kw">let</span> <span class="ident">high</span> <span class="op">=</span> <span class="kw-2">*</span><span class="ident">high_b</span>.<span class="ident">borrow</span>();
                 <span class="macro">assert</span><span class="macro">!</span>(
-                    <span class="ident">low</span> <span class="op">&lt;=</span> <span class="ident">high</span>,
+                    <span class="ident">low</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">high</span>,
                     <span class="string">&quot;Uniform::new_inclusive called with `low &gt; high`&quot;</span>
                 );
                 <span class="kw">let</span> <span class="ident">unsigned_max</span> <span class="op">=</span> ::<span class="ident">core</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">u_large</span>::<span class="ident">MAX</span>;
@@ -1793,7 +1793,7 @@
                 }
             }
 
-            <span class="kw">fn</span> <span class="ident">sample</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">Rng</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">rng</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">R</span>) <span class="op">-&gt;</span> <span class="self">Self</span>::<span class="ident">X</span> {
+            <span class="kw">fn</span> <span class="ident">sample</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">Rng</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">rng</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">R</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">X</span> {
                 <span class="kw">let</span> <span class="ident">range</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">range</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">unsigned</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">u_large</span>;
                 <span class="kw">if</span> <span class="ident">range</span> <span class="op">&gt;</span> <span class="number">0</span> {
                     <span class="kw">let</span> <span class="ident">unsigned_max</span> <span class="op">=</span> ::<span class="ident">core</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">u_large</span>::<span class="ident">MAX</span>;
@@ -1801,7 +1801,7 @@
                     <span class="kw">loop</span> {
                         <span class="kw">let</span> <span class="ident">v</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">u_large</span> <span class="op">=</span> <span class="ident">rng</span>.<span class="ident">gen</span>();
                         <span class="kw">let</span> (<span class="ident">hi</span>, <span class="ident">lo</span>) <span class="op">=</span> <span class="ident">v</span>.<span class="ident">wmul</span>(<span class="ident">range</span>);
-                        <span class="kw">if</span> <span class="ident">lo</span> <span class="op">&lt;=</span> <span class="ident">zone</span> {
+                        <span class="kw">if</span> <span class="ident">lo</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">zone</span> {
                             <span class="kw">return</span> <span class="self">self</span>.<span class="ident">low</span>.<span class="ident">wrapping_add</span>(<span class="ident">hi</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span>);
                         }
                     }
@@ -1811,7 +1811,7 @@
                 }
             }
 
-            <span class="kw">fn</span> <span class="ident">sample_single</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">Rng</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span>, <span class="ident">B1</span>, <span class="ident">B2</span><span class="op">&gt;</span>(<span class="ident">low_b</span>: <span class="ident">B1</span>, <span class="ident">high_b</span>: <span class="ident">B2</span>, <span class="ident">rng</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">R</span>) <span class="op">-&gt;</span> <span class="self">Self</span>::<span class="ident">X</span>
+            <span class="kw">fn</span> <span class="ident">sample_single</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">Rng</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span>, <span class="ident">B1</span>, <span class="ident">B2</span><span class="op">&gt;</span>(<span class="ident">low_b</span>: <span class="ident">B1</span>, <span class="ident">high_b</span>: <span class="ident">B2</span>, <span class="ident">rng</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">R</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">X</span>
             <span class="kw">where</span>
                 <span class="ident">B1</span>: <span class="ident">SampleBorrow</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">X</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Sized</span>,
                 <span class="ident">B2</span>: <span class="ident">SampleBorrow</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">X</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Sized</span>,
@@ -1820,7 +1820,7 @@
                 <span class="kw">let</span> <span class="ident">high</span> <span class="op">=</span> <span class="kw-2">*</span><span class="ident">high_b</span>.<span class="ident">borrow</span>();
                 <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">low</span> <span class="op">&lt;</span> <span class="ident">high</span>, <span class="string">&quot;UniformSampler::sample_single: low &gt;= high&quot;</span>);
                 <span class="kw">let</span> <span class="ident">range</span> <span class="op">=</span> <span class="ident">high</span>.<span class="ident">wrapping_sub</span>(<span class="ident">low</span>) <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">unsigned</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">u_large</span>;
-                <span class="kw">let</span> <span class="ident">zone</span> <span class="op">=</span> <span class="kw">if</span> ::<span class="ident">core</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">unsigned</span>::<span class="ident">MAX</span> <span class="op">&lt;=</span> ::<span class="ident">core</span>::<span class="ident">u16</span>::<span class="ident">MAX</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">unsigned</span> {
+                <span class="kw">let</span> <span class="ident">zone</span> <span class="op">=</span> <span class="kw">if</span> ::<span class="ident">core</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">unsigned</span>::<span class="ident">MAX</span> <span class="op">&lt;</span><span class="op">=</span> ::<span class="ident">core</span>::<span class="ident">u16</span>::<span class="ident">MAX</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">unsigned</span> {
                     <span class="comment">// Using a modulus is faster than the approximation for</span>
                     <span class="comment">// i8 and i16. I suppose we trade the cost of one</span>
                     <span class="comment">// modulus for near-perfect branch prediction.</span>
@@ -1830,13 +1830,13 @@
                 } <span class="kw">else</span> {
                     <span class="comment">// conservative but fast approximation. `- 1` is necessary to allow the</span>
                     <span class="comment">// same comparison without bias.</span>
-                    (<span class="ident">range</span> <span class="op">&lt;&lt;</span> <span class="ident">range</span>.<span class="ident">leading_zeros</span>()).<span class="ident">wrapping_sub</span>(<span class="number">1</span>)
+                    (<span class="ident">range</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="ident">range</span>.<span class="ident">leading_zeros</span>()).<span class="ident">wrapping_sub</span>(<span class="number">1</span>)
                 };
 
                 <span class="kw">loop</span> {
                     <span class="kw">let</span> <span class="ident">v</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">u_large</span> <span class="op">=</span> <span class="ident">rng</span>.<span class="ident">gen</span>();
                     <span class="kw">let</span> (<span class="ident">hi</span>, <span class="ident">lo</span>) <span class="op">=</span> <span class="ident">v</span>.<span class="ident">wmul</span>(<span class="ident">range</span>);
-                    <span class="kw">if</span> <span class="ident">lo</span> <span class="op">&lt;=</span> <span class="ident">zone</span> {
+                    <span class="kw">if</span> <span class="ident">lo</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">zone</span> {
                         <span class="kw">return</span> <span class="ident">low</span>.<span class="ident">wrapping_add</span>(<span class="ident">hi</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span>);
                     }
                 }
@@ -1862,7 +1862,7 @@
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;simd_support&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;nightly&quot;</span>))]</span>
 <span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">uniform_simd_int_impl</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">unsigned</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">u_scalar</span>:<span class="ident">ident</span>) <span class="op">=&gt;</span> {
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">unsigned</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">u_scalar</span>:<span class="ident">ident</span>) <span class="op">=</span><span class="op">&gt;</span> {
         <span class="comment">// The &quot;pick the largest zone that can fit in an `u32`&quot; optimization</span>
         <span class="comment">// is less useful here. Multiple lanes complicate things, we don&#39;t</span>
         <span class="comment">// know the PRNG&#39;s minimal output size, and casting to a larger vector</span>
@@ -1880,7 +1880,7 @@
 
             <span class="attribute">#[<span class="ident">inline</span>]</span> <span class="comment">// if the range is constant, this helps LLVM to do the</span>
                       <span class="comment">// calculations at compile-time.</span>
-            <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">B1</span>, <span class="ident">B2</span><span class="op">&gt;</span>(<span class="ident">low_b</span>: <span class="ident">B1</span>, <span class="ident">high_b</span>: <span class="ident">B2</span>) <span class="op">-&gt;</span> <span class="self">Self</span>
+            <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">B1</span>, <span class="ident">B2</span><span class="op">&gt;</span>(<span class="ident">low_b</span>: <span class="ident">B1</span>, <span class="ident">high_b</span>: <span class="ident">B2</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>
                 <span class="kw">where</span> <span class="ident">B1</span>: <span class="ident">SampleBorrow</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">X</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Sized</span>,
                       <span class="ident">B2</span>: <span class="ident">SampleBorrow</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">X</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Sized</span>
             {
@@ -1892,7 +1892,7 @@
 
             <span class="attribute">#[<span class="ident">inline</span>]</span> <span class="comment">// if the range is constant, this helps LLVM to do the</span>
                       <span class="comment">// calculations at compile-time.</span>
-            <span class="kw">fn</span> <span class="ident">new_inclusive</span><span class="op">&lt;</span><span class="ident">B1</span>, <span class="ident">B2</span><span class="op">&gt;</span>(<span class="ident">low_b</span>: <span class="ident">B1</span>, <span class="ident">high_b</span>: <span class="ident">B2</span>) <span class="op">-&gt;</span> <span class="self">Self</span>
+            <span class="kw">fn</span> <span class="ident">new_inclusive</span><span class="op">&lt;</span><span class="ident">B1</span>, <span class="ident">B2</span><span class="op">&gt;</span>(<span class="ident">low_b</span>: <span class="ident">B1</span>, <span class="ident">high_b</span>: <span class="ident">B2</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>
                 <span class="kw">where</span> <span class="ident">B1</span>: <span class="ident">SampleBorrow</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">X</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Sized</span>,
                       <span class="ident">B2</span>: <span class="ident">SampleBorrow</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">X</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Sized</span>
             {
@@ -1924,7 +1924,7 @@
                 }
             }
 
-            <span class="kw">fn</span> <span class="ident">sample</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">Rng</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">rng</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">R</span>) <span class="op">-&gt;</span> <span class="self">Self</span>::<span class="ident">X</span> {
+            <span class="kw">fn</span> <span class="ident">sample</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">Rng</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">rng</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">R</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">X</span> {
                 <span class="kw">let</span> <span class="ident">range</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">unsigned</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">range</span>.<span class="ident">cast</span>();
                 <span class="kw">let</span> <span class="ident">zone</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">unsigned</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">z</span>.<span class="ident">cast</span>();
 
@@ -1959,7 +1959,7 @@
     };
 
     <span class="comment">// bulk implementation</span>
-    ($((<span class="macro-nonterminal">$</span><span class="macro-nonterminal">unsigned</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">signed</span>:<span class="ident">ident</span>),)<span class="op">+</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">u_scalar</span>:<span class="ident">ident</span>) <span class="op">=&gt;</span> {
+    ($((<span class="macro-nonterminal">$</span><span class="macro-nonterminal">unsigned</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">signed</span>:<span class="ident">ident</span>),)<span class="op">+</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">u_scalar</span>:<span class="ident">ident</span>) <span class="op">=</span><span class="op">&gt;</span> {
         $(
             <span class="macro">uniform_simd_int_impl</span><span class="macro">!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">unsigned</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">unsigned</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">u_scalar</span>);
             <span class="macro">uniform_simd_int_impl</span><span class="macro">!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">signed</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">unsigned</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">u_scalar</span>);
@@ -2032,7 +2032,7 @@
 }
 
 <span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">uniform_float_impl</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span>:<span class="ident">ty</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">uty</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">f_scalar</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">u_scalar</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">bits_to_discard</span>:<span class="ident">expr</span>) <span class="op">=&gt;</span> {
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span>:<span class="ident">ty</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">uty</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">f_scalar</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">u_scalar</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">bits_to_discard</span>:<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> {
         <span class="kw">impl</span> <span class="ident">SampleUniform</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span> {
             <span class="kw">type</span> <span class="ident">Sampler</span> <span class="op">=</span> <span class="ident">UniformFloat</span><span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span><span class="op">&gt;</span>;
         }
@@ -2040,7 +2040,7 @@
         <span class="kw">impl</span> <span class="ident">UniformSampler</span> <span class="kw">for</span> <span class="ident">UniformFloat</span><span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span><span class="op">&gt;</span> {
             <span class="kw">type</span> <span class="ident">X</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span>;
 
-            <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">B1</span>, <span class="ident">B2</span><span class="op">&gt;</span>(<span class="ident">low_b</span>: <span class="ident">B1</span>, <span class="ident">high_b</span>: <span class="ident">B2</span>) <span class="op">-&gt;</span> <span class="self">Self</span>
+            <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">B1</span>, <span class="ident">B2</span><span class="op">&gt;</span>(<span class="ident">low_b</span>: <span class="ident">B1</span>, <span class="ident">high_b</span>: <span class="ident">B2</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>
             <span class="kw">where</span>
                 <span class="ident">B1</span>: <span class="ident">SampleBorrow</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">X</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Sized</span>,
                 <span class="ident">B2</span>: <span class="ident">SampleBorrow</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">X</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Sized</span>,
@@ -2053,7 +2053,7 @@
                     <span class="string">&quot;Uniform::new called with non-finite boundaries&quot;</span>
                 );
                 <span class="kw">let</span> <span class="ident">max_rand</span> <span class="op">=</span> <span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span><span class="op">&gt;</span>::<span class="ident">splat</span>(
-                    (::<span class="ident">core</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">u_scalar</span>::<span class="ident">MAX</span> <span class="op">&gt;&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">bits_to_discard</span>).<span class="ident">into_float_with_exponent</span>(<span class="number">0</span>) <span class="op">-</span> <span class="number">1.0</span>,
+                    (::<span class="ident">core</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">u_scalar</span>::<span class="ident">MAX</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">bits_to_discard</span>).<span class="ident">into_float_with_exponent</span>(<span class="number">0</span>) <span class="op">-</span> <span class="number">1.0</span>,
                 );
 
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">scale</span> <span class="op">=</span> <span class="ident">high</span> <span class="op">-</span> <span class="ident">low</span>;
@@ -2071,7 +2071,7 @@
                 <span class="ident">UniformFloat</span> { <span class="ident">low</span>, <span class="ident">scale</span> }
             }
 
-            <span class="kw">fn</span> <span class="ident">new_inclusive</span><span class="op">&lt;</span><span class="ident">B1</span>, <span class="ident">B2</span><span class="op">&gt;</span>(<span class="ident">low_b</span>: <span class="ident">B1</span>, <span class="ident">high_b</span>: <span class="ident">B2</span>) <span class="op">-&gt;</span> <span class="self">Self</span>
+            <span class="kw">fn</span> <span class="ident">new_inclusive</span><span class="op">&lt;</span><span class="ident">B1</span>, <span class="ident">B2</span><span class="op">&gt;</span>(<span class="ident">low_b</span>: <span class="ident">B1</span>, <span class="ident">high_b</span>: <span class="ident">B2</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>
             <span class="kw">where</span>
                 <span class="ident">B1</span>: <span class="ident">SampleBorrow</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">X</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Sized</span>,
                 <span class="ident">B2</span>: <span class="ident">SampleBorrow</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">X</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Sized</span>,
@@ -2087,7 +2087,7 @@
                     <span class="string">&quot;Uniform::new_inclusive called with non-finite boundaries&quot;</span>
                 );
                 <span class="kw">let</span> <span class="ident">max_rand</span> <span class="op">=</span> <span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span><span class="op">&gt;</span>::<span class="ident">splat</span>(
-                    (::<span class="ident">core</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">u_scalar</span>::<span class="ident">MAX</span> <span class="op">&gt;&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">bits_to_discard</span>).<span class="ident">into_float_with_exponent</span>(<span class="number">0</span>) <span class="op">-</span> <span class="number">1.0</span>,
+                    (::<span class="ident">core</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">u_scalar</span>::<span class="ident">MAX</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">bits_to_discard</span>).<span class="ident">into_float_with_exponent</span>(<span class="number">0</span>) <span class="op">-</span> <span class="number">1.0</span>,
                 );
 
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">scale</span> <span class="op">=</span> (<span class="ident">high</span> <span class="op">-</span> <span class="ident">low</span>) <span class="op">/</span> <span class="ident">max_rand</span>;
@@ -2105,9 +2105,9 @@
                 <span class="ident">UniformFloat</span> { <span class="ident">low</span>, <span class="ident">scale</span> }
             }
 
-            <span class="kw">fn</span> <span class="ident">sample</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">Rng</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">rng</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">R</span>) <span class="op">-&gt;</span> <span class="self">Self</span>::<span class="ident">X</span> {
+            <span class="kw">fn</span> <span class="ident">sample</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">Rng</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">rng</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">R</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">X</span> {
                 <span class="comment">// Generate a value in the range [1, 2)</span>
-                <span class="kw">let</span> <span class="ident">value1_2</span> <span class="op">=</span> (<span class="ident">rng</span>.<span class="ident">gen</span>::<span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">uty</span><span class="op">&gt;</span>() <span class="op">&gt;&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">bits_to_discard</span>).<span class="ident">into_float_with_exponent</span>(<span class="number">0</span>);
+                <span class="kw">let</span> <span class="ident">value1_2</span> <span class="op">=</span> (<span class="ident">rng</span>.<span class="ident">gen</span>::<span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">uty</span><span class="op">&gt;</span>() <span class="op">&gt;</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">bits_to_discard</span>).<span class="ident">into_float_with_exponent</span>(<span class="number">0</span>);
 
                 <span class="comment">// Get a value in the range [0, 1) in order to avoid</span>
                 <span class="comment">// overflowing into infinity when multiplying with scale</span>
@@ -2122,7 +2122,7 @@
             }
 
             <span class="attribute">#[<span class="ident">inline</span>]</span>
-            <span class="kw">fn</span> <span class="ident">sample_single</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">Rng</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span>, <span class="ident">B1</span>, <span class="ident">B2</span><span class="op">&gt;</span>(<span class="ident">low_b</span>: <span class="ident">B1</span>, <span class="ident">high_b</span>: <span class="ident">B2</span>, <span class="ident">rng</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">R</span>) <span class="op">-&gt;</span> <span class="self">Self</span>::<span class="ident">X</span>
+            <span class="kw">fn</span> <span class="ident">sample_single</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">Rng</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span>, <span class="ident">B1</span>, <span class="ident">B2</span><span class="op">&gt;</span>(<span class="ident">low_b</span>: <span class="ident">B1</span>, <span class="ident">high_b</span>: <span class="ident">B2</span>, <span class="ident">rng</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">R</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">X</span>
             <span class="kw">where</span>
                 <span class="ident">B1</span>: <span class="ident">SampleBorrow</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">X</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Sized</span>,
                 <span class="ident">B2</span>: <span class="ident">SampleBorrow</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">X</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Sized</span>,
@@ -2138,7 +2138,7 @@
                 <span class="kw">loop</span> {
                     <span class="comment">// Generate a value in the range [1, 2)</span>
                     <span class="kw">let</span> <span class="ident">value1_2</span> <span class="op">=</span>
-                        (<span class="ident">rng</span>.<span class="ident">gen</span>::<span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">uty</span><span class="op">&gt;</span>() <span class="op">&gt;&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">bits_to_discard</span>).<span class="ident">into_float_with_exponent</span>(<span class="number">0</span>);
+                        (<span class="ident">rng</span>.<span class="ident">gen</span>::<span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">uty</span><span class="op">&gt;</span>() <span class="op">&gt;</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">bits_to_discard</span>).<span class="ident">into_float_with_exponent</span>(<span class="number">0</span>);
 
                     <span class="comment">// Get a value in the range [0, 1) in order to avoid</span>
                     <span class="comment">// overflowing into infinity when multiplying with scale</span>
@@ -2148,7 +2148,7 @@
                     <span class="comment">// to use a single instruction.</span>
                     <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">value0_1</span> <span class="op">*</span> <span class="ident">scale</span> <span class="op">+</span> <span class="ident">low</span>;
 
-                    <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="ident">low</span>.<span class="ident">all_le</span>(<span class="ident">res</span>) <span class="op">||</span> <span class="op">!</span><span class="ident">scale</span>.<span class="ident">all_finite</span>());
+                    <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="ident">low</span>.<span class="ident">all_le</span>(<span class="ident">res</span>) <span class="op">|</span><span class="op">|</span> <span class="op">!</span><span class="ident">scale</span>.<span class="ident">all_finite</span>());
                     <span class="kw">if</span> <span class="ident">res</span>.<span class="ident">all_lt</span>(<span class="ident">high</span>) {
                         <span class="kw">return</span> <span class="ident">res</span>;
                     }
@@ -2248,7 +2248,7 @@
     <span class="kw">type</span> <span class="ident">X</span> <span class="op">=</span> <span class="ident">Duration</span>;
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">B1</span>, <span class="ident">B2</span><span class="op">&gt;</span>(<span class="ident">low_b</span>: <span class="ident">B1</span>, <span class="ident">high_b</span>: <span class="ident">B2</span>) <span class="op">-&gt;</span> <span class="self">Self</span>
+    <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">B1</span>, <span class="ident">B2</span><span class="op">&gt;</span>(<span class="ident">low_b</span>: <span class="ident">B1</span>, <span class="ident">high_b</span>: <span class="ident">B2</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>
     <span class="kw">where</span>
         <span class="ident">B1</span>: <span class="ident">SampleBorrow</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">X</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Sized</span>,
         <span class="ident">B2</span>: <span class="ident">SampleBorrow</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">X</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Sized</span>,
@@ -2260,7 +2260,7 @@
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">new_inclusive</span><span class="op">&lt;</span><span class="ident">B1</span>, <span class="ident">B2</span><span class="op">&gt;</span>(<span class="ident">low_b</span>: <span class="ident">B1</span>, <span class="ident">high_b</span>: <span class="ident">B2</span>) <span class="op">-&gt;</span> <span class="self">Self</span>
+    <span class="kw">fn</span> <span class="ident">new_inclusive</span><span class="op">&lt;</span><span class="ident">B1</span>, <span class="ident">B2</span><span class="op">&gt;</span>(<span class="ident">low_b</span>: <span class="ident">B1</span>, <span class="ident">high_b</span>: <span class="ident">B2</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>
     <span class="kw">where</span>
         <span class="ident">B1</span>: <span class="ident">SampleBorrow</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">X</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Sized</span>,
         <span class="ident">B2</span>: <span class="ident">SampleBorrow</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">X</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Sized</span>,
@@ -2268,7 +2268,7 @@
         <span class="kw">let</span> <span class="ident">low</span> <span class="op">=</span> <span class="kw-2">*</span><span class="ident">low_b</span>.<span class="ident">borrow</span>();
         <span class="kw">let</span> <span class="ident">high</span> <span class="op">=</span> <span class="kw-2">*</span><span class="ident">high_b</span>.<span class="ident">borrow</span>();
         <span class="macro">assert</span><span class="macro">!</span>(
-            <span class="ident">low</span> <span class="op">&lt;=</span> <span class="ident">high</span>,
+            <span class="ident">low</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">high</span>,
             <span class="string">&quot;Uniform::new_inclusive called with `low &gt; high`&quot;</span>
         );
 
@@ -2278,11 +2278,11 @@
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">high_n</span> <span class="op">=</span> <span class="ident">high</span>.<span class="ident">subsec_nanos</span>();
 
         <span class="kw">if</span> <span class="ident">high_n</span> <span class="op">&lt;</span> <span class="ident">low_n</span> {
-            <span class="ident">high_s</span> <span class="op">-=</span> <span class="number">1</span>;
-            <span class="ident">high_n</span> <span class="op">+=</span> <span class="number">1_000_000_000</span>;
+            <span class="ident">high_s</span> <span class="op">-</span><span class="op">=</span> <span class="number">1</span>;
+            <span class="ident">high_n</span> <span class="op">+</span><span class="op">=</span> <span class="number">1_000_000_000</span>;
         }
 
-        <span class="kw">let</span> <span class="ident">mode</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">low_s</span> <span class="op">==</span> <span class="ident">high_s</span> {
+        <span class="kw">let</span> <span class="ident">mode</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">low_s</span> <span class="op">=</span><span class="op">=</span> <span class="ident">high_s</span> {
             <span class="ident">UniformDurationMode</span>::<span class="ident">Small</span> {
                 <span class="ident">secs</span>: <span class="ident">low_s</span>,
                 <span class="ident">nanos</span>: <span class="ident">Uniform</span>::<span class="ident">new_inclusive</span>(<span class="ident">low_n</span>, <span class="ident">high_n</span>),
@@ -2314,13 +2314,13 @@
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">sample</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">Rng</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">rng</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">R</span>) <span class="op">-&gt;</span> <span class="ident">Duration</span> {
+    <span class="kw">fn</span> <span class="ident">sample</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">Rng</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">rng</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">R</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Duration</span> {
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">mode</span> {
-            <span class="ident">UniformDurationMode</span>::<span class="ident">Small</span> { <span class="ident">secs</span>, <span class="ident">nanos</span> } <span class="op">=&gt;</span> {
+            <span class="ident">UniformDurationMode</span>::<span class="ident">Small</span> { <span class="ident">secs</span>, <span class="ident">nanos</span> } <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">let</span> <span class="ident">n</span> <span class="op">=</span> <span class="ident">nanos</span>.<span class="ident">sample</span>(<span class="ident">rng</span>);
                 <span class="ident">Duration</span>::<span class="ident">new</span>(<span class="ident">secs</span>, <span class="ident">n</span>)
             }
-            <span class="ident">UniformDurationMode</span>::<span class="ident">Medium</span> { <span class="ident">nanos</span> } <span class="op">=&gt;</span> {
+            <span class="ident">UniformDurationMode</span>::<span class="ident">Medium</span> { <span class="ident">nanos</span> } <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">let</span> <span class="ident">nanos</span> <span class="op">=</span> <span class="ident">nanos</span>.<span class="ident">sample</span>(<span class="ident">rng</span>);
                 <span class="ident">Duration</span>::<span class="ident">new</span>(<span class="ident">nanos</span> <span class="op">/</span> <span class="number">1_000_000_000</span>, (<span class="ident">nanos</span> <span class="op">%</span> <span class="number">1_000_000_000</span>) <span class="kw">as</span> <span class="ident">u32</span>)
             }
@@ -2328,13 +2328,13 @@
                 <span class="ident">max_secs</span>,
                 <span class="ident">max_nanos</span>,
                 <span class="ident">secs</span>,
-            } <span class="op">=&gt;</span> {
+            } <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="comment">// constant folding means this is at least as fast as `gen_range`</span>
                 <span class="kw">let</span> <span class="ident">nano_range</span> <span class="op">=</span> <span class="ident">Uniform</span>::<span class="ident">new</span>(<span class="number">0</span>, <span class="number">1_000_000_000</span>);
                 <span class="kw">loop</span> {
                     <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">secs</span>.<span class="ident">sample</span>(<span class="ident">rng</span>);
                     <span class="kw">let</span> <span class="ident">n</span> <span class="op">=</span> <span class="ident">nano_range</span>.<span class="ident">sample</span>(<span class="ident">rng</span>);
-                    <span class="kw">if</span> <span class="op">!</span>(<span class="ident">s</span> <span class="op">==</span> <span class="ident">max_secs</span> <span class="op">&amp;&amp;</span> <span class="ident">n</span> <span class="op">&gt;</span> <span class="ident">max_nanos</span>) {
+                    <span class="kw">if</span> <span class="op">!</span>(<span class="ident">s</span> <span class="op">=</span><span class="op">=</span> <span class="ident">max_secs</span> <span class="op">&amp;&amp;</span> <span class="ident">n</span> <span class="op">&gt;</span> <span class="ident">max_nanos</span>) {
                         <span class="kw">let</span> <span class="ident">sum</span> <span class="op">=</span> <span class="ident">n</span> <span class="op">+</span> <span class="self">self</span>.<span class="ident">offset</span>;
                         <span class="kw">break</span> <span class="ident">Duration</span>::<span class="ident">new</span>(<span class="ident">s</span>, <span class="ident">sum</span>);
                     }
@@ -2379,7 +2379,7 @@
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rng</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">test</span>::<span class="ident">rng</span>(<span class="number">251</span>);
         <span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">t</span> {
-            (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">v</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">le</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">lt</span>:<span class="ident">expr</span>) <span class="op">=&gt;</span> {{
+            (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">v</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">le</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">lt</span>:<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> {{
                 <span class="kw">for</span> <span class="kw-2">&amp;</span>(<span class="ident">low</span>, <span class="ident">high</span>) <span class="kw">in</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">v</span>.<span class="ident">iter</span>() {
                     <span class="kw">let</span> <span class="ident">my_uniform</span> <span class="op">=</span> <span class="ident">Uniform</span>::<span class="ident">new</span>(<span class="ident">low</span>, <span class="ident">high</span>);
                     <span class="kw">for</span> <span class="kw">_</span> <span class="kw">in</span> <span class="number">0</span>..<span class="number">1000</span> {
@@ -2413,17 +2413,17 @@
             }};
 
             <span class="comment">// scalar bulk</span>
-            ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span>:<span class="ident">ident</span>),<span class="kw-2">*</span>) <span class="op">=&gt;</span> {{
+            ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span>:<span class="ident">ident</span>),<span class="kw-2">*</span>) <span class="op">=</span><span class="op">&gt;</span> {{
                 $(<span class="macro">t</span><span class="macro">!</span>(
                     <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span>,
                     [(<span class="number">0</span>, <span class="number">10</span>), (<span class="number">10</span>, <span class="number">127</span>), (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span>::<span class="ident">MIN</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span>::<span class="ident">MAX</span>)],
-                    <span class="op">|</span><span class="ident">x</span>, <span class="ident">y</span><span class="op">|</span> <span class="ident">x</span> <span class="op">&lt;=</span> <span class="ident">y</span>,
+                    <span class="op">|</span><span class="ident">x</span>, <span class="ident">y</span><span class="op">|</span> <span class="ident">x</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">y</span>,
                     <span class="op">|</span><span class="ident">x</span>, <span class="ident">y</span><span class="op">|</span> <span class="ident">x</span> <span class="op">&lt;</span> <span class="ident">y</span>
                 );)<span class="op">*</span>
             }};
 
             <span class="comment">// simd bulk</span>
-            ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span>:<span class="ident">ident</span>),<span class="op">*</span> <span class="op">=&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">scalar</span>:<span class="ident">ident</span>) <span class="op">=&gt;</span> {{
+            ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span>:<span class="ident">ident</span>),<span class="op">*</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">scalar</span>:<span class="ident">ident</span>) <span class="op">=</span><span class="op">&gt;</span> {{
                 $(<span class="macro">t</span><span class="macro">!</span>(
                     <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span>,
                     [
@@ -2442,14 +2442,14 @@
 
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;simd_support&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;nightly&quot;</span>))]</span>
         {
-            <span class="macro">t</span><span class="macro">!</span>(<span class="ident">u8x2</span>, <span class="ident">u8x4</span>, <span class="ident">u8x8</span>, <span class="ident">u8x16</span>, <span class="ident">u8x32</span>, <span class="ident">u8x64</span> <span class="op">=&gt;</span> <span class="ident">u8</span>);
-            <span class="macro">t</span><span class="macro">!</span>(<span class="ident">i8x2</span>, <span class="ident">i8x4</span>, <span class="ident">i8x8</span>, <span class="ident">i8x16</span>, <span class="ident">i8x32</span>, <span class="ident">i8x64</span> <span class="op">=&gt;</span> <span class="ident">i8</span>);
-            <span class="macro">t</span><span class="macro">!</span>(<span class="ident">u16x2</span>, <span class="ident">u16x4</span>, <span class="ident">u16x8</span>, <span class="ident">u16x16</span>, <span class="ident">u16x32</span> <span class="op">=&gt;</span> <span class="ident">u16</span>);
-            <span class="macro">t</span><span class="macro">!</span>(<span class="ident">i16x2</span>, <span class="ident">i16x4</span>, <span class="ident">i16x8</span>, <span class="ident">i16x16</span>, <span class="ident">i16x32</span> <span class="op">=&gt;</span> <span class="ident">i16</span>);
-            <span class="macro">t</span><span class="macro">!</span>(<span class="ident">u32x2</span>, <span class="ident">u32x4</span>, <span class="ident">u32x8</span>, <span class="ident">u32x16</span> <span class="op">=&gt;</span> <span class="ident">u32</span>);
-            <span class="macro">t</span><span class="macro">!</span>(<span class="ident">i32x2</span>, <span class="ident">i32x4</span>, <span class="ident">i32x8</span>, <span class="ident">i32x16</span> <span class="op">=&gt;</span> <span class="ident">i32</span>);
-            <span class="macro">t</span><span class="macro">!</span>(<span class="ident">u64x2</span>, <span class="ident">u64x4</span>, <span class="ident">u64x8</span> <span class="op">=&gt;</span> <span class="ident">u64</span>);
-            <span class="macro">t</span><span class="macro">!</span>(<span class="ident">i64x2</span>, <span class="ident">i64x4</span>, <span class="ident">i64x8</span> <span class="op">=&gt;</span> <span class="ident">i64</span>);
+            <span class="macro">t</span><span class="macro">!</span>(<span class="ident">u8x2</span>, <span class="ident">u8x4</span>, <span class="ident">u8x8</span>, <span class="ident">u8x16</span>, <span class="ident">u8x32</span>, <span class="ident">u8x64</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">u8</span>);
+            <span class="macro">t</span><span class="macro">!</span>(<span class="ident">i8x2</span>, <span class="ident">i8x4</span>, <span class="ident">i8x8</span>, <span class="ident">i8x16</span>, <span class="ident">i8x32</span>, <span class="ident">i8x64</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">i8</span>);
+            <span class="macro">t</span><span class="macro">!</span>(<span class="ident">u16x2</span>, <span class="ident">u16x4</span>, <span class="ident">u16x8</span>, <span class="ident">u16x16</span>, <span class="ident">u16x32</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">u16</span>);
+            <span class="macro">t</span><span class="macro">!</span>(<span class="ident">i16x2</span>, <span class="ident">i16x4</span>, <span class="ident">i16x8</span>, <span class="ident">i16x16</span>, <span class="ident">i16x32</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">i16</span>);
+            <span class="macro">t</span><span class="macro">!</span>(<span class="ident">u32x2</span>, <span class="ident">u32x4</span>, <span class="ident">u32x8</span>, <span class="ident">u32x16</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">u32</span>);
+            <span class="macro">t</span><span class="macro">!</span>(<span class="ident">i32x2</span>, <span class="ident">i32x4</span>, <span class="ident">i32x8</span>, <span class="ident">i32x16</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">i32</span>);
+            <span class="macro">t</span><span class="macro">!</span>(<span class="ident">u64x2</span>, <span class="ident">u64x4</span>, <span class="ident">u64x8</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">u64</span>);
+            <span class="macro">t</span><span class="macro">!</span>(<span class="ident">i64x2</span>, <span class="ident">i64x4</span>, <span class="ident">i64x8</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">i64</span>);
         }
     }
 
@@ -2460,7 +2460,7 @@
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">zero_rng</span> <span class="op">=</span> <span class="ident">StepRng</span>::<span class="ident">new</span>(<span class="number">0</span>, <span class="number">0</span>);
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">max_rng</span> <span class="op">=</span> <span class="ident">StepRng</span>::<span class="ident">new</span>(<span class="number">0xffff_ffff_ffff_ffff</span>, <span class="number">0</span>);
         <span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">t</span> {
-            (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span>:<span class="ident">ty</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">f_scalar</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">bits_shifted</span>:<span class="ident">expr</span>) <span class="op">=&gt;</span> {{
+            (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span>:<span class="ident">ty</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">f_scalar</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">bits_shifted</span>:<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> {{
                 <span class="kw">let</span> <span class="ident">v</span>: <span class="kw-2">&amp;</span>[(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">f_scalar</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">f_scalar</span>)] <span class="op">=</span> <span class="kw-2">&amp;</span>[
                     (<span class="number">0.0</span>, <span class="number">100.0</span>),
                     (<span class="op">-</span><span class="number">1e35</span>, <span class="op">-</span><span class="number">1e25</span>),
@@ -2485,11 +2485,11 @@
                         <span class="kw">let</span> <span class="ident">my_incl_uniform</span> <span class="op">=</span> <span class="ident">Uniform</span>::<span class="ident">new_inclusive</span>(<span class="ident">low</span>, <span class="ident">high</span>);
                         <span class="kw">for</span> <span class="kw">_</span> <span class="kw">in</span> <span class="number">0</span>..<span class="number">100</span> {
                             <span class="kw">let</span> <span class="ident">v</span> <span class="op">=</span> <span class="ident">rng</span>.<span class="ident">sample</span>(<span class="ident">my_uniform</span>).<span class="ident">extract</span>(<span class="ident">lane</span>);
-                            <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">low_scalar</span> <span class="op">&lt;=</span> <span class="ident">v</span> <span class="op">&amp;&amp;</span> <span class="ident">v</span> <span class="op">&lt;</span> <span class="ident">high_scalar</span>);
+                            <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">low_scalar</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">v</span> <span class="op">&amp;&amp;</span> <span class="ident">v</span> <span class="op">&lt;</span> <span class="ident">high_scalar</span>);
                             <span class="kw">let</span> <span class="ident">v</span> <span class="op">=</span> <span class="ident">rng</span>.<span class="ident">sample</span>(<span class="ident">my_incl_uniform</span>).<span class="ident">extract</span>(<span class="ident">lane</span>);
-                            <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">low_scalar</span> <span class="op">&lt;=</span> <span class="ident">v</span> <span class="op">&amp;&amp;</span> <span class="ident">v</span> <span class="op">&lt;=</span> <span class="ident">high_scalar</span>);
+                            <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">low_scalar</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">v</span> <span class="op">&amp;&amp;</span> <span class="ident">v</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">high_scalar</span>);
                             <span class="kw">let</span> <span class="ident">v</span> <span class="op">=</span> <span class="ident">rng</span>.<span class="ident">gen_range</span>(<span class="ident">low</span>, <span class="ident">high</span>).<span class="ident">extract</span>(<span class="ident">lane</span>);
-                            <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">low_scalar</span> <span class="op">&lt;=</span> <span class="ident">v</span> <span class="op">&amp;&amp;</span> <span class="ident">v</span> <span class="op">&lt;</span> <span class="ident">high_scalar</span>);
+                            <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">low_scalar</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">v</span> <span class="op">&amp;&amp;</span> <span class="ident">v</span> <span class="op">&lt;</span> <span class="ident">high_scalar</span>);
                         }
 
                         <span class="macro">assert_eq</span><span class="macro">!</span>(
@@ -2501,7 +2501,7 @@
                         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">zero_rng</span>.<span class="ident">sample</span>(<span class="ident">my_incl_uniform</span>).<span class="ident">extract</span>(<span class="ident">lane</span>), <span class="ident">low_scalar</span>);
                         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">zero_rng</span>.<span class="ident">gen_range</span>(<span class="ident">low</span>, <span class="ident">high</span>).<span class="ident">extract</span>(<span class="ident">lane</span>), <span class="ident">low_scalar</span>);
                         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">max_rng</span>.<span class="ident">sample</span>(<span class="ident">my_uniform</span>).<span class="ident">extract</span>(<span class="ident">lane</span>) <span class="op">&lt;</span> <span class="ident">high_scalar</span>);
-                        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">max_rng</span>.<span class="ident">sample</span>(<span class="ident">my_incl_uniform</span>).<span class="ident">extract</span>(<span class="ident">lane</span>) <span class="op">&lt;=</span> <span class="ident">high_scalar</span>);
+                        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">max_rng</span>.<span class="ident">sample</span>(<span class="ident">my_incl_uniform</span>).<span class="ident">extract</span>(<span class="ident">lane</span>) <span class="op">&lt;</span><span class="op">=</span> <span class="ident">high_scalar</span>);
 
                         <span class="comment">// Don&#39;t run this test for really tiny differences between high and low</span>
                         <span class="comment">// since for those rounding might result in selecting high for a very</span>
@@ -2509,7 +2509,7 @@
                         <span class="kw">if</span> (<span class="ident">high_scalar</span> <span class="op">-</span> <span class="ident">low_scalar</span>) <span class="op">&gt;</span> <span class="number">0.0001</span> {
                             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">lowering_max_rng</span> <span class="op">=</span> <span class="ident">StepRng</span>::<span class="ident">new</span>(
                                 <span class="number">0xffff_ffff_ffff_ffff</span>,
-                                (<span class="op">-</span><span class="number">1i64</span> <span class="op">&lt;&lt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">bits_shifted</span>) <span class="kw">as</span> <span class="ident">u64</span>,
+                                (<span class="op">-</span><span class="number">1i64</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">bits_shifted</span>) <span class="kw">as</span> <span class="ident">u64</span>,
                             );
                             <span class="macro">assert</span><span class="macro">!</span>(
                                 <span class="ident">lowering_max_rng</span>.<span class="ident">gen_range</span>(<span class="ident">low</span>, <span class="ident">high</span>).<span class="ident">extract</span>(<span class="ident">lane</span>) <span class="op">&lt;</span> <span class="ident">high_scalar</span>
@@ -2564,7 +2564,7 @@
         }
 
         <span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">t</span> {
-            (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">f_scalar</span>:<span class="ident">ident</span>) <span class="op">=&gt;</span> {{
+            (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">f_scalar</span>:<span class="ident">ident</span>) <span class="op">=</span><span class="op">&gt;</span> {{
                 <span class="kw">let</span> <span class="ident">v</span>: <span class="kw-2">&amp;</span>[(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">f_scalar</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">f_scalar</span>)] <span class="op">=</span> <span class="kw-2">&amp;</span>[
                     (::<span class="ident">std</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">f_scalar</span>::<span class="ident">NAN</span>, <span class="number">0.0</span>),
                     (<span class="number">1.0</span>, ::<span class="ident">std</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">f_scalar</span>::<span class="ident">NAN</span>),
@@ -2586,11 +2586,11 @@
                     <span class="kw">for</span> <span class="ident">lane</span> <span class="kw">in</span> <span class="number">0</span>..<span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span><span class="op">&gt;</span>::<span class="ident">lanes</span>() {
                         <span class="kw">let</span> <span class="ident">low</span> <span class="op">=</span> <span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span><span class="op">&gt;</span>::<span class="ident">splat</span>(<span class="number">0.0</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">f_scalar</span>).<span class="ident">replace</span>(<span class="ident">lane</span>, <span class="ident">low_scalar</span>);
                         <span class="kw">let</span> <span class="ident">high</span> <span class="op">=</span> <span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span><span class="op">&gt;</span>::<span class="ident">splat</span>(<span class="number">1.0</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">f_scalar</span>).<span class="ident">replace</span>(<span class="ident">lane</span>, <span class="ident">high_scalar</span>);
-                        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">catch_unwind</span>(<span class="op">||</span> <span class="ident">range</span>(<span class="ident">low</span>, <span class="ident">high</span>)).<span class="ident">is_err</span>());
-                        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">catch_unwind</span>(<span class="op">||</span> <span class="ident">Uniform</span>::<span class="ident">new</span>(<span class="ident">low</span>, <span class="ident">high</span>)).<span class="ident">is_err</span>());
-                        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">catch_unwind</span>(<span class="op">||</span> <span class="ident">Uniform</span>::<span class="ident">new_inclusive</span>(<span class="ident">low</span>, <span class="ident">high</span>)).<span class="ident">is_err</span>());
-                        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">catch_unwind</span>(<span class="op">||</span> <span class="ident">range</span>(<span class="ident">low</span>, <span class="ident">low</span>)).<span class="ident">is_err</span>());
-                        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">catch_unwind</span>(<span class="op">||</span> <span class="ident">Uniform</span>::<span class="ident">new</span>(<span class="ident">low</span>, <span class="ident">low</span>)).<span class="ident">is_err</span>());
+                        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">catch_unwind</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">range</span>(<span class="ident">low</span>, <span class="ident">high</span>)).<span class="ident">is_err</span>());
+                        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">catch_unwind</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">Uniform</span>::<span class="ident">new</span>(<span class="ident">low</span>, <span class="ident">high</span>)).<span class="ident">is_err</span>());
+                        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">catch_unwind</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">Uniform</span>::<span class="ident">new_inclusive</span>(<span class="ident">low</span>, <span class="ident">high</span>)).<span class="ident">is_err</span>());
+                        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">catch_unwind</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">range</span>(<span class="ident">low</span>, <span class="ident">low</span>)).<span class="ident">is_err</span>());
+                        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">catch_unwind</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">Uniform</span>::<span class="ident">new</span>(<span class="ident">low</span>, <span class="ident">low</span>)).<span class="ident">is_err</span>());
                     }
                 }
             }};
@@ -2631,7 +2631,7 @@
             <span class="kw">let</span> <span class="ident">my_uniform</span> <span class="op">=</span> <span class="ident">Uniform</span>::<span class="ident">new</span>(<span class="ident">low</span>, <span class="ident">high</span>);
             <span class="kw">for</span> <span class="kw">_</span> <span class="kw">in</span> <span class="number">0</span>..<span class="number">1000</span> {
                 <span class="kw">let</span> <span class="ident">v</span> <span class="op">=</span> <span class="ident">rng</span>.<span class="ident">sample</span>(<span class="ident">my_uniform</span>);
-                <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">low</span> <span class="op">&lt;=</span> <span class="ident">v</span> <span class="op">&amp;&amp;</span> <span class="ident">v</span> <span class="op">&lt;</span> <span class="ident">high</span>);
+                <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">low</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">v</span> <span class="op">&amp;&amp;</span> <span class="ident">v</span> <span class="op">&lt;</span> <span class="ident">high</span>);
             }
         }
     }
@@ -2650,7 +2650,7 @@
         <span class="kw">impl</span> <span class="ident">UniformSampler</span> <span class="kw">for</span> <span class="ident">UniformMyF32</span> {
             <span class="kw">type</span> <span class="ident">X</span> <span class="op">=</span> <span class="ident">MyF32</span>;
 
-            <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">B1</span>, <span class="ident">B2</span><span class="op">&gt;</span>(<span class="ident">low</span>: <span class="ident">B1</span>, <span class="ident">high</span>: <span class="ident">B2</span>) <span class="op">-&gt;</span> <span class="self">Self</span>
+            <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">B1</span>, <span class="ident">B2</span><span class="op">&gt;</span>(<span class="ident">low</span>: <span class="ident">B1</span>, <span class="ident">high</span>: <span class="ident">B2</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>
             <span class="kw">where</span>
                 <span class="ident">B1</span>: <span class="ident">SampleBorrow</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">X</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Sized</span>,
                 <span class="ident">B2</span>: <span class="ident">SampleBorrow</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">X</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Sized</span>,
@@ -2658,7 +2658,7 @@
                 <span class="ident">UniformMyF32</span>(<span class="ident">UniformFloat</span>::<span class="op">&lt;</span><span class="ident">f32</span><span class="op">&gt;</span>::<span class="ident">new</span>(<span class="ident">low</span>.<span class="ident">borrow</span>().<span class="ident">x</span>, <span class="ident">high</span>.<span class="ident">borrow</span>().<span class="ident">x</span>))
             }
 
-            <span class="kw">fn</span> <span class="ident">new_inclusive</span><span class="op">&lt;</span><span class="ident">B1</span>, <span class="ident">B2</span><span class="op">&gt;</span>(<span class="ident">low</span>: <span class="ident">B1</span>, <span class="ident">high</span>: <span class="ident">B2</span>) <span class="op">-&gt;</span> <span class="self">Self</span>
+            <span class="kw">fn</span> <span class="ident">new_inclusive</span><span class="op">&lt;</span><span class="ident">B1</span>, <span class="ident">B2</span><span class="op">&gt;</span>(<span class="ident">low</span>: <span class="ident">B1</span>, <span class="ident">high</span>: <span class="ident">B2</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>
             <span class="kw">where</span>
                 <span class="ident">B1</span>: <span class="ident">SampleBorrow</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">X</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Sized</span>,
                 <span class="ident">B2</span>: <span class="ident">SampleBorrow</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">X</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Sized</span>,
@@ -2666,7 +2666,7 @@
                 <span class="ident">UniformSampler</span>::<span class="ident">new</span>(<span class="ident">low</span>, <span class="ident">high</span>)
             }
 
-            <span class="kw">fn</span> <span class="ident">sample</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">Rng</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">rng</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">R</span>) <span class="op">-&gt;</span> <span class="self">Self</span>::<span class="ident">X</span> {
+            <span class="kw">fn</span> <span class="ident">sample</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">Rng</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">rng</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">R</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">X</span> {
                 <span class="ident">MyF32</span> {
                     <span class="ident">x</span>: <span class="self">self</span>.<span class="number">0</span>.<span class="ident">sample</span>(<span class="ident">rng</span>),
                 }
@@ -2681,7 +2681,7 @@
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rng</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">test</span>::<span class="ident">rng</span>(<span class="number">804</span>);
         <span class="kw">for</span> <span class="kw">_</span> <span class="kw">in</span> <span class="number">0</span>..<span class="number">100</span> {
             <span class="kw">let</span> <span class="ident">x</span>: <span class="ident">MyF32</span> <span class="op">=</span> <span class="ident">rng</span>.<span class="ident">sample</span>(<span class="ident">uniform</span>);
-            <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">low</span> <span class="op">&lt;=</span> <span class="ident">x</span> <span class="op">&amp;&amp;</span> <span class="ident">x</span> <span class="op">&lt;</span> <span class="ident">high</span>);
+            <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">low</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">x</span> <span class="op">&amp;&amp;</span> <span class="ident">x</span> <span class="op">&lt;</span> <span class="ident">high</span>);
         }
     }
 

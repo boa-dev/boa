@@ -182,11 +182,11 @@
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ThreadRng</span> {
     <span class="comment">// inner raw pointer implies type is neither Send nor Sync</span>
-    <span class="ident">rng</span>: <span class="ident">NonNull</span><span class="op">&lt;</span><span class="ident">ReseedingRng</span><span class="op">&lt;</span><span class="ident">Core</span>, <span class="ident">OsRng</span><span class="op">&gt;&gt;</span>,
+    <span class="ident">rng</span>: <span class="ident">NonNull</span><span class="op">&lt;</span><span class="ident">ReseedingRng</span><span class="op">&lt;</span><span class="ident">Core</span>, <span class="ident">OsRng</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 }
 
 <span class="macro">thread_local</span><span class="macro">!</span>(
-    <span class="kw">static</span> <span class="ident">THREAD_RNG_KEY</span>: <span class="ident">UnsafeCell</span><span class="op">&lt;</span><span class="ident">ReseedingRng</span><span class="op">&lt;</span><span class="ident">Core</span>, <span class="ident">OsRng</span><span class="op">&gt;&gt;</span> <span class="op">=</span> {
+    <span class="kw">static</span> <span class="ident">THREAD_RNG_KEY</span>: <span class="ident">UnsafeCell</span><span class="op">&lt;</span><span class="ident">ReseedingRng</span><span class="op">&lt;</span><span class="ident">Core</span>, <span class="ident">OsRng</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> {
         <span class="kw">let</span> <span class="ident">r</span> <span class="op">=</span> <span class="ident">Core</span>::<span class="ident">from_rng</span>(<span class="ident">OsRng</span>).<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="ident">err</span><span class="op">|</span>
                 <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;could not initialize thread_rng: {}&quot;</span>, <span class="ident">err</span>));
         <span class="kw">let</span> <span class="ident">rng</span> <span class="op">=</span> <span class="ident">ReseedingRng</span>::<span class="ident">new</span>(<span class="ident">r</span>,
@@ -203,26 +203,26 @@
 <span class="doccomment">/// `ThreadRng::default()` equivalent.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// For more information see [`ThreadRng`].</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">thread_rng</span>() <span class="op">-&gt;</span> <span class="ident">ThreadRng</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">thread_rng</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ThreadRng</span> {
     <span class="kw">let</span> <span class="ident">raw</span> <span class="op">=</span> <span class="ident">THREAD_RNG_KEY</span>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">t</span><span class="op">|</span> <span class="ident">t</span>.<span class="ident">get</span>());
     <span class="kw">let</span> <span class="ident">nn</span> <span class="op">=</span> <span class="ident">NonNull</span>::<span class="ident">new</span>(<span class="ident">raw</span>).<span class="ident">unwrap</span>();
     <span class="ident">ThreadRng</span> { <span class="ident">rng</span>: <span class="ident">nn</span> }
 }
 
 <span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">ThreadRng</span> {
-    <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-&gt;</span> <span class="ident">ThreadRng</span> {
+    <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ThreadRng</span> {
         <span class="kw">crate</span>::<span class="ident">prelude</span>::<span class="ident">thread_rng</span>()
     }
 }
 
 <span class="kw">impl</span> <span class="ident">RngCore</span> <span class="kw">for</span> <span class="ident">ThreadRng</span> {
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">next_u32</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">u32</span> {
+    <span class="kw">fn</span> <span class="ident">next_u32</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span> {
         <span class="kw">unsafe</span> { <span class="self">self</span>.<span class="ident">rng</span>.<span class="ident">as_mut</span>().<span class="ident">next_u32</span>() }
     }
 
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">next_u64</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">u64</span> {
+    <span class="kw">fn</span> <span class="ident">next_u64</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u64</span> {
         <span class="kw">unsafe</span> { <span class="self">self</span>.<span class="ident">rng</span>.<span class="ident">as_mut</span>().<span class="ident">next_u64</span>() }
     }
 
@@ -230,7 +230,7 @@
         <span class="kw">unsafe</span> { <span class="self">self</span>.<span class="ident">rng</span>.<span class="ident">as_mut</span>().<span class="ident">fill_bytes</span>(<span class="ident">dest</span>) }
     }
 
-    <span class="kw">fn</span> <span class="ident">try_fill_bytes</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">dest</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>]) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Error</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">try_fill_bytes</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">dest</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Error</span><span class="op">&gt;</span> {
         <span class="kw">unsafe</span> { <span class="self">self</span>.<span class="ident">rng</span>.<span class="ident">as_mut</span>().<span class="ident">try_fill_bytes</span>(<span class="ident">dest</span>) }
     }
 }

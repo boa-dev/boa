@@ -165,7 +165,7 @@
 }
 
 <span class="kw">impl</span> <span class="ident">Object</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">properties</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span>[<span class="ident">PropertyDefinition</span>] {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">properties</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span>[<span class="ident">PropertyDefinition</span>] {
         <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">properties</span>
     }
 
@@ -174,20 +174,20 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
         <span class="ident">indent</span>: <span class="ident">usize</span>,
-    ) <span class="op">-&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
         <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="string">&quot;{\n&quot;</span>)<span class="question-mark">?</span>;
         <span class="kw">for</span> <span class="ident">property</span> <span class="kw">in</span> <span class="self">self</span>.<span class="ident">properties</span>().<span class="ident">iter</span>() {
             <span class="kw">match</span> <span class="ident">property</span> {
-                <span class="ident">PropertyDefinition</span>::<span class="ident">IdentifierReference</span>(<span class="ident">key</span>) <span class="op">=&gt;</span> {
+                <span class="ident">PropertyDefinition</span>::<span class="ident">IdentifierReference</span>(<span class="ident">key</span>) <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;{}    {},&quot;</span>, <span class="ident">indent</span>, <span class="ident">key</span>)<span class="question-mark">?</span>;
                 }
-                <span class="ident">PropertyDefinition</span>::<span class="ident">Property</span>(<span class="ident">key</span>, <span class="ident">value</span>) <span class="op">=&gt;</span> {
+                <span class="ident">PropertyDefinition</span>::<span class="ident">Property</span>(<span class="ident">key</span>, <span class="ident">value</span>) <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;{}    {}: {},&quot;</span>, <span class="ident">indent</span>, <span class="ident">key</span>, <span class="ident">value</span>)<span class="question-mark">?</span>;
                 }
-                <span class="ident">PropertyDefinition</span>::<span class="ident">SpreadObject</span>(<span class="ident">key</span>) <span class="op">=&gt;</span> {
+                <span class="ident">PropertyDefinition</span>::<span class="ident">SpreadObject</span>(<span class="ident">key</span>) <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;{}    ...{},&quot;</span>, <span class="ident">indent</span>, <span class="ident">key</span>)<span class="question-mark">?</span>;
                 }
-                <span class="ident">PropertyDefinition</span>::<span class="ident">MethodDefinition</span>(<span class="ident">_kind</span>, <span class="ident">_key</span>, <span class="ident">_node</span>) <span class="op">=&gt;</span> {
+                <span class="ident">PropertyDefinition</span>::<span class="ident">MethodDefinition</span>(<span class="ident">_kind</span>, <span class="ident">_key</span>, <span class="ident">_node</span>) <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="comment">// TODO: Implement display for PropertyDefinition::MethodDefinition.</span>
                     <span class="macro">unimplemented</span><span class="macro">!</span>(<span class="string">&quot;Display for PropertyDefinition::MethodDefinition&quot;</span>);
                 }
@@ -198,7 +198,7 @@
 }
 
 <span class="kw">impl</span> <span class="ident">Executable</span> <span class="kw">for</span> <span class="ident">Object</span> {
-    <span class="kw">fn</span> <span class="ident">run</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">run</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">global_val</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">context</span>
             .<span class="ident">realm</span>()
             .<span class="ident">environment</span>
@@ -209,10 +209,10 @@
         <span class="comment">// TODO: Implement the rest of the property types.</span>
         <span class="kw">for</span> <span class="ident">property</span> <span class="kw">in</span> <span class="self">self</span>.<span class="ident">properties</span>().<span class="ident">iter</span>() {
             <span class="kw">match</span> <span class="ident">property</span> {
-                <span class="ident">PropertyDefinition</span>::<span class="ident">Property</span>(<span class="ident">key</span>, <span class="ident">value</span>) <span class="op">=&gt;</span> {
+                <span class="ident">PropertyDefinition</span>::<span class="ident">Property</span>(<span class="ident">key</span>, <span class="ident">value</span>) <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="ident">obj</span>.<span class="ident">set_field</span>(<span class="ident">key</span>.<span class="ident">clone</span>(), <span class="ident">value</span>.<span class="ident">run</span>(<span class="ident">context</span>)<span class="question-mark">?</span>);
                 }
-                <span class="ident">PropertyDefinition</span>::<span class="ident">MethodDefinition</span>(<span class="ident">kind</span>, <span class="ident">name</span>, <span class="ident">func</span>) <span class="op">=&gt;</span> {
+                <span class="ident">PropertyDefinition</span>::<span class="ident">MethodDefinition</span>(<span class="ident">kind</span>, <span class="ident">name</span>, <span class="ident">func</span>) <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="kw">if</span> <span class="kw">let</span> <span class="ident">MethodDefinitionKind</span>::<span class="ident">Ordinary</span> <span class="op">=</span> <span class="ident">kind</span> {
                         <span class="ident">obj</span>.<span class="ident">set_field</span>(<span class="ident">name</span>.<span class="ident">clone</span>(), <span class="ident">func</span>.<span class="ident">run</span>(<span class="ident">context</span>)<span class="question-mark">?</span>);
                     } <span class="kw">else</span> {
@@ -220,7 +220,7 @@
                         <span class="comment">//unimplemented!(&quot;other types of property method definitions.&quot;);</span>
                     }
                 }
-                <span class="kw">_</span> <span class="op">=&gt;</span> {} <span class="comment">//unimplemented!(&quot;{:?} type of property&quot;, i),</span>
+                <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {} <span class="comment">//unimplemented!(&quot;{:?} type of property&quot;, i),</span>
             }
         }
 
@@ -229,16 +229,16 @@
 }
 
 <span class="kw">impl</span> <span class="ident">fmt</span>::<span class="ident">Display</span> <span class="kw">for</span> <span class="ident">Object</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
         <span class="self">self</span>.<span class="ident">display</span>(<span class="ident">f</span>, <span class="number">0</span>)
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Object</span>
 <span class="kw">where</span>
-    <span class="ident">T</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span>[<span class="ident">PropertyDefinition</span>]<span class="op">&gt;&gt;</span>,
+    <span class="ident">T</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span>[<span class="ident">PropertyDefinition</span>]<span class="op">&gt;</span><span class="op">&gt;</span>,
 {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">props</span>: <span class="ident">T</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">props</span>: <span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="self">Self</span> {
             <span class="ident">properties</span>: <span class="ident">props</span>.<span class="ident">into</span>(),
         }
@@ -246,7 +246,7 @@
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Object</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Node</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">obj</span>: <span class="ident">Object</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">obj</span>: <span class="ident">Object</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="self">Self</span>::<span class="ident">Object</span>(<span class="ident">obj</span>)
     }
 }

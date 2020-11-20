@@ -1,1 +1,1 @@
-initSidebarItems({"enum":[["AbstractRelation","The result of the [Abstract Relational Comparison][arc]."]]});
+initSidebarItems({"enum":[["AbstractRelation","The result of the Abstract Relational Comparison."]]});

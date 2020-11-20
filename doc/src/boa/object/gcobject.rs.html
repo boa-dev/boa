@@ -908,7 +908,7 @@
 
 <span class="doccomment">/// Garbage collected `Object`.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Trace</span>, <span class="ident">Finalize</span>, <span class="ident">Clone</span>, <span class="ident">Default</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">GcObject</span>(<span class="ident">Gc</span><span class="op">&lt;</span><span class="ident">GcCell</span><span class="op">&lt;</span><span class="ident">Object</span><span class="op">&gt;&gt;</span>);
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">GcObject</span>(<span class="ident">Gc</span><span class="op">&lt;</span><span class="ident">GcCell</span><span class="op">&lt;</span><span class="ident">Object</span><span class="op">&gt;</span><span class="op">&gt;</span>);
 
 <span class="doccomment">/// The body of a JavaScript function.</span>
 <span class="doccomment">///</span>
@@ -922,7 +922,7 @@
 <span class="kw">impl</span> <span class="ident">GcObject</span> {
     <span class="doccomment">/// Create a new `GcObject` from a `Object`.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">object</span>: <span class="ident">Object</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">object</span>: <span class="ident">Object</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="self">Self</span>(<span class="ident">Gc</span>::<span class="ident">new</span>(<span class="ident">GcCell</span>::<span class="ident">new</span>(<span class="ident">object</span>)))
     }
 
@@ -936,7 +936,7 @@
     <span class="doccomment">/// Panics if the object is currently mutably borrowed.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="attribute">#[<span class="ident">track_caller</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">borrow</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">Ref</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">Object</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">borrow</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Ref</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">Object</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">try_borrow</span>().<span class="ident">expect</span>(<span class="string">&quot;Object already mutably borrowed&quot;</span>)
     }
 
@@ -949,7 +949,7 @@
     <span class="doccomment">/// Panics if the object is currently borrowed.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="attribute">#[<span class="ident">track_caller</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">borrow_mut</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">RefMut</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">Object</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">borrow_mut</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">RefMut</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">Object</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">try_borrow_mut</span>().<span class="ident">expect</span>(<span class="string">&quot;Object already borrowed&quot;</span>)
     }
 
@@ -960,7 +960,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// This is the non-panicking variant of [`borrow`](#method.borrow).</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_borrow</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">StdResult</span><span class="op">&lt;</span><span class="ident">Ref</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">Object</span><span class="op">&gt;</span>, <span class="ident">BorrowError</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_borrow</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">StdResult</span><span class="op">&lt;</span><span class="ident">Ref</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">Object</span><span class="op">&gt;</span>, <span class="ident">BorrowError</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="number">0</span>.<span class="ident">try_borrow</span>().<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">BorrowError</span>)
     }
 
@@ -971,13 +971,13 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// This is the non-panicking variant of [`borrow_mut`](#method.borrow_mut).</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_borrow_mut</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">StdResult</span><span class="op">&lt;</span><span class="ident">RefMut</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">Object</span><span class="op">&gt;</span>, <span class="ident">BorrowMutError</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_borrow_mut</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">StdResult</span><span class="op">&lt;</span><span class="ident">RefMut</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">Object</span><span class="op">&gt;</span>, <span class="ident">BorrowMutError</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="number">0</span>.<span class="ident">try_borrow_mut</span>().<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">BorrowMutError</span>)
     }
 
     <span class="doccomment">/// Checks if the garbage collected memory is the same.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">equals</span>(<span class="ident">lhs</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>, <span class="ident">rhs</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">equals</span>(<span class="ident">lhs</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>, <span class="ident">rhs</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
         <span class="ident">std</span>::<span class="ident">ptr</span>::<span class="ident">eq</span>(<span class="ident">lhs</span>.<span class="ident">as_ref</span>(), <span class="ident">rhs</span>.<span class="ident">as_ref</span>())
     }
 
@@ -989,12 +989,12 @@
     <span class="comment">// &lt;https://tc39.es/ecma262/#sec-prepareforordinarycall&gt;</span>
     <span class="comment">// &lt;https://tc39.es/ecma262/#sec-ecmascript-function-objects-call-thisargument-argumentslist&gt;</span>
     <span class="attribute">#[<span class="ident">track_caller</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">call</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">call</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">this_function_object</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">clone</span>();
         <span class="kw">let</span> <span class="ident">f_body</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">function</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">borrow</span>().<span class="ident">as_function</span>() {
             <span class="kw">if</span> <span class="ident">function</span>.<span class="ident">is_callable</span>() {
                 <span class="kw">match</span> <span class="ident">function</span> {
-                    <span class="ident">Function</span>::<span class="ident">BuiltIn</span>(<span class="ident">BuiltInFunction</span>(<span class="ident">function</span>), <span class="kw">_</span>) <span class="op">=&gt;</span> {
+                    <span class="ident">Function</span>::<span class="ident">BuiltIn</span>(<span class="ident">BuiltInFunction</span>(<span class="ident">function</span>), <span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
                         <span class="ident">FunctionBody</span>::<span class="ident">BuiltIn</span>(<span class="kw-2">*</span><span class="ident">function</span>)
                     }
                     <span class="ident">Function</span>::<span class="ident">Ordinary</span> {
@@ -1002,7 +1002,7 @@
                         <span class="ident">params</span>,
                         <span class="ident">environment</span>,
                         <span class="ident">flags</span>,
-                    } <span class="op">=&gt;</span> {
+                    } <span class="op">=</span><span class="op">&gt;</span> {
                         <span class="comment">// Create a new Function environment who&#39;s parent is set to the scope of the function declaration (self.environment)</span>
                         <span class="comment">// &lt;https://tc39.es/ecma262/#sec-prepareforordinarycall&gt;</span>
                         <span class="kw">let</span> <span class="ident">local_env</span> <span class="op">=</span> <span class="ident">new_function_environment</span>(
@@ -1055,8 +1055,8 @@
         };
 
         <span class="kw">match</span> <span class="ident">f_body</span> {
-            <span class="ident">FunctionBody</span>::<span class="ident">BuiltIn</span>(<span class="ident">func</span>) <span class="op">=&gt;</span> <span class="ident">func</span>(<span class="ident">this</span>, <span class="ident">args</span>, <span class="ident">context</span>),
-            <span class="ident">FunctionBody</span>::<span class="ident">Ordinary</span>(<span class="ident">body</span>) <span class="op">=&gt;</span> {
+            <span class="ident">FunctionBody</span>::<span class="ident">BuiltIn</span>(<span class="ident">func</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">func</span>(<span class="ident">this</span>, <span class="ident">args</span>, <span class="ident">context</span>),
+            <span class="ident">FunctionBody</span>::<span class="ident">Ordinary</span>(<span class="ident">body</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">body</span>.<span class="ident">run</span>(<span class="ident">context</span>);
                 <span class="ident">context</span>.<span class="ident">realm_mut</span>().<span class="ident">environment</span>.<span class="ident">pop</span>();
 
@@ -1072,14 +1072,14 @@
     <span class="doccomment">/// Panics if the object is currently mutably borrowed.</span>
     <span class="comment">// &lt;https://tc39.es/ecma262/#sec-ecmascript-function-objects-construct-argumentslist-newtarget&gt;</span>
     <span class="attribute">#[<span class="ident">track_caller</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">construct</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">construct</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">this</span>: <span class="ident">Value</span> <span class="op">=</span> <span class="ident">Object</span>::<span class="ident">create</span>(<span class="self">self</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">PROTOTYPE</span>.<span class="ident">into</span>())).<span class="ident">into</span>();
 
         <span class="kw">let</span> <span class="ident">this_function_object</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">clone</span>();
         <span class="kw">let</span> <span class="ident">body</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">function</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">borrow</span>().<span class="ident">as_function</span>() {
             <span class="kw">if</span> <span class="ident">function</span>.<span class="ident">is_constructable</span>() {
                 <span class="kw">match</span> <span class="ident">function</span> {
-                    <span class="ident">Function</span>::<span class="ident">BuiltIn</span>(<span class="ident">BuiltInFunction</span>(<span class="ident">function</span>), <span class="kw">_</span>) <span class="op">=&gt;</span> {
+                    <span class="ident">Function</span>::<span class="ident">BuiltIn</span>(<span class="ident">BuiltInFunction</span>(<span class="ident">function</span>), <span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
                         <span class="ident">FunctionBody</span>::<span class="ident">BuiltIn</span>(<span class="kw-2">*</span><span class="ident">function</span>)
                     }
                     <span class="ident">Function</span>::<span class="ident">Ordinary</span> {
@@ -1087,7 +1087,7 @@
                         <span class="ident">params</span>,
                         <span class="ident">environment</span>,
                         <span class="ident">flags</span>,
-                    } <span class="op">=&gt;</span> {
+                    } <span class="op">=</span><span class="op">&gt;</span> {
                         <span class="comment">// Create a new Function environment who&#39;s parent is set to the scope of the function declaration (self.environment)</span>
                         <span class="comment">// &lt;https://tc39.es/ecma262/#sec-prepareforordinarycall&gt;</span>
                         <span class="kw">let</span> <span class="ident">local_env</span> <span class="op">=</span> <span class="ident">new_function_environment</span>(
@@ -1137,11 +1137,11 @@
         };
 
         <span class="kw">match</span> <span class="ident">body</span> {
-            <span class="ident">FunctionBody</span>::<span class="ident">BuiltIn</span>(<span class="ident">function</span>) <span class="op">=&gt;</span> {
+            <span class="ident">FunctionBody</span>::<span class="ident">BuiltIn</span>(<span class="ident">function</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="ident">function</span>(<span class="kw-2">&amp;</span><span class="ident">this</span>, <span class="ident">args</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
                 <span class="prelude-val">Ok</span>(<span class="ident">this</span>)
             }
-            <span class="ident">FunctionBody</span>::<span class="ident">Ordinary</span>(<span class="ident">body</span>) <span class="op">=&gt;</span> {
+            <span class="ident">FunctionBody</span>::<span class="ident">Ordinary</span>(<span class="ident">body</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">body</span>.<span class="ident">run</span>(<span class="ident">context</span>);
 
                 <span class="comment">// local_env gets dropped here, its no longer needed</span>
@@ -1173,11 +1173,11 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
         <span class="ident">hint</span>: <span class="ident">PreferredType</span>,
-    ) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Assert: Type(O) is Object.</span>
         <span class="comment">//      Already is GcObject by type.</span>
         <span class="comment">// 2. Assert: Type(hint) is String and its value is either &quot;string&quot; or &quot;number&quot;.</span>
-        <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="ident">hint</span> <span class="op">==</span> <span class="ident">PreferredType</span>::<span class="ident">String</span> <span class="op">||</span> <span class="ident">hint</span> <span class="op">==</span> <span class="ident">PreferredType</span>::<span class="ident">Number</span>);
+        <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="ident">hint</span> <span class="op">=</span><span class="op">=</span> <span class="ident">PreferredType</span>::<span class="ident">String</span> <span class="op">|</span><span class="op">|</span> <span class="ident">hint</span> <span class="op">=</span><span class="op">=</span> <span class="ident">PreferredType</span>::<span class="ident">Number</span>);
 
         <span class="comment">// Diverge from the spec here to make sure we aren&#39;t going to overflow the stack by converting</span>
         <span class="comment">// a recursive structure</span>
@@ -1187,9 +1187,9 @@
         <span class="kw">if</span> <span class="ident">recursion_limiter</span>.<span class="ident">live</span> {
             <span class="comment">// we&#39;re in a recursive object, bail</span>
             <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="kw">match</span> <span class="ident">hint</span> {
-                <span class="ident">PreferredType</span>::<span class="ident">Number</span> <span class="op">=&gt;</span> <span class="ident">Value</span>::<span class="ident">from</span>(<span class="number">0</span>),
-                <span class="ident">PreferredType</span>::<span class="ident">String</span> <span class="op">=&gt;</span> <span class="ident">Value</span>::<span class="ident">from</span>(<span class="string">&quot;&quot;</span>),
-                <span class="ident">PreferredType</span>::<span class="ident">Default</span> <span class="op">=&gt;</span> <span class="macro">unreachable</span><span class="macro">!</span>(<span class="string">&quot;checked type hint in step 2&quot;</span>),
+                <span class="ident">PreferredType</span>::<span class="ident">Number</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Value</span>::<span class="ident">from</span>(<span class="number">0</span>),
+                <span class="ident">PreferredType</span>::<span class="ident">String</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Value</span>::<span class="ident">from</span>(<span class="string">&quot;&quot;</span>),
+                <span class="ident">PreferredType</span>::<span class="ident">Default</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable</span><span class="macro">!</span>(<span class="string">&quot;checked type hint in step 2&quot;</span>),
             });
         }
 
@@ -1197,7 +1197,7 @@
         <span class="comment">//    a. Let methodNames be « &quot;toString&quot;, &quot;valueOf&quot; ».</span>
         <span class="comment">// 4. Else,</span>
         <span class="comment">//    a. Let methodNames be « &quot;valueOf&quot;, &quot;toString&quot; ».</span>
-        <span class="kw">let</span> <span class="ident">method_names</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">hint</span> <span class="op">==</span> <span class="ident">PreferredType</span>::<span class="ident">String</span> {
+        <span class="kw">let</span> <span class="ident">method_names</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">hint</span> <span class="op">=</span><span class="op">=</span> <span class="ident">PreferredType</span>::<span class="ident">String</span> {
             [<span class="string">&quot;toString&quot;</span>, <span class="string">&quot;valueOf&quot;</span>]
         } <span class="kw">else</span> {
             [<span class="string">&quot;valueOf&quot;</span>, <span class="string">&quot;toString&quot;</span>]
@@ -1224,7 +1224,7 @@
     }
 
     <span class="doccomment">/// Converts an object to JSON, checking for reference cycles and throwing a TypeError if one is found</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">to_json</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">JSONValue</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">to_json</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">JSONValue</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">rec_limiter</span> <span class="op">=</span> <span class="ident">RecursionLimiter</span>::<span class="ident">new</span>(<span class="self">self</span>);
         <span class="kw">if</span> <span class="ident">rec_limiter</span>.<span class="ident">live</span> {
             <span class="prelude-val">Err</span>(<span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;cyclic object value&quot;</span>))
@@ -1235,7 +1235,7 @@
             <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <span class="ident">Value</span>::<span class="ident">from</span>(<span class="self">self</span>.<span class="ident">clone</span>());
             <span class="kw">for</span> <span class="ident">key</span> <span class="kw">in</span> <span class="ident">keys</span> {
                 <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="ident">key</span>);
-                <span class="kw">if</span> <span class="ident">value</span>.<span class="ident">is_undefined</span>() <span class="op">||</span> <span class="ident">value</span>.<span class="ident">is_function</span>() <span class="op">||</span> <span class="ident">value</span>.<span class="ident">is_symbol</span>() {
+                <span class="kw">if</span> <span class="ident">value</span>.<span class="ident">is_undefined</span>() <span class="op">|</span><span class="op">|</span> <span class="ident">value</span>.<span class="ident">is_function</span>() <span class="op">|</span><span class="op">|</span> <span class="ident">value</span>.<span class="ident">is_symbol</span>() {
                     <span class="ident">arr</span>.<span class="ident">push</span>(<span class="ident">JSONValue</span>::<span class="ident">Null</span>);
                 } <span class="kw">else</span> {
                     <span class="ident">arr</span>.<span class="ident">push</span>(<span class="ident">value</span>.<span class="ident">to_json</span>(<span class="ident">context</span>)<span class="question-mark">?</span>);
@@ -1261,17 +1261,17 @@
     <span class="doccomment">/// # Panics</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Panics if the object is currently mutably borrowed.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_property_descriptor</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">PropertyDescriptor</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_property_descriptor</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">PropertyDescriptor</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">attribute</span> <span class="op">=</span> <span class="ident">Attribute</span>::<span class="ident">empty</span>();
 
         <span class="kw">let</span> <span class="ident">enumerable_key</span> <span class="op">=</span> <span class="ident">PropertyKey</span>::<span class="ident">from</span>(<span class="string">&quot;enumerable&quot;</span>);
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">has_property</span>(<span class="kw-2">&amp;</span><span class="ident">enumerable_key</span>) <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">enumerable_key</span>).<span class="ident">to_boolean</span>() {
-            <span class="ident">attribute</span> <span class="op">|=</span> <span class="ident">Attribute</span>::<span class="ident">ENUMERABLE</span>;
+            <span class="ident">attribute</span> <span class="op">|</span><span class="op">=</span> <span class="ident">Attribute</span>::<span class="ident">ENUMERABLE</span>;
         }
 
         <span class="kw">let</span> <span class="ident">configurable_key</span> <span class="op">=</span> <span class="ident">PropertyKey</span>::<span class="ident">from</span>(<span class="string">&quot;configurable&quot;</span>);
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">has_property</span>(<span class="kw-2">&amp;</span><span class="ident">configurable_key</span>) <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">configurable_key</span>).<span class="ident">to_boolean</span>() {
-            <span class="ident">attribute</span> <span class="op">|=</span> <span class="ident">Attribute</span>::<span class="ident">CONFIGURABLE</span>;
+            <span class="ident">attribute</span> <span class="op">|</span><span class="op">=</span> <span class="ident">Attribute</span>::<span class="ident">CONFIGURABLE</span>;
         }
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">value</span> <span class="op">=</span> <span class="prelude-val">None</span>;
@@ -1285,7 +1285,7 @@
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">has_property</span>(<span class="kw-2">&amp;</span><span class="ident">writable_key</span>) {
             <span class="ident">has_writable</span> <span class="op">=</span> <span class="bool-val">true</span>;
             <span class="kw">if</span> <span class="self">self</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">writable_key</span>).<span class="ident">to_boolean</span>() {
-                <span class="ident">attribute</span> <span class="op">|=</span> <span class="ident">Attribute</span>::<span class="ident">WRITABLE</span>;
+                <span class="ident">attribute</span> <span class="op">|</span><span class="op">=</span> <span class="ident">Attribute</span>::<span class="ident">WRITABLE</span>;
             }
         }
 
@@ -1294,10 +1294,10 @@
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">has_property</span>(<span class="kw-2">&amp;</span><span class="ident">get_key</span>) {
             <span class="kw">let</span> <span class="ident">getter</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">get_key</span>);
             <span class="kw">match</span> <span class="ident">getter</span> {
-                <span class="ident">Value</span>::<span class="ident">Object</span>(<span class="kw-2">ref</span> <span class="ident">object</span>) <span class="kw">if</span> <span class="ident">object</span>.<span class="ident">is_callable</span>() <span class="op">=&gt;</span> {
+                <span class="ident">Value</span>::<span class="ident">Object</span>(<span class="kw-2">ref</span> <span class="ident">object</span>) <span class="kw">if</span> <span class="ident">object</span>.<span class="ident">is_callable</span>() <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="ident">get</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">object</span>.<span class="ident">clone</span>());
                 }
-                <span class="kw">_</span> <span class="op">=&gt;</span> {
+                <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="kw">return</span> <span class="prelude-val">Err</span>(
                         <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Property descriptor getter must be callable&quot;</span>)
                     );
@@ -1310,10 +1310,10 @@
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">has_property</span>(<span class="kw-2">&amp;</span><span class="ident">set_key</span>) {
             <span class="kw">let</span> <span class="ident">setter</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">set_key</span>);
             <span class="kw">match</span> <span class="ident">setter</span> {
-                <span class="ident">Value</span>::<span class="ident">Object</span>(<span class="kw-2">ref</span> <span class="ident">object</span>) <span class="kw">if</span> <span class="ident">object</span>.<span class="ident">is_callable</span>() <span class="op">=&gt;</span> {
+                <span class="ident">Value</span>::<span class="ident">Object</span>(<span class="kw-2">ref</span> <span class="ident">object</span>) <span class="kw">if</span> <span class="ident">object</span>.<span class="ident">is_callable</span>() <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="ident">set</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">object</span>.<span class="ident">clone</span>());
                 }
-                <span class="kw">_</span> <span class="op">=&gt;</span> {
+                <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="kw">return</span> <span class="prelude-val">Err</span>(
                         <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Property descriptor setter must be callable&quot;</span>)
                     );
@@ -1321,8 +1321,8 @@
             };
         }
 
-        <span class="kw">if</span> <span class="ident">get</span>.<span class="ident">is_some</span>() <span class="op">||</span> <span class="ident">set</span>.<span class="ident">is_some</span>() {
-            <span class="kw">if</span> <span class="ident">value</span>.<span class="ident">is_some</span>() <span class="op">||</span> <span class="ident">has_writable</span> {
+        <span class="kw">if</span> <span class="ident">get</span>.<span class="ident">is_some</span>() <span class="op">|</span><span class="op">|</span> <span class="ident">set</span>.<span class="ident">is_some</span>() {
+            <span class="kw">if</span> <span class="ident">value</span>.<span class="ident">is_some</span>() <span class="op">|</span><span class="op">|</span> <span class="ident">has_writable</span> {
                 <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Invalid property descriptor. Cannot both specify accessors and a value or writable attribute&quot;</span>));
             }
 
@@ -1339,7 +1339,7 @@
     <span class="doccomment">/// Panics if the object is currently mutably borrowed.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="attribute">#[<span class="ident">track_caller</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span>
     <span class="kw">where</span>
         <span class="ident">T</span>: <span class="ident">NativeObject</span>,
     {
@@ -1354,7 +1354,7 @@
     <span class="doccomment">/// Panics if the object is currently mutably borrowed.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="attribute">#[<span class="ident">track_caller</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">downcast_ref</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Ref</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">T</span><span class="op">&gt;&gt;</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">downcast_ref</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Ref</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">T</span>: <span class="ident">NativeObject</span>,
     {
@@ -1374,7 +1374,7 @@
     <span class="doccomment">/// Panics if the object is currently borrowed.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="attribute">#[<span class="ident">track_caller</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">downcast_mut</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">RefMut</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">T</span><span class="op">&gt;&gt;</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">downcast_mut</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">RefMut</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">T</span>: <span class="ident">NativeObject</span>,
     {
@@ -1393,7 +1393,7 @@
     <span class="doccomment">/// Panics if the object is currently mutably borrowed.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="attribute">#[<span class="ident">track_caller</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">prototype_instance</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">Value</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">prototype_instance</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Value</span> {
         <span class="self">self</span>.<span class="ident">borrow</span>().<span class="ident">prototype_instance</span>().<span class="ident">clone</span>()
     }
 
@@ -1416,7 +1416,7 @@
     <span class="doccomment">/// Panics if the object is currently mutably borrowed.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="attribute">#[<span class="ident">track_caller</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_array</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_array</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
         <span class="self">self</span>.<span class="ident">borrow</span>().<span class="ident">is_array</span>()
     }
 
@@ -1427,7 +1427,7 @@
     <span class="doccomment">/// Panics if the object is currently mutably borrowed.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="attribute">#[<span class="ident">track_caller</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_array_iterator</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_array_iterator</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
         <span class="self">self</span>.<span class="ident">borrow</span>().<span class="ident">is_array_iterator</span>()
     }
 
@@ -1438,7 +1438,7 @@
     <span class="doccomment">/// Panics if the object is currently mutably borrowed.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="attribute">#[<span class="ident">track_caller</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_map</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_map</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
         <span class="self">self</span>.<span class="ident">borrow</span>().<span class="ident">is_map</span>()
     }
 
@@ -1449,7 +1449,7 @@
     <span class="doccomment">/// Panics if the object is currently mutably borrowed.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="attribute">#[<span class="ident">track_caller</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_string</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_string</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
         <span class="self">self</span>.<span class="ident">borrow</span>().<span class="ident">is_string</span>()
     }
 
@@ -1460,7 +1460,7 @@
     <span class="doccomment">/// Panics if the object is currently mutably borrowed.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="attribute">#[<span class="ident">track_caller</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_function</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_function</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
         <span class="self">self</span>.<span class="ident">borrow</span>().<span class="ident">is_function</span>()
     }
 
@@ -1471,7 +1471,7 @@
     <span class="doccomment">/// Panics if the object is currently mutably borrowed.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="attribute">#[<span class="ident">track_caller</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_symbol</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_symbol</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
         <span class="self">self</span>.<span class="ident">borrow</span>().<span class="ident">is_symbol</span>()
     }
 
@@ -1482,7 +1482,7 @@
     <span class="doccomment">/// Panics if the object is currently mutably borrowed.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="attribute">#[<span class="ident">track_caller</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_error</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_error</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
         <span class="self">self</span>.<span class="ident">borrow</span>().<span class="ident">is_error</span>()
     }
 
@@ -1493,7 +1493,7 @@
     <span class="doccomment">/// Panics if the object is currently mutably borrowed.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="attribute">#[<span class="ident">track_caller</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_boolean</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_boolean</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
         <span class="self">self</span>.<span class="ident">borrow</span>().<span class="ident">is_boolean</span>()
     }
 
@@ -1504,7 +1504,7 @@
     <span class="doccomment">/// Panics if the object is currently mutably borrowed.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="attribute">#[<span class="ident">track_caller</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_number</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_number</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
         <span class="self">self</span>.<span class="ident">borrow</span>().<span class="ident">is_number</span>()
     }
 
@@ -1515,7 +1515,7 @@
     <span class="doccomment">/// Panics if the object is currently mutably borrowed.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="attribute">#[<span class="ident">track_caller</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_bigint</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_bigint</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
         <span class="self">self</span>.<span class="ident">borrow</span>().<span class="ident">is_bigint</span>()
     }
 
@@ -1526,7 +1526,7 @@
     <span class="doccomment">/// Panics if the object is currently mutably borrowed.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="attribute">#[<span class="ident">track_caller</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_regexp</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_regexp</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
         <span class="self">self</span>.<span class="ident">borrow</span>().<span class="ident">is_regexp</span>()
     }
 
@@ -1537,7 +1537,7 @@
     <span class="doccomment">/// Panics if the object is currently mutably borrowed.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="attribute">#[<span class="ident">track_caller</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_ordinary</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_ordinary</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
         <span class="self">self</span>.<span class="ident">borrow</span>().<span class="ident">is_ordinary</span>()
     }
 
@@ -1548,7 +1548,7 @@
     <span class="doccomment">/// Panics if the object is currently mutably borrowed.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="attribute">#[<span class="ident">track_caller</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_native_object</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_native_object</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
         <span class="self">self</span>.<span class="ident">borrow</span>().<span class="ident">is_native_object</span>()
     }
 
@@ -1559,7 +1559,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-getmethod</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_method</span><span class="op">&lt;</span><span class="ident">K</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>, <span class="ident">key</span>: <span class="ident">K</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">GcObject</span><span class="op">&gt;&gt;</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_method</span><span class="op">&lt;</span><span class="ident">K</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>, <span class="ident">key</span>: <span class="ident">K</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">GcObject</span><span class="op">&gt;</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">K</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">PropertyKey</span><span class="op">&gt;</span>,
     {
@@ -1571,8 +1571,8 @@
         }
 
         <span class="kw">match</span> <span class="ident">value</span>.<span class="ident">as_object</span>() {
-            <span class="prelude-val">Some</span>(<span class="ident">object</span>) <span class="kw">if</span> <span class="ident">object</span>.<span class="ident">is_callable</span>() <span class="op">=&gt;</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="ident">object</span>)),
-            <span class="kw">_</span> <span class="op">=&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">context</span>
+            <span class="prelude-val">Some</span>(<span class="ident">object</span>) <span class="kw">if</span> <span class="ident">object</span>.<span class="ident">is_callable</span>() <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="ident">object</span>)),
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">context</span>
                 .<span class="ident">construct_type_error</span>(<span class="string">&quot;value returned for property of object is not a function&quot;</span>)),
         }
     }
@@ -1584,7 +1584,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-ordinaryhasinstance</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ordinary_has_instance</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>, <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ordinary_has_instance</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>, <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">is_callable</span>() {
             <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="bool-val">false</span>);
         }
@@ -1614,9 +1614,9 @@
     }
 }
 
-<span class="kw">impl</span> <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">GcCell</span><span class="op">&lt;</span><span class="ident">Object</span><span class="op">&gt;&gt;</span> <span class="kw">for</span> <span class="ident">GcObject</span> {
+<span class="kw">impl</span> <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">GcCell</span><span class="op">&lt;</span><span class="ident">Object</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">GcObject</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">as_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="ident">GcCell</span><span class="op">&lt;</span><span class="ident">Object</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">as_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">GcCell</span><span class="op">&lt;</span><span class="ident">Object</span><span class="op">&gt;</span> {
         <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="self">self</span>.<span class="number">0</span>
     }
 }
@@ -1627,7 +1627,7 @@
 
 <span class="kw">impl</span> <span class="ident">Display</span> <span class="kw">for</span> <span class="ident">BorrowError</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
         <span class="ident">Display</span>::<span class="ident">fmt</span>(<span class="string">&quot;Object already mutably borrowed&quot;</span>, <span class="ident">f</span>)
     }
 }
@@ -1640,7 +1640,7 @@
 
 <span class="kw">impl</span> <span class="ident">Display</span> <span class="kw">for</span> <span class="ident">BorrowMutError</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
         <span class="ident">Display</span>::<span class="ident">fmt</span>(<span class="string">&quot;Object already borrowed&quot;</span>, <span class="ident">f</span>)
     }
 }
@@ -1697,7 +1697,7 @@
     <span class="macro">thread_local</span><span class="macro">!</span> {
         <span class="doccomment">/// The map of pointers to `GcObject` that have been visited during the current `Debug::fmt` graph,</span>
         <span class="doccomment">/// and the current state of their RecursionLimiter (dropped or live -- see `RecursionValueState`)</span>
-        <span class="kw">static</span> <span class="ident">SEEN</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">usize</span>, <span class="ident">RecursionValueState</span><span class="op">&gt;&gt;</span> <span class="op">=</span> <span class="ident">RefCell</span>::<span class="ident">new</span>(<span class="ident">HashMap</span>::<span class="ident">new</span>());
+        <span class="kw">static</span> <span class="ident">SEEN</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">usize</span>, <span class="ident">RecursionValueState</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">RefCell</span>::<span class="ident">new</span>(<span class="ident">HashMap</span>::<span class="ident">new</span>());
     }
 
     <span class="doccomment">/// Determines if the specified `GcObject` has been visited, and returns a struct that will free it when dropped.</span>
@@ -1705,7 +1705,7 @@
     <span class="doccomment">/// This is done by maintaining a thread-local hashset containing the pointers of `GcObject` values that have been</span>
     <span class="doccomment">/// visited. The first `GcObject` visited will clear the hashset, while any others will check if they are contained</span>
     <span class="doccomment">/// by the hashset.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">o</span>: <span class="kw-2">&amp;</span><span class="ident">GcObject</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">o</span>: <span class="kw-2">&amp;</span><span class="ident">GcObject</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="comment">// We shouldn&#39;t have to worry too much about this being moved during Debug::fmt.</span>
         <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> (<span class="ident">o</span>.<span class="ident">as_ref</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="kw">_</span>) <span class="kw">as</span> <span class="ident">usize</span>;
         <span class="kw">let</span> (<span class="ident">top_level</span>, <span class="ident">visited</span>, <span class="ident">live</span>) <span class="op">=</span> <span class="self">Self</span>::<span class="ident">SEEN</span>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">hm</span><span class="op">|</span> {
@@ -1715,8 +1715,8 @@
 
             (
                 <span class="ident">top_level</span>,
-                <span class="ident">old_state</span> <span class="op">==</span> <span class="prelude-val">Some</span>(<span class="ident">RecursionValueState</span>::<span class="ident">Visited</span>),
-                <span class="ident">old_state</span> <span class="op">==</span> <span class="prelude-val">Some</span>(<span class="ident">RecursionValueState</span>::<span class="ident">Live</span>),
+                <span class="ident">old_state</span> <span class="op">=</span><span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">RecursionValueState</span>::<span class="ident">Visited</span>),
+                <span class="ident">old_state</span> <span class="op">=</span><span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">RecursionValueState</span>::<span class="ident">Live</span>),
             )
         });
 
@@ -1730,7 +1730,7 @@
 }
 
 <span class="kw">impl</span> <span class="ident">Debug</span> <span class="kw">for</span> <span class="ident">GcObject</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="ident">std</span>::<span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">std</span>::<span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
         <span class="kw">let</span> <span class="ident">limiter</span> <span class="op">=</span> <span class="ident">RecursionLimiter</span>::<span class="ident">new</span>(<span class="kw-2">&amp;</span><span class="self">self</span>);
 
         <span class="comment">// Typically, using `!limiter.live` would be good enough here.</span>

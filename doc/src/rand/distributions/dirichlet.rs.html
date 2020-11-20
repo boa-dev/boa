@@ -161,7 +161,7 @@
     <span class="doccomment">/// # Panics</span>
     <span class="doccomment">/// - if `alpha.len() &lt; 2`</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">V</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">f64</span><span class="op">&gt;&gt;</span><span class="op">&gt;</span>(<span class="ident">alpha</span>: <span class="ident">V</span>) <span class="op">-&gt;</span> <span class="ident">Dirichlet</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">V</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">f64</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">alpha</span>: <span class="ident">V</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Dirichlet</span> {
         <span class="kw">let</span> <span class="ident">a</span> <span class="op">=</span> <span class="ident">alpha</span>.<span class="ident">into</span>();
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">a</span>.<span class="ident">len</span>() <span class="op">&gt;</span> <span class="number">1</span>);
         <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">a</span>.<span class="ident">len</span>() {
@@ -177,7 +177,7 @@
     <span class="doccomment">/// - if `alpha &lt;= 0.0`</span>
     <span class="doccomment">/// - if `size &lt; 2`</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_with_param</span>(<span class="ident">alpha</span>: <span class="ident">f64</span>, <span class="ident">size</span>: <span class="ident">usize</span>) <span class="op">-&gt;</span> <span class="ident">Dirichlet</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_with_param</span>(<span class="ident">alpha</span>: <span class="ident">f64</span>, <span class="ident">size</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Dirichlet</span> {
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">alpha</span> <span class="op">&gt;</span> <span class="number">0.0</span>);
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">size</span> <span class="op">&gt;</span> <span class="number">1</span>);
         <span class="ident">Dirichlet</span> {
@@ -186,8 +186,8 @@
     }
 }
 
-<span class="kw">impl</span> <span class="ident">Distribution</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">f64</span><span class="op">&gt;&gt;</span> <span class="kw">for</span> <span class="ident">Dirichlet</span> {
-    <span class="kw">fn</span> <span class="ident">sample</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">Rng</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">rng</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">R</span>) <span class="op">-&gt;</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">f64</span><span class="op">&gt;</span> {
+<span class="kw">impl</span> <span class="ident">Distribution</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">f64</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Dirichlet</span> {
+    <span class="kw">fn</span> <span class="ident">sample</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">Rng</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">rng</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">R</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">f64</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">n</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">alpha</span>.<span class="ident">len</span>();
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">samples</span> <span class="op">=</span> <span class="macro">vec</span><span class="macro">!</span>[<span class="number">0.0f64</span>; <span class="ident">n</span>];
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">sum</span> <span class="op">=</span> <span class="number">0.0f64</span>;
@@ -195,11 +195,11 @@
         <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">n</span> {
             <span class="kw">let</span> <span class="ident">g</span> <span class="op">=</span> <span class="ident">Gamma</span>::<span class="ident">new</span>(<span class="self">self</span>.<span class="ident">alpha</span>[<span class="ident">i</span>], <span class="number">1.0</span>);
             <span class="ident">samples</span>[<span class="ident">i</span>] <span class="op">=</span> <span class="ident">g</span>.<span class="ident">sample</span>(<span class="ident">rng</span>);
-            <span class="ident">sum</span> <span class="op">+=</span> <span class="ident">samples</span>[<span class="ident">i</span>];
+            <span class="ident">sum</span> <span class="op">+</span><span class="op">=</span> <span class="ident">samples</span>[<span class="ident">i</span>];
         }
         <span class="kw">let</span> <span class="ident">invacc</span> <span class="op">=</span> <span class="number">1.0</span> <span class="op">/</span> <span class="ident">sum</span>;
         <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">n</span> {
-            <span class="ident">samples</span>[<span class="ident">i</span>] <span class="op">*=</span> <span class="ident">invacc</span>;
+            <span class="ident">samples</span>[<span class="ident">i</span>] <span class="kw-2">*</span><span class="op">=</span> <span class="ident">invacc</span>;
         }
         <span class="ident">samples</span>
     }

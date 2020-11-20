@@ -426,15 +426,15 @@
     } <span class="kw">else</span> {
         <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unused</span>)]</span>
         <span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">error</span> {
-            ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">x</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) <span class="op">=&gt;</span> {};
+            ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">x</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) <span class="op">=</span><span class="op">&gt;</span> {};
         }
         <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unused</span>)]</span>
         <span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">warn</span> {
-            ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">x</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) <span class="op">=&gt;</span> {};
+            ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">x</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) <span class="op">=</span><span class="op">&gt;</span> {};
         }
         <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unused</span>)]</span>
         <span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">info</span> {
-            ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">x</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) <span class="op">=&gt;</span> {};
+            ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">x</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) <span class="op">=</span><span class="op">&gt;</span> {};
         }
     }
 }
@@ -558,7 +558,7 @@
 <span class="doccomment">/// In general, `getrandom` will be fast enough for interactive usage, though</span>
 <span class="doccomment">/// significantly slower than a user-space CSPRNG; for the latter consider</span>
 <span class="doccomment">/// [`rand::thread_rng`](https://docs.rs/rand/*/rand/fn.thread_rng.html).</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">getrandom</span>(<span class="ident">dest</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>]) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">error</span>::<span class="ident">Error</span><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">getrandom</span>(<span class="ident">dest</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">error</span>::<span class="ident">Error</span><span class="op">&gt;</span> {
     <span class="kw">if</span> <span class="ident">dest</span>.<span class="ident">is_empty</span>() {
         <span class="kw">return</span> <span class="prelude-val">Ok</span>(());
     }

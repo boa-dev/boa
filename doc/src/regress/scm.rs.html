@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/regress-0.2.0/src/scm.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>scm.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../regress/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/regress-0.2.0/src/scm.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>scm.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+<link rel="alternate icon" type="image/png" href="../../favicon-16x16.png">
+<link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../regress/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
                 <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
@@ -165,7 +167,7 @@
 <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">SingleCharMatcher</span><span class="op">&lt;</span><span class="ident">Cursor</span>: <span class="ident">Cursorable</span><span class="op">&gt;</span> {
     <span class="doccomment">/// \return whether we match the character at the given position, advancing</span>
     <span class="doccomment">/// the position if so. On a false return, the position is unspecified.</span>
-    <span class="kw">fn</span> <span class="ident">matches</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">pos</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Position</span>, <span class="ident">cursor</span>: <span class="ident">Cursor</span>) <span class="op">-&gt;</span> <span class="ident">bool</span>;
+    <span class="kw">fn</span> <span class="ident">matches</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">pos</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Position</span>, <span class="ident">cursor</span>: <span class="ident">Cursor</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span>;
 }
 
 <span class="doccomment">/// Insn::Char</span>
@@ -174,10 +176,10 @@
 }
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Cursor</span>: <span class="ident">Cursorable</span><span class="op">&gt;</span> <span class="ident">SingleCharMatcher</span><span class="op">&lt;</span><span class="ident">Cursor</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Char</span><span class="op">&lt;</span><span class="ident">Cursor</span><span class="op">&gt;</span> {
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">matches</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">pos</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Position</span>, <span class="ident">cursor</span>: <span class="ident">Cursor</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">matches</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">pos</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Position</span>, <span class="ident">cursor</span>: <span class="ident">Cursor</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
         <span class="kw">match</span> <span class="ident">cursor</span>.<span class="ident">next</span>(<span class="ident">pos</span>) {
-            <span class="prelude-val">Some</span>(<span class="ident">c2</span>) <span class="op">=&gt;</span> <span class="ident">c2</span> <span class="op">==</span> <span class="self">self</span>.<span class="ident">c</span>,
-            <span class="kw">_</span> <span class="op">=&gt;</span> <span class="bool-val">false</span>,
+            <span class="prelude-val">Some</span>(<span class="ident">c2</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">c2</span> <span class="op">=</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">c</span>,
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
         }
     }
 }
@@ -188,10 +190,10 @@
 }
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Cursor</span>: <span class="ident">Cursorable</span><span class="op">&gt;</span> <span class="ident">SingleCharMatcher</span><span class="op">&lt;</span><span class="ident">Cursor</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">CharICase</span><span class="op">&lt;</span><span class="ident">Cursor</span><span class="op">&gt;</span> {
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">matches</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">pos</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Position</span>, <span class="ident">cursor</span>: <span class="ident">Cursor</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">matches</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">pos</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Position</span>, <span class="ident">cursor</span>: <span class="ident">Cursor</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
         <span class="kw">match</span> <span class="ident">cursor</span>.<span class="ident">next</span>(<span class="ident">pos</span>) {
-            <span class="prelude-val">Some</span>(<span class="ident">c2</span>) <span class="op">=&gt;</span> <span class="ident">c2</span> <span class="op">==</span> <span class="self">self</span>.<span class="ident">c</span> <span class="op">||</span> <span class="ident">Cursor</span>::<span class="ident">CharProps</span>::<span class="ident">fold</span>(<span class="ident">c2</span>) <span class="op">==</span> <span class="self">self</span>.<span class="ident">c</span>,
-            <span class="kw">_</span> <span class="op">=&gt;</span> <span class="bool-val">false</span>,
+            <span class="prelude-val">Some</span>(<span class="ident">c2</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">c2</span> <span class="op">=</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">c</span> <span class="op">|</span><span class="op">|</span> <span class="ident">Cursor</span>::<span class="ident">CharProps</span>::<span class="ident">fold</span>(<span class="ident">c2</span>) <span class="op">=</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">c</span>,
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
         }
     }
 }
@@ -203,10 +205,10 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Cursor</span>: <span class="ident">Cursorable</span><span class="op">&gt;</span> <span class="ident">SingleCharMatcher</span><span class="op">&lt;</span><span class="ident">Cursor</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">CharSet</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">matches</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">pos</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Position</span>, <span class="ident">cursor</span>: <span class="ident">Cursor</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">matches</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">pos</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Position</span>, <span class="ident">cursor</span>: <span class="ident">Cursor</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
         <span class="kw">match</span> <span class="ident">cursor</span>.<span class="ident">next</span>(<span class="ident">pos</span>) {
-            <span class="prelude-val">Some</span>(<span class="ident">c</span>) <span class="op">=&gt;</span> <span class="ident">charset_contains</span>(<span class="self">self</span>.<span class="ident">chars</span>, <span class="ident">c</span>.<span class="ident">as_char</span>()),
-            <span class="prelude-val">None</span> <span class="op">=&gt;</span> <span class="bool-val">false</span>,
+            <span class="prelude-val">Some</span>(<span class="ident">c</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">charset_contains</span>(<span class="self">self</span>.<span class="ident">chars</span>, <span class="ident">c</span>.<span class="ident">as_char</span>()),
+            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
         }
     }
 }
@@ -218,10 +220,10 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Cursor</span>: <span class="ident">Cursorable</span><span class="op">&gt;</span> <span class="ident">SingleCharMatcher</span><span class="op">&lt;</span><span class="ident">Cursor</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Bracket</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">matches</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">pos</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Position</span>, <span class="ident">cursor</span>: <span class="ident">Cursor</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">matches</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">pos</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Position</span>, <span class="ident">cursor</span>: <span class="ident">Cursor</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
         <span class="kw">match</span> <span class="ident">cursor</span>.<span class="ident">next</span>(<span class="ident">pos</span>) {
-            <span class="prelude-val">Some</span>(<span class="ident">c</span>) <span class="op">=&gt;</span> <span class="ident">Cursor</span>::<span class="ident">CharProps</span>::<span class="ident">bracket</span>(<span class="self">self</span>.<span class="ident">bc</span>, <span class="ident">c</span>),
-            <span class="kw">_</span> <span class="op">=&gt;</span> <span class="bool-val">false</span>,
+            <span class="prelude-val">Some</span>(<span class="ident">c</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Cursor</span>::<span class="ident">CharProps</span>::<span class="ident">bracket</span>(<span class="self">self</span>.<span class="ident">bc</span>, <span class="ident">c</span>),
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
         }
     }
 }
@@ -229,13 +231,13 @@
 <span class="doccomment">/// Insn::MatchAny</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">MatchAny</span> {}
 <span class="kw">impl</span> <span class="ident">MatchAny</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="self">Self</span> {}
     }
 }
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Cursor</span>: <span class="ident">Cursorable</span><span class="op">&gt;</span> <span class="ident">SingleCharMatcher</span><span class="op">&lt;</span><span class="ident">Cursor</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">MatchAny</span> {
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">matches</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">pos</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Position</span>, <span class="ident">cursor</span>: <span class="ident">Cursor</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">matches</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">pos</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Position</span>, <span class="ident">cursor</span>: <span class="ident">Cursor</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
         <span class="comment">// If there is a character, it counts as a match.</span>
         <span class="ident">cursor</span>.<span class="ident">next</span>(<span class="ident">pos</span>).<span class="ident">is_some</span>()
     }
@@ -244,16 +246,16 @@
 <span class="doccomment">/// Insn::MatchAnyExceptLineTerminator</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">MatchAnyExceptLineTerminator</span> {}
 <span class="kw">impl</span> <span class="ident">MatchAnyExceptLineTerminator</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="self">Self</span> {}
     }
 }
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Cursor</span>: <span class="ident">Cursorable</span><span class="op">&gt;</span> <span class="ident">SingleCharMatcher</span><span class="op">&lt;</span><span class="ident">Cursor</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">MatchAnyExceptLineTerminator</span> {
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">matches</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">pos</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Position</span>, <span class="ident">cursor</span>: <span class="ident">Cursor</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">matches</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">pos</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Position</span>, <span class="ident">cursor</span>: <span class="ident">Cursor</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
         <span class="kw">match</span> <span class="ident">cursor</span>.<span class="ident">next</span>(<span class="ident">pos</span>) {
-            <span class="prelude-val">Some</span>(<span class="ident">c2</span>) <span class="op">=&gt;</span> <span class="op">!</span><span class="ident">Cursor</span>::<span class="ident">CharProps</span>::<span class="ident">is_line_terminator</span>(<span class="ident">c2</span>),
-            <span class="kw">_</span> <span class="op">=&gt;</span> <span class="bool-val">false</span>,
+            <span class="prelude-val">Some</span>(<span class="ident">c2</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="op">!</span><span class="ident">Cursor</span>::<span class="ident">CharProps</span>::<span class="ident">is_line_terminator</span>(<span class="ident">c2</span>),
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
         }
     }
 }
@@ -265,7 +267,7 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Cursor</span>: <span class="ident">Cursorable</span>, <span class="ident">Bytes</span>: <span class="ident">ByteSet</span><span class="op">&gt;</span> <span class="ident">SingleCharMatcher</span><span class="op">&lt;</span><span class="ident">Cursor</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">MatchByteSet</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Bytes</span><span class="op">&gt;</span> {
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">matches</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">pos</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Position</span>, <span class="ident">cursor</span>: <span class="ident">Cursor</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">matches</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">pos</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Position</span>, <span class="ident">cursor</span>: <span class="ident">Cursor</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">b</span>) <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">next_byte</span>(<span class="ident">pos</span>) {
             <span class="self">self</span>.<span class="ident">bytes</span>.<span class="ident">contains</span>(<span class="ident">b</span>)
         } <span class="kw">else</span> {
@@ -284,7 +286,7 @@
     <span class="kw">for</span> <span class="ident">MatchByteArraySet</span><span class="op">&lt;</span><span class="ident">ArraySet</span><span class="op">&gt;</span>
 {
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">matches</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">pos</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Position</span>, <span class="ident">cursor</span>: <span class="ident">Cursor</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">matches</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">pos</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Position</span>, <span class="ident">cursor</span>: <span class="ident">Cursor</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">b</span>) <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">next_byte</span>(<span class="ident">pos</span>) {
             <span class="self">self</span>.<span class="ident">bytes</span>.<span class="number">0</span>.<span class="ident">contains</span>(<span class="ident">b</span>)
         } <span class="kw">else</span> {
@@ -300,9 +302,9 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Cursor</span>: <span class="ident">Cursorable</span>, <span class="ident">Bytes</span>: <span class="ident">ByteSeq</span><span class="op">&gt;</span> <span class="ident">SingleCharMatcher</span><span class="op">&lt;</span><span class="ident">Cursor</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">MatchByteSeq</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Bytes</span><span class="op">&gt;</span> {
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">matches</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">pos</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Position</span>, <span class="ident">cursor</span>: <span class="ident">Cursor</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">matches</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">pos</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Position</span>, <span class="ident">cursor</span>: <span class="ident">Cursor</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
         <span class="macro">debug_assert</span><span class="macro">!</span>(
-            <span class="ident">Bytes</span>::<span class="ident">LENGTH</span> <span class="op">&lt;=</span> <span class="number">4</span>,
+            <span class="ident">Bytes</span>::<span class="ident">LENGTH</span> <span class="op">&lt;</span><span class="op">=</span> <span class="number">4</span>,
             <span class="string">&quot;This looks like it could match more than one char&quot;</span>
         );
         <span class="ident">cursor</span>.<span class="ident">try_match_lit</span>(<span class="ident">pos</span>, <span class="self">self</span>.<span class="ident">bytes</span>)

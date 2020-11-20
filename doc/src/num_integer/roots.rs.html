@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/num-integer-0.1.44/src/roots.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>roots.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../num_integer/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/num-integer-0.1.44/src/roots.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>roots.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+<link rel="alternate icon" type="image/png" href="../../favicon-16x16.png">
+<link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../num_integer/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
                 <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
@@ -445,7 +447,7 @@
     <span class="doccomment">/// assert_eq!(std::u32::MAX.nth_root(31), 2);</span>
     <span class="doccomment">/// assert_eq!(std::u32::MAX.nth_root(32), 1);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">nth_root</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">n</span>: <span class="ident">u32</span>) <span class="op">-&gt;</span> <span class="self">Self</span>;
+    <span class="kw">fn</span> <span class="ident">nth_root</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">n</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
 
     <span class="doccomment">/// Returns the truncated principal square root of an integer -- `⌊√x⌋`</span>
     <span class="doccomment">///</span>
@@ -472,7 +474,7 @@
     <span class="doccomment">/// assert_eq!((x * x - 1).sqrt(), x - 1);</span>
     <span class="doccomment">/// ```</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">sqrt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">sqrt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="self">self</span>.<span class="ident">nth_root</span>(<span class="number">2</span>)
     }
 
@@ -498,7 +500,7 @@
     <span class="doccomment">/// assert_eq!((-(x * x * x - 1)).cbrt(), -(x - 1));</span>
     <span class="doccomment">/// ```</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">cbrt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">cbrt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="self">self</span>.<span class="ident">nth_root</span>(<span class="number">3</span>)
     }
 }
@@ -506,30 +508,30 @@
 <span class="doccomment">/// Returns the truncated principal square root of an integer --</span>
 <span class="doccomment">/// see [Roots::sqrt](trait.Roots.html#method.sqrt).</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">sqrt</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Roots</span><span class="op">&gt;</span>(<span class="ident">x</span>: <span class="ident">T</span>) <span class="op">-&gt;</span> <span class="ident">T</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">sqrt</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Roots</span><span class="op">&gt;</span>(<span class="ident">x</span>: <span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">T</span> {
     <span class="ident">x</span>.<span class="ident">sqrt</span>()
 }
 
 <span class="doccomment">/// Returns the truncated principal cube root of an integer --</span>
 <span class="doccomment">/// see [Roots::cbrt](trait.Roots.html#method.cbrt).</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">cbrt</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Roots</span><span class="op">&gt;</span>(<span class="ident">x</span>: <span class="ident">T</span>) <span class="op">-&gt;</span> <span class="ident">T</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">cbrt</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Roots</span><span class="op">&gt;</span>(<span class="ident">x</span>: <span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">T</span> {
     <span class="ident">x</span>.<span class="ident">cbrt</span>()
 }
 
 <span class="doccomment">/// Returns the truncated principal `n`th root of an integer --</span>
 <span class="doccomment">/// see [Roots::nth_root](trait.Roots.html#tymethod.nth_root).</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">nth_root</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Roots</span><span class="op">&gt;</span>(<span class="ident">x</span>: <span class="ident">T</span>, <span class="ident">n</span>: <span class="ident">u32</span>) <span class="op">-&gt;</span> <span class="ident">T</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">nth_root</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Roots</span><span class="op">&gt;</span>(<span class="ident">x</span>: <span class="ident">T</span>, <span class="ident">n</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">T</span> {
     <span class="ident">x</span>.<span class="ident">nth_root</span>(<span class="ident">n</span>)
 }
 
 <span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">signed_roots</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>:<span class="ident">ty</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">U</span>:<span class="ident">ty</span>) <span class="op">=&gt;</span> {
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>:<span class="ident">ty</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">U</span>:<span class="ident">ty</span>) <span class="op">=</span><span class="op">&gt;</span> {
         <span class="kw">impl</span> <span class="ident">Roots</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span> {
             <span class="attribute">#[<span class="ident">inline</span>]</span>
-            <span class="kw">fn</span> <span class="ident">nth_root</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">n</span>: <span class="ident">u32</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
-                <span class="kw">if</span> <span class="kw-2">*</span><span class="self">self</span> <span class="op">&gt;=</span> <span class="number">0</span> {
+            <span class="kw">fn</span> <span class="ident">nth_root</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">n</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+                <span class="kw">if</span> <span class="kw-2">*</span><span class="self">self</span> <span class="op">&gt;</span><span class="op">=</span> <span class="number">0</span> {
                     (<span class="kw-2">*</span><span class="self">self</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">U</span>).<span class="ident">nth_root</span>(<span class="ident">n</span>) <span class="kw">as</span> <span class="self">Self</span>
                 } <span class="kw">else</span> {
                     <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">n</span>.<span class="ident">is_odd</span>(), <span class="string">&quot;even roots of a negative are imaginary&quot;</span>);
@@ -538,14 +540,14 @@
             }
 
             <span class="attribute">#[<span class="ident">inline</span>]</span>
-            <span class="kw">fn</span> <span class="ident">sqrt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
-                <span class="macro">assert</span><span class="macro">!</span>(<span class="kw-2">*</span><span class="self">self</span> <span class="op">&gt;=</span> <span class="number">0</span>, <span class="string">&quot;the square root of a negative is imaginary&quot;</span>);
+            <span class="kw">fn</span> <span class="ident">sqrt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+                <span class="macro">assert</span><span class="macro">!</span>(<span class="kw-2">*</span><span class="self">self</span> <span class="op">&gt;</span><span class="op">=</span> <span class="number">0</span>, <span class="string">&quot;the square root of a negative is imaginary&quot;</span>);
                 (<span class="kw-2">*</span><span class="self">self</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">U</span>).<span class="ident">sqrt</span>() <span class="kw">as</span> <span class="self">Self</span>
             }
 
             <span class="attribute">#[<span class="ident">inline</span>]</span>
-            <span class="kw">fn</span> <span class="ident">cbrt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
-                <span class="kw">if</span> <span class="kw-2">*</span><span class="self">self</span> <span class="op">&gt;=</span> <span class="number">0</span> {
+            <span class="kw">fn</span> <span class="ident">cbrt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+                <span class="kw">if</span> <span class="kw-2">*</span><span class="self">self</span> <span class="op">&gt;</span><span class="op">=</span> <span class="number">0</span> {
                     (<span class="kw-2">*</span><span class="self">self</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">U</span>).<span class="ident">cbrt</span>() <span class="kw">as</span> <span class="self">Self</span>
                 } <span class="kw">else</span> {
                     <span class="op">-</span>((<span class="self">self</span>.<span class="ident">wrapping_neg</span>() <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">U</span>).<span class="ident">cbrt</span>() <span class="kw">as</span> <span class="self">Self</span>)
@@ -564,10 +566,10 @@
 <span class="macro">signed_roots</span><span class="macro">!</span>(<span class="ident">isize</span>, <span class="ident">usize</span>);
 
 <span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">fn</span> <span class="ident">fixpoint</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">F</span><span class="op">&gt;</span>(<span class="kw-2">mut</span> <span class="ident">x</span>: <span class="ident">T</span>, <span class="ident">f</span>: <span class="ident">F</span>) <span class="op">-&gt;</span> <span class="ident">T</span>
+<span class="kw">fn</span> <span class="ident">fixpoint</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">F</span><span class="op">&gt;</span>(<span class="kw-2">mut</span> <span class="ident">x</span>: <span class="ident">T</span>, <span class="ident">f</span>: <span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">T</span>
 <span class="kw">where</span>
     <span class="ident">T</span>: <span class="ident">Integer</span> <span class="op">+</span> <span class="ident">Copy</span>,
-    <span class="ident">F</span>: <span class="ident">Fn</span>(<span class="ident">T</span>) <span class="op">-&gt;</span> <span class="ident">T</span>,
+    <span class="ident">F</span>: <span class="ident">Fn</span>(<span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">T</span>,
 {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">xn</span> <span class="op">=</span> <span class="ident">f</span>(<span class="ident">x</span>);
     <span class="kw">while</span> <span class="ident">x</span> <span class="op">&lt;</span> <span class="ident">xn</span> {
@@ -582,52 +584,52 @@
 }
 
 <span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">fn</span> <span class="ident">bits</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>() <span class="op">-&gt;</span> <span class="ident">u32</span> {
+<span class="kw">fn</span> <span class="ident">bits</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span> {
     <span class="number">8</span> <span class="op">*</span> <span class="ident">mem</span>::<span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>() <span class="kw">as</span> <span class="ident">u32</span>
 }
 
 <span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">fn</span> <span class="ident">log2</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">PrimInt</span><span class="op">&gt;</span>(<span class="ident">x</span>: <span class="ident">T</span>) <span class="op">-&gt;</span> <span class="ident">u32</span> {
+<span class="kw">fn</span> <span class="ident">log2</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">PrimInt</span><span class="op">&gt;</span>(<span class="ident">x</span>: <span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span> {
     <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="ident">x</span> <span class="op">&gt;</span> <span class="ident">T</span>::<span class="ident">zero</span>());
     <span class="ident">bits</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>() <span class="op">-</span> <span class="number">1</span> <span class="op">-</span> <span class="ident">x</span>.<span class="ident">leading_zeros</span>()
 }
 
 <span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">unsigned_roots</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>:<span class="ident">ident</span>) <span class="op">=&gt;</span> {
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>:<span class="ident">ident</span>) <span class="op">=</span><span class="op">&gt;</span> {
         <span class="kw">impl</span> <span class="ident">Roots</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span> {
             <span class="attribute">#[<span class="ident">inline</span>]</span>
-            <span class="kw">fn</span> <span class="ident">nth_root</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">n</span>: <span class="ident">u32</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
-                <span class="kw">fn</span> <span class="ident">go</span>(<span class="ident">a</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>, <span class="ident">n</span>: <span class="ident">u32</span>) <span class="op">-&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span> {
+            <span class="kw">fn</span> <span class="ident">nth_root</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">n</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+                <span class="kw">fn</span> <span class="ident">go</span>(<span class="ident">a</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>, <span class="ident">n</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span> {
                     <span class="comment">// Specialize small roots</span>
                     <span class="kw">match</span> <span class="ident">n</span> {
-                        <span class="number">0</span> <span class="op">=&gt;</span> <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;can&#39;t find a root of degree 0!&quot;</span>),
-                        <span class="number">1</span> <span class="op">=&gt;</span> <span class="kw">return</span> <span class="ident">a</span>,
-                        <span class="number">2</span> <span class="op">=&gt;</span> <span class="kw">return</span> <span class="ident">a</span>.<span class="ident">sqrt</span>(),
-                        <span class="number">3</span> <span class="op">=&gt;</span> <span class="kw">return</span> <span class="ident">a</span>.<span class="ident">cbrt</span>(),
-                        <span class="kw">_</span> <span class="op">=&gt;</span> (),
+                        <span class="number">0</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;can&#39;t find a root of degree 0!&quot;</span>),
+                        <span class="number">1</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident">a</span>,
+                        <span class="number">2</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident">a</span>.<span class="ident">sqrt</span>(),
+                        <span class="number">3</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident">a</span>.<span class="ident">cbrt</span>(),
+                        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> (),
                     }
 
                     <span class="comment">// The root of values less than 2ⁿ can only be 0 or 1.</span>
-                    <span class="kw">if</span> <span class="ident">bits</span>::<span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span><span class="op">&gt;</span>() <span class="op">&lt;=</span> <span class="ident">n</span> <span class="op">||</span> <span class="ident">a</span> <span class="op">&lt;</span> (<span class="number">1</span> <span class="op">&lt;&lt;</span> <span class="ident">n</span>) {
+                    <span class="kw">if</span> <span class="ident">bits</span>::<span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span><span class="op">&gt;</span>() <span class="op">&lt;</span><span class="op">=</span> <span class="ident">n</span> <span class="op">|</span><span class="op">|</span> <span class="ident">a</span> <span class="op">&lt;</span> (<span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="ident">n</span>) {
                         <span class="kw">return</span> (<span class="ident">a</span> <span class="op">&gt;</span> <span class="number">0</span>) <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>;
                     }
 
                     <span class="kw">if</span> <span class="ident">bits</span>::<span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span><span class="op">&gt;</span>() <span class="op">&gt;</span> <span class="number">64</span> {
                         <span class="comment">// 128-bit division is slow, so do a bitwise `nth_root` until it&#39;s small enough.</span>
-                        <span class="kw">return</span> <span class="kw">if</span> <span class="ident">a</span> <span class="op">&lt;=</span> <span class="ident">core</span>::<span class="ident">u64</span>::<span class="ident">MAX</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span> {
+                        <span class="kw">return</span> <span class="kw">if</span> <span class="ident">a</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">core</span>::<span class="ident">u64</span>::<span class="ident">MAX</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span> {
                             (<span class="ident">a</span> <span class="kw">as</span> <span class="ident">u64</span>).<span class="ident">nth_root</span>(<span class="ident">n</span>) <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>
                         } <span class="kw">else</span> {
-                            <span class="kw">let</span> <span class="ident">lo</span> <span class="op">=</span> (<span class="ident">a</span> <span class="op">&gt;&gt;</span> <span class="ident">n</span>).<span class="ident">nth_root</span>(<span class="ident">n</span>) <span class="op">&lt;&lt;</span> <span class="number">1</span>;
+                            <span class="kw">let</span> <span class="ident">lo</span> <span class="op">=</span> (<span class="ident">a</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="ident">n</span>).<span class="ident">nth_root</span>(<span class="ident">n</span>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">1</span>;
                             <span class="kw">let</span> <span class="ident">hi</span> <span class="op">=</span> <span class="ident">lo</span> <span class="op">+</span> <span class="number">1</span>;
                             <span class="comment">// 128-bit `checked_mul` also involves division, but we can&#39;t always</span>
                             <span class="comment">// compute `hiⁿ` without risking overflow.  Try to avoid it though...</span>
-                            <span class="kw">if</span> <span class="ident">hi</span>.<span class="ident">next_power_of_two</span>().<span class="ident">trailing_zeros</span>() <span class="op">*</span> <span class="ident">n</span> <span class="op">&gt;=</span> <span class="ident">bits</span>::<span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span><span class="op">&gt;</span>() {
+                            <span class="kw">if</span> <span class="ident">hi</span>.<span class="ident">next_power_of_two</span>().<span class="ident">trailing_zeros</span>() <span class="op">*</span> <span class="ident">n</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">bits</span>::<span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span><span class="op">&gt;</span>() {
                                 <span class="kw">match</span> <span class="ident">checked_pow</span>(<span class="ident">hi</span>, <span class="ident">n</span> <span class="kw">as</span> <span class="ident">usize</span>) {
-                                    <span class="prelude-val">Some</span>(<span class="ident">x</span>) <span class="kw">if</span> <span class="ident">x</span> <span class="op">&lt;=</span> <span class="ident">a</span> <span class="op">=&gt;</span> <span class="ident">hi</span>,
-                                    <span class="kw">_</span> <span class="op">=&gt;</span> <span class="ident">lo</span>,
+                                    <span class="prelude-val">Some</span>(<span class="ident">x</span>) <span class="kw">if</span> <span class="ident">x</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">a</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">hi</span>,
+                                    <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">lo</span>,
                                 }
                             } <span class="kw">else</span> {
-                                <span class="kw">if</span> <span class="ident">hi</span>.<span class="ident">pow</span>(<span class="ident">n</span>) <span class="op">&lt;=</span> <span class="ident">a</span> {
+                                <span class="kw">if</span> <span class="ident">hi</span>.<span class="ident">pow</span>(<span class="ident">n</span>) <span class="op">&lt;</span><span class="op">=</span> <span class="ident">a</span> {
                                     <span class="ident">hi</span>
                                 } <span class="kw">else</span> {
                                     <span class="ident">lo</span>
@@ -638,10 +640,10 @@
 
                     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span>
                     <span class="attribute">#[<span class="ident">inline</span>]</span>
-                    <span class="kw">fn</span> <span class="ident">guess</span>(<span class="ident">x</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>, <span class="ident">n</span>: <span class="ident">u32</span>) <span class="op">-&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span> {
+                    <span class="kw">fn</span> <span class="ident">guess</span>(<span class="ident">x</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>, <span class="ident">n</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span> {
                         <span class="comment">// for smaller inputs, `f64` doesn&#39;t justify its cost.</span>
-                        <span class="kw">if</span> <span class="ident">bits</span>::<span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span><span class="op">&gt;</span>() <span class="op">&lt;=</span> <span class="number">32</span> <span class="op">||</span> <span class="ident">x</span> <span class="op">&lt;=</span> <span class="ident">core</span>::<span class="ident">u32</span>::<span class="ident">MAX</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span> {
-                            <span class="number">1</span> <span class="op">&lt;&lt;</span> ((<span class="ident">log2</span>(<span class="ident">x</span>) <span class="op">+</span> <span class="ident">n</span> <span class="op">-</span> <span class="number">1</span>) <span class="op">/</span> <span class="ident">n</span>)
+                        <span class="kw">if</span> <span class="ident">bits</span>::<span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span><span class="op">&gt;</span>() <span class="op">&lt;</span><span class="op">=</span> <span class="number">32</span> <span class="op">|</span><span class="op">|</span> <span class="ident">x</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">core</span>::<span class="ident">u32</span>::<span class="ident">MAX</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span> {
+                            <span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> ((<span class="ident">log2</span>(<span class="ident">x</span>) <span class="op">+</span> <span class="ident">n</span> <span class="op">-</span> <span class="number">1</span>) <span class="op">/</span> <span class="ident">n</span>)
                         } <span class="kw">else</span> {
                             ((<span class="ident">x</span> <span class="kw">as</span> <span class="ident">f64</span>).<span class="ident">ln</span>() <span class="op">/</span> <span class="ident">f64</span>::<span class="ident">from</span>(<span class="ident">n</span>)).<span class="ident">exp</span>() <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>
                         }
@@ -649,16 +651,16 @@
 
                     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>))]</span>
                     <span class="attribute">#[<span class="ident">inline</span>]</span>
-                    <span class="kw">fn</span> <span class="ident">guess</span>(<span class="ident">x</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>, <span class="ident">n</span>: <span class="ident">u32</span>) <span class="op">-&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span> {
-                        <span class="number">1</span> <span class="op">&lt;&lt;</span> ((<span class="ident">log2</span>(<span class="ident">x</span>) <span class="op">+</span> <span class="ident">n</span> <span class="op">-</span> <span class="number">1</span>) <span class="op">/</span> <span class="ident">n</span>)
+                    <span class="kw">fn</span> <span class="ident">guess</span>(<span class="ident">x</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>, <span class="ident">n</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span> {
+                        <span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> ((<span class="ident">log2</span>(<span class="ident">x</span>) <span class="op">+</span> <span class="ident">n</span> <span class="op">-</span> <span class="number">1</span>) <span class="op">/</span> <span class="ident">n</span>)
                     }
 
                     <span class="comment">// https://en.wikipedia.org/wiki/Nth_root_algorithm</span>
                     <span class="kw">let</span> <span class="ident">n1</span> <span class="op">=</span> <span class="ident">n</span> <span class="op">-</span> <span class="number">1</span>;
                     <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> <span class="op">|</span><span class="ident">x</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span><span class="op">|</span> {
                         <span class="kw">let</span> <span class="ident">y</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">checked_pow</span>(<span class="ident">x</span>, <span class="ident">n1</span> <span class="kw">as</span> <span class="ident">usize</span>) {
-                            <span class="prelude-val">Some</span>(<span class="ident">ax</span>) <span class="op">=&gt;</span> <span class="ident">a</span> <span class="op">/</span> <span class="ident">ax</span>,
-                            <span class="prelude-val">None</span> <span class="op">=&gt;</span> <span class="number">0</span>,
+                            <span class="prelude-val">Some</span>(<span class="ident">ax</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">a</span> <span class="op">/</span> <span class="ident">ax</span>,
+                            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">0</span>,
                         };
                         (<span class="ident">y</span> <span class="op">+</span> <span class="ident">x</span> <span class="op">*</span> <span class="ident">n1</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>) <span class="op">/</span> <span class="ident">n</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>
                     };
@@ -668,16 +670,16 @@
             }
 
             <span class="attribute">#[<span class="ident">inline</span>]</span>
-            <span class="kw">fn</span> <span class="ident">sqrt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
-                <span class="kw">fn</span> <span class="ident">go</span>(<span class="ident">a</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>) <span class="op">-&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span> {
+            <span class="kw">fn</span> <span class="ident">sqrt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+                <span class="kw">fn</span> <span class="ident">go</span>(<span class="ident">a</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span> {
                     <span class="kw">if</span> <span class="ident">bits</span>::<span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span><span class="op">&gt;</span>() <span class="op">&gt;</span> <span class="number">64</span> {
                         <span class="comment">// 128-bit division is slow, so do a bitwise `sqrt` until it&#39;s small enough.</span>
-                        <span class="kw">return</span> <span class="kw">if</span> <span class="ident">a</span> <span class="op">&lt;=</span> <span class="ident">core</span>::<span class="ident">u64</span>::<span class="ident">MAX</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span> {
+                        <span class="kw">return</span> <span class="kw">if</span> <span class="ident">a</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">core</span>::<span class="ident">u64</span>::<span class="ident">MAX</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span> {
                             (<span class="ident">a</span> <span class="kw">as</span> <span class="ident">u64</span>).<span class="ident">sqrt</span>() <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>
                         } <span class="kw">else</span> {
-                            <span class="kw">let</span> <span class="ident">lo</span> <span class="op">=</span> (<span class="ident">a</span> <span class="op">&gt;&gt;</span> <span class="number">2u32</span>).<span class="ident">sqrt</span>() <span class="op">&lt;&lt;</span> <span class="number">1</span>;
+                            <span class="kw">let</span> <span class="ident">lo</span> <span class="op">=</span> (<span class="ident">a</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">2u32</span>).<span class="ident">sqrt</span>() <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">1</span>;
                             <span class="kw">let</span> <span class="ident">hi</span> <span class="op">=</span> <span class="ident">lo</span> <span class="op">+</span> <span class="number">1</span>;
-                            <span class="kw">if</span> <span class="ident">hi</span> <span class="op">*</span> <span class="ident">hi</span> <span class="op">&lt;=</span> <span class="ident">a</span> {
+                            <span class="kw">if</span> <span class="ident">hi</span> <span class="op">*</span> <span class="ident">hi</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">a</span> {
                                 <span class="ident">hi</span>
                             } <span class="kw">else</span> {
                                 <span class="ident">lo</span>
@@ -691,34 +693,34 @@
 
                     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span>
                     <span class="attribute">#[<span class="ident">inline</span>]</span>
-                    <span class="kw">fn</span> <span class="ident">guess</span>(<span class="ident">x</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>) <span class="op">-&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span> {
+                    <span class="kw">fn</span> <span class="ident">guess</span>(<span class="ident">x</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span> {
                         (<span class="ident">x</span> <span class="kw">as</span> <span class="ident">f64</span>).<span class="ident">sqrt</span>() <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>
                     }
 
                     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>))]</span>
                     <span class="attribute">#[<span class="ident">inline</span>]</span>
-                    <span class="kw">fn</span> <span class="ident">guess</span>(<span class="ident">x</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>) <span class="op">-&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span> {
-                        <span class="number">1</span> <span class="op">&lt;&lt;</span> ((<span class="ident">log2</span>(<span class="ident">x</span>) <span class="op">+</span> <span class="number">1</span>) <span class="op">/</span> <span class="number">2</span>)
+                    <span class="kw">fn</span> <span class="ident">guess</span>(<span class="ident">x</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span> {
+                        <span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> ((<span class="ident">log2</span>(<span class="ident">x</span>) <span class="op">+</span> <span class="number">1</span>) <span class="op">/</span> <span class="number">2</span>)
                     }
 
                     <span class="comment">// https://en.wikipedia.org/wiki/Methods_of_computing_square_roots#Babylonian_method</span>
-                    <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> <span class="op">|</span><span class="ident">x</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span><span class="op">|</span> (<span class="ident">a</span> <span class="op">/</span> <span class="ident">x</span> <span class="op">+</span> <span class="ident">x</span>) <span class="op">&gt;&gt;</span> <span class="number">1</span>;
+                    <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> <span class="op">|</span><span class="ident">x</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span><span class="op">|</span> (<span class="ident">a</span> <span class="op">/</span> <span class="ident">x</span> <span class="op">+</span> <span class="ident">x</span>) <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">1</span>;
                     <span class="ident">fixpoint</span>(<span class="ident">guess</span>(<span class="ident">a</span>), <span class="ident">next</span>)
                 }
                 <span class="ident">go</span>(<span class="kw-2">*</span><span class="self">self</span>)
             }
 
             <span class="attribute">#[<span class="ident">inline</span>]</span>
-            <span class="kw">fn</span> <span class="ident">cbrt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
-                <span class="kw">fn</span> <span class="ident">go</span>(<span class="ident">a</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>) <span class="op">-&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span> {
+            <span class="kw">fn</span> <span class="ident">cbrt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+                <span class="kw">fn</span> <span class="ident">go</span>(<span class="ident">a</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span> {
                     <span class="kw">if</span> <span class="ident">bits</span>::<span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span><span class="op">&gt;</span>() <span class="op">&gt;</span> <span class="number">64</span> {
                         <span class="comment">// 128-bit division is slow, so do a bitwise `cbrt` until it&#39;s small enough.</span>
-                        <span class="kw">return</span> <span class="kw">if</span> <span class="ident">a</span> <span class="op">&lt;=</span> <span class="ident">core</span>::<span class="ident">u64</span>::<span class="ident">MAX</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span> {
+                        <span class="kw">return</span> <span class="kw">if</span> <span class="ident">a</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">core</span>::<span class="ident">u64</span>::<span class="ident">MAX</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span> {
                             (<span class="ident">a</span> <span class="kw">as</span> <span class="ident">u64</span>).<span class="ident">cbrt</span>() <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>
                         } <span class="kw">else</span> {
-                            <span class="kw">let</span> <span class="ident">lo</span> <span class="op">=</span> (<span class="ident">a</span> <span class="op">&gt;&gt;</span> <span class="number">3u32</span>).<span class="ident">cbrt</span>() <span class="op">&lt;&lt;</span> <span class="number">1</span>;
+                            <span class="kw">let</span> <span class="ident">lo</span> <span class="op">=</span> (<span class="ident">a</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">3u32</span>).<span class="ident">cbrt</span>() <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">1</span>;
                             <span class="kw">let</span> <span class="ident">hi</span> <span class="op">=</span> <span class="ident">lo</span> <span class="op">+</span> <span class="number">1</span>;
-                            <span class="kw">if</span> <span class="ident">hi</span> <span class="op">*</span> <span class="ident">hi</span> <span class="op">*</span> <span class="ident">hi</span> <span class="op">&lt;=</span> <span class="ident">a</span> {
+                            <span class="kw">if</span> <span class="ident">hi</span> <span class="op">*</span> <span class="ident">hi</span> <span class="op">*</span> <span class="ident">hi</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">a</span> {
                                 <span class="ident">hi</span>
                             } <span class="kw">else</span> {
                                 <span class="ident">lo</span>
@@ -726,7 +728,7 @@
                         };
                     }
 
-                    <span class="kw">if</span> <span class="ident">bits</span>::<span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span><span class="op">&gt;</span>() <span class="op">&lt;=</span> <span class="number">32</span> {
+                    <span class="kw">if</span> <span class="ident">bits</span>::<span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span><span class="op">&gt;</span>() <span class="op">&lt;</span><span class="op">=</span> <span class="number">32</span> {
                         <span class="comment">// Implementation based on Hacker&#39;s Delight `icbrt2`</span>
                         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">x</span> <span class="op">=</span> <span class="ident">a</span>;
                         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">y2</span> <span class="op">=</span> <span class="number">0</span>;
@@ -734,13 +736,13 @@
                         <span class="kw">let</span> <span class="ident">smax</span> <span class="op">=</span> <span class="ident">bits</span>::<span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span><span class="op">&gt;</span>() <span class="op">/</span> <span class="number">3</span>;
                         <span class="kw">for</span> <span class="ident">s</span> <span class="kw">in</span> (<span class="number">0</span>..<span class="ident">smax</span> <span class="op">+</span> <span class="number">1</span>).<span class="ident">rev</span>() {
                             <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">s</span> <span class="op">*</span> <span class="number">3</span>;
-                            <span class="ident">y2</span> <span class="op">*=</span> <span class="number">4</span>;
-                            <span class="ident">y</span> <span class="op">*=</span> <span class="number">2</span>;
+                            <span class="ident">y2</span> <span class="kw-2">*</span><span class="op">=</span> <span class="number">4</span>;
+                            <span class="ident">y</span> <span class="kw-2">*</span><span class="op">=</span> <span class="number">2</span>;
                             <span class="kw">let</span> <span class="ident">b</span> <span class="op">=</span> <span class="number">3</span> <span class="op">*</span> (<span class="ident">y2</span> <span class="op">+</span> <span class="ident">y</span>) <span class="op">+</span> <span class="number">1</span>;
-                            <span class="kw">if</span> <span class="ident">x</span> <span class="op">&gt;&gt;</span> <span class="ident">s</span> <span class="op">&gt;=</span> <span class="ident">b</span> {
-                                <span class="ident">x</span> <span class="op">-=</span> <span class="ident">b</span> <span class="op">&lt;&lt;</span> <span class="ident">s</span>;
-                                <span class="ident">y2</span> <span class="op">+=</span> <span class="number">2</span> <span class="op">*</span> <span class="ident">y</span> <span class="op">+</span> <span class="number">1</span>;
-                                <span class="ident">y</span> <span class="op">+=</span> <span class="number">1</span>;
+                            <span class="kw">if</span> <span class="ident">x</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="ident">s</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">b</span> {
+                                <span class="ident">x</span> <span class="op">-</span><span class="op">=</span> <span class="ident">b</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="ident">s</span>;
+                                <span class="ident">y2</span> <span class="op">+</span><span class="op">=</span> <span class="number">2</span> <span class="op">*</span> <span class="ident">y</span> <span class="op">+</span> <span class="number">1</span>;
+                                <span class="ident">y</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
                             }
                         }
                         <span class="kw">return</span> <span class="ident">y</span>;
@@ -749,20 +751,20 @@
                     <span class="kw">if</span> <span class="ident">a</span> <span class="op">&lt;</span> <span class="number">8</span> {
                         <span class="kw">return</span> (<span class="ident">a</span> <span class="op">&gt;</span> <span class="number">0</span>) <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>;
                     }
-                    <span class="kw">if</span> <span class="ident">a</span> <span class="op">&lt;=</span> <span class="ident">core</span>::<span class="ident">u32</span>::<span class="ident">MAX</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span> {
+                    <span class="kw">if</span> <span class="ident">a</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">core</span>::<span class="ident">u32</span>::<span class="ident">MAX</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span> {
                         <span class="kw">return</span> (<span class="ident">a</span> <span class="kw">as</span> <span class="ident">u32</span>).<span class="ident">cbrt</span>() <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>;
                     }
 
                     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span>
                     <span class="attribute">#[<span class="ident">inline</span>]</span>
-                    <span class="kw">fn</span> <span class="ident">guess</span>(<span class="ident">x</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>) <span class="op">-&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span> {
+                    <span class="kw">fn</span> <span class="ident">guess</span>(<span class="ident">x</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span> {
                         (<span class="ident">x</span> <span class="kw">as</span> <span class="ident">f64</span>).<span class="ident">cbrt</span>() <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>
                     }
 
                     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>))]</span>
                     <span class="attribute">#[<span class="ident">inline</span>]</span>
-                    <span class="kw">fn</span> <span class="ident">guess</span>(<span class="ident">x</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>) <span class="op">-&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span> {
-                        <span class="number">1</span> <span class="op">&lt;&lt;</span> ((<span class="ident">log2</span>(<span class="ident">x</span>) <span class="op">+</span> <span class="number">2</span>) <span class="op">/</span> <span class="number">3</span>)
+                    <span class="kw">fn</span> <span class="ident">guess</span>(<span class="ident">x</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span> {
+                        <span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> ((<span class="ident">log2</span>(<span class="ident">x</span>) <span class="op">+</span> <span class="number">2</span>) <span class="op">/</span> <span class="number">3</span>)
                     }
 
                     <span class="comment">// https://en.wikipedia.org/wiki/Cube_root#Numerical_methods</span>

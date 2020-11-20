@@ -137,11 +137,11 @@
 <span class="kw">impl</span> <span class="ident">CryptoRng</span> <span class="kw">for</span> <span class="ident">OsRng</span> {}
 
 <span class="kw">impl</span> <span class="ident">RngCore</span> <span class="kw">for</span> <span class="ident">OsRng</span> {
-    <span class="kw">fn</span> <span class="ident">next_u32</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">u32</span> {
+    <span class="kw">fn</span> <span class="ident">next_u32</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span> {
         <span class="ident">impls</span>::<span class="ident">next_u32_via_fill</span>(<span class="self">self</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">next_u64</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">u64</span> {
+    <span class="kw">fn</span> <span class="ident">next_u64</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u64</span> {
         <span class="ident">impls</span>::<span class="ident">next_u64_via_fill</span>(<span class="self">self</span>)
     }
 
@@ -151,7 +151,7 @@
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">try_fill_bytes</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">dest</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>]) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Error</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">try_fill_bytes</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">dest</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Error</span><span class="op">&gt;</span> {
         <span class="ident">getrandom</span>(<span class="ident">dest</span>)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(())
     }
@@ -161,14 +161,14 @@
 <span class="kw">fn</span> <span class="ident">test_os_rng</span>() {
     <span class="kw">let</span> <span class="ident">x</span> <span class="op">=</span> <span class="ident">OsRng</span>.<span class="ident">next_u64</span>();
     <span class="kw">let</span> <span class="ident">y</span> <span class="op">=</span> <span class="ident">OsRng</span>.<span class="ident">next_u64</span>();
-    <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">x</span> <span class="op">!=</span> <span class="number">0</span>);
-    <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">x</span> <span class="op">!=</span> <span class="ident">y</span>);
+    <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">x</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span>);
+    <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">x</span> <span class="op">!</span><span class="op">=</span> <span class="ident">y</span>);
 }
 
 <span class="attribute">#[<span class="ident">test</span>]</span>
 <span class="kw">fn</span> <span class="ident">test_construction</span>() {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rng</span> <span class="op">=</span> <span class="ident">OsRng</span>::<span class="ident">default</span>();
-    <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">rng</span>.<span class="ident">next_u64</span>() <span class="op">!=</span> <span class="number">0</span>);
+    <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">rng</span>.<span class="ident">next_u64</span>() <span class="op">!</span><span class="op">=</span> <span class="number">0</span>);
 }
 </pre></div>
 </section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../../";window.currentCrate = "rand_core";</script><script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script><script defer src="../../search-index.js"></script></body></html>

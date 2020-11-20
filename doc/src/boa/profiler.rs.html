@@ -116,7 +116,7 @@
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;profiler&quot;</span>)]</span>
 <span class="kw">impl</span> <span class="ident">BoaProfiler</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">start_event</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">label</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">category</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-&gt;</span> <span class="ident">TimingGuard</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">start_event</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">label</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">category</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TimingGuard</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">kind</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">profiler</span>.<span class="ident">alloc_string</span>(<span class="ident">category</span>);
         <span class="kw">let</span> <span class="ident">id</span> <span class="op">=</span> <span class="ident">EventId</span>::<span class="ident">from_label</span>(<span class="self">self</span>.<span class="ident">profiler</span>.<span class="ident">alloc_string</span>(<span class="ident">label</span>));
         <span class="kw">let</span> <span class="ident">thread_id</span> <span class="op">=</span> <span class="self">Self</span>::<span class="ident">thread_id_to_u32</span>(<span class="ident">current</span>().<span class="ident">id</span>());
@@ -124,12 +124,12 @@
             .<span class="ident">start_recording_interval_event</span>(<span class="ident">kind</span>, <span class="ident">id</span>, <span class="ident">thread_id</span>)
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-&gt;</span> <span class="ident">BoaProfiler</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">BoaProfiler</span> {
         <span class="kw">let</span> <span class="ident">profiler</span> <span class="op">=</span> <span class="ident">Profiler</span>::<span class="ident">new</span>(<span class="ident">Path</span>::<span class="ident">new</span>(<span class="string">&quot;./my_trace&quot;</span>)).<span class="ident">unwrap</span>();
         <span class="ident">BoaProfiler</span> { <span class="ident">profiler</span> }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">global</span>() <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">BoaProfiler</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">global</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">BoaProfiler</span> {
         <span class="kw">unsafe</span> { <span class="ident">INSTANCE</span>.<span class="ident">get_or_init</span>(<span class="self">Self</span>::<span class="ident">default</span>) }
     }
 
@@ -149,13 +149,13 @@
     <span class="comment">// Once `as_64()` is in stable we can do this:</span>
     <span class="comment">// https://github.com/rust-lang/rust/pull/68531/commits/ea42b1c5b85f649728e3a3b334489bac6dce890a</span>
     <span class="comment">// Until then our options are: use rust-nightly or use unsafe {}</span>
-    <span class="kw">fn</span> <span class="ident">thread_id_to_u32</span>(<span class="ident">tid</span>: <span class="ident">ThreadId</span>) <span class="op">-&gt;</span> <span class="ident">u32</span> {
+    <span class="kw">fn</span> <span class="ident">thread_id_to_u32</span>(<span class="ident">tid</span>: <span class="ident">ThreadId</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span> {
         <span class="kw">unsafe</span> { <span class="ident">std</span>::<span class="ident">mem</span>::<span class="ident">transmute</span>::<span class="op">&lt;</span><span class="ident">ThreadId</span>, <span class="ident">u64</span><span class="op">&gt;</span>(<span class="ident">tid</span>) <span class="kw">as</span> <span class="ident">u32</span> }
     }
 }
 
 <span class="kw">impl</span> <span class="ident">Debug</span> <span class="kw">for</span> <span class="ident">BoaProfiler</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
         <span class="ident">Debug</span>::<span class="ident">fmt</span>(<span class="string">&quot;no debug implemented&quot;</span>, <span class="ident">f</span>)
     }
 }
@@ -166,7 +166,7 @@
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy</span>::<span class="ident">unused_unit</span>)]</span>
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;profiler&quot;</span>))]</span>
 <span class="kw">impl</span> <span class="ident">BoaProfiler</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">start_event</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">_label</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">_category</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-&gt;</span> () {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">start_event</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">_label</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">_category</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> () {
         ()
     }
 
@@ -174,7 +174,7 @@
         ()
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">global</span>() <span class="op">-&gt;</span> <span class="ident">BoaProfiler</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">global</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">BoaProfiler</span> {
         <span class="ident">BoaProfiler</span>
     }
 }

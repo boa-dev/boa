@@ -686,18 +686,18 @@
 <span class="doccomment">/// property, or with</span>
 <span class="doccomment">/// [General_Category=Number](http://unicode.org/reports/tr44/#General_Category_Values).</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">UnicodeWords</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="ident">inner</span>: <span class="ident">Filter</span><span class="op">&lt;</span><span class="ident">UWordBounds</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>, <span class="kw">fn</span>(<span class="op">&amp;&amp;</span><span class="ident">str</span>) <span class="op">-&gt;</span> <span class="ident">bool</span><span class="op">&gt;</span>,
+    <span class="ident">inner</span>: <span class="ident">Filter</span><span class="op">&lt;</span><span class="ident">UWordBounds</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>, <span class="kw">fn</span>(<span class="op">&amp;&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span><span class="op">&gt;</span>,
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">Iterator</span> <span class="kw">for</span> <span class="ident">UnicodeWords</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
     <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>;
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span><span class="op">&gt;</span> { <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">next</span>() }
+    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span><span class="op">&gt;</span> { <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">next</span>() }
 }
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">DoubleEndedIterator</span> <span class="kw">for</span> <span class="ident">UnicodeWords</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">next_back</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span><span class="op">&gt;</span> { <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">next_back</span>() }
+    <span class="kw">fn</span> <span class="ident">next_back</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span><span class="op">&gt;</span> { <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">next_back</span>() }
 }
 
 <span class="doccomment">/// External iterator for a string&#39;s</span>
@@ -729,7 +729,7 @@
     <span class="doccomment">/// iter.next();</span>
     <span class="doccomment">/// assert_eq!(iter.as_str(), &quot;world&quot;);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_str</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_str</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span> {
         <span class="self">self</span>.<span class="ident">iter</span>.<span class="ident">as_str</span>()
     }
 }
@@ -738,19 +738,19 @@
     <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> (<span class="ident">usize</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>);
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">usize</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>)<span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">usize</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>)<span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">iter</span>.<span class="ident">next</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> (<span class="ident">s</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="ident">usize</span> <span class="op">-</span> <span class="self">self</span>.<span class="ident">start_offset</span>, <span class="ident">s</span>))
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">size_hint</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> (<span class="ident">usize</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>) {
+    <span class="kw">fn</span> <span class="ident">size_hint</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="ident">usize</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>) {
         <span class="self">self</span>.<span class="ident">iter</span>.<span class="ident">size_hint</span>()
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">DoubleEndedIterator</span> <span class="kw">for</span> <span class="ident">UWordBoundIndices</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">next_back</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">usize</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>)<span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">next_back</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">usize</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>)<span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">iter</span>.<span class="ident">next_back</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> (<span class="ident">s</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="ident">usize</span> <span class="op">-</span> <span class="self">self</span>.<span class="ident">start_offset</span>, <span class="ident">s</span>))
     }
 }
@@ -789,26 +789,26 @@
     <span class="ident">Unknown</span>,
 }
 
-<span class="kw">fn</span> <span class="ident">is_emoji</span>(<span class="ident">ch</span>: <span class="ident">char</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
+<span class="kw">fn</span> <span class="ident">is_emoji</span>(<span class="ident">ch</span>: <span class="ident">char</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
     <span class="kw">use</span> <span class="ident">tables</span>::<span class="ident">emoji</span>;
-    <span class="ident">emoji</span>::<span class="ident">emoji_category</span>(<span class="ident">ch</span>) <span class="op">==</span> <span class="ident">emoji</span>::<span class="ident">EmojiCat</span>::<span class="ident">EC_Extended_Pictographic</span>
+    <span class="ident">emoji</span>::<span class="ident">emoji_category</span>(<span class="ident">ch</span>) <span class="op">=</span><span class="op">=</span> <span class="ident">emoji</span>::<span class="ident">EmojiCat</span>::<span class="ident">EC_Extended_Pictographic</span>
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">Iterator</span> <span class="kw">for</span> <span class="ident">UWordBounds</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
     <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>;
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">size_hint</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> (<span class="ident">usize</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>) {
+    <span class="kw">fn</span> <span class="ident">size_hint</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="ident">usize</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>) {
         <span class="kw">let</span> <span class="ident">slen</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">string</span>.<span class="ident">len</span>();
         (<span class="ident">cmp</span>::<span class="ident">min</span>(<span class="ident">slen</span>, <span class="number">1</span>), <span class="prelude-val">Some</span>(<span class="ident">slen</span>))
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span><span class="op">&gt;</span> {
         <span class="kw">use</span> <span class="self">self</span>::<span class="ident">UWordBoundsState</span>::<span class="kw-2">*</span>;
         <span class="kw">use</span> <span class="self">self</span>::<span class="ident">FormatExtendType</span>::<span class="kw-2">*</span>;
         <span class="kw">use</span> <span class="ident">tables</span>::<span class="ident">word</span> <span class="kw">as</span> <span class="ident">wd</span>;
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">string</span>.<span class="ident">len</span>() <span class="op">==</span> <span class="number">0</span> {
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">string</span>.<span class="ident">len</span>() <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
             <span class="kw">return</span> <span class="prelude-val">None</span>;
         }
 
@@ -827,11 +827,11 @@
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">skipped_format_extend</span> <span class="op">=</span> <span class="bool-val">false</span>;
         <span class="kw">for</span> (<span class="ident">curr</span>, <span class="ident">ch</span>) <span class="kw">in</span> <span class="self">self</span>.<span class="ident">string</span>.<span class="ident">char_indices</span>() {
             <span class="ident">idx</span> <span class="op">=</span> <span class="ident">curr</span>;
-            <span class="ident">prev_zwj</span> <span class="op">=</span> <span class="ident">cat</span> <span class="op">==</span> <span class="ident">wd</span>::<span class="ident">WC_ZWJ</span>;
+            <span class="ident">prev_zwj</span> <span class="op">=</span> <span class="ident">cat</span> <span class="op">=</span><span class="op">=</span> <span class="ident">wd</span>::<span class="ident">WC_ZWJ</span>;
             <span class="comment">// if there&#39;s a category cached, grab it</span>
             <span class="ident">cat</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">cat</span> {
-                <span class="prelude-val">None</span> <span class="op">=&gt;</span> <span class="ident">wd</span>::<span class="ident">word_category</span>(<span class="ident">ch</span>),
-                <span class="kw">_</span> <span class="op">=&gt;</span> <span class="self">self</span>.<span class="ident">cat</span>.<span class="ident">take</span>().<span class="ident">unwrap</span>()
+                <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">wd</span>::<span class="ident">word_category</span>(<span class="ident">ch</span>),
+                <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">cat</span>.<span class="ident">take</span>().<span class="ident">unwrap</span>()
             };
             <span class="ident">take_cat</span> <span class="op">=</span> <span class="bool-val">true</span>;
 
@@ -843,13 +843,13 @@
             <span class="comment">// (This is not obvious from the wording of UAX#29, but if you look at the</span>
             <span class="comment">// test cases http://www.unicode.org/Public/UNIDATA/auxiliary/WordBreakTest.txt</span>
             <span class="comment">// then the &quot;correct&quot; interpretation of WB4 becomes apparent.)</span>
-            <span class="kw">if</span> <span class="ident">state</span> <span class="op">!=</span> <span class="ident">Start</span> {
+            <span class="kw">if</span> <span class="ident">state</span> <span class="op">!</span><span class="op">=</span> <span class="ident">Start</span> {
                 <span class="kw">match</span> <span class="ident">cat</span> {
-                    <span class="ident">wd</span>::<span class="ident">WC_Extend</span> <span class="op">|</span> <span class="ident">wd</span>::<span class="ident">WC_Format</span> <span class="op">|</span> <span class="ident">wd</span>::<span class="ident">WC_ZWJ</span> <span class="op">=&gt;</span> {
+                    <span class="ident">wd</span>::<span class="ident">WC_Extend</span> <span class="op">|</span> <span class="ident">wd</span>::<span class="ident">WC_Format</span> <span class="op">|</span> <span class="ident">wd</span>::<span class="ident">WC_ZWJ</span> <span class="op">=</span><span class="op">&gt;</span> {
                         <span class="ident">skipped_format_extend</span> <span class="op">=</span> <span class="bool-val">true</span>;
                         <span class="kw">continue</span>
                     }
-                    <span class="kw">_</span> <span class="op">=&gt;</span> {}
+                    <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {}
                 }
             }
 
@@ -873,26 +873,26 @@
             }
             <span class="comment">// Don&#39;t use `continue` in this match without updating `cat`</span>
             <span class="ident">state</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">state</span> {
-                <span class="ident">Start</span> <span class="kw">if</span> <span class="ident">cat</span> <span class="op">==</span> <span class="ident">wd</span>::<span class="ident">WC_CR</span> <span class="op">=&gt;</span> {
-                    <span class="ident">idx</span> <span class="op">+=</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">get_next_cat</span>(<span class="ident">idx</span>) {
-                        <span class="prelude-val">Some</span>(<span class="ident">ncat</span>) <span class="kw">if</span> <span class="ident">ncat</span> <span class="op">==</span> <span class="ident">wd</span>::<span class="ident">WC_LF</span> <span class="op">=&gt;</span> <span class="number">1</span>,       <span class="comment">// rule WB3</span>
-                        <span class="kw">_</span> <span class="op">=&gt;</span> <span class="number">0</span>
+                <span class="ident">Start</span> <span class="kw">if</span> <span class="ident">cat</span> <span class="op">=</span><span class="op">=</span> <span class="ident">wd</span>::<span class="ident">WC_CR</span> <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="ident">idx</span> <span class="op">+</span><span class="op">=</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">get_next_cat</span>(<span class="ident">idx</span>) {
+                        <span class="prelude-val">Some</span>(<span class="ident">ncat</span>) <span class="kw">if</span> <span class="ident">ncat</span> <span class="op">=</span><span class="op">=</span> <span class="ident">wd</span>::<span class="ident">WC_LF</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">1</span>,       <span class="comment">// rule WB3</span>
+                        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">0</span>
                     };
                     <span class="kw">break</span>;                                          <span class="comment">// rule WB3a</span>
                 },
-                <span class="ident">Start</span> <span class="op">=&gt;</span> <span class="kw">match</span> <span class="ident">cat</span> {
-                    <span class="ident">wd</span>::<span class="ident">WC_ALetter</span> <span class="op">=&gt;</span> <span class="ident">Letter</span>,           <span class="comment">// rule WB5, WB6, WB9, WB13a</span>
-                    <span class="ident">wd</span>::<span class="ident">WC_Hebrew_Letter</span> <span class="op">=&gt;</span> <span class="ident">HLetter</span>,    <span class="comment">// rule WB5, WB6, WB7a, WB7b, WB9, WB13a</span>
-                    <span class="ident">wd</span>::<span class="ident">WC_Numeric</span> <span class="op">=&gt;</span> <span class="ident">Numeric</span>,          <span class="comment">// rule WB8, WB10, WB12, WB13a</span>
-                    <span class="ident">wd</span>::<span class="ident">WC_Katakana</span> <span class="op">=&gt;</span> <span class="ident">Katakana</span>,        <span class="comment">// rule WB13, WB13a</span>
-                    <span class="ident">wd</span>::<span class="ident">WC_ExtendNumLet</span> <span class="op">=&gt;</span> <span class="ident">ExtendNumLet</span>,    <span class="comment">// rule WB13a, WB13b</span>
-                    <span class="ident">wd</span>::<span class="ident">WC_Regional_Indicator</span> <span class="op">=&gt;</span> <span class="ident">Regional</span>(<span class="ident">RegionalState</span>::<span class="ident">Half</span>),  <span class="comment">// rule WB13c</span>
-                    <span class="ident">wd</span>::<span class="ident">WC_LF</span> <span class="op">|</span> <span class="ident">wd</span>::<span class="ident">WC_Newline</span> <span class="op">=&gt;</span> <span class="kw">break</span>,    <span class="comment">// rule WB3a</span>
-                    <span class="ident">wd</span>::<span class="ident">WC_ZWJ</span> <span class="op">=&gt;</span> <span class="ident">Zwj</span>,                      <span class="comment">// rule WB3c</span>
-                    <span class="ident">wd</span>::<span class="ident">WC_WSegSpace</span> <span class="op">=&gt;</span> <span class="ident">WSegSpace</span>,          <span class="comment">// rule WB3d</span>
-                    <span class="kw">_</span> <span class="op">=&gt;</span> {
+                <span class="ident">Start</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">cat</span> {
+                    <span class="ident">wd</span>::<span class="ident">WC_ALetter</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Letter</span>,           <span class="comment">// rule WB5, WB6, WB9, WB13a</span>
+                    <span class="ident">wd</span>::<span class="ident">WC_Hebrew_Letter</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">HLetter</span>,    <span class="comment">// rule WB5, WB6, WB7a, WB7b, WB9, WB13a</span>
+                    <span class="ident">wd</span>::<span class="ident">WC_Numeric</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Numeric</span>,          <span class="comment">// rule WB8, WB10, WB12, WB13a</span>
+                    <span class="ident">wd</span>::<span class="ident">WC_Katakana</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Katakana</span>,        <span class="comment">// rule WB13, WB13a</span>
+                    <span class="ident">wd</span>::<span class="ident">WC_ExtendNumLet</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ExtendNumLet</span>,    <span class="comment">// rule WB13a, WB13b</span>
+                    <span class="ident">wd</span>::<span class="ident">WC_Regional_Indicator</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Regional</span>(<span class="ident">RegionalState</span>::<span class="ident">Half</span>),  <span class="comment">// rule WB13c</span>
+                    <span class="ident">wd</span>::<span class="ident">WC_LF</span> <span class="op">|</span> <span class="ident">wd</span>::<span class="ident">WC_Newline</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">break</span>,    <span class="comment">// rule WB3a</span>
+                    <span class="ident">wd</span>::<span class="ident">WC_ZWJ</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Zwj</span>,                      <span class="comment">// rule WB3c</span>
+                    <span class="ident">wd</span>::<span class="ident">WC_WSegSpace</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">WSegSpace</span>,          <span class="comment">// rule WB3d</span>
+                    <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {
                         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">ncat</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_next_cat</span>(<span class="ident">idx</span>) {                <span class="comment">// rule WB4</span>
-                            <span class="kw">if</span> <span class="ident">ncat</span> <span class="op">==</span> <span class="ident">wd</span>::<span class="ident">WC_Format</span> <span class="op">||</span> <span class="ident">ncat</span> <span class="op">==</span> <span class="ident">wd</span>::<span class="ident">WC_Extend</span> <span class="op">||</span> <span class="ident">ncat</span> <span class="op">==</span> <span class="ident">wd</span>::<span class="ident">WC_ZWJ</span> {
+                            <span class="kw">if</span> <span class="ident">ncat</span> <span class="op">=</span><span class="op">=</span> <span class="ident">wd</span>::<span class="ident">WC_Format</span> <span class="op">|</span><span class="op">|</span> <span class="ident">ncat</span> <span class="op">=</span><span class="op">=</span> <span class="ident">wd</span>::<span class="ident">WC_Extend</span> <span class="op">|</span><span class="op">|</span> <span class="ident">ncat</span> <span class="op">=</span><span class="op">=</span> <span class="ident">wd</span>::<span class="ident">WC_ZWJ</span> {
                                 <span class="ident">state</span> <span class="op">=</span> <span class="ident">FormatExtend</span>(<span class="ident">AcceptNone</span>);
                                 <span class="self">self</span>.<span class="ident">cat</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">ncat</span>);
                                 <span class="kw">continue</span>;
@@ -901,113 +901,113 @@
                         <span class="kw">break</span>;                                                      <span class="comment">// rule WB999</span>
                     }
                 },
-                <span class="ident">WSegSpace</span> <span class="op">=&gt;</span> <span class="kw">match</span> <span class="ident">cat</span> {
-                    <span class="ident">wd</span>::<span class="ident">WC_WSegSpace</span> <span class="kw">if</span> <span class="op">!</span><span class="ident">skipped_format_extend</span> <span class="op">=&gt;</span> <span class="ident">WSegSpace</span>,
-                    <span class="kw">_</span> <span class="op">=&gt;</span> {
+                <span class="ident">WSegSpace</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">cat</span> {
+                    <span class="ident">wd</span>::<span class="ident">WC_WSegSpace</span> <span class="kw">if</span> <span class="op">!</span><span class="ident">skipped_format_extend</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">WSegSpace</span>,
+                    <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {
                         <span class="ident">take_curr</span> <span class="op">=</span> <span class="bool-val">false</span>;
                         <span class="kw">break</span>;
                     }
                 },
-                <span class="ident">Zwj</span> <span class="op">=&gt;</span> {
+                <span class="ident">Zwj</span> <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="comment">// We already handle WB3c above.</span>
                     <span class="ident">take_curr</span> <span class="op">=</span> <span class="bool-val">false</span>;
                     <span class="kw">break</span>;
                 }
-                <span class="ident">Letter</span> <span class="op">|</span> <span class="ident">HLetter</span> <span class="op">=&gt;</span> <span class="kw">match</span> <span class="ident">cat</span> {
-                    <span class="ident">wd</span>::<span class="ident">WC_ALetter</span> <span class="op">=&gt;</span> <span class="ident">Letter</span>,                   <span class="comment">// rule WB5</span>
-                    <span class="ident">wd</span>::<span class="ident">WC_Hebrew_Letter</span> <span class="op">=&gt;</span> <span class="ident">HLetter</span>,            <span class="comment">// rule WB5</span>
-                    <span class="ident">wd</span>::<span class="ident">WC_Numeric</span> <span class="op">=&gt;</span> <span class="ident">Numeric</span>,                  <span class="comment">// rule WB9</span>
-                    <span class="ident">wd</span>::<span class="ident">WC_ExtendNumLet</span> <span class="op">=&gt;</span> <span class="ident">ExtendNumLet</span>,        <span class="comment">// rule WB13a</span>
-                    <span class="ident">wd</span>::<span class="ident">WC_Double_Quote</span> <span class="kw">if</span> <span class="ident">state</span> <span class="op">==</span> <span class="ident">HLetter</span> <span class="op">=&gt;</span> {
+                <span class="ident">Letter</span> <span class="op">|</span> <span class="ident">HLetter</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">cat</span> {
+                    <span class="ident">wd</span>::<span class="ident">WC_ALetter</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Letter</span>,                   <span class="comment">// rule WB5</span>
+                    <span class="ident">wd</span>::<span class="ident">WC_Hebrew_Letter</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">HLetter</span>,            <span class="comment">// rule WB5</span>
+                    <span class="ident">wd</span>::<span class="ident">WC_Numeric</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Numeric</span>,                  <span class="comment">// rule WB9</span>
+                    <span class="ident">wd</span>::<span class="ident">WC_ExtendNumLet</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ExtendNumLet</span>,        <span class="comment">// rule WB13a</span>
+                    <span class="ident">wd</span>::<span class="ident">WC_Double_Quote</span> <span class="kw">if</span> <span class="ident">state</span> <span class="op">=</span><span class="op">=</span> <span class="ident">HLetter</span> <span class="op">=</span><span class="op">&gt;</span> {
                         <span class="ident">savecat</span> <span class="op">=</span> <span class="ident">cat</span>;
                         <span class="ident">saveidx</span> <span class="op">=</span> <span class="ident">idx</span>;
                         <span class="ident">FormatExtend</span>(<span class="ident">RequireHLetter</span>)                        <span class="comment">// rule WB7b</span>
                     },
-                    <span class="ident">wd</span>::<span class="ident">WC_Single_Quote</span> <span class="kw">if</span> <span class="ident">state</span> <span class="op">==</span> <span class="ident">HLetter</span> <span class="op">=&gt;</span> {
+                    <span class="ident">wd</span>::<span class="ident">WC_Single_Quote</span> <span class="kw">if</span> <span class="ident">state</span> <span class="op">=</span><span class="op">=</span> <span class="ident">HLetter</span> <span class="op">=</span><span class="op">&gt;</span> {
                         <span class="ident">FormatExtend</span>(<span class="ident">AcceptQLetter</span>)                         <span class="comment">// rule WB7a</span>
                     },
-                    <span class="ident">wd</span>::<span class="ident">WC_MidLetter</span> <span class="op">|</span> <span class="ident">wd</span>::<span class="ident">WC_MidNumLet</span> <span class="op">|</span> <span class="ident">wd</span>::<span class="ident">WC_Single_Quote</span> <span class="op">=&gt;</span> {
+                    <span class="ident">wd</span>::<span class="ident">WC_MidLetter</span> <span class="op">|</span> <span class="ident">wd</span>::<span class="ident">WC_MidNumLet</span> <span class="op">|</span> <span class="ident">wd</span>::<span class="ident">WC_Single_Quote</span> <span class="op">=</span><span class="op">&gt;</span> {
                         <span class="ident">savecat</span> <span class="op">=</span> <span class="ident">cat</span>;
                         <span class="ident">saveidx</span> <span class="op">=</span> <span class="ident">idx</span>;
                         <span class="ident">FormatExtend</span>(<span class="ident">RequireLetter</span>)                         <span class="comment">// rule WB6</span>
                     },
-                    <span class="kw">_</span> <span class="op">=&gt;</span> {
+                    <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {
                         <span class="ident">take_curr</span> <span class="op">=</span> <span class="bool-val">false</span>;
                         <span class="kw">break</span>;
                     }
                 },
-                <span class="ident">Numeric</span> <span class="op">=&gt;</span> <span class="kw">match</span> <span class="ident">cat</span> {
-                    <span class="ident">wd</span>::<span class="ident">WC_Numeric</span> <span class="op">=&gt;</span> <span class="ident">Numeric</span>,                  <span class="comment">// rule WB8</span>
-                    <span class="ident">wd</span>::<span class="ident">WC_ALetter</span> <span class="op">=&gt;</span> <span class="ident">Letter</span>,                   <span class="comment">// rule WB10</span>
-                    <span class="ident">wd</span>::<span class="ident">WC_Hebrew_Letter</span> <span class="op">=&gt;</span> <span class="ident">HLetter</span>,            <span class="comment">// rule WB10</span>
-                    <span class="ident">wd</span>::<span class="ident">WC_ExtendNumLet</span> <span class="op">=&gt;</span> <span class="ident">ExtendNumLet</span>,        <span class="comment">// rule WB13a</span>
-                    <span class="ident">wd</span>::<span class="ident">WC_MidNum</span> <span class="op">|</span> <span class="ident">wd</span>::<span class="ident">WC_MidNumLet</span> <span class="op">|</span> <span class="ident">wd</span>::<span class="ident">WC_Single_Quote</span> <span class="op">=&gt;</span> {
+                <span class="ident">Numeric</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">cat</span> {
+                    <span class="ident">wd</span>::<span class="ident">WC_Numeric</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Numeric</span>,                  <span class="comment">// rule WB8</span>
+                    <span class="ident">wd</span>::<span class="ident">WC_ALetter</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Letter</span>,                   <span class="comment">// rule WB10</span>
+                    <span class="ident">wd</span>::<span class="ident">WC_Hebrew_Letter</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">HLetter</span>,            <span class="comment">// rule WB10</span>
+                    <span class="ident">wd</span>::<span class="ident">WC_ExtendNumLet</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ExtendNumLet</span>,        <span class="comment">// rule WB13a</span>
+                    <span class="ident">wd</span>::<span class="ident">WC_MidNum</span> <span class="op">|</span> <span class="ident">wd</span>::<span class="ident">WC_MidNumLet</span> <span class="op">|</span> <span class="ident">wd</span>::<span class="ident">WC_Single_Quote</span> <span class="op">=</span><span class="op">&gt;</span> {
                         <span class="ident">savecat</span> <span class="op">=</span> <span class="ident">cat</span>;
                         <span class="ident">saveidx</span> <span class="op">=</span> <span class="ident">idx</span>;
                         <span class="ident">FormatExtend</span>(<span class="ident">RequireNumeric</span>)            <span class="comment">// rule WB12</span>
                     },
-                    <span class="kw">_</span> <span class="op">=&gt;</span> {
+                    <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {
                         <span class="ident">take_curr</span> <span class="op">=</span> <span class="bool-val">false</span>;
                         <span class="kw">break</span>;
                     }
                 },
-                <span class="ident">Katakana</span> <span class="op">=&gt;</span> <span class="kw">match</span> <span class="ident">cat</span> {
-                    <span class="ident">wd</span>::<span class="ident">WC_Katakana</span> <span class="op">=&gt;</span> <span class="ident">Katakana</span>,                <span class="comment">// rule WB13</span>
-                    <span class="ident">wd</span>::<span class="ident">WC_ExtendNumLet</span> <span class="op">=&gt;</span> <span class="ident">ExtendNumLet</span>,        <span class="comment">// rule WB13a</span>
-                    <span class="kw">_</span> <span class="op">=&gt;</span> {
+                <span class="ident">Katakana</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">cat</span> {
+                    <span class="ident">wd</span>::<span class="ident">WC_Katakana</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Katakana</span>,                <span class="comment">// rule WB13</span>
+                    <span class="ident">wd</span>::<span class="ident">WC_ExtendNumLet</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ExtendNumLet</span>,        <span class="comment">// rule WB13a</span>
+                    <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {
                         <span class="ident">take_curr</span> <span class="op">=</span> <span class="bool-val">false</span>;
                         <span class="kw">break</span>;
                     }
                 },
-                <span class="ident">ExtendNumLet</span> <span class="op">=&gt;</span> <span class="kw">match</span> <span class="ident">cat</span> {
-                    <span class="ident">wd</span>::<span class="ident">WC_ExtendNumLet</span> <span class="op">=&gt;</span> <span class="ident">ExtendNumLet</span>,        <span class="comment">// rule WB13a</span>
-                    <span class="ident">wd</span>::<span class="ident">WC_ALetter</span> <span class="op">=&gt;</span> <span class="ident">Letter</span>,                   <span class="comment">// rule WB13b</span>
-                    <span class="ident">wd</span>::<span class="ident">WC_Hebrew_Letter</span> <span class="op">=&gt;</span> <span class="ident">HLetter</span>,            <span class="comment">// rule WB13b</span>
-                    <span class="ident">wd</span>::<span class="ident">WC_Numeric</span> <span class="op">=&gt;</span> <span class="ident">Numeric</span>,                  <span class="comment">// rule WB13b</span>
-                    <span class="ident">wd</span>::<span class="ident">WC_Katakana</span> <span class="op">=&gt;</span> <span class="ident">Katakana</span>,                <span class="comment">// rule WB13b</span>
-                    <span class="kw">_</span> <span class="op">=&gt;</span> {
+                <span class="ident">ExtendNumLet</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">cat</span> {
+                    <span class="ident">wd</span>::<span class="ident">WC_ExtendNumLet</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ExtendNumLet</span>,        <span class="comment">// rule WB13a</span>
+                    <span class="ident">wd</span>::<span class="ident">WC_ALetter</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Letter</span>,                   <span class="comment">// rule WB13b</span>
+                    <span class="ident">wd</span>::<span class="ident">WC_Hebrew_Letter</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">HLetter</span>,            <span class="comment">// rule WB13b</span>
+                    <span class="ident">wd</span>::<span class="ident">WC_Numeric</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Numeric</span>,                  <span class="comment">// rule WB13b</span>
+                    <span class="ident">wd</span>::<span class="ident">WC_Katakana</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Katakana</span>,                <span class="comment">// rule WB13b</span>
+                    <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {
                         <span class="ident">take_curr</span> <span class="op">=</span> <span class="bool-val">false</span>;
                         <span class="kw">break</span>;
                     }
                 },
-                <span class="ident">Regional</span>(<span class="ident">RegionalState</span>::<span class="ident">Full</span>) <span class="op">=&gt;</span> {
+                <span class="ident">Regional</span>(<span class="ident">RegionalState</span>::<span class="ident">Full</span>) <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="comment">// if it reaches here we&#39;ve gone too far,</span>
                     <span class="comment">// a full flag can only compose with ZWJ/Extend/Format</span>
                     <span class="comment">// proceeding it.</span>
                     <span class="ident">take_curr</span> <span class="op">=</span> <span class="bool-val">false</span>;
                     <span class="kw">break</span>;
                 }
-                <span class="ident">Regional</span>(<span class="ident">RegionalState</span>::<span class="ident">Half</span>) <span class="op">=&gt;</span> <span class="kw">match</span> <span class="ident">cat</span> {
-                    <span class="ident">wd</span>::<span class="ident">WC_Regional_Indicator</span> <span class="op">=&gt;</span> <span class="ident">Regional</span>(<span class="ident">RegionalState</span>::<span class="ident">Full</span>),      <span class="comment">// rule WB13c</span>
-                    <span class="kw">_</span> <span class="op">=&gt;</span> {
+                <span class="ident">Regional</span>(<span class="ident">RegionalState</span>::<span class="ident">Half</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">cat</span> {
+                    <span class="ident">wd</span>::<span class="ident">WC_Regional_Indicator</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Regional</span>(<span class="ident">RegionalState</span>::<span class="ident">Full</span>),      <span class="comment">// rule WB13c</span>
+                    <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {
                         <span class="ident">take_curr</span> <span class="op">=</span> <span class="bool-val">false</span>;
                         <span class="kw">break</span>;
                     }
                 },
-                <span class="ident">Regional</span>(<span class="kw">_</span>) <span class="op">=&gt;</span> <span class="macro">unreachable</span><span class="macro">!</span>(<span class="string">&quot;RegionalState::Unknown should not occur on forward iteration&quot;</span>),
-                <span class="ident">Emoji</span> <span class="op">=&gt;</span> {
+                <span class="ident">Regional</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable</span><span class="macro">!</span>(<span class="string">&quot;RegionalState::Unknown should not occur on forward iteration&quot;</span>),
+                <span class="ident">Emoji</span> <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="comment">// We already handle WB3c above. If you&#39;ve reached this point, the emoji sequence is over.</span>
                     <span class="ident">take_curr</span> <span class="op">=</span> <span class="bool-val">false</span>;
                     <span class="kw">break</span>;
                 },
-                <span class="ident">FormatExtend</span>(<span class="ident">t</span>) <span class="op">=&gt;</span> <span class="kw">match</span> <span class="ident">t</span> {    <span class="comment">// handle FormatExtends depending on what type</span>
-                    <span class="ident">RequireNumeric</span> <span class="kw">if</span> <span class="ident">cat</span> <span class="op">==</span> <span class="ident">wd</span>::<span class="ident">WC_Numeric</span> <span class="op">=&gt;</span> <span class="ident">Numeric</span>,     <span class="comment">// rule WB11</span>
-                    <span class="ident">RequireLetter</span> <span class="op">|</span> <span class="ident">AcceptQLetter</span> <span class="kw">if</span> <span class="ident">cat</span> <span class="op">==</span> <span class="ident">wd</span>::<span class="ident">WC_ALetter</span> <span class="op">=&gt;</span> <span class="ident">Letter</span>,   <span class="comment">// rule WB7</span>
-                    <span class="ident">RequireLetter</span> <span class="op">|</span> <span class="ident">AcceptQLetter</span> <span class="kw">if</span> <span class="ident">cat</span> <span class="op">==</span> <span class="ident">wd</span>::<span class="ident">WC_Hebrew_Letter</span> <span class="op">=&gt;</span> <span class="ident">HLetter</span>, <span class="comment">// WB7a</span>
-                    <span class="ident">RequireHLetter</span> <span class="kw">if</span> <span class="ident">cat</span> <span class="op">==</span> <span class="ident">wd</span>::<span class="ident">WC_Hebrew_Letter</span> <span class="op">=&gt;</span> <span class="ident">HLetter</span>,   <span class="comment">// rule WB7b</span>
-                    <span class="ident">AcceptNone</span> <span class="op">|</span> <span class="ident">AcceptQLetter</span> <span class="op">=&gt;</span> {
+                <span class="ident">FormatExtend</span>(<span class="ident">t</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">t</span> {    <span class="comment">// handle FormatExtends depending on what type</span>
+                    <span class="ident">RequireNumeric</span> <span class="kw">if</span> <span class="ident">cat</span> <span class="op">=</span><span class="op">=</span> <span class="ident">wd</span>::<span class="ident">WC_Numeric</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Numeric</span>,     <span class="comment">// rule WB11</span>
+                    <span class="ident">RequireLetter</span> <span class="op">|</span> <span class="ident">AcceptQLetter</span> <span class="kw">if</span> <span class="ident">cat</span> <span class="op">=</span><span class="op">=</span> <span class="ident">wd</span>::<span class="ident">WC_ALetter</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Letter</span>,   <span class="comment">// rule WB7</span>
+                    <span class="ident">RequireLetter</span> <span class="op">|</span> <span class="ident">AcceptQLetter</span> <span class="kw">if</span> <span class="ident">cat</span> <span class="op">=</span><span class="op">=</span> <span class="ident">wd</span>::<span class="ident">WC_Hebrew_Letter</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">HLetter</span>, <span class="comment">// WB7a</span>
+                    <span class="ident">RequireHLetter</span> <span class="kw">if</span> <span class="ident">cat</span> <span class="op">=</span><span class="op">=</span> <span class="ident">wd</span>::<span class="ident">WC_Hebrew_Letter</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">HLetter</span>,   <span class="comment">// rule WB7b</span>
+                    <span class="ident">AcceptNone</span> <span class="op">|</span> <span class="ident">AcceptQLetter</span> <span class="op">=</span><span class="op">&gt;</span> {
                         <span class="ident">take_curr</span> <span class="op">=</span> <span class="bool-val">false</span>;  <span class="comment">// emit all the Format|Extend characters</span>
                         <span class="ident">take_cat</span> <span class="op">=</span> <span class="bool-val">false</span>;
                         <span class="kw">break</span>;
                     },
-                    <span class="kw">_</span> <span class="op">=&gt;</span> <span class="kw">break</span>      <span class="comment">// rewind (in if statement below)</span>
+                    <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">break</span>      <span class="comment">// rewind (in if statement below)</span>
                 }
             }
         }
 
         <span class="kw">if</span> <span class="kw">let</span> <span class="ident">FormatExtend</span>(<span class="ident">t</span>) <span class="op">=</span> <span class="ident">state</span> {
             <span class="comment">// we were looking for something and didn&#39;t find it; we have to back up</span>
-            <span class="kw">if</span> <span class="ident">t</span> <span class="op">==</span> <span class="ident">RequireLetter</span> <span class="op">||</span> <span class="ident">t</span> <span class="op">==</span> <span class="ident">RequireHLetter</span> <span class="op">||</span> <span class="ident">t</span> <span class="op">==</span> <span class="ident">RequireNumeric</span> {
+            <span class="kw">if</span> <span class="ident">t</span> <span class="op">=</span><span class="op">=</span> <span class="ident">RequireLetter</span> <span class="op">|</span><span class="op">|</span> <span class="ident">t</span> <span class="op">=</span><span class="op">=</span> <span class="ident">RequireHLetter</span> <span class="op">|</span><span class="op">|</span> <span class="ident">t</span> <span class="op">=</span><span class="op">=</span> <span class="ident">RequireNumeric</span> {
                 <span class="ident">idx</span> <span class="op">=</span> <span class="ident">saveidx</span>;
                 <span class="ident">cat</span> <span class="op">=</span> <span class="ident">savecat</span>;
                 <span class="ident">take_curr</span> <span class="op">=</span> <span class="bool-val">false</span>;
@@ -1031,18 +1031,18 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">DoubleEndedIterator</span> <span class="kw">for</span> <span class="ident">UWordBounds</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">next_back</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">next_back</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span><span class="op">&gt;</span> {
         <span class="kw">use</span> <span class="self">self</span>::<span class="ident">UWordBoundsState</span>::<span class="kw-2">*</span>;
         <span class="kw">use</span> <span class="self">self</span>::<span class="ident">FormatExtendType</span>::<span class="kw-2">*</span>;
         <span class="kw">use</span> <span class="ident">tables</span>::<span class="ident">word</span> <span class="kw">as</span> <span class="ident">wd</span>;
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">string</span>.<span class="ident">len</span>() <span class="op">==</span> <span class="number">0</span> {
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">string</span>.<span class="ident">len</span>() <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
             <span class="kw">return</span> <span class="prelude-val">None</span>;
         }
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">take_curr</span> <span class="op">=</span> <span class="bool-val">true</span>;
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">take_cat</span> <span class="op">=</span> <span class="bool-val">true</span>;
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">idx</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">string</span>.<span class="ident">len</span>();
-        <span class="ident">idx</span> <span class="op">-=</span> <span class="self">self</span>.<span class="ident">string</span>.<span class="ident">chars</span>().<span class="ident">next_back</span>().<span class="ident">unwrap</span>().<span class="ident">len_utf8</span>();
+        <span class="ident">idx</span> <span class="op">-</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">string</span>.<span class="ident">chars</span>().<span class="ident">next_back</span>().<span class="ident">unwrap</span>().<span class="ident">len_utf8</span>();
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">previdx</span> <span class="op">=</span> <span class="ident">idx</span>;
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">saveidx</span> <span class="op">=</span> <span class="ident">idx</span>;
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">state</span> <span class="op">=</span> <span class="ident">Start</span>;
@@ -1057,8 +1057,8 @@
 
             <span class="comment">// if there&#39;s a category cached, grab it</span>
             <span class="ident">cat</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">catb</span> {
-                <span class="prelude-val">None</span> <span class="op">=&gt;</span> <span class="ident">wd</span>::<span class="ident">word_category</span>(<span class="ident">ch</span>),
-                <span class="kw">_</span> <span class="op">=&gt;</span> <span class="self">self</span>.<span class="ident">catb</span>.<span class="ident">take</span>().<span class="ident">unwrap</span>()
+                <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">wd</span>::<span class="ident">word_category</span>(<span class="ident">ch</span>),
+                <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">catb</span>.<span class="ident">take</span>().<span class="ident">unwrap</span>()
             };
             <span class="ident">take_cat</span> <span class="op">=</span> <span class="bool-val">true</span>;
 
@@ -1068,23 +1068,23 @@
             <span class="comment">//     Hebrew Letter immediately before it.</span>
             <span class="comment">// (2) Format and Extend char handling takes some gymnastics.</span>
 
-            <span class="kw">if</span> <span class="ident">cat</span> <span class="op">==</span> <span class="ident">wd</span>::<span class="ident">WC_Extend</span>
-                <span class="op">||</span> <span class="ident">cat</span> <span class="op">==</span> <span class="ident">wd</span>::<span class="ident">WC_Format</span>
-                <span class="op">||</span> (<span class="ident">cat</span> <span class="op">==</span> <span class="ident">wd</span>::<span class="ident">WC_ZWJ</span> <span class="op">&amp;&amp;</span> <span class="ident">state</span> <span class="op">!=</span> <span class="ident">Zwj</span>) { <span class="comment">// WB3c has more priority so we should not</span>
+            <span class="kw">if</span> <span class="ident">cat</span> <span class="op">=</span><span class="op">=</span> <span class="ident">wd</span>::<span class="ident">WC_Extend</span>
+                <span class="op">|</span><span class="op">|</span> <span class="ident">cat</span> <span class="op">=</span><span class="op">=</span> <span class="ident">wd</span>::<span class="ident">WC_Format</span>
+                <span class="op">|</span><span class="op">|</span> (<span class="ident">cat</span> <span class="op">=</span><span class="op">=</span> <span class="ident">wd</span>::<span class="ident">WC_ZWJ</span> <span class="op">&amp;&amp;</span> <span class="ident">state</span> <span class="op">!</span><span class="op">=</span> <span class="ident">Zwj</span>) { <span class="comment">// WB3c has more priority so we should not</span>
                                                          <span class="comment">// fold in that case</span>
                 <span class="kw">if</span> <span class="kw">match</span> <span class="ident">state</span> {
-                    <span class="ident">FormatExtend</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="ident">Start</span> <span class="op">=&gt;</span> <span class="bool-val">false</span>,
-                    <span class="kw">_</span> <span class="op">=&gt;</span> <span class="bool-val">true</span>
+                    <span class="ident">FormatExtend</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="ident">Start</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
+                    <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>
                 } {
                     <span class="ident">saveidx</span> <span class="op">=</span> <span class="ident">previdx</span>;
                     <span class="ident">savestate</span> <span class="op">=</span> <span class="ident">state</span>;
                     <span class="ident">state</span> <span class="op">=</span> <span class="ident">FormatExtend</span>(<span class="ident">AcceptNone</span>);
                 }
 
-                <span class="kw">if</span> <span class="ident">state</span> <span class="op">!=</span> <span class="ident">Start</span> {
+                <span class="kw">if</span> <span class="ident">state</span> <span class="op">!</span><span class="op">=</span> <span class="ident">Start</span> {
                     <span class="kw">continue</span>;
                 }
-            } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">state</span> <span class="op">==</span> <span class="ident">FormatExtend</span>(<span class="ident">AcceptNone</span>) {
+            } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">state</span> <span class="op">=</span><span class="op">=</span> <span class="ident">FormatExtend</span>(<span class="ident">AcceptNone</span>) {
                 <span class="comment">// finished a scan of some Format|Extend chars, restore previous state</span>
                 <span class="ident">state</span> <span class="op">=</span> <span class="ident">savestate</span>;
                 <span class="ident">previdx</span> <span class="op">=</span> <span class="ident">saveidx</span>;
@@ -1094,27 +1094,27 @@
 
             <span class="comment">// Don&#39;t use `continue` in this match without updating `catb`</span>
             <span class="ident">state</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">state</span> {
-                <span class="ident">Start</span> <span class="op">|</span> <span class="ident">FormatExtend</span>(<span class="ident">AcceptAny</span>) <span class="op">=&gt;</span> <span class="kw">match</span> <span class="ident">cat</span> {
-                    <span class="kw">_</span> <span class="kw">if</span> <span class="ident">is_emoji</span>(<span class="ident">ch</span>) <span class="op">=&gt;</span> <span class="ident">Zwj</span>,
-                    <span class="ident">wd</span>::<span class="ident">WC_ALetter</span> <span class="op">=&gt;</span> <span class="ident">Letter</span>,           <span class="comment">// rule WB5, WB7, WB10, WB13b</span>
-                    <span class="ident">wd</span>::<span class="ident">WC_Hebrew_Letter</span> <span class="op">=&gt;</span> <span class="ident">HLetter</span>,    <span class="comment">// rule WB5, WB7, WB7c, WB10, WB13b</span>
-                    <span class="ident">wd</span>::<span class="ident">WC_Numeric</span> <span class="op">=&gt;</span> <span class="ident">Numeric</span>,          <span class="comment">// rule WB8, WB9, WB11, WB13b</span>
-                    <span class="ident">wd</span>::<span class="ident">WC_Katakana</span> <span class="op">=&gt;</span> <span class="ident">Katakana</span>,                    <span class="comment">// rule WB13, WB13b</span>
-                    <span class="ident">wd</span>::<span class="ident">WC_ExtendNumLet</span> <span class="op">=&gt;</span> <span class="ident">ExtendNumLet</span>,                    <span class="comment">// rule WB13a</span>
-                    <span class="ident">wd</span>::<span class="ident">WC_Regional_Indicator</span> <span class="op">=&gt;</span> <span class="ident">Regional</span>(<span class="ident">RegionalState</span>::<span class="ident">Unknown</span>), <span class="comment">// rule WB13c</span>
+                <span class="ident">Start</span> <span class="op">|</span> <span class="ident">FormatExtend</span>(<span class="ident">AcceptAny</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">cat</span> {
+                    <span class="kw">_</span> <span class="kw">if</span> <span class="ident">is_emoji</span>(<span class="ident">ch</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Zwj</span>,
+                    <span class="ident">wd</span>::<span class="ident">WC_ALetter</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Letter</span>,           <span class="comment">// rule WB5, WB7, WB10, WB13b</span>
+                    <span class="ident">wd</span>::<span class="ident">WC_Hebrew_Letter</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">HLetter</span>,    <span class="comment">// rule WB5, WB7, WB7c, WB10, WB13b</span>
+                    <span class="ident">wd</span>::<span class="ident">WC_Numeric</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Numeric</span>,          <span class="comment">// rule WB8, WB9, WB11, WB13b</span>
+                    <span class="ident">wd</span>::<span class="ident">WC_Katakana</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Katakana</span>,                    <span class="comment">// rule WB13, WB13b</span>
+                    <span class="ident">wd</span>::<span class="ident">WC_ExtendNumLet</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ExtendNumLet</span>,                    <span class="comment">// rule WB13a</span>
+                    <span class="ident">wd</span>::<span class="ident">WC_Regional_Indicator</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Regional</span>(<span class="ident">RegionalState</span>::<span class="ident">Unknown</span>), <span class="comment">// rule WB13c</span>
                     <span class="comment">// rule WB4:</span>
-                    <span class="ident">wd</span>::<span class="ident">WC_Extend</span> <span class="op">|</span> <span class="ident">wd</span>::<span class="ident">WC_Format</span> <span class="op">|</span> <span class="ident">wd</span>::<span class="ident">WC_ZWJ</span> <span class="op">=&gt;</span> <span class="ident">FormatExtend</span>(<span class="ident">AcceptAny</span>),
-                    <span class="ident">wd</span>::<span class="ident">WC_Single_Quote</span> <span class="op">=&gt;</span> {
+                    <span class="ident">wd</span>::<span class="ident">WC_Extend</span> <span class="op">|</span> <span class="ident">wd</span>::<span class="ident">WC_Format</span> <span class="op">|</span> <span class="ident">wd</span>::<span class="ident">WC_ZWJ</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">FormatExtend</span>(<span class="ident">AcceptAny</span>),
+                    <span class="ident">wd</span>::<span class="ident">WC_Single_Quote</span> <span class="op">=</span><span class="op">&gt;</span> {
                         <span class="ident">saveidx</span> <span class="op">=</span> <span class="ident">idx</span>;
                         <span class="ident">FormatExtend</span>(<span class="ident">AcceptQLetter</span>)                         <span class="comment">// rule WB7a</span>
                     },
-                    <span class="ident">wd</span>::<span class="ident">WC_WSegSpace</span> <span class="op">=&gt;</span> <span class="ident">WSegSpace</span>,
-                    <span class="ident">wd</span>::<span class="ident">WC_CR</span> <span class="op">|</span> <span class="ident">wd</span>::<span class="ident">WC_LF</span> <span class="op">|</span> <span class="ident">wd</span>::<span class="ident">WC_Newline</span> <span class="op">=&gt;</span> {
-                        <span class="kw">if</span> <span class="ident">state</span> <span class="op">==</span> <span class="ident">Start</span> {
-                            <span class="kw">if</span> <span class="ident">cat</span> <span class="op">==</span> <span class="ident">wd</span>::<span class="ident">WC_LF</span> {
-                                <span class="ident">idx</span> <span class="op">-=</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">get_prev_cat</span>(<span class="ident">idx</span>) {
-                                    <span class="prelude-val">Some</span>(<span class="ident">pcat</span>) <span class="kw">if</span> <span class="ident">pcat</span> <span class="op">==</span> <span class="ident">wd</span>::<span class="ident">WC_CR</span> <span class="op">=&gt;</span> <span class="number">1</span>,   <span class="comment">// rule WB3</span>
-                                    <span class="kw">_</span> <span class="op">=&gt;</span> <span class="number">0</span>
+                    <span class="ident">wd</span>::<span class="ident">WC_WSegSpace</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">WSegSpace</span>,
+                    <span class="ident">wd</span>::<span class="ident">WC_CR</span> <span class="op">|</span> <span class="ident">wd</span>::<span class="ident">WC_LF</span> <span class="op">|</span> <span class="ident">wd</span>::<span class="ident">WC_Newline</span> <span class="op">=</span><span class="op">&gt;</span> {
+                        <span class="kw">if</span> <span class="ident">state</span> <span class="op">=</span><span class="op">=</span> <span class="ident">Start</span> {
+                            <span class="kw">if</span> <span class="ident">cat</span> <span class="op">=</span><span class="op">=</span> <span class="ident">wd</span>::<span class="ident">WC_LF</span> {
+                                <span class="ident">idx</span> <span class="op">-</span><span class="op">=</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">get_prev_cat</span>(<span class="ident">idx</span>) {
+                                    <span class="prelude-val">Some</span>(<span class="ident">pcat</span>) <span class="kw">if</span> <span class="ident">pcat</span> <span class="op">=</span><span class="op">=</span> <span class="ident">wd</span>::<span class="ident">WC_CR</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">1</span>,   <span class="comment">// rule WB3</span>
+                                    <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">0</span>
                                 };
                             }
                         } <span class="kw">else</span> {
@@ -1122,106 +1122,106 @@
                         }
                         <span class="kw">break</span>;                                              <span class="comment">// rule WB3a</span>
                     },
-                    <span class="kw">_</span> <span class="op">=&gt;</span> <span class="kw">break</span>                              <span class="comment">// rule WB999</span>
+                    <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">break</span>                              <span class="comment">// rule WB999</span>
                 },
-                <span class="ident">Zwj</span> <span class="op">=&gt;</span> <span class="kw">match</span> <span class="ident">cat</span> {                          <span class="comment">// rule WB3c</span>
-                    <span class="ident">wd</span>::<span class="ident">WC_ZWJ</span> <span class="op">=&gt;</span> {
+                <span class="ident">Zwj</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">cat</span> {                          <span class="comment">// rule WB3c</span>
+                    <span class="ident">wd</span>::<span class="ident">WC_ZWJ</span> <span class="op">=</span><span class="op">&gt;</span> {
                         <span class="ident">FormatExtend</span>(<span class="ident">AcceptAny</span>)
                     }
-                    <span class="kw">_</span> <span class="op">=&gt;</span> {
+                    <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {
                         <span class="ident">take_curr</span> <span class="op">=</span> <span class="bool-val">false</span>;
                         <span class="kw">break</span>;
                     }
                 },
-                <span class="ident">WSegSpace</span> <span class="op">=&gt;</span> <span class="kw">match</span> <span class="ident">cat</span> {                          <span class="comment">// rule WB3d</span>
-                    <span class="ident">wd</span>::<span class="ident">WC_WSegSpace</span> <span class="kw">if</span> <span class="op">!</span><span class="ident">skipped_format_extend</span> <span class="op">=&gt;</span> {
+                <span class="ident">WSegSpace</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">cat</span> {                          <span class="comment">// rule WB3d</span>
+                    <span class="ident">wd</span>::<span class="ident">WC_WSegSpace</span> <span class="kw">if</span> <span class="op">!</span><span class="ident">skipped_format_extend</span> <span class="op">=</span><span class="op">&gt;</span> {
                         <span class="ident">WSegSpace</span>
                     }
-                    <span class="kw">_</span> <span class="op">=&gt;</span> {
+                    <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {
                         <span class="ident">take_curr</span> <span class="op">=</span> <span class="bool-val">false</span>;
                         <span class="kw">break</span>;
                     }
                 },
-                <span class="ident">Letter</span> <span class="op">|</span> <span class="ident">HLetter</span> <span class="op">=&gt;</span> <span class="kw">match</span> <span class="ident">cat</span> {
-                    <span class="ident">wd</span>::<span class="ident">WC_ALetter</span> <span class="op">=&gt;</span> <span class="ident">Letter</span>,               <span class="comment">// rule WB5</span>
-                    <span class="ident">wd</span>::<span class="ident">WC_Hebrew_Letter</span> <span class="op">=&gt;</span> <span class="ident">HLetter</span>,        <span class="comment">// rule WB5</span>
-                    <span class="ident">wd</span>::<span class="ident">WC_Numeric</span> <span class="op">=&gt;</span> <span class="ident">Numeric</span>,              <span class="comment">// rule WB10</span>
-                    <span class="ident">wd</span>::<span class="ident">WC_ExtendNumLet</span> <span class="op">=&gt;</span> <span class="ident">ExtendNumLet</span>,    <span class="comment">// rule WB13b</span>
-                    <span class="ident">wd</span>::<span class="ident">WC_Double_Quote</span> <span class="kw">if</span> <span class="ident">state</span> <span class="op">==</span> <span class="ident">HLetter</span> <span class="op">=&gt;</span> {
+                <span class="ident">Letter</span> <span class="op">|</span> <span class="ident">HLetter</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">cat</span> {
+                    <span class="ident">wd</span>::<span class="ident">WC_ALetter</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Letter</span>,               <span class="comment">// rule WB5</span>
+                    <span class="ident">wd</span>::<span class="ident">WC_Hebrew_Letter</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">HLetter</span>,        <span class="comment">// rule WB5</span>
+                    <span class="ident">wd</span>::<span class="ident">WC_Numeric</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Numeric</span>,              <span class="comment">// rule WB10</span>
+                    <span class="ident">wd</span>::<span class="ident">WC_ExtendNumLet</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ExtendNumLet</span>,    <span class="comment">// rule WB13b</span>
+                    <span class="ident">wd</span>::<span class="ident">WC_Double_Quote</span> <span class="kw">if</span> <span class="ident">state</span> <span class="op">=</span><span class="op">=</span> <span class="ident">HLetter</span> <span class="op">=</span><span class="op">&gt;</span> {
                         <span class="ident">saveidx</span> <span class="op">=</span> <span class="ident">previdx</span>;
                         <span class="ident">FormatExtend</span>(<span class="ident">RequireHLetter</span>)         <span class="comment">// rule WB7c</span>
                     },
-                    <span class="ident">wd</span>::<span class="ident">WC_MidLetter</span> <span class="op">|</span> <span class="ident">wd</span>::<span class="ident">WC_MidNumLet</span> <span class="op">|</span> <span class="ident">wd</span>::<span class="ident">WC_Single_Quote</span> <span class="op">=&gt;</span> {
+                    <span class="ident">wd</span>::<span class="ident">WC_MidLetter</span> <span class="op">|</span> <span class="ident">wd</span>::<span class="ident">WC_MidNumLet</span> <span class="op">|</span> <span class="ident">wd</span>::<span class="ident">WC_Single_Quote</span> <span class="op">=</span><span class="op">&gt;</span> {
                         <span class="ident">saveidx</span> <span class="op">=</span> <span class="ident">previdx</span>;
                         <span class="ident">FormatExtend</span>(<span class="ident">RequireLetter</span>)          <span class="comment">// rule WB7</span>
                     },
-                    <span class="kw">_</span> <span class="op">=&gt;</span> {
+                    <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {
                         <span class="ident">take_curr</span> <span class="op">=</span> <span class="bool-val">false</span>;
                         <span class="kw">break</span>;
                     }
                 },
-                <span class="ident">Numeric</span> <span class="op">=&gt;</span> <span class="kw">match</span> <span class="ident">cat</span> {
-                    <span class="ident">wd</span>::<span class="ident">WC_Numeric</span> <span class="op">=&gt;</span> <span class="ident">Numeric</span>,              <span class="comment">// rule WB8</span>
-                    <span class="ident">wd</span>::<span class="ident">WC_ALetter</span> <span class="op">=&gt;</span> <span class="ident">Letter</span>,               <span class="comment">// rule WB9</span>
-                    <span class="ident">wd</span>::<span class="ident">WC_Hebrew_Letter</span> <span class="op">=&gt;</span> <span class="ident">HLetter</span>,        <span class="comment">// rule WB9</span>
-                    <span class="ident">wd</span>::<span class="ident">WC_ExtendNumLet</span> <span class="op">=&gt;</span> <span class="ident">ExtendNumLet</span>,    <span class="comment">// rule WB13b</span>
-                    <span class="ident">wd</span>::<span class="ident">WC_MidNum</span> <span class="op">|</span> <span class="ident">wd</span>::<span class="ident">WC_MidNumLet</span> <span class="op">|</span> <span class="ident">wd</span>::<span class="ident">WC_Single_Quote</span> <span class="op">=&gt;</span> {
+                <span class="ident">Numeric</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">cat</span> {
+                    <span class="ident">wd</span>::<span class="ident">WC_Numeric</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Numeric</span>,              <span class="comment">// rule WB8</span>
+                    <span class="ident">wd</span>::<span class="ident">WC_ALetter</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Letter</span>,               <span class="comment">// rule WB9</span>
+                    <span class="ident">wd</span>::<span class="ident">WC_Hebrew_Letter</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">HLetter</span>,        <span class="comment">// rule WB9</span>
+                    <span class="ident">wd</span>::<span class="ident">WC_ExtendNumLet</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ExtendNumLet</span>,    <span class="comment">// rule WB13b</span>
+                    <span class="ident">wd</span>::<span class="ident">WC_MidNum</span> <span class="op">|</span> <span class="ident">wd</span>::<span class="ident">WC_MidNumLet</span> <span class="op">|</span> <span class="ident">wd</span>::<span class="ident">WC_Single_Quote</span> <span class="op">=</span><span class="op">&gt;</span> {
                         <span class="ident">saveidx</span> <span class="op">=</span> <span class="ident">previdx</span>;
                         <span class="ident">FormatExtend</span>(<span class="ident">RequireNumeric</span>)         <span class="comment">// rule WB11</span>
                     },
-                    <span class="kw">_</span> <span class="op">=&gt;</span> {
+                    <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {
                         <span class="ident">take_curr</span> <span class="op">=</span> <span class="bool-val">false</span>;
                         <span class="kw">break</span>;
                     }
                 },
-                <span class="ident">Katakana</span> <span class="op">=&gt;</span> <span class="kw">match</span> <span class="ident">cat</span> {
-                    <span class="ident">wd</span>::<span class="ident">WC_Katakana</span> <span class="op">=&gt;</span> <span class="ident">Katakana</span>,            <span class="comment">// rule WB13</span>
-                    <span class="ident">wd</span>::<span class="ident">WC_ExtendNumLet</span> <span class="op">=&gt;</span> <span class="ident">ExtendNumLet</span>,    <span class="comment">// rule WB13b</span>
-                    <span class="kw">_</span> <span class="op">=&gt;</span> {
+                <span class="ident">Katakana</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">cat</span> {
+                    <span class="ident">wd</span>::<span class="ident">WC_Katakana</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Katakana</span>,            <span class="comment">// rule WB13</span>
+                    <span class="ident">wd</span>::<span class="ident">WC_ExtendNumLet</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ExtendNumLet</span>,    <span class="comment">// rule WB13b</span>
+                    <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {
                         <span class="ident">take_curr</span> <span class="op">=</span> <span class="bool-val">false</span>;
                         <span class="kw">break</span>;
                     }
                 },
-                <span class="ident">ExtendNumLet</span> <span class="op">=&gt;</span> <span class="kw">match</span> <span class="ident">cat</span> {
-                    <span class="ident">wd</span>::<span class="ident">WC_ExtendNumLet</span> <span class="op">=&gt;</span> <span class="ident">ExtendNumLet</span>,    <span class="comment">// rule WB13a</span>
-                    <span class="ident">wd</span>::<span class="ident">WC_ALetter</span> <span class="op">=&gt;</span> <span class="ident">Letter</span>,               <span class="comment">// rule WB13a</span>
-                    <span class="ident">wd</span>::<span class="ident">WC_Hebrew_Letter</span> <span class="op">=&gt;</span> <span class="ident">HLetter</span>,        <span class="comment">// rule WB13a</span>
-                    <span class="ident">wd</span>::<span class="ident">WC_Numeric</span> <span class="op">=&gt;</span> <span class="ident">Numeric</span>,              <span class="comment">// rule WB13a</span>
-                    <span class="ident">wd</span>::<span class="ident">WC_Katakana</span> <span class="op">=&gt;</span> <span class="ident">Katakana</span>,            <span class="comment">// rule WB13a</span>
-                    <span class="kw">_</span> <span class="op">=&gt;</span> {
+                <span class="ident">ExtendNumLet</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">cat</span> {
+                    <span class="ident">wd</span>::<span class="ident">WC_ExtendNumLet</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ExtendNumLet</span>,    <span class="comment">// rule WB13a</span>
+                    <span class="ident">wd</span>::<span class="ident">WC_ALetter</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Letter</span>,               <span class="comment">// rule WB13a</span>
+                    <span class="ident">wd</span>::<span class="ident">WC_Hebrew_Letter</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">HLetter</span>,        <span class="comment">// rule WB13a</span>
+                    <span class="ident">wd</span>::<span class="ident">WC_Numeric</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Numeric</span>,              <span class="comment">// rule WB13a</span>
+                    <span class="ident">wd</span>::<span class="ident">WC_Katakana</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Katakana</span>,            <span class="comment">// rule WB13a</span>
+                    <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {
                         <span class="ident">take_curr</span> <span class="op">=</span> <span class="bool-val">false</span>;
                         <span class="kw">break</span>;
                     }
                 },
-                <span class="ident">Regional</span>(<span class="kw-2">mut</span> <span class="ident">regional_state</span>) <span class="op">=&gt;</span> <span class="kw">match</span> <span class="ident">cat</span> {
+                <span class="ident">Regional</span>(<span class="kw-2">mut</span> <span class="ident">regional_state</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">cat</span> {
                     <span class="comment">// rule WB13c</span>
-                    <span class="ident">wd</span>::<span class="ident">WC_Regional_Indicator</span> <span class="op">=&gt;</span> {
-                        <span class="kw">if</span> <span class="ident">regional_state</span> <span class="op">==</span> <span class="ident">RegionalState</span>::<span class="ident">Unknown</span> {
+                    <span class="ident">wd</span>::<span class="ident">WC_Regional_Indicator</span> <span class="op">=</span><span class="op">&gt;</span> {
+                        <span class="kw">if</span> <span class="ident">regional_state</span> <span class="op">=</span><span class="op">=</span> <span class="ident">RegionalState</span>::<span class="ident">Unknown</span> {
                             <span class="kw">let</span> <span class="ident">count</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">string</span>[..<span class="ident">previdx</span>]
                                             .<span class="ident">chars</span>().<span class="ident">rev</span>()
                                             .<span class="ident">map</span>(<span class="op">|</span><span class="ident">c</span><span class="op">|</span> <span class="ident">wd</span>::<span class="ident">word_category</span>(<span class="ident">c</span>))
-                                            .<span class="ident">filter</span>(<span class="op">|</span><span class="kw-2">&amp;</span><span class="ident">c</span><span class="op">|</span> <span class="op">!</span> (<span class="ident">c</span> <span class="op">==</span> <span class="ident">wd</span>::<span class="ident">WC_ZWJ</span> <span class="op">||</span> <span class="ident">c</span> <span class="op">==</span> <span class="ident">wd</span>::<span class="ident">WC_Extend</span> <span class="op">||</span> <span class="ident">c</span> <span class="op">==</span> <span class="ident">wd</span>::<span class="ident">WC_Format</span>))
-                                            .<span class="ident">take_while</span>(<span class="op">|</span><span class="kw-2">&amp;</span><span class="ident">c</span><span class="op">|</span> <span class="ident">c</span> <span class="op">==</span> <span class="ident">wd</span>::<span class="ident">WC_Regional_Indicator</span>)
+                                            .<span class="ident">filter</span>(<span class="op">|</span><span class="kw-2">&amp;</span><span class="ident">c</span><span class="op">|</span> <span class="op">!</span> (<span class="ident">c</span> <span class="op">=</span><span class="op">=</span> <span class="ident">wd</span>::<span class="ident">WC_ZWJ</span> <span class="op">|</span><span class="op">|</span> <span class="ident">c</span> <span class="op">=</span><span class="op">=</span> <span class="ident">wd</span>::<span class="ident">WC_Extend</span> <span class="op">|</span><span class="op">|</span> <span class="ident">c</span> <span class="op">=</span><span class="op">=</span> <span class="ident">wd</span>::<span class="ident">WC_Format</span>))
+                                            .<span class="ident">take_while</span>(<span class="op">|</span><span class="kw-2">&amp;</span><span class="ident">c</span><span class="op">|</span> <span class="ident">c</span> <span class="op">=</span><span class="op">=</span> <span class="ident">wd</span>::<span class="ident">WC_Regional_Indicator</span>)
                                             .<span class="ident">count</span>();
-                            <span class="ident">regional_state</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">count</span> <span class="op">%</span> <span class="number">2</span> <span class="op">==</span> <span class="number">0</span> {
+                            <span class="ident">regional_state</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">count</span> <span class="op">%</span> <span class="number">2</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
                                 <span class="ident">RegionalState</span>::<span class="ident">Full</span>
                             } <span class="kw">else</span> {
                                 <span class="ident">RegionalState</span>::<span class="ident">Half</span>
                             };
                         }
-                        <span class="kw">if</span> <span class="ident">regional_state</span> <span class="op">==</span> <span class="ident">RegionalState</span>::<span class="ident">Full</span> {
+                        <span class="kw">if</span> <span class="ident">regional_state</span> <span class="op">=</span><span class="op">=</span> <span class="ident">RegionalState</span>::<span class="ident">Full</span> {
                             <span class="ident">take_curr</span> <span class="op">=</span> <span class="bool-val">false</span>;
                             <span class="kw">break</span>;
                         } <span class="kw">else</span> {
                             <span class="ident">Regional</span>(<span class="ident">RegionalState</span>::<span class="ident">Full</span>)
                         }
                     }
-                    <span class="kw">_</span> <span class="op">=&gt;</span> {
+                    <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {
                         <span class="ident">take_curr</span> <span class="op">=</span> <span class="bool-val">false</span>;
                         <span class="kw">break</span>;
                     }
                 },
-                <span class="ident">Emoji</span> <span class="op">=&gt;</span> {
+                <span class="ident">Emoji</span> <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="kw">if</span> <span class="ident">is_emoji</span>(<span class="ident">ch</span>) {           <span class="comment">// rule WB3c</span>
                         <span class="ident">Zwj</span>
                     } <span class="kw">else</span> {
@@ -1229,21 +1229,21 @@
                         <span class="kw">break</span>;
                     }
                 },
-                <span class="ident">FormatExtend</span>(<span class="ident">t</span>) <span class="op">=&gt;</span> <span class="kw">match</span> <span class="ident">t</span> {
-                    <span class="ident">RequireNumeric</span> <span class="kw">if</span> <span class="ident">cat</span> <span class="op">==</span> <span class="ident">wd</span>::<span class="ident">WC_Numeric</span> <span class="op">=&gt;</span> <span class="ident">Numeric</span>,          <span class="comment">// rule WB12</span>
-                    <span class="ident">RequireLetter</span> <span class="kw">if</span> <span class="ident">cat</span> <span class="op">==</span> <span class="ident">wd</span>::<span class="ident">WC_ALetter</span> <span class="op">=&gt;</span> <span class="ident">Letter</span>,            <span class="comment">// rule WB6</span>
-                    <span class="ident">RequireLetter</span> <span class="kw">if</span> <span class="ident">cat</span> <span class="op">==</span> <span class="ident">wd</span>::<span class="ident">WC_Hebrew_Letter</span> <span class="op">=&gt;</span> <span class="ident">HLetter</span>,     <span class="comment">// rule WB6</span>
-                    <span class="ident">AcceptQLetter</span> <span class="kw">if</span> <span class="ident">cat</span> <span class="op">==</span> <span class="ident">wd</span>::<span class="ident">WC_Hebrew_Letter</span> <span class="op">=&gt;</span> <span class="ident">HLetter</span>,     <span class="comment">// rule WB7a</span>
-                    <span class="ident">RequireHLetter</span> <span class="kw">if</span> <span class="ident">cat</span> <span class="op">==</span> <span class="ident">wd</span>::<span class="ident">WC_Hebrew_Letter</span> <span class="op">=&gt;</span> <span class="ident">HLetter</span>,    <span class="comment">// rule WB7b</span>
-                    <span class="kw">_</span> <span class="op">=&gt;</span> <span class="kw">break</span>  <span class="comment">// backtrack will happens</span>
+                <span class="ident">FormatExtend</span>(<span class="ident">t</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">t</span> {
+                    <span class="ident">RequireNumeric</span> <span class="kw">if</span> <span class="ident">cat</span> <span class="op">=</span><span class="op">=</span> <span class="ident">wd</span>::<span class="ident">WC_Numeric</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Numeric</span>,          <span class="comment">// rule WB12</span>
+                    <span class="ident">RequireLetter</span> <span class="kw">if</span> <span class="ident">cat</span> <span class="op">=</span><span class="op">=</span> <span class="ident">wd</span>::<span class="ident">WC_ALetter</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Letter</span>,            <span class="comment">// rule WB6</span>
+                    <span class="ident">RequireLetter</span> <span class="kw">if</span> <span class="ident">cat</span> <span class="op">=</span><span class="op">=</span> <span class="ident">wd</span>::<span class="ident">WC_Hebrew_Letter</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">HLetter</span>,     <span class="comment">// rule WB6</span>
+                    <span class="ident">AcceptQLetter</span> <span class="kw">if</span> <span class="ident">cat</span> <span class="op">=</span><span class="op">=</span> <span class="ident">wd</span>::<span class="ident">WC_Hebrew_Letter</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">HLetter</span>,     <span class="comment">// rule WB7a</span>
+                    <span class="ident">RequireHLetter</span> <span class="kw">if</span> <span class="ident">cat</span> <span class="op">=</span><span class="op">=</span> <span class="ident">wd</span>::<span class="ident">WC_Hebrew_Letter</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">HLetter</span>,    <span class="comment">// rule WB7b</span>
+                    <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">break</span>  <span class="comment">// backtrack will happens</span>
                 }
             }
         }
 
         <span class="kw">if</span> <span class="kw">let</span> <span class="ident">FormatExtend</span>(<span class="ident">t</span>) <span class="op">=</span> <span class="ident">state</span> {
             <span class="comment">// if we required something but didn&#39;t find it, backtrack</span>
-            <span class="kw">if</span> <span class="ident">t</span> <span class="op">==</span> <span class="ident">RequireLetter</span> <span class="op">||</span> <span class="ident">t</span> <span class="op">==</span> <span class="ident">RequireHLetter</span> <span class="op">||</span>
-                <span class="ident">t</span> <span class="op">==</span> <span class="ident">RequireNumeric</span> <span class="op">||</span> <span class="ident">t</span> <span class="op">==</span> <span class="ident">AcceptNone</span> <span class="op">||</span> <span class="ident">t</span> <span class="op">==</span> <span class="ident">AcceptQLetter</span> {
+            <span class="kw">if</span> <span class="ident">t</span> <span class="op">=</span><span class="op">=</span> <span class="ident">RequireLetter</span> <span class="op">|</span><span class="op">|</span> <span class="ident">t</span> <span class="op">=</span><span class="op">=</span> <span class="ident">RequireHLetter</span> <span class="op">|</span><span class="op">|</span>
+                <span class="ident">t</span> <span class="op">=</span><span class="op">=</span> <span class="ident">RequireNumeric</span> <span class="op">|</span><span class="op">|</span> <span class="ident">t</span> <span class="op">=</span><span class="op">=</span> <span class="ident">AcceptNone</span> <span class="op">|</span><span class="op">|</span> <span class="ident">t</span> <span class="op">=</span><span class="op">=</span> <span class="ident">AcceptQLetter</span> {
                 <span class="ident">previdx</span> <span class="op">=</span> <span class="ident">saveidx</span>;
                 <span class="ident">take_cat</span> <span class="op">=</span> <span class="bool-val">false</span>;
                 <span class="ident">take_curr</span> <span class="op">=</span> <span class="bool-val">false</span>;
@@ -1280,12 +1280,12 @@
     <span class="doccomment">/// iter.next();</span>
     <span class="doccomment">/// assert_eq!(iter.as_str(), &quot;world&quot;);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_str</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_str</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span> {
         <span class="self">self</span>.<span class="ident">string</span>
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">get_next_cat</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">idx</span>: <span class="ident">usize</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">WordCat</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">get_next_cat</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">idx</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">WordCat</span><span class="op">&gt;</span> {
         <span class="kw">use</span> <span class="ident">tables</span>::<span class="ident">word</span> <span class="kw">as</span> <span class="ident">wd</span>;
         <span class="kw">let</span> <span class="ident">nidx</span> <span class="op">=</span> <span class="ident">idx</span> <span class="op">+</span> <span class="self">self</span>.<span class="ident">string</span>[<span class="ident">idx</span>..].<span class="ident">chars</span>().<span class="ident">next</span>().<span class="ident">unwrap</span>().<span class="ident">len_utf8</span>();
         <span class="kw">if</span> <span class="ident">nidx</span> <span class="op">&lt;</span> <span class="self">self</span>.<span class="ident">string</span>.<span class="ident">len</span>() {
@@ -1297,7 +1297,7 @@
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">get_prev_cat</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">idx</span>: <span class="ident">usize</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">WordCat</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">get_prev_cat</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">idx</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">WordCat</span><span class="op">&gt;</span> {
         <span class="kw">use</span> <span class="ident">tables</span>::<span class="ident">word</span> <span class="kw">as</span> <span class="ident">wd</span>;
         <span class="kw">if</span> <span class="ident">idx</span> <span class="op">&gt;</span> <span class="number">0</span> {
             <span class="kw">let</span> <span class="ident">nch</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">string</span>[..<span class="ident">idx</span>].<span class="ident">chars</span>().<span class="ident">next_back</span>().<span class="ident">unwrap</span>();
@@ -1309,22 +1309,22 @@
 }
 
 <span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_word_bounds</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span><span class="op">&gt;</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">str</span>) <span class="op">-&gt;</span> <span class="ident">UWordBounds</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_word_bounds</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span><span class="op">&gt;</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">UWordBounds</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span><span class="op">&gt;</span> {
     <span class="ident">UWordBounds</span> { <span class="ident">string</span>: <span class="ident">s</span>, <span class="ident">cat</span>: <span class="prelude-val">None</span>, <span class="ident">catb</span>: <span class="prelude-val">None</span> }
 }
 
 <span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_word_bound_indices</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span><span class="op">&gt;</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">str</span>) <span class="op">-&gt;</span> <span class="ident">UWordBoundIndices</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_word_bound_indices</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span><span class="op">&gt;</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">UWordBoundIndices</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span><span class="op">&gt;</span> {
     <span class="ident">UWordBoundIndices</span> { <span class="ident">start_offset</span>: <span class="ident">s</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="ident">usize</span>, <span class="ident">iter</span>: <span class="ident">new_word_bounds</span>(<span class="ident">s</span>) }
 }
 
 <span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_unicode_words</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span><span class="op">&gt;</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">str</span>) <span class="op">-&gt;</span> <span class="ident">UnicodeWords</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_unicode_words</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span><span class="op">&gt;</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">UnicodeWords</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span><span class="op">&gt;</span> {
     <span class="kw">use</span> <span class="kw">super</span>::<span class="ident">UnicodeSegmentation</span>;
     <span class="kw">use</span> <span class="ident">tables</span>::<span class="ident">util</span>::<span class="ident">is_alphanumeric</span>;
 
-    <span class="kw">fn</span> <span class="ident">has_alphanumeric</span>(<span class="ident">s</span>: <span class="op">&amp;&amp;</span><span class="ident">str</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> { <span class="ident">s</span>.<span class="ident">chars</span>().<span class="ident">any</span>(<span class="op">|</span><span class="ident">c</span><span class="op">|</span> <span class="ident">is_alphanumeric</span>(<span class="ident">c</span>)) }
-    <span class="kw">let</span> <span class="ident">has_alphanumeric</span>: <span class="kw">fn</span>(<span class="op">&amp;&amp;</span><span class="ident">str</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> <span class="op">=</span> <span class="ident">has_alphanumeric</span>; <span class="comment">// coerce to fn pointer</span>
+    <span class="kw">fn</span> <span class="ident">has_alphanumeric</span>(<span class="ident">s</span>: <span class="op">&amp;&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> { <span class="ident">s</span>.<span class="ident">chars</span>().<span class="ident">any</span>(<span class="op">|</span><span class="ident">c</span><span class="op">|</span> <span class="ident">is_alphanumeric</span>(<span class="ident">c</span>)) }
+    <span class="kw">let</span> <span class="ident">has_alphanumeric</span>: <span class="kw">fn</span>(<span class="op">&amp;&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> <span class="op">=</span> <span class="ident">has_alphanumeric</span>; <span class="comment">// coerce to fn pointer</span>
 
     <span class="ident">UnicodeWords</span> { <span class="ident">inner</span>: <span class="ident">s</span>.<span class="ident">split_word_bounds</span>().<span class="ident">filter</span>(<span class="ident">has_alphanumeric</span>) }
 }

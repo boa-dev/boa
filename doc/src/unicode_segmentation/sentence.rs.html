@@ -428,33 +428,33 @@
     <span class="kw">impl</span> <span class="ident">SentenceBreaksState</span> {
         <span class="comment">// Attempt to advance the internal state by one part</span>
         <span class="comment">// Whitespace and some punctutation will be collapsed</span>
-        <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">cat</span>: <span class="ident">SentenceCat</span>) <span class="op">-&gt;</span> <span class="ident">SentenceBreaksState</span> {
+        <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">cat</span>: <span class="ident">SentenceCat</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">SentenceBreaksState</span> {
             <span class="kw">let</span> <span class="kw-2">&amp;</span><span class="ident">SentenceBreaksState</span>(<span class="ident">parts</span>) <span class="op">=</span> <span class="self">self</span>;
             <span class="kw">let</span> <span class="ident">parts</span> <span class="op">=</span> <span class="kw">match</span> (<span class="ident">parts</span>[<span class="number">3</span>], <span class="ident">cat</span>) {
-                (<span class="ident">StatePart</span>::<span class="ident">ClosePlus</span>, <span class="ident">SentenceCat</span>::<span class="ident">SC_Close</span>) <span class="op">=&gt;</span> <span class="ident">parts</span>,
-                (<span class="ident">StatePart</span>::<span class="ident">SpPlus</span>, <span class="ident">SentenceCat</span>::<span class="ident">SC_Sp</span>) <span class="op">=&gt;</span> <span class="ident">parts</span>,
-                <span class="kw">_</span> <span class="op">=&gt;</span> [
+                (<span class="ident">StatePart</span>::<span class="ident">ClosePlus</span>, <span class="ident">SentenceCat</span>::<span class="ident">SC_Close</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">parts</span>,
+                (<span class="ident">StatePart</span>::<span class="ident">SpPlus</span>, <span class="ident">SentenceCat</span>::<span class="ident">SC_Sp</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">parts</span>,
+                <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> [
                     <span class="ident">parts</span>[<span class="number">1</span>],
                     <span class="ident">parts</span>[<span class="number">2</span>],
                     <span class="ident">parts</span>[<span class="number">3</span>],
                     <span class="kw">match</span> <span class="ident">cat</span> {
-                        <span class="ident">SentenceCat</span>::<span class="ident">SC_CR</span> <span class="op">=&gt;</span> <span class="ident">StatePart</span>::<span class="ident">CR</span>,
-                        <span class="ident">SentenceCat</span>::<span class="ident">SC_LF</span> <span class="op">=&gt;</span> <span class="ident">StatePart</span>::<span class="ident">LF</span>,
-                        <span class="ident">SentenceCat</span>::<span class="ident">SC_Sep</span> <span class="op">=&gt;</span> <span class="ident">StatePart</span>::<span class="ident">Sep</span>,
-                        <span class="ident">SentenceCat</span>::<span class="ident">SC_ATerm</span> <span class="op">=&gt;</span> <span class="ident">StatePart</span>::<span class="ident">ATerm</span>,
+                        <span class="ident">SentenceCat</span>::<span class="ident">SC_CR</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">StatePart</span>::<span class="ident">CR</span>,
+                        <span class="ident">SentenceCat</span>::<span class="ident">SC_LF</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">StatePart</span>::<span class="ident">LF</span>,
+                        <span class="ident">SentenceCat</span>::<span class="ident">SC_Sep</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">StatePart</span>::<span class="ident">Sep</span>,
+                        <span class="ident">SentenceCat</span>::<span class="ident">SC_ATerm</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">StatePart</span>::<span class="ident">ATerm</span>,
                         <span class="ident">SentenceCat</span>::<span class="ident">SC_Upper</span> <span class="op">|</span>
-                        <span class="ident">SentenceCat</span>::<span class="ident">SC_Lower</span> <span class="op">=&gt;</span> <span class="ident">StatePart</span>::<span class="ident">UpperLower</span>,
-                        <span class="ident">SentenceCat</span>::<span class="ident">SC_Close</span> <span class="op">=&gt;</span> <span class="ident">StatePart</span>::<span class="ident">ClosePlus</span>,
-                        <span class="ident">SentenceCat</span>::<span class="ident">SC_Sp</span> <span class="op">=&gt;</span> <span class="ident">StatePart</span>::<span class="ident">SpPlus</span>,
-                        <span class="ident">SentenceCat</span>::<span class="ident">SC_STerm</span> <span class="op">=&gt;</span> <span class="ident">StatePart</span>::<span class="ident">STerm</span>,
-                        <span class="kw">_</span> <span class="op">=&gt;</span> <span class="ident">StatePart</span>::<span class="ident">Other</span>
+                        <span class="ident">SentenceCat</span>::<span class="ident">SC_Lower</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">StatePart</span>::<span class="ident">UpperLower</span>,
+                        <span class="ident">SentenceCat</span>::<span class="ident">SC_Close</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">StatePart</span>::<span class="ident">ClosePlus</span>,
+                        <span class="ident">SentenceCat</span>::<span class="ident">SC_Sp</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">StatePart</span>::<span class="ident">SpPlus</span>,
+                        <span class="ident">SentenceCat</span>::<span class="ident">SC_STerm</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">StatePart</span>::<span class="ident">STerm</span>,
+                        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">StatePart</span>::<span class="ident">Other</span>
                     }
                 ]
             };
             <span class="ident">SentenceBreaksState</span>(<span class="ident">parts</span>)
         }
 
-        <span class="kw">fn</span> <span class="ident">end</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">SentenceBreaksState</span> {
+        <span class="kw">fn</span> <span class="ident">end</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">SentenceBreaksState</span> {
             <span class="kw">let</span> <span class="kw-2">&amp;</span><span class="ident">SentenceBreaksState</span>(<span class="ident">parts</span>) <span class="op">=</span> <span class="self">self</span>;
             <span class="ident">SentenceBreaksState</span>([
                 <span class="ident">parts</span>[<span class="number">1</span>],
@@ -465,38 +465,38 @@
         }
 
         <span class="comment">// Helper function to check if state head matches a single `StatePart`</span>
-        <span class="kw">fn</span> <span class="ident">match1</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">part</span>: <span class="ident">StatePart</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
+        <span class="kw">fn</span> <span class="ident">match1</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">part</span>: <span class="ident">StatePart</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
             <span class="kw">let</span> <span class="kw-2">&amp;</span><span class="ident">SentenceBreaksState</span>(<span class="ident">parts</span>) <span class="op">=</span> <span class="self">self</span>;
-            <span class="ident">part</span> <span class="op">==</span> <span class="ident">parts</span>[<span class="number">3</span>]
+            <span class="ident">part</span> <span class="op">=</span><span class="op">=</span> <span class="ident">parts</span>[<span class="number">3</span>]
         }
 
         <span class="comment">// Helper function to check if first two `StateParts` in state match</span>
         <span class="comment">// the given two</span>
-        <span class="kw">fn</span> <span class="ident">match2</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">part1</span>: <span class="ident">StatePart</span>, <span class="ident">part2</span>: <span class="ident">StatePart</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
+        <span class="kw">fn</span> <span class="ident">match2</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">part1</span>: <span class="ident">StatePart</span>, <span class="ident">part2</span>: <span class="ident">StatePart</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
             <span class="kw">let</span> <span class="kw-2">&amp;</span><span class="ident">SentenceBreaksState</span>(<span class="ident">parts</span>) <span class="op">=</span> <span class="self">self</span>;
-            <span class="ident">part1</span> <span class="op">==</span> <span class="ident">parts</span>[<span class="number">2</span>] <span class="op">&amp;&amp;</span> <span class="ident">part2</span> <span class="op">==</span> <span class="ident">parts</span>[<span class="number">3</span>]
+            <span class="ident">part1</span> <span class="op">=</span><span class="op">=</span> <span class="ident">parts</span>[<span class="number">2</span>] <span class="op">&amp;&amp;</span> <span class="ident">part2</span> <span class="op">=</span><span class="op">=</span> <span class="ident">parts</span>[<span class="number">3</span>]
         }
     }
 
     <span class="comment">// https://unicode.org/reports/tr29/#SB8</span>
     <span class="comment">// TODO cache this, it is currently quadratic</span>
-    <span class="kw">fn</span> <span class="ident">match_sb8</span>(<span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="ident">SentenceBreaksState</span>, <span class="ident">ahead</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">match_sb8</span>(<span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="ident">SentenceBreaksState</span>, <span class="ident">ahead</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
         <span class="kw">let</span> <span class="kw-2">&amp;</span><span class="ident">SentenceBreaksState</span>(<span class="ident">parts</span>) <span class="op">=</span> <span class="ident">state</span>;
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">idx</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">parts</span>[<span class="number">3</span>] <span class="op">==</span> <span class="ident">StatePart</span>::<span class="ident">SpPlus</span> { <span class="number">2</span> } <span class="kw">else</span> { <span class="number">3</span> };
-        <span class="kw">if</span> <span class="ident">parts</span>[<span class="ident">idx</span>] <span class="op">==</span> <span class="ident">StatePart</span>::<span class="ident">ClosePlus</span> { <span class="ident">idx</span> <span class="op">-=</span> <span class="number">1</span> }
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">idx</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">parts</span>[<span class="number">3</span>] <span class="op">=</span><span class="op">=</span> <span class="ident">StatePart</span>::<span class="ident">SpPlus</span> { <span class="number">2</span> } <span class="kw">else</span> { <span class="number">3</span> };
+        <span class="kw">if</span> <span class="ident">parts</span>[<span class="ident">idx</span>] <span class="op">=</span><span class="op">=</span> <span class="ident">StatePart</span>::<span class="ident">ClosePlus</span> { <span class="ident">idx</span> <span class="op">-</span><span class="op">=</span> <span class="number">1</span> }
 
-        <span class="kw">if</span> <span class="ident">parts</span>[<span class="ident">idx</span>] <span class="op">==</span> <span class="ident">StatePart</span>::<span class="ident">ATerm</span> {
+        <span class="kw">if</span> <span class="ident">parts</span>[<span class="ident">idx</span>] <span class="op">=</span><span class="op">=</span> <span class="ident">StatePart</span>::<span class="ident">ATerm</span> {
             <span class="kw">use</span> <span class="ident">tables</span>::<span class="ident">sentence</span> <span class="kw">as</span> <span class="ident">se</span>;
 
             <span class="kw">for</span> <span class="ident">next_char</span> <span class="kw">in</span> <span class="ident">ahead</span>.<span class="ident">chars</span>() {
                 <span class="comment">//( ¬(OLetter | Upper | Lower | ParaSep | SATerm) )* Lower</span>
                 <span class="kw">match</span> <span class="ident">se</span>::<span class="ident">sentence_category</span>(<span class="ident">next_char</span>) {
-                    <span class="ident">se</span>::<span class="ident">SC_Lower</span> <span class="op">=&gt;</span> <span class="kw">return</span> <span class="bool-val">true</span>,
+                    <span class="ident">se</span>::<span class="ident">SC_Lower</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="bool-val">true</span>,
                     <span class="ident">se</span>::<span class="ident">SC_OLetter</span> <span class="op">|</span>
                     <span class="ident">se</span>::<span class="ident">SC_Upper</span> <span class="op">|</span>
                     <span class="ident">se</span>::<span class="ident">SC_Sep</span> <span class="op">|</span> <span class="ident">se</span>::<span class="ident">SC_CR</span> <span class="op">|</span> <span class="ident">se</span>::<span class="ident">SC_LF</span> <span class="op">|</span>
-                    <span class="ident">se</span>::<span class="ident">SC_STerm</span> <span class="op">|</span> <span class="ident">se</span>::<span class="ident">SC_ATerm</span> <span class="op">=&gt;</span> <span class="kw">return</span> <span class="bool-val">false</span>,
-                    <span class="kw">_</span> <span class="op">=&gt;</span> <span class="kw">continue</span>
+                    <span class="ident">se</span>::<span class="ident">SC_STerm</span> <span class="op">|</span> <span class="ident">se</span>::<span class="ident">SC_ATerm</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="bool-val">false</span>,
+                    <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">continue</span>
                 }
             }
         }
@@ -505,37 +505,37 @@
     }
 
     <span class="comment">// https://unicode.org/reports/tr29/#SB8a</span>
-    <span class="kw">fn</span> <span class="ident">match_sb8a</span>(<span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="ident">SentenceBreaksState</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">match_sb8a</span>(<span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="ident">SentenceBreaksState</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
         <span class="comment">// SATerm Close* Sp*</span>
         <span class="kw">let</span> <span class="kw-2">&amp;</span><span class="ident">SentenceBreaksState</span>(<span class="ident">parts</span>) <span class="op">=</span> <span class="ident">state</span>;
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">idx</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">parts</span>[<span class="number">3</span>] <span class="op">==</span> <span class="ident">StatePart</span>::<span class="ident">SpPlus</span> { <span class="number">2</span> } <span class="kw">else</span> { <span class="number">3</span> };
-        <span class="kw">if</span> <span class="ident">parts</span>[<span class="ident">idx</span>] <span class="op">==</span> <span class="ident">StatePart</span>::<span class="ident">ClosePlus</span> { <span class="ident">idx</span> <span class="op">-=</span> <span class="number">1</span> }
-        <span class="ident">parts</span>[<span class="ident">idx</span>] <span class="op">==</span> <span class="ident">StatePart</span>::<span class="ident">STerm</span> <span class="op">||</span> <span class="ident">parts</span>[<span class="ident">idx</span>] <span class="op">==</span> <span class="ident">StatePart</span>::<span class="ident">ATerm</span>
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">idx</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">parts</span>[<span class="number">3</span>] <span class="op">=</span><span class="op">=</span> <span class="ident">StatePart</span>::<span class="ident">SpPlus</span> { <span class="number">2</span> } <span class="kw">else</span> { <span class="number">3</span> };
+        <span class="kw">if</span> <span class="ident">parts</span>[<span class="ident">idx</span>] <span class="op">=</span><span class="op">=</span> <span class="ident">StatePart</span>::<span class="ident">ClosePlus</span> { <span class="ident">idx</span> <span class="op">-</span><span class="op">=</span> <span class="number">1</span> }
+        <span class="ident">parts</span>[<span class="ident">idx</span>] <span class="op">=</span><span class="op">=</span> <span class="ident">StatePart</span>::<span class="ident">STerm</span> <span class="op">|</span><span class="op">|</span> <span class="ident">parts</span>[<span class="ident">idx</span>] <span class="op">=</span><span class="op">=</span> <span class="ident">StatePart</span>::<span class="ident">ATerm</span>
     }
 
     <span class="comment">// https://unicode.org/reports/tr29/#SB9</span>
-    <span class="kw">fn</span> <span class="ident">match_sb9</span>(<span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="ident">SentenceBreaksState</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">match_sb9</span>(<span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="ident">SentenceBreaksState</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
         <span class="comment">// SATerm Close*</span>
         <span class="kw">let</span> <span class="kw-2">&amp;</span><span class="ident">SentenceBreaksState</span>(<span class="ident">parts</span>) <span class="op">=</span> <span class="ident">state</span>;
-        <span class="kw">let</span> <span class="ident">idx</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">parts</span>[<span class="number">3</span>] <span class="op">==</span> <span class="ident">StatePart</span>::<span class="ident">ClosePlus</span> { <span class="number">2</span> } <span class="kw">else</span> { <span class="number">3</span> };
-        <span class="ident">parts</span>[<span class="ident">idx</span>] <span class="op">==</span> <span class="ident">StatePart</span>::<span class="ident">STerm</span> <span class="op">||</span> <span class="ident">parts</span>[<span class="ident">idx</span>] <span class="op">==</span> <span class="ident">StatePart</span>::<span class="ident">ATerm</span>
+        <span class="kw">let</span> <span class="ident">idx</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">parts</span>[<span class="number">3</span>] <span class="op">=</span><span class="op">=</span> <span class="ident">StatePart</span>::<span class="ident">ClosePlus</span> { <span class="number">2</span> } <span class="kw">else</span> { <span class="number">3</span> };
+        <span class="ident">parts</span>[<span class="ident">idx</span>] <span class="op">=</span><span class="op">=</span> <span class="ident">StatePart</span>::<span class="ident">STerm</span> <span class="op">|</span><span class="op">|</span> <span class="ident">parts</span>[<span class="ident">idx</span>] <span class="op">=</span><span class="op">=</span> <span class="ident">StatePart</span>::<span class="ident">ATerm</span>
     }
 
     <span class="comment">// https://unicode.org/reports/tr29/#SB11</span>
-    <span class="kw">fn</span> <span class="ident">match_sb11</span>(<span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="ident">SentenceBreaksState</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">match_sb11</span>(<span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="ident">SentenceBreaksState</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
         <span class="comment">// SATerm Close* Sp* ParaSep?</span>
         <span class="kw">let</span> <span class="kw-2">&amp;</span><span class="ident">SentenceBreaksState</span>(<span class="ident">parts</span>) <span class="op">=</span> <span class="ident">state</span>;
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">idx</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">parts</span>[<span class="number">3</span>] {
             <span class="ident">StatePart</span>::<span class="ident">Sep</span> <span class="op">|</span>
             <span class="ident">StatePart</span>::<span class="ident">CR</span> <span class="op">|</span>
-            <span class="ident">StatePart</span>::<span class="ident">LF</span> <span class="op">=&gt;</span> <span class="number">2</span>,
-            <span class="kw">_</span> <span class="op">=&gt;</span> <span class="number">3</span>
+            <span class="ident">StatePart</span>::<span class="ident">LF</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">2</span>,
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">3</span>
         };
 
-        <span class="kw">if</span> <span class="ident">parts</span>[<span class="ident">idx</span>] <span class="op">==</span> <span class="ident">StatePart</span>::<span class="ident">SpPlus</span> { <span class="ident">idx</span> <span class="op">-=</span> <span class="number">1</span> }
-        <span class="kw">if</span> <span class="ident">parts</span>[<span class="ident">idx</span>] <span class="op">==</span> <span class="ident">StatePart</span>::<span class="ident">ClosePlus</span> { <span class="ident">idx</span> <span class="op">-=</span> <span class="number">1</span>}
+        <span class="kw">if</span> <span class="ident">parts</span>[<span class="ident">idx</span>] <span class="op">=</span><span class="op">=</span> <span class="ident">StatePart</span>::<span class="ident">SpPlus</span> { <span class="ident">idx</span> <span class="op">-</span><span class="op">=</span> <span class="number">1</span> }
+        <span class="kw">if</span> <span class="ident">parts</span>[<span class="ident">idx</span>] <span class="op">=</span><span class="op">=</span> <span class="ident">StatePart</span>::<span class="ident">ClosePlus</span> { <span class="ident">idx</span> <span class="op">-</span><span class="op">=</span> <span class="number">1</span>}
 
-        <span class="ident">parts</span>[<span class="ident">idx</span>] <span class="op">==</span> <span class="ident">StatePart</span>::<span class="ident">STerm</span> <span class="op">||</span> <span class="ident">parts</span>[<span class="ident">idx</span>] <span class="op">==</span> <span class="ident">StatePart</span>::<span class="ident">ATerm</span>
+        <span class="ident">parts</span>[<span class="ident">idx</span>] <span class="op">=</span><span class="op">=</span> <span class="ident">StatePart</span>::<span class="ident">STerm</span> <span class="op">|</span><span class="op">|</span> <span class="ident">parts</span>[<span class="ident">idx</span>] <span class="op">=</span><span class="op">=</span> <span class="ident">StatePart</span>::<span class="ident">ATerm</span>
     }
 
     <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">Iterator</span> <span class="kw">for</span> <span class="ident">SentenceBreaks</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
@@ -543,14 +543,14 @@
         <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="ident">usize</span>;
 
         <span class="attribute">#[<span class="ident">inline</span>]</span>
-        <span class="kw">fn</span> <span class="ident">size_hint</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> (<span class="ident">usize</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>) {
+        <span class="kw">fn</span> <span class="ident">size_hint</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="ident">usize</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>) {
             <span class="kw">let</span> <span class="ident">slen</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">string</span>.<span class="ident">len</span>();
             <span class="comment">// A sentence could be one character</span>
             (<span class="ident">cmp</span>::<span class="ident">min</span>(<span class="ident">slen</span>, <span class="number">2</span>), <span class="prelude-val">Some</span>(<span class="ident">slen</span> <span class="op">+</span> <span class="number">1</span>))
         }
 
         <span class="attribute">#[<span class="ident">inline</span>]</span>
-        <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
+        <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
             <span class="kw">use</span> <span class="ident">tables</span>::<span class="ident">sentence</span> <span class="kw">as</span> <span class="ident">se</span>;
 
             <span class="kw">for</span> <span class="ident">next_char</span> <span class="kw">in</span> <span class="self">self</span>.<span class="ident">string</span>[<span class="self">self</span>.<span class="ident">pos</span>..].<span class="ident">chars</span>() {
@@ -559,46 +559,46 @@
 
                 <span class="kw">let</span> <span class="ident">next_cat</span> <span class="op">=</span> <span class="ident">se</span>::<span class="ident">sentence_category</span>(<span class="ident">next_char</span>);
 
-                <span class="self">self</span>.<span class="ident">pos</span> <span class="op">+=</span> <span class="ident">next_char</span>.<span class="ident">len_utf8</span>();
+                <span class="self">self</span>.<span class="ident">pos</span> <span class="op">+</span><span class="op">=</span> <span class="ident">next_char</span>.<span class="ident">len_utf8</span>();
                 <span class="self">self</span>.<span class="ident">state</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">state</span>.<span class="ident">next</span>(<span class="ident">next_cat</span>);
 
                 <span class="kw">match</span> <span class="ident">next_cat</span> {
                     <span class="comment">// SB1 https://unicode.org/reports/tr29/#SB1</span>
-                    <span class="kw">_</span> <span class="kw">if</span> <span class="ident">state_before</span>.<span class="ident">match1</span>(<span class="ident">StatePart</span>::<span class="ident">Sot</span>) <span class="op">=&gt;</span>
+                    <span class="kw">_</span> <span class="kw">if</span> <span class="ident">state_before</span>.<span class="ident">match1</span>(<span class="ident">StatePart</span>::<span class="ident">Sot</span>) <span class="op">=</span><span class="op">&gt;</span>
                         <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="ident">position_before</span>),
 
                     <span class="comment">// SB2 is handled when inner iterator (chars) is finished</span>
 
                     <span class="comment">// SB3 https://unicode.org/reports/tr29/#SB3</span>
-                    <span class="ident">SentenceCat</span>::<span class="ident">SC_LF</span> <span class="kw">if</span> <span class="ident">state_before</span>.<span class="ident">match1</span>(<span class="ident">StatePart</span>::<span class="ident">CR</span>) <span class="op">=&gt;</span>
+                    <span class="ident">SentenceCat</span>::<span class="ident">SC_LF</span> <span class="kw">if</span> <span class="ident">state_before</span>.<span class="ident">match1</span>(<span class="ident">StatePart</span>::<span class="ident">CR</span>) <span class="op">=</span><span class="op">&gt;</span>
                         <span class="kw">continue</span>,
 
                     <span class="comment">// SB4 https://unicode.org/reports/tr29/#SB4</span>
                     <span class="kw">_</span> <span class="kw">if</span> <span class="ident">state_before</span>.<span class="ident">match1</span>(<span class="ident">StatePart</span>::<span class="ident">Sep</span>)
-                        <span class="op">||</span> <span class="ident">state_before</span>.<span class="ident">match1</span>(<span class="ident">StatePart</span>::<span class="ident">CR</span>)
-                        <span class="op">||</span> <span class="ident">state_before</span>.<span class="ident">match1</span>(<span class="ident">StatePart</span>::<span class="ident">LF</span>)
-                    <span class="op">=&gt;</span> <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="ident">position_before</span>),
+                        <span class="op">|</span><span class="op">|</span> <span class="ident">state_before</span>.<span class="ident">match1</span>(<span class="ident">StatePart</span>::<span class="ident">CR</span>)
+                        <span class="op">|</span><span class="op">|</span> <span class="ident">state_before</span>.<span class="ident">match1</span>(<span class="ident">StatePart</span>::<span class="ident">LF</span>)
+                    <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="ident">position_before</span>),
 
                     <span class="comment">// SB5 https://unicode.org/reports/tr29/#SB5</span>
                     <span class="ident">SentenceCat</span>::<span class="ident">SC_Extend</span> <span class="op">|</span>
-                    <span class="ident">SentenceCat</span>::<span class="ident">SC_Format</span> <span class="op">=&gt;</span> <span class="self">self</span>.<span class="ident">state</span> <span class="op">=</span> <span class="ident">state_before</span>,
+                    <span class="ident">SentenceCat</span>::<span class="ident">SC_Format</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">state</span> <span class="op">=</span> <span class="ident">state_before</span>,
 
                     <span class="comment">// SB6 https://unicode.org/reports/tr29/#SB6</span>
-                    <span class="ident">SentenceCat</span>::<span class="ident">SC_Numeric</span> <span class="kw">if</span> <span class="ident">state_before</span>.<span class="ident">match1</span>(<span class="ident">StatePart</span>::<span class="ident">ATerm</span>) <span class="op">=&gt;</span>
+                    <span class="ident">SentenceCat</span>::<span class="ident">SC_Numeric</span> <span class="kw">if</span> <span class="ident">state_before</span>.<span class="ident">match1</span>(<span class="ident">StatePart</span>::<span class="ident">ATerm</span>) <span class="op">=</span><span class="op">&gt;</span>
                         <span class="kw">continue</span>,
 
                     <span class="comment">// SB7 https://unicode.org/reports/tr29/#SB7</span>
-                    <span class="ident">SentenceCat</span>::<span class="ident">SC_Upper</span> <span class="kw">if</span> <span class="ident">state_before</span>.<span class="ident">match2</span>(<span class="ident">StatePart</span>::<span class="ident">UpperLower</span>, <span class="ident">StatePart</span>::<span class="ident">ATerm</span>) <span class="op">=&gt;</span>
+                    <span class="ident">SentenceCat</span>::<span class="ident">SC_Upper</span> <span class="kw">if</span> <span class="ident">state_before</span>.<span class="ident">match2</span>(<span class="ident">StatePart</span>::<span class="ident">UpperLower</span>, <span class="ident">StatePart</span>::<span class="ident">ATerm</span>) <span class="op">=</span><span class="op">&gt;</span>
                         <span class="kw">continue</span>,
 
                     <span class="comment">// SB8 https://unicode.org/reports/tr29/#SB8</span>
-                    <span class="kw">_</span> <span class="kw">if</span> <span class="ident">match_sb8</span>(<span class="kw-2">&amp;</span><span class="ident">state_before</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">string</span>[<span class="ident">position_before</span>..]) <span class="op">=&gt;</span>
+                    <span class="kw">_</span> <span class="kw">if</span> <span class="ident">match_sb8</span>(<span class="kw-2">&amp;</span><span class="ident">state_before</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">string</span>[<span class="ident">position_before</span>..]) <span class="op">=</span><span class="op">&gt;</span>
                         <span class="kw">continue</span>,
 
                     <span class="comment">// SB8a https://unicode.org/reports/tr29/#SB8a</span>
                     <span class="ident">SentenceCat</span>::<span class="ident">SC_SContinue</span> <span class="op">|</span>
                     <span class="ident">SentenceCat</span>::<span class="ident">SC_STerm</span> <span class="op">|</span>
-                    <span class="ident">SentenceCat</span>::<span class="ident">SC_ATerm</span> <span class="kw">if</span> <span class="ident">match_sb8a</span>(<span class="kw-2">&amp;</span><span class="ident">state_before</span>) <span class="op">=&gt;</span>
+                    <span class="ident">SentenceCat</span>::<span class="ident">SC_ATerm</span> <span class="kw">if</span> <span class="ident">match_sb8a</span>(<span class="kw-2">&amp;</span><span class="ident">state_before</span>) <span class="op">=</span><span class="op">&gt;</span>
                         <span class="kw">continue</span>,
 
                     <span class="comment">// SB9 https://unicode.org/reports/tr29/#SB9</span>
@@ -606,22 +606,22 @@
                     <span class="ident">SentenceCat</span>::<span class="ident">SC_Sp</span> <span class="op">|</span>
                     <span class="ident">SentenceCat</span>::<span class="ident">SC_Sep</span> <span class="op">|</span>
                     <span class="ident">SentenceCat</span>::<span class="ident">SC_CR</span> <span class="op">|</span>
-                    <span class="ident">SentenceCat</span>::<span class="ident">SC_LF</span> <span class="kw">if</span> <span class="ident">match_sb9</span>(<span class="kw-2">&amp;</span><span class="ident">state_before</span>) <span class="op">=&gt;</span>
+                    <span class="ident">SentenceCat</span>::<span class="ident">SC_LF</span> <span class="kw">if</span> <span class="ident">match_sb9</span>(<span class="kw-2">&amp;</span><span class="ident">state_before</span>) <span class="op">=</span><span class="op">&gt;</span>
                         <span class="kw">continue</span>,
 
                     <span class="comment">// SB10 https://unicode.org/reports/tr29/#SB10</span>
                     <span class="ident">SentenceCat</span>::<span class="ident">SC_Sp</span> <span class="op">|</span>
                     <span class="ident">SentenceCat</span>::<span class="ident">SC_Sep</span> <span class="op">|</span>
                     <span class="ident">SentenceCat</span>::<span class="ident">SC_CR</span> <span class="op">|</span>
-                    <span class="ident">SentenceCat</span>::<span class="ident">SC_LF</span> <span class="kw">if</span> <span class="ident">match_sb8a</span>(<span class="kw-2">&amp;</span><span class="ident">state_before</span>) <span class="op">=&gt;</span>
+                    <span class="ident">SentenceCat</span>::<span class="ident">SC_LF</span> <span class="kw">if</span> <span class="ident">match_sb8a</span>(<span class="kw-2">&amp;</span><span class="ident">state_before</span>) <span class="op">=</span><span class="op">&gt;</span>
                         <span class="kw">continue</span>,
 
                     <span class="comment">// SB11 https://unicode.org/reports/tr29/#SB11</span>
-                    <span class="kw">_</span> <span class="kw">if</span> <span class="ident">match_sb11</span>(<span class="kw-2">&amp;</span><span class="ident">state_before</span>) <span class="op">=&gt;</span>
+                    <span class="kw">_</span> <span class="kw">if</span> <span class="ident">match_sb11</span>(<span class="kw-2">&amp;</span><span class="ident">state_before</span>) <span class="op">=</span><span class="op">&gt;</span>
                         <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="ident">position_before</span>),
 
                     <span class="comment">// SB998 https://unicode.org/reports/tr29/#SB998</span>
-                    <span class="kw">_</span> <span class="op">=&gt;</span> <span class="kw">continue</span>
+                    <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">continue</span>
                 }
             }
 
@@ -637,7 +637,7 @@
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_sentence_breaks</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="ident">source</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>) <span class="op">-&gt;</span> <span class="ident">SentenceBreaks</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_sentence_breaks</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="ident">source</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">SentenceBreaks</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
         <span class="ident">SentenceBreaks</span> { <span class="ident">string</span>: <span class="ident">source</span>, <span class="ident">pos</span>: <span class="number">0</span>, <span class="ident">state</span>: <span class="ident">INITIAL_STATE</span> }
     }
 
@@ -651,7 +651,7 @@
 <span class="doccomment">/// [General_Category=Number](http://unicode.org/reports/tr44/#General_Category_Values).</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">UnicodeSentences</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="ident">inner</span>: <span class="ident">Filter</span><span class="op">&lt;</span><span class="ident">USentenceBounds</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>, <span class="kw">fn</span>(<span class="op">&amp;&amp;</span><span class="ident">str</span>) <span class="op">-&gt;</span> <span class="ident">bool</span><span class="op">&gt;</span>,
+    <span class="ident">inner</span>: <span class="ident">Filter</span><span class="op">&lt;</span><span class="ident">USentenceBounds</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>, <span class="kw">fn</span>(<span class="op">&amp;&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span><span class="op">&gt;</span>,
 }
 
 <span class="doccomment">/// External iterator for a string&#39;s</span>
@@ -670,7 +670,7 @@
 }
 
 <span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_sentence_bounds</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="ident">source</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>) <span class="op">-&gt;</span> <span class="ident">USentenceBounds</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_sentence_bounds</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="ident">source</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">USentenceBounds</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
     <span class="ident">USentenceBounds</span> {
         <span class="ident">iter</span>: <span class="ident">fwd</span>::<span class="ident">new_sentence_breaks</span>(<span class="ident">source</span>),
         <span class="ident">sentence_start</span>: <span class="prelude-val">None</span>
@@ -678,7 +678,7 @@
 }
 
 <span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_sentence_bound_indices</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="ident">source</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>) <span class="op">-&gt;</span> <span class="ident">USentenceBoundIndices</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_sentence_bound_indices</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="ident">source</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">USentenceBoundIndices</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
     <span class="ident">USentenceBoundIndices</span> {
         <span class="ident">start_offset</span>: <span class="ident">source</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="ident">usize</span>,
         <span class="ident">iter</span>: <span class="ident">new_sentence_bounds</span>(<span class="ident">source</span>)
@@ -686,12 +686,12 @@
 }
 
 <span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_unicode_sentences</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span><span class="op">&gt;</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">str</span>) <span class="op">-&gt;</span> <span class="ident">UnicodeSentences</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_unicode_sentences</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span><span class="op">&gt;</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">UnicodeSentences</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span><span class="op">&gt;</span> {
     <span class="kw">use</span> <span class="kw">super</span>::<span class="ident">UnicodeSegmentation</span>;
     <span class="kw">use</span> <span class="ident">tables</span>::<span class="ident">util</span>::<span class="ident">is_alphanumeric</span>;
 
-    <span class="kw">fn</span> <span class="ident">has_alphanumeric</span>(<span class="ident">s</span>: <span class="op">&amp;&amp;</span><span class="ident">str</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> { <span class="ident">s</span>.<span class="ident">chars</span>().<span class="ident">any</span>(<span class="op">|</span><span class="ident">c</span><span class="op">|</span> <span class="ident">is_alphanumeric</span>(<span class="ident">c</span>)) }
-    <span class="kw">let</span> <span class="ident">has_alphanumeric</span>: <span class="kw">fn</span>(<span class="op">&amp;&amp;</span><span class="ident">str</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> <span class="op">=</span> <span class="ident">has_alphanumeric</span>; <span class="comment">// coerce to fn pointer</span>
+    <span class="kw">fn</span> <span class="ident">has_alphanumeric</span>(<span class="ident">s</span>: <span class="op">&amp;&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> { <span class="ident">s</span>.<span class="ident">chars</span>().<span class="ident">any</span>(<span class="op">|</span><span class="ident">c</span><span class="op">|</span> <span class="ident">is_alphanumeric</span>(<span class="ident">c</span>)) }
+    <span class="kw">let</span> <span class="ident">has_alphanumeric</span>: <span class="kw">fn</span>(<span class="op">&amp;&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> <span class="op">=</span> <span class="ident">has_alphanumeric</span>; <span class="comment">// coerce to fn pointer</span>
 
     <span class="ident">UnicodeSentences</span> { <span class="ident">inner</span>: <span class="ident">s</span>.<span class="ident">split_sentence_bounds</span>().<span class="ident">filter</span>(<span class="ident">has_alphanumeric</span>) }
 }
@@ -700,21 +700,21 @@
     <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>;
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span><span class="op">&gt;</span> { <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">next</span>() }
+    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span><span class="op">&gt;</span> { <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">next</span>() }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">Iterator</span> <span class="kw">for</span> <span class="ident">USentenceBounds</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
     <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>;
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">size_hint</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> (<span class="ident">usize</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>) {
+    <span class="kw">fn</span> <span class="ident">size_hint</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="ident">usize</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>) {
         <span class="kw">let</span> (<span class="ident">lower</span>, <span class="ident">upper</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">iter</span>.<span class="ident">size_hint</span>();
         (<span class="ident">cmp</span>::<span class="ident">max</span>(<span class="number">0</span>, <span class="ident">lower</span> <span class="op">-</span> <span class="number">1</span>), <span class="ident">upper</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">u</span><span class="op">|</span> <span class="ident">cmp</span>::<span class="ident">max</span>(<span class="number">0</span>, <span class="ident">u</span> <span class="op">-</span> <span class="number">1</span>)))
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">sentence_start</span> <span class="op">==</span> <span class="prelude-val">None</span> {
+    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span><span class="op">&gt;</span> {
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">sentence_start</span> <span class="op">=</span><span class="op">=</span> <span class="prelude-val">None</span> {
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">start_pos</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">iter</span>.<span class="ident">next</span>() {
                 <span class="self">self</span>.<span class="ident">sentence_start</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">start_pos</span>)
             } <span class="kw">else</span> {
@@ -737,12 +737,12 @@
     <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> (<span class="ident">usize</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>);
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">usize</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>)<span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">usize</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>)<span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">iter</span>.<span class="ident">next</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> (<span class="ident">s</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="ident">usize</span> <span class="op">-</span> <span class="self">self</span>.<span class="ident">start_offset</span>, <span class="ident">s</span>))
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">size_hint</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> (<span class="ident">usize</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>) {
+    <span class="kw">fn</span> <span class="ident">size_hint</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="ident">usize</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>) {
         <span class="self">self</span>.<span class="ident">iter</span>.<span class="ident">size_hint</span>()
     }
 }

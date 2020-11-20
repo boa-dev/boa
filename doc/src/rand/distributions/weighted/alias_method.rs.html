@@ -594,9 +594,9 @@
     <span class="doccomment">/// - For any weight `w`: `w &lt; 0` or `w &gt; max` where `max = W::MAX /</span>
     <span class="doccomment">///   weights.len()`.</span>
     <span class="doccomment">/// - The sum of weights is zero.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">weights</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">W</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">WeightedError</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">weights</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">W</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">WeightedError</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">n</span> <span class="op">=</span> <span class="ident">weights</span>.<span class="ident">len</span>();
-        <span class="kw">if</span> <span class="ident">n</span> <span class="op">==</span> <span class="number">0</span> {
+        <span class="kw">if</span> <span class="ident">n</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">WeightedError</span>::<span class="ident">NoItem</span>);
         } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">n</span> <span class="op">&gt;</span> ::<span class="ident">core</span>::<span class="ident">u32</span>::<span class="ident">MAX</span> <span class="kw">as</span> <span class="ident">usize</span> {
             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">WeightedError</span>::<span class="ident">TooMany</span>);
@@ -608,7 +608,7 @@
             .<span class="ident">unwrap_or</span>(<span class="ident">W</span>::<span class="ident">ZERO</span>);
         <span class="kw">if</span> <span class="op">!</span><span class="ident">weights</span>
             .<span class="ident">iter</span>()
-            .<span class="ident">all</span>(<span class="op">|</span><span class="kw-2">&amp;</span><span class="ident">w</span><span class="op">|</span> <span class="ident">W</span>::<span class="ident">ZERO</span> <span class="op">&lt;=</span> <span class="ident">w</span> <span class="op">&amp;&amp;</span> <span class="ident">w</span> <span class="op">&lt;=</span> <span class="ident">max_weight_size</span>)
+            .<span class="ident">all</span>(<span class="op">|</span><span class="kw-2">&amp;</span><span class="ident">w</span><span class="op">|</span> <span class="ident">W</span>::<span class="ident">ZERO</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">w</span> <span class="op">&amp;&amp;</span> <span class="ident">w</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">max_weight_size</span>)
         {
             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">WeightedError</span>::<span class="ident">InvalidWeight</span>);
         }
@@ -621,7 +621,7 @@
         } <span class="kw">else</span> {
             <span class="ident">weight_sum</span>
         };
-        <span class="kw">if</span> <span class="ident">weight_sum</span> <span class="op">==</span> <span class="ident">W</span>::<span class="ident">ZERO</span> {
+        <span class="kw">if</span> <span class="ident">weight_sum</span> <span class="op">=</span><span class="op">=</span> <span class="ident">W</span>::<span class="ident">ZERO</span> {
             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">WeightedError</span>::<span class="ident">AllWeightsZero</span>);
         }
 
@@ -630,7 +630,7 @@
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">no_alias_odds</span> <span class="op">=</span> <span class="ident">weights</span>;
         <span class="kw">for</span> <span class="ident">odds</span> <span class="kw">in</span> <span class="ident">no_alias_odds</span>.<span class="ident">iter_mut</span>() {
-            <span class="kw-2">*</span><span class="ident">odds</span> <span class="op">*=</span> <span class="ident">n_converted</span>;
+            <span class="kw-2">*</span><span class="ident">odds</span> <span class="kw-2">*</span><span class="op">=</span> <span class="ident">n_converted</span>;
             <span class="comment">// Prevent floating point overflow due to rounding errors.</span>
             <span class="kw-2">*</span><span class="ident">odds</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw-2">*</span><span class="ident">odds</span> <span class="op">&gt;</span> <span class="ident">W</span>::<span class="ident">MAX</span> { <span class="ident">W</span>::<span class="ident">MAX</span> } <span class="kw">else</span> { <span class="kw-2">*</span><span class="ident">odds</span> };
         }
@@ -648,7 +648,7 @@
         }
 
         <span class="kw">impl</span> <span class="ident">Aliases</span> {
-            <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">size</span>: <span class="ident">u32</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
+            <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">size</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
                 <span class="ident">Aliases</span> {
                     <span class="ident">aliases</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="number">0</span>; <span class="ident">size</span> <span class="kw">as</span> <span class="ident">usize</span>],
                     <span class="ident">smalls_head</span>: ::<span class="ident">core</span>::<span class="ident">u32</span>::<span class="ident">MAX</span>,
@@ -666,24 +666,24 @@
                 <span class="self">self</span>.<span class="ident">bigs_head</span> <span class="op">=</span> <span class="ident">idx</span>;
             }
 
-            <span class="kw">fn</span> <span class="ident">pop_small</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">u32</span> {
+            <span class="kw">fn</span> <span class="ident">pop_small</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span> {
                 <span class="kw">let</span> <span class="ident">popped</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">smalls_head</span>;
                 <span class="self">self</span>.<span class="ident">smalls_head</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">aliases</span>[<span class="ident">popped</span> <span class="kw">as</span> <span class="ident">usize</span>];
                 <span class="ident">popped</span>
             }
 
-            <span class="kw">fn</span> <span class="ident">pop_big</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">u32</span> {
+            <span class="kw">fn</span> <span class="ident">pop_big</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span> {
                 <span class="kw">let</span> <span class="ident">popped</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">bigs_head</span>;
                 <span class="self">self</span>.<span class="ident">bigs_head</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">aliases</span>[<span class="ident">popped</span> <span class="kw">as</span> <span class="ident">usize</span>];
                 <span class="ident">popped</span>
             }
 
-            <span class="kw">fn</span> <span class="ident">smalls_is_empty</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
-                <span class="self">self</span>.<span class="ident">smalls_head</span> <span class="op">==</span> ::<span class="ident">core</span>::<span class="ident">u32</span>::<span class="ident">MAX</span>
+            <span class="kw">fn</span> <span class="ident">smalls_is_empty</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+                <span class="self">self</span>.<span class="ident">smalls_head</span> <span class="op">=</span><span class="op">=</span> ::<span class="ident">core</span>::<span class="ident">u32</span>::<span class="ident">MAX</span>
             }
 
-            <span class="kw">fn</span> <span class="ident">bigs_is_empty</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
-                <span class="self">self</span>.<span class="ident">bigs_head</span> <span class="op">==</span> ::<span class="ident">core</span>::<span class="ident">u32</span>::<span class="ident">MAX</span>
+            <span class="kw">fn</span> <span class="ident">bigs_is_empty</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+                <span class="self">self</span>.<span class="ident">bigs_head</span> <span class="op">=</span><span class="op">=</span> ::<span class="ident">core</span>::<span class="ident">u32</span>::<span class="ident">MAX</span>
             }
 
             <span class="kw">fn</span> <span class="ident">set_alias</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">idx</span>: <span class="ident">u32</span>, <span class="ident">alias</span>: <span class="ident">u32</span>) {
@@ -743,7 +743,7 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">W</span>: <span class="ident">Weight</span><span class="op">&gt;</span> <span class="ident">Distribution</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">WeightedIndex</span><span class="op">&lt;</span><span class="ident">W</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">sample</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">Rng</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">rng</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">R</span>) <span class="op">-&gt;</span> <span class="ident">usize</span> {
+    <span class="kw">fn</span> <span class="ident">sample</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">Rng</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">rng</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">R</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
         <span class="kw">let</span> <span class="ident">candidate</span> <span class="op">=</span> <span class="ident">rng</span>.<span class="ident">sample</span>(<span class="self">self</span>.<span class="ident">uniform_index</span>);
         <span class="kw">if</span> <span class="ident">rng</span>.<span class="ident">sample</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">uniform_within_weight_sum</span>) <span class="op">&lt;</span> <span class="self">self</span>.<span class="ident">no_alias_odds</span>[<span class="ident">candidate</span> <span class="kw">as</span> <span class="ident">usize</span>] {
             <span class="ident">candidate</span> <span class="kw">as</span> <span class="ident">usize</span>
@@ -758,7 +758,7 @@
     <span class="ident">W</span>: <span class="ident">fmt</span>::<span class="ident">Debug</span>,
     <span class="ident">Uniform</span><span class="op">&lt;</span><span class="ident">W</span><span class="op">&gt;</span>: <span class="ident">fmt</span>::<span class="ident">Debug</span>,
 {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span>) <span class="op">-&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
         <span class="ident">f</span>.<span class="ident">debug_struct</span>(<span class="string">&quot;WeightedIndex&quot;</span>)
             .<span class="ident">field</span>(<span class="string">&quot;aliases&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">aliases</span>)
             .<span class="ident">field</span>(<span class="string">&quot;no_alias_odds&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">no_alias_odds</span>)
@@ -771,7 +771,7 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">W</span>: <span class="ident">Weight</span><span class="op">&gt;</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">WeightedIndex</span><span class="op">&lt;</span><span class="ident">W</span><span class="op">&gt;</span>
 <span class="kw">where</span> <span class="ident">Uniform</span><span class="op">&lt;</span><span class="ident">W</span><span class="op">&gt;</span>: <span class="ident">Clone</span>
 {
-    <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="self">Self</span> {
             <span class="ident">aliases</span>: <span class="self">self</span>.<span class="ident">aliases</span>.<span class="ident">clone</span>(),
             <span class="ident">no_alias_odds</span>: <span class="self">self</span>.<span class="ident">no_alias_odds</span>.<span class="ident">clone</span>(),
@@ -808,25 +808,25 @@
     <span class="doccomment">/// Produce an instance of `Self` from a `u32` value, or return `None` if</span>
     <span class="doccomment">/// out of range. Loss of precision (where `Self` is a floating point type)</span>
     <span class="doccomment">/// is acceptable.</span>
-    <span class="kw">fn</span> <span class="ident">try_from_u32_lossy</span>(<span class="ident">n</span>: <span class="ident">u32</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>;
+    <span class="kw">fn</span> <span class="ident">try_from_u32_lossy</span>(<span class="ident">n</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>;
 
     <span class="doccomment">/// Sums all values in slice `values`.</span>
-    <span class="kw">fn</span> <span class="ident">sum</span>(<span class="ident">values</span>: <span class="kw-2">&amp;</span>[<span class="self">Self</span>]) <span class="op">-&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">sum</span>(<span class="ident">values</span>: <span class="kw-2">&amp;</span>[<span class="self">Self</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">values</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="kw-2">*</span><span class="ident">x</span>).<span class="ident">sum</span>()
     }
 }
 
 <span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">impl_weight_for_float</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>: <span class="ident">ident</span>) <span class="op">=&gt;</span> {
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>: <span class="ident">ident</span>) <span class="op">=</span><span class="op">&gt;</span> {
         <span class="kw">impl</span> <span class="ident">Weight</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span> {
             <span class="kw">const</span> <span class="ident">MAX</span>: <span class="self">Self</span> <span class="op">=</span> ::<span class="ident">core</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>::<span class="ident">MAX</span>;
             <span class="kw">const</span> <span class="ident">ZERO</span>: <span class="self">Self</span> <span class="op">=</span> <span class="number">0.0</span>;
 
-            <span class="kw">fn</span> <span class="ident">try_from_u32_lossy</span>(<span class="ident">n</span>: <span class="ident">u32</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
+            <span class="kw">fn</span> <span class="ident">try_from_u32_lossy</span>(<span class="ident">n</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
                 <span class="prelude-val">Some</span>(<span class="ident">n</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>)
             }
 
-            <span class="kw">fn</span> <span class="ident">sum</span>(<span class="ident">values</span>: <span class="kw-2">&amp;</span>[<span class="self">Self</span>]) <span class="op">-&gt;</span> <span class="self">Self</span> {
+            <span class="kw">fn</span> <span class="ident">sum</span>(<span class="ident">values</span>: <span class="kw-2">&amp;</span>[<span class="self">Self</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
                 <span class="ident">pairwise_sum</span>(<span class="ident">values</span>)
             }
         }
@@ -835,8 +835,8 @@
 
 <span class="doccomment">/// In comparison to naive accumulation, the pairwise sum algorithm reduces</span>
 <span class="doccomment">/// rounding errors when there are many floating point values.</span>
-<span class="kw">fn</span> <span class="ident">pairwise_sum</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Weight</span><span class="op">&gt;</span>(<span class="ident">values</span>: <span class="kw-2">&amp;</span>[<span class="ident">T</span>]) <span class="op">-&gt;</span> <span class="ident">T</span> {
-    <span class="kw">if</span> <span class="ident">values</span>.<span class="ident">len</span>() <span class="op">&lt;=</span> <span class="number">32</span> {
+<span class="kw">fn</span> <span class="ident">pairwise_sum</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Weight</span><span class="op">&gt;</span>(<span class="ident">values</span>: <span class="kw-2">&amp;</span>[<span class="ident">T</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">T</span> {
+    <span class="kw">if</span> <span class="ident">values</span>.<span class="ident">len</span>() <span class="op">&lt;</span><span class="op">=</span> <span class="number">32</span> {
         <span class="ident">values</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="kw-2">*</span><span class="ident">x</span>).<span class="ident">sum</span>()
     } <span class="kw">else</span> {
         <span class="kw">let</span> <span class="ident">mid</span> <span class="op">=</span> <span class="ident">values</span>.<span class="ident">len</span>() <span class="op">/</span> <span class="number">2</span>;
@@ -846,14 +846,14 @@
 }
 
 <span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">impl_weight_for_int</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>: <span class="ident">ident</span>) <span class="op">=&gt;</span> {
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>: <span class="ident">ident</span>) <span class="op">=</span><span class="op">&gt;</span> {
         <span class="kw">impl</span> <span class="ident">Weight</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span> {
             <span class="kw">const</span> <span class="ident">MAX</span>: <span class="self">Self</span> <span class="op">=</span> ::<span class="ident">core</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>::<span class="ident">MAX</span>;
             <span class="kw">const</span> <span class="ident">ZERO</span>: <span class="self">Self</span> <span class="op">=</span> <span class="number">0</span>;
 
-            <span class="kw">fn</span> <span class="ident">try_from_u32_lossy</span>(<span class="ident">n</span>: <span class="ident">u32</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
+            <span class="kw">fn</span> <span class="ident">try_from_u32_lossy</span>(<span class="ident">n</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
                 <span class="kw">let</span> <span class="ident">n_converted</span> <span class="op">=</span> <span class="ident">n</span> <span class="kw">as</span> <span class="self">Self</span>;
-                <span class="kw">if</span> <span class="ident">n_converted</span> <span class="op">&gt;=</span> <span class="self">Self</span>::<span class="ident">ZERO</span> <span class="op">&amp;&amp;</span> <span class="ident">n_converted</span> <span class="kw">as</span> <span class="ident">u32</span> <span class="op">==</span> <span class="ident">n</span> {
+                <span class="kw">if</span> <span class="ident">n_converted</span> <span class="op">&gt;</span><span class="op">=</span> <span class="self">Self</span>::<span class="ident">ZERO</span> <span class="op">&amp;&amp;</span> <span class="ident">n_converted</span> <span class="kw">as</span> <span class="ident">u32</span> <span class="op">=</span><span class="op">=</span> <span class="ident">n</span> {
                     <span class="prelude-val">Some</span>(<span class="ident">n_converted</span>)
                 } <span class="kw">else</span> {
                     <span class="prelude-val">None</span>
@@ -958,7 +958,7 @@
         );
     }
 
-    <span class="kw">fn</span> <span class="ident">test_weighted_index</span><span class="op">&lt;</span><span class="ident">W</span>: <span class="ident">Weight</span>, <span class="ident">F</span>: <span class="ident">Fn</span>(<span class="ident">W</span>) <span class="op">-&gt;</span> <span class="ident">f64</span><span class="op">&gt;</span>(<span class="ident">w_to_f64</span>: <span class="ident">F</span>)
+    <span class="kw">fn</span> <span class="ident">test_weighted_index</span><span class="op">&lt;</span><span class="ident">W</span>: <span class="ident">Weight</span>, <span class="ident">F</span>: <span class="ident">Fn</span>(<span class="ident">W</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">f64</span><span class="op">&gt;</span>(<span class="ident">w_to_f64</span>: <span class="ident">F</span>)
     <span class="kw">where</span> <span class="ident">WeightedIndex</span><span class="op">&lt;</span><span class="ident">W</span><span class="op">&gt;</span>: <span class="ident">fmt</span>::<span class="ident">Debug</span> {
         <span class="kw">const</span> <span class="ident">NUM_WEIGHTS</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">10</span>;
         <span class="kw">const</span> <span class="ident">ZERO_WEIGHT_INDEX</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">3</span>;
@@ -981,19 +981,19 @@
         <span class="kw">let</span> <span class="ident">expected_counts</span> <span class="op">=</span> <span class="ident">weights</span>
             .<span class="ident">iter</span>()
             .<span class="ident">map</span>(<span class="op">|</span><span class="kw-2">&amp;</span><span class="ident">w</span><span class="op">|</span> <span class="ident">w_to_f64</span>(<span class="ident">w</span>) <span class="op">/</span> <span class="ident">w_to_f64</span>(<span class="ident">weight_sum</span>) <span class="op">*</span> <span class="ident">NUM_SAMPLES</span> <span class="kw">as</span> <span class="ident">f64</span>)
-            .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">f64</span><span class="op">&gt;&gt;</span>();
+            .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">f64</span><span class="op">&gt;</span><span class="op">&gt;</span>();
         <span class="kw">let</span> <span class="ident">weight_distribution</span> <span class="op">=</span> <span class="ident">WeightedIndex</span>::<span class="ident">new</span>(<span class="ident">weights</span>).<span class="ident">unwrap</span>();
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">counts</span> <span class="op">=</span> <span class="macro">vec</span><span class="macro">!</span>[<span class="number">0</span>; <span class="ident">NUM_WEIGHTS</span> <span class="kw">as</span> <span class="ident">usize</span>];
         <span class="kw">for</span> <span class="kw">_</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">NUM_SAMPLES</span> {
-            <span class="ident">counts</span>[<span class="ident">rng</span>.<span class="ident">sample</span>(<span class="kw-2">&amp;</span><span class="ident">weight_distribution</span>)] <span class="op">+=</span> <span class="number">1</span>;
+            <span class="ident">counts</span>[<span class="ident">rng</span>.<span class="ident">sample</span>(<span class="kw-2">&amp;</span><span class="ident">weight_distribution</span>)] <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
         }
 
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">counts</span>[<span class="ident">ZERO_WEIGHT_INDEX</span> <span class="kw">as</span> <span class="ident">usize</span>], <span class="number">0</span>);
         <span class="kw">for</span> (<span class="ident">count</span>, <span class="ident">expected_count</span>) <span class="kw">in</span> <span class="ident">counts</span>.<span class="ident">into_iter</span>().<span class="ident">zip</span>(<span class="ident">expected_counts</span>) {
             <span class="kw">let</span> <span class="ident">difference</span> <span class="op">=</span> (<span class="ident">count</span> <span class="kw">as</span> <span class="ident">f64</span> <span class="op">-</span> <span class="ident">expected_count</span>).<span class="ident">abs</span>();
             <span class="kw">let</span> <span class="ident">max_allowed_difference</span> <span class="op">=</span> <span class="ident">NUM_SAMPLES</span> <span class="kw">as</span> <span class="ident">f64</span> <span class="op">/</span> <span class="ident">NUM_WEIGHTS</span> <span class="kw">as</span> <span class="ident">f64</span> <span class="op">*</span> <span class="number">0.1</span>;
-            <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">difference</span> <span class="op">&lt;=</span> <span class="ident">max_allowed_difference</span>);
+            <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">difference</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">max_allowed_difference</span>);
         }
 
         <span class="macro">assert_eq</span><span class="macro">!</span>(

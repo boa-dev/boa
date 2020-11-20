@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/git2-0.13.12/src/merge.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>merge.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../git2/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/git2-0.13.12/src/merge.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>merge.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+<link rel="alternate icon" type="image/png" href="../../favicon-16x16.png">
+<link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../git2/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
                 <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
@@ -210,7 +212,7 @@
 <span class="doccomment">/// operation.</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">AnnotatedCommit</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span> {
     <span class="ident">raw</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">raw</span>::<span class="ident">git_annotated_commit</span>,
-    <span class="ident">_marker</span>: <span class="ident">marker</span>::<span class="ident">PhantomData</span><span class="op">&lt;</span><span class="ident">Commit</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;&gt;</span>,
+    <span class="ident">_marker</span>: <span class="ident">marker</span>::<span class="ident">PhantomData</span><span class="op">&lt;</span><span class="ident">Commit</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 }
 
 <span class="doccomment">/// Options to specify when merging.</span>
@@ -220,32 +222,32 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span> <span class="ident">AnnotatedCommit</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span> {
     <span class="doccomment">/// Gets the commit ID that the given git_annotated_commit refers to</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">id</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">Oid</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">id</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Oid</span> {
         <span class="kw">unsafe</span> { <span class="ident">Binding</span>::<span class="ident">from_raw</span>(<span class="ident">raw</span>::<span class="ident">git_annotated_commit_id</span>(<span class="self">self</span>.<span class="ident">raw</span>)) }
     }
 
     <span class="doccomment">/// Get the refname that the given git_annotated_commit refers to</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Returns None if it is not valid utf8</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">refname</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">refname</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span> {
         <span class="ident">str</span>::<span class="ident">from_utf8</span>(<span class="self">self</span>.<span class="ident">refname_bytes</span>()).<span class="ident">ok</span>()
     }
 
     <span class="doccomment">/// Get the refname that the given git_annotated_commit refers to.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">refname_bytes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span>[<span class="ident">u8</span>] {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">refname_bytes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span>[<span class="ident">u8</span>] {
         <span class="kw">unsafe</span> { <span class="kw">crate</span>::<span class="ident">opt_bytes</span>(<span class="self">self</span>, <span class="ident">raw</span>::<span class="ident">git_annotated_commit_ref</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="self">self</span>.<span class="ident">raw</span>)).<span class="ident">unwrap</span>() }
     }
 }
 
 <span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">MergeOptions</span> {
-    <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="self">Self</span>::<span class="ident">new</span>()
     }
 }
 
 <span class="kw">impl</span> <span class="ident">MergeOptions</span> {
     <span class="doccomment">/// Creates a default set of merge options.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-&gt;</span> <span class="ident">MergeOptions</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">MergeOptions</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">opts</span> <span class="op">=</span> <span class="ident">MergeOptions</span> {
             <span class="ident">raw</span>: <span class="kw">unsafe</span> { <span class="ident">mem</span>::<span class="ident">zeroed</span>() },
         };
@@ -253,9 +255,9 @@
         <span class="ident">opts</span>
     }
 
-    <span class="kw">fn</span> <span class="ident">flag</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">opt</span>: <span class="ident">u32</span>, <span class="ident">val</span>: <span class="ident">bool</span>) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">MergeOptions</span> {
+    <span class="kw">fn</span> <span class="ident">flag</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">opt</span>: <span class="ident">u32</span>, <span class="ident">val</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">MergeOptions</span> {
         <span class="kw">if</span> <span class="ident">val</span> {
-            <span class="self">self</span>.<span class="ident">raw</span>.<span class="ident">flags</span> <span class="op">|=</span> <span class="ident">opt</span>;
+            <span class="self">self</span>.<span class="ident">raw</span>.<span class="ident">flags</span> <span class="op">|</span><span class="op">=</span> <span class="ident">opt</span>;
         } <span class="kw">else</span> {
             <span class="self">self</span>.<span class="ident">raw</span>.<span class="ident">flags</span> <span class="op">&amp;=</span> <span class="op">!</span><span class="ident">opt</span>;
         }
@@ -263,30 +265,30 @@
     }
 
     <span class="doccomment">/// Detect file renames</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">find_renames</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">find</span>: <span class="ident">bool</span>) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">MergeOptions</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">find_renames</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">find</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">MergeOptions</span> {
         <span class="self">self</span>.<span class="ident">flag</span>(<span class="ident">raw</span>::<span class="ident">GIT_MERGE_FIND_RENAMES</span> <span class="kw">as</span> <span class="ident">u32</span>, <span class="ident">find</span>)
     }
 
     <span class="doccomment">/// If a conflict occurs, exit immediately instead of attempting to continue</span>
     <span class="doccomment">/// resolving conflicts</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">fail_on_conflict</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">fail</span>: <span class="ident">bool</span>) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">MergeOptions</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">fail_on_conflict</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">fail</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">MergeOptions</span> {
         <span class="self">self</span>.<span class="ident">flag</span>(<span class="ident">raw</span>::<span class="ident">GIT_MERGE_FAIL_ON_CONFLICT</span> <span class="kw">as</span> <span class="ident">u32</span>, <span class="ident">fail</span>)
     }
 
     <span class="doccomment">/// Do not write the REUC extension on the generated index</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">skip_reuc</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">skip</span>: <span class="ident">bool</span>) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">MergeOptions</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">skip_reuc</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">skip</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">MergeOptions</span> {
         <span class="self">self</span>.<span class="ident">flag</span>(<span class="ident">raw</span>::<span class="ident">GIT_MERGE_FAIL_ON_CONFLICT</span> <span class="kw">as</span> <span class="ident">u32</span>, <span class="ident">skip</span>)
     }
 
     <span class="doccomment">/// If the commits being merged have multiple merge bases, do not build a</span>
     <span class="doccomment">/// recursive merge base (by merging the multiple merge bases), instead</span>
     <span class="doccomment">/// simply use the first base.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">no_recursive</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">disable</span>: <span class="ident">bool</span>) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">MergeOptions</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">no_recursive</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">disable</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">MergeOptions</span> {
         <span class="self">self</span>.<span class="ident">flag</span>(<span class="ident">raw</span>::<span class="ident">GIT_MERGE_NO_RECURSIVE</span> <span class="kw">as</span> <span class="ident">u32</span>, <span class="ident">disable</span>)
     }
 
     <span class="doccomment">/// Similarity to consider a file renamed (default 50)</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">rename_threshold</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">thresh</span>: <span class="ident">u32</span>) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">MergeOptions</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">rename_threshold</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">thresh</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">MergeOptions</span> {
         <span class="self">self</span>.<span class="ident">raw</span>.<span class="ident">rename_threshold</span> <span class="op">=</span> <span class="ident">thresh</span>;
         <span class="self">self</span>
     }
@@ -295,7 +297,7 @@
     <span class="doccomment">/// If the number of rename candidates (add / delete pairs) is greater</span>
     <span class="doccomment">/// than this value, inexact rename detection is aborted. This setting</span>
     <span class="doccomment">/// overrides the `merge.renameLimit` configuration value.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">target_limit</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">limit</span>: <span class="ident">u32</span>) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">MergeOptions</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">target_limit</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">limit</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">MergeOptions</span> {
         <span class="self">self</span>.<span class="ident">raw</span>.<span class="ident">target_limit</span> <span class="op">=</span> <span class="ident">limit</span> <span class="kw">as</span> <span class="ident">c_uint</span>;
         <span class="self">self</span>
     }
@@ -304,20 +306,20 @@
     <span class="doccomment">/// virtual merge base when faced with criss-cross merges.  When</span>
     <span class="doccomment">/// this limit is reached, the next ancestor will simply be used</span>
     <span class="doccomment">/// instead of attempting to merge it.  The default is unlimited.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">recursion_limit</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">limit</span>: <span class="ident">u32</span>) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">MergeOptions</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">recursion_limit</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">limit</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">MergeOptions</span> {
         <span class="self">self</span>.<span class="ident">raw</span>.<span class="ident">recursion_limit</span> <span class="op">=</span> <span class="ident">limit</span> <span class="kw">as</span> <span class="ident">c_uint</span>;
         <span class="self">self</span>
     }
 
     <span class="doccomment">/// Specify a side to favor for resolving conflicts</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">file_favor</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">favor</span>: <span class="ident">FileFavor</span>) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">MergeOptions</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">file_favor</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">favor</span>: <span class="ident">FileFavor</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">MergeOptions</span> {
         <span class="self">self</span>.<span class="ident">raw</span>.<span class="ident">file_favor</span> <span class="op">=</span> <span class="ident">favor</span>.<span class="ident">convert</span>();
         <span class="self">self</span>
     }
 
-    <span class="kw">fn</span> <span class="ident">file_flag</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">opt</span>: <span class="ident">u32</span>, <span class="ident">val</span>: <span class="ident">bool</span>) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">MergeOptions</span> {
+    <span class="kw">fn</span> <span class="ident">file_flag</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">opt</span>: <span class="ident">u32</span>, <span class="ident">val</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">MergeOptions</span> {
         <span class="kw">if</span> <span class="ident">val</span> {
-            <span class="self">self</span>.<span class="ident">raw</span>.<span class="ident">file_flags</span> <span class="op">|=</span> <span class="ident">opt</span>;
+            <span class="self">self</span>.<span class="ident">raw</span>.<span class="ident">file_flags</span> <span class="op">|</span><span class="op">=</span> <span class="ident">opt</span>;
         } <span class="kw">else</span> {
             <span class="self">self</span>.<span class="ident">raw</span>.<span class="ident">file_flags</span> <span class="op">&amp;=</span> <span class="op">!</span><span class="ident">opt</span>;
         }
@@ -325,60 +327,60 @@
     }
 
     <span class="doccomment">/// Create standard conflicted merge files</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">standard_style</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">standard</span>: <span class="ident">bool</span>) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">MergeOptions</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">standard_style</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">standard</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">MergeOptions</span> {
         <span class="self">self</span>.<span class="ident">file_flag</span>(<span class="ident">raw</span>::<span class="ident">GIT_MERGE_FILE_STYLE_MERGE</span> <span class="kw">as</span> <span class="ident">u32</span>, <span class="ident">standard</span>)
     }
 
     <span class="doccomment">/// Create diff3-style file</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">diff3_style</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">diff3</span>: <span class="ident">bool</span>) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">MergeOptions</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">diff3_style</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">diff3</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">MergeOptions</span> {
         <span class="self">self</span>.<span class="ident">file_flag</span>(<span class="ident">raw</span>::<span class="ident">GIT_MERGE_FILE_STYLE_DIFF3</span> <span class="kw">as</span> <span class="ident">u32</span>, <span class="ident">diff3</span>)
     }
 
     <span class="doccomment">/// Condense non-alphanumeric regions for simplified diff file</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">simplify_alnum</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">simplify</span>: <span class="ident">bool</span>) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">MergeOptions</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">simplify_alnum</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">simplify</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">MergeOptions</span> {
         <span class="self">self</span>.<span class="ident">file_flag</span>(<span class="ident">raw</span>::<span class="ident">GIT_MERGE_FILE_SIMPLIFY_ALNUM</span> <span class="kw">as</span> <span class="ident">u32</span>, <span class="ident">simplify</span>)
     }
 
     <span class="doccomment">/// Ignore all whitespace</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ignore_whitespace</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">ignore</span>: <span class="ident">bool</span>) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">MergeOptions</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ignore_whitespace</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">ignore</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">MergeOptions</span> {
         <span class="self">self</span>.<span class="ident">file_flag</span>(<span class="ident">raw</span>::<span class="ident">GIT_MERGE_FILE_IGNORE_WHITESPACE</span> <span class="kw">as</span> <span class="ident">u32</span>, <span class="ident">ignore</span>)
     }
 
     <span class="doccomment">/// Ignore changes in amount of whitespace</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ignore_whitespace_change</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">ignore</span>: <span class="ident">bool</span>) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">MergeOptions</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ignore_whitespace_change</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">ignore</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">MergeOptions</span> {
         <span class="self">self</span>.<span class="ident">file_flag</span>(<span class="ident">raw</span>::<span class="ident">GIT_MERGE_FILE_IGNORE_WHITESPACE_CHANGE</span> <span class="kw">as</span> <span class="ident">u32</span>, <span class="ident">ignore</span>)
     }
 
     <span class="doccomment">/// Ignore whitespace at end of line</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ignore_whitespace_eol</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">ignore</span>: <span class="ident">bool</span>) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">MergeOptions</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ignore_whitespace_eol</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">ignore</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">MergeOptions</span> {
         <span class="self">self</span>.<span class="ident">file_flag</span>(<span class="ident">raw</span>::<span class="ident">GIT_MERGE_FILE_IGNORE_WHITESPACE_EOL</span> <span class="kw">as</span> <span class="ident">u32</span>, <span class="ident">ignore</span>)
     }
 
     <span class="doccomment">/// Use the &quot;patience diff&quot; algorithm</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">patience</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">patience</span>: <span class="ident">bool</span>) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">MergeOptions</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">patience</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">patience</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">MergeOptions</span> {
         <span class="self">self</span>.<span class="ident">file_flag</span>(<span class="ident">raw</span>::<span class="ident">GIT_MERGE_FILE_DIFF_PATIENCE</span> <span class="kw">as</span> <span class="ident">u32</span>, <span class="ident">patience</span>)
     }
 
     <span class="doccomment">/// Take extra time to find minimal diff</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">minimal</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">minimal</span>: <span class="ident">bool</span>) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">MergeOptions</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">minimal</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">minimal</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">MergeOptions</span> {
         <span class="self">self</span>.<span class="ident">file_flag</span>(<span class="ident">raw</span>::<span class="ident">GIT_MERGE_FILE_DIFF_MINIMAL</span> <span class="kw">as</span> <span class="ident">u32</span>, <span class="ident">minimal</span>)
     }
 
     <span class="doccomment">/// Acquire a pointer to the underlying raw options.</span>
-    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">raw</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">raw</span>::<span class="ident">git_merge_options</span> {
+    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">raw</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">raw</span>::<span class="ident">git_merge_options</span> {
         <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">raw</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="kw">_</span>
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span> <span class="ident">Binding</span> <span class="kw">for</span> <span class="ident">AnnotatedCommit</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span> {
     <span class="kw">type</span> <span class="ident">Raw</span> <span class="op">=</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">raw</span>::<span class="ident">git_annotated_commit</span>;
-    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">from_raw</span>(<span class="ident">raw</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">raw</span>::<span class="ident">git_annotated_commit</span>) <span class="op">-&gt;</span> <span class="ident">AnnotatedCommit</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span> {
+    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">from_raw</span>(<span class="ident">raw</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">raw</span>::<span class="ident">git_annotated_commit</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">AnnotatedCommit</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span> {
         <span class="ident">AnnotatedCommit</span> {
             <span class="ident">raw</span>: <span class="ident">raw</span>,
             <span class="ident">_marker</span>: <span class="ident">marker</span>::<span class="ident">PhantomData</span>,
         }
     }
-    <span class="kw">fn</span> <span class="ident">raw</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">raw</span>::<span class="ident">git_annotated_commit</span> {
+    <span class="kw">fn</span> <span class="ident">raw</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">raw</span>::<span class="ident">git_annotated_commit</span> {
         <span class="self">self</span>.<span class="ident">raw</span>
     }
 }

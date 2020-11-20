@@ -57,7 +57,7 @@
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">util_libc</span>::{<span class="ident">last_os_error</span>, <span class="ident">sys_fill_exact</span>};
 <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">use_file</span>, <span class="ident">Error</span>};
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">getrandom_inner</span>(<span class="ident">dest</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>]) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Error</span><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">getrandom_inner</span>(<span class="ident">dest</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Error</span><span class="op">&gt;</span> {
     <span class="kw">static</span> <span class="ident">HAS_GETRANDOM</span>: <span class="ident">LazyBool</span> <span class="op">=</span> <span class="ident">LazyBool</span>::<span class="ident">new</span>();
     <span class="kw">if</span> <span class="ident">HAS_GETRANDOM</span>.<span class="ident">unsync_init</span>(<span class="ident">is_getrandom_available</span>) {
         <span class="ident">sys_fill_exact</span>(<span class="ident">dest</span>, <span class="op">|</span><span class="ident">buf</span><span class="op">|</span> <span class="kw">unsafe</span> {
@@ -68,13 +68,13 @@
     }
 }
 
-<span class="kw">fn</span> <span class="ident">is_getrandom_available</span>() <span class="op">-&gt;</span> <span class="ident">bool</span> {
+<span class="kw">fn</span> <span class="ident">is_getrandom_available</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
     <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">getrandom</span>(<span class="ident">core</span>::<span class="ident">ptr</span>::<span class="ident">null_mut</span>(), <span class="number">0</span>, <span class="ident">libc</span>::<span class="ident">GRND_NONBLOCK</span>) };
     <span class="kw">if</span> <span class="ident">res</span> <span class="op">&lt;</span> <span class="number">0</span> {
         <span class="kw">match</span> <span class="ident">last_os_error</span>().<span class="ident">raw_os_error</span>() {
-            <span class="prelude-val">Some</span>(<span class="ident">libc</span>::<span class="ident">ENOSYS</span>) <span class="op">=&gt;</span> <span class="bool-val">false</span>, <span class="comment">// No kernel support</span>
-            <span class="prelude-val">Some</span>(<span class="ident">libc</span>::<span class="ident">EPERM</span>) <span class="op">=&gt;</span> <span class="bool-val">false</span>,  <span class="comment">// Blocked by seccomp</span>
-            <span class="kw">_</span> <span class="op">=&gt;</span> <span class="bool-val">true</span>,
+            <span class="prelude-val">Some</span>(<span class="ident">libc</span>::<span class="ident">ENOSYS</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>, <span class="comment">// No kernel support</span>
+            <span class="prelude-val">Some</span>(<span class="ident">libc</span>::<span class="ident">EPERM</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,  <span class="comment">// Blocked by seccomp</span>
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
         }
     } <span class="kw">else</span> {
         <span class="bool-val">true</span>
@@ -85,7 +85,7 @@
     <span class="ident">buf</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">libc</span>::<span class="ident">c_void</span>,
     <span class="ident">buflen</span>: <span class="ident">libc</span>::<span class="ident">size_t</span>,
     <span class="ident">flags</span>: <span class="ident">libc</span>::<span class="ident">c_uint</span>,
-) <span class="op">-&gt;</span> <span class="ident">libc</span>::<span class="ident">ssize_t</span> {
+) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">libc</span>::<span class="ident">ssize_t</span> {
     <span class="ident">libc</span>::<span class="ident">syscall</span>(<span class="ident">libc</span>::<span class="ident">SYS_getrandom</span>, <span class="ident">buf</span>, <span class="ident">buflen</span>, <span class="ident">flags</span>) <span class="kw">as</span> <span class="ident">libc</span>::<span class="ident">ssize_t</span>
 }
 </pre></div>

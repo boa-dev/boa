@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/chrono-0.4.19/src/round.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>round.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../chrono/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/chrono-0.4.19/src/round.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>round.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+<link rel="alternate icon" type="image/png" href="../../favicon-16x16.png">
+<link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../chrono/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
                 <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
@@ -488,7 +490,7 @@
     <span class="doccomment">/// assert_eq!(dt.round_subsecs(2).nanosecond(), 150_000_000);</span>
     <span class="doccomment">/// assert_eq!(dt.round_subsecs(1).nanosecond(), 200_000_000);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">round_subsecs</span>(<span class="self">self</span>, <span class="ident">digits</span>: <span class="ident">u16</span>) <span class="op">-&gt;</span> <span class="self">Self</span>;
+    <span class="kw">fn</span> <span class="ident">round_subsecs</span>(<span class="self">self</span>, <span class="ident">digits</span>: <span class="ident">u16</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
 
     <span class="doccomment">/// Return a copy truncated to the specified number of subsecond</span>
     <span class="doccomment">/// digits. With 9 or more digits, self is returned unmodified.</span>
@@ -500,19 +502,19 @@
     <span class="doccomment">/// assert_eq!(dt.trunc_subsecs(2).nanosecond(), 150_000_000);</span>
     <span class="doccomment">/// assert_eq!(dt.trunc_subsecs(1).nanosecond(), 100_000_000);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">trunc_subsecs</span>(<span class="self">self</span>, <span class="ident">digits</span>: <span class="ident">u16</span>) <span class="op">-&gt;</span> <span class="self">Self</span>;
+    <span class="kw">fn</span> <span class="ident">trunc_subsecs</span>(<span class="self">self</span>, <span class="ident">digits</span>: <span class="ident">u16</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">SubsecRound</span> <span class="kw">for</span> <span class="ident">T</span>
 <span class="kw">where</span>
     <span class="ident">T</span>: <span class="ident">Timelike</span> <span class="op">+</span> <span class="ident">Add</span><span class="op">&lt;</span><span class="ident">Duration</span>, <span class="ident">Output</span> <span class="op">=</span> <span class="ident">T</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Sub</span><span class="op">&lt;</span><span class="ident">Duration</span>, <span class="ident">Output</span> <span class="op">=</span> <span class="ident">T</span><span class="op">&gt;</span>,
 {
-    <span class="kw">fn</span> <span class="ident">round_subsecs</span>(<span class="self">self</span>, <span class="ident">digits</span>: <span class="ident">u16</span>) <span class="op">-&gt;</span> <span class="ident">T</span> {
+    <span class="kw">fn</span> <span class="ident">round_subsecs</span>(<span class="self">self</span>, <span class="ident">digits</span>: <span class="ident">u16</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">T</span> {
         <span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <span class="ident">span_for_digits</span>(<span class="ident">digits</span>);
         <span class="kw">let</span> <span class="ident">delta_down</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">nanosecond</span>() <span class="op">%</span> <span class="ident">span</span>;
         <span class="kw">if</span> <span class="ident">delta_down</span> <span class="op">&gt;</span> <span class="number">0</span> {
             <span class="kw">let</span> <span class="ident">delta_up</span> <span class="op">=</span> <span class="ident">span</span> <span class="op">-</span> <span class="ident">delta_down</span>;
-            <span class="kw">if</span> <span class="ident">delta_up</span> <span class="op">&lt;=</span> <span class="ident">delta_down</span> {
+            <span class="kw">if</span> <span class="ident">delta_up</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">delta_down</span> {
                 <span class="self">self</span> <span class="op">+</span> <span class="ident">Duration</span>::<span class="ident">nanoseconds</span>(<span class="ident">delta_up</span>.<span class="ident">into</span>())
             } <span class="kw">else</span> {
                 <span class="self">self</span> <span class="op">-</span> <span class="ident">Duration</span>::<span class="ident">nanoseconds</span>(<span class="ident">delta_down</span>.<span class="ident">into</span>())
@@ -522,7 +524,7 @@
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">trunc_subsecs</span>(<span class="self">self</span>, <span class="ident">digits</span>: <span class="ident">u16</span>) <span class="op">-&gt;</span> <span class="ident">T</span> {
+    <span class="kw">fn</span> <span class="ident">trunc_subsecs</span>(<span class="self">self</span>, <span class="ident">digits</span>: <span class="ident">u16</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">T</span> {
         <span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <span class="ident">span_for_digits</span>(<span class="ident">digits</span>);
         <span class="kw">let</span> <span class="ident">delta_down</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">nanosecond</span>() <span class="op">%</span> <span class="ident">span</span>;
         <span class="kw">if</span> <span class="ident">delta_down</span> <span class="op">&gt;</span> <span class="number">0</span> {
@@ -534,19 +536,19 @@
 }
 
 <span class="comment">// Return the maximum span in nanoseconds for the target number of digits.</span>
-<span class="kw">fn</span> <span class="ident">span_for_digits</span>(<span class="ident">digits</span>: <span class="ident">u16</span>) <span class="op">-&gt;</span> <span class="ident">u32</span> {
+<span class="kw">fn</span> <span class="ident">span_for_digits</span>(<span class="ident">digits</span>: <span class="ident">u16</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span> {
     <span class="comment">// fast lookup form of: 10^(9-min(9,digits))</span>
     <span class="kw">match</span> <span class="ident">digits</span> {
-        <span class="number">0</span> <span class="op">=&gt;</span> <span class="number">1_000_000_000</span>,
-        <span class="number">1</span> <span class="op">=&gt;</span> <span class="number">100_000_000</span>,
-        <span class="number">2</span> <span class="op">=&gt;</span> <span class="number">10_000_000</span>,
-        <span class="number">3</span> <span class="op">=&gt;</span> <span class="number">1_000_000</span>,
-        <span class="number">4</span> <span class="op">=&gt;</span> <span class="number">100_000</span>,
-        <span class="number">5</span> <span class="op">=&gt;</span> <span class="number">10_000</span>,
-        <span class="number">6</span> <span class="op">=&gt;</span> <span class="number">1_000</span>,
-        <span class="number">7</span> <span class="op">=&gt;</span> <span class="number">100</span>,
-        <span class="number">8</span> <span class="op">=&gt;</span> <span class="number">10</span>,
-        <span class="kw">_</span> <span class="op">=&gt;</span> <span class="number">1</span>,
+        <span class="number">0</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">1_000_000_000</span>,
+        <span class="number">1</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">100_000_000</span>,
+        <span class="number">2</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">10_000_000</span>,
+        <span class="number">3</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">1_000_000</span>,
+        <span class="number">4</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">100_000</span>,
+        <span class="number">5</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">10_000</span>,
+        <span class="number">6</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">1_000</span>,
+        <span class="number">7</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">100</span>,
+        <span class="number">8</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">10</span>,
+        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">1</span>,
     }
 }
 
@@ -581,7 +583,7 @@
     <span class="doccomment">///     &quot;2018-01-12 00:00:00 UTC&quot;</span>
     <span class="doccomment">/// );</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">duration_round</span>(<span class="self">self</span>, <span class="ident">duration</span>: <span class="ident">Duration</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="self">Self</span>::<span class="prelude-val">Err</span><span class="op">&gt;</span>;
+    <span class="kw">fn</span> <span class="ident">duration_round</span>(<span class="self">self</span>, <span class="ident">duration</span>: <span class="ident">Duration</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="self">Self</span>::<span class="prelude-val">Err</span><span class="op">&gt;</span>;
 
     <span class="doccomment">/// Return a copy truncated by Duration.</span>
     <span class="doccomment">///</span>
@@ -598,7 +600,7 @@
     <span class="doccomment">///     &quot;2018-01-11 00:00:00 UTC&quot;</span>
     <span class="doccomment">/// );</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">duration_trunc</span>(<span class="self">self</span>, <span class="ident">duration</span>: <span class="ident">Duration</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="self">Self</span>::<span class="prelude-val">Err</span><span class="op">&gt;</span>;
+    <span class="kw">fn</span> <span class="ident">duration_trunc</span>(<span class="self">self</span>, <span class="ident">duration</span>: <span class="ident">Duration</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="self">Self</span>::<span class="prelude-val">Err</span><span class="op">&gt;</span>;
 }
 
 <span class="doccomment">/// The maximum number of seconds a DateTime can be to be represented as nanoseconds</span>
@@ -607,7 +609,7 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Tz</span>: <span class="ident">TimeZone</span><span class="op">&gt;</span> <span class="ident">DurationRound</span> <span class="kw">for</span> <span class="ident">DateTime</span><span class="op">&lt;</span><span class="ident">Tz</span><span class="op">&gt;</span> {
     <span class="kw">type</span> <span class="prelude-val">Err</span> <span class="op">=</span> <span class="ident">RoundingError</span>;
 
-    <span class="kw">fn</span> <span class="ident">duration_round</span>(<span class="self">self</span>, <span class="ident">duration</span>: <span class="ident">Duration</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="self">Self</span>::<span class="prelude-val">Err</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">duration_round</span>(<span class="self">self</span>, <span class="ident">duration</span>: <span class="ident">Duration</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="self">Self</span>::<span class="prelude-val">Err</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">span</span>) <span class="op">=</span> <span class="ident">duration</span>.<span class="ident">num_nanoseconds</span>() {
             <span class="kw">if</span> <span class="self">self</span>.<span class="ident">timestamp</span>().<span class="ident">abs</span>() <span class="op">&gt;</span> <span class="ident">MAX_SECONDS_TIMESTAMP_FOR_NANOS</span> {
                 <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">RoundingError</span>::<span class="ident">TimestampExceedsLimit</span>);
@@ -617,7 +619,7 @@
                 <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">RoundingError</span>::<span class="ident">DurationExceedsTimestamp</span>);
             }
             <span class="kw">let</span> <span class="ident">delta_down</span> <span class="op">=</span> <span class="ident">stamp</span> <span class="op">%</span> <span class="ident">span</span>;
-            <span class="kw">if</span> <span class="ident">delta_down</span> <span class="op">==</span> <span class="number">0</span> {
+            <span class="kw">if</span> <span class="ident">delta_down</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
                 <span class="prelude-val">Ok</span>(<span class="self">self</span>)
             } <span class="kw">else</span> {
                 <span class="kw">let</span> (<span class="ident">delta_up</span>, <span class="ident">delta_down</span>) <span class="op">=</span> <span class="kw">if</span> <span class="ident">delta_down</span> <span class="op">&lt;</span> <span class="number">0</span> {
@@ -625,7 +627,7 @@
                 } <span class="kw">else</span> {
                     (<span class="ident">span</span> <span class="op">-</span> <span class="ident">delta_down</span>, <span class="ident">delta_down</span>)
                 };
-                <span class="kw">if</span> <span class="ident">delta_up</span> <span class="op">&lt;=</span> <span class="ident">delta_down</span> {
+                <span class="kw">if</span> <span class="ident">delta_up</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">delta_down</span> {
                     <span class="prelude-val">Ok</span>(<span class="self">self</span> <span class="op">+</span> <span class="ident">Duration</span>::<span class="ident">nanoseconds</span>(<span class="ident">delta_up</span>))
                 } <span class="kw">else</span> {
                     <span class="prelude-val">Ok</span>(<span class="self">self</span> <span class="op">-</span> <span class="ident">Duration</span>::<span class="ident">nanoseconds</span>(<span class="ident">delta_down</span>))
@@ -636,7 +638,7 @@
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">duration_trunc</span>(<span class="self">self</span>, <span class="ident">duration</span>: <span class="ident">Duration</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="self">Self</span>::<span class="prelude-val">Err</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">duration_trunc</span>(<span class="self">self</span>, <span class="ident">duration</span>: <span class="ident">Duration</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="self">Self</span>::<span class="prelude-val">Err</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">span</span>) <span class="op">=</span> <span class="ident">duration</span>.<span class="ident">num_nanoseconds</span>() {
             <span class="kw">if</span> <span class="self">self</span>.<span class="ident">timestamp</span>().<span class="ident">abs</span>() <span class="op">&gt;</span> <span class="ident">MAX_SECONDS_TIMESTAMP_FOR_NANOS</span> {
                 <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">RoundingError</span>::<span class="ident">TimestampExceedsLimit</span>);
@@ -647,9 +649,9 @@
             }
             <span class="kw">let</span> <span class="ident">delta_down</span> <span class="op">=</span> <span class="ident">stamp</span> <span class="op">%</span> <span class="ident">span</span>;
             <span class="kw">match</span> <span class="ident">delta_down</span>.<span class="ident">cmp</span>(<span class="kw-2">&amp;</span><span class="number">0</span>) {
-                <span class="ident">Ordering</span>::<span class="ident">Equal</span> <span class="op">=&gt;</span> <span class="prelude-val">Ok</span>(<span class="self">self</span>),
-                <span class="ident">Ordering</span>::<span class="ident">Greater</span> <span class="op">=&gt;</span> <span class="prelude-val">Ok</span>(<span class="self">self</span> <span class="op">-</span> <span class="ident">Duration</span>::<span class="ident">nanoseconds</span>(<span class="ident">delta_down</span>)),
-                <span class="ident">Ordering</span>::<span class="ident">Less</span> <span class="op">=&gt;</span> <span class="prelude-val">Ok</span>(<span class="self">self</span> <span class="op">-</span> <span class="ident">Duration</span>::<span class="ident">nanoseconds</span>(<span class="ident">span</span> <span class="op">-</span> <span class="ident">delta_down</span>.<span class="ident">abs</span>())),
+                <span class="ident">Ordering</span>::<span class="ident">Equal</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="self">self</span>),
+                <span class="ident">Ordering</span>::<span class="ident">Greater</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="self">self</span> <span class="op">-</span> <span class="ident">Duration</span>::<span class="ident">nanoseconds</span>(<span class="ident">delta_down</span>)),
+                <span class="ident">Ordering</span>::<span class="ident">Less</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="self">self</span> <span class="op">-</span> <span class="ident">Duration</span>::<span class="ident">nanoseconds</span>(<span class="ident">span</span> <span class="op">-</span> <span class="ident">delta_down</span>.<span class="ident">abs</span>())),
             }
         } <span class="kw">else</span> {
             <span class="prelude-val">Err</span>(<span class="ident">RoundingError</span>::<span class="ident">DurationExceedsLimit</span>)
@@ -700,15 +702,15 @@
 }
 
 <span class="kw">impl</span> <span class="ident">fmt</span>::<span class="ident">Display</span> <span class="kw">for</span> <span class="ident">RoundingError</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span>) <span class="op">-&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
         <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="ident">RoundingError</span>::<span class="ident">DurationExceedsTimestamp</span> <span class="op">=&gt;</span> {
+            <span class="ident">RoundingError</span>::<span class="ident">DurationExceedsTimestamp</span> <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;duration in nanoseconds exceeds timestamp&quot;</span>)
             }
-            <span class="ident">RoundingError</span>::<span class="ident">DurationExceedsLimit</span> <span class="op">=&gt;</span> {
+            <span class="ident">RoundingError</span>::<span class="ident">DurationExceedsLimit</span> <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;duration exceeds num_nanoseconds limit&quot;</span>)
             }
-            <span class="ident">RoundingError</span>::<span class="ident">TimestampExceedsLimit</span> <span class="op">=&gt;</span> {
+            <span class="ident">RoundingError</span>::<span class="ident">TimestampExceedsLimit</span> <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;timestamp exceeds num_nanoseconds limit&quot;</span>)
             }
         }
@@ -718,7 +720,7 @@
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>, <span class="ident">test</span>))]</span>
 <span class="kw">impl</span> <span class="ident">std</span>::<span class="ident">error</span>::<span class="ident">Error</span> <span class="kw">for</span> <span class="ident">RoundingError</span> {
     <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">deprecated</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">description</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="ident">str</span> {
+    <span class="kw">fn</span> <span class="ident">description</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">str</span> {
         <span class="string">&quot;error from rounding or truncating with DurationRound&quot;</span>
     }
 }

@@ -114,17 +114,17 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// If `max &lt; mode`, `mode &lt; max` or `max == min`.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">min</span>: <span class="ident">f64</span>, <span class="ident">max</span>: <span class="ident">f64</span>, <span class="ident">mode</span>: <span class="ident">f64</span>) <span class="op">-&gt;</span> <span class="ident">Triangular</span> {
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">max</span> <span class="op">&gt;=</span> <span class="ident">mode</span>);
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">mode</span> <span class="op">&gt;=</span> <span class="ident">min</span>);
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">max</span> <span class="op">!=</span> <span class="ident">min</span>);
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">min</span>: <span class="ident">f64</span>, <span class="ident">max</span>: <span class="ident">f64</span>, <span class="ident">mode</span>: <span class="ident">f64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Triangular</span> {
+        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">max</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">mode</span>);
+        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">mode</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">min</span>);
+        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">max</span> <span class="op">!</span><span class="op">=</span> <span class="ident">min</span>);
         <span class="ident">Triangular</span> { <span class="ident">min</span>, <span class="ident">max</span>, <span class="ident">mode</span> }
     }
 }
 
 <span class="kw">impl</span> <span class="ident">Distribution</span><span class="op">&lt;</span><span class="ident">f64</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Triangular</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">sample</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">Rng</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">rng</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">R</span>) <span class="op">-&gt;</span> <span class="ident">f64</span> {
+    <span class="kw">fn</span> <span class="ident">sample</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">Rng</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">rng</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">R</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">f64</span> {
         <span class="kw">let</span> <span class="ident">f</span>: <span class="ident">f64</span> <span class="op">=</span> <span class="ident">rng</span>.<span class="ident">sample</span>(<span class="ident">Standard</span>);
         <span class="kw">let</span> <span class="ident">diff_mode_min</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">mode</span> <span class="op">-</span> <span class="self">self</span>.<span class="ident">min</span>;
         <span class="kw">let</span> <span class="ident">diff_max_min</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">max</span> <span class="op">-</span> <span class="self">self</span>.<span class="ident">min</span>;

@@ -565,30 +565,30 @@
 <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">WideningMultiply</span><span class="op">&lt;</span><span class="ident">RHS</span> <span class="op">=</span> <span class="self">Self</span><span class="op">&gt;</span> {
     <span class="kw">type</span> <span class="ident">Output</span>;
 
-    <span class="kw">fn</span> <span class="ident">wmul</span>(<span class="self">self</span>, <span class="ident">x</span>: <span class="ident">RHS</span>) <span class="op">-&gt;</span> <span class="self">Self</span>::<span class="ident">Output</span>;
+    <span class="kw">fn</span> <span class="ident">wmul</span>(<span class="self">self</span>, <span class="ident">x</span>: <span class="ident">RHS</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">Output</span>;
 }
 
 <span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">wmul_impl</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span>:<span class="ident">ty</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">wide</span>:<span class="ident">ty</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">shift</span>:<span class="ident">expr</span>) <span class="op">=&gt;</span> {
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span>:<span class="ident">ty</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">wide</span>:<span class="ident">ty</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">shift</span>:<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> {
         <span class="kw">impl</span> <span class="ident">WideningMultiply</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span> {
             <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span>);
 
             <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-            <span class="kw">fn</span> <span class="ident">wmul</span>(<span class="self">self</span>, <span class="ident">x</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span>) <span class="op">-&gt;</span> <span class="self">Self</span>::<span class="ident">Output</span> {
+            <span class="kw">fn</span> <span class="ident">wmul</span>(<span class="self">self</span>, <span class="ident">x</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">Output</span> {
                 <span class="kw">let</span> <span class="ident">tmp</span> <span class="op">=</span> (<span class="self">self</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">wide</span>) <span class="op">*</span> (<span class="ident">x</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">wide</span>);
-                ((<span class="ident">tmp</span> <span class="op">&gt;&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">shift</span>) <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span>, <span class="ident">tmp</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span>)
+                ((<span class="ident">tmp</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">shift</span>) <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span>, <span class="ident">tmp</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span>)
             }
         }
     };
 
     <span class="comment">// simd bulk implementation</span>
-    ($((<span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">wide</span>:<span class="ident">ident</span>),)<span class="op">+</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">shift</span>:<span class="ident">expr</span>) <span class="op">=&gt;</span> {
+    ($((<span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">wide</span>:<span class="ident">ident</span>),)<span class="op">+</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">shift</span>:<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> {
         $(
             <span class="kw">impl</span> <span class="ident">WideningMultiply</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span> {
                 <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span>);
 
                 <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-                <span class="kw">fn</span> <span class="ident">wmul</span>(<span class="self">self</span>, <span class="ident">x</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span>) <span class="op">-&gt;</span> <span class="self">Self</span>::<span class="ident">Output</span> {
+                <span class="kw">fn</span> <span class="ident">wmul</span>(<span class="self">self</span>, <span class="ident">x</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">Output</span> {
                     <span class="comment">// For supported vectors, this should compile to a couple</span>
                     <span class="comment">// supported multiply &amp; swizzle instructions (no actual</span>
                     <span class="comment">// casting).</span>
@@ -596,7 +596,7 @@
                     <span class="kw">let</span> <span class="ident">y</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">wide</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">cast</span>();
                     <span class="kw">let</span> <span class="ident">x</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">wide</span> <span class="op">=</span> <span class="ident">x</span>.<span class="ident">cast</span>();
                     <span class="kw">let</span> <span class="ident">tmp</span> <span class="op">=</span> <span class="ident">y</span> <span class="op">*</span> <span class="ident">x</span>;
-                    <span class="kw">let</span> <span class="ident">hi</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span> <span class="op">=</span> (<span class="ident">tmp</span> <span class="op">&gt;&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">shift</span>).<span class="ident">cast</span>();
+                    <span class="kw">let</span> <span class="ident">hi</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span> <span class="op">=</span> (<span class="ident">tmp</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">shift</span>).<span class="ident">cast</span>();
                     <span class="kw">let</span> <span class="ident">lo</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span> <span class="op">=</span> <span class="ident">tmp</span>.<span class="ident">cast</span>();
                     (<span class="ident">hi</span>, <span class="ident">lo</span>)
                 }
@@ -617,25 +617,25 @@
 <span class="comment">// For some reason LLVM can optimise the C version very well, but</span>
 <span class="comment">// keeps shuffling registers in this Rust translation.</span>
 <span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">wmul_impl_large</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span>:<span class="ident">ty</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">half</span>:<span class="ident">expr</span>) <span class="op">=&gt;</span> {
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span>:<span class="ident">ty</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">half</span>:<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> {
         <span class="kw">impl</span> <span class="ident">WideningMultiply</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span> {
             <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span>);
 
             <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-            <span class="kw">fn</span> <span class="ident">wmul</span>(<span class="self">self</span>, <span class="ident">b</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span>) <span class="op">-&gt;</span> <span class="self">Self</span>::<span class="ident">Output</span> {
-                <span class="kw">const</span> <span class="ident">LOWER_MASK</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span> <span class="op">=</span> <span class="op">!</span><span class="number">0</span> <span class="op">&gt;&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">half</span>;
+            <span class="kw">fn</span> <span class="ident">wmul</span>(<span class="self">self</span>, <span class="ident">b</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">Output</span> {
+                <span class="kw">const</span> <span class="ident">LOWER_MASK</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span> <span class="op">=</span> <span class="op">!</span><span class="number">0</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">half</span>;
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">low</span> <span class="op">=</span> (<span class="self">self</span> <span class="op">&amp;</span> <span class="ident">LOWER_MASK</span>).<span class="ident">wrapping_mul</span>(<span class="ident">b</span> <span class="op">&amp;</span> <span class="ident">LOWER_MASK</span>);
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">t</span> <span class="op">=</span> <span class="ident">low</span> <span class="op">&gt;&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">half</span>;
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">t</span> <span class="op">=</span> <span class="ident">low</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">half</span>;
                 <span class="ident">low</span> <span class="op">&amp;=</span> <span class="ident">LOWER_MASK</span>;
-                <span class="ident">t</span> <span class="op">+=</span> (<span class="self">self</span> <span class="op">&gt;&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">half</span>).<span class="ident">wrapping_mul</span>(<span class="ident">b</span> <span class="op">&amp;</span> <span class="ident">LOWER_MASK</span>);
-                <span class="ident">low</span> <span class="op">+=</span> (<span class="ident">t</span> <span class="op">&amp;</span> <span class="ident">LOWER_MASK</span>) <span class="op">&lt;&lt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">half</span>;
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">high</span> <span class="op">=</span> <span class="ident">t</span> <span class="op">&gt;&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">half</span>;
-                <span class="ident">t</span> <span class="op">=</span> <span class="ident">low</span> <span class="op">&gt;&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">half</span>;
+                <span class="ident">t</span> <span class="op">+</span><span class="op">=</span> (<span class="self">self</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">half</span>).<span class="ident">wrapping_mul</span>(<span class="ident">b</span> <span class="op">&amp;</span> <span class="ident">LOWER_MASK</span>);
+                <span class="ident">low</span> <span class="op">+</span><span class="op">=</span> (<span class="ident">t</span> <span class="op">&amp;</span> <span class="ident">LOWER_MASK</span>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">half</span>;
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">high</span> <span class="op">=</span> <span class="ident">t</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">half</span>;
+                <span class="ident">t</span> <span class="op">=</span> <span class="ident">low</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">half</span>;
                 <span class="ident">low</span> <span class="op">&amp;=</span> <span class="ident">LOWER_MASK</span>;
-                <span class="ident">t</span> <span class="op">+=</span> (<span class="ident">b</span> <span class="op">&gt;&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">half</span>).<span class="ident">wrapping_mul</span>(<span class="self">self</span> <span class="op">&amp;</span> <span class="ident">LOWER_MASK</span>);
-                <span class="ident">low</span> <span class="op">+=</span> (<span class="ident">t</span> <span class="op">&amp;</span> <span class="ident">LOWER_MASK</span>) <span class="op">&lt;&lt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">half</span>;
-                <span class="ident">high</span> <span class="op">+=</span> <span class="ident">t</span> <span class="op">&gt;&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">half</span>;
-                <span class="ident">high</span> <span class="op">+=</span> (<span class="self">self</span> <span class="op">&gt;&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">half</span>).<span class="ident">wrapping_mul</span>(<span class="ident">b</span> <span class="op">&gt;&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">half</span>);
+                <span class="ident">t</span> <span class="op">+</span><span class="op">=</span> (<span class="ident">b</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">half</span>).<span class="ident">wrapping_mul</span>(<span class="self">self</span> <span class="op">&amp;</span> <span class="ident">LOWER_MASK</span>);
+                <span class="ident">low</span> <span class="op">+</span><span class="op">=</span> (<span class="ident">t</span> <span class="op">&amp;</span> <span class="ident">LOWER_MASK</span>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">half</span>;
+                <span class="ident">high</span> <span class="op">+</span><span class="op">=</span> <span class="ident">t</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">half</span>;
+                <span class="ident">high</span> <span class="op">+</span><span class="op">=</span> (<span class="self">self</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">half</span>).<span class="ident">wrapping_mul</span>(<span class="ident">b</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">half</span>);
 
                 (<span class="ident">high</span>, <span class="ident">low</span>)
             }
@@ -643,27 +643,27 @@
     };
 
     <span class="comment">// simd bulk implementation</span>
-    (($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span>:<span class="ident">ty</span>,)<span class="op">+</span>) <span class="macro-nonterminal">$</span><span class="macro-nonterminal">scalar</span>:<span class="ident">ty</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">half</span>:<span class="ident">expr</span>) <span class="op">=&gt;</span> {
+    (($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span>:<span class="ident">ty</span>,)<span class="op">+</span>) <span class="macro-nonterminal">$</span><span class="macro-nonterminal">scalar</span>:<span class="ident">ty</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">half</span>:<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> {
         $(
             <span class="kw">impl</span> <span class="ident">WideningMultiply</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span> {
                 <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span>);
 
                 <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-                <span class="kw">fn</span> <span class="ident">wmul</span>(<span class="self">self</span>, <span class="ident">b</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span>) <span class="op">-&gt;</span> <span class="self">Self</span>::<span class="ident">Output</span> {
+                <span class="kw">fn</span> <span class="ident">wmul</span>(<span class="self">self</span>, <span class="ident">b</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">Output</span> {
                     <span class="comment">// needs wrapping multiplication</span>
-                    <span class="kw">const</span> <span class="ident">LOWER_MASK</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">scalar</span> <span class="op">=</span> <span class="op">!</span><span class="number">0</span> <span class="op">&gt;&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">half</span>;
+                    <span class="kw">const</span> <span class="ident">LOWER_MASK</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">scalar</span> <span class="op">=</span> <span class="op">!</span><span class="number">0</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">half</span>;
                     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">low</span> <span class="op">=</span> (<span class="self">self</span> <span class="op">&amp;</span> <span class="ident">LOWER_MASK</span>) <span class="op">*</span> (<span class="ident">b</span> <span class="op">&amp;</span> <span class="ident">LOWER_MASK</span>);
-                    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">t</span> <span class="op">=</span> <span class="ident">low</span> <span class="op">&gt;&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">half</span>;
+                    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">t</span> <span class="op">=</span> <span class="ident">low</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">half</span>;
                     <span class="ident">low</span> <span class="op">&amp;=</span> <span class="ident">LOWER_MASK</span>;
-                    <span class="ident">t</span> <span class="op">+=</span> (<span class="self">self</span> <span class="op">&gt;&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">half</span>) <span class="op">*</span> (<span class="ident">b</span> <span class="op">&amp;</span> <span class="ident">LOWER_MASK</span>);
-                    <span class="ident">low</span> <span class="op">+=</span> (<span class="ident">t</span> <span class="op">&amp;</span> <span class="ident">LOWER_MASK</span>) <span class="op">&lt;&lt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">half</span>;
-                    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">high</span> <span class="op">=</span> <span class="ident">t</span> <span class="op">&gt;&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">half</span>;
-                    <span class="ident">t</span> <span class="op">=</span> <span class="ident">low</span> <span class="op">&gt;&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">half</span>;
+                    <span class="ident">t</span> <span class="op">+</span><span class="op">=</span> (<span class="self">self</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">half</span>) <span class="op">*</span> (<span class="ident">b</span> <span class="op">&amp;</span> <span class="ident">LOWER_MASK</span>);
+                    <span class="ident">low</span> <span class="op">+</span><span class="op">=</span> (<span class="ident">t</span> <span class="op">&amp;</span> <span class="ident">LOWER_MASK</span>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">half</span>;
+                    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">high</span> <span class="op">=</span> <span class="ident">t</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">half</span>;
+                    <span class="ident">t</span> <span class="op">=</span> <span class="ident">low</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">half</span>;
                     <span class="ident">low</span> <span class="op">&amp;=</span> <span class="ident">LOWER_MASK</span>;
-                    <span class="ident">t</span> <span class="op">+=</span> (<span class="ident">b</span> <span class="op">&gt;&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">half</span>) <span class="op">*</span> (<span class="self">self</span> <span class="op">&amp;</span> <span class="ident">LOWER_MASK</span>);
-                    <span class="ident">low</span> <span class="op">+=</span> (<span class="ident">t</span> <span class="op">&amp;</span> <span class="ident">LOWER_MASK</span>) <span class="op">&lt;&lt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">half</span>;
-                    <span class="ident">high</span> <span class="op">+=</span> <span class="ident">t</span> <span class="op">&gt;&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">half</span>;
-                    <span class="ident">high</span> <span class="op">+=</span> (<span class="self">self</span> <span class="op">&gt;&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">half</span>) <span class="op">*</span> (<span class="ident">b</span> <span class="op">&gt;&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">half</span>);
+                    <span class="ident">t</span> <span class="op">+</span><span class="op">=</span> (<span class="ident">b</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">half</span>) <span class="op">*</span> (<span class="self">self</span> <span class="op">&amp;</span> <span class="ident">LOWER_MASK</span>);
+                    <span class="ident">low</span> <span class="op">+</span><span class="op">=</span> (<span class="ident">t</span> <span class="op">&amp;</span> <span class="ident">LOWER_MASK</span>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">half</span>;
+                    <span class="ident">high</span> <span class="op">+</span><span class="op">=</span> <span class="ident">t</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">half</span>;
+                    <span class="ident">high</span> <span class="op">+</span><span class="op">=</span> (<span class="self">self</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">half</span>) <span class="op">*</span> (<span class="ident">b</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">half</span>);
 
                     (<span class="ident">high</span>, <span class="ident">low</span>)
                 }
@@ -677,12 +677,12 @@
 <span class="macro">wmul_impl_large</span><span class="macro">!</span> { <span class="ident">u128</span>, <span class="number">64</span> }
 
 <span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">wmul_impl_usize</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span>:<span class="ident">ty</span>) <span class="op">=&gt;</span> {
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span>:<span class="ident">ty</span>) <span class="op">=</span><span class="op">&gt;</span> {
         <span class="kw">impl</span> <span class="ident">WideningMultiply</span> <span class="kw">for</span> <span class="ident">usize</span> {
             <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> (<span class="ident">usize</span>, <span class="ident">usize</span>);
 
             <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-            <span class="kw">fn</span> <span class="ident">wmul</span>(<span class="self">self</span>, <span class="ident">x</span>: <span class="ident">usize</span>) <span class="op">-&gt;</span> <span class="self">Self</span>::<span class="ident">Output</span> {
+            <span class="kw">fn</span> <span class="ident">wmul</span>(<span class="self">self</span>, <span class="ident">x</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">Output</span> {
                 <span class="kw">let</span> (<span class="ident">high</span>, <span class="ident">low</span>) <span class="op">=</span> (<span class="self">self</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span>).<span class="ident">wmul</span>(<span class="ident">x</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span>);
                 (<span class="ident">high</span> <span class="kw">as</span> <span class="ident">usize</span>, <span class="ident">low</span> <span class="kw">as</span> <span class="ident">usize</span>)
             }
@@ -721,12 +721,12 @@
     <span class="comment">// means `wmul` can be implemented with only two instructions.</span>
     <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unused_macros</span>)]</span>
     <span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">wmul_impl_16</span> {
-        (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">intrinsic</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">mulhi</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">mullo</span>:<span class="ident">ident</span>) <span class="op">=&gt;</span> {
+        (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">intrinsic</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">mulhi</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">mullo</span>:<span class="ident">ident</span>) <span class="op">=</span><span class="op">&gt;</span> {
             <span class="kw">impl</span> <span class="ident">WideningMultiply</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span> {
                 <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span>);
 
                 <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-                <span class="kw">fn</span> <span class="ident">wmul</span>(<span class="self">self</span>, <span class="ident">x</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span>) <span class="op">-&gt;</span> <span class="self">Self</span>::<span class="ident">Output</span> {
+                <span class="kw">fn</span> <span class="ident">wmul</span>(<span class="self">self</span>, <span class="ident">x</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">Output</span> {
                     <span class="kw">let</span> <span class="ident">b</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">intrinsic</span>::<span class="ident">from_bits</span>(<span class="ident">x</span>);
                     <span class="kw">let</span> <span class="ident">a</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">intrinsic</span>::<span class="ident">from_bits</span>(<span class="self">self</span>);
                     <span class="kw">let</span> <span class="ident">hi</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span>::<span class="ident">from_bits</span>(<span class="kw">unsafe</span> { <span class="macro-nonterminal">$</span><span class="macro-nonterminal">mulhi</span>(<span class="ident">a</span>, <span class="ident">b</span>) });
@@ -770,96 +770,96 @@
     <span class="comment">// lanes. This is possible using something like `a.lt(b).all()`, but we</span>
     <span class="comment">// implement it as a trait so we can write the same code for `f32` and `f64`.</span>
     <span class="comment">// Only the comparison functions we need are implemented.</span>
-    <span class="kw">fn</span> <span class="ident">all_lt</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span>;
-    <span class="kw">fn</span> <span class="ident">all_le</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span>;
-    <span class="kw">fn</span> <span class="ident">all_finite</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span>;
+    <span class="kw">fn</span> <span class="ident">all_lt</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span>;
+    <span class="kw">fn</span> <span class="ident">all_le</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span>;
+    <span class="kw">fn</span> <span class="ident">all_finite</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span>;
 
     <span class="kw">type</span> <span class="ident">Mask</span>;
-    <span class="kw">fn</span> <span class="ident">finite_mask</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span>::<span class="ident">Mask</span>;
-    <span class="kw">fn</span> <span class="ident">gt_mask</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) <span class="op">-&gt;</span> <span class="self">Self</span>::<span class="ident">Mask</span>;
-    <span class="kw">fn</span> <span class="ident">ge_mask</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) <span class="op">-&gt;</span> <span class="self">Self</span>::<span class="ident">Mask</span>;
+    <span class="kw">fn</span> <span class="ident">finite_mask</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">Mask</span>;
+    <span class="kw">fn</span> <span class="ident">gt_mask</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">Mask</span>;
+    <span class="kw">fn</span> <span class="ident">ge_mask</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">Mask</span>;
 
     <span class="comment">// Decrease all lanes where the mask is `true` to the next lower value</span>
     <span class="comment">// representable by the floating-point type. At least one of the lanes</span>
     <span class="comment">// must be set.</span>
-    <span class="kw">fn</span> <span class="ident">decrease_masked</span>(<span class="self">self</span>, <span class="ident">mask</span>: <span class="self">Self</span>::<span class="ident">Mask</span>) <span class="op">-&gt;</span> <span class="self">Self</span>;
+    <span class="kw">fn</span> <span class="ident">decrease_masked</span>(<span class="self">self</span>, <span class="ident">mask</span>: <span class="self">Self</span>::<span class="ident">Mask</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
 
     <span class="comment">// Convert from int value. Conversion is done while retaining the numerical</span>
     <span class="comment">// value, not by retaining the binary representation.</span>
     <span class="kw">type</span> <span class="ident">UInt</span>;
-    <span class="kw">fn</span> <span class="ident">cast_from_int</span>(<span class="ident">i</span>: <span class="self">Self</span>::<span class="ident">UInt</span>) <span class="op">-&gt;</span> <span class="self">Self</span>;
+    <span class="kw">fn</span> <span class="ident">cast_from_int</span>(<span class="ident">i</span>: <span class="self">Self</span>::<span class="ident">UInt</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
 }
 
 <span class="doccomment">/// Implement functions available in std builds but missing from core primitives</span>
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">std</span>))]</span>
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">trait</span> <span class="ident">Float</span>: <span class="ident">Sized</span> {
-    <span class="kw">fn</span> <span class="ident">is_nan</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span>;
-    <span class="kw">fn</span> <span class="ident">is_infinite</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span>;
-    <span class="kw">fn</span> <span class="ident">is_finite</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span>;
+    <span class="kw">fn</span> <span class="ident">is_nan</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span>;
+    <span class="kw">fn</span> <span class="ident">is_infinite</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span>;
+    <span class="kw">fn</span> <span class="ident">is_finite</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span>;
 }
 
 <span class="doccomment">/// Implement functions on f32/f64 to give them APIs similar to SIMD types</span>
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">trait</span> <span class="ident">FloatAsSIMD</span>: <span class="ident">Sized</span> {
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">lanes</span>() <span class="op">-&gt;</span> <span class="ident">usize</span> {
+    <span class="kw">fn</span> <span class="ident">lanes</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
         <span class="number">1</span>
     }
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">splat</span>(<span class="ident">scalar</span>: <span class="self">Self</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">splat</span>(<span class="ident">scalar</span>: <span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">scalar</span>
     }
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">extract</span>(<span class="self">self</span>, <span class="ident">index</span>: <span class="ident">usize</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">extract</span>(<span class="self">self</span>, <span class="ident">index</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="macro">debug_assert_eq</span><span class="macro">!</span>(<span class="ident">index</span>, <span class="number">0</span>);
         <span class="self">self</span>
     }
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">replace</span>(<span class="self">self</span>, <span class="ident">index</span>: <span class="ident">usize</span>, <span class="ident">new_value</span>: <span class="self">Self</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">replace</span>(<span class="self">self</span>, <span class="ident">index</span>: <span class="ident">usize</span>, <span class="ident">new_value</span>: <span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="macro">debug_assert_eq</span><span class="macro">!</span>(<span class="ident">index</span>, <span class="number">0</span>);
         <span class="ident">new_value</span>
     }
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">trait</span> <span class="ident">BoolAsSIMD</span>: <span class="ident">Sized</span> {
-    <span class="kw">fn</span> <span class="ident">any</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span>;
-    <span class="kw">fn</span> <span class="ident">all</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span>;
-    <span class="kw">fn</span> <span class="ident">none</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span>;
+    <span class="kw">fn</span> <span class="ident">any</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span>;
+    <span class="kw">fn</span> <span class="ident">all</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span>;
+    <span class="kw">fn</span> <span class="ident">none</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span>;
 }
 
 <span class="kw">impl</span> <span class="ident">BoolAsSIMD</span> <span class="kw">for</span> <span class="ident">bool</span> {
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">any</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">any</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
         <span class="self">self</span>
     }
 
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">all</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">all</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
         <span class="self">self</span>
     }
 
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">none</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">none</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
         <span class="op">!</span><span class="self">self</span>
     }
 }
 
 <span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">scalar_float_impl</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">uty</span>:<span class="ident">ident</span>) <span class="op">=&gt;</span> {
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">uty</span>:<span class="ident">ident</span>) <span class="op">=</span><span class="op">&gt;</span> {
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">std</span>))]</span>
         <span class="kw">impl</span> <span class="ident">Float</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span> {
             <span class="attribute">#[<span class="ident">inline</span>]</span>
-            <span class="kw">fn</span> <span class="ident">is_nan</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
-                <span class="self">self</span> <span class="op">!=</span> <span class="self">self</span>
+            <span class="kw">fn</span> <span class="ident">is_nan</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+                <span class="self">self</span> <span class="op">!</span><span class="op">=</span> <span class="self">self</span>
             }
 
             <span class="attribute">#[<span class="ident">inline</span>]</span>
-            <span class="kw">fn</span> <span class="ident">is_infinite</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
-                <span class="self">self</span> <span class="op">==</span> ::<span class="ident">core</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span>::<span class="ident">INFINITY</span> <span class="op">||</span> <span class="self">self</span> <span class="op">==</span> ::<span class="ident">core</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span>::<span class="ident">NEG_INFINITY</span>
+            <span class="kw">fn</span> <span class="ident">is_infinite</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+                <span class="self">self</span> <span class="op">=</span><span class="op">=</span> ::<span class="ident">core</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span>::<span class="ident">INFINITY</span> <span class="op">|</span><span class="op">|</span> <span class="self">self</span> <span class="op">=</span><span class="op">=</span> ::<span class="ident">core</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span>::<span class="ident">NEG_INFINITY</span>
             }
 
             <span class="attribute">#[<span class="ident">inline</span>]</span>
-            <span class="kw">fn</span> <span class="ident">is_finite</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
-                <span class="op">!</span>(<span class="self">self</span>.<span class="ident">is_nan</span>() <span class="op">||</span> <span class="self">self</span>.<span class="ident">is_infinite</span>())
+            <span class="kw">fn</span> <span class="ident">is_finite</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+                <span class="op">!</span>(<span class="self">self</span>.<span class="ident">is_nan</span>() <span class="op">|</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">is_infinite</span>())
             }
         }
 
@@ -868,43 +868,43 @@
             <span class="kw">type</span> <span class="ident">UInt</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">uty</span>;
 
             <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-            <span class="kw">fn</span> <span class="ident">all_lt</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
+            <span class="kw">fn</span> <span class="ident">all_lt</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
                 <span class="self">self</span> <span class="op">&lt;</span> <span class="ident">other</span>
             }
 
             <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-            <span class="kw">fn</span> <span class="ident">all_le</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
-                <span class="self">self</span> <span class="op">&lt;=</span> <span class="ident">other</span>
+            <span class="kw">fn</span> <span class="ident">all_le</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+                <span class="self">self</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">other</span>
             }
 
             <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-            <span class="kw">fn</span> <span class="ident">all_finite</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
+            <span class="kw">fn</span> <span class="ident">all_finite</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
                 <span class="self">self</span>.<span class="ident">is_finite</span>()
             }
 
             <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-            <span class="kw">fn</span> <span class="ident">finite_mask</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span>::<span class="ident">Mask</span> {
+            <span class="kw">fn</span> <span class="ident">finite_mask</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">Mask</span> {
                 <span class="self">self</span>.<span class="ident">is_finite</span>()
             }
 
             <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-            <span class="kw">fn</span> <span class="ident">gt_mask</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) <span class="op">-&gt;</span> <span class="self">Self</span>::<span class="ident">Mask</span> {
+            <span class="kw">fn</span> <span class="ident">gt_mask</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">Mask</span> {
                 <span class="self">self</span> <span class="op">&gt;</span> <span class="ident">other</span>
             }
 
             <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-            <span class="kw">fn</span> <span class="ident">ge_mask</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) <span class="op">-&gt;</span> <span class="self">Self</span>::<span class="ident">Mask</span> {
-                <span class="self">self</span> <span class="op">&gt;=</span> <span class="ident">other</span>
+            <span class="kw">fn</span> <span class="ident">ge_mask</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">Mask</span> {
+                <span class="self">self</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">other</span>
             }
 
             <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-            <span class="kw">fn</span> <span class="ident">decrease_masked</span>(<span class="self">self</span>, <span class="ident">mask</span>: <span class="self">Self</span>::<span class="ident">Mask</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
+            <span class="kw">fn</span> <span class="ident">decrease_masked</span>(<span class="self">self</span>, <span class="ident">mask</span>: <span class="self">Self</span>::<span class="ident">Mask</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
                 <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="ident">mask</span>, <span class="string">&quot;At least one lane must be set&quot;</span>);
                 <span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span><span class="op">&gt;</span>::<span class="ident">from_bits</span>(<span class="self">self</span>.<span class="ident">to_bits</span>() <span class="op">-</span> <span class="number">1</span>)
             }
 
             <span class="attribute">#[<span class="ident">inline</span>]</span>
-            <span class="kw">fn</span> <span class="ident">cast_from_int</span>(<span class="ident">i</span>: <span class="self">Self</span>::<span class="ident">UInt</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
+            <span class="kw">fn</span> <span class="ident">cast_from_int</span>(<span class="ident">i</span>: <span class="self">Self</span>::<span class="ident">UInt</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
                 <span class="ident">i</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span>
             }
         }
@@ -919,28 +919,28 @@
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;simd_support&quot;</span>)]</span>
 <span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">simd_impl</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">f_scalar</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">mty</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">uty</span>:<span class="ident">ident</span>) <span class="op">=&gt;</span> {
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">f_scalar</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">mty</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">uty</span>:<span class="ident">ident</span>) <span class="op">=</span><span class="op">&gt;</span> {
         <span class="kw">impl</span> <span class="ident">FloatSIMDUtils</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span> {
             <span class="kw">type</span> <span class="ident">Mask</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">mty</span>;
             <span class="kw">type</span> <span class="ident">UInt</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">uty</span>;
 
             <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-            <span class="kw">fn</span> <span class="ident">all_lt</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
+            <span class="kw">fn</span> <span class="ident">all_lt</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
                 <span class="self">self</span>.<span class="ident">lt</span>(<span class="ident">other</span>).<span class="ident">all</span>()
             }
 
             <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-            <span class="kw">fn</span> <span class="ident">all_le</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
+            <span class="kw">fn</span> <span class="ident">all_le</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
                 <span class="self">self</span>.<span class="ident">le</span>(<span class="ident">other</span>).<span class="ident">all</span>()
             }
 
             <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-            <span class="kw">fn</span> <span class="ident">all_finite</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
+            <span class="kw">fn</span> <span class="ident">all_finite</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
                 <span class="self">self</span>.<span class="ident">finite_mask</span>().<span class="ident">all</span>()
             }
 
             <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-            <span class="kw">fn</span> <span class="ident">finite_mask</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span>::<span class="ident">Mask</span> {
+            <span class="kw">fn</span> <span class="ident">finite_mask</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">Mask</span> {
                 <span class="comment">// This can possibly be done faster by checking bit patterns</span>
                 <span class="kw">let</span> <span class="ident">neg_inf</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span>::<span class="ident">splat</span>(::<span class="ident">core</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">f_scalar</span>::<span class="ident">NEG_INFINITY</span>);
                 <span class="kw">let</span> <span class="ident">pos_inf</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span>::<span class="ident">splat</span>(::<span class="ident">core</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">f_scalar</span>::<span class="ident">INFINITY</span>);
@@ -948,17 +948,17 @@
             }
 
             <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-            <span class="kw">fn</span> <span class="ident">gt_mask</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) <span class="op">-&gt;</span> <span class="self">Self</span>::<span class="ident">Mask</span> {
+            <span class="kw">fn</span> <span class="ident">gt_mask</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">Mask</span> {
                 <span class="self">self</span>.<span class="ident">gt</span>(<span class="ident">other</span>)
             }
 
             <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-            <span class="kw">fn</span> <span class="ident">ge_mask</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) <span class="op">-&gt;</span> <span class="self">Self</span>::<span class="ident">Mask</span> {
+            <span class="kw">fn</span> <span class="ident">ge_mask</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">Mask</span> {
                 <span class="self">self</span>.<span class="ident">ge</span>(<span class="ident">other</span>)
             }
 
             <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-            <span class="kw">fn</span> <span class="ident">decrease_masked</span>(<span class="self">self</span>, <span class="ident">mask</span>: <span class="self">Self</span>::<span class="ident">Mask</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
+            <span class="kw">fn</span> <span class="ident">decrease_masked</span>(<span class="self">self</span>, <span class="ident">mask</span>: <span class="self">Self</span>::<span class="ident">Mask</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
                 <span class="comment">// Casting a mask into ints will produce all bits set for</span>
                 <span class="comment">// true, and 0 for false. Adding that to the binary</span>
                 <span class="comment">// representation of a float means subtracting one from</span>
@@ -970,7 +970,7 @@
             }
 
             <span class="attribute">#[<span class="ident">inline</span>]</span>
-            <span class="kw">fn</span> <span class="ident">cast_from_int</span>(<span class="ident">i</span>: <span class="self">Self</span>::<span class="ident">UInt</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
+            <span class="kw">fn</span> <span class="ident">cast_from_int</span>(<span class="ident">i</span>: <span class="self">Self</span>::<span class="ident">UInt</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
                 <span class="ident">i</span>.<span class="ident">cast</span>()
             }
         }
@@ -999,7 +999,7 @@
 <span class="doccomment">/// ahead of time - we use just the first 6 terms, which is good enough</span>
 <span class="doccomment">/// for most purposes.</span>
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">log_gamma</span>(<span class="ident">x</span>: <span class="ident">f64</span>) <span class="op">-&gt;</span> <span class="ident">f64</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">log_gamma</span>(<span class="ident">x</span>: <span class="ident">f64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">f64</span> {
     <span class="comment">// precalculated 6 coefficients for the first 6 terms of the series</span>
     <span class="kw">let</span> <span class="ident">coefficients</span>: [<span class="ident">f64</span>; <span class="number">6</span>] <span class="op">=</span> [
         <span class="number">76.18009172947146</span>,
@@ -1018,8 +1018,8 @@
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">a</span> <span class="op">=</span> <span class="number">1.000000000190015</span>;
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">denom</span> <span class="op">=</span> <span class="ident">x</span>;
     <span class="kw">for</span> <span class="ident">coeff</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">coefficients</span> {
-        <span class="ident">denom</span> <span class="op">+=</span> <span class="number">1.0</span>;
-        <span class="ident">a</span> <span class="op">+=</span> <span class="ident">coeff</span> <span class="op">/</span> <span class="ident">denom</span>;
+        <span class="ident">denom</span> <span class="op">+</span><span class="op">=</span> <span class="number">1.0</span>;
+        <span class="ident">a</span> <span class="op">+</span><span class="op">=</span> <span class="ident">coeff</span> <span class="op">/</span> <span class="ident">denom</span>;
     }
 
     <span class="comment">// get everything together</span>
@@ -1052,10 +1052,10 @@
     <span class="ident">f_tab</span>: <span class="ident">ziggurat_tables</span>::<span class="ident">ZigTable</span>,
     <span class="kw-2">mut</span> <span class="ident">pdf</span>: <span class="ident">P</span>,
     <span class="kw-2">mut</span> <span class="ident">zero_case</span>: <span class="ident">Z</span>
-) <span class="op">-&gt;</span> <span class="ident">f64</span>
+) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">f64</span>
 <span class="kw">where</span>
-    <span class="ident">P</span>: <span class="ident">FnMut</span>(<span class="ident">f64</span>) <span class="op">-&gt;</span> <span class="ident">f64</span>,
-    <span class="ident">Z</span>: <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">R</span>, <span class="ident">f64</span>) <span class="op">-&gt;</span> <span class="ident">f64</span>,
+    <span class="ident">P</span>: <span class="ident">FnMut</span>(<span class="ident">f64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">f64</span>,
+    <span class="ident">Z</span>: <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">R</span>, <span class="ident">f64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">f64</span>,
 {
     <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">distributions</span>::<span class="ident">float</span>::<span class="ident">IntoFloat</span>;
     <span class="kw">loop</span> {
@@ -1072,10 +1072,10 @@
             <span class="comment">// substracting `3.0 - EPSILON`, which is not representable.</span>
             <span class="comment">// It is possible with an extra step, but an open range does not</span>
             <span class="comment">// seem neccesary for the ziggurat algorithm anyway.</span>
-            (<span class="ident">bits</span> <span class="op">&gt;&gt;</span> <span class="number">12</span>).<span class="ident">into_float_with_exponent</span>(<span class="number">1</span>) <span class="op">-</span> <span class="number">3.0</span>
+            (<span class="ident">bits</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">12</span>).<span class="ident">into_float_with_exponent</span>(<span class="number">1</span>) <span class="op">-</span> <span class="number">3.0</span>
         } <span class="kw">else</span> {
             <span class="comment">// Convert to a value in the range [1,2) and substract to get (0,1)</span>
-            (<span class="ident">bits</span> <span class="op">&gt;&gt;</span> <span class="number">12</span>).<span class="ident">into_float_with_exponent</span>(<span class="number">0</span>) <span class="op">-</span> (<span class="number">1.0</span> <span class="op">-</span> ::<span class="ident">core</span>::<span class="ident">f64</span>::<span class="ident">EPSILON</span> <span class="op">/</span> <span class="number">2.0</span>)
+            (<span class="ident">bits</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">12</span>).<span class="ident">into_float_with_exponent</span>(<span class="number">0</span>) <span class="op">-</span> (<span class="number">1.0</span> <span class="op">-</span> ::<span class="ident">core</span>::<span class="ident">f64</span>::<span class="ident">EPSILON</span> <span class="op">/</span> <span class="number">2.0</span>)
         };
         <span class="kw">let</span> <span class="ident">x</span> <span class="op">=</span> <span class="ident">u</span> <span class="op">*</span> <span class="ident">x_tab</span>[<span class="ident">i</span>];
 
@@ -1085,7 +1085,7 @@
         <span class="kw">if</span> <span class="ident">test_x</span> <span class="op">&lt;</span> <span class="ident">x_tab</span>[<span class="ident">i</span> <span class="op">+</span> <span class="number">1</span>] {
             <span class="kw">return</span> <span class="ident">x</span>;
         }
-        <span class="kw">if</span> <span class="ident">i</span> <span class="op">==</span> <span class="number">0</span> {
+        <span class="kw">if</span> <span class="ident">i</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
             <span class="kw">return</span> <span class="ident">zero_case</span>(<span class="ident">rng</span>, <span class="ident">u</span>);
         }
         <span class="comment">// algebraically equivalent to f1 + DRanU()*(f0 - f1) &lt; 1</span>

@@ -76,17 +76,17 @@
 }
 
 <span class="kw">impl</span> <span class="ident">Type</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_str</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_str</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="self">Self</span>::<span class="ident">Number</span> <span class="op">=&gt;</span> <span class="string">&quot;number&quot;</span>,
-            <span class="self">Self</span>::<span class="ident">String</span> <span class="op">=&gt;</span> <span class="string">&quot;string&quot;</span>,
-            <span class="self">Self</span>::<span class="ident">Boolean</span> <span class="op">=&gt;</span> <span class="string">&quot;boolean&quot;</span>,
-            <span class="self">Self</span>::<span class="ident">Symbol</span> <span class="op">=&gt;</span> <span class="string">&quot;symbol&quot;</span>,
-            <span class="self">Self</span>::<span class="ident">Null</span> <span class="op">=&gt;</span> <span class="string">&quot;object&quot;</span>,
-            <span class="self">Self</span>::<span class="ident">Undefined</span> <span class="op">=&gt;</span> <span class="string">&quot;undefined&quot;</span>,
-            <span class="self">Self</span>::<span class="ident">Function</span> <span class="op">=&gt;</span> <span class="string">&quot;function&quot;</span>,
-            <span class="self">Self</span>::<span class="ident">Object</span> <span class="op">=&gt;</span> <span class="string">&quot;object&quot;</span>,
-            <span class="self">Self</span>::<span class="ident">BigInt</span> <span class="op">=&gt;</span> <span class="string">&quot;bigint&quot;</span>,
+            <span class="self">Self</span>::<span class="ident">Number</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;number&quot;</span>,
+            <span class="self">Self</span>::<span class="ident">String</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;string&quot;</span>,
+            <span class="self">Self</span>::<span class="ident">Boolean</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;boolean&quot;</span>,
+            <span class="self">Self</span>::<span class="ident">Symbol</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;symbol&quot;</span>,
+            <span class="self">Self</span>::<span class="ident">Null</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;object&quot;</span>,
+            <span class="self">Self</span>::<span class="ident">Undefined</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;undefined&quot;</span>,
+            <span class="self">Self</span>::<span class="ident">Function</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;function&quot;</span>,
+            <span class="self">Self</span>::<span class="ident">Object</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;object&quot;</span>,
+            <span class="self">Self</span>::<span class="ident">BigInt</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;bigint&quot;</span>,
         }
     }
 }
@@ -97,16 +97,16 @@
     <span class="doccomment">/// This is similar to typeof as described at https://tc39.es/ecma262/#sec-typeof-operator but instead of</span>
     <span class="doccomment">/// returning a string it returns a Type enum which implements fmt::Display to allow getting the string if</span>
     <span class="doccomment">/// required using to_string().</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_type</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">Type</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_type</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Type</span> {
         <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="self">Self</span>::<span class="ident">Rational</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="self">Self</span>::<span class="ident">Integer</span>(<span class="kw">_</span>) <span class="op">=&gt;</span> <span class="ident">Type</span>::<span class="ident">Number</span>,
-            <span class="self">Self</span>::<span class="ident">String</span>(<span class="kw">_</span>) <span class="op">=&gt;</span> <span class="ident">Type</span>::<span class="ident">String</span>,
-            <span class="self">Self</span>::<span class="ident">Boolean</span>(<span class="kw">_</span>) <span class="op">=&gt;</span> <span class="ident">Type</span>::<span class="ident">Boolean</span>,
-            <span class="self">Self</span>::<span class="ident">Symbol</span>(<span class="kw">_</span>) <span class="op">=&gt;</span> <span class="ident">Type</span>::<span class="ident">Symbol</span>,
-            <span class="self">Self</span>::<span class="ident">Null</span> <span class="op">=&gt;</span> <span class="ident">Type</span>::<span class="ident">Null</span>,
-            <span class="self">Self</span>::<span class="ident">Undefined</span> <span class="op">=&gt;</span> <span class="ident">Type</span>::<span class="ident">Undefined</span>,
-            <span class="self">Self</span>::<span class="ident">BigInt</span>(<span class="kw">_</span>) <span class="op">=&gt;</span> <span class="ident">Type</span>::<span class="ident">BigInt</span>,
-            <span class="self">Self</span>::<span class="ident">Object</span>(<span class="kw-2">ref</span> <span class="ident">object</span>) <span class="op">=&gt;</span> {
+            <span class="self">Self</span>::<span class="ident">Rational</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="self">Self</span>::<span class="ident">Integer</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Type</span>::<span class="ident">Number</span>,
+            <span class="self">Self</span>::<span class="ident">String</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Type</span>::<span class="ident">String</span>,
+            <span class="self">Self</span>::<span class="ident">Boolean</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Type</span>::<span class="ident">Boolean</span>,
+            <span class="self">Self</span>::<span class="ident">Symbol</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Type</span>::<span class="ident">Symbol</span>,
+            <span class="self">Self</span>::<span class="ident">Null</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Type</span>::<span class="ident">Null</span>,
+            <span class="self">Self</span>::<span class="ident">Undefined</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Type</span>::<span class="ident">Undefined</span>,
+            <span class="self">Self</span>::<span class="ident">BigInt</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Type</span>::<span class="ident">BigInt</span>,
+            <span class="self">Self</span>::<span class="ident">Object</span>(<span class="kw-2">ref</span> <span class="ident">object</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">if</span> <span class="ident">object</span>.<span class="ident">is_function</span>() {
                     <span class="ident">Type</span>::<span class="ident">Function</span>
                 } <span class="kw">else</span> {

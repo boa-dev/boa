@@ -125,19 +125,19 @@
 <span class="kw">impl</span> <span class="ident">UnitSphereSurface</span> {
     <span class="doccomment">/// Construct a new `UnitSphereSurface` distribution.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-&gt;</span> <span class="ident">UnitSphereSurface</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">UnitSphereSurface</span> {
         <span class="ident">UnitSphereSurface</span>
     }
 }
 
 <span class="kw">impl</span> <span class="ident">Distribution</span><span class="op">&lt;</span>[<span class="ident">f64</span>; <span class="number">3</span>]<span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">UnitSphereSurface</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">sample</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">Rng</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">rng</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">R</span>) <span class="op">-&gt;</span> [<span class="ident">f64</span>; <span class="number">3</span>] {
+    <span class="kw">fn</span> <span class="ident">sample</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">Rng</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">rng</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">R</span>) <span class="op">-</span><span class="op">&gt;</span> [<span class="ident">f64</span>; <span class="number">3</span>] {
         <span class="kw">let</span> <span class="ident">uniform</span> <span class="op">=</span> <span class="ident">Uniform</span>::<span class="ident">new</span>(<span class="op">-</span><span class="number">1.</span>, <span class="number">1.</span>);
         <span class="kw">loop</span> {
             <span class="kw">let</span> (<span class="ident">x1</span>, <span class="ident">x2</span>) <span class="op">=</span> (<span class="ident">uniform</span>.<span class="ident">sample</span>(<span class="ident">rng</span>), <span class="ident">uniform</span>.<span class="ident">sample</span>(<span class="ident">rng</span>));
             <span class="kw">let</span> <span class="ident">sum</span> <span class="op">=</span> <span class="ident">x1</span> <span class="op">*</span> <span class="ident">x1</span> <span class="op">+</span> <span class="ident">x2</span> <span class="op">*</span> <span class="ident">x2</span>;
-            <span class="kw">if</span> <span class="ident">sum</span> <span class="op">&gt;=</span> <span class="number">1.</span> {
+            <span class="kw">if</span> <span class="ident">sum</span> <span class="op">&gt;</span><span class="op">=</span> <span class="number">1.</span> {
                 <span class="kw">continue</span>;
             }
             <span class="kw">let</span> <span class="ident">factor</span> <span class="op">=</span> <span class="number">2.</span> <span class="op">*</span> (<span class="number">1.0_f64</span> <span class="op">-</span> <span class="ident">sum</span>).<span class="ident">sqrt</span>();
@@ -156,7 +156,7 @@
     <span class="doccomment">/// On panic, this macro will print the values of the expressions with their</span>
     <span class="doccomment">/// debug representations.</span>
     <span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">assert_almost_eq</span> {
-        (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">a</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">b</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">prec</span>:<span class="ident">expr</span>) <span class="op">=&gt;</span> {
+        (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">a</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">b</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">prec</span>:<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> {
             <span class="kw">let</span> <span class="ident">diff</span> <span class="op">=</span> (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">a</span> <span class="op">-</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">b</span>).<span class="ident">abs</span>();
             <span class="kw">if</span> <span class="ident">diff</span> <span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">prec</span> {
                 <span class="macro">panic</span><span class="macro">!</span>(<span class="macro">format</span><span class="macro">!</span>(

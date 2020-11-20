@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-syntax-0.6.21/src/hir/translate.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>translate.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script src="../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="shortcut icon" href="../../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../regex_syntax/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-syntax-0.6.21/src/hir/translate.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>translate.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script src="../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
+<link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png">
+<link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../regex_syntax/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
                 <a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
 <span id="3">   3</span>
@@ -3190,14 +3192,14 @@ Defines a translator that converts an `Ast` to an `Hir`.
 }
 
 <span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">TranslatorBuilder</span> {
-    <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-&gt;</span> <span class="ident">TranslatorBuilder</span> {
+    <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TranslatorBuilder</span> {
         <span class="ident">TranslatorBuilder</span>::<span class="ident">new</span>()
     }
 }
 
 <span class="kw">impl</span> <span class="ident">TranslatorBuilder</span> {
     <span class="doccomment">/// Create a new translator builder with a default c onfiguration.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-&gt;</span> <span class="ident">TranslatorBuilder</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TranslatorBuilder</span> {
         <span class="ident">TranslatorBuilder</span> {
             <span class="ident">allow_invalid_utf8</span>: <span class="bool-val">false</span>,
             <span class="ident">flags</span>: <span class="ident">Flags</span>::<span class="ident">default</span>(),
@@ -3205,7 +3207,7 @@ Defines a translator that converts an `Ast` to an `Hir`.
     }
 
     <span class="doccomment">/// Build a translator using the current configuration.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">build</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">Translator</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">build</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Translator</span> {
         <span class="ident">Translator</span> {
             <span class="ident">stack</span>: <span class="ident">RefCell</span>::<span class="ident">new</span>(<span class="macro">vec</span><span class="macro">!</span>[]),
             <span class="ident">flags</span>: <span class="ident">Cell</span>::<span class="ident">new</span>(<span class="self">self</span>.<span class="ident">flags</span>),
@@ -3224,19 +3226,19 @@ Defines a translator that converts an `Ast` to an `Hir`.
     <span class="doccomment">/// word boundary (uttered as `(?-u:\B)` in the concrete syntax) will cause</span>
     <span class="doccomment">/// the parser to return an error. Namely, a negated ASCII word boundary</span>
     <span class="doccomment">/// can result in matching positions that aren&#39;t valid UTF-8 boundaries.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">allow_invalid_utf8</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">yes</span>: <span class="ident">bool</span>) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">TranslatorBuilder</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">allow_invalid_utf8</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">yes</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">TranslatorBuilder</span> {
         <span class="self">self</span>.<span class="ident">allow_invalid_utf8</span> <span class="op">=</span> <span class="ident">yes</span>;
         <span class="self">self</span>
     }
 
     <span class="doccomment">/// Enable or disable the case insensitive flag (`i`) by default.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">case_insensitive</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">yes</span>: <span class="ident">bool</span>) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">TranslatorBuilder</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">case_insensitive</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">yes</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">TranslatorBuilder</span> {
         <span class="self">self</span>.<span class="ident">flags</span>.<span class="ident">case_insensitive</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">yes</span> { <span class="prelude-val">Some</span>(<span class="bool-val">true</span>) } <span class="kw">else</span> { <span class="prelude-val">None</span> };
         <span class="self">self</span>
     }
 
     <span class="doccomment">/// Enable or disable the multi-line matching flag (`m`) by default.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">multi_line</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">yes</span>: <span class="ident">bool</span>) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">TranslatorBuilder</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">multi_line</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">yes</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">TranslatorBuilder</span> {
         <span class="self">self</span>.<span class="ident">flags</span>.<span class="ident">multi_line</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">yes</span> { <span class="prelude-val">Some</span>(<span class="bool-val">true</span>) } <span class="kw">else</span> { <span class="prelude-val">None</span> };
         <span class="self">self</span>
     }
@@ -3246,19 +3248,19 @@ Defines a translator that converts an `Ast` to an `Hir`.
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">dot_matches_new_line</span>(
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
         <span class="ident">yes</span>: <span class="ident">bool</span>,
-    ) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">TranslatorBuilder</span> {
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">TranslatorBuilder</span> {
         <span class="self">self</span>.<span class="ident">flags</span>.<span class="ident">dot_matches_new_line</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">yes</span> { <span class="prelude-val">Some</span>(<span class="bool-val">true</span>) } <span class="kw">else</span> { <span class="prelude-val">None</span> };
         <span class="self">self</span>
     }
 
     <span class="doccomment">/// Enable or disable the &quot;swap greed&quot; flag (`U`) by default.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">swap_greed</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">yes</span>: <span class="ident">bool</span>) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">TranslatorBuilder</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">swap_greed</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">yes</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">TranslatorBuilder</span> {
         <span class="self">self</span>.<span class="ident">flags</span>.<span class="ident">swap_greed</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">yes</span> { <span class="prelude-val">Some</span>(<span class="bool-val">true</span>) } <span class="kw">else</span> { <span class="prelude-val">None</span> };
         <span class="self">self</span>
     }
 
     <span class="doccomment">/// Enable or disable the Unicode flag (`u`) by default.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">unicode</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">yes</span>: <span class="ident">bool</span>) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">TranslatorBuilder</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">unicode</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">yes</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">TranslatorBuilder</span> {
         <span class="self">self</span>.<span class="ident">flags</span>.<span class="ident">unicode</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">yes</span> { <span class="prelude-val">None</span> } <span class="kw">else</span> { <span class="prelude-val">Some</span>(<span class="bool-val">false</span>) };
         <span class="self">self</span>
     }
@@ -3275,7 +3277,7 @@ Defines a translator that converts an `Ast` to an `Hir`.
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Translator</span> {
     <span class="doccomment">/// Our call stack, but on the heap.</span>
-    <span class="ident">stack</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">HirFrame</span><span class="op">&gt;&gt;</span>,
+    <span class="ident">stack</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">HirFrame</span><span class="op">&gt;</span><span class="op">&gt;</span>,
     <span class="doccomment">/// The current flag settings.</span>
     <span class="ident">flags</span>: <span class="ident">Cell</span><span class="op">&lt;</span><span class="ident">Flags</span><span class="op">&gt;</span>,
     <span class="doccomment">/// Whether we&#39;re allowed to produce HIR that can match arbitrary bytes.</span>
@@ -3284,7 +3286,7 @@ Defines a translator that converts an `Ast` to an `Hir`.
 
 <span class="kw">impl</span> <span class="ident">Translator</span> {
     <span class="doccomment">/// Create a new translator using the default configuration.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-&gt;</span> <span class="ident">Translator</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Translator</span> {
         <span class="ident">TranslatorBuilder</span>::<span class="ident">new</span>().<span class="ident">build</span>()
     }
 
@@ -3297,7 +3299,7 @@ Defines a translator that converts an `Ast` to an `Hir`.
     <span class="doccomment">/// The original pattern string used to produce the `Ast` *must* also be</span>
     <span class="doccomment">/// provided. The translator does not use the pattern string during any</span>
     <span class="doccomment">/// correct translation, but is used for error reporting.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">translate</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">pattern</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">ast</span>: <span class="kw-2">&amp;</span><span class="ident">Ast</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Hir</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">translate</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">pattern</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">ast</span>: <span class="kw-2">&amp;</span><span class="ident">Ast</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Hir</span><span class="op">&gt;</span> {
         <span class="ident">ast</span>::<span class="ident">visit</span>(<span class="ident">ast</span>, <span class="ident">TranslatorI</span>::<span class="ident">new</span>(<span class="self">self</span>, <span class="ident">pattern</span>))
     }
 }
@@ -3356,19 +3358,19 @@ Defines a translator that converts an `Ast` to an `Hir`.
 
 <span class="kw">impl</span> <span class="ident">HirFrame</span> {
     <span class="doccomment">/// Assert that the current stack frame is an Hir expression and return it.</span>
-    <span class="kw">fn</span> <span class="ident">unwrap_expr</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">Hir</span> {
+    <span class="kw">fn</span> <span class="ident">unwrap_expr</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Hir</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">HirFrame</span>::<span class="ident">Expr</span>(<span class="ident">expr</span>) <span class="op">=&gt;</span> <span class="ident">expr</span>,
-            <span class="kw">_</span> <span class="op">=&gt;</span> <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;tried to unwrap expr from HirFrame, got: {:?}&quot;</span>, <span class="self">self</span>),
+            <span class="ident">HirFrame</span>::<span class="ident">Expr</span>(<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">expr</span>,
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;tried to unwrap expr from HirFrame, got: {:?}&quot;</span>, <span class="self">self</span>),
         }
     }
 
     <span class="doccomment">/// Assert that the current stack frame is a Unicode class expression and</span>
     <span class="doccomment">/// return it.</span>
-    <span class="kw">fn</span> <span class="ident">unwrap_class_unicode</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">hir</span>::<span class="ident">ClassUnicode</span> {
+    <span class="kw">fn</span> <span class="ident">unwrap_class_unicode</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">hir</span>::<span class="ident">ClassUnicode</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">HirFrame</span>::<span class="ident">ClassUnicode</span>(<span class="ident">cls</span>) <span class="op">=&gt;</span> <span class="ident">cls</span>,
-            <span class="kw">_</span> <span class="op">=&gt;</span> <span class="macro">panic</span><span class="macro">!</span>(
+            <span class="ident">HirFrame</span>::<span class="ident">ClassUnicode</span>(<span class="ident">cls</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">cls</span>,
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic</span><span class="macro">!</span>(
                 <span class="string">&quot;tried to unwrap Unicode class \
                  from HirFrame, got: {:?}&quot;</span>,
                 <span class="self">self</span>
@@ -3378,10 +3380,10 @@ Defines a translator that converts an `Ast` to an `Hir`.
 
     <span class="doccomment">/// Assert that the current stack frame is a byte class expression and</span>
     <span class="doccomment">/// return it.</span>
-    <span class="kw">fn</span> <span class="ident">unwrap_class_bytes</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">hir</span>::<span class="ident">ClassBytes</span> {
+    <span class="kw">fn</span> <span class="ident">unwrap_class_bytes</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">hir</span>::<span class="ident">ClassBytes</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">HirFrame</span>::<span class="ident">ClassBytes</span>(<span class="ident">cls</span>) <span class="op">=&gt;</span> <span class="ident">cls</span>,
-            <span class="kw">_</span> <span class="op">=&gt;</span> <span class="macro">panic</span><span class="macro">!</span>(
+            <span class="ident">HirFrame</span>::<span class="ident">ClassBytes</span>(<span class="ident">cls</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">cls</span>,
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic</span><span class="macro">!</span>(
                 <span class="string">&quot;tried to unwrap byte class \
                  from HirFrame, got: {:?}&quot;</span>,
                 <span class="self">self</span>
@@ -3392,10 +3394,10 @@ Defines a translator that converts an `Ast` to an `Hir`.
     <span class="doccomment">/// Assert that the current stack frame is a group indicator and return</span>
     <span class="doccomment">/// its corresponding flags (the flags that were active at the time the</span>
     <span class="doccomment">/// group was entered).</span>
-    <span class="kw">fn</span> <span class="ident">unwrap_group</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">Flags</span> {
+    <span class="kw">fn</span> <span class="ident">unwrap_group</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Flags</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">HirFrame</span>::<span class="ident">Group</span> { <span class="ident">old_flags</span> } <span class="op">=&gt;</span> <span class="ident">old_flags</span>,
-            <span class="kw">_</span> <span class="op">=&gt;</span> {
+            <span class="ident">HirFrame</span>::<span class="ident">Group</span> { <span class="ident">old_flags</span> } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">old_flags</span>,
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;tried to unwrap group from HirFrame, got: {:?}&quot;</span>, <span class="self">self</span>)
             }
         }
@@ -3406,15 +3408,15 @@ Defines a translator that converts an `Ast` to an `Hir`.
     <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">Hir</span>;
     <span class="kw">type</span> <span class="prelude-val">Err</span> <span class="op">=</span> <span class="ident">Error</span>;
 
-    <span class="kw">fn</span> <span class="ident">finish</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Hir</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">finish</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Hir</span><span class="op">&gt;</span> {
         <span class="comment">// ... otherwise, we should have exactly one HIR on the stack.</span>
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="self">self</span>.<span class="ident">trans</span>().<span class="ident">stack</span>.<span class="ident">borrow</span>().<span class="ident">len</span>(), <span class="number">1</span>);
         <span class="prelude-val">Ok</span>(<span class="self">self</span>.<span class="ident">pop</span>().<span class="ident">unwrap</span>().<span class="ident">unwrap_expr</span>())
     }
 
-    <span class="kw">fn</span> <span class="ident">visit_pre</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">ast</span>: <span class="kw-2">&amp;</span><span class="ident">Ast</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">visit_pre</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">ast</span>: <span class="kw-2">&amp;</span><span class="ident">Ast</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="kw-2">*</span><span class="ident">ast</span> {
-            <span class="ident">Ast</span>::<span class="ident">Class</span>(<span class="ident">ast</span>::<span class="ident">Class</span>::<span class="ident">Bracketed</span>(<span class="kw">_</span>)) <span class="op">=&gt;</span> {
+            <span class="ident">Ast</span>::<span class="ident">Class</span>(<span class="ident">ast</span>::<span class="ident">Class</span>::<span class="ident">Bracketed</span>(<span class="kw">_</span>)) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">if</span> <span class="self">self</span>.<span class="ident">flags</span>().<span class="ident">unicode</span>() {
                     <span class="kw">let</span> <span class="ident">cls</span> <span class="op">=</span> <span class="ident">hir</span>::<span class="ident">ClassUnicode</span>::<span class="ident">empty</span>();
                     <span class="self">self</span>.<span class="ident">push</span>(<span class="ident">HirFrame</span>::<span class="ident">ClassUnicode</span>(<span class="ident">cls</span>));
@@ -3423,32 +3425,32 @@ Defines a translator that converts an `Ast` to an `Hir`.
                     <span class="self">self</span>.<span class="ident">push</span>(<span class="ident">HirFrame</span>::<span class="ident">ClassBytes</span>(<span class="ident">cls</span>));
                 }
             }
-            <span class="ident">Ast</span>::<span class="ident">Group</span>(<span class="kw-2">ref</span> <span class="ident">x</span>) <span class="op">=&gt;</span> {
+            <span class="ident">Ast</span>::<span class="ident">Group</span>(<span class="kw-2">ref</span> <span class="ident">x</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">let</span> <span class="ident">old_flags</span> <span class="op">=</span> <span class="ident">x</span>
                     .<span class="ident">flags</span>()
                     .<span class="ident">map</span>(<span class="op">|</span><span class="ident">ast</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">set_flags</span>(<span class="ident">ast</span>))
-                    .<span class="ident">unwrap_or_else</span>(<span class="op">||</span> <span class="self">self</span>.<span class="ident">flags</span>());
+                    .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">flags</span>());
                 <span class="self">self</span>.<span class="ident">push</span>(<span class="ident">HirFrame</span>::<span class="ident">Group</span> { <span class="ident">old_flags</span> });
             }
-            <span class="ident">Ast</span>::<span class="ident">Concat</span>(<span class="kw-2">ref</span> <span class="ident">x</span>) <span class="kw">if</span> <span class="ident">x</span>.<span class="ident">asts</span>.<span class="ident">is_empty</span>() <span class="op">=&gt;</span> {}
-            <span class="ident">Ast</span>::<span class="ident">Concat</span>(<span class="kw">_</span>) <span class="op">=&gt;</span> {
+            <span class="ident">Ast</span>::<span class="ident">Concat</span>(<span class="kw-2">ref</span> <span class="ident">x</span>) <span class="kw">if</span> <span class="ident">x</span>.<span class="ident">asts</span>.<span class="ident">is_empty</span>() <span class="op">=</span><span class="op">&gt;</span> {}
+            <span class="ident">Ast</span>::<span class="ident">Concat</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="self">self</span>.<span class="ident">push</span>(<span class="ident">HirFrame</span>::<span class="ident">Concat</span>);
             }
-            <span class="ident">Ast</span>::<span class="ident">Alternation</span>(<span class="kw-2">ref</span> <span class="ident">x</span>) <span class="kw">if</span> <span class="ident">x</span>.<span class="ident">asts</span>.<span class="ident">is_empty</span>() <span class="op">=&gt;</span> {}
-            <span class="ident">Ast</span>::<span class="ident">Alternation</span>(<span class="kw">_</span>) <span class="op">=&gt;</span> {
+            <span class="ident">Ast</span>::<span class="ident">Alternation</span>(<span class="kw-2">ref</span> <span class="ident">x</span>) <span class="kw">if</span> <span class="ident">x</span>.<span class="ident">asts</span>.<span class="ident">is_empty</span>() <span class="op">=</span><span class="op">&gt;</span> {}
+            <span class="ident">Ast</span>::<span class="ident">Alternation</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="self">self</span>.<span class="ident">push</span>(<span class="ident">HirFrame</span>::<span class="ident">Alternation</span>);
             }
-            <span class="kw">_</span> <span class="op">=&gt;</span> {}
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {}
         }
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">fn</span> <span class="ident">visit_post</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">ast</span>: <span class="kw-2">&amp;</span><span class="ident">Ast</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">visit_post</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">ast</span>: <span class="kw-2">&amp;</span><span class="ident">Ast</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="kw-2">*</span><span class="ident">ast</span> {
-            <span class="ident">Ast</span>::<span class="ident">Empty</span>(<span class="kw">_</span>) <span class="op">=&gt;</span> {
+            <span class="ident">Ast</span>::<span class="ident">Empty</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="self">self</span>.<span class="ident">push</span>(<span class="ident">HirFrame</span>::<span class="ident">Expr</span>(<span class="ident">Hir</span>::<span class="ident">empty</span>()));
             }
-            <span class="ident">Ast</span>::<span class="ident">Flags</span>(<span class="kw-2">ref</span> <span class="ident">x</span>) <span class="op">=&gt;</span> {
+            <span class="ident">Ast</span>::<span class="ident">Flags</span>(<span class="kw-2">ref</span> <span class="ident">x</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="self">self</span>.<span class="ident">set_flags</span>(<span class="kw-2">&amp;</span><span class="ident">x</span>.<span class="ident">flags</span>);
                 <span class="comment">// Flags in the AST are generally considered directives and</span>
                 <span class="comment">// not actual sub-expressions. However, they can be used in</span>
@@ -3461,16 +3463,16 @@ Defines a translator that converts an `Ast` to an `Hir`.
                 <span class="comment">// consistency sake.</span>
                 <span class="self">self</span>.<span class="ident">push</span>(<span class="ident">HirFrame</span>::<span class="ident">Expr</span>(<span class="ident">Hir</span>::<span class="ident">empty</span>()));
             }
-            <span class="ident">Ast</span>::<span class="ident">Literal</span>(<span class="kw-2">ref</span> <span class="ident">x</span>) <span class="op">=&gt;</span> {
+            <span class="ident">Ast</span>::<span class="ident">Literal</span>(<span class="kw-2">ref</span> <span class="ident">x</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="self">self</span>.<span class="ident">push</span>(<span class="ident">HirFrame</span>::<span class="ident">Expr</span>(<span class="self">self</span>.<span class="ident">hir_literal</span>(<span class="ident">x</span>)<span class="question-mark">?</span>));
             }
-            <span class="ident">Ast</span>::<span class="ident">Dot</span>(<span class="ident">span</span>) <span class="op">=&gt;</span> {
+            <span class="ident">Ast</span>::<span class="ident">Dot</span>(<span class="ident">span</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="self">self</span>.<span class="ident">push</span>(<span class="ident">HirFrame</span>::<span class="ident">Expr</span>(<span class="self">self</span>.<span class="ident">hir_dot</span>(<span class="ident">span</span>)<span class="question-mark">?</span>));
             }
-            <span class="ident">Ast</span>::<span class="ident">Assertion</span>(<span class="kw-2">ref</span> <span class="ident">x</span>) <span class="op">=&gt;</span> {
+            <span class="ident">Ast</span>::<span class="ident">Assertion</span>(<span class="kw-2">ref</span> <span class="ident">x</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="self">self</span>.<span class="ident">push</span>(<span class="ident">HirFrame</span>::<span class="ident">Expr</span>(<span class="self">self</span>.<span class="ident">hir_assertion</span>(<span class="ident">x</span>)<span class="question-mark">?</span>));
             }
-            <span class="ident">Ast</span>::<span class="ident">Class</span>(<span class="ident">ast</span>::<span class="ident">Class</span>::<span class="ident">Perl</span>(<span class="kw-2">ref</span> <span class="ident">x</span>)) <span class="op">=&gt;</span> {
+            <span class="ident">Ast</span>::<span class="ident">Class</span>(<span class="ident">ast</span>::<span class="ident">Class</span>::<span class="ident">Perl</span>(<span class="kw-2">ref</span> <span class="ident">x</span>)) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">if</span> <span class="self">self</span>.<span class="ident">flags</span>().<span class="ident">unicode</span>() {
                     <span class="kw">let</span> <span class="ident">cls</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">hir_perl_unicode_class</span>(<span class="ident">x</span>)<span class="question-mark">?</span>;
                     <span class="kw">let</span> <span class="ident">hcls</span> <span class="op">=</span> <span class="ident">hir</span>::<span class="ident">Class</span>::<span class="ident">Unicode</span>(<span class="ident">cls</span>);
@@ -3481,11 +3483,11 @@ Defines a translator that converts an `Ast` to an `Hir`.
                     <span class="self">self</span>.<span class="ident">push</span>(<span class="ident">HirFrame</span>::<span class="ident">Expr</span>(<span class="ident">Hir</span>::<span class="ident">class</span>(<span class="ident">hcls</span>)));
                 }
             }
-            <span class="ident">Ast</span>::<span class="ident">Class</span>(<span class="ident">ast</span>::<span class="ident">Class</span>::<span class="ident">Unicode</span>(<span class="kw-2">ref</span> <span class="ident">x</span>)) <span class="op">=&gt;</span> {
+            <span class="ident">Ast</span>::<span class="ident">Class</span>(<span class="ident">ast</span>::<span class="ident">Class</span>::<span class="ident">Unicode</span>(<span class="kw-2">ref</span> <span class="ident">x</span>)) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">let</span> <span class="ident">cls</span> <span class="op">=</span> <span class="ident">hir</span>::<span class="ident">Class</span>::<span class="ident">Unicode</span>(<span class="self">self</span>.<span class="ident">hir_unicode_class</span>(<span class="ident">x</span>)<span class="question-mark">?</span>);
                 <span class="self">self</span>.<span class="ident">push</span>(<span class="ident">HirFrame</span>::<span class="ident">Expr</span>(<span class="ident">Hir</span>::<span class="ident">class</span>(<span class="ident">cls</span>)));
             }
-            <span class="ident">Ast</span>::<span class="ident">Class</span>(<span class="ident">ast</span>::<span class="ident">Class</span>::<span class="ident">Bracketed</span>(<span class="kw-2">ref</span> <span class="ident">ast</span>)) <span class="op">=&gt;</span> {
+            <span class="ident">Ast</span>::<span class="ident">Class</span>(<span class="ident">ast</span>::<span class="ident">Class</span>::<span class="ident">Bracketed</span>(<span class="kw-2">ref</span> <span class="ident">ast</span>)) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">if</span> <span class="self">self</span>.<span class="ident">flags</span>().<span class="ident">unicode</span>() {
                     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">cls</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">pop</span>().<span class="ident">unwrap</span>().<span class="ident">unwrap_class_unicode</span>();
                     <span class="self">self</span>.<span class="ident">unicode_fold_and_negate</span>(
@@ -3519,17 +3521,17 @@ Defines a translator that converts an `Ast` to an `Hir`.
                     <span class="self">self</span>.<span class="ident">push</span>(<span class="ident">HirFrame</span>::<span class="ident">Expr</span>(<span class="ident">expr</span>));
                 }
             }
-            <span class="ident">Ast</span>::<span class="ident">Repetition</span>(<span class="kw-2">ref</span> <span class="ident">x</span>) <span class="op">=&gt;</span> {
+            <span class="ident">Ast</span>::<span class="ident">Repetition</span>(<span class="kw-2">ref</span> <span class="ident">x</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">let</span> <span class="ident">expr</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">pop</span>().<span class="ident">unwrap</span>().<span class="ident">unwrap_expr</span>();
                 <span class="self">self</span>.<span class="ident">push</span>(<span class="ident">HirFrame</span>::<span class="ident">Expr</span>(<span class="self">self</span>.<span class="ident">hir_repetition</span>(<span class="ident">x</span>, <span class="ident">expr</span>)));
             }
-            <span class="ident">Ast</span>::<span class="ident">Group</span>(<span class="kw-2">ref</span> <span class="ident">x</span>) <span class="op">=&gt;</span> {
+            <span class="ident">Ast</span>::<span class="ident">Group</span>(<span class="kw-2">ref</span> <span class="ident">x</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">let</span> <span class="ident">expr</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">pop</span>().<span class="ident">unwrap</span>().<span class="ident">unwrap_expr</span>();
                 <span class="kw">let</span> <span class="ident">old_flags</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">pop</span>().<span class="ident">unwrap</span>().<span class="ident">unwrap_group</span>();
                 <span class="self">self</span>.<span class="ident">trans</span>().<span class="ident">flags</span>.<span class="ident">set</span>(<span class="ident">old_flags</span>);
                 <span class="self">self</span>.<span class="ident">push</span>(<span class="ident">HirFrame</span>::<span class="ident">Expr</span>(<span class="self">self</span>.<span class="ident">hir_group</span>(<span class="ident">x</span>, <span class="ident">expr</span>)));
             }
-            <span class="ident">Ast</span>::<span class="ident">Concat</span>(<span class="kw">_</span>) <span class="op">=&gt;</span> {
+            <span class="ident">Ast</span>::<span class="ident">Concat</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">exprs</span> <span class="op">=</span> <span class="macro">vec</span><span class="macro">!</span>[];
                 <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">HirFrame</span>::<span class="ident">Expr</span>(<span class="ident">expr</span>)) <span class="op">=</span> <span class="self">self</span>.<span class="ident">pop</span>() {
                     <span class="kw">if</span> <span class="op">!</span><span class="ident">expr</span>.<span class="ident">kind</span>().<span class="ident">is_empty</span>() {
@@ -3539,7 +3541,7 @@ Defines a translator that converts an `Ast` to an `Hir`.
                 <span class="ident">exprs</span>.<span class="ident">reverse</span>();
                 <span class="self">self</span>.<span class="ident">push</span>(<span class="ident">HirFrame</span>::<span class="ident">Expr</span>(<span class="ident">Hir</span>::<span class="ident">concat</span>(<span class="ident">exprs</span>)));
             }
-            <span class="ident">Ast</span>::<span class="ident">Alternation</span>(<span class="kw">_</span>) <span class="op">=&gt;</span> {
+            <span class="ident">Ast</span>::<span class="ident">Alternation</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">exprs</span> <span class="op">=</span> <span class="macro">vec</span><span class="macro">!</span>[];
                 <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">HirFrame</span>::<span class="ident">Expr</span>(<span class="ident">expr</span>)) <span class="op">=</span> <span class="self">self</span>.<span class="ident">pop</span>() {
                     <span class="ident">exprs</span>.<span class="ident">push</span>(<span class="ident">expr</span>);
@@ -3554,9 +3556,9 @@ Defines a translator that converts an `Ast` to an `Hir`.
     <span class="kw">fn</span> <span class="ident">visit_class_set_item_pre</span>(
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
         <span class="ident">ast</span>: <span class="kw-2">&amp;</span><span class="ident">ast</span>::<span class="ident">ClassSetItem</span>,
-    ) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="kw-2">*</span><span class="ident">ast</span> {
-            <span class="ident">ast</span>::<span class="ident">ClassSetItem</span>::<span class="ident">Bracketed</span>(<span class="kw">_</span>) <span class="op">=&gt;</span> {
+            <span class="ident">ast</span>::<span class="ident">ClassSetItem</span>::<span class="ident">Bracketed</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">if</span> <span class="self">self</span>.<span class="ident">flags</span>().<span class="ident">unicode</span>() {
                     <span class="kw">let</span> <span class="ident">cls</span> <span class="op">=</span> <span class="ident">hir</span>::<span class="ident">ClassUnicode</span>::<span class="ident">empty</span>();
                     <span class="self">self</span>.<span class="ident">push</span>(<span class="ident">HirFrame</span>::<span class="ident">ClassUnicode</span>(<span class="ident">cls</span>));
@@ -3567,7 +3569,7 @@ Defines a translator that converts an `Ast` to an `Hir`.
             }
             <span class="comment">// We needn&#39;t handle the Union case here since the visitor will</span>
             <span class="comment">// do it for us.</span>
-            <span class="kw">_</span> <span class="op">=&gt;</span> {}
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {}
         }
         <span class="prelude-val">Ok</span>(())
     }
@@ -3575,10 +3577,10 @@ Defines a translator that converts an `Ast` to an `Hir`.
     <span class="kw">fn</span> <span class="ident">visit_class_set_item_post</span>(
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
         <span class="ident">ast</span>: <span class="kw-2">&amp;</span><span class="ident">ast</span>::<span class="ident">ClassSetItem</span>,
-    ) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="kw-2">*</span><span class="ident">ast</span> {
-            <span class="ident">ast</span>::<span class="ident">ClassSetItem</span>::<span class="ident">Empty</span>(<span class="kw">_</span>) <span class="op">=&gt;</span> {}
-            <span class="ident">ast</span>::<span class="ident">ClassSetItem</span>::<span class="ident">Literal</span>(<span class="kw-2">ref</span> <span class="ident">x</span>) <span class="op">=&gt;</span> {
+            <span class="ident">ast</span>::<span class="ident">ClassSetItem</span>::<span class="ident">Empty</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {}
+            <span class="ident">ast</span>::<span class="ident">ClassSetItem</span>::<span class="ident">Literal</span>(<span class="kw-2">ref</span> <span class="ident">x</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">if</span> <span class="self">self</span>.<span class="ident">flags</span>().<span class="ident">unicode</span>() {
                     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">cls</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">pop</span>().<span class="ident">unwrap</span>().<span class="ident">unwrap_class_unicode</span>();
                     <span class="ident">cls</span>.<span class="ident">push</span>(<span class="ident">hir</span>::<span class="ident">ClassUnicodeRange</span>::<span class="ident">new</span>(<span class="ident">x</span>.<span class="ident">c</span>, <span class="ident">x</span>.<span class="ident">c</span>));
@@ -3590,7 +3592,7 @@ Defines a translator that converts an `Ast` to an `Hir`.
                     <span class="self">self</span>.<span class="ident">push</span>(<span class="ident">HirFrame</span>::<span class="ident">ClassBytes</span>(<span class="ident">cls</span>));
                 }
             }
-            <span class="ident">ast</span>::<span class="ident">ClassSetItem</span>::<span class="ident">Range</span>(<span class="kw-2">ref</span> <span class="ident">x</span>) <span class="op">=&gt;</span> {
+            <span class="ident">ast</span>::<span class="ident">ClassSetItem</span>::<span class="ident">Range</span>(<span class="kw-2">ref</span> <span class="ident">x</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">if</span> <span class="self">self</span>.<span class="ident">flags</span>().<span class="ident">unicode</span>() {
                     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">cls</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">pop</span>().<span class="ident">unwrap</span>().<span class="ident">unwrap_class_unicode</span>();
                     <span class="ident">cls</span>.<span class="ident">push</span>(<span class="ident">hir</span>::<span class="ident">ClassUnicodeRange</span>::<span class="ident">new</span>(<span class="ident">x</span>.<span class="ident">start</span>.<span class="ident">c</span>, <span class="ident">x</span>.<span class="ident">end</span>.<span class="ident">c</span>));
@@ -3603,7 +3605,7 @@ Defines a translator that converts an `Ast` to an `Hir`.
                     <span class="self">self</span>.<span class="ident">push</span>(<span class="ident">HirFrame</span>::<span class="ident">ClassBytes</span>(<span class="ident">cls</span>));
                 }
             }
-            <span class="ident">ast</span>::<span class="ident">ClassSetItem</span>::<span class="ident">Ascii</span>(<span class="kw-2">ref</span> <span class="ident">x</span>) <span class="op">=&gt;</span> {
+            <span class="ident">ast</span>::<span class="ident">ClassSetItem</span>::<span class="ident">Ascii</span>(<span class="kw-2">ref</span> <span class="ident">x</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">if</span> <span class="self">self</span>.<span class="ident">flags</span>().<span class="ident">unicode</span>() {
                     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">cls</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">pop</span>().<span class="ident">unwrap</span>().<span class="ident">unwrap_class_unicode</span>();
                     <span class="kw">for</span> <span class="kw-2">&amp;</span>(<span class="ident">s</span>, <span class="ident">e</span>) <span class="kw">in</span> <span class="ident">ascii_class</span>(<span class="kw-2">&amp;</span><span class="ident">x</span>.<span class="ident">kind</span>) {
@@ -3622,13 +3624,13 @@ Defines a translator that converts an `Ast` to an `Hir`.
                     <span class="self">self</span>.<span class="ident">push</span>(<span class="ident">HirFrame</span>::<span class="ident">ClassBytes</span>(<span class="ident">cls</span>));
                 }
             }
-            <span class="ident">ast</span>::<span class="ident">ClassSetItem</span>::<span class="ident">Unicode</span>(<span class="kw-2">ref</span> <span class="ident">x</span>) <span class="op">=&gt;</span> {
+            <span class="ident">ast</span>::<span class="ident">ClassSetItem</span>::<span class="ident">Unicode</span>(<span class="kw-2">ref</span> <span class="ident">x</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">let</span> <span class="ident">xcls</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">hir_unicode_class</span>(<span class="ident">x</span>)<span class="question-mark">?</span>;
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">cls</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">pop</span>().<span class="ident">unwrap</span>().<span class="ident">unwrap_class_unicode</span>();
                 <span class="ident">cls</span>.<span class="ident">union</span>(<span class="kw-2">&amp;</span><span class="ident">xcls</span>);
                 <span class="self">self</span>.<span class="ident">push</span>(<span class="ident">HirFrame</span>::<span class="ident">ClassUnicode</span>(<span class="ident">cls</span>));
             }
-            <span class="ident">ast</span>::<span class="ident">ClassSetItem</span>::<span class="ident">Perl</span>(<span class="kw-2">ref</span> <span class="ident">x</span>) <span class="op">=&gt;</span> {
+            <span class="ident">ast</span>::<span class="ident">ClassSetItem</span>::<span class="ident">Perl</span>(<span class="kw-2">ref</span> <span class="ident">x</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">if</span> <span class="self">self</span>.<span class="ident">flags</span>().<span class="ident">unicode</span>() {
                     <span class="kw">let</span> <span class="ident">xcls</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">hir_perl_unicode_class</span>(<span class="ident">x</span>)<span class="question-mark">?</span>;
                     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">cls</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">pop</span>().<span class="ident">unwrap</span>().<span class="ident">unwrap_class_unicode</span>();
@@ -3641,7 +3643,7 @@ Defines a translator that converts an `Ast` to an `Hir`.
                     <span class="self">self</span>.<span class="ident">push</span>(<span class="ident">HirFrame</span>::<span class="ident">ClassBytes</span>(<span class="ident">cls</span>));
                 }
             }
-            <span class="ident">ast</span>::<span class="ident">ClassSetItem</span>::<span class="ident">Bracketed</span>(<span class="kw-2">ref</span> <span class="ident">ast</span>) <span class="op">=&gt;</span> {
+            <span class="ident">ast</span>::<span class="ident">ClassSetItem</span>::<span class="ident">Bracketed</span>(<span class="kw-2">ref</span> <span class="ident">ast</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">if</span> <span class="self">self</span>.<span class="ident">flags</span>().<span class="ident">unicode</span>() {
                     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">cls1</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">pop</span>().<span class="ident">unwrap</span>().<span class="ident">unwrap_class_unicode</span>();
                     <span class="self">self</span>.<span class="ident">unicode_fold_and_negate</span>(
@@ -3667,7 +3669,7 @@ Defines a translator that converts an `Ast` to an `Hir`.
                 }
             }
             <span class="comment">// This is handled automatically by the visitor.</span>
-            <span class="ident">ast</span>::<span class="ident">ClassSetItem</span>::<span class="ident">Union</span>(<span class="kw">_</span>) <span class="op">=&gt;</span> {}
+            <span class="ident">ast</span>::<span class="ident">ClassSetItem</span>::<span class="ident">Union</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {}
         }
         <span class="prelude-val">Ok</span>(())
     }
@@ -3675,7 +3677,7 @@ Defines a translator that converts an `Ast` to an `Hir`.
     <span class="kw">fn</span> <span class="ident">visit_class_set_binary_op_pre</span>(
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
         <span class="ident">_op</span>: <span class="kw-2">&amp;</span><span class="ident">ast</span>::<span class="ident">ClassSetBinaryOp</span>,
-    ) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">flags</span>().<span class="ident">unicode</span>() {
             <span class="kw">let</span> <span class="ident">cls</span> <span class="op">=</span> <span class="ident">hir</span>::<span class="ident">ClassUnicode</span>::<span class="ident">empty</span>();
             <span class="self">self</span>.<span class="ident">push</span>(<span class="ident">HirFrame</span>::<span class="ident">ClassUnicode</span>(<span class="ident">cls</span>));
@@ -3689,7 +3691,7 @@ Defines a translator that converts an `Ast` to an `Hir`.
     <span class="kw">fn</span> <span class="ident">visit_class_set_binary_op_in</span>(
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
         <span class="ident">_op</span>: <span class="kw-2">&amp;</span><span class="ident">ast</span>::<span class="ident">ClassSetBinaryOp</span>,
-    ) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">flags</span>().<span class="ident">unicode</span>() {
             <span class="kw">let</span> <span class="ident">cls</span> <span class="op">=</span> <span class="ident">hir</span>::<span class="ident">ClassUnicode</span>::<span class="ident">empty</span>();
             <span class="self">self</span>.<span class="ident">push</span>(<span class="ident">HirFrame</span>::<span class="ident">ClassUnicode</span>(<span class="ident">cls</span>));
@@ -3703,7 +3705,7 @@ Defines a translator that converts an `Ast` to an `Hir`.
     <span class="kw">fn</span> <span class="ident">visit_class_set_binary_op_post</span>(
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
         <span class="ident">op</span>: <span class="kw-2">&amp;</span><span class="ident">ast</span>::<span class="ident">ClassSetBinaryOp</span>,
-    ) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="kw">use</span> <span class="ident">ast</span>::<span class="ident">ClassSetBinaryOpKind</span>::<span class="kw-2">*</span>;
 
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">flags</span>().<span class="ident">unicode</span>() {
@@ -3725,9 +3727,9 @@ Defines a translator that converts an `Ast` to an `Hir`.
                 })<span class="question-mark">?</span>;
             }
             <span class="kw">match</span> <span class="ident">op</span>.<span class="ident">kind</span> {
-                <span class="ident">Intersection</span> <span class="op">=&gt;</span> <span class="ident">lhs</span>.<span class="ident">intersect</span>(<span class="kw-2">&amp;</span><span class="ident">rhs</span>),
-                <span class="ident">Difference</span> <span class="op">=&gt;</span> <span class="ident">lhs</span>.<span class="ident">difference</span>(<span class="kw-2">&amp;</span><span class="ident">rhs</span>),
-                <span class="ident">SymmetricDifference</span> <span class="op">=&gt;</span> <span class="ident">lhs</span>.<span class="ident">symmetric_difference</span>(<span class="kw-2">&amp;</span><span class="ident">rhs</span>),
+                <span class="ident">Intersection</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">lhs</span>.<span class="ident">intersect</span>(<span class="kw-2">&amp;</span><span class="ident">rhs</span>),
+                <span class="ident">Difference</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">lhs</span>.<span class="ident">difference</span>(<span class="kw-2">&amp;</span><span class="ident">rhs</span>),
+                <span class="ident">SymmetricDifference</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">lhs</span>.<span class="ident">symmetric_difference</span>(<span class="kw-2">&amp;</span><span class="ident">rhs</span>),
             }
             <span class="ident">cls</span>.<span class="ident">union</span>(<span class="kw-2">&amp;</span><span class="ident">lhs</span>);
             <span class="self">self</span>.<span class="ident">push</span>(<span class="ident">HirFrame</span>::<span class="ident">ClassUnicode</span>(<span class="ident">cls</span>));
@@ -3740,9 +3742,9 @@ Defines a translator that converts an `Ast` to an `Hir`.
                 <span class="ident">lhs</span>.<span class="ident">case_fold_simple</span>();
             }
             <span class="kw">match</span> <span class="ident">op</span>.<span class="ident">kind</span> {
-                <span class="ident">Intersection</span> <span class="op">=&gt;</span> <span class="ident">lhs</span>.<span class="ident">intersect</span>(<span class="kw-2">&amp;</span><span class="ident">rhs</span>),
-                <span class="ident">Difference</span> <span class="op">=&gt;</span> <span class="ident">lhs</span>.<span class="ident">difference</span>(<span class="kw-2">&amp;</span><span class="ident">rhs</span>),
-                <span class="ident">SymmetricDifference</span> <span class="op">=&gt;</span> <span class="ident">lhs</span>.<span class="ident">symmetric_difference</span>(<span class="kw-2">&amp;</span><span class="ident">rhs</span>),
+                <span class="ident">Intersection</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">lhs</span>.<span class="ident">intersect</span>(<span class="kw-2">&amp;</span><span class="ident">rhs</span>),
+                <span class="ident">Difference</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">lhs</span>.<span class="ident">difference</span>(<span class="kw-2">&amp;</span><span class="ident">rhs</span>),
+                <span class="ident">SymmetricDifference</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">lhs</span>.<span class="ident">symmetric_difference</span>(<span class="kw-2">&amp;</span><span class="ident">rhs</span>),
             }
             <span class="ident">cls</span>.<span class="ident">union</span>(<span class="kw-2">&amp;</span><span class="ident">lhs</span>);
             <span class="self">self</span>.<span class="ident">push</span>(<span class="ident">HirFrame</span>::<span class="ident">ClassBytes</span>(<span class="ident">cls</span>));
@@ -3765,12 +3767,12 @@ Defines a translator that converts an `Ast` to an `Hir`.
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;t</span>, <span class="lifetime">&#39;p</span><span class="op">&gt;</span> <span class="ident">TranslatorI</span><span class="op">&lt;</span><span class="lifetime">&#39;t</span>, <span class="lifetime">&#39;p</span><span class="op">&gt;</span> {
     <span class="doccomment">/// Build a new internal translator.</span>
-    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">trans</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;t</span> <span class="ident">Translator</span>, <span class="ident">pattern</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;p</span> <span class="ident">str</span>) <span class="op">-&gt;</span> <span class="ident">TranslatorI</span><span class="op">&lt;</span><span class="lifetime">&#39;t</span>, <span class="lifetime">&#39;p</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">trans</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;t</span> <span class="ident">Translator</span>, <span class="ident">pattern</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;p</span> <span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TranslatorI</span><span class="op">&lt;</span><span class="lifetime">&#39;t</span>, <span class="lifetime">&#39;p</span><span class="op">&gt;</span> {
         <span class="ident">TranslatorI</span> { <span class="ident">trans</span>: <span class="ident">trans</span>, <span class="ident">pattern</span>: <span class="ident">pattern</span> }
     }
 
     <span class="doccomment">/// Return a reference to the underlying translator.</span>
-    <span class="kw">fn</span> <span class="ident">trans</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="ident">Translator</span> {
+    <span class="kw">fn</span> <span class="ident">trans</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">Translator</span> {
         <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">trans</span>
     }
 
@@ -3780,23 +3782,23 @@ Defines a translator that converts an `Ast` to an `Hir`.
     }
 
     <span class="doccomment">/// Pop the top of the call stack. If the call stack is empty, return None.</span>
-    <span class="kw">fn</span> <span class="ident">pop</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">HirFrame</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">pop</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">HirFrame</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">trans</span>().<span class="ident">stack</span>.<span class="ident">borrow_mut</span>().<span class="ident">pop</span>()
     }
 
     <span class="doccomment">/// Create a new error with the given span and error type.</span>
-    <span class="kw">fn</span> <span class="ident">error</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">span</span>: <span class="ident">Span</span>, <span class="ident">kind</span>: <span class="ident">ErrorKind</span>) <span class="op">-&gt;</span> <span class="ident">Error</span> {
+    <span class="kw">fn</span> <span class="ident">error</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">span</span>: <span class="ident">Span</span>, <span class="ident">kind</span>: <span class="ident">ErrorKind</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Error</span> {
         <span class="ident">Error</span> { <span class="ident">kind</span>: <span class="ident">kind</span>, <span class="ident">pattern</span>: <span class="self">self</span>.<span class="ident">pattern</span>.<span class="ident">to_string</span>(), <span class="ident">span</span>: <span class="ident">span</span> }
     }
 
     <span class="doccomment">/// Return a copy of the active flags.</span>
-    <span class="kw">fn</span> <span class="ident">flags</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">Flags</span> {
+    <span class="kw">fn</span> <span class="ident">flags</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Flags</span> {
         <span class="self">self</span>.<span class="ident">trans</span>().<span class="ident">flags</span>.<span class="ident">get</span>()
     }
 
     <span class="doccomment">/// Set the flags of this translator from the flags set in the given AST.</span>
     <span class="doccomment">/// Then, return the old flags.</span>
-    <span class="kw">fn</span> <span class="ident">set_flags</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">ast_flags</span>: <span class="kw-2">&amp;</span><span class="ident">ast</span>::<span class="ident">Flags</span>) <span class="op">-&gt;</span> <span class="ident">Flags</span> {
+    <span class="kw">fn</span> <span class="ident">set_flags</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">ast_flags</span>: <span class="kw-2">&amp;</span><span class="ident">ast</span>::<span class="ident">Flags</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Flags</span> {
         <span class="kw">let</span> <span class="ident">old_flags</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">flags</span>();
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">new_flags</span> <span class="op">=</span> <span class="ident">Flags</span>::<span class="ident">from_ast</span>(<span class="ident">ast_flags</span>);
         <span class="ident">new_flags</span>.<span class="ident">merge</span>(<span class="kw-2">&amp;</span><span class="ident">old_flags</span>);
@@ -3804,10 +3806,10 @@ Defines a translator that converts an `Ast` to an `Hir`.
         <span class="ident">old_flags</span>
     }
 
-    <span class="kw">fn</span> <span class="ident">hir_literal</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">lit</span>: <span class="kw-2">&amp;</span><span class="ident">ast</span>::<span class="ident">Literal</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Hir</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">hir_literal</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">lit</span>: <span class="kw-2">&amp;</span><span class="ident">ast</span>::<span class="ident">Literal</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Hir</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">ch</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">literal_to_char</span>(<span class="ident">lit</span>)<span class="question-mark">?</span> {
-            <span class="ident">byte</span> @ <span class="ident">hir</span>::<span class="ident">Literal</span>::<span class="ident">Byte</span>(<span class="kw">_</span>) <span class="op">=&gt;</span> <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Hir</span>::<span class="ident">literal</span>(<span class="ident">byte</span>)),
-            <span class="ident">hir</span>::<span class="ident">Literal</span>::<span class="ident">Unicode</span>(<span class="ident">ch</span>) <span class="op">=&gt;</span> <span class="ident">ch</span>,
+            <span class="ident">byte</span> @ <span class="ident">hir</span>::<span class="ident">Literal</span>::<span class="ident">Byte</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Hir</span>::<span class="ident">literal</span>(<span class="ident">byte</span>)),
+            <span class="ident">hir</span>::<span class="ident">Literal</span>::<span class="ident">Unicode</span>(<span class="ident">ch</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ch</span>,
         };
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">flags</span>().<span class="ident">case_insensitive</span>() {
             <span class="self">self</span>.<span class="ident">hir_from_char_case_insensitive</span>(<span class="ident">lit</span>.<span class="ident">span</span>, <span class="ident">ch</span>)
@@ -3824,15 +3826,15 @@ Defines a translator that converts an `Ast` to an `Hir`.
     <span class="doccomment">/// When Unicode mode is disabled, then a raw byte is returned. If that</span>
     <span class="doccomment">/// byte is not ASCII and invalid UTF-8 is not allowed, then this returns</span>
     <span class="doccomment">/// an error.</span>
-    <span class="kw">fn</span> <span class="ident">literal_to_char</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">lit</span>: <span class="kw-2">&amp;</span><span class="ident">ast</span>::<span class="ident">Literal</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">hir</span>::<span class="ident">Literal</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">literal_to_char</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">lit</span>: <span class="kw-2">&amp;</span><span class="ident">ast</span>::<span class="ident">Literal</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">hir</span>::<span class="ident">Literal</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">flags</span>().<span class="ident">unicode</span>() {
             <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">hir</span>::<span class="ident">Literal</span>::<span class="ident">Unicode</span>(<span class="ident">lit</span>.<span class="ident">c</span>));
         }
         <span class="kw">let</span> <span class="ident">byte</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">lit</span>.<span class="ident">byte</span>() {
-            <span class="prelude-val">None</span> <span class="op">=&gt;</span> <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">hir</span>::<span class="ident">Literal</span>::<span class="ident">Unicode</span>(<span class="ident">lit</span>.<span class="ident">c</span>)),
-            <span class="prelude-val">Some</span>(<span class="ident">byte</span>) <span class="op">=&gt;</span> <span class="ident">byte</span>,
+            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">hir</span>::<span class="ident">Literal</span>::<span class="ident">Unicode</span>(<span class="ident">lit</span>.<span class="ident">c</span>)),
+            <span class="prelude-val">Some</span>(<span class="ident">byte</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">byte</span>,
         };
-        <span class="kw">if</span> <span class="ident">byte</span> <span class="op">&lt;=</span> <span class="number">0x7F</span> {
+        <span class="kw">if</span> <span class="ident">byte</span> <span class="op">&lt;</span><span class="op">=</span> <span class="number">0x7F</span> {
             <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">hir</span>::<span class="ident">Literal</span>::<span class="ident">Unicode</span>(<span class="ident">byte</span> <span class="kw">as</span> <span class="ident">char</span>));
         }
         <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">trans</span>().<span class="ident">allow_invalid_utf8</span> {
@@ -3841,7 +3843,7 @@ Defines a translator that converts an `Ast` to an `Hir`.
         <span class="prelude-val">Ok</span>(<span class="ident">hir</span>::<span class="ident">Literal</span>::<span class="ident">Byte</span>(<span class="ident">byte</span>))
     }
 
-    <span class="kw">fn</span> <span class="ident">hir_from_char</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">span</span>: <span class="ident">Span</span>, <span class="ident">c</span>: <span class="ident">char</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Hir</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">hir_from_char</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">span</span>: <span class="ident">Span</span>, <span class="ident">c</span>: <span class="ident">char</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Hir</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">flags</span>().<span class="ident">unicode</span>() <span class="op">&amp;&amp;</span> <span class="ident">c</span>.<span class="ident">len_utf8</span>() <span class="op">&gt;</span> <span class="number">1</span> {
             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="self">self</span>.<span class="ident">error</span>(<span class="ident">span</span>, <span class="ident">ErrorKind</span>::<span class="ident">UnicodeNotAllowed</span>));
         }
@@ -3852,7 +3854,7 @@ Defines a translator that converts an `Ast` to an `Hir`.
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">span</span>: <span class="ident">Span</span>,
         <span class="ident">c</span>: <span class="ident">char</span>,
-    ) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Hir</span><span class="op">&gt;</span> {
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Hir</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">flags</span>().<span class="ident">unicode</span>() {
             <span class="comment">// If case folding won&#39;t do anything, then don&#39;t bother trying.</span>
             <span class="kw">let</span> <span class="ident">map</span> <span class="op">=</span>
@@ -3876,8 +3878,8 @@ Defines a translator that converts an `Ast` to an `Hir`.
             }
             <span class="comment">// If case folding won&#39;t do anything, then don&#39;t bother trying.</span>
             <span class="kw">match</span> <span class="ident">c</span> {
-                <span class="string">&#39;A&#39;</span>..<span class="op">=</span><span class="string">&#39;Z&#39;</span> <span class="op">|</span> <span class="string">&#39;a&#39;</span>..<span class="op">=</span><span class="string">&#39;z&#39;</span> <span class="op">=&gt;</span> {}
-                <span class="kw">_</span> <span class="op">=&gt;</span> <span class="kw">return</span> <span class="self">self</span>.<span class="ident">hir_from_char</span>(<span class="ident">span</span>, <span class="ident">c</span>),
+                <span class="string">&#39;A&#39;</span>..<span class="op">=</span><span class="string">&#39;Z&#39;</span> <span class="op">|</span> <span class="string">&#39;a&#39;</span>..<span class="op">=</span><span class="string">&#39;z&#39;</span> <span class="op">=</span><span class="op">&gt;</span> {}
+                <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="self">self</span>.<span class="ident">hir_from_char</span>(<span class="ident">span</span>, <span class="ident">c</span>),
             }
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">cls</span> <span class="op">=</span>
                 <span class="ident">hir</span>::<span class="ident">ClassBytes</span>::<span class="ident">new</span>(<span class="macro">vec</span><span class="macro">!</span>[<span class="ident">hir</span>::<span class="ident">ClassBytesRange</span>::<span class="ident">new</span>(
@@ -3888,7 +3890,7 @@ Defines a translator that converts an `Ast` to an `Hir`.
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">hir_dot</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">span</span>: <span class="ident">Span</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Hir</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">hir_dot</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">span</span>: <span class="ident">Span</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Hir</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">unicode</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">flags</span>().<span class="ident">unicode</span>();
         <span class="kw">if</span> <span class="op">!</span><span class="ident">unicode</span> <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">trans</span>().<span class="ident">allow_invalid_utf8</span> {
             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="self">self</span>.<span class="ident">error</span>(<span class="ident">span</span>, <span class="ident">ErrorKind</span>::<span class="ident">InvalidUtf8</span>));
@@ -3900,32 +3902,32 @@ Defines a translator that converts an `Ast` to an `Hir`.
         })
     }
 
-    <span class="kw">fn</span> <span class="ident">hir_assertion</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">asst</span>: <span class="kw-2">&amp;</span><span class="ident">ast</span>::<span class="ident">Assertion</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Hir</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">hir_assertion</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">asst</span>: <span class="kw-2">&amp;</span><span class="ident">ast</span>::<span class="ident">Assertion</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Hir</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">unicode</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">flags</span>().<span class="ident">unicode</span>();
         <span class="kw">let</span> <span class="ident">multi_line</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">flags</span>().<span class="ident">multi_line</span>();
         <span class="prelude-val">Ok</span>(<span class="kw">match</span> <span class="ident">asst</span>.<span class="ident">kind</span> {
-            <span class="ident">ast</span>::<span class="ident">AssertionKind</span>::<span class="ident">StartLine</span> <span class="op">=&gt;</span> <span class="ident">Hir</span>::<span class="ident">anchor</span>(<span class="kw">if</span> <span class="ident">multi_line</span> {
+            <span class="ident">ast</span>::<span class="ident">AssertionKind</span>::<span class="ident">StartLine</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Hir</span>::<span class="ident">anchor</span>(<span class="kw">if</span> <span class="ident">multi_line</span> {
                 <span class="ident">hir</span>::<span class="ident">Anchor</span>::<span class="ident">StartLine</span>
             } <span class="kw">else</span> {
                 <span class="ident">hir</span>::<span class="ident">Anchor</span>::<span class="ident">StartText</span>
             }),
-            <span class="ident">ast</span>::<span class="ident">AssertionKind</span>::<span class="ident">EndLine</span> <span class="op">=&gt;</span> <span class="ident">Hir</span>::<span class="ident">anchor</span>(<span class="kw">if</span> <span class="ident">multi_line</span> {
+            <span class="ident">ast</span>::<span class="ident">AssertionKind</span>::<span class="ident">EndLine</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Hir</span>::<span class="ident">anchor</span>(<span class="kw">if</span> <span class="ident">multi_line</span> {
                 <span class="ident">hir</span>::<span class="ident">Anchor</span>::<span class="ident">EndLine</span>
             } <span class="kw">else</span> {
                 <span class="ident">hir</span>::<span class="ident">Anchor</span>::<span class="ident">EndText</span>
             }),
-            <span class="ident">ast</span>::<span class="ident">AssertionKind</span>::<span class="ident">StartText</span> <span class="op">=&gt;</span> {
+            <span class="ident">ast</span>::<span class="ident">AssertionKind</span>::<span class="ident">StartText</span> <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="ident">Hir</span>::<span class="ident">anchor</span>(<span class="ident">hir</span>::<span class="ident">Anchor</span>::<span class="ident">StartText</span>)
             }
-            <span class="ident">ast</span>::<span class="ident">AssertionKind</span>::<span class="ident">EndText</span> <span class="op">=&gt;</span> <span class="ident">Hir</span>::<span class="ident">anchor</span>(<span class="ident">hir</span>::<span class="ident">Anchor</span>::<span class="ident">EndText</span>),
-            <span class="ident">ast</span>::<span class="ident">AssertionKind</span>::<span class="ident">WordBoundary</span> <span class="op">=&gt;</span> {
+            <span class="ident">ast</span>::<span class="ident">AssertionKind</span>::<span class="ident">EndText</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Hir</span>::<span class="ident">anchor</span>(<span class="ident">hir</span>::<span class="ident">Anchor</span>::<span class="ident">EndText</span>),
+            <span class="ident">ast</span>::<span class="ident">AssertionKind</span>::<span class="ident">WordBoundary</span> <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="ident">Hir</span>::<span class="ident">word_boundary</span>(<span class="kw">if</span> <span class="ident">unicode</span> {
                     <span class="ident">hir</span>::<span class="ident">WordBoundary</span>::<span class="ident">Unicode</span>
                 } <span class="kw">else</span> {
                     <span class="ident">hir</span>::<span class="ident">WordBoundary</span>::<span class="ident">Ascii</span>
                 })
             }
-            <span class="ident">ast</span>::<span class="ident">AssertionKind</span>::<span class="ident">NotWordBoundary</span> <span class="op">=&gt;</span> {
+            <span class="ident">ast</span>::<span class="ident">AssertionKind</span>::<span class="ident">NotWordBoundary</span> <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="ident">Hir</span>::<span class="ident">word_boundary</span>(<span class="kw">if</span> <span class="ident">unicode</span> {
                     <span class="ident">hir</span>::<span class="ident">WordBoundary</span>::<span class="ident">UnicodeNegate</span>
                 } <span class="kw">else</span> {
@@ -3943,37 +3945,37 @@ Defines a translator that converts an `Ast` to an `Hir`.
         })
     }
 
-    <span class="kw">fn</span> <span class="ident">hir_group</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">group</span>: <span class="kw-2">&amp;</span><span class="ident">ast</span>::<span class="ident">Group</span>, <span class="ident">expr</span>: <span class="ident">Hir</span>) <span class="op">-&gt;</span> <span class="ident">Hir</span> {
+    <span class="kw">fn</span> <span class="ident">hir_group</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">group</span>: <span class="kw-2">&amp;</span><span class="ident">ast</span>::<span class="ident">Group</span>, <span class="ident">expr</span>: <span class="ident">Hir</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Hir</span> {
         <span class="kw">let</span> <span class="ident">kind</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">group</span>.<span class="ident">kind</span> {
-            <span class="ident">ast</span>::<span class="ident">GroupKind</span>::<span class="ident">CaptureIndex</span>(<span class="ident">idx</span>) <span class="op">=&gt;</span> {
+            <span class="ident">ast</span>::<span class="ident">GroupKind</span>::<span class="ident">CaptureIndex</span>(<span class="ident">idx</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="ident">hir</span>::<span class="ident">GroupKind</span>::<span class="ident">CaptureIndex</span>(<span class="ident">idx</span>)
             }
-            <span class="ident">ast</span>::<span class="ident">GroupKind</span>::<span class="ident">CaptureName</span>(<span class="kw-2">ref</span> <span class="ident">capname</span>) <span class="op">=&gt;</span> {
+            <span class="ident">ast</span>::<span class="ident">GroupKind</span>::<span class="ident">CaptureName</span>(<span class="kw-2">ref</span> <span class="ident">capname</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="ident">hir</span>::<span class="ident">GroupKind</span>::<span class="ident">CaptureName</span> {
                     <span class="ident">name</span>: <span class="ident">capname</span>.<span class="ident">name</span>.<span class="ident">clone</span>(),
                     <span class="ident">index</span>: <span class="ident">capname</span>.<span class="ident">index</span>,
                 }
             }
-            <span class="ident">ast</span>::<span class="ident">GroupKind</span>::<span class="ident">NonCapturing</span>(<span class="kw">_</span>) <span class="op">=&gt;</span> <span class="ident">hir</span>::<span class="ident">GroupKind</span>::<span class="ident">NonCapturing</span>,
+            <span class="ident">ast</span>::<span class="ident">GroupKind</span>::<span class="ident">NonCapturing</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">hir</span>::<span class="ident">GroupKind</span>::<span class="ident">NonCapturing</span>,
         };
         <span class="ident">Hir</span>::<span class="ident">group</span>(<span class="ident">hir</span>::<span class="ident">Group</span> { <span class="ident">kind</span>: <span class="ident">kind</span>, <span class="ident">hir</span>: <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">expr</span>) })
     }
 
-    <span class="kw">fn</span> <span class="ident">hir_repetition</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">rep</span>: <span class="kw-2">&amp;</span><span class="ident">ast</span>::<span class="ident">Repetition</span>, <span class="ident">expr</span>: <span class="ident">Hir</span>) <span class="op">-&gt;</span> <span class="ident">Hir</span> {
+    <span class="kw">fn</span> <span class="ident">hir_repetition</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">rep</span>: <span class="kw-2">&amp;</span><span class="ident">ast</span>::<span class="ident">Repetition</span>, <span class="ident">expr</span>: <span class="ident">Hir</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Hir</span> {
         <span class="kw">let</span> <span class="ident">kind</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">rep</span>.<span class="ident">op</span>.<span class="ident">kind</span> {
-            <span class="ident">ast</span>::<span class="ident">RepetitionKind</span>::<span class="ident">ZeroOrOne</span> <span class="op">=&gt;</span> <span class="ident">hir</span>::<span class="ident">RepetitionKind</span>::<span class="ident">ZeroOrOne</span>,
-            <span class="ident">ast</span>::<span class="ident">RepetitionKind</span>::<span class="ident">ZeroOrMore</span> <span class="op">=&gt;</span> <span class="ident">hir</span>::<span class="ident">RepetitionKind</span>::<span class="ident">ZeroOrMore</span>,
-            <span class="ident">ast</span>::<span class="ident">RepetitionKind</span>::<span class="ident">OneOrMore</span> <span class="op">=&gt;</span> <span class="ident">hir</span>::<span class="ident">RepetitionKind</span>::<span class="ident">OneOrMore</span>,
-            <span class="ident">ast</span>::<span class="ident">RepetitionKind</span>::<span class="ident">Range</span>(<span class="ident">ast</span>::<span class="ident">RepetitionRange</span>::<span class="ident">Exactly</span>(<span class="ident">m</span>)) <span class="op">=&gt;</span> {
+            <span class="ident">ast</span>::<span class="ident">RepetitionKind</span>::<span class="ident">ZeroOrOne</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">hir</span>::<span class="ident">RepetitionKind</span>::<span class="ident">ZeroOrOne</span>,
+            <span class="ident">ast</span>::<span class="ident">RepetitionKind</span>::<span class="ident">ZeroOrMore</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">hir</span>::<span class="ident">RepetitionKind</span>::<span class="ident">ZeroOrMore</span>,
+            <span class="ident">ast</span>::<span class="ident">RepetitionKind</span>::<span class="ident">OneOrMore</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">hir</span>::<span class="ident">RepetitionKind</span>::<span class="ident">OneOrMore</span>,
+            <span class="ident">ast</span>::<span class="ident">RepetitionKind</span>::<span class="ident">Range</span>(<span class="ident">ast</span>::<span class="ident">RepetitionRange</span>::<span class="ident">Exactly</span>(<span class="ident">m</span>)) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="ident">hir</span>::<span class="ident">RepetitionKind</span>::<span class="ident">Range</span>(<span class="ident">hir</span>::<span class="ident">RepetitionRange</span>::<span class="ident">Exactly</span>(<span class="ident">m</span>))
             }
-            <span class="ident">ast</span>::<span class="ident">RepetitionKind</span>::<span class="ident">Range</span>(<span class="ident">ast</span>::<span class="ident">RepetitionRange</span>::<span class="ident">AtLeast</span>(<span class="ident">m</span>)) <span class="op">=&gt;</span> {
+            <span class="ident">ast</span>::<span class="ident">RepetitionKind</span>::<span class="ident">Range</span>(<span class="ident">ast</span>::<span class="ident">RepetitionRange</span>::<span class="ident">AtLeast</span>(<span class="ident">m</span>)) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="ident">hir</span>::<span class="ident">RepetitionKind</span>::<span class="ident">Range</span>(<span class="ident">hir</span>::<span class="ident">RepetitionRange</span>::<span class="ident">AtLeast</span>(<span class="ident">m</span>))
             }
             <span class="ident">ast</span>::<span class="ident">RepetitionKind</span>::<span class="ident">Range</span>(<span class="ident">ast</span>::<span class="ident">RepetitionRange</span>::<span class="ident">Bounded</span>(
                 <span class="ident">m</span>,
                 <span class="ident">n</span>,
-            )) <span class="op">=&gt;</span> {
+            )) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="ident">hir</span>::<span class="ident">RepetitionKind</span>::<span class="ident">Range</span>(<span class="ident">hir</span>::<span class="ident">RepetitionRange</span>::<span class="ident">Bounded</span>(<span class="ident">m</span>, <span class="ident">n</span>))
             }
         };
@@ -3989,7 +3991,7 @@ Defines a translator that converts an `Ast` to an `Hir`.
     <span class="kw">fn</span> <span class="ident">hir_unicode_class</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">ast_class</span>: <span class="kw-2">&amp;</span><span class="ident">ast</span>::<span class="ident">ClassUnicode</span>,
-    ) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">hir</span>::<span class="ident">ClassUnicode</span><span class="op">&gt;</span> {
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">hir</span>::<span class="ident">ClassUnicode</span><span class="op">&gt;</span> {
         <span class="kw">use</span> <span class="ident">ast</span>::<span class="ident">ClassUnicodeKind</span>::<span class="kw-2">*</span>;
 
         <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">flags</span>().<span class="ident">unicode</span>() {
@@ -3998,9 +4000,9 @@ Defines a translator that converts an `Ast` to an `Hir`.
             );
         }
         <span class="kw">let</span> <span class="ident">query</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">ast_class</span>.<span class="ident">kind</span> {
-            <span class="ident">OneLetter</span>(<span class="ident">name</span>) <span class="op">=&gt;</span> <span class="ident">ClassQuery</span>::<span class="ident">OneLetter</span>(<span class="ident">name</span>),
-            <span class="ident">Named</span>(<span class="kw-2">ref</span> <span class="ident">name</span>) <span class="op">=&gt;</span> <span class="ident">ClassQuery</span>::<span class="ident">Binary</span>(<span class="ident">name</span>),
-            <span class="ident">NamedValue</span> { <span class="kw-2">ref</span> <span class="ident">name</span>, <span class="kw-2">ref</span> <span class="ident">value</span>, .. } <span class="op">=&gt;</span> <span class="ident">ClassQuery</span>::<span class="ident">ByValue</span> {
+            <span class="ident">OneLetter</span>(<span class="ident">name</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ClassQuery</span>::<span class="ident">OneLetter</span>(<span class="ident">name</span>),
+            <span class="ident">Named</span>(<span class="kw-2">ref</span> <span class="ident">name</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ClassQuery</span>::<span class="ident">Binary</span>(<span class="ident">name</span>),
+            <span class="ident">NamedValue</span> { <span class="kw-2">ref</span> <span class="ident">name</span>, <span class="kw-2">ref</span> <span class="ident">value</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ClassQuery</span>::<span class="ident">ByValue</span> {
                 <span class="ident">property_name</span>: <span class="ident">name</span>,
                 <span class="ident">property_value</span>: <span class="ident">value</span>,
             },
@@ -4027,14 +4029,14 @@ Defines a translator that converts an `Ast` to an `Hir`.
     <span class="kw">fn</span> <span class="ident">hir_perl_unicode_class</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">ast_class</span>: <span class="kw-2">&amp;</span><span class="ident">ast</span>::<span class="ident">ClassPerl</span>,
-    ) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">hir</span>::<span class="ident">ClassUnicode</span><span class="op">&gt;</span> {
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">hir</span>::<span class="ident">ClassUnicode</span><span class="op">&gt;</span> {
         <span class="kw">use</span> <span class="ident">ast</span>::<span class="ident">ClassPerlKind</span>::<span class="kw-2">*</span>;
 
         <span class="macro">assert</span><span class="macro">!</span>(<span class="self">self</span>.<span class="ident">flags</span>().<span class="ident">unicode</span>());
         <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">ast_class</span>.<span class="ident">kind</span> {
-            <span class="ident">Digit</span> <span class="op">=&gt;</span> <span class="ident">unicode</span>::<span class="ident">perl_digit</span>(),
-            <span class="ident">Space</span> <span class="op">=&gt;</span> <span class="ident">unicode</span>::<span class="ident">perl_space</span>(),
-            <span class="ident">Word</span> <span class="op">=&gt;</span> <span class="ident">unicode</span>::<span class="ident">perl_word</span>(),
+            <span class="ident">Digit</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">unicode</span>::<span class="ident">perl_digit</span>(),
+            <span class="ident">Space</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">unicode</span>::<span class="ident">perl_space</span>(),
+            <span class="ident">Word</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">unicode</span>::<span class="ident">perl_word</span>(),
         };
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">class</span> <span class="op">=</span>
             <span class="self">self</span>.<span class="ident">convert_unicode_class_error</span>(<span class="kw-2">&amp;</span><span class="ident">ast_class</span>.<span class="ident">span</span>, <span class="ident">result</span>)<span class="question-mark">?</span>;
@@ -4049,14 +4051,14 @@ Defines a translator that converts an `Ast` to an `Hir`.
     <span class="kw">fn</span> <span class="ident">hir_perl_byte_class</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">ast_class</span>: <span class="kw-2">&amp;</span><span class="ident">ast</span>::<span class="ident">ClassPerl</span>,
-    ) <span class="op">-&gt;</span> <span class="ident">hir</span>::<span class="ident">ClassBytes</span> {
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">hir</span>::<span class="ident">ClassBytes</span> {
         <span class="kw">use</span> <span class="ident">ast</span>::<span class="ident">ClassPerlKind</span>::<span class="kw-2">*</span>;
 
         <span class="macro">assert</span><span class="macro">!</span>(<span class="op">!</span><span class="self">self</span>.<span class="ident">flags</span>().<span class="ident">unicode</span>());
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">class</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">ast_class</span>.<span class="ident">kind</span> {
-            <span class="ident">Digit</span> <span class="op">=&gt;</span> <span class="ident">hir_ascii_class_bytes</span>(<span class="kw-2">&amp;</span><span class="ident">ast</span>::<span class="ident">ClassAsciiKind</span>::<span class="ident">Digit</span>),
-            <span class="ident">Space</span> <span class="op">=&gt;</span> <span class="ident">hir_ascii_class_bytes</span>(<span class="kw-2">&amp;</span><span class="ident">ast</span>::<span class="ident">ClassAsciiKind</span>::<span class="ident">Space</span>),
-            <span class="ident">Word</span> <span class="op">=&gt;</span> <span class="ident">hir_ascii_class_bytes</span>(<span class="kw-2">&amp;</span><span class="ident">ast</span>::<span class="ident">ClassAsciiKind</span>::<span class="ident">Word</span>),
+            <span class="ident">Digit</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">hir_ascii_class_bytes</span>(<span class="kw-2">&amp;</span><span class="ident">ast</span>::<span class="ident">ClassAsciiKind</span>::<span class="ident">Digit</span>),
+            <span class="ident">Space</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">hir_ascii_class_bytes</span>(<span class="kw-2">&amp;</span><span class="ident">ast</span>::<span class="ident">ClassAsciiKind</span>::<span class="ident">Space</span>),
+            <span class="ident">Word</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">hir_ascii_class_bytes</span>(<span class="kw-2">&amp;</span><span class="ident">ast</span>::<span class="ident">ClassAsciiKind</span>::<span class="ident">Word</span>),
         };
         <span class="comment">// We needn&#39;t apply case folding here because the Perl ASCII classes</span>
         <span class="comment">// are already closed (under ASCII case folding).</span>
@@ -4074,17 +4076,17 @@ Defines a translator that converts an `Ast` to an `Hir`.
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">span</span>: <span class="kw-2">&amp;</span><span class="ident">Span</span>,
         <span class="ident">result</span>: <span class="ident">unicode</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">hir</span>::<span class="ident">ClassUnicode</span><span class="op">&gt;</span>,
-    ) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">hir</span>::<span class="ident">ClassUnicode</span><span class="op">&gt;</span> {
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">hir</span>::<span class="ident">ClassUnicode</span><span class="op">&gt;</span> {
         <span class="ident">result</span>.<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">err</span><span class="op">|</span> {
             <span class="kw">let</span> <span class="ident">sp</span> <span class="op">=</span> <span class="ident">span</span>.<span class="ident">clone</span>();
             <span class="kw">match</span> <span class="ident">err</span> {
-                <span class="ident">unicode</span>::<span class="ident">Error</span>::<span class="ident">PropertyNotFound</span> <span class="op">=&gt;</span> {
+                <span class="ident">unicode</span>::<span class="ident">Error</span>::<span class="ident">PropertyNotFound</span> <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="self">self</span>.<span class="ident">error</span>(<span class="ident">sp</span>, <span class="ident">ErrorKind</span>::<span class="ident">UnicodePropertyNotFound</span>)
                 }
-                <span class="ident">unicode</span>::<span class="ident">Error</span>::<span class="ident">PropertyValueNotFound</span> <span class="op">=&gt;</span> {
+                <span class="ident">unicode</span>::<span class="ident">Error</span>::<span class="ident">PropertyValueNotFound</span> <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="self">self</span>.<span class="ident">error</span>(<span class="ident">sp</span>, <span class="ident">ErrorKind</span>::<span class="ident">UnicodePropertyValueNotFound</span>)
                 }
-                <span class="ident">unicode</span>::<span class="ident">Error</span>::<span class="ident">PerlClassNotFound</span> <span class="op">=&gt;</span> {
+                <span class="ident">unicode</span>::<span class="ident">Error</span>::<span class="ident">PerlClassNotFound</span> <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="self">self</span>.<span class="ident">error</span>(<span class="ident">sp</span>, <span class="ident">ErrorKind</span>::<span class="ident">UnicodePerlClassNotFound</span>)
                 }
             }
@@ -4096,7 +4098,7 @@ Defines a translator that converts an `Ast` to an `Hir`.
         <span class="ident">span</span>: <span class="kw-2">&amp;</span><span class="ident">Span</span>,
         <span class="ident">negated</span>: <span class="ident">bool</span>,
         <span class="ident">class</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">hir</span>::<span class="ident">ClassUnicode</span>,
-    ) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="comment">// Note that we must apply case folding before negation!</span>
         <span class="comment">// Consider `(?i)[^x]`. If we applied negation field, then</span>
         <span class="comment">// the result would be the character class that matched any</span>
@@ -4117,7 +4119,7 @@ Defines a translator that converts an `Ast` to an `Hir`.
         <span class="ident">span</span>: <span class="kw-2">&amp;</span><span class="ident">Span</span>,
         <span class="ident">negated</span>: <span class="ident">bool</span>,
         <span class="ident">class</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">hir</span>::<span class="ident">ClassBytes</span>,
-    ) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="comment">// Note that we must apply case folding before negation!</span>
         <span class="comment">// Consider `(?i)[^x]`. If we applied negation field, then</span>
         <span class="comment">// the result would be the character class that matched any</span>
@@ -4136,11 +4138,11 @@ Defines a translator that converts an `Ast` to an `Hir`.
 
     <span class="doccomment">/// Return a scalar byte value suitable for use as a literal in a byte</span>
     <span class="doccomment">/// character class.</span>
-    <span class="kw">fn</span> <span class="ident">class_literal_byte</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">ast</span>: <span class="kw-2">&amp;</span><span class="ident">ast</span>::<span class="ident">Literal</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">class_literal_byte</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">ast</span>: <span class="kw-2">&amp;</span><span class="ident">ast</span>::<span class="ident">Literal</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">literal_to_char</span>(<span class="ident">ast</span>)<span class="question-mark">?</span> {
-            <span class="ident">hir</span>::<span class="ident">Literal</span>::<span class="ident">Byte</span>(<span class="ident">byte</span>) <span class="op">=&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">byte</span>),
-            <span class="ident">hir</span>::<span class="ident">Literal</span>::<span class="ident">Unicode</span>(<span class="ident">ch</span>) <span class="op">=&gt;</span> {
-                <span class="kw">if</span> <span class="ident">ch</span> <span class="op">&lt;=</span> <span class="number">0x7F</span> <span class="kw">as</span> <span class="ident">char</span> {
+            <span class="ident">hir</span>::<span class="ident">Literal</span>::<span class="ident">Byte</span>(<span class="ident">byte</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">byte</span>),
+            <span class="ident">hir</span>::<span class="ident">Literal</span>::<span class="ident">Unicode</span>(<span class="ident">ch</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="kw">if</span> <span class="ident">ch</span> <span class="op">&lt;</span><span class="op">=</span> <span class="number">0x7F</span> <span class="kw">as</span> <span class="ident">char</span> {
                     <span class="prelude-val">Ok</span>(<span class="ident">ch</span> <span class="kw">as</span> <span class="ident">u8</span>)
                 } <span class="kw">else</span> {
                     <span class="comment">// We can&#39;t feasibly support Unicode in</span>
@@ -4170,30 +4172,30 @@ Defines a translator that converts an `Ast` to an `Hir`.
 }
 
 <span class="kw">impl</span> <span class="ident">Flags</span> {
-    <span class="kw">fn</span> <span class="ident">from_ast</span>(<span class="ident">ast</span>: <span class="kw-2">&amp;</span><span class="ident">ast</span>::<span class="ident">Flags</span>) <span class="op">-&gt;</span> <span class="ident">Flags</span> {
+    <span class="kw">fn</span> <span class="ident">from_ast</span>(<span class="ident">ast</span>: <span class="kw-2">&amp;</span><span class="ident">ast</span>::<span class="ident">Flags</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Flags</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">flags</span> <span class="op">=</span> <span class="ident">Flags</span>::<span class="ident">default</span>();
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">enable</span> <span class="op">=</span> <span class="bool-val">true</span>;
         <span class="kw">for</span> <span class="ident">item</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">ast</span>.<span class="ident">items</span> {
             <span class="kw">match</span> <span class="ident">item</span>.<span class="ident">kind</span> {
-                <span class="ident">ast</span>::<span class="ident">FlagsItemKind</span>::<span class="ident">Negation</span> <span class="op">=&gt;</span> {
+                <span class="ident">ast</span>::<span class="ident">FlagsItemKind</span>::<span class="ident">Negation</span> <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="ident">enable</span> <span class="op">=</span> <span class="bool-val">false</span>;
                 }
-                <span class="ident">ast</span>::<span class="ident">FlagsItemKind</span>::<span class="ident">Flag</span>(<span class="ident">ast</span>::<span class="ident">Flag</span>::<span class="ident">CaseInsensitive</span>) <span class="op">=&gt;</span> {
+                <span class="ident">ast</span>::<span class="ident">FlagsItemKind</span>::<span class="ident">Flag</span>(<span class="ident">ast</span>::<span class="ident">Flag</span>::<span class="ident">CaseInsensitive</span>) <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="ident">flags</span>.<span class="ident">case_insensitive</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">enable</span>);
                 }
-                <span class="ident">ast</span>::<span class="ident">FlagsItemKind</span>::<span class="ident">Flag</span>(<span class="ident">ast</span>::<span class="ident">Flag</span>::<span class="ident">MultiLine</span>) <span class="op">=&gt;</span> {
+                <span class="ident">ast</span>::<span class="ident">FlagsItemKind</span>::<span class="ident">Flag</span>(<span class="ident">ast</span>::<span class="ident">Flag</span>::<span class="ident">MultiLine</span>) <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="ident">flags</span>.<span class="ident">multi_line</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">enable</span>);
                 }
-                <span class="ident">ast</span>::<span class="ident">FlagsItemKind</span>::<span class="ident">Flag</span>(<span class="ident">ast</span>::<span class="ident">Flag</span>::<span class="ident">DotMatchesNewLine</span>) <span class="op">=&gt;</span> {
+                <span class="ident">ast</span>::<span class="ident">FlagsItemKind</span>::<span class="ident">Flag</span>(<span class="ident">ast</span>::<span class="ident">Flag</span>::<span class="ident">DotMatchesNewLine</span>) <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="ident">flags</span>.<span class="ident">dot_matches_new_line</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">enable</span>);
                 }
-                <span class="ident">ast</span>::<span class="ident">FlagsItemKind</span>::<span class="ident">Flag</span>(<span class="ident">ast</span>::<span class="ident">Flag</span>::<span class="ident">SwapGreed</span>) <span class="op">=&gt;</span> {
+                <span class="ident">ast</span>::<span class="ident">FlagsItemKind</span>::<span class="ident">Flag</span>(<span class="ident">ast</span>::<span class="ident">Flag</span>::<span class="ident">SwapGreed</span>) <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="ident">flags</span>.<span class="ident">swap_greed</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">enable</span>);
                 }
-                <span class="ident">ast</span>::<span class="ident">FlagsItemKind</span>::<span class="ident">Flag</span>(<span class="ident">ast</span>::<span class="ident">Flag</span>::<span class="ident">Unicode</span>) <span class="op">=&gt;</span> {
+                <span class="ident">ast</span>::<span class="ident">FlagsItemKind</span>::<span class="ident">Flag</span>(<span class="ident">ast</span>::<span class="ident">Flag</span>::<span class="ident">Unicode</span>) <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="ident">flags</span>.<span class="ident">unicode</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">enable</span>);
                 }
-                <span class="ident">ast</span>::<span class="ident">FlagsItemKind</span>::<span class="ident">Flag</span>(<span class="ident">ast</span>::<span class="ident">Flag</span>::<span class="ident">IgnoreWhitespace</span>) <span class="op">=&gt;</span> {}
+                <span class="ident">ast</span>::<span class="ident">FlagsItemKind</span>::<span class="ident">Flag</span>(<span class="ident">ast</span>::<span class="ident">Flag</span>::<span class="ident">IgnoreWhitespace</span>) <span class="op">=</span><span class="op">&gt;</span> {}
             }
         }
         <span class="ident">flags</span>
@@ -4217,28 +4219,28 @@ Defines a translator that converts an `Ast` to an `Hir`.
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">case_insensitive</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">case_insensitive</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
         <span class="self">self</span>.<span class="ident">case_insensitive</span>.<span class="ident">unwrap_or</span>(<span class="bool-val">false</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">multi_line</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">multi_line</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
         <span class="self">self</span>.<span class="ident">multi_line</span>.<span class="ident">unwrap_or</span>(<span class="bool-val">false</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">dot_matches_new_line</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">dot_matches_new_line</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
         <span class="self">self</span>.<span class="ident">dot_matches_new_line</span>.<span class="ident">unwrap_or</span>(<span class="bool-val">false</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">swap_greed</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">swap_greed</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
         <span class="self">self</span>.<span class="ident">swap_greed</span>.<span class="ident">unwrap_or</span>(<span class="bool-val">false</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">unicode</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">unicode</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
         <span class="self">self</span>.<span class="ident">unicode</span>.<span class="ident">unwrap_or</span>(<span class="bool-val">true</span>)
     }
 }
 
-<span class="kw">fn</span> <span class="ident">hir_ascii_class_bytes</span>(<span class="ident">kind</span>: <span class="kw-2">&amp;</span><span class="ident">ast</span>::<span class="ident">ClassAsciiKind</span>) <span class="op">-&gt;</span> <span class="ident">hir</span>::<span class="ident">ClassBytes</span> {
+<span class="kw">fn</span> <span class="ident">hir_ascii_class_bytes</span>(<span class="ident">kind</span>: <span class="kw-2">&amp;</span><span class="ident">ast</span>::<span class="ident">ClassAsciiKind</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">hir</span>::<span class="ident">ClassBytes</span> {
     <span class="kw">let</span> <span class="ident">ranges</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">ascii_class</span>(<span class="ident">kind</span>)
         .<span class="ident">iter</span>()
         .<span class="ident">cloned</span>()
@@ -4247,20 +4249,20 @@ Defines a translator that converts an `Ast` to an `Hir`.
     <span class="ident">hir</span>::<span class="ident">ClassBytes</span>::<span class="ident">new</span>(<span class="ident">ranges</span>)
 }
 
-<span class="kw">fn</span> <span class="ident">ascii_class</span>(<span class="ident">kind</span>: <span class="kw-2">&amp;</span><span class="ident">ast</span>::<span class="ident">ClassAsciiKind</span>) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> [(<span class="ident">char</span>, <span class="ident">char</span>)] {
+<span class="kw">fn</span> <span class="ident">ascii_class</span>(<span class="ident">kind</span>: <span class="kw-2">&amp;</span><span class="ident">ast</span>::<span class="ident">ClassAsciiKind</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> [(<span class="ident">char</span>, <span class="ident">char</span>)] {
     <span class="kw">use</span> <span class="ident">ast</span>::<span class="ident">ClassAsciiKind</span>::<span class="kw-2">*</span>;
     <span class="kw">match</span> <span class="kw-2">*</span><span class="ident">kind</span> {
-        <span class="ident">Alnum</span> <span class="op">=&gt;</span> <span class="kw-2">&amp;</span>[(<span class="string">&#39;0&#39;</span>, <span class="string">&#39;9&#39;</span>), (<span class="string">&#39;A&#39;</span>, <span class="string">&#39;Z&#39;</span>), (<span class="string">&#39;a&#39;</span>, <span class="string">&#39;z&#39;</span>)],
-        <span class="ident">Alpha</span> <span class="op">=&gt;</span> <span class="kw-2">&amp;</span>[(<span class="string">&#39;A&#39;</span>, <span class="string">&#39;Z&#39;</span>), (<span class="string">&#39;a&#39;</span>, <span class="string">&#39;z&#39;</span>)],
-        <span class="ident">Ascii</span> <span class="op">=&gt;</span> <span class="kw-2">&amp;</span>[(<span class="string">&#39;\x00&#39;</span>, <span class="string">&#39;\x7F&#39;</span>)],
-        <span class="ident">Blank</span> <span class="op">=&gt;</span> <span class="kw-2">&amp;</span>[(<span class="string">&#39;\t&#39;</span>, <span class="string">&#39;\t&#39;</span>), (<span class="string">&#39; &#39;</span>, <span class="string">&#39; &#39;</span>)],
-        <span class="ident">Cntrl</span> <span class="op">=&gt;</span> <span class="kw-2">&amp;</span>[(<span class="string">&#39;\x00&#39;</span>, <span class="string">&#39;\x1F&#39;</span>), (<span class="string">&#39;\x7F&#39;</span>, <span class="string">&#39;\x7F&#39;</span>)],
-        <span class="ident">Digit</span> <span class="op">=&gt;</span> <span class="kw-2">&amp;</span>[(<span class="string">&#39;0&#39;</span>, <span class="string">&#39;9&#39;</span>)],
-        <span class="ident">Graph</span> <span class="op">=&gt;</span> <span class="kw-2">&amp;</span>[(<span class="string">&#39;!&#39;</span>, <span class="string">&#39;~&#39;</span>)],
-        <span class="ident">Lower</span> <span class="op">=&gt;</span> <span class="kw-2">&amp;</span>[(<span class="string">&#39;a&#39;</span>, <span class="string">&#39;z&#39;</span>)],
-        <span class="ident">Print</span> <span class="op">=&gt;</span> <span class="kw-2">&amp;</span>[(<span class="string">&#39; &#39;</span>, <span class="string">&#39;~&#39;</span>)],
-        <span class="ident">Punct</span> <span class="op">=&gt;</span> <span class="kw-2">&amp;</span>[(<span class="string">&#39;!&#39;</span>, <span class="string">&#39;/&#39;</span>), (<span class="string">&#39;:&#39;</span>, <span class="string">&#39;@&#39;</span>), (<span class="string">&#39;[&#39;</span>, <span class="string">&#39;`&#39;</span>), (<span class="string">&#39;{&#39;</span>, <span class="string">&#39;~&#39;</span>)],
-        <span class="ident">Space</span> <span class="op">=&gt;</span> <span class="kw-2">&amp;</span>[
+        <span class="ident">Alnum</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span>[(<span class="string">&#39;0&#39;</span>, <span class="string">&#39;9&#39;</span>), (<span class="string">&#39;A&#39;</span>, <span class="string">&#39;Z&#39;</span>), (<span class="string">&#39;a&#39;</span>, <span class="string">&#39;z&#39;</span>)],
+        <span class="ident">Alpha</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span>[(<span class="string">&#39;A&#39;</span>, <span class="string">&#39;Z&#39;</span>), (<span class="string">&#39;a&#39;</span>, <span class="string">&#39;z&#39;</span>)],
+        <span class="ident">Ascii</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span>[(<span class="string">&#39;\x00&#39;</span>, <span class="string">&#39;\x7F&#39;</span>)],
+        <span class="ident">Blank</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span>[(<span class="string">&#39;\t&#39;</span>, <span class="string">&#39;\t&#39;</span>), (<span class="string">&#39; &#39;</span>, <span class="string">&#39; &#39;</span>)],
+        <span class="ident">Cntrl</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span>[(<span class="string">&#39;\x00&#39;</span>, <span class="string">&#39;\x1F&#39;</span>), (<span class="string">&#39;\x7F&#39;</span>, <span class="string">&#39;\x7F&#39;</span>)],
+        <span class="ident">Digit</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span>[(<span class="string">&#39;0&#39;</span>, <span class="string">&#39;9&#39;</span>)],
+        <span class="ident">Graph</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span>[(<span class="string">&#39;!&#39;</span>, <span class="string">&#39;~&#39;</span>)],
+        <span class="ident">Lower</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span>[(<span class="string">&#39;a&#39;</span>, <span class="string">&#39;z&#39;</span>)],
+        <span class="ident">Print</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span>[(<span class="string">&#39; &#39;</span>, <span class="string">&#39;~&#39;</span>)],
+        <span class="ident">Punct</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span>[(<span class="string">&#39;!&#39;</span>, <span class="string">&#39;/&#39;</span>), (<span class="string">&#39;:&#39;</span>, <span class="string">&#39;@&#39;</span>), (<span class="string">&#39;[&#39;</span>, <span class="string">&#39;`&#39;</span>), (<span class="string">&#39;{&#39;</span>, <span class="string">&#39;~&#39;</span>)],
+        <span class="ident">Space</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span>[
             (<span class="string">&#39;\t&#39;</span>, <span class="string">&#39;\t&#39;</span>),
             (<span class="string">&#39;\n&#39;</span>, <span class="string">&#39;\n&#39;</span>),
             (<span class="string">&#39;\x0B&#39;</span>, <span class="string">&#39;\x0B&#39;</span>),
@@ -4268,9 +4270,9 @@ Defines a translator that converts an `Ast` to an `Hir`.
             (<span class="string">&#39;\r&#39;</span>, <span class="string">&#39;\r&#39;</span>),
             (<span class="string">&#39; &#39;</span>, <span class="string">&#39; &#39;</span>),
         ],
-        <span class="ident">Upper</span> <span class="op">=&gt;</span> <span class="kw-2">&amp;</span>[(<span class="string">&#39;A&#39;</span>, <span class="string">&#39;Z&#39;</span>)],
-        <span class="ident">Word</span> <span class="op">=&gt;</span> <span class="kw-2">&amp;</span>[(<span class="string">&#39;0&#39;</span>, <span class="string">&#39;9&#39;</span>), (<span class="string">&#39;A&#39;</span>, <span class="string">&#39;Z&#39;</span>), (<span class="string">&#39;_&#39;</span>, <span class="string">&#39;_&#39;</span>), (<span class="string">&#39;a&#39;</span>, <span class="string">&#39;z&#39;</span>)],
-        <span class="ident">Xdigit</span> <span class="op">=&gt;</span> <span class="kw-2">&amp;</span>[(<span class="string">&#39;0&#39;</span>, <span class="string">&#39;9&#39;</span>), (<span class="string">&#39;A&#39;</span>, <span class="string">&#39;F&#39;</span>), (<span class="string">&#39;a&#39;</span>, <span class="string">&#39;f&#39;</span>)],
+        <span class="ident">Upper</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span>[(<span class="string">&#39;A&#39;</span>, <span class="string">&#39;Z&#39;</span>)],
+        <span class="ident">Word</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span>[(<span class="string">&#39;0&#39;</span>, <span class="string">&#39;9&#39;</span>), (<span class="string">&#39;A&#39;</span>, <span class="string">&#39;Z&#39;</span>), (<span class="string">&#39;_&#39;</span>, <span class="string">&#39;_&#39;</span>), (<span class="string">&#39;a&#39;</span>, <span class="string">&#39;z&#39;</span>)],
+        <span class="ident">Xdigit</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span>[(<span class="string">&#39;0&#39;</span>, <span class="string">&#39;9&#39;</span>), (<span class="string">&#39;A&#39;</span>, <span class="string">&#39;F&#39;</span>), (<span class="string">&#39;a&#39;</span>, <span class="string">&#39;f&#39;</span>)],
     }
 }
 
@@ -4293,22 +4295,22 @@ Defines a translator that converts an `Ast` to an `Hir`.
     }
 
     <span class="kw">impl</span> <span class="ident">PartialEq</span><span class="op">&lt;</span><span class="ident">hir</span>::<span class="ident">Error</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">TestError</span> {
-        <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="ident">hir</span>::<span class="ident">Error</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
-            <span class="self">self</span>.<span class="ident">span</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">span</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">kind</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">kind</span>
+        <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="ident">hir</span>::<span class="ident">Error</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+            <span class="self">self</span>.<span class="ident">span</span> <span class="op">=</span><span class="op">=</span> <span class="ident">other</span>.<span class="ident">span</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">kind</span> <span class="op">=</span><span class="op">=</span> <span class="ident">other</span>.<span class="ident">kind</span>
         }
     }
 
     <span class="kw">impl</span> <span class="ident">PartialEq</span><span class="op">&lt;</span><span class="ident">TestError</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">hir</span>::<span class="ident">Error</span> {
-        <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="ident">TestError</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
-            <span class="self">self</span>.<span class="ident">span</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">span</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">kind</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">kind</span>
+        <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="ident">TestError</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+            <span class="self">self</span>.<span class="ident">span</span> <span class="op">=</span><span class="op">=</span> <span class="ident">other</span>.<span class="ident">span</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">kind</span> <span class="op">=</span><span class="op">=</span> <span class="ident">other</span>.<span class="ident">kind</span>
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">parse</span>(<span class="ident">pattern</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-&gt;</span> <span class="ident">Ast</span> {
+    <span class="kw">fn</span> <span class="ident">parse</span>(<span class="ident">pattern</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Ast</span> {
         <span class="ident">ParserBuilder</span>::<span class="ident">new</span>().<span class="ident">octal</span>(<span class="bool-val">true</span>).<span class="ident">build</span>().<span class="ident">parse</span>(<span class="ident">pattern</span>).<span class="ident">unwrap</span>()
     }
 
-    <span class="kw">fn</span> <span class="ident">t</span>(<span class="ident">pattern</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-&gt;</span> <span class="ident">Hir</span> {
+    <span class="kw">fn</span> <span class="ident">t</span>(<span class="ident">pattern</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Hir</span> {
         <span class="ident">TranslatorBuilder</span>::<span class="ident">new</span>()
             .<span class="ident">allow_invalid_utf8</span>(<span class="bool-val">false</span>)
             .<span class="ident">build</span>()
@@ -4316,7 +4318,7 @@ Defines a translator that converts an `Ast` to an `Hir`.
             .<span class="ident">unwrap</span>()
     }
 
-    <span class="kw">fn</span> <span class="ident">t_err</span>(<span class="ident">pattern</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-&gt;</span> <span class="ident">hir</span>::<span class="ident">Error</span> {
+    <span class="kw">fn</span> <span class="ident">t_err</span>(<span class="ident">pattern</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">hir</span>::<span class="ident">Error</span> {
         <span class="ident">TranslatorBuilder</span>::<span class="ident">new</span>()
             .<span class="ident">allow_invalid_utf8</span>(<span class="bool-val">false</span>)
             .<span class="ident">build</span>()
@@ -4324,7 +4326,7 @@ Defines a translator that converts an `Ast` to an `Hir`.
             .<span class="ident">unwrap_err</span>()
     }
 
-    <span class="kw">fn</span> <span class="ident">t_bytes</span>(<span class="ident">pattern</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-&gt;</span> <span class="ident">Hir</span> {
+    <span class="kw">fn</span> <span class="ident">t_bytes</span>(<span class="ident">pattern</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Hir</span> {
         <span class="ident">TranslatorBuilder</span>::<span class="ident">new</span>()
             .<span class="ident">allow_invalid_utf8</span>(<span class="bool-val">true</span>)
             .<span class="ident">build</span>()
@@ -4332,10 +4334,10 @@ Defines a translator that converts an `Ast` to an `Hir`.
             .<span class="ident">unwrap</span>()
     }
 
-    <span class="kw">fn</span> <span class="ident">hir_lit</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-&gt;</span> <span class="ident">Hir</span> {
+    <span class="kw">fn</span> <span class="ident">hir_lit</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Hir</span> {
         <span class="kw">match</span> <span class="ident">s</span>.<span class="ident">len</span>() {
-            <span class="number">0</span> <span class="op">=&gt;</span> <span class="ident">Hir</span>::<span class="ident">empty</span>(),
-            <span class="kw">_</span> <span class="op">=&gt;</span> {
+            <span class="number">0</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Hir</span>::<span class="ident">empty</span>(),
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">let</span> <span class="ident">lits</span> <span class="op">=</span> <span class="ident">s</span>
                     .<span class="ident">chars</span>()
                     .<span class="ident">map</span>(<span class="ident">hir</span>::<span class="ident">Literal</span>::<span class="ident">Unicode</span>)
@@ -4346,11 +4348,11 @@ Defines a translator that converts an `Ast` to an `Hir`.
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">hir_blit</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-&gt;</span> <span class="ident">Hir</span> {
+    <span class="kw">fn</span> <span class="ident">hir_blit</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Hir</span> {
         <span class="kw">match</span> <span class="ident">s</span>.<span class="ident">len</span>() {
-            <span class="number">0</span> <span class="op">=&gt;</span> <span class="ident">Hir</span>::<span class="ident">empty</span>(),
-            <span class="number">1</span> <span class="op">=&gt;</span> <span class="ident">Hir</span>::<span class="ident">literal</span>(<span class="ident">hir</span>::<span class="ident">Literal</span>::<span class="ident">Byte</span>(<span class="ident">s</span>[<span class="number">0</span>])),
-            <span class="kw">_</span> <span class="op">=&gt;</span> {
+            <span class="number">0</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Hir</span>::<span class="ident">empty</span>(),
+            <span class="number">1</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Hir</span>::<span class="ident">literal</span>(<span class="ident">hir</span>::<span class="ident">Literal</span>::<span class="ident">Byte</span>(<span class="ident">s</span>[<span class="number">0</span>])),
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">let</span> <span class="ident">lits</span> <span class="op">=</span> <span class="ident">s</span>
                     .<span class="ident">iter</span>()
                     .<span class="ident">cloned</span>()
@@ -4362,14 +4364,14 @@ Defines a translator that converts an `Ast` to an `Hir`.
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">hir_group</span>(<span class="ident">i</span>: <span class="ident">u32</span>, <span class="ident">expr</span>: <span class="ident">Hir</span>) <span class="op">-&gt;</span> <span class="ident">Hir</span> {
+    <span class="kw">fn</span> <span class="ident">hir_group</span>(<span class="ident">i</span>: <span class="ident">u32</span>, <span class="ident">expr</span>: <span class="ident">Hir</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Hir</span> {
         <span class="ident">Hir</span>::<span class="ident">group</span>(<span class="ident">hir</span>::<span class="ident">Group</span> {
             <span class="ident">kind</span>: <span class="ident">hir</span>::<span class="ident">GroupKind</span>::<span class="ident">CaptureIndex</span>(<span class="ident">i</span>),
             <span class="ident">hir</span>: <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">expr</span>),
         })
     }
 
-    <span class="kw">fn</span> <span class="ident">hir_group_name</span>(<span class="ident">i</span>: <span class="ident">u32</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">expr</span>: <span class="ident">Hir</span>) <span class="op">-&gt;</span> <span class="ident">Hir</span> {
+    <span class="kw">fn</span> <span class="ident">hir_group_name</span>(<span class="ident">i</span>: <span class="ident">u32</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">expr</span>: <span class="ident">Hir</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Hir</span> {
         <span class="ident">Hir</span>::<span class="ident">group</span>(<span class="ident">hir</span>::<span class="ident">Group</span> {
             <span class="ident">kind</span>: <span class="ident">hir</span>::<span class="ident">GroupKind</span>::<span class="ident">CaptureName</span> {
                 <span class="ident">name</span>: <span class="ident">name</span>.<span class="ident">to_string</span>(),
@@ -4379,14 +4381,14 @@ Defines a translator that converts an `Ast` to an `Hir`.
         })
     }
 
-    <span class="kw">fn</span> <span class="ident">hir_group_nocap</span>(<span class="ident">expr</span>: <span class="ident">Hir</span>) <span class="op">-&gt;</span> <span class="ident">Hir</span> {
+    <span class="kw">fn</span> <span class="ident">hir_group_nocap</span>(<span class="ident">expr</span>: <span class="ident">Hir</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Hir</span> {
         <span class="ident">Hir</span>::<span class="ident">group</span>(<span class="ident">hir</span>::<span class="ident">Group</span> {
             <span class="ident">kind</span>: <span class="ident">hir</span>::<span class="ident">GroupKind</span>::<span class="ident">NonCapturing</span>,
             <span class="ident">hir</span>: <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">expr</span>),
         })
     }
 
-    <span class="kw">fn</span> <span class="ident">hir_quest</span>(<span class="ident">greedy</span>: <span class="ident">bool</span>, <span class="ident">expr</span>: <span class="ident">Hir</span>) <span class="op">-&gt;</span> <span class="ident">Hir</span> {
+    <span class="kw">fn</span> <span class="ident">hir_quest</span>(<span class="ident">greedy</span>: <span class="ident">bool</span>, <span class="ident">expr</span>: <span class="ident">Hir</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Hir</span> {
         <span class="ident">Hir</span>::<span class="ident">repetition</span>(<span class="ident">hir</span>::<span class="ident">Repetition</span> {
             <span class="ident">kind</span>: <span class="ident">hir</span>::<span class="ident">RepetitionKind</span>::<span class="ident">ZeroOrOne</span>,
             <span class="ident">greedy</span>: <span class="ident">greedy</span>,
@@ -4394,7 +4396,7 @@ Defines a translator that converts an `Ast` to an `Hir`.
         })
     }
 
-    <span class="kw">fn</span> <span class="ident">hir_star</span>(<span class="ident">greedy</span>: <span class="ident">bool</span>, <span class="ident">expr</span>: <span class="ident">Hir</span>) <span class="op">-&gt;</span> <span class="ident">Hir</span> {
+    <span class="kw">fn</span> <span class="ident">hir_star</span>(<span class="ident">greedy</span>: <span class="ident">bool</span>, <span class="ident">expr</span>: <span class="ident">Hir</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Hir</span> {
         <span class="ident">Hir</span>::<span class="ident">repetition</span>(<span class="ident">hir</span>::<span class="ident">Repetition</span> {
             <span class="ident">kind</span>: <span class="ident">hir</span>::<span class="ident">RepetitionKind</span>::<span class="ident">ZeroOrMore</span>,
             <span class="ident">greedy</span>: <span class="ident">greedy</span>,
@@ -4402,7 +4404,7 @@ Defines a translator that converts an `Ast` to an `Hir`.
         })
     }
 
-    <span class="kw">fn</span> <span class="ident">hir_plus</span>(<span class="ident">greedy</span>: <span class="ident">bool</span>, <span class="ident">expr</span>: <span class="ident">Hir</span>) <span class="op">-&gt;</span> <span class="ident">Hir</span> {
+    <span class="kw">fn</span> <span class="ident">hir_plus</span>(<span class="ident">greedy</span>: <span class="ident">bool</span>, <span class="ident">expr</span>: <span class="ident">Hir</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Hir</span> {
         <span class="ident">Hir</span>::<span class="ident">repetition</span>(<span class="ident">hir</span>::<span class="ident">Repetition</span> {
             <span class="ident">kind</span>: <span class="ident">hir</span>::<span class="ident">RepetitionKind</span>::<span class="ident">OneOrMore</span>,
             <span class="ident">greedy</span>: <span class="ident">greedy</span>,
@@ -4410,7 +4412,7 @@ Defines a translator that converts an `Ast` to an `Hir`.
         })
     }
 
-    <span class="kw">fn</span> <span class="ident">hir_range</span>(<span class="ident">greedy</span>: <span class="ident">bool</span>, <span class="ident">range</span>: <span class="ident">hir</span>::<span class="ident">RepetitionRange</span>, <span class="ident">expr</span>: <span class="ident">Hir</span>) <span class="op">-&gt;</span> <span class="ident">Hir</span> {
+    <span class="kw">fn</span> <span class="ident">hir_range</span>(<span class="ident">greedy</span>: <span class="ident">bool</span>, <span class="ident">range</span>: <span class="ident">hir</span>::<span class="ident">RepetitionRange</span>, <span class="ident">expr</span>: <span class="ident">Hir</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Hir</span> {
         <span class="ident">Hir</span>::<span class="ident">repetition</span>(<span class="ident">hir</span>::<span class="ident">Repetition</span> {
             <span class="ident">kind</span>: <span class="ident">hir</span>::<span class="ident">RepetitionKind</span>::<span class="ident">Range</span>(<span class="ident">range</span>),
             <span class="ident">greedy</span>: <span class="ident">greedy</span>,
@@ -4418,25 +4420,25 @@ Defines a translator that converts an `Ast` to an `Hir`.
         })
     }
 
-    <span class="kw">fn</span> <span class="ident">hir_alt</span>(<span class="ident">alts</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Hir</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="ident">Hir</span> {
+    <span class="kw">fn</span> <span class="ident">hir_alt</span>(<span class="ident">alts</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Hir</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Hir</span> {
         <span class="ident">Hir</span>::<span class="ident">alternation</span>(<span class="ident">alts</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">hir_cat</span>(<span class="ident">exprs</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Hir</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="ident">Hir</span> {
+    <span class="kw">fn</span> <span class="ident">hir_cat</span>(<span class="ident">exprs</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Hir</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Hir</span> {
         <span class="ident">Hir</span>::<span class="ident">concat</span>(<span class="ident">exprs</span>)
     }
 
     <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">dead_code</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">hir_uclass_query</span>(<span class="ident">query</span>: <span class="ident">ClassQuery</span>) <span class="op">-&gt;</span> <span class="ident">Hir</span> {
+    <span class="kw">fn</span> <span class="ident">hir_uclass_query</span>(<span class="ident">query</span>: <span class="ident">ClassQuery</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Hir</span> {
         <span class="ident">Hir</span>::<span class="ident">class</span>(<span class="ident">hir</span>::<span class="ident">Class</span>::<span class="ident">Unicode</span>(<span class="ident">unicode</span>::<span class="ident">class</span>(<span class="ident">query</span>).<span class="ident">unwrap</span>()))
     }
 
     <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">dead_code</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">hir_uclass_perl_word</span>() <span class="op">-&gt;</span> <span class="ident">Hir</span> {
+    <span class="kw">fn</span> <span class="ident">hir_uclass_perl_word</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Hir</span> {
         <span class="ident">Hir</span>::<span class="ident">class</span>(<span class="ident">hir</span>::<span class="ident">Class</span>::<span class="ident">Unicode</span>(<span class="ident">unicode</span>::<span class="ident">perl_word</span>().<span class="ident">unwrap</span>()))
     }
 
-    <span class="kw">fn</span> <span class="ident">hir_uclass</span>(<span class="ident">ranges</span>: <span class="kw-2">&amp;</span>[(<span class="ident">char</span>, <span class="ident">char</span>)]) <span class="op">-&gt;</span> <span class="ident">Hir</span> {
+    <span class="kw">fn</span> <span class="ident">hir_uclass</span>(<span class="ident">ranges</span>: <span class="kw-2">&amp;</span>[(<span class="ident">char</span>, <span class="ident">char</span>)]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Hir</span> {
         <span class="kw">let</span> <span class="ident">ranges</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">hir</span>::<span class="ident">ClassUnicodeRange</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">ranges</span>
             .<span class="ident">iter</span>()
             .<span class="ident">map</span>(<span class="op">|</span><span class="kw-2">&amp;</span>(<span class="ident">s</span>, <span class="ident">e</span>)<span class="op">|</span> <span class="ident">hir</span>::<span class="ident">ClassUnicodeRange</span>::<span class="ident">new</span>(<span class="ident">s</span>, <span class="ident">e</span>))
@@ -4444,7 +4446,7 @@ Defines a translator that converts an `Ast` to an `Hir`.
         <span class="ident">Hir</span>::<span class="ident">class</span>(<span class="ident">hir</span>::<span class="ident">Class</span>::<span class="ident">Unicode</span>(<span class="ident">hir</span>::<span class="ident">ClassUnicode</span>::<span class="ident">new</span>(<span class="ident">ranges</span>)))
     }
 
-    <span class="kw">fn</span> <span class="ident">hir_bclass</span>(<span class="ident">ranges</span>: <span class="kw-2">&amp;</span>[(<span class="ident">u8</span>, <span class="ident">u8</span>)]) <span class="op">-&gt;</span> <span class="ident">Hir</span> {
+    <span class="kw">fn</span> <span class="ident">hir_bclass</span>(<span class="ident">ranges</span>: <span class="kw-2">&amp;</span>[(<span class="ident">u8</span>, <span class="ident">u8</span>)]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Hir</span> {
         <span class="kw">let</span> <span class="ident">ranges</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">hir</span>::<span class="ident">ClassBytesRange</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">ranges</span>
             .<span class="ident">iter</span>()
             .<span class="ident">map</span>(<span class="op">|</span><span class="kw-2">&amp;</span>(<span class="ident">s</span>, <span class="ident">e</span>)<span class="op">|</span> <span class="ident">hir</span>::<span class="ident">ClassBytesRange</span>::<span class="ident">new</span>(<span class="ident">s</span>, <span class="ident">e</span>))
@@ -4452,77 +4454,77 @@ Defines a translator that converts an `Ast` to an `Hir`.
         <span class="ident">Hir</span>::<span class="ident">class</span>(<span class="ident">hir</span>::<span class="ident">Class</span>::<span class="ident">Bytes</span>(<span class="ident">hir</span>::<span class="ident">ClassBytes</span>::<span class="ident">new</span>(<span class="ident">ranges</span>)))
     }
 
-    <span class="kw">fn</span> <span class="ident">hir_bclass_from_char</span>(<span class="ident">ranges</span>: <span class="kw-2">&amp;</span>[(<span class="ident">char</span>, <span class="ident">char</span>)]) <span class="op">-&gt;</span> <span class="ident">Hir</span> {
+    <span class="kw">fn</span> <span class="ident">hir_bclass_from_char</span>(<span class="ident">ranges</span>: <span class="kw-2">&amp;</span>[(<span class="ident">char</span>, <span class="ident">char</span>)]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Hir</span> {
         <span class="kw">let</span> <span class="ident">ranges</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">hir</span>::<span class="ident">ClassBytesRange</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">ranges</span>
             .<span class="ident">iter</span>()
             .<span class="ident">map</span>(<span class="op">|</span><span class="kw-2">&amp;</span>(<span class="ident">s</span>, <span class="ident">e</span>)<span class="op">|</span> {
-                <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">s</span> <span class="kw">as</span> <span class="ident">u32</span> <span class="op">&lt;=</span> <span class="number">0x7F</span>);
-                <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">e</span> <span class="kw">as</span> <span class="ident">u32</span> <span class="op">&lt;=</span> <span class="number">0x7F</span>);
+                <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">s</span> <span class="kw">as</span> <span class="ident">u32</span> <span class="op">&lt;</span><span class="op">=</span> <span class="number">0x7F</span>);
+                <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">e</span> <span class="kw">as</span> <span class="ident">u32</span> <span class="op">&lt;</span><span class="op">=</span> <span class="number">0x7F</span>);
                 <span class="ident">hir</span>::<span class="ident">ClassBytesRange</span>::<span class="ident">new</span>(<span class="ident">s</span> <span class="kw">as</span> <span class="ident">u8</span>, <span class="ident">e</span> <span class="kw">as</span> <span class="ident">u8</span>)
             })
             .<span class="ident">collect</span>();
         <span class="ident">Hir</span>::<span class="ident">class</span>(<span class="ident">hir</span>::<span class="ident">Class</span>::<span class="ident">Bytes</span>(<span class="ident">hir</span>::<span class="ident">ClassBytes</span>::<span class="ident">new</span>(<span class="ident">ranges</span>)))
     }
 
-    <span class="kw">fn</span> <span class="ident">hir_case_fold</span>(<span class="ident">expr</span>: <span class="ident">Hir</span>) <span class="op">-&gt;</span> <span class="ident">Hir</span> {
+    <span class="kw">fn</span> <span class="ident">hir_case_fold</span>(<span class="ident">expr</span>: <span class="ident">Hir</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Hir</span> {
         <span class="kw">match</span> <span class="ident">expr</span>.<span class="ident">into_kind</span>() {
-            <span class="ident">HirKind</span>::<span class="ident">Class</span>(<span class="kw-2">mut</span> <span class="ident">cls</span>) <span class="op">=&gt;</span> {
+            <span class="ident">HirKind</span>::<span class="ident">Class</span>(<span class="kw-2">mut</span> <span class="ident">cls</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="ident">cls</span>.<span class="ident">case_fold_simple</span>();
                 <span class="ident">Hir</span>::<span class="ident">class</span>(<span class="ident">cls</span>)
             }
-            <span class="kw">_</span> <span class="op">=&gt;</span> <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;cannot case fold non-class Hir expr&quot;</span>),
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;cannot case fold non-class Hir expr&quot;</span>),
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">hir_negate</span>(<span class="ident">expr</span>: <span class="ident">Hir</span>) <span class="op">-&gt;</span> <span class="ident">Hir</span> {
+    <span class="kw">fn</span> <span class="ident">hir_negate</span>(<span class="ident">expr</span>: <span class="ident">Hir</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Hir</span> {
         <span class="kw">match</span> <span class="ident">expr</span>.<span class="ident">into_kind</span>() {
-            <span class="ident">HirKind</span>::<span class="ident">Class</span>(<span class="kw-2">mut</span> <span class="ident">cls</span>) <span class="op">=&gt;</span> {
+            <span class="ident">HirKind</span>::<span class="ident">Class</span>(<span class="kw-2">mut</span> <span class="ident">cls</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="ident">cls</span>.<span class="ident">negate</span>();
                 <span class="ident">Hir</span>::<span class="ident">class</span>(<span class="ident">cls</span>)
             }
-            <span class="kw">_</span> <span class="op">=&gt;</span> <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;cannot negate non-class Hir expr&quot;</span>),
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;cannot negate non-class Hir expr&quot;</span>),
         }
     }
 
     <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">dead_code</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">hir_union</span>(<span class="ident">expr1</span>: <span class="ident">Hir</span>, <span class="ident">expr2</span>: <span class="ident">Hir</span>) <span class="op">-&gt;</span> <span class="ident">Hir</span> {
+    <span class="kw">fn</span> <span class="ident">hir_union</span>(<span class="ident">expr1</span>: <span class="ident">Hir</span>, <span class="ident">expr2</span>: <span class="ident">Hir</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Hir</span> {
         <span class="kw">use</span> <span class="ident">hir</span>::<span class="ident">Class</span>::{<span class="ident">Bytes</span>, <span class="ident">Unicode</span>};
 
         <span class="kw">match</span> (<span class="ident">expr1</span>.<span class="ident">into_kind</span>(), <span class="ident">expr2</span>.<span class="ident">into_kind</span>()) {
-            (<span class="ident">HirKind</span>::<span class="ident">Class</span>(<span class="ident">Unicode</span>(<span class="kw-2">mut</span> <span class="ident">c1</span>)), <span class="ident">HirKind</span>::<span class="ident">Class</span>(<span class="ident">Unicode</span>(<span class="ident">c2</span>))) <span class="op">=&gt;</span> {
+            (<span class="ident">HirKind</span>::<span class="ident">Class</span>(<span class="ident">Unicode</span>(<span class="kw-2">mut</span> <span class="ident">c1</span>)), <span class="ident">HirKind</span>::<span class="ident">Class</span>(<span class="ident">Unicode</span>(<span class="ident">c2</span>))) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="ident">c1</span>.<span class="ident">union</span>(<span class="kw-2">&amp;</span><span class="ident">c2</span>);
                 <span class="ident">Hir</span>::<span class="ident">class</span>(<span class="ident">hir</span>::<span class="ident">Class</span>::<span class="ident">Unicode</span>(<span class="ident">c1</span>))
             }
-            (<span class="ident">HirKind</span>::<span class="ident">Class</span>(<span class="ident">Bytes</span>(<span class="kw-2">mut</span> <span class="ident">c1</span>)), <span class="ident">HirKind</span>::<span class="ident">Class</span>(<span class="ident">Bytes</span>(<span class="ident">c2</span>))) <span class="op">=&gt;</span> {
+            (<span class="ident">HirKind</span>::<span class="ident">Class</span>(<span class="ident">Bytes</span>(<span class="kw-2">mut</span> <span class="ident">c1</span>)), <span class="ident">HirKind</span>::<span class="ident">Class</span>(<span class="ident">Bytes</span>(<span class="ident">c2</span>))) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="ident">c1</span>.<span class="ident">union</span>(<span class="kw-2">&amp;</span><span class="ident">c2</span>);
                 <span class="ident">Hir</span>::<span class="ident">class</span>(<span class="ident">hir</span>::<span class="ident">Class</span>::<span class="ident">Bytes</span>(<span class="ident">c1</span>))
             }
-            <span class="kw">_</span> <span class="op">=&gt;</span> <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;cannot union non-class Hir exprs&quot;</span>),
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;cannot union non-class Hir exprs&quot;</span>),
         }
     }
 
     <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">dead_code</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">hir_difference</span>(<span class="ident">expr1</span>: <span class="ident">Hir</span>, <span class="ident">expr2</span>: <span class="ident">Hir</span>) <span class="op">-&gt;</span> <span class="ident">Hir</span> {
+    <span class="kw">fn</span> <span class="ident">hir_difference</span>(<span class="ident">expr1</span>: <span class="ident">Hir</span>, <span class="ident">expr2</span>: <span class="ident">Hir</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Hir</span> {
         <span class="kw">use</span> <span class="ident">hir</span>::<span class="ident">Class</span>::{<span class="ident">Bytes</span>, <span class="ident">Unicode</span>};
 
         <span class="kw">match</span> (<span class="ident">expr1</span>.<span class="ident">into_kind</span>(), <span class="ident">expr2</span>.<span class="ident">into_kind</span>()) {
-            (<span class="ident">HirKind</span>::<span class="ident">Class</span>(<span class="ident">Unicode</span>(<span class="kw-2">mut</span> <span class="ident">c1</span>)), <span class="ident">HirKind</span>::<span class="ident">Class</span>(<span class="ident">Unicode</span>(<span class="ident">c2</span>))) <span class="op">=&gt;</span> {
+            (<span class="ident">HirKind</span>::<span class="ident">Class</span>(<span class="ident">Unicode</span>(<span class="kw-2">mut</span> <span class="ident">c1</span>)), <span class="ident">HirKind</span>::<span class="ident">Class</span>(<span class="ident">Unicode</span>(<span class="ident">c2</span>))) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="ident">c1</span>.<span class="ident">difference</span>(<span class="kw-2">&amp;</span><span class="ident">c2</span>);
                 <span class="ident">Hir</span>::<span class="ident">class</span>(<span class="ident">hir</span>::<span class="ident">Class</span>::<span class="ident">Unicode</span>(<span class="ident">c1</span>))
             }
-            (<span class="ident">HirKind</span>::<span class="ident">Class</span>(<span class="ident">Bytes</span>(<span class="kw-2">mut</span> <span class="ident">c1</span>)), <span class="ident">HirKind</span>::<span class="ident">Class</span>(<span class="ident">Bytes</span>(<span class="ident">c2</span>))) <span class="op">=&gt;</span> {
+            (<span class="ident">HirKind</span>::<span class="ident">Class</span>(<span class="ident">Bytes</span>(<span class="kw-2">mut</span> <span class="ident">c1</span>)), <span class="ident">HirKind</span>::<span class="ident">Class</span>(<span class="ident">Bytes</span>(<span class="ident">c2</span>))) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="ident">c1</span>.<span class="ident">difference</span>(<span class="kw-2">&amp;</span><span class="ident">c2</span>);
                 <span class="ident">Hir</span>::<span class="ident">class</span>(<span class="ident">hir</span>::<span class="ident">Class</span>::<span class="ident">Bytes</span>(<span class="ident">c1</span>))
             }
-            <span class="kw">_</span> <span class="op">=&gt;</span> <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;cannot difference non-class Hir exprs&quot;</span>),
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;cannot difference non-class Hir exprs&quot;</span>),
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">hir_anchor</span>(<span class="ident">anchor</span>: <span class="ident">hir</span>::<span class="ident">Anchor</span>) <span class="op">-&gt;</span> <span class="ident">Hir</span> {
+    <span class="kw">fn</span> <span class="ident">hir_anchor</span>(<span class="ident">anchor</span>: <span class="ident">hir</span>::<span class="ident">Anchor</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Hir</span> {
         <span class="ident">Hir</span>::<span class="ident">anchor</span>(<span class="ident">anchor</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">hir_word</span>(<span class="ident">wb</span>: <span class="ident">hir</span>::<span class="ident">WordBoundary</span>) <span class="op">-&gt;</span> <span class="ident">Hir</span> {
+    <span class="kw">fn</span> <span class="ident">hir_word</span>(<span class="ident">wb</span>: <span class="ident">hir</span>::<span class="ident">WordBoundary</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Hir</span> {
         <span class="ident">Hir</span>::<span class="ident">word_boundary</span>(<span class="ident">wb</span>)
     }
 

@@ -340,7 +340,7 @@
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">ResultInfo</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">ReducedResultInfo</span> {
     <span class="doccomment">/// Creates a new reduced suite result from a full suite result.</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">info</span>: <span class="ident">ResultInfo</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">info</span>: <span class="ident">ResultInfo</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="self">Self</span> {
             <span class="ident">commit</span>: <span class="ident">info</span>.<span class="ident">commit</span>,
             <span class="ident">test262_commit</span>: <span class="ident">info</span>.<span class="ident">test262_commit</span>,
@@ -365,7 +365,7 @@
     <span class="ident">results</span>: <span class="ident">SuiteResult</span>,
     <span class="ident">output</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">Path</span><span class="op">&gt;</span>,
     <span class="ident">verbose</span>: <span class="ident">u8</span>,
-) <span class="op">-&gt;</span> <span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
     <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">path</span>) <span class="op">=</span> <span class="ident">output</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">branch</span> <span class="op">=</span> <span class="ident">env</span>::<span class="ident">var</span>(<span class="string">&quot;GITHUB_REF&quot;</span>).<span class="ident">unwrap_or_default</span>();
         <span class="kw">if</span> <span class="ident">branch</span>.<span class="ident">starts_with</span>(<span class="string">&quot;refs/pull&quot;</span>) {
@@ -383,7 +383,7 @@
         <span class="comment">// We make sure we are using the latest commit information in GitHub pages:</span>
         <span class="ident">update_gh_pages_repo</span>(<span class="ident">path</span>.<span class="ident">as_path</span>(), <span class="ident">verbose</span>);
 
-        <span class="kw">if</span> <span class="ident">verbose</span> <span class="op">!=</span> <span class="number">0</span> {
+        <span class="kw">if</span> <span class="ident">verbose</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
             <span class="macro">println</span><span class="macro">!</span>(<span class="string">&quot;Writing the results to {}...&quot;</span>, <span class="ident">path</span>.<span class="ident">display</span>());
         }
 
@@ -415,7 +415,7 @@
         <span class="kw">let</span> <span class="ident">output</span> <span class="op">=</span> <span class="ident">BufWriter</span>::<span class="ident">new</span>(<span class="ident">fs</span>::<span class="ident">File</span>::<span class="ident">create</span>(<span class="kw-2">&amp;</span><span class="ident">all_path</span>)<span class="question-mark">?</span>);
         <span class="ident">serde_json</span>::<span class="ident">to_writer</span>(<span class="ident">output</span>, <span class="kw-2">&amp;</span><span class="ident">all_results</span>)<span class="question-mark">?</span>;
 
-        <span class="kw">if</span> <span class="ident">verbose</span> <span class="op">!=</span> <span class="number">0</span> {
+        <span class="kw">if</span> <span class="ident">verbose</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
             <span class="macro">println</span><span class="macro">!</span>(<span class="string">&quot;Results written correctly&quot;</span>);
         }
     }
@@ -424,14 +424,14 @@
 }
 
 <span class="doccomment">/// Gets the commit OID of the test262 submodule.</span>
-<span class="kw">fn</span> <span class="ident">get_test262_commit</span>() <span class="op">-&gt;</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">get_test262_commit</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">repo</span> <span class="op">=</span> <span class="ident">Repository</span>::<span class="ident">open</span>(<span class="string">&quot;.&quot;</span>).<span class="ident">expect</span>(<span class="string">&quot;could not open git repository in current directory&quot;</span>);
 
     <span class="kw">let</span> <span class="ident">submodule</span> <span class="op">=</span> <span class="ident">repo</span>
         .<span class="ident">submodules</span>()
         .<span class="ident">expect</span>(<span class="string">&quot;could not get the list of submodules of the repo&quot;</span>)
         .<span class="ident">into_iter</span>()
-        .<span class="ident">find</span>(<span class="op">|</span><span class="ident">sub</span><span class="op">|</span> <span class="ident">sub</span>.<span class="ident">path</span>() <span class="op">==</span> <span class="ident">Path</span>::<span class="ident">new</span>(<span class="string">&quot;test262&quot;</span>))
+        .<span class="ident">find</span>(<span class="op">|</span><span class="ident">sub</span><span class="op">|</span> <span class="ident">sub</span>.<span class="ident">path</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">Path</span>::<span class="ident">new</span>(<span class="string">&quot;test262&quot;</span>))
         .<span class="ident">expect</span>(<span class="string">&quot;test262 submodule not found&quot;</span>);
 
     <span class="ident">submodule</span>
@@ -456,7 +456,7 @@
         <span class="kw">let</span> <span class="ident">from</span> <span class="op">=</span> <span class="ident">Path</span>::<span class="ident">new</span>(<span class="string">&quot;../gh-pages/test262/refs/heads/master/&quot;</span>).<span class="ident">join</span>(<span class="ident">RESULTS_FILE_NAME</span>);
         <span class="kw">let</span> <span class="ident">to</span> <span class="op">=</span> <span class="ident">path</span>.<span class="ident">join</span>(<span class="ident">RESULTS_FILE_NAME</span>);
 
-        <span class="kw">if</span> <span class="ident">verbose</span> <span class="op">!=</span> <span class="number">0</span> {
+        <span class="kw">if</span> <span class="ident">verbose</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
             <span class="macro">println</span><span class="macro">!</span>(
                 <span class="string">&quot;Copying the {} file to {} in order to add the results&quot;</span>,
                 <span class="ident">from</span>.<span class="ident">display</span>(),
@@ -508,13 +508,13 @@
         <span class="kw">use</span> <span class="ident">num_format</span>::{<span class="ident">Locale</span>, <span class="ident">ToFormattedString</span>};
 
         <span class="doccomment">/// Generates a proper diff format, with some bold text if things change.</span>
-        <span class="kw">fn</span> <span class="ident">diff_format</span>(<span class="ident">diff</span>: <span class="ident">isize</span>) <span class="op">-&gt;</span> <span class="ident">String</span> {
+        <span class="kw">fn</span> <span class="ident">diff_format</span>(<span class="ident">diff</span>: <span class="ident">isize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">String</span> {
             <span class="macro">format</span><span class="macro">!</span>(
                 <span class="string">&quot;{}{}{}{}&quot;</span>,
-                <span class="kw">if</span> <span class="ident">diff</span> <span class="op">!=</span> <span class="number">0</span> { <span class="string">&quot;**&quot;</span> } <span class="kw">else</span> { <span class="string">&quot;&quot;</span> },
+                <span class="kw">if</span> <span class="ident">diff</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span> { <span class="string">&quot;**&quot;</span> } <span class="kw">else</span> { <span class="string">&quot;&quot;</span> },
                 <span class="kw">if</span> <span class="ident">diff</span> <span class="op">&gt;</span> <span class="number">0</span> { <span class="string">&quot;+&quot;</span> } <span class="kw">else</span> { <span class="string">&quot;&quot;</span> },
                 <span class="ident">diff</span>.<span class="ident">to_formatted_string</span>(<span class="kw-2">&amp;</span><span class="ident">Locale</span>::<span class="ident">en</span>),
-                <span class="kw">if</span> <span class="ident">diff</span> <span class="op">!=</span> <span class="number">0</span> { <span class="string">&quot;**&quot;</span> } <span class="kw">else</span> { <span class="string">&quot;&quot;</span> }
+                <span class="kw">if</span> <span class="ident">diff</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span> { <span class="string">&quot;**&quot;</span> } <span class="kw">else</span> { <span class="string">&quot;&quot;</span> }
             )
         }
 

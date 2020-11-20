@@ -209,11 +209,11 @@
     <span class="doccomment">/// Codes below this point represent OS Errors (i.e. positive i32 values).</span>
     <span class="doccomment">/// Codes at or above this point, but below [`Error::CUSTOM_START`] are</span>
     <span class="doccomment">/// reserved for use by the `rand` and `getrandom` crates.</span>
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">INTERNAL_START</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">1</span> <span class="op">&lt;&lt;</span> <span class="number">31</span>;
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">INTERNAL_START</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">31</span>;
 
     <span class="doccomment">/// Codes at or above this point can be used by users to define their own</span>
     <span class="doccomment">/// custom errors.</span>
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">CUSTOM_START</span>: <span class="ident">u32</span> <span class="op">=</span> (<span class="number">1</span> <span class="op">&lt;&lt;</span> <span class="number">31</span>) <span class="op">+</span> (<span class="number">1</span> <span class="op">&lt;&lt;</span> <span class="number">30</span>);
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">CUSTOM_START</span>: <span class="ident">u32</span> <span class="op">=</span> (<span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">31</span>) <span class="op">+</span> (<span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">30</span>);
 
     <span class="doccomment">/// Extract the raw OS error code (if this error came from the OS)</span>
     <span class="doccomment">///</span>
@@ -221,7 +221,7 @@
     <span class="doccomment">/// that it works in `no_std` contexts. If this method returns `None`, the</span>
     <span class="doccomment">/// error value can still be formatted via the `Display` implementation.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">raw_os_error</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">i32</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">raw_os_error</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">i32</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="self">self</span>.<span class="number">0</span>.<span class="ident">get</span>() <span class="op">&lt;</span> <span class="self">Self</span>::<span class="ident">INTERNAL_START</span> {
             <span class="prelude-val">Some</span>(<span class="self">self</span>.<span class="number">0</span>.<span class="ident">get</span>() <span class="kw">as</span> <span class="ident">i32</span>)
         } <span class="kw">else</span> {
@@ -234,37 +234,37 @@
     <span class="doccomment">/// This code can either come from the underlying OS, or be a custom error.</span>
     <span class="doccomment">/// Use [`Error::raw_os_error()`] to disambiguate.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">code</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">NonZeroU32</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">code</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NonZeroU32</span> {
         <span class="self">self</span>.<span class="number">0</span>
     }
 }
 
 <span class="macro">cfg_if</span><span class="macro">!</span> {
     <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">unix</span>)]</span> {
-        <span class="kw">fn</span> <span class="ident">os_err</span>(<span class="ident">errno</span>: <span class="ident">i32</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>]) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span> {
+        <span class="kw">fn</span> <span class="ident">os_err</span>(<span class="ident">errno</span>: <span class="ident">i32</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span> {
             <span class="kw">let</span> <span class="ident">buf_ptr</span> <span class="op">=</span> <span class="ident">buf</span>.<span class="ident">as_mut_ptr</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">libc</span>::<span class="ident">c_char</span>;
-            <span class="kw">if</span> <span class="kw">unsafe</span> { <span class="ident">libc</span>::<span class="ident">strerror_r</span>(<span class="ident">errno</span>, <span class="ident">buf_ptr</span>, <span class="ident">buf</span>.<span class="ident">len</span>()) } <span class="op">!=</span> <span class="number">0</span> {
+            <span class="kw">if</span> <span class="kw">unsafe</span> { <span class="ident">libc</span>::<span class="ident">strerror_r</span>(<span class="ident">errno</span>, <span class="ident">buf_ptr</span>, <span class="ident">buf</span>.<span class="ident">len</span>()) } <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
                 <span class="kw">return</span> <span class="prelude-val">None</span>;
             }
 
             <span class="comment">// Take up to trailing null byte</span>
             <span class="kw">let</span> <span class="ident">n</span> <span class="op">=</span> <span class="ident">buf</span>.<span class="ident">len</span>();
-            <span class="kw">let</span> <span class="ident">idx</span> <span class="op">=</span> <span class="ident">buf</span>.<span class="ident">iter</span>().<span class="ident">position</span>(<span class="op">|</span><span class="kw-2">&amp;</span><span class="ident">b</span><span class="op">|</span> <span class="ident">b</span> <span class="op">==</span> <span class="number">0</span>).<span class="ident">unwrap_or</span>(<span class="ident">n</span>);
+            <span class="kw">let</span> <span class="ident">idx</span> <span class="op">=</span> <span class="ident">buf</span>.<span class="ident">iter</span>().<span class="ident">position</span>(<span class="op">|</span><span class="kw-2">&amp;</span><span class="ident">b</span><span class="op">|</span> <span class="ident">b</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span>).<span class="ident">unwrap_or</span>(<span class="ident">n</span>);
             <span class="ident">core</span>::<span class="ident">str</span>::<span class="ident">from_utf8</span>(<span class="kw-2">&amp;</span><span class="ident">buf</span>[..<span class="ident">idx</span>]).<span class="ident">ok</span>()
         }
     } <span class="kw">else</span> <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;wasi&quot;</span>)]</span> {
-        <span class="kw">fn</span> <span class="ident">os_err</span>(<span class="ident">errno</span>: <span class="ident">i32</span>, <span class="ident">_buf</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>]) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">wasi</span>::<span class="ident">Error</span><span class="op">&gt;</span> {
+        <span class="kw">fn</span> <span class="ident">os_err</span>(<span class="ident">errno</span>: <span class="ident">i32</span>, <span class="ident">_buf</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">wasi</span>::<span class="ident">Error</span><span class="op">&gt;</span> {
             <span class="ident">wasi</span>::<span class="ident">Error</span>::<span class="ident">from_raw_error</span>(<span class="ident">errno</span> <span class="kw">as</span> <span class="kw">_</span>)
         }
     } <span class="kw">else</span> {
-        <span class="kw">fn</span> <span class="ident">os_err</span>(<span class="ident">_errno</span>: <span class="ident">i32</span>, <span class="ident">_buf</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>]) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span> {
+        <span class="kw">fn</span> <span class="ident">os_err</span>(<span class="ident">_errno</span>: <span class="ident">i32</span>, <span class="ident">_buf</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span> {
             <span class="prelude-val">None</span>
         }
     }
 }
 
 <span class="kw">impl</span> <span class="ident">fmt</span>::<span class="ident">Debug</span> <span class="kw">for</span> <span class="ident">Error</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">dbg</span> <span class="op">=</span> <span class="ident">f</span>.<span class="ident">debug_struct</span>(<span class="string">&quot;Error&quot;</span>);
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">errno</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">raw_os_error</span>() {
             <span class="ident">dbg</span>.<span class="ident">field</span>(<span class="string">&quot;os_error&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">errno</span>);
@@ -283,12 +283,12 @@
 }
 
 <span class="kw">impl</span> <span class="ident">fmt</span>::<span class="ident">Display</span> <span class="kw">for</span> <span class="ident">Error</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">errno</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">raw_os_error</span>() {
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> [<span class="number">0u8</span>; <span class="number">128</span>];
             <span class="kw">match</span> <span class="ident">os_err</span>(<span class="ident">errno</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">buf</span>) {
-                <span class="prelude-val">Some</span>(<span class="ident">err</span>) <span class="op">=&gt;</span> <span class="ident">err</span>.<span class="ident">fmt</span>(<span class="ident">f</span>),
-                <span class="prelude-val">None</span> <span class="op">=&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;OS Error: {}&quot;</span>, <span class="ident">errno</span>),
+                <span class="prelude-val">Some</span>(<span class="ident">err</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">err</span>.<span class="ident">fmt</span>(<span class="ident">f</span>),
+                <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;OS Error: {}&quot;</span>, <span class="ident">errno</span>),
             }
         } <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">desc</span>) <span class="op">=</span> <span class="ident">internal_desc</span>(<span class="kw-2">*</span><span class="self">self</span>) {
             <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="ident">desc</span>)
@@ -299,14 +299,14 @@
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">NonZeroU32</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Error</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">code</span>: <span class="ident">NonZeroU32</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">code</span>: <span class="ident">NonZeroU32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="self">Self</span>(<span class="ident">code</span>)
     }
 }
 
 <span class="comment">// TODO: Convert to a function when min_version &gt;= 1.33</span>
 <span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">internal_error</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">n</span>:<span class="ident">expr</span>) <span class="op">=&gt;</span> {
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">n</span>:<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> {
         <span class="ident">Error</span>(<span class="kw">unsafe</span> { <span class="ident">NonZeroU32</span>::<span class="ident">new_unchecked</span>(<span class="ident">Error</span>::<span class="ident">INTERNAL_START</span> <span class="op">+</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">n</span> <span class="kw">as</span> <span class="ident">u16</span> <span class="kw">as</span> <span class="ident">u32</span>) })
     };
 }
@@ -325,21 +325,21 @@
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const</span> <span class="ident">STDWEB_RNG_FAILED</span>: <span class="ident">Error</span> <span class="op">=</span> <span class="macro">internal_error</span><span class="macro">!</span>(<span class="number">10</span>);
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const</span> <span class="ident">RAND_SECURE_FATAL</span>: <span class="ident">Error</span> <span class="op">=</span> <span class="macro">internal_error</span><span class="macro">!</span>(<span class="number">11</span>);
 
-<span class="kw">fn</span> <span class="ident">internal_desc</span>(<span class="ident">error</span>: <span class="ident">Error</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">internal_desc</span>(<span class="ident">error</span>: <span class="ident">Error</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span><span class="op">&gt;</span> {
     <span class="kw">match</span> <span class="ident">error</span> {
-        <span class="ident">UNSUPPORTED</span> <span class="op">=&gt;</span> <span class="prelude-val">Some</span>(<span class="string">&quot;getrandom: this target is not supported&quot;</span>),
-        <span class="ident">ERRNO_NOT_POSITIVE</span> <span class="op">=&gt;</span> <span class="prelude-val">Some</span>(<span class="string">&quot;errno: did not return a positive value&quot;</span>),
-        <span class="ident">UNKNOWN_IO_ERROR</span> <span class="op">=&gt;</span> <span class="prelude-val">Some</span>(<span class="string">&quot;Unknown std::io::Error&quot;</span>),
-        <span class="ident">SEC_RANDOM_FAILED</span> <span class="op">=&gt;</span> <span class="prelude-val">Some</span>(<span class="string">&quot;SecRandomCopyBytes: call failed&quot;</span>),
-        <span class="ident">RTL_GEN_RANDOM_FAILED</span> <span class="op">=&gt;</span> <span class="prelude-val">Some</span>(<span class="string">&quot;RtlGenRandom: call failed&quot;</span>),
-        <span class="ident">FAILED_RDRAND</span> <span class="op">=&gt;</span> <span class="prelude-val">Some</span>(<span class="string">&quot;RDRAND: failed multiple times: CPU issue likely&quot;</span>),
-        <span class="ident">NO_RDRAND</span> <span class="op">=&gt;</span> <span class="prelude-val">Some</span>(<span class="string">&quot;RDRAND: instruction not supported&quot;</span>),
-        <span class="ident">BINDGEN_CRYPTO_UNDEF</span> <span class="op">=&gt;</span> <span class="prelude-val">Some</span>(<span class="string">&quot;wasm-bindgen: self.crypto is undefined&quot;</span>),
-        <span class="ident">BINDGEN_GRV_UNDEF</span> <span class="op">=&gt;</span> <span class="prelude-val">Some</span>(<span class="string">&quot;wasm-bindgen: crypto.getRandomValues is undefined&quot;</span>),
-        <span class="ident">STDWEB_NO_RNG</span> <span class="op">=&gt;</span> <span class="prelude-val">Some</span>(<span class="string">&quot;stdweb: no randomness source available&quot;</span>),
-        <span class="ident">STDWEB_RNG_FAILED</span> <span class="op">=&gt;</span> <span class="prelude-val">Some</span>(<span class="string">&quot;stdweb: failed to get randomness&quot;</span>),
-        <span class="ident">RAND_SECURE_FATAL</span> <span class="op">=&gt;</span> <span class="prelude-val">Some</span>(<span class="string">&quot;randSecure: random number generator module is not initialized&quot;</span>),
-        <span class="kw">_</span> <span class="op">=&gt;</span> <span class="prelude-val">None</span>,
+        <span class="ident">UNSUPPORTED</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="string">&quot;getrandom: this target is not supported&quot;</span>),
+        <span class="ident">ERRNO_NOT_POSITIVE</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="string">&quot;errno: did not return a positive value&quot;</span>),
+        <span class="ident">UNKNOWN_IO_ERROR</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="string">&quot;Unknown std::io::Error&quot;</span>),
+        <span class="ident">SEC_RANDOM_FAILED</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="string">&quot;SecRandomCopyBytes: call failed&quot;</span>),
+        <span class="ident">RTL_GEN_RANDOM_FAILED</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="string">&quot;RtlGenRandom: call failed&quot;</span>),
+        <span class="ident">FAILED_RDRAND</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="string">&quot;RDRAND: failed multiple times: CPU issue likely&quot;</span>),
+        <span class="ident">NO_RDRAND</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="string">&quot;RDRAND: instruction not supported&quot;</span>),
+        <span class="ident">BINDGEN_CRYPTO_UNDEF</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="string">&quot;wasm-bindgen: self.crypto is undefined&quot;</span>),
+        <span class="ident">BINDGEN_GRV_UNDEF</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="string">&quot;wasm-bindgen: crypto.getRandomValues is undefined&quot;</span>),
+        <span class="ident">STDWEB_NO_RNG</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="string">&quot;stdweb: no randomness source available&quot;</span>),
+        <span class="ident">STDWEB_RNG_FAILED</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="string">&quot;stdweb: failed to get randomness&quot;</span>),
+        <span class="ident">RAND_SECURE_FATAL</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="string">&quot;randSecure: random number generator module is not initialized&quot;</span>),
+        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
     }
 }
 
@@ -351,7 +351,7 @@
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_size</span>() {
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">Error</span><span class="op">&gt;</span>(), <span class="number">4</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">size_of</span>::<span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Error</span><span class="op">&gt;&gt;</span>(), <span class="number">4</span>);
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">size_of</span>::<span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Error</span><span class="op">&gt;</span><span class="op">&gt;</span>(), <span class="number">4</span>);
     }
 }
 </pre></div>

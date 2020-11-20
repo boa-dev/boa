@@ -95,7 +95,7 @@
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">LazyUsize</span>(<span class="ident">AtomicUsize</span>);
 
 <span class="kw">impl</span> <span class="ident">LazyUsize</span> {
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="self">Self</span>(<span class="ident">AtomicUsize</span>::<span class="ident">new</span>(<span class="self">Self</span>::<span class="ident">UNINIT</span>))
     }
 
@@ -105,10 +105,10 @@
     <span class="comment">// Runs the init() function at least once, returning the value of some run</span>
     <span class="comment">// of init(). Multiple callers can run their init() functions in parallel.</span>
     <span class="comment">// init() should always return the same value, if it succeeds.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">unsync_init</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">init</span>: <span class="kw">impl</span> <span class="ident">FnOnce</span>() <span class="op">-&gt;</span> <span class="ident">usize</span>) <span class="op">-&gt;</span> <span class="ident">usize</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">unsync_init</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">init</span>: <span class="kw">impl</span> <span class="ident">FnOnce</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
         <span class="comment">// Relaxed ordering is fine, as we only have a single atomic variable.</span>
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">val</span> <span class="op">=</span> <span class="self">self</span>.<span class="number">0</span>.<span class="ident">load</span>(<span class="ident">Relaxed</span>);
-        <span class="kw">if</span> <span class="ident">val</span> <span class="op">==</span> <span class="self">Self</span>::<span class="ident">UNINIT</span> {
+        <span class="kw">if</span> <span class="ident">val</span> <span class="op">=</span><span class="op">=</span> <span class="self">Self</span>::<span class="ident">UNINIT</span> {
             <span class="ident">val</span> <span class="op">=</span> <span class="ident">init</span>();
             <span class="self">self</span>.<span class="number">0</span>.<span class="ident">store</span>(<span class="ident">val</span>, <span class="ident">Relaxed</span>);
         }
@@ -120,12 +120,12 @@
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">LazyBool</span>(<span class="ident">LazyUsize</span>);
 
 <span class="kw">impl</span> <span class="ident">LazyBool</span> {
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="self">Self</span>(<span class="ident">LazyUsize</span>::<span class="ident">new</span>())
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">unsync_init</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">init</span>: <span class="kw">impl</span> <span class="ident">FnOnce</span>() <span class="op">-&gt;</span> <span class="ident">bool</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">unsync_init</span>(<span class="op">||</span> <span class="ident">init</span>() <span class="kw">as</span> <span class="ident">usize</span>) <span class="op">!=</span> <span class="number">0</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">unsync_init</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">init</span>: <span class="kw">impl</span> <span class="ident">FnOnce</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">unsync_init</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">init</span>() <span class="kw">as</span> <span class="ident">usize</span>) <span class="op">!</span><span class="op">=</span> <span class="number">0</span>
     }
 }
 </pre></div>

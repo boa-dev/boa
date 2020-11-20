@@ -547,22 +547,22 @@
 <span class="doccomment">/// be ignored even when reading.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">struct</span> <span class="ident">Ignored</span> {
-    <span class="ident">tests</span>: <span class="ident">FxHashSet</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;&gt;</span>,
-    <span class="ident">features</span>: <span class="ident">FxHashSet</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;&gt;</span>,
-    <span class="ident">files</span>: <span class="ident">FxHashSet</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;&gt;</span>,
+    <span class="ident">tests</span>: <span class="ident">FxHashSet</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="ident">features</span>: <span class="ident">FxHashSet</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="ident">files</span>: <span class="ident">FxHashSet</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>,
     <span class="ident">flags</span>: <span class="ident">TestFlags</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">Ignored</span> {
     <span class="doccomment">/// Checks if the ignore list contains the given test name in the list of</span>
     <span class="doccomment">/// tests to ignore.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">contains_test</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">test</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">contains_test</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">test</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
         <span class="self">self</span>.<span class="ident">tests</span>.<span class="ident">contains</span>(<span class="ident">test</span>)
     }
 
     <span class="doccomment">/// Checks if the ignore list contains the given feature name in the list</span>
     <span class="doccomment">/// of features to ignore.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">contains_any_feature</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">features</span>: <span class="kw-2">&amp;</span>[<span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span>]) <span class="op">-&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">contains_any_feature</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">features</span>: <span class="kw-2">&amp;</span>[<span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
         <span class="ident">features</span>
             .<span class="ident">iter</span>()
             .<span class="ident">any</span>(<span class="op">|</span><span class="ident">feature</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">features</span>.<span class="ident">contains</span>(<span class="ident">feature</span>))
@@ -570,17 +570,17 @@
 
     <span class="doccomment">/// Checks if the ignore list contains the given file name in the list to</span>
     <span class="doccomment">/// ignore from reading.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">contains_file</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">file</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">contains_file</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">file</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
         <span class="self">self</span>.<span class="ident">files</span>.<span class="ident">contains</span>(<span class="ident">file</span>)
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">contains_any_flag</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">flags</span>: <span class="ident">TestFlags</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">contains_any_flag</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">flags</span>: <span class="ident">TestFlags</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
         <span class="ident">flags</span>.<span class="ident">intersects</span>(<span class="self">self</span>.<span class="ident">flags</span>)
     }
 }
 
 <span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">Ignored</span> {
-    <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="self">Self</span> {
             <span class="ident">tests</span>: <span class="ident">Default</span>::<span class="ident">default</span>(),
             <span class="ident">features</span>: <span class="ident">Default</span>::<span class="ident">default</span>(),
@@ -591,7 +591,7 @@
 }
 
 <span class="doccomment">/// List of ignored tests.</span>
-<span class="kw">static</span> <span class="ident">IGNORED</span>: <span class="ident">Lazy</span><span class="op">&lt;</span><span class="ident">Ignored</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Lazy</span>::<span class="ident">new</span>(<span class="op">||</span> {
+<span class="kw">static</span> <span class="ident">IGNORED</span>: <span class="ident">Lazy</span><span class="op">&lt;</span><span class="ident">Ignored</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Lazy</span>::<span class="ident">new</span>(<span class="op">|</span><span class="op">|</span> {
     <span class="kw">let</span> <span class="ident">path</span> <span class="op">=</span> <span class="ident">Path</span>::<span class="ident">new</span>(<span class="string">&quot;test_ignore.txt&quot;</span>);
     <span class="kw">if</span> <span class="ident">path</span>.<span class="ident">exists</span>() {
         <span class="kw">let</span> <span class="ident">filtered</span> <span class="op">=</span> <span class="ident">fs</span>::<span class="ident">read_to_string</span>(<span class="ident">path</span>).<span class="ident">expect</span>(<span class="string">&quot;could not read test filters&quot;</span>);
@@ -692,7 +692,7 @@
             <span class="ident">test262_path</span>,
             <span class="ident">suite</span>,
             <span class="ident">output</span>,
-        } <span class="op">=&gt;</span> {
+        } <span class="op">=</span><span class="op">&gt;</span> {
             <span class="ident">run_test_suite</span>(
                 <span class="ident">verbose</span>,
                 <span class="ident">test262_path</span>.<span class="ident">as_path</span>(),
@@ -704,7 +704,7 @@
             <span class="ident">base</span>,
             <span class="ident">new</span>,
             <span class="ident">markdown</span>,
-        } <span class="op">=&gt;</span> <span class="ident">compare_results</span>(<span class="ident">base</span>.<span class="ident">as_path</span>(), <span class="ident">new</span>.<span class="ident">as_path</span>(), <span class="ident">markdown</span>),
+        } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">compare_results</span>(<span class="ident">base</span>.<span class="ident">as_path</span>(), <span class="ident">new</span>.<span class="ident">as_path</span>(), <span class="ident">markdown</span>),
     }
 }
 
@@ -721,7 +721,7 @@
         }
     }
 
-    <span class="kw">if</span> <span class="ident">verbose</span> <span class="op">!=</span> <span class="number">0</span> {
+    <span class="kw">if</span> <span class="ident">verbose</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
         <span class="macro">println</span><span class="macro">!</span>(<span class="string">&quot;Loading the test suite...&quot;</span>);
     }
     <span class="kw">let</span> <span class="ident">harness</span> <span class="op">=</span> <span class="ident">read_harness</span>(<span class="ident">test262_path</span>).<span class="ident">expect</span>(<span class="string">&quot;could not read initialization bindings&quot;</span>);
@@ -729,7 +729,7 @@
     <span class="kw">if</span> <span class="ident">suite</span>.<span class="ident">to_string_lossy</span>().<span class="ident">ends_with</span>(<span class="string">&quot;.js&quot;</span>) {
         <span class="kw">let</span> <span class="ident">test</span> <span class="op">=</span> <span class="ident">read_test</span>(<span class="kw-2">&amp;</span><span class="ident">test262_path</span>.<span class="ident">join</span>(<span class="ident">suite</span>)).<span class="ident">expect</span>(<span class="string">&quot;could not get the test to run&quot;</span>);
 
-        <span class="kw">if</span> <span class="ident">verbose</span> <span class="op">!=</span> <span class="number">0</span> {
+        <span class="kw">if</span> <span class="ident">verbose</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
             <span class="macro">println</span><span class="macro">!</span>(<span class="string">&quot;Test loaded, starting...&quot;</span>);
         }
         <span class="ident">test</span>.<span class="ident">run</span>(<span class="kw-2">&amp;</span><span class="ident">harness</span>, <span class="ident">verbose</span>);
@@ -739,7 +739,7 @@
         <span class="kw">let</span> <span class="ident">suite</span> <span class="op">=</span>
             <span class="ident">read_suite</span>(<span class="kw-2">&amp;</span><span class="ident">test262_path</span>.<span class="ident">join</span>(<span class="ident">suite</span>)).<span class="ident">expect</span>(<span class="string">&quot;could not get the list of tests to run&quot;</span>);
 
-        <span class="kw">if</span> <span class="ident">verbose</span> <span class="op">!=</span> <span class="number">0</span> {
+        <span class="kw">if</span> <span class="ident">verbose</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
             <span class="macro">println</span><span class="macro">!</span>(<span class="string">&quot;Test suite loaded, starting tests...&quot;</span>);
         }
         <span class="kw">let</span> <span class="ident">results</span> <span class="op">=</span> <span class="ident">suite</span>.<span class="ident">run</span>(<span class="kw-2">&amp;</span><span class="ident">harness</span>, <span class="ident">verbose</span>);
@@ -771,7 +771,7 @@
 <span class="kw">struct</span> <span class="ident">Harness</span> {
     <span class="ident">assert</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span>,
     <span class="ident">sta</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span>,
-    <span class="ident">includes</span>: <span class="ident">FxHashMap</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span>, <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;&gt;</span>,
+    <span class="ident">includes</span>: <span class="ident">FxHashMap</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span>, <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 }
 
 <span class="doccomment">/// Represents a test suite.</span>
@@ -833,7 +833,7 @@
 <span class="kw">struct</span> <span class="ident">Test</span> {
     <span class="ident">name</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span>,
     <span class="ident">description</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span>,
-    <span class="ident">esid</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;&gt;</span>,
+    <span class="ident">esid</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>,
     <span class="ident">flags</span>: <span class="ident">TestFlags</span>,
     <span class="ident">information</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span>,
     <span class="ident">features</span>: <span class="ident">Box</span><span class="op">&lt;</span>[<span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span>]<span class="op">&gt;</span>,
@@ -846,10 +846,10 @@
 <span class="kw">impl</span> <span class="ident">Test</span> {
     <span class="doccomment">/// Creates a new test.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">N</span>, <span class="ident">C</span><span class="op">&gt;</span>(<span class="ident">name</span>: <span class="ident">N</span>, <span class="ident">content</span>: <span class="ident">C</span>, <span class="ident">metadata</span>: <span class="ident">MetaData</span>) <span class="op">-&gt;</span> <span class="self">Self</span>
+    <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">N</span>, <span class="ident">C</span><span class="op">&gt;</span>(<span class="ident">name</span>: <span class="ident">N</span>, <span class="ident">content</span>: <span class="ident">C</span>, <span class="ident">metadata</span>: <span class="ident">MetaData</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>
     <span class="kw">where</span>
-        <span class="ident">N</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;&gt;</span>,
-        <span class="ident">C</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;&gt;</span>,
+        <span class="ident">N</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">C</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>,
     {
         <span class="self">Self</span> {
             <span class="ident">name</span>: <span class="ident">name</span>.<span class="ident">into</span>(),
@@ -868,7 +868,7 @@
     <span class="doccomment">/// Sets the name of the test.</span>
     <span class="kw">fn</span> <span class="ident">set_name</span><span class="op">&lt;</span><span class="ident">N</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">name</span>: <span class="ident">N</span>)
     <span class="kw">where</span>
-        <span class="ident">N</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;&gt;</span>,
+        <span class="ident">N</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>,
     {
         <span class="self">self</span>.<span class="ident">name</span> <span class="op">=</span> <span class="ident">name</span>.<span class="ident">into</span>()
     }
@@ -882,13 +882,13 @@
 }
 
 <span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">Outcome</span> {
-    <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="self">Self</span>::<span class="ident">Positive</span>
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Negative</span><span class="op">&gt;&gt;</span> <span class="kw">for</span> <span class="ident">Outcome</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">neg</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Negative</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
+<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Negative</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Outcome</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">neg</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Negative</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">neg</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">neg</span><span class="op">|</span> <span class="self">Self</span>::<span class="ident">Negative</span> {
             <span class="ident">phase</span>: <span class="ident">neg</span>.<span class="ident">phase</span>,
             <span class="ident">error_type</span>: <span class="ident">neg</span>.<span class="ident">error_type</span>,
@@ -912,23 +912,23 @@
 }
 
 <span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">TestFlags</span> {
-    <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="self">Self</span>::<span class="ident">STRICT</span> <span class="op">|</span> <span class="self">Self</span>::<span class="ident">NO_STRICT</span>
     }
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">TestFlag</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">TestFlags</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">flag</span>: <span class="ident">TestFlag</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">flag</span>: <span class="ident">TestFlag</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="kw">match</span> <span class="ident">flag</span> {
-            <span class="ident">TestFlag</span>::<span class="ident">OnlyStrict</span> <span class="op">=&gt;</span> <span class="self">Self</span>::<span class="ident">STRICT</span>,
-            <span class="ident">TestFlag</span>::<span class="ident">NoStrict</span> <span class="op">=&gt;</span> <span class="self">Self</span>::<span class="ident">NO_STRICT</span>,
-            <span class="ident">TestFlag</span>::<span class="ident">Module</span> <span class="op">=&gt;</span> <span class="self">Self</span>::<span class="ident">MODULE</span>,
-            <span class="ident">TestFlag</span>::<span class="ident">Raw</span> <span class="op">=&gt;</span> <span class="self">Self</span>::<span class="ident">RAW</span>,
-            <span class="ident">TestFlag</span>::<span class="ident">Async</span> <span class="op">=&gt;</span> <span class="self">Self</span>::<span class="ident">ASYNC</span>,
-            <span class="ident">TestFlag</span>::<span class="ident">Generated</span> <span class="op">=&gt;</span> <span class="self">Self</span>::<span class="ident">GENERATED</span>,
-            <span class="ident">TestFlag</span>::<span class="ident">CanBlockIsFalse</span> <span class="op">=&gt;</span> <span class="self">Self</span>::<span class="ident">CAN_BLOCK_IS_FALSE</span>,
-            <span class="ident">TestFlag</span>::<span class="ident">CanBlockIsTrue</span> <span class="op">=&gt;</span> <span class="self">Self</span>::<span class="ident">CAN_BLOCK_IS_TRUE</span>,
-            <span class="ident">TestFlag</span>::<span class="ident">NonDeterministic</span> <span class="op">=&gt;</span> <span class="self">Self</span>::<span class="ident">NON_DETERMINISTIC</span>,
+            <span class="ident">TestFlag</span>::<span class="ident">OnlyStrict</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">STRICT</span>,
+            <span class="ident">TestFlag</span>::<span class="ident">NoStrict</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">NO_STRICT</span>,
+            <span class="ident">TestFlag</span>::<span class="ident">Module</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">MODULE</span>,
+            <span class="ident">TestFlag</span>::<span class="ident">Raw</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">RAW</span>,
+            <span class="ident">TestFlag</span>::<span class="ident">Async</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">ASYNC</span>,
+            <span class="ident">TestFlag</span>::<span class="ident">Generated</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">GENERATED</span>,
+            <span class="ident">TestFlag</span>::<span class="ident">CanBlockIsFalse</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">CAN_BLOCK_IS_FALSE</span>,
+            <span class="ident">TestFlag</span>::<span class="ident">CanBlockIsTrue</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">CAN_BLOCK_IS_TRUE</span>,
+            <span class="ident">TestFlag</span>::<span class="ident">NonDeterministic</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">NON_DETERMINISTIC</span>,
         }
     }
 }
@@ -937,18 +937,18 @@
 <span class="kw">where</span>
     <span class="ident">T</span>: <span class="ident">AsRef</span><span class="op">&lt;</span>[<span class="ident">TestFlag</span>]<span class="op">&gt;</span>,
 {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">flags</span>: <span class="ident">T</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">flags</span>: <span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="kw">let</span> <span class="ident">flags</span> <span class="op">=</span> <span class="ident">flags</span>.<span class="ident">as_ref</span>();
         <span class="kw">if</span> <span class="ident">flags</span>.<span class="ident">is_empty</span>() {
             <span class="self">Self</span>::<span class="ident">default</span>()
         } <span class="kw">else</span> {
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">result</span> <span class="op">=</span> <span class="self">Self</span>::<span class="ident">empty</span>();
             <span class="kw">for</span> <span class="ident">flag</span> <span class="kw">in</span> <span class="ident">flags</span> {
-                <span class="ident">result</span> <span class="op">|=</span> <span class="self">Self</span>::<span class="ident">from</span>(<span class="kw-2">*</span><span class="ident">flag</span>);
+                <span class="ident">result</span> <span class="op">|</span><span class="op">=</span> <span class="self">Self</span>::<span class="ident">from</span>(<span class="kw-2">*</span><span class="ident">flag</span>);
             }
 
             <span class="kw">if</span> <span class="op">!</span><span class="ident">result</span>.<span class="ident">intersects</span>(<span class="self">Self</span>::<span class="ident">default</span>()) {
-                <span class="ident">result</span> <span class="op">|=</span> <span class="self">Self</span>::<span class="ident">default</span>()
+                <span class="ident">result</span> <span class="op">|</span><span class="op">=</span> <span class="self">Self</span>::<span class="ident">default</span>()
             }
 
             <span class="ident">result</span>

@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/git2-0.13.12/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../git2/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/git2-0.13.12/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+<link rel="alternate icon" type="image/png" href="../../favicon-16x16.png">
+<link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../git2/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
                 <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
 <span id="3">   3</span>
@@ -1586,9 +1588,9 @@
 
 <span class="comment">// Create a convinience method on bitflag struct which checks the given flag</span>
 <span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">is_bit_set</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">flag</span>:<span class="ident">expr</span>) <span class="op">=&gt;</span> {
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">flag</span>:<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> {
         <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
+        <span class="kw">pub</span> <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
             <span class="self">self</span>.<span class="ident">intersects</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">flag</span>)
         }
     };
@@ -1916,7 +1918,7 @@
 }
 
 <span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">CredentialType</span> {
-    <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">CredentialType</span>::<span class="ident">DEFAULT</span>
     }
 }
@@ -1981,7 +1983,7 @@
 }
 
 <span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">IndexAddOption</span> {
-    <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">IndexAddOption</span>::<span class="ident">DEFAULT</span>
     }
 }
@@ -2142,7 +2144,7 @@
 <span class="kw">fn</span> <span class="ident">init</span>() {
     <span class="kw">static</span> <span class="ident">INIT</span>: <span class="ident">Once</span> <span class="op">=</span> <span class="ident">Once</span>::<span class="ident">new</span>();
 
-    <span class="ident">INIT</span>.<span class="ident">call_once</span>(<span class="op">||</span> {
+    <span class="ident">INIT</span>.<span class="ident">call_once</span>(<span class="op">|</span><span class="op">|</span> {
         <span class="ident">openssl_env_init</span>();
     });
 
@@ -2278,7 +2280,7 @@
 ))]</span>
 <span class="kw">fn</span> <span class="ident">openssl_env_init</span>() {}
 
-<span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">opt_bytes</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">_anchor</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">T</span>, <span class="ident">c</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">libc</span>::<span class="ident">c_char</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<span class="ident">u8</span>]<span class="op">&gt;</span> {
+<span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">opt_bytes</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">_anchor</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">T</span>, <span class="ident">c</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">libc</span>::<span class="ident">c_char</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<span class="ident">u8</span>]<span class="op">&gt;</span> {
     <span class="kw">if</span> <span class="ident">c</span>.<span class="ident">is_null</span>() {
         <span class="prelude-val">None</span>
     } <span class="kw">else</span> {
@@ -2286,16 +2288,16 @@
     }
 }
 
-<span class="kw">fn</span> <span class="ident">opt_cstr</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">IntoCString</span><span class="op">&gt;</span>(<span class="ident">o</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">CString</span><span class="op">&gt;</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">opt_cstr</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">IntoCString</span><span class="op">&gt;</span>(<span class="ident">o</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">CString</span><span class="op">&gt;</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
     <span class="kw">match</span> <span class="ident">o</span> {
-        <span class="prelude-val">Some</span>(<span class="ident">s</span>) <span class="op">=&gt;</span> <span class="ident">s</span>.<span class="ident">into_c_string</span>().<span class="ident">map</span>(<span class="prelude-val">Some</span>),
-        <span class="prelude-val">None</span> <span class="op">=&gt;</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
+        <span class="prelude-val">Some</span>(<span class="ident">s</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">s</span>.<span class="ident">into_c_string</span>().<span class="ident">map</span>(<span class="prelude-val">Some</span>),
+        <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
     }
 }
 
 <span class="kw">impl</span> <span class="ident">ObjectType</span> {
     <span class="doccomment">/// Convert an object type to its string representation.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">str</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">str</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> {
         <span class="kw">unsafe</span> {
             <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <span class="macro">call</span><span class="macro">!</span>(<span class="ident">raw</span>::<span class="ident">git_object_type2string</span>(<span class="kw-2">*</span><span class="self">self</span>)) <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="kw">_</span>;
             <span class="kw">let</span> <span class="ident">data</span> <span class="op">=</span> <span class="ident">CStr</span>::<span class="ident">from_ptr</span>(<span class="ident">ptr</span>).<span class="ident">to_bytes</span>();
@@ -2304,77 +2306,77 @@
     }
 
     <span class="doccomment">/// Determine if the given git_object_t is a valid loose object type.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_loose</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
-        <span class="kw">unsafe</span> { <span class="macro">call</span><span class="macro">!</span>(<span class="ident">raw</span>::<span class="ident">git_object_typeisloose</span>(<span class="kw-2">*</span><span class="self">self</span>)) <span class="op">==</span> <span class="number">1</span> }
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_loose</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        <span class="kw">unsafe</span> { <span class="macro">call</span><span class="macro">!</span>(<span class="ident">raw</span>::<span class="ident">git_object_typeisloose</span>(<span class="kw-2">*</span><span class="self">self</span>)) <span class="op">=</span><span class="op">=</span> <span class="number">1</span> }
     }
 
     <span class="doccomment">/// Convert a raw git_object_t to an ObjectType</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_raw</span>(<span class="ident">raw</span>: <span class="ident">raw</span>::<span class="ident">git_object_t</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ObjectType</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_raw</span>(<span class="ident">raw</span>: <span class="ident">raw</span>::<span class="ident">git_object_t</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ObjectType</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="ident">raw</span> {
-            <span class="ident">raw</span>::<span class="ident">GIT_OBJECT_ANY</span> <span class="op">=&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">ObjectType</span>::<span class="ident">Any</span>),
-            <span class="ident">raw</span>::<span class="ident">GIT_OBJECT_COMMIT</span> <span class="op">=&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">ObjectType</span>::<span class="ident">Commit</span>),
-            <span class="ident">raw</span>::<span class="ident">GIT_OBJECT_TREE</span> <span class="op">=&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">ObjectType</span>::<span class="ident">Tree</span>),
-            <span class="ident">raw</span>::<span class="ident">GIT_OBJECT_BLOB</span> <span class="op">=&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">ObjectType</span>::<span class="ident">Blob</span>),
-            <span class="ident">raw</span>::<span class="ident">GIT_OBJECT_TAG</span> <span class="op">=&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">ObjectType</span>::<span class="ident">Tag</span>),
-            <span class="kw">_</span> <span class="op">=&gt;</span> <span class="prelude-val">None</span>,
+            <span class="ident">raw</span>::<span class="ident">GIT_OBJECT_ANY</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">ObjectType</span>::<span class="ident">Any</span>),
+            <span class="ident">raw</span>::<span class="ident">GIT_OBJECT_COMMIT</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">ObjectType</span>::<span class="ident">Commit</span>),
+            <span class="ident">raw</span>::<span class="ident">GIT_OBJECT_TREE</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">ObjectType</span>::<span class="ident">Tree</span>),
+            <span class="ident">raw</span>::<span class="ident">GIT_OBJECT_BLOB</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">ObjectType</span>::<span class="ident">Blob</span>),
+            <span class="ident">raw</span>::<span class="ident">GIT_OBJECT_TAG</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">ObjectType</span>::<span class="ident">Tag</span>),
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
         }
     }
 
     <span class="doccomment">/// Convert this kind into its raw representation</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">raw</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">raw</span>::<span class="ident">git_object_t</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">raw</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">raw</span>::<span class="ident">git_object_t</span> {
         <span class="ident">call</span>::<span class="ident">convert</span>(<span class="self">self</span>)
     }
 
     <span class="doccomment">/// Convert a string object type representation to its object type.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_str</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ObjectType</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_str</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ObjectType</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">raw</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="macro">call</span><span class="macro">!</span>(<span class="ident">raw</span>::<span class="ident">git_object_string2type</span>(<span class="ident">CString</span>::<span class="ident">new</span>(<span class="ident">s</span>).<span class="ident">unwrap</span>())) };
         <span class="ident">ObjectType</span>::<span class="ident">from_raw</span>(<span class="ident">raw</span>)
     }
 }
 
 <span class="kw">impl</span> <span class="ident">fmt</span>::<span class="ident">Display</span> <span class="kw">for</span> <span class="ident">ObjectType</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
         <span class="self">self</span>.<span class="ident">str</span>().<span class="ident">fmt</span>(<span class="ident">f</span>)
     }
 }
 
 <span class="kw">impl</span> <span class="ident">ReferenceType</span> {
     <span class="doccomment">/// Convert an object type to its string representation.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">str</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">str</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">ReferenceType</span>::<span class="ident">Direct</span> <span class="op">=&gt;</span> <span class="string">&quot;direct&quot;</span>,
-            <span class="ident">ReferenceType</span>::<span class="ident">Symbolic</span> <span class="op">=&gt;</span> <span class="string">&quot;symbolic&quot;</span>,
+            <span class="ident">ReferenceType</span>::<span class="ident">Direct</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;direct&quot;</span>,
+            <span class="ident">ReferenceType</span>::<span class="ident">Symbolic</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;symbolic&quot;</span>,
         }
     }
 
     <span class="doccomment">/// Convert a raw git_reference_t to a ReferenceType.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_raw</span>(<span class="ident">raw</span>: <span class="ident">raw</span>::<span class="ident">git_reference_t</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ReferenceType</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_raw</span>(<span class="ident">raw</span>: <span class="ident">raw</span>::<span class="ident">git_reference_t</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ReferenceType</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="ident">raw</span> {
-            <span class="ident">raw</span>::<span class="ident">GIT_REFERENCE_DIRECT</span> <span class="op">=&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">ReferenceType</span>::<span class="ident">Direct</span>),
-            <span class="ident">raw</span>::<span class="ident">GIT_REFERENCE_SYMBOLIC</span> <span class="op">=&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">ReferenceType</span>::<span class="ident">Symbolic</span>),
-            <span class="kw">_</span> <span class="op">=&gt;</span> <span class="prelude-val">None</span>,
+            <span class="ident">raw</span>::<span class="ident">GIT_REFERENCE_DIRECT</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">ReferenceType</span>::<span class="ident">Direct</span>),
+            <span class="ident">raw</span>::<span class="ident">GIT_REFERENCE_SYMBOLIC</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">ReferenceType</span>::<span class="ident">Symbolic</span>),
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
         }
     }
 }
 
 <span class="kw">impl</span> <span class="ident">fmt</span>::<span class="ident">Display</span> <span class="kw">for</span> <span class="ident">ReferenceType</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
         <span class="self">self</span>.<span class="ident">str</span>().<span class="ident">fmt</span>(<span class="ident">f</span>)
     }
 }
 
 <span class="kw">impl</span> <span class="ident">ConfigLevel</span> {
     <span class="doccomment">/// Converts a raw configuration level to a ConfigLevel</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_raw</span>(<span class="ident">raw</span>: <span class="ident">raw</span>::<span class="ident">git_config_level_t</span>) <span class="op">-&gt;</span> <span class="ident">ConfigLevel</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_raw</span>(<span class="ident">raw</span>: <span class="ident">raw</span>::<span class="ident">git_config_level_t</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ConfigLevel</span> {
         <span class="kw">match</span> <span class="ident">raw</span> {
-            <span class="ident">raw</span>::<span class="ident">GIT_CONFIG_LEVEL_PROGRAMDATA</span> <span class="op">=&gt;</span> <span class="ident">ConfigLevel</span>::<span class="ident">ProgramData</span>,
-            <span class="ident">raw</span>::<span class="ident">GIT_CONFIG_LEVEL_SYSTEM</span> <span class="op">=&gt;</span> <span class="ident">ConfigLevel</span>::<span class="ident">System</span>,
-            <span class="ident">raw</span>::<span class="ident">GIT_CONFIG_LEVEL_XDG</span> <span class="op">=&gt;</span> <span class="ident">ConfigLevel</span>::<span class="ident">XDG</span>,
-            <span class="ident">raw</span>::<span class="ident">GIT_CONFIG_LEVEL_GLOBAL</span> <span class="op">=&gt;</span> <span class="ident">ConfigLevel</span>::<span class="ident">Global</span>,
-            <span class="ident">raw</span>::<span class="ident">GIT_CONFIG_LEVEL_LOCAL</span> <span class="op">=&gt;</span> <span class="ident">ConfigLevel</span>::<span class="ident">Local</span>,
-            <span class="ident">raw</span>::<span class="ident">GIT_CONFIG_LEVEL_APP</span> <span class="op">=&gt;</span> <span class="ident">ConfigLevel</span>::<span class="ident">App</span>,
-            <span class="ident">raw</span>::<span class="ident">GIT_CONFIG_HIGHEST_LEVEL</span> <span class="op">=&gt;</span> <span class="ident">ConfigLevel</span>::<span class="ident">Highest</span>,
-            <span class="ident">n</span> <span class="op">=&gt;</span> <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;unknown config level: {}&quot;</span>, <span class="ident">n</span>),
+            <span class="ident">raw</span>::<span class="ident">GIT_CONFIG_LEVEL_PROGRAMDATA</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ConfigLevel</span>::<span class="ident">ProgramData</span>,
+            <span class="ident">raw</span>::<span class="ident">GIT_CONFIG_LEVEL_SYSTEM</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ConfigLevel</span>::<span class="ident">System</span>,
+            <span class="ident">raw</span>::<span class="ident">GIT_CONFIG_LEVEL_XDG</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ConfigLevel</span>::<span class="ident">XDG</span>,
+            <span class="ident">raw</span>::<span class="ident">GIT_CONFIG_LEVEL_GLOBAL</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ConfigLevel</span>::<span class="ident">Global</span>,
+            <span class="ident">raw</span>::<span class="ident">GIT_CONFIG_LEVEL_LOCAL</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ConfigLevel</span>::<span class="ident">Local</span>,
+            <span class="ident">raw</span>::<span class="ident">GIT_CONFIG_LEVEL_APP</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ConfigLevel</span>::<span class="ident">App</span>,
+            <span class="ident">raw</span>::<span class="ident">GIT_CONFIG_HIGHEST_LEVEL</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ConfigLevel</span>::<span class="ident">Highest</span>,
+            <span class="ident">n</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;unknown config level: {}&quot;</span>, <span class="ident">n</span>),
         }
     }
 }
@@ -2648,7 +2650,7 @@
 }
 
 <span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">PathspecFlags</span> {
-    <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">PathspecFlags</span>::<span class="ident">DEFAULT</span>
     }
 }
@@ -2779,7 +2781,7 @@
 }
 
 <span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">StashApplyFlags</span> {
-    <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">StashApplyFlags</span>::<span class="ident">DEFAULT</span>
     }
 }
@@ -2809,7 +2811,7 @@
 }
 
 <span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">StashFlags</span> {
-    <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">StashFlags</span>::<span class="ident">DEFAULT</span>
     }
 }
@@ -2829,7 +2831,7 @@
 }
 
 <span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">AttrCheckFlags</span> {
-    <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">AttrCheckFlags</span>::<span class="ident">FILE_THEN_INDEX</span>
     }
 }
@@ -2884,7 +2886,7 @@
 }
 
 <span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">ReferenceFormat</span> {
-    <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">ReferenceFormat</span>::<span class="ident">NORMAL</span>
     }
 }

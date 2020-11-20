@@ -512,7 +512,7 @@
     <span class="doccomment">/// if its total value is 0.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [`Uniform&lt;X&gt;`]: crate::distributions::uniform::Uniform</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span>(<span class="ident">weights</span>: <span class="ident">I</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">WeightedIndex</span><span class="op">&lt;</span><span class="ident">X</span><span class="op">&gt;</span>, <span class="ident">WeightedError</span><span class="op">&gt;</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span>(<span class="ident">weights</span>: <span class="ident">I</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">WeightedIndex</span><span class="op">&lt;</span><span class="ident">X</span><span class="op">&gt;</span>, <span class="ident">WeightedError</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">I</span>: <span class="ident">IntoIterator</span>,
         <span class="ident">I</span>::<span class="ident">Item</span>: <span class="ident">SampleBorrow</span><span class="op">&lt;</span><span class="ident">X</span><span class="op">&gt;</span>,
@@ -532,10 +532,10 @@
                 <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">WeightedError</span>::<span class="ident">InvalidWeight</span>);
             }
             <span class="ident">weights</span>.<span class="ident">push</span>(<span class="ident">total_weight</span>.<span class="ident">clone</span>());
-            <span class="ident">total_weight</span> <span class="op">+=</span> <span class="ident">w</span>.<span class="ident">borrow</span>();
+            <span class="ident">total_weight</span> <span class="op">+</span><span class="op">=</span> <span class="ident">w</span>.<span class="ident">borrow</span>();
         }
 
-        <span class="kw">if</span> <span class="ident">total_weight</span> <span class="op">==</span> <span class="ident">zero</span> {
+        <span class="kw">if</span> <span class="ident">total_weight</span> <span class="op">=</span><span class="op">=</span> <span class="ident">zero</span> {
             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">WeightedError</span>::<span class="ident">AllWeightsZero</span>);
         }
         <span class="kw">let</span> <span class="ident">distr</span> <span class="op">=</span> <span class="ident">X</span>::<span class="ident">Sampler</span>::<span class="ident">new</span>(<span class="ident">zero</span>, <span class="ident">total_weight</span>.<span class="ident">clone</span>());
@@ -556,7 +556,7 @@
     <span class="doccomment">/// allocation internally.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// In case of error, `self` is not modified.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">update_weights</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">new_weights</span>: <span class="kw-2">&amp;</span>[(<span class="ident">usize</span>, <span class="kw-2">&amp;</span><span class="ident">X</span>)]) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">WeightedError</span><span class="op">&gt;</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">update_weights</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">new_weights</span>: <span class="kw-2">&amp;</span>[(<span class="ident">usize</span>, <span class="kw-2">&amp;</span><span class="ident">X</span>)]) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">WeightedError</span><span class="op">&gt;</span>
     <span class="kw">where</span> <span class="ident">X</span>: <span class="kw">for</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> ::<span class="ident">core</span>::<span class="ident">ops</span>::<span class="ident">AddAssign</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">X</span><span class="op">&gt;</span>
             <span class="op">+</span> <span class="kw">for</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> ::<span class="ident">core</span>::<span class="ident">ops</span>::<span class="ident">SubAssign</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">X</span><span class="op">&gt;</span>
             <span class="op">+</span> <span class="ident">Clone</span>
@@ -574,14 +574,14 @@
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">prev_i</span> <span class="op">=</span> <span class="prelude-val">None</span>;
         <span class="kw">for</span> <span class="kw-2">&amp;</span>(<span class="ident">i</span>, <span class="ident">w</span>) <span class="kw">in</span> <span class="ident">new_weights</span> {
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">old_i</span>) <span class="op">=</span> <span class="ident">prev_i</span> {
-                <span class="kw">if</span> <span class="ident">old_i</span> <span class="op">&gt;=</span> <span class="ident">i</span> {
+                <span class="kw">if</span> <span class="ident">old_i</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">i</span> {
                     <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">WeightedError</span>::<span class="ident">InvalidWeight</span>);
                 }
             }
             <span class="kw">if</span> <span class="kw-2">*</span><span class="ident">w</span> <span class="op">&lt;</span> <span class="ident">zero</span> {
                 <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">WeightedError</span>::<span class="ident">InvalidWeight</span>);
             }
-            <span class="kw">if</span> <span class="ident">i</span> <span class="op">&gt;=</span> <span class="self">self</span>.<span class="ident">cumulative_weights</span>.<span class="ident">len</span>() <span class="op">+</span> <span class="number">1</span> {
+            <span class="kw">if</span> <span class="ident">i</span> <span class="op">&gt;</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">cumulative_weights</span>.<span class="ident">len</span>() <span class="op">+</span> <span class="number">1</span> {
                 <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">WeightedError</span>::<span class="ident">TooMany</span>);
             }
 
@@ -591,14 +591,14 @@
                 <span class="self">self</span>.<span class="ident">total_weight</span>.<span class="ident">clone</span>()
             };
             <span class="kw">if</span> <span class="ident">i</span> <span class="op">&gt;</span> <span class="number">0</span> {
-                <span class="ident">old_w</span> <span class="op">-=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">cumulative_weights</span>[<span class="ident">i</span> <span class="op">-</span> <span class="number">1</span>];
+                <span class="ident">old_w</span> <span class="op">-</span><span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">cumulative_weights</span>[<span class="ident">i</span> <span class="op">-</span> <span class="number">1</span>];
             }
 
-            <span class="ident">total_weight</span> <span class="op">-=</span> <span class="kw-2">&amp;</span><span class="ident">old_w</span>;
-            <span class="ident">total_weight</span> <span class="op">+=</span> <span class="ident">w</span>;
+            <span class="ident">total_weight</span> <span class="op">-</span><span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">old_w</span>;
+            <span class="ident">total_weight</span> <span class="op">+</span><span class="op">=</span> <span class="ident">w</span>;
             <span class="ident">prev_i</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">i</span>);
         }
-        <span class="kw">if</span> <span class="ident">total_weight</span> <span class="op">==</span> <span class="ident">zero</span> {
+        <span class="kw">if</span> <span class="ident">total_weight</span> <span class="op">=</span><span class="op">=</span> <span class="ident">zero</span> {
             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">WeightedError</span>::<span class="ident">AllWeightsZero</span>);
         }
 
@@ -616,14 +616,14 @@
         };
         <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="ident">first_new_index</span>..<span class="self">self</span>.<span class="ident">cumulative_weights</span>.<span class="ident">len</span>() {
             <span class="kw">match</span> <span class="ident">next_new_weight</span> {
-                <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>(<span class="ident">j</span>, <span class="ident">w</span>)) <span class="kw">if</span> <span class="ident">i</span> <span class="op">==</span> <span class="ident">j</span> <span class="op">=&gt;</span> {
-                    <span class="ident">cumulative_weight</span> <span class="op">+=</span> <span class="ident">w</span>;
+                <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>(<span class="ident">j</span>, <span class="ident">w</span>)) <span class="kw">if</span> <span class="ident">i</span> <span class="op">=</span><span class="op">=</span> <span class="ident">j</span> <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="ident">cumulative_weight</span> <span class="op">+</span><span class="op">=</span> <span class="ident">w</span>;
                     <span class="ident">next_new_weight</span> <span class="op">=</span> <span class="ident">iter</span>.<span class="ident">next</span>();
                 }
-                <span class="kw">_</span> <span class="op">=&gt;</span> {
+                <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">tmp</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">cumulative_weights</span>[<span class="ident">i</span>].<span class="ident">clone</span>();
-                    <span class="ident">tmp</span> <span class="op">-=</span> <span class="kw-2">&amp;</span><span class="ident">prev_weight</span>; <span class="comment">// We know this is positive.</span>
-                    <span class="ident">cumulative_weight</span> <span class="op">+=</span> <span class="kw-2">&amp;</span><span class="ident">tmp</span>;
+                    <span class="ident">tmp</span> <span class="op">-</span><span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">prev_weight</span>; <span class="comment">// We know this is positive.</span>
+                    <span class="ident">cumulative_weight</span> <span class="op">+</span><span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">tmp</span>;
                 }
             }
             <span class="ident">prev_weight</span> <span class="op">=</span> <span class="ident">cumulative_weight</span>.<span class="ident">clone</span>();
@@ -640,13 +640,13 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">X</span><span class="op">&gt;</span> <span class="ident">Distribution</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">WeightedIndex</span><span class="op">&lt;</span><span class="ident">X</span><span class="op">&gt;</span>
 <span class="kw">where</span> <span class="ident">X</span>: <span class="ident">SampleUniform</span> <span class="op">+</span> <span class="ident">PartialOrd</span>
 {
-    <span class="kw">fn</span> <span class="ident">sample</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">Rng</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">rng</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">R</span>) <span class="op">-&gt;</span> <span class="ident">usize</span> {
+    <span class="kw">fn</span> <span class="ident">sample</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">Rng</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">rng</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">R</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
         <span class="kw">use</span> ::<span class="ident">core</span>::<span class="ident">cmp</span>::<span class="ident">Ordering</span>;
         <span class="kw">let</span> <span class="ident">chosen_weight</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">weight_distribution</span>.<span class="ident">sample</span>(<span class="ident">rng</span>);
         <span class="comment">// Find the first item which has a weight *higher* than the chosen weight.</span>
         <span class="self">self</span>.<span class="ident">cumulative_weights</span>
             .<span class="ident">binary_search_by</span>(<span class="op">|</span><span class="ident">w</span><span class="op">|</span> {
-                <span class="kw">if</span> <span class="kw-2">*</span><span class="ident">w</span> <span class="op">&lt;=</span> <span class="ident">chosen_weight</span> {
+                <span class="kw">if</span> <span class="kw-2">*</span><span class="ident">w</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">chosen_weight</span> {
                     <span class="ident">Ordering</span>::<span class="ident">Less</span>
                 } <span class="kw">else</span> {
                     <span class="ident">Ordering</span>::<span class="ident">Greater</span>
@@ -672,10 +672,10 @@
             <span class="kw">for</span> (<span class="ident">i</span>, <span class="ident">count</span>) <span class="kw">in</span> <span class="ident">result</span>.<span class="ident">iter</span>().<span class="ident">enumerate</span>() {
                 <span class="kw">let</span> <span class="ident">exp</span> <span class="op">=</span> (<span class="ident">weights</span>[<span class="ident">i</span>] <span class="op">*</span> <span class="ident">N_REPS</span>) <span class="kw">as</span> <span class="ident">f32</span> <span class="op">/</span> <span class="ident">total_weight</span>;
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">err</span> <span class="op">=</span> (<span class="kw-2">*</span><span class="ident">count</span> <span class="kw">as</span> <span class="ident">f32</span> <span class="op">-</span> <span class="ident">exp</span>).<span class="ident">abs</span>();
-                <span class="kw">if</span> <span class="ident">err</span> <span class="op">!=</span> <span class="number">0.0</span> {
-                    <span class="ident">err</span> <span class="op">/=</span> <span class="ident">exp</span>;
+                <span class="kw">if</span> <span class="ident">err</span> <span class="op">!</span><span class="op">=</span> <span class="number">0.0</span> {
+                    <span class="ident">err</span> <span class="op">/</span><span class="op">=</span> <span class="ident">exp</span>;
                 }
-                <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">err</span> <span class="op">&lt;=</span> <span class="number">0.25</span>);
+                <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">err</span> <span class="op">&lt;</span><span class="op">=</span> <span class="number">0.25</span>);
             }
         };
 
@@ -683,7 +683,7 @@
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">chosen</span> <span class="op">=</span> [<span class="number">0i32</span>; <span class="number">14</span>];
         <span class="kw">let</span> <span class="ident">distr</span> <span class="op">=</span> <span class="ident">WeightedIndex</span>::<span class="ident">new</span>(<span class="ident">weights</span>.<span class="ident">to_vec</span>()).<span class="ident">unwrap</span>();
         <span class="kw">for</span> <span class="kw">_</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">N_REPS</span> {
-            <span class="ident">chosen</span>[<span class="ident">distr</span>.<span class="ident">sample</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">r</span>)] <span class="op">+=</span> <span class="number">1</span>;
+            <span class="ident">chosen</span>[<span class="ident">distr</span>.<span class="ident">sample</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">r</span>)] <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
         }
         <span class="ident">verify</span>(<span class="ident">chosen</span>);
 
@@ -691,7 +691,7 @@
         <span class="ident">chosen</span> <span class="op">=</span> [<span class="number">0i32</span>; <span class="number">14</span>];
         <span class="kw">let</span> <span class="ident">distr</span> <span class="op">=</span> <span class="ident">WeightedIndex</span>::<span class="ident">new</span>(<span class="kw-2">&amp;</span><span class="ident">weights</span>[..]).<span class="ident">unwrap</span>();
         <span class="kw">for</span> <span class="kw">_</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">N_REPS</span> {
-            <span class="ident">chosen</span>[<span class="ident">distr</span>.<span class="ident">sample</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">r</span>)] <span class="op">+=</span> <span class="number">1</span>;
+            <span class="ident">chosen</span>[<span class="ident">distr</span>.<span class="ident">sample</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">r</span>)] <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
         }
         <span class="ident">verify</span>(<span class="ident">chosen</span>);
 
@@ -699,7 +699,7 @@
         <span class="ident">chosen</span> <span class="op">=</span> [<span class="number">0i32</span>; <span class="number">14</span>];
         <span class="kw">let</span> <span class="ident">distr</span> <span class="op">=</span> <span class="ident">WeightedIndex</span>::<span class="ident">new</span>(<span class="ident">weights</span>.<span class="ident">iter</span>()).<span class="ident">unwrap</span>();
         <span class="kw">for</span> <span class="kw">_</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">N_REPS</span> {
-            <span class="ident">chosen</span>[<span class="ident">distr</span>.<span class="ident">sample</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">r</span>)] <span class="op">+=</span> <span class="number">1</span>;
+            <span class="ident">chosen</span>[<span class="ident">distr</span>.<span class="ident">sample</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">r</span>)] <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
         }
         <span class="ident">verify</span>(<span class="ident">chosen</span>);
 
@@ -817,12 +817,12 @@
 <span class="kw">impl</span> ::<span class="ident">std</span>::<span class="ident">error</span>::<span class="ident">Error</span> <span class="kw">for</span> <span class="ident">WeightedError</span> {}
 
 <span class="kw">impl</span> <span class="ident">fmt</span>::<span class="ident">Display</span> <span class="kw">for</span> <span class="ident">WeightedError</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span>) <span class="op">-&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
         <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="ident">WeightedError</span>::<span class="ident">NoItem</span> <span class="op">=&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;No weights provided.&quot;</span>),
-            <span class="ident">WeightedError</span>::<span class="ident">InvalidWeight</span> <span class="op">=&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;A weight is invalid.&quot;</span>),
-            <span class="ident">WeightedError</span>::<span class="ident">AllWeightsZero</span> <span class="op">=&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;All weights are zero.&quot;</span>),
-            <span class="ident">WeightedError</span>::<span class="ident">TooMany</span> <span class="op">=&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;Too many weights (hit u32::MAX)&quot;</span>),
+            <span class="ident">WeightedError</span>::<span class="ident">NoItem</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;No weights provided.&quot;</span>),
+            <span class="ident">WeightedError</span>::<span class="ident">InvalidWeight</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;A weight is invalid.&quot;</span>),
+            <span class="ident">WeightedError</span>::<span class="ident">AllWeightsZero</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;All weights are zero.&quot;</span>),
+            <span class="ident">WeightedError</span>::<span class="ident">TooMany</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;Too many weights (hit u32::MAX)&quot;</span>),
         }
     }
 }

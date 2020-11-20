@@ -11,7 +11,7 @@
 <div class='item-spacer'></div>    fn <a href='#method.try_fill' class='fnname'>try_fill</a>&lt;T:&nbsp;<a class="trait" href="../rand/trait.AsByteSliceMut.html" title="trait rand::AsByteSliceMut">AsByteSliceMut</a> + ?<a class="trait" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a>&gt;(<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&amp;mut self, <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;dest: <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.reference.html">&amp;mut </a>T<br>&nbsp;&nbsp;&nbsp;&nbsp;) -&gt; <a class="enum" href="https://doc.rust-lang.org/nightly/core/result/enum.Result.html" title="enum core::result::Result">Result</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.unit.html">()</a>, <a class="struct" href="../rand/struct.Error.html" title="struct rand::Error">Error</a>&gt; { ... }
 <div class='item-spacer'></div>    fn <a href='#method.gen_bool' class='fnname'>gen_bool</a>(&amp;mut self, p: <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.f64.html">f64</a>) -&gt; <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> { ... }
 <div class='item-spacer'></div>    fn <a href='#method.gen_ratio' class='fnname'>gen_ratio</a>(&amp;mut self, numerator: <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, denominator: <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> { ... }
-}</pre></div><div class='docblock'><p>An automatically-implemented extension trait on [<code>RngCore</code>] providing high-level
+}</pre></div><div class='docblock'><p>An automatically-implemented extension trait on <a href="../rand/trait.RngCore.html" title="RngCore"><code>RngCore</code></a> providing high-level
 generic methods for sampling values and other convenience methods.</p>
 <p>This is the primary trait to use when generating random values.</p>
 <h1 id="generic-usage" class="section-header"><a href="#generic-usage">Generic usage</a></h1>
@@ -37,12 +37,11 @@ optimiser can remove redundant references later.</p>
 <div class="example-wrap"><pre class="rust rust-example-rendered">
 <span class="kw">use</span> <span class="ident">rand</span>::<span class="ident">Rng</span>;
 
-<span class="kw">fn</span> <span class="ident">foo</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">Rng</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span><span class="op">&gt;</span>(<span class="ident">rng</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">R</span>) <span class="op">-&gt;</span> <span class="ident">f32</span> {
+<span class="kw">fn</span> <span class="ident">foo</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">Rng</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span><span class="op">&gt;</span>(<span class="ident">rng</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">R</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">f32</span> {
     <span class="ident">rng</span>.<span class="ident">gen</span>()
 }
 </pre></div>
-</div>
-            <h2 id='provided-methods' class='small-section-header'>Provided methods<a href='#provided-methods' class='anchor'></a></h2><div class='methods'><h3 id='method.gen' class='method'><code>fn <a href='#method.gen' class='fnname'>gen</a>&lt;T&gt;(&amp;mut self) -&gt; T <span class="where fmt-newline">where<br>&nbsp;&nbsp;&nbsp;&nbsp;<a class="struct" href="../rand/distributions/struct.Standard.html" title="struct rand::distributions::Standard">Standard</a>: <a class="trait" href="../rand/distributions/trait.Distribution.html" title="trait rand::distributions::Distribution">Distribution</a>&lt;T&gt;,&nbsp;</span></code></h3><div class='docblock'><p>Return a random value supporting the <a href="distributions::Standard"><code>Standard</code></a> distribution.</p>
+</div><h2 id='provided-methods' class='small-section-header'>Provided methods<a href='#provided-methods' class='anchor'></a></h2><div class='methods'><h3 id='method.gen' class='method'><code>fn <a href='#method.gen' class='fnname'>gen</a>&lt;T&gt;(&amp;mut self) -&gt; T <span class="where fmt-newline">where<br>&nbsp;&nbsp;&nbsp;&nbsp;<a class="struct" href="../rand/distributions/struct.Standard.html" title="struct rand::distributions::Standard">Standard</a>: <a class="trait" href="../rand/distributions/trait.Distribution.html" title="trait rand::distributions::Distribution">Distribution</a>&lt;T&gt;,&nbsp;</span></code></h3><div class='docblock'><p>Return a random value supporting the <a href="../rand/distributions/struct.Standard.html"><code>Standard</code></a> distribution.</p>
 <h1 id="example" class="section-header"><a href="#example">Example</a></h1>
 <div class="example-wrap"><pre class="rust rust-example-rendered">
 <span class="kw">use</span> <span class="ident">rand</span>::{<span class="ident">thread_rng</span>, <span class="ident">Rng</span>};
@@ -56,7 +55,7 @@ optimiser can remove redundant references later.</p>
 and tuples (up to 12 elements), so long as all element types can be
 generated.</p>
 <p>For arrays of integers, especially for those with small element types
-(&lt; 64 bit), it will likely be faster to instead use [<code>Rng::fill</code>].</p>
+(&lt; 64 bit), it will likely be faster to instead use <a href="../rand/trait.Rng.html#method.fill" title="Rng::fill"><code>Rng::fill</code></a>.</p>
 
 <div class="example-wrap"><pre class="rust rust-example-rendered">
 <span class="kw">use</span> <span class="ident">rand</span>::{<span class="ident">thread_rng</span>, <span class="ident">Rng</span>};
@@ -70,7 +69,7 @@ generated.</p>
 </div><h3 id='method.gen_range' class='method'><code>fn <a href='#method.gen_range' class='fnname'>gen_range</a>&lt;T:&nbsp;<a class="trait" href="../rand/distributions/uniform/trait.SampleUniform.html" title="trait rand::distributions::uniform::SampleUniform">SampleUniform</a>, B1, B2&gt;(&amp;mut self, low: B1, high: B2) -&gt; T <span class="where fmt-newline">where<br>&nbsp;&nbsp;&nbsp;&nbsp;B1: <a class="trait" href="../rand/distributions/uniform/trait.SampleBorrow.html" title="trait rand::distributions::uniform::SampleBorrow">SampleBorrow</a>&lt;T&gt; + <a class="trait" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a>,<br>&nbsp;&nbsp;&nbsp;&nbsp;B2: <a class="trait" href="../rand/distributions/uniform/trait.SampleBorrow.html" title="trait rand::distributions::uniform::SampleBorrow">SampleBorrow</a>&lt;T&gt; + <a class="trait" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a>,&nbsp;</span></code></h3><div class='docblock'><p>Generate a random value in the range [<code>low</code>, <code>high</code>), i.e. inclusive of
 <code>low</code> and exclusive of <code>high</code>.</p>
 <p>This function is optimised for the case that only a single sample is
-made from the given range. See also the <a href="distributions::uniform::Uniform"><code>Uniform</code></a> distribution
+made from the given range. See also the <a href="../rand/distributions/uniform/struct.Uniform.html"><code>Uniform</code></a> distribution
 type which may be faster if sampling from the same range repeatedly.</p>
 <h1 id="panics" class="section-header"><a href="#panics">Panics</a></h1>
 <p>Panics if <code>low &gt;= high</code>.</p>
@@ -115,22 +114,22 @@ need to be replaced with <code>(&amp;mut rng).sample_iter(...)</code>.</p>
 
 <span class="comment">// Combined values</span>
 <span class="macro">println</span><span class="macro">!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">rng</span>.<span class="ident">sample_iter</span>(<span class="ident">Standard</span>).<span class="ident">take</span>(<span class="number">5</span>)
-                             .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">f64</span>, <span class="ident">bool</span>)<span class="op">&gt;&gt;</span>());
+                             .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">f64</span>, <span class="ident">bool</span>)<span class="op">&gt;</span><span class="op">&gt;</span>());
 
 <span class="comment">// Dice-rolling:</span>
 <span class="kw">let</span> <span class="ident">die_range</span> <span class="op">=</span> <span class="ident">Uniform</span>::<span class="ident">new_inclusive</span>(<span class="number">1</span>, <span class="number">6</span>);
 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">roll_die</span> <span class="op">=</span> <span class="ident">rng</span>.<span class="ident">sample_iter</span>(<span class="ident">die_range</span>);
-<span class="kw">while</span> <span class="ident">roll_die</span>.<span class="ident">next</span>().<span class="ident">unwrap</span>() <span class="op">!=</span> <span class="number">6</span> {
+<span class="kw">while</span> <span class="ident">roll_die</span>.<span class="ident">next</span>().<span class="ident">unwrap</span>() <span class="op">!</span><span class="op">=</span> <span class="number">6</span> {
     <span class="macro">println</span><span class="macro">!</span>(<span class="string">&quot;Not a 6; rolling again!&quot;</span>);
 }</pre></div>
 </div><h3 id='method.fill' class='method'><code>fn <a href='#method.fill' class='fnname'>fill</a>&lt;T:&nbsp;<a class="trait" href="../rand/trait.AsByteSliceMut.html" title="trait rand::AsByteSliceMut">AsByteSliceMut</a> + ?<a class="trait" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a>&gt;(&amp;mut self, dest: <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.reference.html">&amp;mut </a>T)</code></h3><div class='docblock'><p>Fill <code>dest</code> entirely with random bytes (uniform value distribution),
-where <code>dest</code> is any type supporting [<code>AsByteSliceMut</code>], namely slices
+where <code>dest</code> is any type supporting <a href="../rand/trait.AsByteSliceMut.html" title="AsByteSliceMut"><code>AsByteSliceMut</code></a>, namely slices
 and arrays over primitive integer types (<code>i8</code>, <code>i16</code>, <code>u32</code>, etc.).</p>
 <p>On big-endian platforms this performs byte-swapping to ensure
 portability of results from reproducible generators.</p>
-<p>This uses <a href="RngCore::fill_bytes"><code>fill_bytes</code></a> internally which may handle some RNG errors
+<p>This uses <a href="../rand/trait.RngCore.html#tymethod.fill_bytes"><code>fill_bytes</code></a> internally which may handle some RNG errors
 implicitly (e.g. waiting if the OS generator is not ready), but panics
-on other errors. See also <a href="Rng::try_fill"><code>try_fill</code></a> which returns errors.</p>
+on other errors. See also <a href="../rand/trait.Rng.html#method.try_fill"><code>try_fill</code></a> which returns errors.</p>
 <h1 id="example-4" class="section-header"><a href="#example-4">Example</a></h1>
 <div class="example-wrap"><pre class="rust rust-example-rendered">
 <span class="kw">use</span> <span class="ident">rand</span>::{<span class="ident">thread_rng</span>, <span class="ident">Rng</span>};
@@ -138,11 +137,11 @@ on other errors. See also <a href="Rng::try_fill"><code>try_fill</code></a> whic
 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">arr</span> <span class="op">=</span> [<span class="number">0i8</span>; <span class="number">20</span>];
 <span class="ident">thread_rng</span>().<span class="ident">fill</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">arr</span>[..]);</pre></div>
 </div><h3 id='method.try_fill' class='method'><code>fn <a href='#method.try_fill' class='fnname'>try_fill</a>&lt;T:&nbsp;<a class="trait" href="../rand/trait.AsByteSliceMut.html" title="trait rand::AsByteSliceMut">AsByteSliceMut</a> + ?<a class="trait" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a>&gt;(<br>&nbsp;&nbsp;&nbsp;&nbsp;&amp;mut self, <br>&nbsp;&nbsp;&nbsp;&nbsp;dest: <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.reference.html">&amp;mut </a>T<br>) -&gt; <a class="enum" href="https://doc.rust-lang.org/nightly/core/result/enum.Result.html" title="enum core::result::Result">Result</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.unit.html">()</a>, <a class="struct" href="../rand/struct.Error.html" title="struct rand::Error">Error</a>&gt;</code></h3><div class='docblock'><p>Fill <code>dest</code> entirely with random bytes (uniform value distribution),
-where <code>dest</code> is any type supporting [<code>AsByteSliceMut</code>], namely slices
+where <code>dest</code> is any type supporting <a href="../rand/trait.AsByteSliceMut.html" title="AsByteSliceMut"><code>AsByteSliceMut</code></a>, namely slices
 and arrays over primitive integer types (<code>i8</code>, <code>i16</code>, <code>u32</code>, etc.).</p>
 <p>On big-endian platforms this performs byte-swapping to ensure
 portability of results from reproducible generators.</p>
-<p>This is identical to <a href="Rng::fill"><code>fill</code></a> except that it uses <a href="RngCore::try_fill_bytes"><code>try_fill_bytes</code></a>
+<p>This is identical to <a href="../rand/trait.Rng.html#method.fill"><code>fill</code></a> except that it uses <a href="../rand/trait.RngCore.html#tymethod.try_fill_bytes"><code>try_fill_bytes</code></a>
 internally and forwards RNG errors.</p>
 <h1 id="example-5" class="section-header"><a href="#example-5">Example</a></h1>
 <div class="example-wrap"><pre class="rust rust-example-rendered">
@@ -177,5 +176,4 @@ sampling from the same <code>numerator</code> and <code>denominator</code> repea
 
 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rng</span> <span class="op">=</span> <span class="ident">thread_rng</span>();
 <span class="macro">println</span><span class="macro">!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">rng</span>.<span class="ident">gen_ratio</span>(<span class="number">2</span>, <span class="number">3</span>));</pre></div>
-</div></div><span class='loading-content'>Loading content...</span>
-            <h2 id='implementors' class='small-section-header'>Implementors<a href='#implementors' class='anchor'></a></h2><div class='item-list' id='implementors-list'><h3 id='impl-Rng' class='impl'><code class='in-band'>impl&lt;R:&nbsp;<a class="trait" href="../rand/trait.RngCore.html" title="trait rand::RngCore">RngCore</a> + ?<a class="trait" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a>&gt; Rng for R</code><a href='#impl-Rng' class='anchor'></a><a class='srclink' href='../src/rand/lib.rs.html#394' title='goto source code'>[src]</a></h3><div class='impl-items'></div></div><span class='loading-content'>Loading content...</span><script type="text/javascript" src="../implementors/rand/trait.Rng.js" async></script></section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../";window.currentCrate = "rand";</script><script src="../main.js"></script><script defer src="../search-index.js"></script></body></html>
+</div></div><span class='loading-content'>Loading content...</span><h2 id='implementors' class='small-section-header'>Implementors<a href='#implementors' class='anchor'></a></h2><div class='item-list' id='implementors-list'><h3 id='impl-Rng' class='impl'><code class='in-band'>impl&lt;R:&nbsp;<a class="trait" href="../rand/trait.RngCore.html" title="trait rand::RngCore">RngCore</a> + ?<a class="trait" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a>&gt; Rng for R</code><a href='#impl-Rng' class='anchor'></a><a class='srclink' href='../src/rand/lib.rs.html#394' title='goto source code'>[src]</a></h3><div class='impl-items'></div></div><span class='loading-content'>Loading content...</span><script type="text/javascript" src="../implementors/rand/trait.Rng.js" async></script></section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../";window.currentCrate = "rand";</script><script src="../main.js"></script><script defer src="../search-index.js"></script></body></html>

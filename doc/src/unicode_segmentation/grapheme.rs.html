@@ -743,7 +743,7 @@
     <span class="doccomment">/// iter.next();</span>
     <span class="doccomment">/// assert_eq!(iter.as_str(), &quot;&quot;);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_str</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_str</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span> {
         <span class="self">self</span>.<span class="ident">iter</span>.<span class="ident">as_str</span>()
     }
 }
@@ -752,19 +752,19 @@
     <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> (<span class="ident">usize</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>);
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">usize</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>)<span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">usize</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>)<span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">iter</span>.<span class="ident">next</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> (<span class="ident">s</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="ident">usize</span> <span class="op">-</span> <span class="self">self</span>.<span class="ident">start_offset</span>, <span class="ident">s</span>))
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">size_hint</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> (<span class="ident">usize</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>) {
+    <span class="kw">fn</span> <span class="ident">size_hint</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="ident">usize</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>) {
         <span class="self">self</span>.<span class="ident">iter</span>.<span class="ident">size_hint</span>()
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">DoubleEndedIterator</span> <span class="kw">for</span> <span class="ident">GraphemeIndices</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">next_back</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">usize</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>)<span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">next_back</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">usize</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>)<span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">iter</span>.<span class="ident">next_back</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> (<span class="ident">s</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="ident">usize</span> <span class="op">-</span> <span class="self">self</span>.<span class="ident">start_offset</span>, <span class="ident">s</span>))
     }
 }
@@ -792,7 +792,7 @@
     <span class="doccomment">/// iter.next();</span>
     <span class="doccomment">/// assert_eq!(iter.as_str(), &quot;&quot;);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_str</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_str</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span> {
         <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">string</span>[<span class="self">self</span>.<span class="ident">cursor</span>.<span class="ident">cur_cursor</span>()..<span class="self">self</span>.<span class="ident">cursor_back</span>.<span class="ident">cur_cursor</span>()]
     }
 }
@@ -801,15 +801,15 @@
     <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>;
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">size_hint</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> (<span class="ident">usize</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>) {
+    <span class="kw">fn</span> <span class="ident">size_hint</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="ident">usize</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>) {
         <span class="kw">let</span> <span class="ident">slen</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">cursor_back</span>.<span class="ident">cur_cursor</span>() <span class="op">-</span> <span class="self">self</span>.<span class="ident">cursor</span>.<span class="ident">cur_cursor</span>();
         (<span class="ident">cmp</span>::<span class="ident">min</span>(<span class="ident">slen</span>, <span class="number">1</span>), <span class="prelude-val">Some</span>(<span class="ident">slen</span>))
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">cursor</span>.<span class="ident">cur_cursor</span>();
-        <span class="kw">if</span> <span class="ident">start</span> <span class="op">==</span> <span class="self">self</span>.<span class="ident">cursor_back</span>.<span class="ident">cur_cursor</span>() {
+        <span class="kw">if</span> <span class="ident">start</span> <span class="op">=</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">cursor_back</span>.<span class="ident">cur_cursor</span>() {
             <span class="kw">return</span> <span class="prelude-val">None</span>;
         }
         <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">cursor</span>.<span class="ident">next_boundary</span>(<span class="self">self</span>.<span class="ident">string</span>, <span class="number">0</span>).<span class="ident">unwrap</span>().<span class="ident">unwrap</span>();
@@ -819,9 +819,9 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">DoubleEndedIterator</span> <span class="kw">for</span> <span class="ident">Graphemes</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">next_back</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">next_back</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">end</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">cursor_back</span>.<span class="ident">cur_cursor</span>();
-        <span class="kw">if</span> <span class="ident">end</span> <span class="op">==</span> <span class="self">self</span>.<span class="ident">cursor</span>.<span class="ident">cur_cursor</span>() {
+        <span class="kw">if</span> <span class="ident">end</span> <span class="op">=</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">cursor</span>.<span class="ident">cur_cursor</span>() {
             <span class="kw">return</span> <span class="prelude-val">None</span>;
         }
         <span class="kw">let</span> <span class="ident">prev</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">cursor_back</span>.<span class="ident">prev_boundary</span>(<span class="self">self</span>.<span class="ident">string</span>, <span class="number">0</span>).<span class="ident">unwrap</span>().<span class="ident">unwrap</span>();
@@ -830,7 +830,7 @@
 }
 
 <span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_graphemes</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span><span class="op">&gt;</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">str</span>, <span class="ident">is_extended</span>: <span class="ident">bool</span>) <span class="op">-&gt;</span> <span class="ident">Graphemes</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_graphemes</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span><span class="op">&gt;</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">str</span>, <span class="ident">is_extended</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Graphemes</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">s</span>.<span class="ident">len</span>();
     <span class="ident">Graphemes</span> {
         <span class="ident">string</span>: <span class="ident">s</span>,
@@ -840,7 +840,7 @@
 }
 
 <span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_grapheme_indices</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span><span class="op">&gt;</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">str</span>, <span class="ident">is_extended</span>: <span class="ident">bool</span>) <span class="op">-&gt;</span> <span class="ident">GraphemeIndices</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_grapheme_indices</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span><span class="op">&gt;</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">str</span>, <span class="ident">is_extended</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">GraphemeIndices</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span><span class="op">&gt;</span> {
     <span class="ident">GraphemeIndices</span> { <span class="ident">start_offset</span>: <span class="ident">s</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="ident">usize</span>, <span class="ident">iter</span>: <span class="ident">new_graphemes</span>(<span class="ident">s</span>, <span class="ident">is_extended</span>) }
 }
 
@@ -924,34 +924,34 @@
     <span class="ident">Emoji</span>,  <span class="comment">// a break if preceded by emoji base and (Extend)*</span>
 }
 
-<span class="kw">fn</span> <span class="ident">check_pair</span>(<span class="ident">before</span>: <span class="ident">GraphemeCat</span>, <span class="ident">after</span>: <span class="ident">GraphemeCat</span>) <span class="op">-&gt;</span> <span class="ident">PairResult</span> {
+<span class="kw">fn</span> <span class="ident">check_pair</span>(<span class="ident">before</span>: <span class="ident">GraphemeCat</span>, <span class="ident">after</span>: <span class="ident">GraphemeCat</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PairResult</span> {
     <span class="kw">use</span> <span class="ident">tables</span>::<span class="ident">grapheme</span>::<span class="ident">GraphemeCat</span>::<span class="kw-2">*</span>;
     <span class="kw">use</span> <span class="self">self</span>::<span class="ident">PairResult</span>::<span class="kw-2">*</span>;
     <span class="kw">match</span> (<span class="ident">before</span>, <span class="ident">after</span>) {
-        (<span class="ident">GC_CR</span>, <span class="ident">GC_LF</span>) <span class="op">=&gt;</span> <span class="ident">NotBreak</span>,  <span class="comment">// GB3</span>
-        (<span class="ident">GC_Control</span>, <span class="kw">_</span>) <span class="op">=&gt;</span> <span class="ident">Break</span>,  <span class="comment">// GB4</span>
-        (<span class="ident">GC_CR</span>, <span class="kw">_</span>) <span class="op">=&gt;</span> <span class="ident">Break</span>,  <span class="comment">// GB4</span>
-        (<span class="ident">GC_LF</span>, <span class="kw">_</span>) <span class="op">=&gt;</span> <span class="ident">Break</span>,  <span class="comment">// GB4</span>
-        (<span class="kw">_</span>, <span class="ident">GC_Control</span>) <span class="op">=&gt;</span> <span class="ident">Break</span>,  <span class="comment">// GB5</span>
-        (<span class="kw">_</span>, <span class="ident">GC_CR</span>) <span class="op">=&gt;</span> <span class="ident">Break</span>,  <span class="comment">// GB5</span>
-        (<span class="kw">_</span>, <span class="ident">GC_LF</span>) <span class="op">=&gt;</span> <span class="ident">Break</span>,  <span class="comment">// GB5</span>
-        (<span class="ident">GC_L</span>, <span class="ident">GC_L</span>) <span class="op">=&gt;</span> <span class="ident">NotBreak</span>,  <span class="comment">// GB6</span>
-        (<span class="ident">GC_L</span>, <span class="ident">GC_V</span>) <span class="op">=&gt;</span> <span class="ident">NotBreak</span>,  <span class="comment">// GB6</span>
-        (<span class="ident">GC_L</span>, <span class="ident">GC_LV</span>) <span class="op">=&gt;</span> <span class="ident">NotBreak</span>,  <span class="comment">// GB6</span>
-        (<span class="ident">GC_L</span>, <span class="ident">GC_LVT</span>) <span class="op">=&gt;</span> <span class="ident">NotBreak</span>,  <span class="comment">// GB6</span>
-        (<span class="ident">GC_LV</span>, <span class="ident">GC_V</span>) <span class="op">=&gt;</span> <span class="ident">NotBreak</span>,  <span class="comment">// GB7</span>
-        (<span class="ident">GC_LV</span>, <span class="ident">GC_T</span>) <span class="op">=&gt;</span> <span class="ident">NotBreak</span>,  <span class="comment">// GB7</span>
-        (<span class="ident">GC_V</span>, <span class="ident">GC_V</span>) <span class="op">=&gt;</span> <span class="ident">NotBreak</span>,  <span class="comment">// GB7</span>
-        (<span class="ident">GC_V</span>, <span class="ident">GC_T</span>) <span class="op">=&gt;</span> <span class="ident">NotBreak</span>,  <span class="comment">// GB7</span>
-        (<span class="ident">GC_LVT</span>, <span class="ident">GC_T</span>) <span class="op">=&gt;</span> <span class="ident">NotBreak</span>,  <span class="comment">// GB8</span>
-        (<span class="ident">GC_T</span>, <span class="ident">GC_T</span>) <span class="op">=&gt;</span> <span class="ident">NotBreak</span>,  <span class="comment">// GB8</span>
-        (<span class="kw">_</span>, <span class="ident">GC_Extend</span>) <span class="op">=&gt;</span> <span class="ident">NotBreak</span>, <span class="comment">// GB9</span>
-        (<span class="kw">_</span>, <span class="ident">GC_ZWJ</span>) <span class="op">=&gt;</span> <span class="ident">NotBreak</span>,  <span class="comment">// GB9</span>
-        (<span class="kw">_</span>, <span class="ident">GC_SpacingMark</span>) <span class="op">=&gt;</span> <span class="ident">Extended</span>,  <span class="comment">// GB9a</span>
-        (<span class="ident">GC_Prepend</span>, <span class="kw">_</span>) <span class="op">=&gt;</span> <span class="ident">Extended</span>,  <span class="comment">// GB9b</span>
-        (<span class="ident">GC_ZWJ</span>, <span class="ident">GC_Extended_Pictographic</span>) <span class="op">=&gt;</span> <span class="ident">Emoji</span>,  <span class="comment">// GB11</span>
-        (<span class="ident">GC_Regional_Indicator</span>, <span class="ident">GC_Regional_Indicator</span>) <span class="op">=&gt;</span> <span class="ident">Regional</span>,  <span class="comment">// GB12, GB13</span>
-        (<span class="kw">_</span>, <span class="kw">_</span>) <span class="op">=&gt;</span> <span class="ident">Break</span>,  <span class="comment">// GB999</span>
+        (<span class="ident">GC_CR</span>, <span class="ident">GC_LF</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">NotBreak</span>,  <span class="comment">// GB3</span>
+        (<span class="ident">GC_Control</span>, <span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Break</span>,  <span class="comment">// GB4</span>
+        (<span class="ident">GC_CR</span>, <span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Break</span>,  <span class="comment">// GB4</span>
+        (<span class="ident">GC_LF</span>, <span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Break</span>,  <span class="comment">// GB4</span>
+        (<span class="kw">_</span>, <span class="ident">GC_Control</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Break</span>,  <span class="comment">// GB5</span>
+        (<span class="kw">_</span>, <span class="ident">GC_CR</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Break</span>,  <span class="comment">// GB5</span>
+        (<span class="kw">_</span>, <span class="ident">GC_LF</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Break</span>,  <span class="comment">// GB5</span>
+        (<span class="ident">GC_L</span>, <span class="ident">GC_L</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">NotBreak</span>,  <span class="comment">// GB6</span>
+        (<span class="ident">GC_L</span>, <span class="ident">GC_V</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">NotBreak</span>,  <span class="comment">// GB6</span>
+        (<span class="ident">GC_L</span>, <span class="ident">GC_LV</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">NotBreak</span>,  <span class="comment">// GB6</span>
+        (<span class="ident">GC_L</span>, <span class="ident">GC_LVT</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">NotBreak</span>,  <span class="comment">// GB6</span>
+        (<span class="ident">GC_LV</span>, <span class="ident">GC_V</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">NotBreak</span>,  <span class="comment">// GB7</span>
+        (<span class="ident">GC_LV</span>, <span class="ident">GC_T</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">NotBreak</span>,  <span class="comment">// GB7</span>
+        (<span class="ident">GC_V</span>, <span class="ident">GC_V</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">NotBreak</span>,  <span class="comment">// GB7</span>
+        (<span class="ident">GC_V</span>, <span class="ident">GC_T</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">NotBreak</span>,  <span class="comment">// GB7</span>
+        (<span class="ident">GC_LVT</span>, <span class="ident">GC_T</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">NotBreak</span>,  <span class="comment">// GB8</span>
+        (<span class="ident">GC_T</span>, <span class="ident">GC_T</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">NotBreak</span>,  <span class="comment">// GB8</span>
+        (<span class="kw">_</span>, <span class="ident">GC_Extend</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">NotBreak</span>, <span class="comment">// GB9</span>
+        (<span class="kw">_</span>, <span class="ident">GC_ZWJ</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">NotBreak</span>,  <span class="comment">// GB9</span>
+        (<span class="kw">_</span>, <span class="ident">GC_SpacingMark</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Extended</span>,  <span class="comment">// GB9a</span>
+        (<span class="ident">GC_Prepend</span>, <span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Extended</span>,  <span class="comment">// GB9b</span>
+        (<span class="ident">GC_ZWJ</span>, <span class="ident">GC_Extended_Pictographic</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Emoji</span>,  <span class="comment">// GB11</span>
+        (<span class="ident">GC_Regional_Indicator</span>, <span class="ident">GC_Regional_Indicator</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Regional</span>,  <span class="comment">// GB12, GB13</span>
+        (<span class="kw">_</span>, <span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Break</span>,  <span class="comment">// GB999</span>
     }
 }
 
@@ -970,8 +970,8 @@
     <span class="doccomment">/// let mut extended = GraphemeCursor::new(0, s.len(), true);</span>
     <span class="doccomment">/// assert_eq!(extended.next_boundary(s, 0), Ok(Some(&quot;हि&quot;.len())));</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">offset</span>: <span class="ident">usize</span>, <span class="ident">len</span>: <span class="ident">usize</span>, <span class="ident">is_extended</span>: <span class="ident">bool</span>) <span class="op">-&gt;</span> <span class="ident">GraphemeCursor</span> {
-        <span class="kw">let</span> <span class="ident">state</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">offset</span> <span class="op">==</span> <span class="number">0</span> <span class="op">||</span> <span class="ident">offset</span> <span class="op">==</span> <span class="ident">len</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">offset</span>: <span class="ident">usize</span>, <span class="ident">len</span>: <span class="ident">usize</span>, <span class="ident">is_extended</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">GraphemeCursor</span> {
+        <span class="kw">let</span> <span class="ident">state</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">offset</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> <span class="op">|</span><span class="op">|</span> <span class="ident">offset</span> <span class="op">=</span><span class="op">=</span> <span class="ident">len</span> {
             <span class="ident">GraphemeState</span>::<span class="ident">Break</span>
         } <span class="kw">else</span> {
             <span class="ident">GraphemeState</span>::<span class="ident">Unknown</span>
@@ -1002,9 +1002,9 @@
     <span class="doccomment">/// assert_eq!(cursor.cur_cursor(), 2);</span>
     <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_cursor</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">offset</span>: <span class="ident">usize</span>) {
-        <span class="kw">if</span> <span class="ident">offset</span> <span class="op">!=</span> <span class="self">self</span>.<span class="ident">offset</span> {
+        <span class="kw">if</span> <span class="ident">offset</span> <span class="op">!</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">offset</span> {
             <span class="self">self</span>.<span class="ident">offset</span> <span class="op">=</span> <span class="ident">offset</span>;
-            <span class="self">self</span>.<span class="ident">state</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">offset</span> <span class="op">==</span> <span class="number">0</span> <span class="op">||</span> <span class="ident">offset</span> <span class="op">==</span> <span class="self">self</span>.<span class="ident">len</span> {
+            <span class="self">self</span>.<span class="ident">state</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">offset</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> <span class="op">|</span><span class="op">|</span> <span class="ident">offset</span> <span class="op">=</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">len</span> {
                 <span class="ident">GraphemeState</span>::<span class="ident">Break</span>
             } <span class="kw">else</span> {
                 <span class="ident">GraphemeState</span>::<span class="ident">Unknown</span>
@@ -1030,7 +1030,7 @@
     <span class="doccomment">/// assert_eq!(cursor.next_boundary(flags, 0), Ok(Some(8)));</span>
     <span class="doccomment">/// assert_eq!(cursor.cur_cursor(), 8);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">cur_cursor</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">usize</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">cur_cursor</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
         <span class="self">self</span>.<span class="ident">offset</span>
     }
 
@@ -1055,19 +1055,19 @@
     <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">provide_context</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">chunk</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">chunk_start</span>: <span class="ident">usize</span>) {
         <span class="kw">use</span> <span class="ident">tables</span>::<span class="ident">grapheme</span> <span class="kw">as</span> <span class="ident">gr</span>;
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">chunk_start</span> <span class="op">+</span> <span class="ident">chunk</span>.<span class="ident">len</span>() <span class="op">==</span> <span class="self">self</span>.<span class="ident">pre_context_offset</span>.<span class="ident">unwrap</span>());
+        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">chunk_start</span> <span class="op">+</span> <span class="ident">chunk</span>.<span class="ident">len</span>() <span class="op">=</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">pre_context_offset</span>.<span class="ident">unwrap</span>());
         <span class="self">self</span>.<span class="ident">pre_context_offset</span> <span class="op">=</span> <span class="prelude-val">None</span>;
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_extended</span> <span class="op">&amp;&amp;</span> <span class="ident">chunk_start</span> <span class="op">+</span> <span class="ident">chunk</span>.<span class="ident">len</span>() <span class="op">==</span> <span class="self">self</span>.<span class="ident">offset</span> {
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_extended</span> <span class="op">&amp;&amp;</span> <span class="ident">chunk_start</span> <span class="op">+</span> <span class="ident">chunk</span>.<span class="ident">len</span>() <span class="op">=</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">offset</span> {
             <span class="kw">let</span> <span class="ident">ch</span> <span class="op">=</span> <span class="ident">chunk</span>.<span class="ident">chars</span>().<span class="ident">rev</span>().<span class="ident">next</span>().<span class="ident">unwrap</span>();
-            <span class="kw">if</span> <span class="ident">gr</span>::<span class="ident">grapheme_category</span>(<span class="ident">ch</span>) <span class="op">==</span> <span class="ident">gr</span>::<span class="ident">GC_Prepend</span> {
+            <span class="kw">if</span> <span class="ident">gr</span>::<span class="ident">grapheme_category</span>(<span class="ident">ch</span>) <span class="op">=</span><span class="op">=</span> <span class="ident">gr</span>::<span class="ident">GC_Prepend</span> {
                 <span class="self">self</span>.<span class="ident">decide</span>(<span class="bool-val">false</span>);  <span class="comment">// GB9b</span>
                 <span class="kw">return</span>;
             }
         }
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">state</span> {
-            <span class="ident">GraphemeState</span>::<span class="ident">Regional</span> <span class="op">=&gt;</span> <span class="self">self</span>.<span class="ident">handle_regional</span>(<span class="ident">chunk</span>, <span class="ident">chunk_start</span>),
-            <span class="ident">GraphemeState</span>::<span class="ident">Emoji</span> <span class="op">=&gt;</span> <span class="self">self</span>.<span class="ident">handle_emoji</span>(<span class="ident">chunk</span>, <span class="ident">chunk_start</span>),
-            <span class="kw">_</span> <span class="op">=&gt;</span> <span class="kw">if</span> <span class="self">self</span>.<span class="ident">cat_before</span>.<span class="ident">is_none</span>() <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">offset</span> <span class="op">==</span> <span class="ident">chunk</span>.<span class="ident">len</span>() <span class="op">+</span> <span class="ident">chunk_start</span> {
+            <span class="ident">GraphemeState</span>::<span class="ident">Regional</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">handle_regional</span>(<span class="ident">chunk</span>, <span class="ident">chunk_start</span>),
+            <span class="ident">GraphemeState</span>::<span class="ident">Emoji</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">handle_emoji</span>(<span class="ident">chunk</span>, <span class="ident">chunk_start</span>),
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">if</span> <span class="self">self</span>.<span class="ident">cat_before</span>.<span class="ident">is_none</span>() <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">offset</span> <span class="op">=</span><span class="op">=</span> <span class="ident">chunk</span>.<span class="ident">len</span>() <span class="op">+</span> <span class="ident">chunk_start</span> {
                 <span class="kw">let</span> <span class="ident">ch</span> <span class="op">=</span> <span class="ident">chunk</span>.<span class="ident">chars</span>().<span class="ident">rev</span>().<span class="ident">next</span>().<span class="ident">unwrap</span>();
                 <span class="self">self</span>.<span class="ident">cat_before</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">gr</span>::<span class="ident">grapheme_category</span>(<span class="ident">ch</span>));
             },
@@ -1082,15 +1082,15 @@
         };
     }
 
-    <span class="kw">fn</span> <span class="ident">decision</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">is_break</span>: <span class="ident">bool</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">bool</span>, <span class="ident">GraphemeIncomplete</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">decision</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">is_break</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">bool</span>, <span class="ident">GraphemeIncomplete</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">decide</span>(<span class="ident">is_break</span>);
         <span class="prelude-val">Ok</span>(<span class="ident">is_break</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">is_boundary_result</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">bool</span>, <span class="ident">GraphemeIncomplete</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">state</span> <span class="op">==</span> <span class="ident">GraphemeState</span>::<span class="ident">Break</span> {
+    <span class="kw">fn</span> <span class="ident">is_boundary_result</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">bool</span>, <span class="ident">GraphemeIncomplete</span><span class="op">&gt;</span> {
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">state</span> <span class="op">=</span><span class="op">=</span> <span class="ident">GraphemeState</span>::<span class="ident">Break</span> {
             <span class="prelude-val">Ok</span>(<span class="bool-val">true</span>)
-        } <span class="kw">else</span> <span class="kw">if</span> <span class="self">self</span>.<span class="ident">state</span> <span class="op">==</span> <span class="ident">GraphemeState</span>::<span class="ident">NotBreak</span> {
+        } <span class="kw">else</span> <span class="kw">if</span> <span class="self">self</span>.<span class="ident">state</span> <span class="op">=</span><span class="op">=</span> <span class="ident">GraphemeState</span>::<span class="ident">NotBreak</span> {
             <span class="prelude-val">Ok</span>(<span class="bool-val">false</span>)
         } <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">pre_context_offset</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">pre_context_offset</span> {
             <span class="prelude-val">Err</span>(<span class="ident">GraphemeIncomplete</span>::<span class="ident">PreContext</span>(<span class="ident">pre_context_offset</span>))
@@ -1103,16 +1103,16 @@
         <span class="kw">use</span> <span class="ident">tables</span>::<span class="ident">grapheme</span> <span class="kw">as</span> <span class="ident">gr</span>;
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">ris_count</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">ris_count</span>.<span class="ident">unwrap_or</span>(<span class="number">0</span>);
         <span class="kw">for</span> <span class="ident">ch</span> <span class="kw">in</span> <span class="ident">chunk</span>.<span class="ident">chars</span>().<span class="ident">rev</span>() {
-            <span class="kw">if</span> <span class="ident">gr</span>::<span class="ident">grapheme_category</span>(<span class="ident">ch</span>) <span class="op">!=</span> <span class="ident">gr</span>::<span class="ident">GC_Regional_Indicator</span> {
+            <span class="kw">if</span> <span class="ident">gr</span>::<span class="ident">grapheme_category</span>(<span class="ident">ch</span>) <span class="op">!</span><span class="op">=</span> <span class="ident">gr</span>::<span class="ident">GC_Regional_Indicator</span> {
                 <span class="self">self</span>.<span class="ident">ris_count</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">ris_count</span>);
-                <span class="self">self</span>.<span class="ident">decide</span>((<span class="ident">ris_count</span> <span class="op">%</span> <span class="number">2</span>) <span class="op">==</span> <span class="number">0</span>);
+                <span class="self">self</span>.<span class="ident">decide</span>((<span class="ident">ris_count</span> <span class="op">%</span> <span class="number">2</span>) <span class="op">=</span><span class="op">=</span> <span class="number">0</span>);
                 <span class="kw">return</span>;
             }
-            <span class="ident">ris_count</span> <span class="op">+=</span> <span class="number">1</span>;
+            <span class="ident">ris_count</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
         }
         <span class="self">self</span>.<span class="ident">ris_count</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">ris_count</span>);
-        <span class="kw">if</span> <span class="ident">chunk_start</span> <span class="op">==</span> <span class="number">0</span> {
-            <span class="self">self</span>.<span class="ident">decide</span>((<span class="ident">ris_count</span> <span class="op">%</span> <span class="number">2</span>) <span class="op">==</span> <span class="number">0</span>);
+        <span class="kw">if</span> <span class="ident">chunk_start</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+            <span class="self">self</span>.<span class="ident">decide</span>((<span class="ident">ris_count</span> <span class="op">%</span> <span class="number">2</span>) <span class="op">=</span><span class="op">=</span> <span class="number">0</span>);
             <span class="kw">return</span>;
         }
         <span class="self">self</span>.<span class="ident">pre_context_offset</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">chunk_start</span>);
@@ -1123,25 +1123,25 @@
         <span class="kw">use</span> <span class="ident">tables</span>::<span class="ident">grapheme</span> <span class="kw">as</span> <span class="ident">gr</span>;
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">iter</span> <span class="op">=</span> <span class="ident">chunk</span>.<span class="ident">chars</span>().<span class="ident">rev</span>();
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">ch</span>) <span class="op">=</span> <span class="ident">iter</span>.<span class="ident">next</span>() {
-            <span class="kw">if</span> <span class="ident">gr</span>::<span class="ident">grapheme_category</span>(<span class="ident">ch</span>) <span class="op">!=</span> <span class="ident">gr</span>::<span class="ident">GC_ZWJ</span> {
+            <span class="kw">if</span> <span class="ident">gr</span>::<span class="ident">grapheme_category</span>(<span class="ident">ch</span>) <span class="op">!</span><span class="op">=</span> <span class="ident">gr</span>::<span class="ident">GC_ZWJ</span> {
                 <span class="self">self</span>.<span class="ident">decide</span>(<span class="bool-val">true</span>);
                 <span class="kw">return</span>;
             }
         }
         <span class="kw">for</span> <span class="ident">ch</span> <span class="kw">in</span> <span class="ident">iter</span> {
             <span class="kw">match</span> <span class="ident">gr</span>::<span class="ident">grapheme_category</span>(<span class="ident">ch</span>) {
-                <span class="ident">gr</span>::<span class="ident">GC_Extend</span> <span class="op">=&gt;</span> (),
-                <span class="ident">gr</span>::<span class="ident">GC_Extended_Pictographic</span> <span class="op">=&gt;</span> {
+                <span class="ident">gr</span>::<span class="ident">GC_Extend</span> <span class="op">=</span><span class="op">&gt;</span> (),
+                <span class="ident">gr</span>::<span class="ident">GC_Extended_Pictographic</span> <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="self">self</span>.<span class="ident">decide</span>(<span class="bool-val">false</span>);
                     <span class="kw">return</span>;
                 }
-                <span class="kw">_</span> <span class="op">=&gt;</span> {
+                <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="self">self</span>.<span class="ident">decide</span>(<span class="bool-val">true</span>);
                     <span class="kw">return</span>;
                 }
             }
         }
-        <span class="kw">if</span> <span class="ident">chunk_start</span> <span class="op">==</span> <span class="number">0</span> {
+        <span class="kw">if</span> <span class="ident">chunk_start</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
             <span class="self">self</span>.<span class="ident">decide</span>(<span class="bool-val">true</span>);
             <span class="kw">return</span>;
         }
@@ -1172,16 +1172,16 @@
     <span class="doccomment">/// cursor.set_cursor(12);</span>
     <span class="doccomment">/// assert_eq!(cursor.is_boundary(flags, 0), Ok(false));</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_boundary</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">chunk</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">chunk_start</span>: <span class="ident">usize</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">bool</span>, <span class="ident">GraphemeIncomplete</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_boundary</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">chunk</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">chunk_start</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">bool</span>, <span class="ident">GraphemeIncomplete</span><span class="op">&gt;</span> {
         <span class="kw">use</span> <span class="ident">tables</span>::<span class="ident">grapheme</span> <span class="kw">as</span> <span class="ident">gr</span>;
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">state</span> <span class="op">==</span> <span class="ident">GraphemeState</span>::<span class="ident">Break</span> {
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">state</span> <span class="op">=</span><span class="op">=</span> <span class="ident">GraphemeState</span>::<span class="ident">Break</span> {
             <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="bool-val">true</span>)
         }
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">state</span> <span class="op">==</span> <span class="ident">GraphemeState</span>::<span class="ident">NotBreak</span> {
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">state</span> <span class="op">=</span><span class="op">=</span> <span class="ident">GraphemeState</span>::<span class="ident">NotBreak</span> {
             <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="bool-val">false</span>)
         }
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">offset</span> <span class="op">&lt;</span> <span class="ident">chunk_start</span> <span class="op">||</span> <span class="self">self</span>.<span class="ident">offset</span> <span class="op">&gt;=</span> <span class="ident">chunk_start</span> <span class="op">+</span> <span class="ident">chunk</span>.<span class="ident">len</span>() {
-            <span class="kw">if</span> <span class="self">self</span>.<span class="ident">offset</span> <span class="op">&gt;</span> <span class="ident">chunk_start</span> <span class="op">+</span> <span class="ident">chunk</span>.<span class="ident">len</span>() <span class="op">||</span> <span class="self">self</span>.<span class="ident">cat_after</span>.<span class="ident">is_none</span>() {
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">offset</span> <span class="op">&lt;</span> <span class="ident">chunk_start</span> <span class="op">|</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">offset</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">chunk_start</span> <span class="op">+</span> <span class="ident">chunk</span>.<span class="ident">len</span>() {
+            <span class="kw">if</span> <span class="self">self</span>.<span class="ident">offset</span> <span class="op">&gt;</span> <span class="ident">chunk_start</span> <span class="op">+</span> <span class="ident">chunk</span>.<span class="ident">len</span>() <span class="op">|</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">cat_after</span>.<span class="ident">is_none</span>() {
                 <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">GraphemeIncomplete</span>::<span class="ident">InvalidOffset</span>)
             }
         }
@@ -1193,12 +1193,12 @@
             <span class="kw">let</span> <span class="ident">ch</span> <span class="op">=</span> <span class="ident">chunk</span>[<span class="ident">offset_in_chunk</span>..].<span class="ident">chars</span>().<span class="ident">next</span>().<span class="ident">unwrap</span>();
             <span class="self">self</span>.<span class="ident">cat_after</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">gr</span>::<span class="ident">grapheme_category</span>(<span class="ident">ch</span>));
         }
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">offset</span> <span class="op">==</span> <span class="ident">chunk_start</span> {
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">offset</span> <span class="op">=</span><span class="op">=</span> <span class="ident">chunk_start</span> {
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">need_pre_context</span> <span class="op">=</span> <span class="bool-val">true</span>;
             <span class="kw">match</span> <span class="self">self</span>.<span class="ident">cat_after</span>.<span class="ident">unwrap</span>() {
-                <span class="ident">gr</span>::<span class="ident">GC_Regional_Indicator</span> <span class="op">=&gt;</span> <span class="self">self</span>.<span class="ident">state</span> <span class="op">=</span> <span class="ident">GraphemeState</span>::<span class="ident">Regional</span>,
-                <span class="ident">gr</span>::<span class="ident">GC_Extended_Pictographic</span> <span class="op">=&gt;</span> <span class="self">self</span>.<span class="ident">state</span> <span class="op">=</span> <span class="ident">GraphemeState</span>::<span class="ident">Emoji</span>,
-                <span class="kw">_</span> <span class="op">=&gt;</span> <span class="ident">need_pre_context</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">cat_before</span>.<span class="ident">is_none</span>(),
+                <span class="ident">gr</span>::<span class="ident">GC_Regional_Indicator</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">state</span> <span class="op">=</span> <span class="ident">GraphemeState</span>::<span class="ident">Regional</span>,
+                <span class="ident">gr</span>::<span class="ident">GC_Extended_Pictographic</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">state</span> <span class="op">=</span> <span class="ident">GraphemeState</span>::<span class="ident">Emoji</span>,
+                <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">need_pre_context</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">cat_before</span>.<span class="ident">is_none</span>(),
             }
             <span class="kw">if</span> <span class="ident">need_pre_context</span> {
                 <span class="self">self</span>.<span class="ident">pre_context_offset</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">chunk_start</span>);
@@ -1210,20 +1210,20 @@
             <span class="self">self</span>.<span class="ident">cat_before</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">gr</span>::<span class="ident">grapheme_category</span>(<span class="ident">ch</span>));
         }
         <span class="kw">match</span> <span class="ident">check_pair</span>(<span class="self">self</span>.<span class="ident">cat_before</span>.<span class="ident">unwrap</span>(), <span class="self">self</span>.<span class="ident">cat_after</span>.<span class="ident">unwrap</span>()) {
-            <span class="ident">PairResult</span>::<span class="ident">NotBreak</span> <span class="op">=&gt;</span> <span class="kw">return</span> <span class="self">self</span>.<span class="ident">decision</span>(<span class="bool-val">false</span>),
-            <span class="ident">PairResult</span>::<span class="ident">Break</span> <span class="op">=&gt;</span> <span class="kw">return</span> <span class="self">self</span>.<span class="ident">decision</span>(<span class="bool-val">true</span>),
-            <span class="ident">PairResult</span>::<span class="ident">Extended</span> <span class="op">=&gt;</span> {
+            <span class="ident">PairResult</span>::<span class="ident">NotBreak</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="self">self</span>.<span class="ident">decision</span>(<span class="bool-val">false</span>),
+            <span class="ident">PairResult</span>::<span class="ident">Break</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="self">self</span>.<span class="ident">decision</span>(<span class="bool-val">true</span>),
+            <span class="ident">PairResult</span>::<span class="ident">Extended</span> <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">let</span> <span class="ident">is_extended</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">is_extended</span>;
                 <span class="kw">return</span> <span class="self">self</span>.<span class="ident">decision</span>(<span class="op">!</span><span class="ident">is_extended</span>);
             }
-            <span class="ident">PairResult</span>::<span class="ident">Regional</span> <span class="op">=&gt;</span> {
+            <span class="ident">PairResult</span>::<span class="ident">Regional</span> <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">ris_count</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">ris_count</span> {
-                    <span class="kw">return</span> <span class="self">self</span>.<span class="ident">decision</span>((<span class="ident">ris_count</span> <span class="op">%</span> <span class="number">2</span>) <span class="op">==</span> <span class="number">0</span>);
+                    <span class="kw">return</span> <span class="self">self</span>.<span class="ident">decision</span>((<span class="ident">ris_count</span> <span class="op">%</span> <span class="number">2</span>) <span class="op">=</span><span class="op">=</span> <span class="number">0</span>);
                 }
                 <span class="self">self</span>.<span class="ident">handle_regional</span>(<span class="kw-2">&amp;</span><span class="ident">chunk</span>[..<span class="ident">offset_in_chunk</span>], <span class="ident">chunk_start</span>);
                 <span class="self">self</span>.<span class="ident">is_boundary_result</span>()
             }
-            <span class="ident">PairResult</span>::<span class="ident">Emoji</span> <span class="op">=&gt;</span> {
+            <span class="ident">PairResult</span>::<span class="ident">Emoji</span> <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="self">self</span>.<span class="ident">handle_emoji</span>(<span class="kw-2">&amp;</span><span class="ident">chunk</span>[..<span class="ident">offset_in_chunk</span>], <span class="ident">chunk_start</span>);
                 <span class="self">self</span>.<span class="ident">is_boundary_result</span>()
             }
@@ -1262,9 +1262,9 @@
     <span class="doccomment">/// assert_eq!(cursor.next_boundary(&amp;s[2..4], 2), Ok(Some(4)));</span>
     <span class="doccomment">/// assert_eq!(cursor.next_boundary(&amp;s[2..4], 2), Ok(None));</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">next_boundary</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">chunk</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">chunk_start</span>: <span class="ident">usize</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>, <span class="ident">GraphemeIncomplete</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">next_boundary</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">chunk</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">chunk_start</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>, <span class="ident">GraphemeIncomplete</span><span class="op">&gt;</span> {
         <span class="kw">use</span> <span class="ident">tables</span>::<span class="ident">grapheme</span> <span class="kw">as</span> <span class="ident">gr</span>;
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">offset</span> <span class="op">==</span> <span class="self">self</span>.<span class="ident">len</span> {
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">offset</span> <span class="op">=</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">len</span> {
             <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
         }
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">iter</span> <span class="op">=</span> <span class="ident">chunk</span>[<span class="self">self</span>.<span class="ident">offset</span> <span class="op">-</span> <span class="ident">chunk_start</span>..].<span class="ident">chars</span>();
@@ -1275,13 +1275,13 @@
                     <span class="self">self</span>.<span class="ident">cat_after</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">gr</span>::<span class="ident">grapheme_category</span>(<span class="ident">ch</span>));
                 }
             } <span class="kw">else</span> {
-                <span class="self">self</span>.<span class="ident">offset</span> <span class="op">+=</span> <span class="ident">ch</span>.<span class="ident">len_utf8</span>();
+                <span class="self">self</span>.<span class="ident">offset</span> <span class="op">+</span><span class="op">=</span> <span class="ident">ch</span>.<span class="ident">len_utf8</span>();
                 <span class="self">self</span>.<span class="ident">state</span> <span class="op">=</span> <span class="ident">GraphemeState</span>::<span class="ident">Unknown</span>;
                 <span class="self">self</span>.<span class="ident">cat_before</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">cat_after</span>.<span class="ident">take</span>();
                 <span class="kw">if</span> <span class="self">self</span>.<span class="ident">cat_before</span>.<span class="ident">is_none</span>() {
                     <span class="self">self</span>.<span class="ident">cat_before</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">gr</span>::<span class="ident">grapheme_category</span>(<span class="ident">ch</span>));
                 }
-                <span class="kw">if</span> <span class="self">self</span>.<span class="ident">cat_before</span>.<span class="ident">unwrap</span>() <span class="op">==</span> <span class="ident">GraphemeCat</span>::<span class="ident">GC_Regional_Indicator</span> {
+                <span class="kw">if</span> <span class="self">self</span>.<span class="ident">cat_before</span>.<span class="ident">unwrap</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">GraphemeCat</span>::<span class="ident">GC_Regional_Indicator</span> {
                     <span class="self">self</span>.<span class="ident">ris_count</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">ris_count</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">c</span><span class="op">|</span> <span class="ident">c</span> <span class="op">+</span> <span class="number">1</span>);
                 } <span class="kw">else</span> {
                     <span class="self">self</span>.<span class="ident">ris_count</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="number">0</span>);
@@ -1289,7 +1289,7 @@
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">next_ch</span>) <span class="op">=</span> <span class="ident">iter</span>.<span class="ident">next</span>() {
                     <span class="ident">ch</span> <span class="op">=</span> <span class="ident">next_ch</span>;
                     <span class="self">self</span>.<span class="ident">cat_after</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">gr</span>::<span class="ident">grapheme_category</span>(<span class="ident">ch</span>));
-                } <span class="kw">else</span> <span class="kw">if</span> <span class="self">self</span>.<span class="ident">offset</span> <span class="op">==</span> <span class="self">self</span>.<span class="ident">len</span> {
+                } <span class="kw">else</span> <span class="kw">if</span> <span class="self">self</span>.<span class="ident">offset</span> <span class="op">=</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">len</span> {
                     <span class="self">self</span>.<span class="ident">decide</span>(<span class="bool-val">true</span>);
                 } <span class="kw">else</span> {
                     <span class="self">self</span>.<span class="ident">resuming</span> <span class="op">=</span> <span class="bool-val">true</span>;
@@ -1338,25 +1338,25 @@
     <span class="doccomment">/// assert_eq!(cursor.prev_boundary(&amp;s[0..2], 0), Ok(Some(0)));</span>
     <span class="doccomment">/// assert_eq!(cursor.prev_boundary(&amp;s[0..2], 0), Ok(None));</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">prev_boundary</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">chunk</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">chunk_start</span>: <span class="ident">usize</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>, <span class="ident">GraphemeIncomplete</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">prev_boundary</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">chunk</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">chunk_start</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>, <span class="ident">GraphemeIncomplete</span><span class="op">&gt;</span> {
         <span class="kw">use</span> <span class="ident">tables</span>::<span class="ident">grapheme</span> <span class="kw">as</span> <span class="ident">gr</span>;
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">offset</span> <span class="op">==</span> <span class="number">0</span> {
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">offset</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
             <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
         }
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">offset</span> <span class="op">==</span> <span class="ident">chunk_start</span> {
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">offset</span> <span class="op">=</span><span class="op">=</span> <span class="ident">chunk_start</span> {
             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">GraphemeIncomplete</span>::<span class="ident">PrevChunk</span>);
         }
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">iter</span> <span class="op">=</span> <span class="ident">chunk</span>[..<span class="self">self</span>.<span class="ident">offset</span> <span class="op">-</span> <span class="ident">chunk_start</span>].<span class="ident">chars</span>().<span class="ident">rev</span>();
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">ch</span> <span class="op">=</span> <span class="ident">iter</span>.<span class="ident">next</span>().<span class="ident">unwrap</span>();
         <span class="kw">loop</span> {
-            <span class="kw">if</span> <span class="self">self</span>.<span class="ident">offset</span> <span class="op">==</span> <span class="ident">chunk_start</span> {
+            <span class="kw">if</span> <span class="self">self</span>.<span class="ident">offset</span> <span class="op">=</span><span class="op">=</span> <span class="ident">chunk_start</span> {
                 <span class="self">self</span>.<span class="ident">resuming</span> <span class="op">=</span> <span class="bool-val">true</span>;
                 <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">GraphemeIncomplete</span>::<span class="ident">PrevChunk</span>);
             }
             <span class="kw">if</span> <span class="self">self</span>.<span class="ident">resuming</span> {
                 <span class="self">self</span>.<span class="ident">cat_before</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">gr</span>::<span class="ident">grapheme_category</span>(<span class="ident">ch</span>));
             } <span class="kw">else</span> {
-                <span class="self">self</span>.<span class="ident">offset</span> <span class="op">-=</span> <span class="ident">ch</span>.<span class="ident">len_utf8</span>();
+                <span class="self">self</span>.<span class="ident">offset</span> <span class="op">-</span><span class="op">=</span> <span class="ident">ch</span>.<span class="ident">len_utf8</span>();
                 <span class="self">self</span>.<span class="ident">cat_after</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">cat_before</span>.<span class="ident">take</span>();
                 <span class="self">self</span>.<span class="ident">state</span> <span class="op">=</span> <span class="ident">GraphemeState</span>::<span class="ident">Unknown</span>;
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">ris_count</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">ris_count</span> {
@@ -1365,7 +1365,7 @@
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">prev_ch</span>) <span class="op">=</span> <span class="ident">iter</span>.<span class="ident">next</span>() {
                     <span class="ident">ch</span> <span class="op">=</span> <span class="ident">prev_ch</span>;
                     <span class="self">self</span>.<span class="ident">cat_before</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">gr</span>::<span class="ident">grapheme_category</span>(<span class="ident">ch</span>));
-                } <span class="kw">else</span> <span class="kw">if</span> <span class="self">self</span>.<span class="ident">offset</span> <span class="op">==</span> <span class="number">0</span> {
+                } <span class="kw">else</span> <span class="kw">if</span> <span class="self">self</span>.<span class="ident">offset</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
                     <span class="self">self</span>.<span class="ident">decide</span>(<span class="bool-val">true</span>);
                 } <span class="kw">else</span> {
                     <span class="self">self</span>.<span class="ident">resuming</span> <span class="op">=</span> <span class="bool-val">true</span>;

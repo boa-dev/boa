@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/unicode-bidi-0.3.4/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../unicode_bidi/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/unicode-bidi-0.3.4/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+<link rel="alternate icon" type="image/png" href="../../favicon-16x16.png">
+<link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../unicode_bidi/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
                 <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
@@ -1028,7 +1030,7 @@
     <span class="doccomment">/// character is found before the matching PDI.  If no strong character is found, the class will</span>
     <span class="doccomment">/// remain FSI, and it&#39;s up to later stages to treat these as LRI when needed.</span>
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;flame_it&quot;</span>, <span class="ident">flame</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">text</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">default_para_level</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Level</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="ident">InitialInfo</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">text</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">default_para_level</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Level</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">InitialInfo</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">original_classes</span> <span class="op">=</span> <span class="ident">Vec</span>::<span class="ident">with_capacity</span>(<span class="ident">text</span>.<span class="ident">len</span>());
 
         <span class="comment">// The stack contains the starting byte index for each nested isolate we&#39;re inside.</span>
@@ -1051,7 +1053,7 @@
 
             <span class="kw">match</span> <span class="ident">class</span> {
 
-                <span class="ident">B</span> <span class="op">=&gt;</span> {
+                <span class="ident">B</span> <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="comment">// P1. Split the text into separate paragraphs. The paragraph separator is kept</span>
                     <span class="comment">// with the previous paragraph.</span>
                     <span class="kw">let</span> <span class="ident">para_end</span> <span class="op">=</span> <span class="ident">i</span> <span class="op">+</span> <span class="ident">c</span>.<span class="ident">len_utf8</span>();
@@ -1069,39 +1071,39 @@
                     <span class="ident">isolate_stack</span>.<span class="ident">clear</span>();
                 }
 
-                <span class="ident">L</span> <span class="op">|</span> <span class="ident">R</span> <span class="op">|</span> <span class="ident">AL</span> <span class="op">=&gt;</span> {
+                <span class="ident">L</span> <span class="op">|</span> <span class="ident">R</span> <span class="op">|</span> <span class="ident">AL</span> <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="kw">match</span> <span class="ident">isolate_stack</span>.<span class="ident">last</span>() {
-                        <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="ident">start</span>) <span class="op">=&gt;</span> {
-                            <span class="kw">if</span> <span class="ident">original_classes</span>[<span class="ident">start</span>] <span class="op">==</span> <span class="ident">FSI</span> {
+                        <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="ident">start</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                            <span class="kw">if</span> <span class="ident">original_classes</span>[<span class="ident">start</span>] <span class="op">=</span><span class="op">=</span> <span class="ident">FSI</span> {
                                 <span class="comment">// X5c. If the first strong character between FSI and its matching</span>
                                 <span class="comment">// PDI is R or AL, treat it as RLI. Otherwise, treat it as LRI.</span>
                                 <span class="kw">for</span> <span class="ident">j</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">chars</span>::<span class="ident">FSI</span>.<span class="ident">len_utf8</span>() {
                                     <span class="ident">original_classes</span>[<span class="ident">start</span> <span class="op">+</span> <span class="ident">j</span>] <span class="op">=</span>
-                                        <span class="kw">if</span> <span class="ident">class</span> <span class="op">==</span> <span class="ident">L</span> { <span class="ident">LRI</span> } <span class="kw">else</span> { <span class="ident">RLI</span> };
+                                        <span class="kw">if</span> <span class="ident">class</span> <span class="op">=</span><span class="op">=</span> <span class="ident">L</span> { <span class="ident">LRI</span> } <span class="kw">else</span> { <span class="ident">RLI</span> };
                                 }
                             }
                         }
 
-                        <span class="prelude-val">None</span> <span class="op">=&gt;</span> {
+                        <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> {
                             <span class="kw">if</span> <span class="ident">para_level</span>.<span class="ident">is_none</span>() {
                                 <span class="comment">// P2. Find the first character of type L, AL, or R, while skipping</span>
                                 <span class="comment">// any characters between an isolate initiator and its matching</span>
                                 <span class="comment">// PDI.</span>
-                                <span class="ident">para_level</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="kw">if</span> <span class="ident">class</span> <span class="op">!=</span> <span class="ident">L</span> { <span class="ident">RTL_LEVEL</span> } <span class="kw">else</span> { <span class="ident">LTR_LEVEL</span> });
+                                <span class="ident">para_level</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="kw">if</span> <span class="ident">class</span> <span class="op">!</span><span class="op">=</span> <span class="ident">L</span> { <span class="ident">RTL_LEVEL</span> } <span class="kw">else</span> { <span class="ident">LTR_LEVEL</span> });
                             }
                         }
                     }
                 }
 
-                <span class="ident">RLI</span> <span class="op">|</span> <span class="ident">LRI</span> <span class="op">|</span> <span class="ident">FSI</span> <span class="op">=&gt;</span> {
+                <span class="ident">RLI</span> <span class="op">|</span> <span class="ident">LRI</span> <span class="op">|</span> <span class="ident">FSI</span> <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="ident">isolate_stack</span>.<span class="ident">push</span>(<span class="ident">i</span>);
                 }
 
-                <span class="ident">PDI</span> <span class="op">=&gt;</span> {
+                <span class="ident">PDI</span> <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="ident">isolate_stack</span>.<span class="ident">pop</span>();
                 }
 
-                <span class="kw">_</span> <span class="op">=&gt;</span> {}
+                <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {}
             }
         }
         <span class="kw">if</span> <span class="ident">para_start</span> <span class="op">&lt;</span> <span class="ident">text</span>.<span class="ident">len</span>() {
@@ -1154,7 +1156,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// TODO: Support auto-RTL base direction</span>
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;flame_it&quot;</span>, <span class="ident">flame</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">text</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">default_para_level</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Level</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="ident">BidiInfo</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">text</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">default_para_level</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Level</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">BidiInfo</span> {
         <span class="kw">let</span> <span class="ident">InitialInfo</span> {
             <span class="ident">original_classes</span>,
             <span class="ident">paragraphs</span>,
@@ -1202,7 +1204,7 @@
     <span class="doccomment">/// Re-order a line based on resolved levels and return only the embedding levels, one `Level`</span>
     <span class="doccomment">/// per *byte*.</span>
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;flame_it&quot;</span>, <span class="ident">flame</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">reordered_levels</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">para</span>: <span class="kw-2">&amp;</span><span class="ident">ParagraphInfo</span>, <span class="ident">line</span>: <span class="ident">Range</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Level</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">reordered_levels</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">para</span>: <span class="kw-2">&amp;</span><span class="ident">ParagraphInfo</span>, <span class="ident">line</span>: <span class="ident">Range</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Level</span><span class="op">&gt;</span> {
         <span class="kw">let</span> (<span class="ident">levels</span>, <span class="kw">_</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">visual_runs</span>(<span class="ident">para</span>, <span class="ident">line</span>.<span class="ident">clone</span>());
         <span class="ident">levels</span>
     }
@@ -1214,7 +1216,7 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">para</span>: <span class="kw-2">&amp;</span><span class="ident">ParagraphInfo</span>,
         <span class="ident">line</span>: <span class="ident">Range</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>,
-    ) <span class="op">-&gt;</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Level</span><span class="op">&gt;</span> {
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Level</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">levels</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">reordered_levels</span>(<span class="ident">para</span>, <span class="ident">line</span>);
         <span class="self">self</span>.<span class="ident">text</span>.<span class="ident">char_indices</span>().<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">i</span>, <span class="kw">_</span>)<span class="op">|</span> <span class="ident">levels</span>[<span class="ident">i</span>]).<span class="ident">collect</span>()
     }
@@ -1222,7 +1224,7 @@
 
     <span class="doccomment">/// Re-order a line based on resolved levels and return the line in display order.</span>
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;flame_it&quot;</span>, <span class="ident">flame</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">reorder_line</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">para</span>: <span class="kw-2">&amp;</span><span class="ident">ParagraphInfo</span>, <span class="ident">line</span>: <span class="ident">Range</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="ident">Cow</span><span class="op">&lt;</span><span class="lifetime">&#39;text</span>, <span class="ident">str</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">reorder_line</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">para</span>: <span class="kw-2">&amp;</span><span class="ident">ParagraphInfo</span>, <span class="ident">line</span>: <span class="ident">Range</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Cow</span><span class="op">&lt;</span><span class="lifetime">&#39;text</span>, <span class="ident">str</span><span class="op">&gt;</span> {
         <span class="kw">let</span> (<span class="ident">levels</span>, <span class="ident">runs</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">visual_runs</span>(<span class="ident">para</span>, <span class="ident">line</span>.<span class="ident">clone</span>());
 
         <span class="comment">// If all isolating run sequences are LTR, no reordering is needed</span>
@@ -1251,9 +1253,9 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">para</span>: <span class="kw-2">&amp;</span><span class="ident">ParagraphInfo</span>,
         <span class="ident">line</span>: <span class="ident">Range</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>,
-    ) <span class="op">-&gt;</span> (<span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Level</span><span class="op">&gt;</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">LevelRun</span><span class="op">&gt;</span>) {
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">line</span>.<span class="ident">start</span> <span class="op">&lt;=</span> <span class="self">self</span>.<span class="ident">levels</span>.<span class="ident">len</span>());
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">line</span>.<span class="ident">end</span> <span class="op">&lt;=</span> <span class="self">self</span>.<span class="ident">levels</span>.<span class="ident">len</span>());
+    ) <span class="op">-</span><span class="op">&gt;</span> (<span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Level</span><span class="op">&gt;</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">LevelRun</span><span class="op">&gt;</span>) {
+        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">line</span>.<span class="ident">start</span> <span class="op">&lt;</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">levels</span>.<span class="ident">len</span>());
+        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">line</span>.<span class="ident">end</span> <span class="op">&lt;</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">levels</span>.<span class="ident">len</span>());
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">levels</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">levels</span>.<span class="ident">clone</span>();
 
@@ -1265,22 +1267,22 @@
         <span class="kw">for</span> (<span class="ident">i</span>, <span class="ident">c</span>) <span class="kw">in</span> <span class="ident">line_str</span>.<span class="ident">char_indices</span>() {
             <span class="kw">match</span> <span class="self">self</span>.<span class="ident">original_classes</span>[<span class="ident">i</span>] {
                 <span class="comment">// Ignored by X9</span>
-                <span class="ident">RLE</span> <span class="op">|</span> <span class="ident">LRE</span> <span class="op">|</span> <span class="ident">RLO</span> <span class="op">|</span> <span class="ident">LRO</span> <span class="op">|</span> <span class="ident">PDF</span> <span class="op">|</span> <span class="ident">BN</span> <span class="op">=&gt;</span> {}
+                <span class="ident">RLE</span> <span class="op">|</span> <span class="ident">LRE</span> <span class="op">|</span> <span class="ident">RLO</span> <span class="op">|</span> <span class="ident">LRO</span> <span class="op">|</span> <span class="ident">PDF</span> <span class="op">|</span> <span class="ident">BN</span> <span class="op">=</span><span class="op">&gt;</span> {}
                 <span class="comment">// Segment separator, Paragraph separator</span>
-                <span class="ident">B</span> <span class="op">|</span> <span class="ident">S</span> <span class="op">=&gt;</span> {
+                <span class="ident">B</span> <span class="op">|</span> <span class="ident">S</span> <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">reset_to</span>, <span class="prelude-val">None</span>);
                     <span class="ident">reset_to</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">i</span> <span class="op">+</span> <span class="ident">c</span>.<span class="ident">len_utf8</span>());
-                    <span class="kw">if</span> <span class="ident">reset_from</span> <span class="op">==</span> <span class="prelude-val">None</span> {
+                    <span class="kw">if</span> <span class="ident">reset_from</span> <span class="op">=</span><span class="op">=</span> <span class="prelude-val">None</span> {
                         <span class="ident">reset_from</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">i</span>);
                     }
                 }
                 <span class="comment">// Whitespace, isolate formatting</span>
-                <span class="ident">WS</span> <span class="op">|</span> <span class="ident">FSI</span> <span class="op">|</span> <span class="ident">LRI</span> <span class="op">|</span> <span class="ident">RLI</span> <span class="op">|</span> <span class="ident">PDI</span> <span class="op">=&gt;</span> {
-                    <span class="kw">if</span> <span class="ident">reset_from</span> <span class="op">==</span> <span class="prelude-val">None</span> {
+                <span class="ident">WS</span> <span class="op">|</span> <span class="ident">FSI</span> <span class="op">|</span> <span class="ident">LRI</span> <span class="op">|</span> <span class="ident">RLI</span> <span class="op">|</span> <span class="ident">PDI</span> <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="kw">if</span> <span class="ident">reset_from</span> <span class="op">=</span><span class="op">=</span> <span class="prelude-val">None</span> {
                         <span class="ident">reset_from</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">i</span>);
                     }
                 }
-                <span class="kw">_</span> <span class="op">=&gt;</span> {
+                <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="ident">reset_from</span> <span class="op">=</span> <span class="prelude-val">None</span>;
                 }
             }
@@ -1308,7 +1310,7 @@
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">max_level</span> <span class="op">=</span> <span class="ident">run_level</span>;
 
         <span class="kw">for</span> (<span class="ident">i</span>, <span class="kw-2">&amp;</span><span class="ident">new_level</span>) <span class="kw">in</span> <span class="ident">levels</span>.<span class="ident">iter</span>().<span class="ident">enumerate</span>().<span class="ident">take</span>(<span class="ident">line</span>.<span class="ident">end</span>).<span class="ident">skip</span>(<span class="ident">start</span> <span class="op">+</span> <span class="number">1</span>) {
-            <span class="kw">if</span> <span class="ident">new_level</span> <span class="op">!=</span> <span class="ident">run_level</span> {
+            <span class="kw">if</span> <span class="ident">new_level</span> <span class="op">!</span><span class="op">=</span> <span class="ident">run_level</span> {
                 <span class="comment">// End of the previous run, start of a new one.</span>
                 <span class="ident">runs</span>.<span class="ident">push</span>(<span class="ident">start</span>..<span class="ident">i</span>);
                 <span class="ident">start</span> <span class="op">=</span> <span class="ident">i</span>;
@@ -1327,12 +1329,12 @@
         <span class="comment">// Stop at the lowest *odd* level.</span>
         <span class="ident">min_level</span> <span class="op">=</span> <span class="ident">min_level</span>.<span class="ident">new_lowest_ge_rtl</span>().<span class="ident">expect</span>(<span class="string">&quot;Level error&quot;</span>);
 
-        <span class="kw">while</span> <span class="ident">max_level</span> <span class="op">&gt;=</span> <span class="ident">min_level</span> {
+        <span class="kw">while</span> <span class="ident">max_level</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">min_level</span> {
             <span class="comment">// Look for the start of a sequence of consecutive runs of max_level or higher.</span>
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">seq_start</span> <span class="op">=</span> <span class="number">0</span>;
             <span class="kw">while</span> <span class="ident">seq_start</span> <span class="op">&lt;</span> <span class="ident">run_count</span> {
                 <span class="kw">if</span> <span class="self">self</span>.<span class="ident">levels</span>[<span class="ident">runs</span>[<span class="ident">seq_start</span>].<span class="ident">start</span>] <span class="op">&lt;</span> <span class="ident">max_level</span> {
-                    <span class="ident">seq_start</span> <span class="op">+=</span> <span class="number">1</span>;
+                    <span class="ident">seq_start</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
                     <span class="kw">continue</span>;
                 }
 
@@ -1342,7 +1344,7 @@
                     <span class="kw">if</span> <span class="self">self</span>.<span class="ident">levels</span>[<span class="ident">runs</span>[<span class="ident">seq_end</span>].<span class="ident">start</span>] <span class="op">&lt;</span> <span class="ident">max_level</span> {
                         <span class="kw">break</span>;
                     }
-                    <span class="ident">seq_end</span> <span class="op">+=</span> <span class="number">1</span>;
+                    <span class="ident">seq_end</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
                 }
 
                 <span class="comment">// Reverse the runs within this sequence.</span>
@@ -1362,7 +1364,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// This information is usually used to skip re-ordering of text when no RTL level is present</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">has_rtl</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">has_rtl</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
         <span class="ident">level</span>::<span class="ident">has_rtl</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">levels</span>)
     }
 }
@@ -1595,7 +1597,7 @@
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">BidiInfo</span>::<span class="ident">new</span>(<span class="string">&quot;אבּג\n123&quot;</span>, <span class="prelude-val">None</span>).<span class="ident">has_rtl</span>(), <span class="bool-val">true</span>);
     }
 
-    <span class="kw">fn</span> <span class="ident">reorder_paras</span>(<span class="ident">text</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-&gt;</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Cow</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">reorder_paras</span>(<span class="ident">text</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Cow</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">bidi_info</span> <span class="op">=</span> <span class="ident">BidiInfo</span>::<span class="ident">new</span>(<span class="ident">text</span>, <span class="prelude-val">None</span>);
         <span class="ident">bidi_info</span>
             .<span class="ident">paragraphs</span>
@@ -1681,7 +1683,7 @@
         );
     }
 
-    <span class="kw">fn</span> <span class="ident">reordered_levels_for_paras</span>(<span class="ident">text</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-&gt;</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Level</span><span class="op">&gt;&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">reordered_levels_for_paras</span>(<span class="ident">text</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Level</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">bidi_info</span> <span class="op">=</span> <span class="ident">BidiInfo</span>::<span class="ident">new</span>(<span class="ident">text</span>, <span class="prelude-val">None</span>);
         <span class="ident">bidi_info</span>
             .<span class="ident">paragraphs</span>
@@ -1690,7 +1692,7 @@
             .<span class="ident">collect</span>()
     }
 
-    <span class="kw">fn</span> <span class="ident">reordered_levels_per_char_for_paras</span>(<span class="ident">text</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-&gt;</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Level</span><span class="op">&gt;&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">reordered_levels_per_char_for_paras</span>(<span class="ident">text</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Level</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">bidi_info</span> <span class="op">=</span> <span class="ident">BidiInfo</span>::<span class="ident">new</span>(<span class="ident">text</span>, <span class="prelude-val">None</span>);
         <span class="ident">bidi_info</span>
             .<span class="ident">paragraphs</span>

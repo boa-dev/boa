@@ -316,8 +316,8 @@
 
 <span class="kw">impl</span> <span class="ident">TestSuite</span> {
     <span class="doccomment">/// Runs the test suite.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">run</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">harness</span>: <span class="kw-2">&amp;</span><span class="ident">Harness</span>, <span class="ident">verbose</span>: <span class="ident">u8</span>) <span class="op">-&gt;</span> <span class="ident">SuiteResult</span> {
-        <span class="kw">if</span> <span class="ident">verbose</span> <span class="op">!=</span> <span class="number">0</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">run</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">harness</span>: <span class="kw-2">&amp;</span><span class="ident">Harness</span>, <span class="ident">verbose</span>: <span class="ident">u8</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">SuiteResult</span> {
+        <span class="kw">if</span> <span class="ident">verbose</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
             <span class="macro">println</span><span class="macro">!</span>(<span class="string">&quot;Suite {}:&quot;</span>, <span class="self">self</span>.<span class="ident">name</span>);
         }
 
@@ -336,7 +336,7 @@
             .<span class="ident">flatten</span>()
             .<span class="ident">collect</span>();
 
-        <span class="kw">if</span> <span class="ident">verbose</span> <span class="op">!=</span> <span class="number">0</span> {
+        <span class="kw">if</span> <span class="ident">verbose</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
             <span class="macro">println</span><span class="macro">!</span>();
         }
 
@@ -346,31 +346,31 @@
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">panic</span> <span class="op">=</span> <span class="number">0</span>;
         <span class="kw">for</span> <span class="ident">test</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">tests</span> {
             <span class="kw">match</span> <span class="ident">test</span>.<span class="ident">result</span> {
-                <span class="ident">TestOutcomeResult</span>::<span class="ident">Passed</span> <span class="op">=&gt;</span> <span class="ident">passed</span> <span class="op">+=</span> <span class="number">1</span>,
-                <span class="ident">TestOutcomeResult</span>::<span class="ident">Ignored</span> <span class="op">=&gt;</span> <span class="ident">ignored</span> <span class="op">+=</span> <span class="number">1</span>,
-                <span class="ident">TestOutcomeResult</span>::<span class="ident">Panic</span> <span class="op">=&gt;</span> <span class="ident">panic</span> <span class="op">+=</span> <span class="number">1</span>,
-                <span class="ident">TestOutcomeResult</span>::<span class="ident">Failed</span> <span class="op">=&gt;</span> {}
+                <span class="ident">TestOutcomeResult</span>::<span class="ident">Passed</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">passed</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>,
+                <span class="ident">TestOutcomeResult</span>::<span class="ident">Ignored</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ignored</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>,
+                <span class="ident">TestOutcomeResult</span>::<span class="ident">Panic</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">panic</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>,
+                <span class="ident">TestOutcomeResult</span>::<span class="ident">Failed</span> <span class="op">=</span><span class="op">&gt;</span> {}
             }
         }
 
         <span class="comment">// Count total tests</span>
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">total</span> <span class="op">=</span> <span class="ident">tests</span>.<span class="ident">len</span>();
         <span class="kw">for</span> <span class="ident">suite</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">suites</span> {
-            <span class="ident">total</span> <span class="op">+=</span> <span class="ident">suite</span>.<span class="ident">total</span>;
-            <span class="ident">passed</span> <span class="op">+=</span> <span class="ident">suite</span>.<span class="ident">passed</span>;
-            <span class="ident">ignored</span> <span class="op">+=</span> <span class="ident">suite</span>.<span class="ident">ignored</span>;
-            <span class="ident">panic</span> <span class="op">+=</span> <span class="ident">suite</span>.<span class="ident">panic</span>;
+            <span class="ident">total</span> <span class="op">+</span><span class="op">=</span> <span class="ident">suite</span>.<span class="ident">total</span>;
+            <span class="ident">passed</span> <span class="op">+</span><span class="op">=</span> <span class="ident">suite</span>.<span class="ident">passed</span>;
+            <span class="ident">ignored</span> <span class="op">+</span><span class="op">=</span> <span class="ident">suite</span>.<span class="ident">ignored</span>;
+            <span class="ident">panic</span> <span class="op">+</span><span class="op">=</span> <span class="ident">suite</span>.<span class="ident">panic</span>;
         }
 
-        <span class="kw">if</span> <span class="ident">verbose</span> <span class="op">!=</span> <span class="number">0</span> {
+        <span class="kw">if</span> <span class="ident">verbose</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
             <span class="macro">println</span><span class="macro">!</span>(
                 <span class="string">&quot;Results: total: {}, passed: {}, ignored: {}, failed: {} (panics: {}{}), conformance: {:.2}%&quot;</span>,
                 <span class="ident">total</span>,
                 <span class="ident">passed</span>.<span class="ident">to_string</span>().<span class="ident">green</span>(),
                 <span class="ident">ignored</span>.<span class="ident">to_string</span>().<span class="ident">yellow</span>(),
                 (<span class="ident">total</span> <span class="op">-</span> <span class="ident">passed</span> <span class="op">-</span> <span class="ident">ignored</span>).<span class="ident">to_string</span>().<span class="ident">red</span>(),
-                <span class="kw">if</span> <span class="ident">panic</span> <span class="op">==</span> <span class="number">0</span> {<span class="string">&quot;0&quot;</span>.<span class="ident">normal</span>()} <span class="kw">else</span> {<span class="ident">panic</span>.<span class="ident">to_string</span>().<span class="ident">red</span>()},
-                <span class="kw">if</span> <span class="ident">panic</span> <span class="op">!=</span> <span class="number">0</span> {<span class="string">&quot; ⚠&quot;</span>} <span class="kw">else</span> {<span class="string">&quot;&quot;</span>}.<span class="ident">red</span>(),
+                <span class="kw">if</span> <span class="ident">panic</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {<span class="string">&quot;0&quot;</span>.<span class="ident">normal</span>()} <span class="kw">else</span> {<span class="ident">panic</span>.<span class="ident">to_string</span>().<span class="ident">red</span>()},
+                <span class="kw">if</span> <span class="ident">panic</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {<span class="string">&quot; ⚠&quot;</span>} <span class="kw">else</span> {<span class="string">&quot;&quot;</span>}.<span class="ident">red</span>(),
                 (<span class="ident">passed</span> <span class="kw">as</span> <span class="ident">f64</span> <span class="op">/</span> <span class="ident">total</span> <span class="kw">as</span> <span class="ident">f64</span>) <span class="op">*</span> <span class="number">100.0</span>
             );
         }
@@ -389,13 +389,13 @@
 
 <span class="kw">impl</span> <span class="ident">Test</span> {
     <span class="doccomment">/// Runs the test.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">run</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">harness</span>: <span class="kw-2">&amp;</span><span class="ident">Harness</span>, <span class="ident">verbose</span>: <span class="ident">u8</span>) <span class="op">-&gt;</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">TestResult</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">run</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">harness</span>: <span class="kw-2">&amp;</span><span class="ident">Harness</span>, <span class="ident">verbose</span>: <span class="ident">u8</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">TestResult</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">results</span> <span class="op">=</span> <span class="ident">Vec</span>::<span class="ident">new</span>();
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">flags</span>.<span class="ident">contains</span>(<span class="ident">TestFlags</span>::<span class="ident">STRICT</span>) {
             <span class="ident">results</span>.<span class="ident">push</span>(<span class="self">self</span>.<span class="ident">run_once</span>(<span class="ident">harness</span>, <span class="bool-val">true</span>, <span class="ident">verbose</span>));
         }
 
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">flags</span>.<span class="ident">contains</span>(<span class="ident">TestFlags</span>::<span class="ident">NO_STRICT</span>) <span class="op">||</span> <span class="self">self</span>.<span class="ident">flags</span>.<span class="ident">contains</span>(<span class="ident">TestFlags</span>::<span class="ident">RAW</span>) {
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">flags</span>.<span class="ident">contains</span>(<span class="ident">TestFlags</span>::<span class="ident">NO_STRICT</span>) <span class="op">|</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">flags</span>.<span class="ident">contains</span>(<span class="ident">TestFlags</span>::<span class="ident">RAW</span>) {
             <span class="ident">results</span>.<span class="ident">push</span>(<span class="self">self</span>.<span class="ident">run_once</span>(<span class="ident">harness</span>, <span class="bool-val">false</span>, <span class="ident">verbose</span>));
         }
 
@@ -403,7 +403,7 @@
     }
 
     <span class="doccomment">/// Runs the test once, in strict or non-strict mode</span>
-    <span class="kw">fn</span> <span class="ident">run_once</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">harness</span>: <span class="kw-2">&amp;</span><span class="ident">Harness</span>, <span class="ident">strict</span>: <span class="ident">bool</span>, <span class="ident">verbose</span>: <span class="ident">u8</span>) <span class="op">-&gt;</span> <span class="ident">TestResult</span> {
+    <span class="kw">fn</span> <span class="ident">run_once</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">harness</span>: <span class="kw-2">&amp;</span><span class="ident">Harness</span>, <span class="ident">strict</span>: <span class="ident">bool</span>, <span class="ident">verbose</span>: <span class="ident">u8</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TestResult</span> {
         <span class="kw">if</span> <span class="ident">verbose</span> <span class="op">&gt;</span> <span class="number">1</span> {
             <span class="macro">println</span><span class="macro">!</span>(
                 <span class="string">&quot;Starting `{}`{}&quot;</span>,
@@ -416,35 +416,35 @@
             <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">IGNORED</span>.<span class="ident">contains_test</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">name</span>)
             <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">IGNORED</span>.<span class="ident">contains_any_feature</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">features</span>)
             <span class="op">&amp;&amp;</span> (<span class="macro">matches</span><span class="macro">!</span>(<span class="self">self</span>.<span class="ident">expected_outcome</span>, <span class="ident">Outcome</span>::<span class="ident">Positive</span>)
-                <span class="op">||</span> <span class="macro">matches</span><span class="macro">!</span>(<span class="self">self</span>.<span class="ident">expected_outcome</span>, <span class="ident">Outcome</span>::<span class="ident">Negative</span> {
+                <span class="op">|</span><span class="op">|</span> <span class="macro">matches</span><span class="macro">!</span>(<span class="self">self</span>.<span class="ident">expected_outcome</span>, <span class="ident">Outcome</span>::<span class="ident">Negative</span> {
                     <span class="ident">phase</span>: <span class="ident">Phase</span>::<span class="ident">Parse</span>,
                     <span class="ident">error_type</span>: <span class="kw">_</span>,
                 })
-                <span class="op">||</span> <span class="macro">matches</span><span class="macro">!</span>(<span class="self">self</span>.<span class="ident">expected_outcome</span>, <span class="ident">Outcome</span>::<span class="ident">Negative</span> {
+                <span class="op">|</span><span class="op">|</span> <span class="macro">matches</span><span class="macro">!</span>(<span class="self">self</span>.<span class="ident">expected_outcome</span>, <span class="ident">Outcome</span>::<span class="ident">Negative</span> {
                     <span class="ident">phase</span>: <span class="ident">Phase</span>::<span class="ident">Early</span>,
                     <span class="ident">error_type</span>: <span class="kw">_</span>,
                 })
-                <span class="op">||</span> <span class="macro">matches</span><span class="macro">!</span>(<span class="self">self</span>.<span class="ident">expected_outcome</span>, <span class="ident">Outcome</span>::<span class="ident">Negative</span> {
+                <span class="op">|</span><span class="op">|</span> <span class="macro">matches</span><span class="macro">!</span>(<span class="self">self</span>.<span class="ident">expected_outcome</span>, <span class="ident">Outcome</span>::<span class="ident">Negative</span> {
                     <span class="ident">phase</span>: <span class="ident">Phase</span>::<span class="ident">Runtime</span>,
                     <span class="ident">error_type</span>: <span class="kw">_</span>,
                 })) {
-            <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">panic</span>::<span class="ident">catch_unwind</span>(<span class="op">||</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">expected_outcome</span> {
-                <span class="ident">Outcome</span>::<span class="ident">Positive</span> <span class="op">=&gt;</span> {
+            <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">panic</span>::<span class="ident">catch_unwind</span>(<span class="op">|</span><span class="op">|</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">expected_outcome</span> {
+                <span class="ident">Outcome</span>::<span class="ident">Positive</span> <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="comment">// TODO: implement async and add `harness/doneprintHandle.js` to the includes.</span>
 
                     <span class="kw">match</span> <span class="self">self</span>.<span class="ident">set_up_env</span>(<span class="kw-2">&amp;</span><span class="ident">harness</span>, <span class="ident">strict</span>) {
-                        <span class="prelude-val">Ok</span>(<span class="kw-2">mut</span> <span class="ident">context</span>) <span class="op">=&gt;</span> {
+                        <span class="prelude-val">Ok</span>(<span class="kw-2">mut</span> <span class="ident">context</span>) <span class="op">=</span><span class="op">&gt;</span> {
                             <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">eval</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">content</span>);
 
                             <span class="kw">let</span> <span class="ident">passed</span> <span class="op">=</span> <span class="ident">res</span>.<span class="ident">is_ok</span>();
                             <span class="kw">let</span> <span class="ident">text</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">res</span> {
-                                <span class="prelude-val">Ok</span>(<span class="ident">val</span>) <span class="op">=&gt;</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">val</span>.<span class="ident">display</span>()),
-                                <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=&gt;</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Uncaught {}&quot;</span>, <span class="ident">e</span>.<span class="ident">display</span>()),
+                                <span class="prelude-val">Ok</span>(<span class="ident">val</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">val</span>.<span class="ident">display</span>()),
+                                <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Uncaught {}&quot;</span>, <span class="ident">e</span>.<span class="ident">display</span>()),
                             };
 
                             (<span class="ident">passed</span>, <span class="ident">text</span>)
                         }
-                        <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=&gt;</span> (<span class="bool-val">false</span>, <span class="ident">e</span>),
+                        <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> (<span class="bool-val">false</span>, <span class="ident">e</span>),
                     }
                 }
                 <span class="ident">Outcome</span>::<span class="ident">Negative</span> {
@@ -454,7 +454,7 @@
                 <span class="op">|</span> <span class="ident">Outcome</span>::<span class="ident">Negative</span> {
                     <span class="ident">phase</span>: <span class="ident">Phase</span>::<span class="ident">Early</span>,
                     <span class="kw-2">ref</span> <span class="ident">error_type</span>,
-                } <span class="op">=&gt;</span> {
+                } <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="macro">assert_eq</span><span class="macro">!</span>(
                         <span class="ident">error_type</span>.<span class="ident">as_ref</span>(),
                         <span class="string">&quot;SyntaxError&quot;</span>,
@@ -463,32 +463,32 @@
                     );
 
                     <span class="kw">match</span> <span class="ident">parse</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">content</span>, <span class="ident">strict</span>) {
-                        <span class="prelude-val">Ok</span>(<span class="ident">n</span>) <span class="op">=&gt;</span> (<span class="bool-val">false</span>, <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">n</span>)),
-                        <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=&gt;</span> (<span class="bool-val">true</span>, <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Uncaught {}&quot;</span>, <span class="ident">e</span>)),
+                        <span class="prelude-val">Ok</span>(<span class="ident">n</span>) <span class="op">=</span><span class="op">&gt;</span> (<span class="bool-val">false</span>, <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">n</span>)),
+                        <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> (<span class="bool-val">true</span>, <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Uncaught {}&quot;</span>, <span class="ident">e</span>)),
                     }
                 }
                 <span class="ident">Outcome</span>::<span class="ident">Negative</span> {
                     <span class="ident">phase</span>: <span class="ident">Phase</span>::<span class="ident">Resolution</span>,
                     <span class="ident">error_type</span>: <span class="kw">_</span>,
-                } <span class="op">=&gt;</span> <span class="macro">todo</span><span class="macro">!</span>(<span class="string">&quot;check module resolution errors&quot;</span>),
+                } <span class="op">=</span><span class="op">&gt;</span> <span class="macro">todo</span><span class="macro">!</span>(<span class="string">&quot;check module resolution errors&quot;</span>),
                 <span class="ident">Outcome</span>::<span class="ident">Negative</span> {
                     <span class="ident">phase</span>: <span class="ident">Phase</span>::<span class="ident">Runtime</span>,
                     <span class="kw-2">ref</span> <span class="ident">error_type</span>,
-                } <span class="op">=&gt;</span> {
+                } <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span> <span class="ident">parse</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">content</span>, <span class="ident">strict</span>) {
                         (<span class="bool-val">false</span>, <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Uncaught {}&quot;</span>, <span class="ident">e</span>))
                     } <span class="kw">else</span> {
                         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">set_up_env</span>(<span class="kw-2">&amp;</span><span class="ident">harness</span>, <span class="ident">strict</span>) {
-                            <span class="prelude-val">Ok</span>(<span class="kw-2">mut</span> <span class="ident">context</span>) <span class="op">=&gt;</span> <span class="kw">match</span> <span class="ident">context</span>.<span class="ident">eval</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">content</span>) {
-                                <span class="prelude-val">Ok</span>(<span class="ident">res</span>) <span class="op">=&gt;</span> (<span class="bool-val">false</span>, <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">res</span>.<span class="ident">display</span>())),
-                                <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=&gt;</span> {
+                            <span class="prelude-val">Ok</span>(<span class="kw-2">mut</span> <span class="ident">context</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">context</span>.<span class="ident">eval</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">content</span>) {
+                                <span class="prelude-val">Ok</span>(<span class="ident">res</span>) <span class="op">=</span><span class="op">&gt;</span> (<span class="bool-val">false</span>, <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">res</span>.<span class="ident">display</span>())),
+                                <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> {
                                     <span class="kw">let</span> <span class="ident">passed</span> <span class="op">=</span>
                                         <span class="ident">e</span>.<span class="ident">display</span>().<span class="ident">to_string</span>().<span class="ident">contains</span>(<span class="ident">error_type</span>.<span class="ident">as_ref</span>());
 
                                     (<span class="ident">passed</span>, <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Uncaught {}&quot;</span>, <span class="ident">e</span>.<span class="ident">display</span>()))
                                 }
                             },
-                            <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=&gt;</span> (<span class="bool-val">false</span>, <span class="ident">e</span>),
+                            <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> (<span class="bool-val">false</span>, <span class="ident">e</span>),
                         }
                     }
                 }
@@ -554,7 +554,7 @@
     }
 
     <span class="doccomment">/// Sets the environment up to run the test.</span>
-    <span class="kw">fn</span> <span class="ident">set_up_env</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">harness</span>: <span class="kw-2">&amp;</span><span class="ident">Harness</span>, <span class="ident">strict</span>: <span class="ident">bool</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Context</span>, <span class="ident">String</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">set_up_env</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">harness</span>: <span class="kw-2">&amp;</span><span class="ident">Harness</span>, <span class="ident">strict</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Context</span>, <span class="ident">String</span><span class="op">&gt;</span> {
         <span class="comment">// Create new Realm</span>
         <span class="comment">// TODO: in parallel.</span>
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">context</span> <span class="op">=</span> <span class="ident">Context</span>::<span class="ident">new</span>();
@@ -589,7 +589,7 @@
                     <span class="kw-2">&amp;</span><span class="ident">harness</span>
                         .<span class="ident">includes</span>
                         .<span class="ident">get</span>(<span class="ident">include</span>)
-                        .<span class="ident">ok_or_else</span>(<span class="op">||</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;could not find the {} include file.&quot;</span>, <span class="ident">include</span>))<span class="question-mark">?</span>,
+                        .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;could not find the {} include file.&quot;</span>, <span class="ident">include</span>))<span class="question-mark">?</span>,
                 )
                 .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> {
                     <span class="macro">format</span><span class="macro">!</span>(
@@ -605,7 +605,7 @@
 }
 
 <span class="doccomment">/// `print()` function required by the test262 suite.</span>
-<span class="kw">fn</span> <span class="ident">test262_print</span>(<span class="ident">_this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">_context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-&gt;</span> <span class="ident">boa</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">test262_print</span>(<span class="ident">_this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">_context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">boa</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
     <span class="macro">todo</span><span class="macro">!</span>(<span class="string">&quot;print() function&quot;</span>);
 }
 </pre></div>

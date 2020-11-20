@@ -98,12 +98,12 @@
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Realm</span> {
     <span class="kw">pub</span> <span class="ident">global_object</span>: <span class="ident">Value</span>,
-    <span class="kw">pub</span> <span class="ident">global_env</span>: <span class="ident">Gc</span><span class="op">&lt;</span><span class="ident">GcCell</span><span class="op">&lt;</span><span class="ident">GlobalEnvironmentRecord</span><span class="op">&gt;&gt;</span>,
+    <span class="kw">pub</span> <span class="ident">global_env</span>: <span class="ident">Gc</span><span class="op">&lt;</span><span class="ident">GcCell</span><span class="op">&lt;</span><span class="ident">GlobalEnvironmentRecord</span><span class="op">&gt;</span><span class="op">&gt;</span>,
     <span class="kw">pub</span> <span class="ident">environment</span>: <span class="ident">LexicalEnvironment</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">Realm</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">create</span>() <span class="op">-&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">create</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">BoaProfiler</span>::<span class="ident">global</span>().<span class="ident">start_event</span>(<span class="string">&quot;Realm::create&quot;</span>, <span class="string">&quot;realm&quot;</span>);
         <span class="comment">// Create brand new global object</span>
         <span class="comment">// Global has no prototype to pass None to new_obj</span>
@@ -124,7 +124,7 @@
 }
 
 <span class="comment">// Similar to new_global_environment in lexical_environment, except we need to return a GlobalEnvirionment</span>
-<span class="kw">fn</span> <span class="ident">new_global_environment</span>(<span class="ident">global</span>: <span class="ident">Value</span>, <span class="ident">this_value</span>: <span class="ident">Value</span>) <span class="op">-&gt;</span> <span class="ident">Gc</span><span class="op">&lt;</span><span class="ident">GcCell</span><span class="op">&lt;</span><span class="ident">GlobalEnvironmentRecord</span><span class="op">&gt;&gt;</span> {
+<span class="kw">fn</span> <span class="ident">new_global_environment</span>(<span class="ident">global</span>: <span class="ident">Value</span>, <span class="ident">this_value</span>: <span class="ident">Value</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Gc</span><span class="op">&lt;</span><span class="ident">GcCell</span><span class="op">&lt;</span><span class="ident">GlobalEnvironmentRecord</span><span class="op">&gt;</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">obj_rec</span> <span class="op">=</span> <span class="ident">ObjectEnvironmentRecord</span> {
         <span class="ident">bindings</span>: <span class="ident">global</span>,
         <span class="ident">outer_env</span>: <span class="prelude-val">None</span>,

@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-1.4.2/src/backtrack.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>backtrack.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../regex/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-1.4.2/src/backtrack.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>backtrack.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+<link rel="alternate icon" type="image/png" href="../../favicon-16x16.png">
+<link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../regex/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
                 <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
@@ -314,11 +316,11 @@
 <span class="kw">type</span> <span class="ident">Bits</span> <span class="op">=</span> <span class="ident">u32</span>;
 
 <span class="kw">const</span> <span class="ident">BIT_SIZE</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">32</span>;
-<span class="kw">const</span> <span class="ident">MAX_SIZE_BYTES</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">256</span> <span class="op">*</span> (<span class="number">1</span> <span class="op">&lt;&lt;</span> <span class="number">10</span>); <span class="comment">// 256 KB</span>
+<span class="kw">const</span> <span class="ident">MAX_SIZE_BYTES</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">256</span> <span class="op">*</span> (<span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">10</span>); <span class="comment">// 256 KB</span>
 
 <span class="doccomment">/// Returns true iff the given regex and input should be executed by this</span>
 <span class="doccomment">/// engine with reasonable memory usage.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">should_exec</span>(<span class="ident">num_insts</span>: <span class="ident">usize</span>, <span class="ident">text_len</span>: <span class="ident">usize</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">should_exec</span>(<span class="ident">num_insts</span>: <span class="ident">usize</span>, <span class="ident">text_len</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
     <span class="comment">// Total memory usage in bytes is determined by:</span>
     <span class="comment">//</span>
     <span class="comment">//   ((len(insts) * (len(input) + 1) + bits - 1) / bits) * (size_of(u32))</span>
@@ -326,7 +328,7 @@
     <span class="comment">// The actual limit picked is pretty much a heuristic.</span>
     <span class="comment">// See: https://github.com/rust-lang/regex/issues/215</span>
     <span class="kw">let</span> <span class="ident">size</span> <span class="op">=</span> ((<span class="ident">num_insts</span> <span class="op">*</span> (<span class="ident">text_len</span> <span class="op">+</span> <span class="number">1</span>) <span class="op">+</span> <span class="ident">BIT_SIZE</span> <span class="op">-</span> <span class="number">1</span>) <span class="op">/</span> <span class="ident">BIT_SIZE</span>) <span class="op">*</span> <span class="number">4</span>;
-    <span class="ident">size</span> <span class="op">&lt;=</span> <span class="ident">MAX_SIZE_BYTES</span>
+    <span class="ident">size</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">MAX_SIZE_BYTES</span>
 }
 
 <span class="doccomment">/// A backtracking matching engine.</span>
@@ -349,7 +351,7 @@
 
 <span class="kw">impl</span> <span class="ident">Cache</span> {
     <span class="doccomment">/// Create new empty cache for the backtracking engine.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">_prog</span>: <span class="kw-2">&amp;</span><span class="ident">Program</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">_prog</span>: <span class="kw-2">&amp;</span><span class="ident">Program</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">Cache</span> { <span class="ident">jobs</span>: <span class="macro">vec</span><span class="macro">!</span>[], <span class="ident">visited</span>: <span class="macro">vec</span><span class="macro">!</span>[] }
     }
 }
@@ -379,7 +381,7 @@
         <span class="ident">input</span>: <span class="ident">I</span>,
         <span class="ident">start</span>: <span class="ident">usize</span>,
         <span class="ident">end</span>: <span class="ident">usize</span>,
-    ) <span class="op">-&gt;</span> <span class="ident">bool</span> {
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">cache</span> <span class="op">=</span> <span class="ident">cache</span>.<span class="ident">borrow_mut</span>();
         <span class="kw">let</span> <span class="ident">cache</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">cache</span>.<span class="ident">backtrack</span>;
         <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">at</span>(<span class="ident">start</span>);
@@ -427,7 +429,7 @@
 
     <span class="doccomment">/// Start backtracking at the given position in the input, but also look</span>
     <span class="doccomment">/// for literal prefixes.</span>
-    <span class="kw">fn</span> <span class="ident">exec_</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">at</span>: <span class="ident">InputAt</span>, <span class="ident">end</span>: <span class="ident">usize</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">exec_</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">at</span>: <span class="ident">InputAt</span>, <span class="ident">end</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
         <span class="self">self</span>.<span class="ident">clear</span>();
         <span class="comment">// If this is an anchored regex at the beginning of the input, then</span>
         <span class="comment">// we&#39;re either already done or we only need to try backtracking once.</span>
@@ -438,15 +440,15 @@
         <span class="kw">loop</span> {
             <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">prog</span>.<span class="ident">prefixes</span>.<span class="ident">is_empty</span>() {
                 <span class="ident">at</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">input</span>.<span class="ident">prefix_at</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">prog</span>.<span class="ident">prefixes</span>, <span class="ident">at</span>) {
-                    <span class="prelude-val">None</span> <span class="op">=&gt;</span> <span class="kw">break</span>,
-                    <span class="prelude-val">Some</span>(<span class="ident">at</span>) <span class="op">=&gt;</span> <span class="ident">at</span>,
+                    <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">break</span>,
+                    <span class="prelude-val">Some</span>(<span class="ident">at</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">at</span>,
                 };
             }
-            <span class="ident">matched</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">backtrack</span>(<span class="ident">at</span>) <span class="op">||</span> <span class="ident">matched</span>;
-            <span class="kw">if</span> <span class="ident">matched</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">prog</span>.<span class="ident">matches</span>.<span class="ident">len</span>() <span class="op">==</span> <span class="number">1</span> {
+            <span class="ident">matched</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">backtrack</span>(<span class="ident">at</span>) <span class="op">|</span><span class="op">|</span> <span class="ident">matched</span>;
+            <span class="kw">if</span> <span class="ident">matched</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">prog</span>.<span class="ident">matches</span>.<span class="ident">len</span>() <span class="op">=</span><span class="op">=</span> <span class="number">1</span> {
                 <span class="kw">return</span> <span class="bool-val">true</span>;
             }
-            <span class="kw">if</span> <span class="ident">at</span>.<span class="ident">pos</span>() <span class="op">&gt;=</span> <span class="ident">end</span> {
+            <span class="kw">if</span> <span class="ident">at</span>.<span class="ident">pos</span>() <span class="op">&gt;</span><span class="op">=</span> <span class="ident">end</span> {
                 <span class="kw">break</span>;
             }
             <span class="ident">at</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">input</span>.<span class="ident">at</span>(<span class="ident">at</span>.<span class="ident">next_pos</span>());
@@ -455,7 +457,7 @@
     }
 
     <span class="doccomment">/// The main backtracking loop starting at the given input position.</span>
-    <span class="kw">fn</span> <span class="ident">backtrack</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">start</span>: <span class="ident">InputAt</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">backtrack</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">start</span>: <span class="ident">InputAt</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
         <span class="comment">// N.B. We use an explicit stack to avoid recursion.</span>
         <span class="comment">// To avoid excessive pushing and popping, most transitions are handled</span>
         <span class="comment">// in the `step` helper function, which only pushes to the stack when</span>
@@ -464,18 +466,18 @@
         <span class="self">self</span>.<span class="ident">m</span>.<span class="ident">jobs</span>.<span class="ident">push</span>(<span class="ident">Job</span>::<span class="ident">Inst</span> { <span class="ident">ip</span>: <span class="number">0</span>, <span class="ident">at</span>: <span class="ident">start</span> });
         <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">job</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">m</span>.<span class="ident">jobs</span>.<span class="ident">pop</span>() {
             <span class="kw">match</span> <span class="ident">job</span> {
-                <span class="ident">Job</span>::<span class="ident">Inst</span> { <span class="ident">ip</span>, <span class="ident">at</span> } <span class="op">=&gt;</span> {
+                <span class="ident">Job</span>::<span class="ident">Inst</span> { <span class="ident">ip</span>, <span class="ident">at</span> } <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="kw">if</span> <span class="self">self</span>.<span class="ident">step</span>(<span class="ident">ip</span>, <span class="ident">at</span>) {
                         <span class="comment">// Only quit if we&#39;re matching one regex.</span>
                         <span class="comment">// If we&#39;re matching a regex set, then mush on and</span>
                         <span class="comment">// try to find other matches (if we want them).</span>
-                        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">prog</span>.<span class="ident">matches</span>.<span class="ident">len</span>() <span class="op">==</span> <span class="number">1</span> {
+                        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">prog</span>.<span class="ident">matches</span>.<span class="ident">len</span>() <span class="op">=</span><span class="op">=</span> <span class="number">1</span> {
                             <span class="kw">return</span> <span class="bool-val">true</span>;
                         }
                         <span class="ident">matched</span> <span class="op">=</span> <span class="bool-val">true</span>;
                     }
                 }
-                <span class="ident">Job</span>::<span class="ident">SaveRestore</span> { <span class="ident">slot</span>, <span class="ident">old_pos</span> } <span class="op">=&gt;</span> {
+                <span class="ident">Job</span>::<span class="ident">SaveRestore</span> { <span class="ident">slot</span>, <span class="ident">old_pos</span> } <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="kw">if</span> <span class="ident">slot</span> <span class="op">&lt;</span> <span class="self">self</span>.<span class="ident">slots</span>.<span class="ident">len</span>() {
                         <span class="self">self</span>.<span class="ident">slots</span>[<span class="ident">slot</span>] <span class="op">=</span> <span class="ident">old_pos</span>;
                     }
@@ -485,7 +487,7 @@
         <span class="ident">matched</span>
     }
 
-    <span class="kw">fn</span> <span class="ident">step</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">ip</span>: <span class="ident">InstPtr</span>, <span class="kw-2">mut</span> <span class="ident">at</span>: <span class="ident">InputAt</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">step</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">ip</span>: <span class="ident">InstPtr</span>, <span class="kw-2">mut</span> <span class="ident">at</span>: <span class="ident">InputAt</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
         <span class="kw">use</span> <span class="ident">prog</span>::<span class="ident">Inst</span>::<span class="kw-2">*</span>;
         <span class="kw">loop</span> {
             <span class="comment">// This loop is an optimization to avoid constantly pushing/popping</span>
@@ -496,13 +498,13 @@
                 <span class="kw">return</span> <span class="bool-val">false</span>;
             }
             <span class="kw">match</span> <span class="self">self</span>.<span class="ident">prog</span>[<span class="ident">ip</span>] {
-                <span class="ident">Match</span>(<span class="ident">slot</span>) <span class="op">=&gt;</span> {
+                <span class="ident">Match</span>(<span class="ident">slot</span>) <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="kw">if</span> <span class="ident">slot</span> <span class="op">&lt;</span> <span class="self">self</span>.<span class="ident">matches</span>.<span class="ident">len</span>() {
                         <span class="self">self</span>.<span class="ident">matches</span>[<span class="ident">slot</span>] <span class="op">=</span> <span class="bool-val">true</span>;
                     }
                     <span class="kw">return</span> <span class="bool-val">true</span>;
                 }
-                <span class="ident">Save</span>(<span class="kw-2">ref</span> <span class="ident">inst</span>) <span class="op">=&gt;</span> {
+                <span class="ident">Save</span>(<span class="kw-2">ref</span> <span class="ident">inst</span>) <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="ident">old_pos</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">slots</span>.<span class="ident">get</span>(<span class="ident">inst</span>.<span class="ident">slot</span>) {
                         <span class="comment">// If this path doesn&#39;t work out, then we save the old</span>
                         <span class="comment">// capture index (if one exists) in an alternate</span>
@@ -516,26 +518,26 @@
                     }
                     <span class="ident">ip</span> <span class="op">=</span> <span class="ident">inst</span>.<span class="ident">goto</span>;
                 }
-                <span class="ident">Split</span>(<span class="kw-2">ref</span> <span class="ident">inst</span>) <span class="op">=&gt;</span> {
+                <span class="ident">Split</span>(<span class="kw-2">ref</span> <span class="ident">inst</span>) <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="self">self</span>.<span class="ident">m</span>.<span class="ident">jobs</span>.<span class="ident">push</span>(<span class="ident">Job</span>::<span class="ident">Inst</span> { <span class="ident">ip</span>: <span class="ident">inst</span>.<span class="ident">goto2</span>, <span class="ident">at</span>: <span class="ident">at</span> });
                     <span class="ident">ip</span> <span class="op">=</span> <span class="ident">inst</span>.<span class="ident">goto1</span>;
                 }
-                <span class="ident">EmptyLook</span>(<span class="kw-2">ref</span> <span class="ident">inst</span>) <span class="op">=&gt;</span> {
+                <span class="ident">EmptyLook</span>(<span class="kw-2">ref</span> <span class="ident">inst</span>) <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="kw">if</span> <span class="self">self</span>.<span class="ident">input</span>.<span class="ident">is_empty_match</span>(<span class="ident">at</span>, <span class="ident">inst</span>) {
                         <span class="ident">ip</span> <span class="op">=</span> <span class="ident">inst</span>.<span class="ident">goto</span>;
                     } <span class="kw">else</span> {
                         <span class="kw">return</span> <span class="bool-val">false</span>;
                     }
                 }
-                <span class="ident">Char</span>(<span class="kw-2">ref</span> <span class="ident">inst</span>) <span class="op">=&gt;</span> {
-                    <span class="kw">if</span> <span class="ident">inst</span>.<span class="ident">c</span> <span class="op">==</span> <span class="ident">at</span>.<span class="ident">char</span>() {
+                <span class="ident">Char</span>(<span class="kw-2">ref</span> <span class="ident">inst</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="kw">if</span> <span class="ident">inst</span>.<span class="ident">c</span> <span class="op">=</span><span class="op">=</span> <span class="ident">at</span>.<span class="ident">char</span>() {
                         <span class="ident">ip</span> <span class="op">=</span> <span class="ident">inst</span>.<span class="ident">goto</span>;
                         <span class="ident">at</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">input</span>.<span class="ident">at</span>(<span class="ident">at</span>.<span class="ident">next_pos</span>());
                     } <span class="kw">else</span> {
                         <span class="kw">return</span> <span class="bool-val">false</span>;
                     }
                 }
-                <span class="ident">Ranges</span>(<span class="kw-2">ref</span> <span class="ident">inst</span>) <span class="op">=&gt;</span> {
+                <span class="ident">Ranges</span>(<span class="kw-2">ref</span> <span class="ident">inst</span>) <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="kw">if</span> <span class="ident">inst</span>.<span class="ident">matches</span>(<span class="ident">at</span>.<span class="ident">char</span>()) {
                         <span class="ident">ip</span> <span class="op">=</span> <span class="ident">inst</span>.<span class="ident">goto</span>;
                         <span class="ident">at</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">input</span>.<span class="ident">at</span>(<span class="ident">at</span>.<span class="ident">next_pos</span>());
@@ -543,7 +545,7 @@
                         <span class="kw">return</span> <span class="bool-val">false</span>;
                     }
                 }
-                <span class="ident">Bytes</span>(<span class="kw-2">ref</span> <span class="ident">inst</span>) <span class="op">=&gt;</span> {
+                <span class="ident">Bytes</span>(<span class="kw-2">ref</span> <span class="ident">inst</span>) <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">b</span>) <span class="op">=</span> <span class="ident">at</span>.<span class="ident">byte</span>() {
                         <span class="kw">if</span> <span class="ident">inst</span>.<span class="ident">matches</span>(<span class="ident">b</span>) {
                             <span class="ident">ip</span> <span class="op">=</span> <span class="ident">inst</span>.<span class="ident">goto</span>;
@@ -557,12 +559,12 @@
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">has_visited</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">ip</span>: <span class="ident">InstPtr</span>, <span class="ident">at</span>: <span class="ident">InputAt</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">has_visited</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">ip</span>: <span class="ident">InstPtr</span>, <span class="ident">at</span>: <span class="ident">InputAt</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
         <span class="kw">let</span> <span class="ident">k</span> <span class="op">=</span> <span class="ident">ip</span> <span class="op">*</span> (<span class="self">self</span>.<span class="ident">input</span>.<span class="ident">len</span>() <span class="op">+</span> <span class="number">1</span>) <span class="op">+</span> <span class="ident">at</span>.<span class="ident">pos</span>();
         <span class="kw">let</span> <span class="ident">k1</span> <span class="op">=</span> <span class="ident">k</span> <span class="op">/</span> <span class="ident">BIT_SIZE</span>;
-        <span class="kw">let</span> <span class="ident">k2</span> <span class="op">=</span> <span class="ident">usize_to_u32</span>(<span class="number">1</span> <span class="op">&lt;&lt;</span> (<span class="ident">k</span> <span class="op">&amp;</span> (<span class="ident">BIT_SIZE</span> <span class="op">-</span> <span class="number">1</span>)));
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">m</span>.<span class="ident">visited</span>[<span class="ident">k1</span>] <span class="op">&amp;</span> <span class="ident">k2</span> <span class="op">==</span> <span class="number">0</span> {
-            <span class="self">self</span>.<span class="ident">m</span>.<span class="ident">visited</span>[<span class="ident">k1</span>] <span class="op">|=</span> <span class="ident">k2</span>;
+        <span class="kw">let</span> <span class="ident">k2</span> <span class="op">=</span> <span class="ident">usize_to_u32</span>(<span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> (<span class="ident">k</span> <span class="op">&amp;</span> (<span class="ident">BIT_SIZE</span> <span class="op">-</span> <span class="number">1</span>)));
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">m</span>.<span class="ident">visited</span>[<span class="ident">k1</span>] <span class="op">&amp;</span> <span class="ident">k2</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+            <span class="self">self</span>.<span class="ident">m</span>.<span class="ident">visited</span>[<span class="ident">k1</span>] <span class="op">|</span><span class="op">=</span> <span class="ident">k2</span>;
             <span class="bool-val">false</span>
         } <span class="kw">else</span> {
             <span class="bool-val">true</span>
@@ -570,7 +572,7 @@
     }
 }
 
-<span class="kw">fn</span> <span class="ident">usize_to_u32</span>(<span class="ident">n</span>: <span class="ident">usize</span>) <span class="op">-&gt;</span> <span class="ident">u32</span> {
+<span class="kw">fn</span> <span class="ident">usize_to_u32</span>(<span class="ident">n</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span> {
     <span class="kw">if</span> (<span class="ident">n</span> <span class="kw">as</span> <span class="ident">u64</span>) <span class="op">&gt;</span> (::<span class="ident">std</span>::<span class="ident">u32</span>::<span class="ident">MAX</span> <span class="kw">as</span> <span class="ident">u64</span>) {
         <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;BUG: {} is too big to fit into u32&quot;</span>, <span class="ident">n</span>)
     }

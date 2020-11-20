@@ -398,7 +398,7 @@
 <span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">Timespec</span>, <span class="ident">Tm</span>, <span class="ident">at_utc</span>, <span class="ident">ParseError</span>, <span class="ident">NSEC_PER_SEC</span>};
 
 <span class="doccomment">/// Parses the time from the string according to the format string.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">strptime</span>(<span class="kw-2">mut</span> <span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">format</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Tm</span>, <span class="ident">ParseError</span><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">strptime</span>(<span class="kw-2">mut</span> <span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">format</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Tm</span>, <span class="ident">ParseError</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">tm</span> <span class="op">=</span> <span class="ident">Tm</span> {
         <span class="ident">tm_sec</span>: <span class="number">0</span>,
         <span class="ident">tm_min</span>: <span class="number">0</span>,
@@ -415,7 +415,7 @@
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">chars</span> <span class="op">=</span> <span class="ident">format</span>.<span class="ident">chars</span>();
 
     <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">ch</span>) <span class="op">=</span> <span class="ident">chars</span>.<span class="ident">next</span>() {
-        <span class="kw">if</span> <span class="ident">ch</span> <span class="op">==</span> <span class="string">&#39;%&#39;</span> {
+        <span class="kw">if</span> <span class="ident">ch</span> <span class="op">=</span><span class="op">=</span> <span class="string">&#39;%&#39;</span> {
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">ch</span>) <span class="op">=</span> <span class="ident">chars</span>.<span class="ident">next</span>() {
                 <span class="ident">parse_type</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">s</span>, <span class="ident">ch</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">tm</span>)<span class="question-mark">?</span>;
             }
@@ -427,29 +427,29 @@
     <span class="prelude-val">Ok</span>(<span class="ident">tm</span>)
 }
 
-<span class="kw">fn</span> <span class="ident">parse_type</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">ch</span>: <span class="ident">char</span>, <span class="ident">tm</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Tm</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">ParseError</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">parse_type</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">ch</span>: <span class="ident">char</span>, <span class="ident">tm</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Tm</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">ParseError</span><span class="op">&gt;</span> {
     <span class="kw">match</span> <span class="ident">ch</span> {
-        <span class="string">&#39;A&#39;</span> <span class="op">=&gt;</span> <span class="kw">match</span> <span class="ident">match_strs</span>(<span class="ident">s</span>, <span class="kw-2">&amp;</span>[(<span class="string">&quot;Sunday&quot;</span>, <span class="number">0</span>),
+        <span class="string">&#39;A&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">match_strs</span>(<span class="ident">s</span>, <span class="kw-2">&amp;</span>[(<span class="string">&quot;Sunday&quot;</span>, <span class="number">0</span>),
                                      (<span class="string">&quot;Monday&quot;</span>, <span class="number">1</span>),
                                      (<span class="string">&quot;Tuesday&quot;</span>, <span class="number">2</span>),
                                      (<span class="string">&quot;Wednesday&quot;</span>, <span class="number">3</span>),
                                      (<span class="string">&quot;Thursday&quot;</span>, <span class="number">4</span>),
                                      (<span class="string">&quot;Friday&quot;</span>, <span class="number">5</span>),
                                      (<span class="string">&quot;Saturday&quot;</span>, <span class="number">6</span>)]) {
-            <span class="prelude-val">Some</span>(<span class="ident">v</span>) <span class="op">=&gt;</span> { <span class="ident">tm</span>.<span class="ident">tm_wday</span> <span class="op">=</span> <span class="ident">v</span>; <span class="prelude-val">Ok</span>(()) }
-            <span class="prelude-val">None</span> <span class="op">=&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError</span>::<span class="ident">InvalidDay</span>)
+            <span class="prelude-val">Some</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> { <span class="ident">tm</span>.<span class="ident">tm_wday</span> <span class="op">=</span> <span class="ident">v</span>; <span class="prelude-val">Ok</span>(()) }
+            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError</span>::<span class="ident">InvalidDay</span>)
         },
-        <span class="string">&#39;a&#39;</span> <span class="op">=&gt;</span> <span class="kw">match</span> <span class="ident">match_strs</span>(<span class="ident">s</span>, <span class="kw-2">&amp;</span>[(<span class="string">&quot;Sun&quot;</span>, <span class="number">0</span>),
+        <span class="string">&#39;a&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">match_strs</span>(<span class="ident">s</span>, <span class="kw-2">&amp;</span>[(<span class="string">&quot;Sun&quot;</span>, <span class="number">0</span>),
                                      (<span class="string">&quot;Mon&quot;</span>, <span class="number">1</span>),
                                      (<span class="string">&quot;Tue&quot;</span>, <span class="number">2</span>),
                                      (<span class="string">&quot;Wed&quot;</span>, <span class="number">3</span>),
                                      (<span class="string">&quot;Thu&quot;</span>, <span class="number">4</span>),
                                      (<span class="string">&quot;Fri&quot;</span>, <span class="number">5</span>),
                                      (<span class="string">&quot;Sat&quot;</span>, <span class="number">6</span>)]) {
-            <span class="prelude-val">Some</span>(<span class="ident">v</span>) <span class="op">=&gt;</span> { <span class="ident">tm</span>.<span class="ident">tm_wday</span> <span class="op">=</span> <span class="ident">v</span>; <span class="prelude-val">Ok</span>(()) }
-            <span class="prelude-val">None</span> <span class="op">=&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError</span>::<span class="ident">InvalidDay</span>)
+            <span class="prelude-val">Some</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> { <span class="ident">tm</span>.<span class="ident">tm_wday</span> <span class="op">=</span> <span class="ident">v</span>; <span class="prelude-val">Ok</span>(()) }
+            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError</span>::<span class="ident">InvalidDay</span>)
         },
-        <span class="string">&#39;B&#39;</span> <span class="op">=&gt;</span> <span class="kw">match</span> <span class="ident">match_strs</span>(<span class="ident">s</span>, <span class="kw-2">&amp;</span>[(<span class="string">&quot;January&quot;</span>, <span class="number">0</span>),
+        <span class="string">&#39;B&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">match_strs</span>(<span class="ident">s</span>, <span class="kw-2">&amp;</span>[(<span class="string">&quot;January&quot;</span>, <span class="number">0</span>),
                                      (<span class="string">&quot;February&quot;</span>, <span class="number">1</span>),
                                      (<span class="string">&quot;March&quot;</span>, <span class="number">2</span>),
                                      (<span class="string">&quot;April&quot;</span>, <span class="number">3</span>),
@@ -461,10 +461,10 @@
                                      (<span class="string">&quot;October&quot;</span>, <span class="number">9</span>),
                                      (<span class="string">&quot;November&quot;</span>, <span class="number">10</span>),
                                      (<span class="string">&quot;December&quot;</span>, <span class="number">11</span>)]) {
-            <span class="prelude-val">Some</span>(<span class="ident">v</span>) <span class="op">=&gt;</span> { <span class="ident">tm</span>.<span class="ident">tm_mon</span> <span class="op">=</span> <span class="ident">v</span>; <span class="prelude-val">Ok</span>(()) }
-            <span class="prelude-val">None</span> <span class="op">=&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError</span>::<span class="ident">InvalidMonth</span>)
+            <span class="prelude-val">Some</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> { <span class="ident">tm</span>.<span class="ident">tm_mon</span> <span class="op">=</span> <span class="ident">v</span>; <span class="prelude-val">Ok</span>(()) }
+            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError</span>::<span class="ident">InvalidMonth</span>)
         },
-        <span class="string">&#39;b&#39;</span> <span class="op">|</span> <span class="string">&#39;h&#39;</span> <span class="op">=&gt;</span> <span class="kw">match</span> <span class="ident">match_strs</span>(<span class="ident">s</span>, <span class="kw-2">&amp;</span>[(<span class="string">&quot;Jan&quot;</span>, <span class="number">0</span>),
+        <span class="string">&#39;b&#39;</span> <span class="op">|</span> <span class="string">&#39;h&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">match_strs</span>(<span class="ident">s</span>, <span class="kw-2">&amp;</span>[(<span class="string">&quot;Jan&quot;</span>, <span class="number">0</span>),
                                            (<span class="string">&quot;Feb&quot;</span>, <span class="number">1</span>),
                                            (<span class="string">&quot;Mar&quot;</span>, <span class="number">2</span>),
                                            (<span class="string">&quot;Apr&quot;</span>, <span class="number">3</span>),
@@ -476,14 +476,14 @@
                                            (<span class="string">&quot;Oct&quot;</span>, <span class="number">9</span>),
                                            (<span class="string">&quot;Nov&quot;</span>, <span class="number">10</span>),
                                            (<span class="string">&quot;Dec&quot;</span>, <span class="number">11</span>)]) {
-            <span class="prelude-val">Some</span>(<span class="ident">v</span>) <span class="op">=&gt;</span> { <span class="ident">tm</span>.<span class="ident">tm_mon</span> <span class="op">=</span> <span class="ident">v</span>; <span class="prelude-val">Ok</span>(()) }
-            <span class="prelude-val">None</span> <span class="op">=&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError</span>::<span class="ident">InvalidMonth</span>)
+            <span class="prelude-val">Some</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> { <span class="ident">tm</span>.<span class="ident">tm_mon</span> <span class="op">=</span> <span class="ident">v</span>; <span class="prelude-val">Ok</span>(()) }
+            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError</span>::<span class="ident">InvalidMonth</span>)
         },
-        <span class="string">&#39;C&#39;</span> <span class="op">=&gt;</span> <span class="kw">match</span> <span class="ident">match_digits_in_range</span>(<span class="ident">s</span>, <span class="number">1</span>, <span class="number">2</span>, <span class="bool-val">false</span>, <span class="number">0</span>, <span class="number">99</span>) {
-            <span class="prelude-val">Some</span>(<span class="ident">v</span>) <span class="op">=&gt;</span> { <span class="ident">tm</span>.<span class="ident">tm_year</span> <span class="op">+=</span> (<span class="ident">v</span> <span class="op">*</span> <span class="number">100</span>) <span class="op">-</span> <span class="number">1900</span>; <span class="prelude-val">Ok</span>(()) }
-            <span class="prelude-val">None</span> <span class="op">=&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError</span>::<span class="ident">InvalidYear</span>)
+        <span class="string">&#39;C&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">match_digits_in_range</span>(<span class="ident">s</span>, <span class="number">1</span>, <span class="number">2</span>, <span class="bool-val">false</span>, <span class="number">0</span>, <span class="number">99</span>) {
+            <span class="prelude-val">Some</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> { <span class="ident">tm</span>.<span class="ident">tm_year</span> <span class="op">+</span><span class="op">=</span> (<span class="ident">v</span> <span class="op">*</span> <span class="number">100</span>) <span class="op">-</span> <span class="number">1900</span>; <span class="prelude-val">Ok</span>(()) }
+            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError</span>::<span class="ident">InvalidYear</span>)
         },
-        <span class="string">&#39;c&#39;</span> <span class="op">=&gt;</span> {
+        <span class="string">&#39;c&#39;</span> <span class="op">=</span><span class="op">&gt;</span> {
             <span class="ident">parse_type</span>(<span class="ident">s</span>, <span class="string">&#39;a&#39;</span>, <span class="ident">tm</span>)
                 .<span class="ident">and_then</span>(<span class="op">|</span>()<span class="op">|</span> <span class="ident">parse_char</span>(<span class="ident">s</span>, <span class="string">&#39; &#39;</span>))
                 .<span class="ident">and_then</span>(<span class="op">|</span>()<span class="op">|</span> <span class="ident">parse_type</span>(<span class="ident">s</span>, <span class="string">&#39;b&#39;</span>, <span class="ident">tm</span>))
@@ -494,89 +494,89 @@
                 .<span class="ident">and_then</span>(<span class="op">|</span>()<span class="op">|</span> <span class="ident">parse_char</span>(<span class="ident">s</span>, <span class="string">&#39; &#39;</span>))
                 .<span class="ident">and_then</span>(<span class="op">|</span>()<span class="op">|</span> <span class="ident">parse_type</span>(<span class="ident">s</span>, <span class="string">&#39;Y&#39;</span>, <span class="ident">tm</span>))
         }
-        <span class="string">&#39;D&#39;</span> <span class="op">|</span> <span class="string">&#39;x&#39;</span> <span class="op">=&gt;</span> {
+        <span class="string">&#39;D&#39;</span> <span class="op">|</span> <span class="string">&#39;x&#39;</span> <span class="op">=</span><span class="op">&gt;</span> {
             <span class="ident">parse_type</span>(<span class="ident">s</span>, <span class="string">&#39;m&#39;</span>, <span class="ident">tm</span>)
                 .<span class="ident">and_then</span>(<span class="op">|</span>()<span class="op">|</span> <span class="ident">parse_char</span>(<span class="ident">s</span>, <span class="string">&#39;/&#39;</span>))
                 .<span class="ident">and_then</span>(<span class="op">|</span>()<span class="op">|</span> <span class="ident">parse_type</span>(<span class="ident">s</span>, <span class="string">&#39;d&#39;</span>, <span class="ident">tm</span>))
                 .<span class="ident">and_then</span>(<span class="op">|</span>()<span class="op">|</span> <span class="ident">parse_char</span>(<span class="ident">s</span>, <span class="string">&#39;/&#39;</span>))
                 .<span class="ident">and_then</span>(<span class="op">|</span>()<span class="op">|</span> <span class="ident">parse_type</span>(<span class="ident">s</span>, <span class="string">&#39;y&#39;</span>, <span class="ident">tm</span>))
         }
-        <span class="string">&#39;d&#39;</span> <span class="op">=&gt;</span> <span class="kw">match</span> <span class="ident">match_digits_in_range</span>(<span class="ident">s</span>, <span class="number">1</span>, <span class="number">2</span>, <span class="bool-val">false</span>, <span class="number">1</span>, <span class="number">31</span>) {
-            <span class="prelude-val">Some</span>(<span class="ident">v</span>) <span class="op">=&gt;</span> { <span class="ident">tm</span>.<span class="ident">tm_mday</span> <span class="op">=</span> <span class="ident">v</span>; <span class="prelude-val">Ok</span>(()) }
-            <span class="prelude-val">None</span> <span class="op">=&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError</span>::<span class="ident">InvalidDayOfMonth</span>)
+        <span class="string">&#39;d&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">match_digits_in_range</span>(<span class="ident">s</span>, <span class="number">1</span>, <span class="number">2</span>, <span class="bool-val">false</span>, <span class="number">1</span>, <span class="number">31</span>) {
+            <span class="prelude-val">Some</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> { <span class="ident">tm</span>.<span class="ident">tm_mday</span> <span class="op">=</span> <span class="ident">v</span>; <span class="prelude-val">Ok</span>(()) }
+            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError</span>::<span class="ident">InvalidDayOfMonth</span>)
         },
-        <span class="string">&#39;e&#39;</span> <span class="op">=&gt;</span> <span class="kw">match</span> <span class="ident">match_digits_in_range</span>(<span class="ident">s</span>, <span class="number">1</span>, <span class="number">2</span>, <span class="bool-val">true</span>, <span class="number">1</span>, <span class="number">31</span>) {
-            <span class="prelude-val">Some</span>(<span class="ident">v</span>) <span class="op">=&gt;</span> { <span class="ident">tm</span>.<span class="ident">tm_mday</span> <span class="op">=</span> <span class="ident">v</span>; <span class="prelude-val">Ok</span>(()) }
-            <span class="prelude-val">None</span> <span class="op">=&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError</span>::<span class="ident">InvalidDayOfMonth</span>)
+        <span class="string">&#39;e&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">match_digits_in_range</span>(<span class="ident">s</span>, <span class="number">1</span>, <span class="number">2</span>, <span class="bool-val">true</span>, <span class="number">1</span>, <span class="number">31</span>) {
+            <span class="prelude-val">Some</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> { <span class="ident">tm</span>.<span class="ident">tm_mday</span> <span class="op">=</span> <span class="ident">v</span>; <span class="prelude-val">Ok</span>(()) }
+            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError</span>::<span class="ident">InvalidDayOfMonth</span>)
         },
-        <span class="string">&#39;f&#39;</span> <span class="op">=&gt;</span> {
+        <span class="string">&#39;f&#39;</span> <span class="op">=</span><span class="op">&gt;</span> {
             <span class="ident">tm</span>.<span class="ident">tm_nsec</span> <span class="op">=</span> <span class="ident">match_fractional_seconds</span>(<span class="ident">s</span>);
             <span class="prelude-val">Ok</span>(())
         }
-        <span class="string">&#39;F&#39;</span> <span class="op">=&gt;</span> {
+        <span class="string">&#39;F&#39;</span> <span class="op">=</span><span class="op">&gt;</span> {
             <span class="ident">parse_type</span>(<span class="ident">s</span>, <span class="string">&#39;Y&#39;</span>, <span class="ident">tm</span>)
                 .<span class="ident">and_then</span>(<span class="op">|</span>()<span class="op">|</span> <span class="ident">parse_char</span>(<span class="ident">s</span>, <span class="string">&#39;-&#39;</span>))
                 .<span class="ident">and_then</span>(<span class="op">|</span>()<span class="op">|</span> <span class="ident">parse_type</span>(<span class="ident">s</span>, <span class="string">&#39;m&#39;</span>, <span class="ident">tm</span>))
                 .<span class="ident">and_then</span>(<span class="op">|</span>()<span class="op">|</span> <span class="ident">parse_char</span>(<span class="ident">s</span>, <span class="string">&#39;-&#39;</span>))
                 .<span class="ident">and_then</span>(<span class="op">|</span>()<span class="op">|</span> <span class="ident">parse_type</span>(<span class="ident">s</span>, <span class="string">&#39;d&#39;</span>, <span class="ident">tm</span>))
         }
-        <span class="string">&#39;H&#39;</span> <span class="op">=&gt;</span> {
+        <span class="string">&#39;H&#39;</span> <span class="op">=</span><span class="op">&gt;</span> {
             <span class="kw">match</span> <span class="ident">match_digits_in_range</span>(<span class="ident">s</span>, <span class="number">1</span>, <span class="number">2</span>, <span class="bool-val">false</span>, <span class="number">0</span>, <span class="number">23</span>) {
-                <span class="prelude-val">Some</span>(<span class="ident">v</span>) <span class="op">=&gt;</span> { <span class="ident">tm</span>.<span class="ident">tm_hour</span> <span class="op">=</span> <span class="ident">v</span>; <span class="prelude-val">Ok</span>(()) }
-                <span class="prelude-val">None</span> <span class="op">=&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError</span>::<span class="ident">InvalidHour</span>)
+                <span class="prelude-val">Some</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> { <span class="ident">tm</span>.<span class="ident">tm_hour</span> <span class="op">=</span> <span class="ident">v</span>; <span class="prelude-val">Ok</span>(()) }
+                <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError</span>::<span class="ident">InvalidHour</span>)
             }
         }
-        <span class="string">&#39;I&#39;</span> <span class="op">=&gt;</span> {
+        <span class="string">&#39;I&#39;</span> <span class="op">=</span><span class="op">&gt;</span> {
             <span class="kw">match</span> <span class="ident">match_digits_in_range</span>(<span class="ident">s</span>, <span class="number">1</span>, <span class="number">2</span>, <span class="bool-val">false</span>, <span class="number">1</span>, <span class="number">12</span>) {
-                <span class="prelude-val">Some</span>(<span class="ident">v</span>) <span class="op">=&gt;</span> { <span class="ident">tm</span>.<span class="ident">tm_hour</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">v</span> <span class="op">==</span> <span class="number">12</span> { <span class="number">0</span> } <span class="kw">else</span> { <span class="ident">v</span> }; <span class="prelude-val">Ok</span>(()) }
-                <span class="prelude-val">None</span> <span class="op">=&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError</span>::<span class="ident">InvalidHour</span>)
+                <span class="prelude-val">Some</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> { <span class="ident">tm</span>.<span class="ident">tm_hour</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">v</span> <span class="op">=</span><span class="op">=</span> <span class="number">12</span> { <span class="number">0</span> } <span class="kw">else</span> { <span class="ident">v</span> }; <span class="prelude-val">Ok</span>(()) }
+                <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError</span>::<span class="ident">InvalidHour</span>)
             }
         }
-        <span class="string">&#39;j&#39;</span> <span class="op">=&gt;</span> {
+        <span class="string">&#39;j&#39;</span> <span class="op">=</span><span class="op">&gt;</span> {
             <span class="kw">match</span> <span class="ident">match_digits_in_range</span>(<span class="ident">s</span>, <span class="number">1</span>, <span class="number">3</span>, <span class="bool-val">false</span>, <span class="number">1</span>, <span class="number">366</span>) {
-                <span class="prelude-val">Some</span>(<span class="ident">v</span>) <span class="op">=&gt;</span> { <span class="ident">tm</span>.<span class="ident">tm_yday</span> <span class="op">=</span> <span class="ident">v</span> <span class="op">-</span> <span class="number">1</span>; <span class="prelude-val">Ok</span>(()) }
-                <span class="prelude-val">None</span> <span class="op">=&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError</span>::<span class="ident">InvalidDayOfYear</span>)
+                <span class="prelude-val">Some</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> { <span class="ident">tm</span>.<span class="ident">tm_yday</span> <span class="op">=</span> <span class="ident">v</span> <span class="op">-</span> <span class="number">1</span>; <span class="prelude-val">Ok</span>(()) }
+                <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError</span>::<span class="ident">InvalidDayOfYear</span>)
             }
         }
-        <span class="string">&#39;k&#39;</span> <span class="op">=&gt;</span> {
+        <span class="string">&#39;k&#39;</span> <span class="op">=</span><span class="op">&gt;</span> {
             <span class="kw">match</span> <span class="ident">match_digits_in_range</span>(<span class="ident">s</span>, <span class="number">1</span>, <span class="number">2</span>, <span class="bool-val">true</span>, <span class="number">0</span>, <span class="number">23</span>) {
-                <span class="prelude-val">Some</span>(<span class="ident">v</span>) <span class="op">=&gt;</span> { <span class="ident">tm</span>.<span class="ident">tm_hour</span> <span class="op">=</span> <span class="ident">v</span>; <span class="prelude-val">Ok</span>(()) }
-                <span class="prelude-val">None</span> <span class="op">=&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError</span>::<span class="ident">InvalidHour</span>)
+                <span class="prelude-val">Some</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> { <span class="ident">tm</span>.<span class="ident">tm_hour</span> <span class="op">=</span> <span class="ident">v</span>; <span class="prelude-val">Ok</span>(()) }
+                <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError</span>::<span class="ident">InvalidHour</span>)
             }
         }
-        <span class="string">&#39;l&#39;</span> <span class="op">=&gt;</span> {
+        <span class="string">&#39;l&#39;</span> <span class="op">=</span><span class="op">&gt;</span> {
             <span class="kw">match</span> <span class="ident">match_digits_in_range</span>(<span class="ident">s</span>, <span class="number">1</span>, <span class="number">2</span>, <span class="bool-val">true</span>, <span class="number">1</span>, <span class="number">12</span>) {
-                <span class="prelude-val">Some</span>(<span class="ident">v</span>) <span class="op">=&gt;</span> { <span class="ident">tm</span>.<span class="ident">tm_hour</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">v</span> <span class="op">==</span> <span class="number">12</span> { <span class="number">0</span> } <span class="kw">else</span> { <span class="ident">v</span> }; <span class="prelude-val">Ok</span>(()) }
-                <span class="prelude-val">None</span> <span class="op">=&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError</span>::<span class="ident">InvalidHour</span>)
+                <span class="prelude-val">Some</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> { <span class="ident">tm</span>.<span class="ident">tm_hour</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">v</span> <span class="op">=</span><span class="op">=</span> <span class="number">12</span> { <span class="number">0</span> } <span class="kw">else</span> { <span class="ident">v</span> }; <span class="prelude-val">Ok</span>(()) }
+                <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError</span>::<span class="ident">InvalidHour</span>)
             }
         }
-        <span class="string">&#39;M&#39;</span> <span class="op">=&gt;</span> {
+        <span class="string">&#39;M&#39;</span> <span class="op">=</span><span class="op">&gt;</span> {
             <span class="kw">match</span> <span class="ident">match_digits_in_range</span>(<span class="ident">s</span>, <span class="number">1</span>, <span class="number">2</span>, <span class="bool-val">false</span>, <span class="number">0</span>, <span class="number">59</span>) {
-                <span class="prelude-val">Some</span>(<span class="ident">v</span>) <span class="op">=&gt;</span> { <span class="ident">tm</span>.<span class="ident">tm_min</span> <span class="op">=</span> <span class="ident">v</span>; <span class="prelude-val">Ok</span>(()) }
-                <span class="prelude-val">None</span> <span class="op">=&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError</span>::<span class="ident">InvalidMinute</span>)
+                <span class="prelude-val">Some</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> { <span class="ident">tm</span>.<span class="ident">tm_min</span> <span class="op">=</span> <span class="ident">v</span>; <span class="prelude-val">Ok</span>(()) }
+                <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError</span>::<span class="ident">InvalidMinute</span>)
             }
         }
-        <span class="string">&#39;m&#39;</span> <span class="op">=&gt;</span> {
+        <span class="string">&#39;m&#39;</span> <span class="op">=</span><span class="op">&gt;</span> {
             <span class="kw">match</span> <span class="ident">match_digits_in_range</span>(<span class="ident">s</span>, <span class="number">1</span>, <span class="number">2</span>, <span class="bool-val">false</span>, <span class="number">1</span>, <span class="number">12</span>) {
-                <span class="prelude-val">Some</span>(<span class="ident">v</span>) <span class="op">=&gt;</span> { <span class="ident">tm</span>.<span class="ident">tm_mon</span> <span class="op">=</span> <span class="ident">v</span> <span class="op">-</span> <span class="number">1</span>; <span class="prelude-val">Ok</span>(()) }
-                <span class="prelude-val">None</span> <span class="op">=&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError</span>::<span class="ident">InvalidMonth</span>)
+                <span class="prelude-val">Some</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> { <span class="ident">tm</span>.<span class="ident">tm_mon</span> <span class="op">=</span> <span class="ident">v</span> <span class="op">-</span> <span class="number">1</span>; <span class="prelude-val">Ok</span>(()) }
+                <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError</span>::<span class="ident">InvalidMonth</span>)
             }
         }
-        <span class="string">&#39;n&#39;</span> <span class="op">=&gt;</span> <span class="ident">parse_char</span>(<span class="ident">s</span>, <span class="string">&#39;\n&#39;</span>),
-        <span class="string">&#39;P&#39;</span> <span class="op">=&gt;</span> <span class="kw">match</span> <span class="ident">match_strs</span>(<span class="ident">s</span>, <span class="kw-2">&amp;</span>[(<span class="string">&quot;am&quot;</span>, <span class="number">0</span>), (<span class="string">&quot;pm&quot;</span>, <span class="number">12</span>)]) {
-            <span class="prelude-val">Some</span>(<span class="ident">v</span>) <span class="op">=&gt;</span> { <span class="ident">tm</span>.<span class="ident">tm_hour</span> <span class="op">+=</span> <span class="ident">v</span>; <span class="prelude-val">Ok</span>(()) }
-            <span class="prelude-val">None</span> <span class="op">=&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError</span>::<span class="ident">InvalidHour</span>)
+        <span class="string">&#39;n&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">parse_char</span>(<span class="ident">s</span>, <span class="string">&#39;\n&#39;</span>),
+        <span class="string">&#39;P&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">match_strs</span>(<span class="ident">s</span>, <span class="kw-2">&amp;</span>[(<span class="string">&quot;am&quot;</span>, <span class="number">0</span>), (<span class="string">&quot;pm&quot;</span>, <span class="number">12</span>)]) {
+            <span class="prelude-val">Some</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> { <span class="ident">tm</span>.<span class="ident">tm_hour</span> <span class="op">+</span><span class="op">=</span> <span class="ident">v</span>; <span class="prelude-val">Ok</span>(()) }
+            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError</span>::<span class="ident">InvalidHour</span>)
         },
-        <span class="string">&#39;p&#39;</span> <span class="op">=&gt;</span> <span class="kw">match</span> <span class="ident">match_strs</span>(<span class="ident">s</span>, <span class="kw-2">&amp;</span>[(<span class="string">&quot;AM&quot;</span>, <span class="number">0</span>), (<span class="string">&quot;PM&quot;</span>, <span class="number">12</span>)]) {
-            <span class="prelude-val">Some</span>(<span class="ident">v</span>) <span class="op">=&gt;</span> { <span class="ident">tm</span>.<span class="ident">tm_hour</span> <span class="op">+=</span> <span class="ident">v</span>; <span class="prelude-val">Ok</span>(()) }
-            <span class="prelude-val">None</span> <span class="op">=&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError</span>::<span class="ident">InvalidHour</span>)
+        <span class="string">&#39;p&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">match_strs</span>(<span class="ident">s</span>, <span class="kw-2">&amp;</span>[(<span class="string">&quot;AM&quot;</span>, <span class="number">0</span>), (<span class="string">&quot;PM&quot;</span>, <span class="number">12</span>)]) {
+            <span class="prelude-val">Some</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> { <span class="ident">tm</span>.<span class="ident">tm_hour</span> <span class="op">+</span><span class="op">=</span> <span class="ident">v</span>; <span class="prelude-val">Ok</span>(()) }
+            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError</span>::<span class="ident">InvalidHour</span>)
         },
-        <span class="string">&#39;R&#39;</span> <span class="op">=&gt;</span> {
+        <span class="string">&#39;R&#39;</span> <span class="op">=</span><span class="op">&gt;</span> {
             <span class="ident">parse_type</span>(<span class="ident">s</span>, <span class="string">&#39;H&#39;</span>, <span class="ident">tm</span>)
                 .<span class="ident">and_then</span>(<span class="op">|</span>()<span class="op">|</span> <span class="ident">parse_char</span>(<span class="ident">s</span>, <span class="string">&#39;:&#39;</span>))
                 .<span class="ident">and_then</span>(<span class="op">|</span>()<span class="op">|</span> <span class="ident">parse_type</span>(<span class="ident">s</span>, <span class="string">&#39;M&#39;</span>, <span class="ident">tm</span>))
         }
-        <span class="string">&#39;r&#39;</span> <span class="op">=&gt;</span> {
+        <span class="string">&#39;r&#39;</span> <span class="op">=</span><span class="op">&gt;</span> {
             <span class="ident">parse_type</span>(<span class="ident">s</span>, <span class="string">&#39;I&#39;</span>, <span class="ident">tm</span>)
                 .<span class="ident">and_then</span>(<span class="op">|</span>()<span class="op">|</span> <span class="ident">parse_char</span>(<span class="ident">s</span>, <span class="string">&#39;:&#39;</span>))
                 .<span class="ident">and_then</span>(<span class="op">|</span>()<span class="op">|</span> <span class="ident">parse_type</span>(<span class="ident">s</span>, <span class="string">&#39;M&#39;</span>, <span class="ident">tm</span>))
@@ -585,37 +585,37 @@
                 .<span class="ident">and_then</span>(<span class="op">|</span>()<span class="op">|</span> <span class="ident">parse_char</span>(<span class="ident">s</span>, <span class="string">&#39; &#39;</span>))
                 .<span class="ident">and_then</span>(<span class="op">|</span>()<span class="op">|</span> <span class="ident">parse_type</span>(<span class="ident">s</span>, <span class="string">&#39;p&#39;</span>, <span class="ident">tm</span>))
         }
-        <span class="string">&#39;s&#39;</span> <span class="op">=&gt;</span> {
+        <span class="string">&#39;s&#39;</span> <span class="op">=</span><span class="op">&gt;</span> {
             <span class="kw">match</span> <span class="ident">match_digits_i64</span>(<span class="ident">s</span>, <span class="number">1</span>, <span class="number">18</span>, <span class="bool-val">false</span>) {
-                <span class="prelude-val">Some</span>(<span class="ident">v</span>) <span class="op">=&gt;</span> {
+                <span class="prelude-val">Some</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="kw-2">*</span><span class="ident">tm</span> <span class="op">=</span> <span class="ident">at_utc</span>(<span class="ident">Timespec</span>::<span class="ident">new</span>(<span class="ident">v</span>, <span class="number">0</span>));
                     <span class="prelude-val">Ok</span>(())
                 },
-                <span class="prelude-val">None</span> <span class="op">=&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError</span>::<span class="ident">InvalidSecondsSinceEpoch</span>)
+                <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError</span>::<span class="ident">InvalidSecondsSinceEpoch</span>)
             }
         }
-        <span class="string">&#39;S&#39;</span> <span class="op">=&gt;</span> {
+        <span class="string">&#39;S&#39;</span> <span class="op">=</span><span class="op">&gt;</span> {
             <span class="kw">match</span> <span class="ident">match_digits_in_range</span>(<span class="ident">s</span>, <span class="number">1</span>, <span class="number">2</span>, <span class="bool-val">false</span>, <span class="number">0</span>, <span class="number">60</span>) {
-                <span class="prelude-val">Some</span>(<span class="ident">v</span>) <span class="op">=&gt;</span> { <span class="ident">tm</span>.<span class="ident">tm_sec</span> <span class="op">=</span> <span class="ident">v</span>; <span class="prelude-val">Ok</span>(()) }
-                <span class="prelude-val">None</span> <span class="op">=&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError</span>::<span class="ident">InvalidSecond</span>)
+                <span class="prelude-val">Some</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> { <span class="ident">tm</span>.<span class="ident">tm_sec</span> <span class="op">=</span> <span class="ident">v</span>; <span class="prelude-val">Ok</span>(()) }
+                <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError</span>::<span class="ident">InvalidSecond</span>)
             }
         }
         <span class="comment">//&#39;s&#39; {}</span>
-        <span class="string">&#39;T&#39;</span> <span class="op">|</span> <span class="string">&#39;X&#39;</span> <span class="op">=&gt;</span> {
+        <span class="string">&#39;T&#39;</span> <span class="op">|</span> <span class="string">&#39;X&#39;</span> <span class="op">=</span><span class="op">&gt;</span> {
             <span class="ident">parse_type</span>(<span class="ident">s</span>, <span class="string">&#39;H&#39;</span>, <span class="ident">tm</span>)
                 .<span class="ident">and_then</span>(<span class="op">|</span>()<span class="op">|</span> <span class="ident">parse_char</span>(<span class="ident">s</span>, <span class="string">&#39;:&#39;</span>))
                 .<span class="ident">and_then</span>(<span class="op">|</span>()<span class="op">|</span> <span class="ident">parse_type</span>(<span class="ident">s</span>, <span class="string">&#39;M&#39;</span>, <span class="ident">tm</span>))
                 .<span class="ident">and_then</span>(<span class="op">|</span>()<span class="op">|</span> <span class="ident">parse_char</span>(<span class="ident">s</span>, <span class="string">&#39;:&#39;</span>))
                 .<span class="ident">and_then</span>(<span class="op">|</span>()<span class="op">|</span> <span class="ident">parse_type</span>(<span class="ident">s</span>, <span class="string">&#39;S&#39;</span>, <span class="ident">tm</span>))
         }
-        <span class="string">&#39;t&#39;</span> <span class="op">=&gt;</span> <span class="ident">parse_char</span>(<span class="ident">s</span>, <span class="string">&#39;\t&#39;</span>),
-        <span class="string">&#39;u&#39;</span> <span class="op">=&gt;</span> {
+        <span class="string">&#39;t&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">parse_char</span>(<span class="ident">s</span>, <span class="string">&#39;\t&#39;</span>),
+        <span class="string">&#39;u&#39;</span> <span class="op">=</span><span class="op">&gt;</span> {
             <span class="kw">match</span> <span class="ident">match_digits_in_range</span>(<span class="ident">s</span>, <span class="number">1</span>, <span class="number">1</span>, <span class="bool-val">false</span>, <span class="number">1</span>, <span class="number">7</span>) {
-                <span class="prelude-val">Some</span>(<span class="ident">v</span>) <span class="op">=&gt;</span> { <span class="ident">tm</span>.<span class="ident">tm_wday</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">v</span> <span class="op">==</span> <span class="number">7</span> { <span class="number">0</span> } <span class="kw">else</span> { <span class="ident">v</span> }; <span class="prelude-val">Ok</span>(()) }
-                <span class="prelude-val">None</span> <span class="op">=&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError</span>::<span class="ident">InvalidDayOfWeek</span>)
+                <span class="prelude-val">Some</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> { <span class="ident">tm</span>.<span class="ident">tm_wday</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">v</span> <span class="op">=</span><span class="op">=</span> <span class="number">7</span> { <span class="number">0</span> } <span class="kw">else</span> { <span class="ident">v</span> }; <span class="prelude-val">Ok</span>(()) }
+                <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError</span>::<span class="ident">InvalidDayOfWeek</span>)
             }
         }
-        <span class="string">&#39;v&#39;</span> <span class="op">=&gt;</span> {
+        <span class="string">&#39;v&#39;</span> <span class="op">=</span><span class="op">&gt;</span> {
             <span class="ident">parse_type</span>(<span class="ident">s</span>, <span class="string">&#39;e&#39;</span>, <span class="ident">tm</span>)
                 .<span class="ident">and_then</span>(<span class="op">|</span>()<span class="op">|</span> <span class="ident">parse_char</span>(<span class="ident">s</span>, <span class="string">&#39;-&#39;</span>))
                 .<span class="ident">and_then</span>(<span class="op">|</span>()<span class="op">|</span> <span class="ident">parse_type</span>(<span class="ident">s</span>, <span class="string">&#39;b&#39;</span>, <span class="ident">tm</span>))
@@ -623,33 +623,33 @@
                 .<span class="ident">and_then</span>(<span class="op">|</span>()<span class="op">|</span> <span class="ident">parse_type</span>(<span class="ident">s</span>, <span class="string">&#39;Y&#39;</span>, <span class="ident">tm</span>))
         }
         <span class="comment">//&#39;W&#39; {}</span>
-        <span class="string">&#39;w&#39;</span> <span class="op">=&gt;</span> {
+        <span class="string">&#39;w&#39;</span> <span class="op">=</span><span class="op">&gt;</span> {
             <span class="kw">match</span> <span class="ident">match_digits_in_range</span>(<span class="ident">s</span>, <span class="number">1</span>, <span class="number">1</span>, <span class="bool-val">false</span>, <span class="number">0</span>, <span class="number">6</span>) {
-                <span class="prelude-val">Some</span>(<span class="ident">v</span>) <span class="op">=&gt;</span> { <span class="ident">tm</span>.<span class="ident">tm_wday</span> <span class="op">=</span> <span class="ident">v</span>; <span class="prelude-val">Ok</span>(()) }
-                <span class="prelude-val">None</span> <span class="op">=&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError</span>::<span class="ident">InvalidDayOfWeek</span>)
+                <span class="prelude-val">Some</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> { <span class="ident">tm</span>.<span class="ident">tm_wday</span> <span class="op">=</span> <span class="ident">v</span>; <span class="prelude-val">Ok</span>(()) }
+                <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError</span>::<span class="ident">InvalidDayOfWeek</span>)
             }
         }
-        <span class="string">&#39;Y&#39;</span> <span class="op">=&gt;</span> {
+        <span class="string">&#39;Y&#39;</span> <span class="op">=</span><span class="op">&gt;</span> {
             <span class="kw">match</span> <span class="ident">match_digits</span>(<span class="ident">s</span>, <span class="number">4</span>, <span class="number">4</span>, <span class="bool-val">false</span>) {
-                <span class="prelude-val">Some</span>(<span class="ident">v</span>) <span class="op">=&gt;</span> { <span class="ident">tm</span>.<span class="ident">tm_year</span> <span class="op">=</span> <span class="ident">v</span> <span class="op">-</span> <span class="number">1900</span>; <span class="prelude-val">Ok</span>(()) }
-                <span class="prelude-val">None</span> <span class="op">=&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError</span>::<span class="ident">InvalidYear</span>)
+                <span class="prelude-val">Some</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> { <span class="ident">tm</span>.<span class="ident">tm_year</span> <span class="op">=</span> <span class="ident">v</span> <span class="op">-</span> <span class="number">1900</span>; <span class="prelude-val">Ok</span>(()) }
+                <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError</span>::<span class="ident">InvalidYear</span>)
             }
         }
-        <span class="string">&#39;y&#39;</span> <span class="op">=&gt;</span> {
+        <span class="string">&#39;y&#39;</span> <span class="op">=</span><span class="op">&gt;</span> {
             <span class="kw">match</span> <span class="ident">match_digits_in_range</span>(<span class="ident">s</span>, <span class="number">1</span>, <span class="number">2</span>, <span class="bool-val">false</span>, <span class="number">0</span>, <span class="number">99</span>) {
-                <span class="prelude-val">Some</span>(<span class="ident">v</span>) <span class="op">=&gt;</span> { <span class="ident">tm</span>.<span class="ident">tm_year</span> <span class="op">=</span> <span class="ident">v</span>; <span class="prelude-val">Ok</span>(()) }
-                <span class="prelude-val">None</span> <span class="op">=&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError</span>::<span class="ident">InvalidYear</span>)
+                <span class="prelude-val">Some</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> { <span class="ident">tm</span>.<span class="ident">tm_year</span> <span class="op">=</span> <span class="ident">v</span>; <span class="prelude-val">Ok</span>(()) }
+                <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError</span>::<span class="ident">InvalidYear</span>)
             }
         }
-        <span class="string">&#39;Z&#39;</span> <span class="op">=&gt;</span> {
-            <span class="kw">if</span> <span class="ident">match_str</span>(<span class="ident">s</span>, <span class="string">&quot;UTC&quot;</span>) <span class="op">||</span> <span class="ident">match_str</span>(<span class="ident">s</span>, <span class="string">&quot;GMT&quot;</span>) {
+        <span class="string">&#39;Z&#39;</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="kw">if</span> <span class="ident">match_str</span>(<span class="ident">s</span>, <span class="string">&quot;UTC&quot;</span>) <span class="op">|</span><span class="op">|</span> <span class="ident">match_str</span>(<span class="ident">s</span>, <span class="string">&quot;GMT&quot;</span>) {
                 <span class="ident">tm</span>.<span class="ident">tm_utcoff</span> <span class="op">=</span> <span class="number">0</span>;
                 <span class="prelude-val">Ok</span>(())
             } <span class="kw">else</span> {
                 <span class="comment">// It&#39;s odd, but to maintain compatibility with c&#39;s</span>
                 <span class="comment">// strptime we ignore the timezone.</span>
                 <span class="kw">for</span> (<span class="ident">i</span>, <span class="ident">ch</span>) <span class="kw">in</span> <span class="ident">s</span>.<span class="ident">char_indices</span>() {
-                    <span class="kw">if</span> <span class="ident">ch</span> <span class="op">==</span> <span class="string">&#39; &#39;</span> {
+                    <span class="kw">if</span> <span class="ident">ch</span> <span class="op">=</span><span class="op">=</span> <span class="string">&#39; &#39;</span> {
                         <span class="kw-2">*</span><span class="ident">s</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">s</span>[<span class="ident">i</span>..];
                         <span class="kw">return</span> <span class="prelude-val">Ok</span>(())
                     }
@@ -658,7 +658,7 @@
                 <span class="prelude-val">Ok</span>(())
             }
         }
-        <span class="string">&#39;z&#39;</span> <span class="op">=&gt;</span> {
+        <span class="string">&#39;z&#39;</span> <span class="op">=</span><span class="op">&gt;</span> {
             <span class="kw">if</span> <span class="ident">parse_char</span>(<span class="ident">s</span>, <span class="string">&#39;Z&#39;</span>).<span class="ident">is_ok</span>() {
                 <span class="ident">tm</span>.<span class="ident">tm_utcoff</span> <span class="op">=</span> <span class="number">0</span>;
                 <span class="prelude-val">Ok</span>(())
@@ -671,8 +671,8 @@
                 <span class="kw">let</span> <span class="ident">minutes</span>;
 
                 <span class="kw">match</span> <span class="ident">match_digits</span>(<span class="ident">s</span>, <span class="number">2</span>, <span class="number">2</span>, <span class="bool-val">false</span>) {
-                    <span class="prelude-val">Some</span>(<span class="ident">h</span>) <span class="op">=&gt;</span> <span class="ident">hours</span> <span class="op">=</span> <span class="ident">h</span>,
-                    <span class="prelude-val">None</span> <span class="op">=&gt;</span> <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError</span>::<span class="ident">InvalidZoneOffset</span>)
+                    <span class="prelude-val">Some</span>(<span class="ident">h</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">hours</span> <span class="op">=</span> <span class="ident">h</span>,
+                    <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError</span>::<span class="ident">InvalidZoneOffset</span>)
                 }
 
                 <span class="comment">// consume the colon if its present,</span>
@@ -680,21 +680,21 @@
                 <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">parse_char</span>(<span class="ident">s</span>, <span class="string">&#39;:&#39;</span>);
 
                 <span class="kw">match</span> <span class="ident">match_digits</span>(<span class="ident">s</span>, <span class="number">2</span>, <span class="number">2</span>, <span class="bool-val">false</span>) {
-                    <span class="prelude-val">Some</span>(<span class="ident">m</span>) <span class="op">=&gt;</span> <span class="ident">minutes</span> <span class="op">=</span> <span class="ident">m</span>,
-                    <span class="prelude-val">None</span> <span class="op">=&gt;</span> <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError</span>::<span class="ident">InvalidZoneOffset</span>)
+                    <span class="prelude-val">Some</span>(<span class="ident">m</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">minutes</span> <span class="op">=</span> <span class="ident">m</span>,
+                    <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError</span>::<span class="ident">InvalidZoneOffset</span>)
                 }
 
                 <span class="ident">tm</span>.<span class="ident">tm_utcoff</span> <span class="op">=</span> <span class="ident">sign</span> <span class="op">*</span> (<span class="ident">hours</span> <span class="op">*</span> <span class="number">60</span> <span class="op">*</span> <span class="number">60</span> <span class="op">+</span> <span class="ident">minutes</span> <span class="op">*</span> <span class="number">60</span>);
                 <span class="prelude-val">Ok</span>(())
             }
         }
-        <span class="string">&#39;%&#39;</span> <span class="op">=&gt;</span> <span class="ident">parse_char</span>(<span class="ident">s</span>, <span class="string">&#39;%&#39;</span>),
-        <span class="ident">ch</span> <span class="op">=&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError</span>::<span class="ident">InvalidFormatSpecifier</span>(<span class="ident">ch</span>))
+        <span class="string">&#39;%&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">parse_char</span>(<span class="ident">s</span>, <span class="string">&#39;%&#39;</span>),
+        <span class="ident">ch</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError</span>::<span class="ident">InvalidFormatSpecifier</span>(<span class="ident">ch</span>))
     }
 }
 
 
-<span class="kw">fn</span> <span class="ident">match_str</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">needle</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
+<span class="kw">fn</span> <span class="ident">match_str</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">needle</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
     <span class="kw">if</span> <span class="ident">s</span>.<span class="ident">starts_with</span>(<span class="ident">needle</span>) {
         <span class="kw-2">*</span><span class="ident">s</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">s</span>[<span class="ident">needle</span>.<span class="ident">len</span>()..];
         <span class="bool-val">true</span>
@@ -703,7 +703,7 @@
     }
 }
 
-<span class="kw">fn</span> <span class="ident">match_strs</span>(<span class="ident">ss</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">strs</span>: <span class="kw-2">&amp;</span>[(<span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">i32</span>)]) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">i32</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">match_strs</span>(<span class="ident">ss</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">strs</span>: <span class="kw-2">&amp;</span>[(<span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">i32</span>)]) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">i32</span><span class="op">&gt;</span> {
     <span class="kw">for</span> <span class="kw-2">&amp;</span>(<span class="ident">needle</span>, <span class="ident">value</span>) <span class="kw">in</span> <span class="ident">strs</span>.<span class="ident">iter</span>() {
         <span class="kw">if</span> <span class="ident">match_str</span>(<span class="ident">ss</span>, <span class="ident">needle</span>) {
             <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="ident">value</span>)
@@ -712,14 +712,14 @@
     <span class="prelude-val">None</span>
 }
 
-<span class="kw">fn</span> <span class="ident">match_digits</span>(<span class="ident">ss</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">min_digits</span> : <span class="ident">usize</span>, <span class="ident">max_digits</span>: <span class="ident">usize</span>, <span class="ident">ws</span>: <span class="ident">bool</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">i32</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">match_digits</span>(<span class="ident">ss</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">min_digits</span> : <span class="ident">usize</span>, <span class="ident">max_digits</span>: <span class="ident">usize</span>, <span class="ident">ws</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">i32</span><span class="op">&gt;</span> {
     <span class="kw">match</span> <span class="ident">match_digits_i64</span>(<span class="ident">ss</span>, <span class="ident">min_digits</span>, <span class="ident">max_digits</span>, <span class="ident">ws</span>) {
-        <span class="prelude-val">Some</span>(<span class="ident">v</span>) <span class="op">=&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">v</span> <span class="kw">as</span> <span class="ident">i32</span>),
-        <span class="prelude-val">None</span> <span class="op">=&gt;</span> <span class="prelude-val">None</span>
+        <span class="prelude-val">Some</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">v</span> <span class="kw">as</span> <span class="ident">i32</span>),
+        <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>
     }
 }
 
-<span class="kw">fn</span> <span class="ident">match_digits_i64</span>(<span class="ident">ss</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">min_digits</span> : <span class="ident">usize</span>, <span class="ident">max_digits</span>: <span class="ident">usize</span>, <span class="ident">ws</span>: <span class="ident">bool</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">i64</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">match_digits_i64</span>(<span class="ident">ss</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">min_digits</span> : <span class="ident">usize</span>, <span class="ident">max_digits</span>: <span class="ident">usize</span>, <span class="ident">ws</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">i64</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">value</span> : <span class="ident">i64</span> <span class="op">=</span> <span class="number">0</span>;
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">n</span> <span class="op">=</span> <span class="number">0</span>;
     <span class="kw">if</span> <span class="ident">ws</span> {
@@ -731,13 +731,13 @@
     <span class="kw">let</span> <span class="ident">chars</span> <span class="op">=</span> <span class="ident">ss</span>[<span class="ident">n</span>..].<span class="ident">char_indices</span>();
     <span class="kw">for</span> (<span class="kw">_</span>, <span class="ident">ch</span>) <span class="kw">in</span> <span class="ident">chars</span>.<span class="ident">take</span>(<span class="ident">max_digits</span> <span class="op">-</span> <span class="ident">n</span>) {
         <span class="kw">match</span> <span class="ident">ch</span> {
-            <span class="string">&#39;0&#39;</span> ... <span class="string">&#39;9&#39;</span> <span class="op">=&gt;</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">value</span> <span class="op">*</span> <span class="number">10</span> <span class="op">+</span> (<span class="ident">ch</span> <span class="kw">as</span> <span class="ident">i64</span> <span class="op">-</span> <span class="string">&#39;0&#39;</span> <span class="kw">as</span> <span class="ident">i64</span>),
-            <span class="kw">_</span> <span class="op">=&gt;</span> <span class="kw">break</span>,
+            <span class="string">&#39;0&#39;</span> ... <span class="string">&#39;9&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">value</span> <span class="op">*</span> <span class="number">10</span> <span class="op">+</span> (<span class="ident">ch</span> <span class="kw">as</span> <span class="ident">i64</span> <span class="op">-</span> <span class="string">&#39;0&#39;</span> <span class="kw">as</span> <span class="ident">i64</span>),
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">break</span>,
         }
-        <span class="ident">n</span> <span class="op">+=</span> <span class="number">1</span>;
+        <span class="ident">n</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
     }
 
-    <span class="kw">if</span> <span class="ident">n</span> <span class="op">&gt;=</span> <span class="ident">min_digits</span> <span class="op">&amp;&amp;</span> <span class="ident">n</span> <span class="op">&lt;=</span> <span class="ident">max_digits</span> {
+    <span class="kw">if</span> <span class="ident">n</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">min_digits</span> <span class="op">&amp;&amp;</span> <span class="ident">n</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">max_digits</span> {
         <span class="kw-2">*</span><span class="ident">ss</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">ss</span>[<span class="ident">n</span>..];
         <span class="prelude-val">Some</span>(<span class="ident">value</span>)
     } <span class="kw">else</span> {
@@ -745,7 +745,7 @@
     }
 }
 
-<span class="kw">fn</span> <span class="ident">match_fractional_seconds</span>(<span class="ident">ss</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-&gt;</span> <span class="ident">i32</span> {
+<span class="kw">fn</span> <span class="ident">match_fractional_seconds</span>(<span class="ident">ss</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">i32</span> {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">value</span> <span class="op">=</span> <span class="number">0</span>;
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">multiplier</span> <span class="op">=</span> <span class="ident">NSEC_PER_SEC</span> <span class="op">/</span> <span class="number">10</span>;
 
@@ -754,13 +754,13 @@
     <span class="kw">for</span> (<span class="ident">i</span>, <span class="ident">ch</span>) <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">chars</span> {
         <span class="kw-2">*</span><span class="ident">ss</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">orig</span>[<span class="ident">i</span>..];
         <span class="kw">match</span> <span class="ident">ch</span> {
-            <span class="string">&#39;0&#39;</span> ... <span class="string">&#39;9&#39;</span> <span class="op">=&gt;</span> {
+            <span class="string">&#39;0&#39;</span> ... <span class="string">&#39;9&#39;</span> <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="comment">// This will drop digits after the nanoseconds place</span>
                 <span class="kw">let</span> <span class="ident">digit</span> <span class="op">=</span> <span class="ident">ch</span> <span class="kw">as</span> <span class="ident">i32</span> <span class="op">-</span> <span class="string">&#39;0&#39;</span> <span class="kw">as</span> <span class="ident">i32</span>;
-                <span class="ident">value</span> <span class="op">+=</span> <span class="ident">digit</span> <span class="op">*</span> <span class="ident">multiplier</span>;
-                <span class="ident">multiplier</span> <span class="op">/=</span> <span class="number">10</span>;
+                <span class="ident">value</span> <span class="op">+</span><span class="op">=</span> <span class="ident">digit</span> <span class="op">*</span> <span class="ident">multiplier</span>;
+                <span class="ident">multiplier</span> <span class="op">/</span><span class="op">=</span> <span class="number">10</span>;
             }
-            <span class="kw">_</span> <span class="op">=&gt;</span> <span class="kw">break</span>
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">break</span>
         }
     }
 
@@ -769,25 +769,25 @@
 
 <span class="kw">fn</span> <span class="ident">match_digits_in_range</span>(<span class="ident">ss</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">&amp;</span><span class="ident">str</span>,
                          <span class="ident">min_digits</span> : <span class="ident">usize</span>, <span class="ident">max_digits</span> : <span class="ident">usize</span>,
-                         <span class="ident">ws</span>: <span class="ident">bool</span>, <span class="ident">min</span>: <span class="ident">i32</span>, <span class="ident">max</span>: <span class="ident">i32</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">i32</span><span class="op">&gt;</span> {
+                         <span class="ident">ws</span>: <span class="ident">bool</span>, <span class="ident">min</span>: <span class="ident">i32</span>, <span class="ident">max</span>: <span class="ident">i32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">i32</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">before</span> <span class="op">=</span> <span class="kw-2">*</span><span class="ident">ss</span>;
     <span class="kw">match</span> <span class="ident">match_digits</span>(<span class="ident">ss</span>, <span class="ident">min_digits</span>, <span class="ident">max_digits</span>, <span class="ident">ws</span>) {
-        <span class="prelude-val">Some</span>(<span class="ident">val</span>) <span class="kw">if</span> <span class="ident">val</span> <span class="op">&gt;=</span> <span class="ident">min</span> <span class="op">&amp;&amp;</span> <span class="ident">val</span> <span class="op">&lt;=</span> <span class="ident">max</span> <span class="op">=&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">val</span>),
-        <span class="kw">_</span> <span class="op">=&gt;</span> { <span class="kw-2">*</span><span class="ident">ss</span> <span class="op">=</span> <span class="ident">before</span>; <span class="prelude-val">None</span> }
+        <span class="prelude-val">Some</span>(<span class="ident">val</span>) <span class="kw">if</span> <span class="ident">val</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">min</span> <span class="op">&amp;&amp;</span> <span class="ident">val</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">max</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">val</span>),
+        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> { <span class="kw-2">*</span><span class="ident">ss</span> <span class="op">=</span> <span class="ident">before</span>; <span class="prelude-val">None</span> }
     }
 }
 
-<span class="kw">fn</span> <span class="ident">parse_char</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">c</span>: <span class="ident">char</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">ParseError</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">parse_char</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">c</span>: <span class="ident">char</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">ParseError</span><span class="op">&gt;</span> {
     <span class="kw">match</span> <span class="ident">s</span>.<span class="ident">char_indices</span>().<span class="ident">next</span>() {
-        <span class="prelude-val">Some</span>((<span class="ident">i</span>, <span class="ident">c2</span>)) <span class="op">=&gt;</span> {
-            <span class="kw">if</span> <span class="ident">c</span> <span class="op">==</span> <span class="ident">c2</span> {
+        <span class="prelude-val">Some</span>((<span class="ident">i</span>, <span class="ident">c2</span>)) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="kw">if</span> <span class="ident">c</span> <span class="op">=</span><span class="op">=</span> <span class="ident">c2</span> {
                 <span class="kw-2">*</span><span class="ident">s</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">s</span>[<span class="ident">i</span> <span class="op">+</span> <span class="ident">c2</span>.<span class="ident">len_utf8</span>()..];
                 <span class="prelude-val">Ok</span>(())
             } <span class="kw">else</span> {
                 <span class="prelude-val">Err</span>(<span class="ident">ParseError</span>::<span class="ident">UnexpectedCharacter</span>(<span class="ident">c</span>, <span class="ident">c2</span>))
             }
         }
-        <span class="prelude-val">None</span> <span class="op">=&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError</span>::<span class="ident">InvalidTime</span>),
+        <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError</span>::<span class="ident">InvalidTime</span>),
     }
 }
 </pre></div>

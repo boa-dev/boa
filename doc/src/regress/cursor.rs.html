@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/regress-0.2.0/src/cursor.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>cursor.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../regress/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/regress-0.2.0/src/cursor.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>cursor.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+<link rel="alternate icon" type="image/png" href="../../favicon-16x16.png">
+<link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../regress/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
                 <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
@@ -322,41 +324,41 @@
     <span class="kw">type</span> <span class="ident">BackwardForm</span>: <span class="ident">Cursorable</span>;
 
     <span class="doccomment">/// \return a subcursor of this cursor.</span>
-    <span class="kw">fn</span> <span class="ident">subcursor</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">r</span>: <span class="ident">Range</span>) <span class="op">-&gt;</span> <span class="self">Self</span>;
+    <span class="kw">fn</span> <span class="ident">subcursor</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">r</span>: <span class="ident">Range</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
 
     <span class="doccomment">/// \return the character to the right of the position.</span>
-    <span class="kw">fn</span> <span class="ident">peek_right</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">pos</span>: <span class="ident">Position</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">Element</span><span class="op">&gt;</span>;
+    <span class="kw">fn</span> <span class="ident">peek_right</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">pos</span>: <span class="ident">Position</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">Element</span><span class="op">&gt;</span>;
 
     <span class="doccomment">/// \return the character to the left of the position.</span>
-    <span class="kw">fn</span> <span class="ident">peek_left</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">pos</span>: <span class="ident">Position</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">Element</span><span class="op">&gt;</span>;
+    <span class="kw">fn</span> <span class="ident">peek_left</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">pos</span>: <span class="ident">Position</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">Element</span><span class="op">&gt;</span>;
 
     <span class="doccomment">/// \return the next character, updating the position.</span>
-    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">pos</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Position</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">Element</span><span class="op">&gt;</span>;
+    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">pos</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Position</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">Element</span><span class="op">&gt;</span>;
 
     <span class="doccomment">/// \return the next *byte*, or None if at the end, updating the position.</span>
     <span class="doccomment">/// Note this may break UTF8 sequences.</span>
-    <span class="kw">fn</span> <span class="ident">next_byte</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">pos</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Position</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>;
+    <span class="kw">fn</span> <span class="ident">next_byte</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">pos</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Position</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>;
 
     <span class="doccomment">/// \return how many bytes are remaining.</span>
-    <span class="kw">fn</span> <span class="ident">remaining_len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">pos</span>: <span class="ident">Position</span>) <span class="op">-&gt;</span> <span class="ident">usize</span>;
+    <span class="kw">fn</span> <span class="ident">remaining_len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">pos</span>: <span class="ident">Position</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span>;
 
     <span class="doccomment">/// \return the remaining bytes.</span>
-    <span class="kw">fn</span> <span class="ident">remaining_bytes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">pos</span>: <span class="ident">Position</span>) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span>[<span class="ident">u8</span>];
+    <span class="kw">fn</span> <span class="ident">remaining_bytes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">pos</span>: <span class="ident">Position</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span>[<span class="ident">u8</span>];
 
     <span class="doccomment">/// \return whether the subrange \p range is byte-for-byte equal to a range</span>
     <span class="doccomment">/// of the same length starting (if FORWARD is true) or ending (if FORWARD</span>
     <span class="doccomment">/// is false) at \p pos.</span>
-    <span class="kw">fn</span> <span class="ident">subrange_eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">pos</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Position</span>, <span class="ident">range</span>: <span class="ident">Range</span>) <span class="op">-&gt;</span> <span class="ident">bool</span>;
+    <span class="kw">fn</span> <span class="ident">subrange_eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">pos</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Position</span>, <span class="ident">range</span>: <span class="ident">Range</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span>;
 
     <span class="doccomment">/// \return whether we match some literal bytes.</span>
     <span class="doccomment">/// If so, update the position. If not, the position is unspecified.</span>
-    <span class="kw">fn</span> <span class="ident">try_match_lit</span><span class="op">&lt;</span><span class="ident">Bytes</span>: <span class="ident">ByteSeq</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">pos</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Position</span>, <span class="ident">bytes</span>: <span class="kw-2">&amp;</span><span class="ident">Bytes</span>) <span class="op">-&gt;</span> <span class="ident">bool</span>;
+    <span class="kw">fn</span> <span class="ident">try_match_lit</span><span class="op">&lt;</span><span class="ident">Bytes</span>: <span class="ident">ByteSeq</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">pos</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Position</span>, <span class="ident">bytes</span>: <span class="kw-2">&amp;</span><span class="ident">Bytes</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span>;
 
     <span class="doccomment">/// Get this cursor, tracking forward.</span>
-    <span class="kw">fn</span> <span class="ident">as_forward</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span>::<span class="ident">ForwardForm</span>;
+    <span class="kw">fn</span> <span class="ident">as_forward</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">ForwardForm</span>;
 
     <span class="doccomment">/// Get this cursor, tracking backward.</span>
-    <span class="kw">fn</span> <span class="ident">as_backward</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span>::<span class="ident">BackwardForm</span>;
+    <span class="kw">fn</span> <span class="ident">as_backward</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">BackwardForm</span>;
 
     <span class="doccomment">/// Advance the position by the given amount.</span>
     <span class="kw">fn</span> <span class="ident">advance</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">pos</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Position</span>, <span class="ident">amt</span>: <span class="ident">usize</span>);
@@ -404,7 +406,7 @@
     <span class="kw">type</span> <span class="ident">ForwardForm</span> <span class="op">=</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">Forward</span>, <span class="ident">Inp</span><span class="op">&gt;</span>;
     <span class="kw">type</span> <span class="ident">BackwardForm</span> <span class="op">=</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">Backward</span>, <span class="ident">Inp</span><span class="op">&gt;</span>;
 
-    <span class="kw">fn</span> <span class="ident">remaining_len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">pos</span>: <span class="ident">Position</span>) <span class="op">-&gt;</span> <span class="ident">usize</span> {
+    <span class="kw">fn</span> <span class="ident">remaining_len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">pos</span>: <span class="ident">Position</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
         <span class="kw">if</span> <span class="self">Self</span>::<span class="ident">FORWARD</span> {
             <span class="self">self</span>.<span class="ident">input</span>.<span class="ident">bytelength</span>() <span class="op">-</span> <span class="ident">pos</span>.<span class="ident">pos</span>
         } <span class="kw">else</span> {
@@ -412,16 +414,16 @@
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">peek_right</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">pos</span>: <span class="ident">Position</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">Element</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">peek_right</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">pos</span>: <span class="ident">Position</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">Element</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">input</span>.<span class="ident">peek_right</span>(<span class="ident">pos</span>.<span class="ident">pos</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">peek_left</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">pos</span>: <span class="ident">Position</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">Element</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">peek_left</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">pos</span>: <span class="ident">Position</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">Element</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">input</span>.<span class="ident">peek_left</span>(<span class="ident">pos</span>.<span class="ident">pos</span>)
     }
 
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">next_byte</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">pos</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Position</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">next_byte</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">pos</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Position</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">mc</span> <span class="op">=</span> <span class="kw">if</span> <span class="self">Self</span>::<span class="ident">FORWARD</span> {
             <span class="self">self</span>.<span class="ident">input</span>.<span class="ident">peek_byte_right</span>(<span class="ident">pos</span>.<span class="ident">pos</span>)
         } <span class="kw">else</span> {
@@ -433,7 +435,7 @@
         <span class="ident">mc</span>
     }
 
-    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">pos</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Position</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">Element</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">pos</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Position</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">Element</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">mc</span> <span class="op">=</span> <span class="kw">if</span> <span class="self">Self</span>::<span class="ident">FORWARD</span> {
             <span class="self">self</span>.<span class="ident">peek_right</span>(<span class="kw-2">*</span><span class="ident">pos</span>)
         } <span class="kw">else</span> {
@@ -445,7 +447,7 @@
         <span class="ident">mc</span>
     }
 
-    <span class="kw">fn</span> <span class="ident">remaining_bytes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">pos</span>: <span class="ident">Position</span>) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span>[<span class="ident">u8</span>] {
+    <span class="kw">fn</span> <span class="ident">remaining_bytes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">pos</span>: <span class="ident">Position</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span>[<span class="ident">u8</span>] {
         <span class="kw">if</span> <span class="self">Self</span>::<span class="ident">FORWARD</span> {
             <span class="self">self</span>.<span class="ident">input</span>.<span class="ident">slice</span>(<span class="ident">pos</span>.<span class="ident">pos</span>..<span class="self">self</span>.<span class="ident">input</span>.<span class="ident">bytelength</span>())
         } <span class="kw">else</span> {
@@ -454,7 +456,7 @@
     }
 
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">try_match_lit</span><span class="op">&lt;</span><span class="ident">Bytes</span>: <span class="ident">ByteSeq</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">pos</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Position</span>, <span class="ident">bytes</span>: <span class="kw-2">&amp;</span><span class="ident">Bytes</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">try_match_lit</span><span class="op">&lt;</span><span class="ident">Bytes</span>: <span class="ident">ByteSeq</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">pos</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Position</span>, <span class="ident">bytes</span>: <span class="kw-2">&amp;</span><span class="ident">Bytes</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
         <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">Bytes</span>::<span class="ident">LENGTH</span>;
         <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="ident">len</span> <span class="op">&gt;</span> <span class="number">0</span>, <span class="string">&quot;Should not have zero length&quot;</span>);
         <span class="kw">if</span> <span class="ident">len</span> <span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">remaining_len</span>(<span class="kw-2">*</span><span class="ident">pos</span>) {
@@ -466,7 +468,7 @@
                 (<span class="ident">pos</span>.<span class="ident">pos</span> <span class="op">-</span> <span class="ident">len</span>)..<span class="ident">pos</span>.<span class="ident">pos</span>
             };
             <span class="kw">let</span> <span class="ident">s1</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">input</span>.<span class="ident">slice</span>(<span class="ident">r</span>);
-            <span class="kw">if</span> <span class="ident">s1</span>.<span class="ident">len</span>() <span class="op">!=</span> <span class="ident">len</span> {
+            <span class="kw">if</span> <span class="ident">s1</span>.<span class="ident">len</span>() <span class="op">!</span><span class="op">=</span> <span class="ident">len</span> {
                 <span class="kw">if</span> <span class="macro">cfg</span><span class="macro">!</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;prohibit-unsafe&quot;</span>) {
                     <span class="macro">unreachable</span><span class="macro">!</span>();
                 } <span class="kw">else</span> {
@@ -480,11 +482,11 @@
     }
 
     <span class="kw">fn</span> <span class="ident">advance</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">pos</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Position</span>, <span class="ident">amt</span>: <span class="ident">usize</span>) {
-        <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="ident">amt</span> <span class="op">&lt;=</span> <span class="self">self</span>.<span class="ident">remaining_len</span>(<span class="kw-2">*</span><span class="ident">pos</span>), <span class="string">&quot;Advanced out of bounds&quot;</span>);
+        <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="ident">amt</span> <span class="op">&lt;</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">remaining_len</span>(<span class="kw-2">*</span><span class="ident">pos</span>), <span class="string">&quot;Advanced out of bounds&quot;</span>);
         <span class="kw">if</span> <span class="self">Self</span>::<span class="ident">FORWARD</span> {
-            <span class="ident">pos</span>.<span class="ident">pos</span> <span class="op">+=</span> <span class="ident">amt</span>;
+            <span class="ident">pos</span>.<span class="ident">pos</span> <span class="op">+</span><span class="op">=</span> <span class="ident">amt</span>;
         } <span class="kw">else</span> {
-            <span class="ident">pos</span>.<span class="ident">pos</span> <span class="op">-=</span> <span class="ident">amt</span>;
+            <span class="ident">pos</span>.<span class="ident">pos</span> <span class="op">-</span><span class="op">=</span> <span class="ident">amt</span>;
         }
     }
 
@@ -497,9 +499,9 @@
         };
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">c</span>) <span class="op">=</span> <span class="ident">mc</span> {
             <span class="kw">if</span> <span class="self">Self</span>::<span class="ident">FORWARD</span> {
-                <span class="ident">pos</span>.<span class="ident">pos</span> <span class="op">+=</span> <span class="ident">c</span>.<span class="ident">bytelength</span>()
+                <span class="ident">pos</span>.<span class="ident">pos</span> <span class="op">+</span><span class="op">=</span> <span class="ident">c</span>.<span class="ident">bytelength</span>()
             } <span class="kw">else</span> {
-                <span class="ident">pos</span>.<span class="ident">pos</span> <span class="op">-=</span> <span class="ident">c</span>.<span class="ident">bytelength</span>()
+                <span class="ident">pos</span>.<span class="ident">pos</span> <span class="op">-</span><span class="op">=</span> <span class="ident">c</span>.<span class="ident">bytelength</span>()
             }
         } <span class="kw">else</span> {
             <span class="kw">if</span> <span class="macro">cfg</span><span class="macro">!</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;prohibit-unsafe&quot;</span>) {
@@ -519,9 +521,9 @@
         };
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">c</span>) <span class="op">=</span> <span class="ident">mc</span> {
             <span class="kw">if</span> <span class="self">Self</span>::<span class="ident">FORWARD</span> {
-                <span class="ident">pos</span>.<span class="ident">pos</span> <span class="op">-=</span> <span class="ident">c</span>.<span class="ident">bytelength</span>();
+                <span class="ident">pos</span>.<span class="ident">pos</span> <span class="op">-</span><span class="op">=</span> <span class="ident">c</span>.<span class="ident">bytelength</span>();
             } <span class="kw">else</span> {
-                <span class="ident">pos</span>.<span class="ident">pos</span> <span class="op">+=</span> <span class="ident">c</span>.<span class="ident">bytelength</span>();
+                <span class="ident">pos</span>.<span class="ident">pos</span> <span class="op">+</span><span class="op">=</span> <span class="ident">c</span>.<span class="ident">bytelength</span>();
             }
         } <span class="kw">else</span> {
             <span class="kw">if</span> <span class="macro">cfg</span><span class="macro">!</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;prohibit-unsafe&quot;</span>) {
@@ -532,7 +534,7 @@
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">subrange_eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">pos</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Position</span>, <span class="ident">range</span>: <span class="ident">Range</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">subrange_eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">pos</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Position</span>, <span class="ident">range</span>: <span class="ident">Range</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
         <span class="kw">let</span> <span class="ident">range_len</span> <span class="op">=</span> <span class="ident">range</span>.<span class="ident">end</span> <span class="op">-</span> <span class="ident">range</span>.<span class="ident">start</span>;
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">remaining_len</span>(<span class="kw-2">*</span><span class="ident">pos</span>) <span class="op">&lt;</span> <span class="ident">range_len</span> {
             <span class="kw">return</span> <span class="bool-val">false</span>;
@@ -543,7 +545,7 @@
         } <span class="kw">else</span> {
             <span class="self">self</span>.<span class="ident">input</span>.<span class="ident">slice</span>(<span class="ident">pos</span>.<span class="ident">pos</span> <span class="op">-</span> <span class="ident">range_len</span>..<span class="ident">pos</span>.<span class="ident">pos</span>)
         };
-        <span class="kw">if</span> <span class="ident">range_slice</span> <span class="op">==</span> <span class="ident">pos_slice</span> {
+        <span class="kw">if</span> <span class="ident">range_slice</span> <span class="op">=</span><span class="op">=</span> <span class="ident">pos_slice</span> {
             <span class="self">self</span>.<span class="ident">advance</span>(<span class="ident">pos</span>, <span class="ident">range_len</span>);
             <span class="bool-val">true</span>
         } <span class="kw">else</span> {
@@ -551,21 +553,21 @@
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">subcursor</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">range</span>: <span class="ident">Range</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">subcursor</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">range</span>: <span class="ident">Range</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="self">Self</span> {
             <span class="ident">input</span>: <span class="self">self</span>.<span class="ident">input</span>.<span class="ident">subinput</span>(<span class="ident">range</span>),
             <span class="ident">pd</span>: <span class="ident">PhantomData</span>,
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">as_forward</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span>::<span class="ident">ForwardForm</span> {
+    <span class="kw">fn</span> <span class="ident">as_forward</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">ForwardForm</span> {
         <span class="self">Self</span>::<span class="ident">ForwardForm</span> {
             <span class="ident">input</span>: <span class="self">self</span>.<span class="ident">input</span>,
             <span class="ident">pd</span>: <span class="ident">PhantomData</span>,
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">as_backward</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span>::<span class="ident">BackwardForm</span> {
+    <span class="kw">fn</span> <span class="ident">as_backward</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">BackwardForm</span> {
         <span class="self">Self</span>::<span class="ident">BackwardForm</span> {
             <span class="ident">input</span>: <span class="self">self</span>.<span class="ident">input</span>,
             <span class="ident">pd</span>: <span class="ident">PhantomData</span>,
@@ -574,7 +576,7 @@
 }
 
 <span class="doccomment">/// \return a Forward cursor to start matching the given input.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">starting_cursor</span><span class="op">&lt;</span><span class="ident">Input</span>: <span class="ident">InputIndexer</span><span class="op">&gt;</span>(<span class="ident">input</span>: <span class="ident">Input</span>) <span class="op">-&gt;</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">Forward</span>, <span class="ident">Input</span><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">starting_cursor</span><span class="op">&lt;</span><span class="ident">Input</span>: <span class="ident">InputIndexer</span><span class="op">&gt;</span>(<span class="ident">input</span>: <span class="ident">Input</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">Forward</span>, <span class="ident">Input</span><span class="op">&gt;</span> {
     <span class="ident">Cursor</span> {
         <span class="ident">input</span>,
         <span class="ident">pd</span>: <span class="ident">PhantomData</span>,
