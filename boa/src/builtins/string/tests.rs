@@ -775,19 +775,65 @@ fn last_index_non_integer_position_argument() {
 #[test]
 fn char_at() {
     let mut context = Context::new();
+    assert_eq!(forward(&mut context, "'abc'.charAt(-1)"), "\"\"");
     assert_eq!(forward(&mut context, "'abc'.charAt(1)"), "\"b\"");
     assert_eq!(forward(&mut context, "'abc'.charAt(9)"), "\"\"");
     assert_eq!(forward(&mut context, "'abc'.charAt()"), "\"a\"");
     assert_eq!(forward(&mut context, "'abc'.charAt(null)"), "\"a\"");
+    assert_eq!(forward(&mut context, "'\\uDBFF'.charAt(0)"), "\"\u{FFFD}\"");
 }
 
 #[test]
 fn char_code_at() {
     let mut context = Context::new();
+    assert_eq!(forward(&mut context, "'abc'.charCodeAt(-1)"), "NaN");
     assert_eq!(forward(&mut context, "'abc'.charCodeAt(1)"), "98");
     assert_eq!(forward(&mut context, "'abc'.charCodeAt(9)"), "NaN");
     assert_eq!(forward(&mut context, "'abc'.charCodeAt()"), "97");
     assert_eq!(forward(&mut context, "'abc'.charCodeAt(null)"), "97");
+    assert_eq!(forward(&mut context, "'\\uFFFF'.charCodeAt(0)"), "65535");
+}
+
+#[test]
+fn code_point_at() {
+    let mut context = Context::new();
+    assert_eq!(forward(&mut context, "'abc'.codePointAt(-1)"), "undefined");
+    assert_eq!(forward(&mut context, "'abc'.codePointAt(1)"), "98");
+    assert_eq!(forward(&mut context, "'abc'.codePointAt(9)"), "undefined");
+    assert_eq!(forward(&mut context, "'abc'.codePointAt()"), "97");
+    assert_eq!(forward(&mut context, "'abc'.codePointAt(null)"), "97");
+    assert_eq!(
+        forward(&mut context, "'\\uD800\\uDC00'.codePointAt(0)"),
+        "65536"
+    );
+    assert_eq!(
+        forward(&mut context, "'\\uD800\\uDFFF'.codePointAt(0)"),
+        "66559"
+    );
+    assert_eq!(
+        forward(&mut context, "'\\uDBFF\\uDC00'.codePointAt(0)"),
+        "1113088"
+    );
+    assert_eq!(
+        forward(&mut context, "'\\uDBFF\\uDFFF'.codePointAt(0)"),
+        "1114111"
+    );
+    assert_eq!(
+        forward(&mut context, "'\\uD800\\uDC00'.codePointAt(1)"),
+        "56320"
+    );
+    assert_eq!(
+        forward(&mut context, "'\\uD800\\uDFFF'.codePointAt(1)"),
+        "57343"
+    );
+    assert_eq!(
+        forward(&mut context, "'\\uDBFF\\uDC00'.codePointAt(1)"),
+        "56320"
+    );
+    assert_eq!(
+        forward(&mut context, "'\\uDBFF\\uDFFF'.codePointAt(1)"),
+        "57343"
+    );
 }
 
 #[test]

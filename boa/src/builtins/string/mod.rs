@@ -22,7 +22,7 @@ use crate::{
 };
 use regress::Regex;
 use std::{
-    char::decode_utf16,
+    char::{decode_utf16, from_u32},
     cmp::{max, min},
     f64::NAN,
     string::String as StdString,
@@ -50,11 +50,11 @@ pub(crate) fn code_point_at(string: RcString, position: i32) -> Option<(u32, u8,
 }
 
 fn is_leading_surrogate(value: u16) -> bool {
-    value >= 0xD800 && value <= 0xDBFF
+    (0xD800..=0xDBFF).contains(&value)
 }
 
 fn is_trailing_surrogate(value: u16) -> bool {
-    value >= 0xDC00 && value <= 0xDFFF
+    (0xDC00..=0xDFFF).contains(&value)
 }
 
 /// JavaScript `String` implementation.
@@ -84,6 +84,7 @@ impl BuiltIn for String {
         .property("length", 0, attribute)
         .method(Self::char_at, "charAt", 1)
         .method(Self::char_code_at, "charCodeAt", 1)
+        .method(Self::code_point_at, "codePointAt", 1)
         .method(Self::to_string, "toString", 0)
         .method(Self::concat, "concat", 1)
         .method(Self::repeat, "repeat", 1)
@@ -197,23 +198,60 @@ impl String {
             .unwrap_or_else(Value::undefined)
             .to_integer(context)? as i32;
 
+        // Fast path returning empty string when pos is obviously out of range
+        if pos < 0 || pos >= primitive_val.len() as i32 {
+            return Ok("".into());
+        }
+
         // Calling .len() on a string would give the wrong result, as they are bytes not the number of
         // unicode code points
         // Note that this is an O(N) operation (because UTF-8 is complex) while getting the number of
         // bytes is an O(1) operation.
-        let length = primitive_val.chars().count();
+        if let Some(utf16_val) = primitive_val.encode_utf16().nth(pos as usize) {
+            Ok(Value::from(from_u32(utf16_val as u32).unwrap()))
+        } else {
+            Ok("".into())
+        }
+    }
 
-        // We should return an empty string is pos is out of range
-        if pos >= length as i32 || pos < 0 {
-            return Ok("".into());
+    /// `String.prototype.codePointAt( index )`
+    ///
+    /// The `codePointAt()` method returns an integer between `0` to `1114111` (`0x10FFFF`) representing the UTF-16 code unit at the given index.
+    ///
+    /// If no UTF-16 surrogate pair begins at the index, the code point at the index is returned.
+    ///
+    /// `codePointAt()` returns `undefined` if the given index is less than `0`, or if it is equal to or greater than the `length` of the string.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-string.prototype.codepointat
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/codePointAt
+    pub(crate) fn code_point_at(
+        this: &Value,
+        args: &[Value],
+        context: &mut Context,
+    ) -> Result<Value> {
+        // First we get it the actual string a private field stored on the object only the context has access to.
+        // Then we convert it into a Rust String by wrapping it in from_value
+        let primitive_val = this.to_string(context)?;
+        let pos = args
+            .get(0)
+            .cloned()
+            .unwrap_or_else(Value::undefined)
+            .to_integer(context)? as i32;
+
+        // Fast path returning undefined when pos is obviously out of range
+        if pos < 0 || pos >= primitive_val.len() as i32 {
+            return Ok(Value::undefined());
         }
 
-        Ok(Value::from(
-            primitive_val
-                .chars()
-                .nth(pos as usize)
-                .expect("failed to get value"),
-        ))
+        if let Some((code_point, _, _)) = code_point_at(primitive_val, pos) {
+            Ok(Value::from(code_point))
+        } else {
+            Ok(Value::undefined())
+        }
     }
 
     /// `String.prototype.charCodeAt( index )`
@@ -238,26 +276,25 @@ impl String {
         // First we get it the actual string a private field stored on the object only the context has access to.
         // Then we convert it into a Rust String by wrapping it in from_value
         let primitive_val = this.to_string(context)?;
-
-        // Calling .len() on a string would give the wrong result, as they are bytes not the number of unicode code points
-        // Note that this is an O(N) operation (because UTF-8 is complex) while getting the number of bytes is an O(1) operation.
-        let length = primitive_val.chars().count();
         let pos = args
             .get(0)
             .cloned()
             .unwrap_or_else(Value::undefined)
             .to_integer(context)? as i32;
 
-        if pos >= length as i32 || pos < 0 {
+        // Fast path returning NaN when pos is obviously out of range
+        if pos < 0 || pos >= primitive_val.len() as i32 {
             return Ok(Value::from(NAN));
         }
 
-        let utf16_val = primitive_val
-            .encode_utf16()
-            .nth(pos as usize)
-            .expect("failed to get utf16 value");
+        // Calling .len() on a string would give the wrong result, as they are bytes not the number of unicode code points
+        // Note that this is an O(N) operation (because UTF-8 is complex) while getting the number of bytes is an O(1) operation.
         // If there is no element at that index, the result is NaN
-        Ok(Value::from(f64::from(utf16_val)))
+        if let Some(utf16_val) = primitive_val.encode_utf16().nth(pos as usize) {
+            Ok(Value::from(f64::from(utf16_val)))
+        } else {
+            Ok(Value::from(NAN))
+        }
     }
 
     /// `String.prototype.concat( str1[, ...strN] )`
