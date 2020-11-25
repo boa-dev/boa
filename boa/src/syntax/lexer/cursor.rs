@@ -276,7 +276,6 @@ where
 #[derive(Debug)]
 struct InnerIter<R> {
     iter: Bytes<R>,
-    // peeked_char: Option<Option<char>>,
     num_peeked_bytes: u8,
     peeked_bytes: u32,
     peeked_char: Option<Option<u32>>,
