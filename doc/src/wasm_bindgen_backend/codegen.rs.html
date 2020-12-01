@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/wasm-bindgen-backend-0.2.68/src/codegen.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>codegen.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/wasm-bindgen-backend-0.2.69/src/codegen.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>codegen.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
 <link rel="alternate icon" type="image/png" href="../../favicon-16x16.png">
 <link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../wasm_bindgen_backend/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
                 <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
@@ -1339,6 +1339,10 @@
 <span id="1336">1336</span>
 <span id="1337">1337</span>
 <span id="1338">1338</span>
+<span id="1339">1339</span>
+<span id="1340">1340</span>
+<span id="1341">1341</span>
+<span id="1342">1342</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">ast</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">encode</span>;
@@ -1352,9 +1356,13 @@
 <span class="kw">use</span> <span class="ident">syn</span>;
 <span class="kw">use</span> <span class="ident">wasm_bindgen_shared</span> <span class="kw">as</span> <span class="ident">shared</span>;
 
+<span class="doccomment">/// A trait for converting AST structs into Tokens and adding them to a TokenStream,</span>
+<span class="doccomment">/// or providing a diagnostic if conversion fails.</span>
 <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">TryToTokens</span> {
+    <span class="doccomment">/// Attempt to convert a `Self` into tokens and add it to the `TokenStream`</span>
     <span class="kw">fn</span> <span class="ident">try_to_tokens</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">tokens</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">TokenStream</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Diagnostic</span><span class="op">&gt;</span>;
 
+    <span class="doccomment">/// Attempt to convert a `Self` into a new `TokenStream`</span>
     <span class="kw">fn</span> <span class="ident">try_to_token_stream</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">TokenStream</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">tokens</span> <span class="op">=</span> <span class="ident">TokenStream</span>::<span class="ident">new</span>();
         <span class="self">self</span>.<span class="ident">try_to_tokens</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">tokens</span>)<span class="question-mark">?</span>;
@@ -1606,7 +1614,7 @@
 
 <span class="kw">impl</span> <span class="ident">ToTokens</span> <span class="kw">for</span> <span class="ident">ast</span>::<span class="ident">StructField</span> {
     <span class="kw">fn</span> <span class="ident">to_tokens</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">tokens</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">TokenStream</span>) {
-        <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">name</span>;
+        <span class="kw">let</span> <span class="ident">rust_name</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">rust_name</span>;
         <span class="kw">let</span> <span class="ident">struct_name</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">struct_name</span>;
         <span class="kw">let</span> <span class="ident">ty</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">ty</span>;
         <span class="kw">let</span> <span class="ident">getter</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">getter</span>;
@@ -1629,7 +1637,7 @@
 
                 <span class="kw">let</span> <span class="ident">js</span> <span class="op">=</span> <span class="ident">js</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">WasmRefCell</span><span class="op">&lt;</span>#<span class="ident">struct_name</span><span class="op">&gt;</span>;
                 <span class="ident">assert_not_null</span>(<span class="ident">js</span>);
-                <span class="kw">let</span> <span class="ident">val</span> <span class="op">=</span> (<span class="kw-2">*</span><span class="ident">js</span>).<span class="ident">borrow</span>().#<span class="ident">name</span>;
+                <span class="kw">let</span> <span class="ident">val</span> <span class="op">=</span> (<span class="kw-2">*</span><span class="ident">js</span>).<span class="ident">borrow</span>().#<span class="ident">rust_name</span>;
                 <span class="op">&lt;</span>#<span class="ident">ty</span> <span class="kw">as</span> <span class="ident">IntoWasmAbi</span><span class="op">&gt;</span>::<span class="ident">into_abi</span>(<span class="ident">val</span>)
             }
         })
@@ -1663,7 +1671,7 @@
                 <span class="kw">let</span> <span class="ident">js</span> <span class="op">=</span> <span class="ident">js</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">WasmRefCell</span><span class="op">&lt;</span>#<span class="ident">struct_name</span><span class="op">&gt;</span>;
                 <span class="ident">assert_not_null</span>(<span class="ident">js</span>);
                 <span class="kw">let</span> <span class="ident">val</span> <span class="op">=</span> <span class="op">&lt;</span>#<span class="ident">ty</span> <span class="kw">as</span> <span class="ident">FromWasmAbi</span><span class="op">&gt;</span>::<span class="ident">from_abi</span>(<span class="ident">val</span>);
-                (<span class="kw-2">*</span><span class="ident">js</span>).<span class="ident">borrow_mut</span>().#<span class="ident">name</span> <span class="op">=</span> <span class="ident">val</span>;
+                (<span class="kw-2">*</span><span class="ident">js</span>).<span class="ident">borrow_mut</span>().#<span class="ident">rust_name</span> <span class="op">=</span> <span class="ident">val</span>;
             }
         })
         .<span class="ident">to_tokens</span>(<span class="ident">tokens</span>);
