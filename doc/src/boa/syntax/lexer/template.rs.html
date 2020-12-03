@@ -51,6 +51,14 @@
 <span id="50">50</span>
 <span id="51">51</span>
 <span id="52">52</span>
+<span id="53">53</span>
+<span id="54">54</span>
+<span id="55">55</span>
+<span id="56">56</span>
+<span id="57">57</span>
+<span id="58">58</span>
+<span id="59">59</span>
+<span id="60">60</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements lexing for template literals used in the JavaScript programing language.</span>
 
@@ -63,6 +71,7 @@
     },
 };
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">io</span>::{<span class="self">self</span>, <span class="ident">ErrorKind</span>, <span class="ident">Read</span>};
+<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">str</span>;
 
 <span class="doccomment">/// Template literal lexing.</span>
 <span class="doccomment">///</span>
@@ -84,24 +93,31 @@
     {
         <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">BoaProfiler</span>::<span class="ident">global</span>().<span class="ident">start_event</span>(<span class="string">&quot;TemplateLiteral&quot;</span>, <span class="string">&quot;Lexing&quot;</span>);
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> <span class="ident">String</span>::<span class="ident">new</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> <span class="ident">Vec</span>::<span class="ident">new</span>();
         <span class="kw">loop</span> {
-            <span class="kw">match</span> <span class="ident">cursor</span>.<span class="ident">next_char</span>()<span class="question-mark">?</span> {
+            <span class="kw">match</span> <span class="ident">cursor</span>.<span class="ident">next_byte</span>()<span class="question-mark">?</span> {
                 <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error</span>::<span class="ident">from</span>(<span class="ident">io</span>::<span class="ident">Error</span>::<span class="ident">new</span>(
                         <span class="ident">ErrorKind</span>::<span class="ident">UnexpectedEof</span>,
                         <span class="string">&quot;Unterminated template literal&quot;</span>,
                     )));
                 }
-                <span class="prelude-val">Some</span>(<span class="string">&#39;`&#39;</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">break</span>,                 <span class="comment">// Template literal finished.</span>
-                <span class="prelude-val">Some</span>(<span class="ident">next_ch</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">buf</span>.<span class="ident">push</span>(<span class="ident">next_ch</span>), <span class="comment">// TODO when there is an expression inside the literal</span>
+                <span class="prelude-val">Some</span>(<span class="string">b&#39;`&#39;</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">break</span>, <span class="comment">// Template literal finished.</span>
+                <span class="prelude-val">Some</span>(<span class="ident">next_byte</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">buf</span>.<span class="ident">push</span>(<span class="ident">next_byte</span>), <span class="comment">// TODO when there is an expression inside the literal</span>
             }
         }
 
-        <span class="prelude-val">Ok</span>(<span class="ident">Token</span>::<span class="ident">new</span>(
-            <span class="ident">TokenKind</span>::<span class="ident">template_literal</span>(<span class="ident">buf</span>),
-            <span class="ident">Span</span>::<span class="ident">new</span>(<span class="ident">start_pos</span>, <span class="ident">cursor</span>.<span class="ident">pos</span>()),
-        ))
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">s</span>) <span class="op">=</span> <span class="ident">str</span>::<span class="ident">from_utf8</span>(<span class="ident">buf</span>.<span class="ident">as_slice</span>()) {
+            <span class="prelude-val">Ok</span>(<span class="ident">Token</span>::<span class="ident">new</span>(
+                <span class="ident">TokenKind</span>::<span class="ident">template_literal</span>(<span class="ident">s</span>),
+                <span class="ident">Span</span>::<span class="ident">new</span>(<span class="ident">start_pos</span>, <span class="ident">cursor</span>.<span class="ident">pos</span>()),
+            ))
+        } <span class="kw">else</span> {
+            <span class="prelude-val">Err</span>(<span class="ident">Error</span>::<span class="ident">from</span>(<span class="ident">io</span>::<span class="ident">Error</span>::<span class="ident">new</span>(
+                <span class="ident">ErrorKind</span>::<span class="ident">InvalidData</span>,
+                <span class="string">&quot;Invalid UTF-8 character in template literal&quot;</span>,
+            )))
+        }
     }
 }
 </pre></div>
