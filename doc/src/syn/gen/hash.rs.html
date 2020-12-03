@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/syn-1.0.45/src/gen/hash.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>hash.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script src="../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/syn-1.0.53/src/gen/hash.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>hash.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script src="../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
 <link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png">
 <link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../syn/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
                 <a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
@@ -2692,6 +2692,182 @@
 <span id="2689">2689</span>
 <span id="2690">2690</span>
 <span id="2691">2691</span>
+<span id="2692">2692</span>
+<span id="2693">2693</span>
+<span id="2694">2694</span>
+<span id="2695">2695</span>
+<span id="2696">2696</span>
+<span id="2697">2697</span>
+<span id="2698">2698</span>
+<span id="2699">2699</span>
+<span id="2700">2700</span>
+<span id="2701">2701</span>
+<span id="2702">2702</span>
+<span id="2703">2703</span>
+<span id="2704">2704</span>
+<span id="2705">2705</span>
+<span id="2706">2706</span>
+<span id="2707">2707</span>
+<span id="2708">2708</span>
+<span id="2709">2709</span>
+<span id="2710">2710</span>
+<span id="2711">2711</span>
+<span id="2712">2712</span>
+<span id="2713">2713</span>
+<span id="2714">2714</span>
+<span id="2715">2715</span>
+<span id="2716">2716</span>
+<span id="2717">2717</span>
+<span id="2718">2718</span>
+<span id="2719">2719</span>
+<span id="2720">2720</span>
+<span id="2721">2721</span>
+<span id="2722">2722</span>
+<span id="2723">2723</span>
+<span id="2724">2724</span>
+<span id="2725">2725</span>
+<span id="2726">2726</span>
+<span id="2727">2727</span>
+<span id="2728">2728</span>
+<span id="2729">2729</span>
+<span id="2730">2730</span>
+<span id="2731">2731</span>
+<span id="2732">2732</span>
+<span id="2733">2733</span>
+<span id="2734">2734</span>
+<span id="2735">2735</span>
+<span id="2736">2736</span>
+<span id="2737">2737</span>
+<span id="2738">2738</span>
+<span id="2739">2739</span>
+<span id="2740">2740</span>
+<span id="2741">2741</span>
+<span id="2742">2742</span>
+<span id="2743">2743</span>
+<span id="2744">2744</span>
+<span id="2745">2745</span>
+<span id="2746">2746</span>
+<span id="2747">2747</span>
+<span id="2748">2748</span>
+<span id="2749">2749</span>
+<span id="2750">2750</span>
+<span id="2751">2751</span>
+<span id="2752">2752</span>
+<span id="2753">2753</span>
+<span id="2754">2754</span>
+<span id="2755">2755</span>
+<span id="2756">2756</span>
+<span id="2757">2757</span>
+<span id="2758">2758</span>
+<span id="2759">2759</span>
+<span id="2760">2760</span>
+<span id="2761">2761</span>
+<span id="2762">2762</span>
+<span id="2763">2763</span>
+<span id="2764">2764</span>
+<span id="2765">2765</span>
+<span id="2766">2766</span>
+<span id="2767">2767</span>
+<span id="2768">2768</span>
+<span id="2769">2769</span>
+<span id="2770">2770</span>
+<span id="2771">2771</span>
+<span id="2772">2772</span>
+<span id="2773">2773</span>
+<span id="2774">2774</span>
+<span id="2775">2775</span>
+<span id="2776">2776</span>
+<span id="2777">2777</span>
+<span id="2778">2778</span>
+<span id="2779">2779</span>
+<span id="2780">2780</span>
+<span id="2781">2781</span>
+<span id="2782">2782</span>
+<span id="2783">2783</span>
+<span id="2784">2784</span>
+<span id="2785">2785</span>
+<span id="2786">2786</span>
+<span id="2787">2787</span>
+<span id="2788">2788</span>
+<span id="2789">2789</span>
+<span id="2790">2790</span>
+<span id="2791">2791</span>
+<span id="2792">2792</span>
+<span id="2793">2793</span>
+<span id="2794">2794</span>
+<span id="2795">2795</span>
+<span id="2796">2796</span>
+<span id="2797">2797</span>
+<span id="2798">2798</span>
+<span id="2799">2799</span>
+<span id="2800">2800</span>
+<span id="2801">2801</span>
+<span id="2802">2802</span>
+<span id="2803">2803</span>
+<span id="2804">2804</span>
+<span id="2805">2805</span>
+<span id="2806">2806</span>
+<span id="2807">2807</span>
+<span id="2808">2808</span>
+<span id="2809">2809</span>
+<span id="2810">2810</span>
+<span id="2811">2811</span>
+<span id="2812">2812</span>
+<span id="2813">2813</span>
+<span id="2814">2814</span>
+<span id="2815">2815</span>
+<span id="2816">2816</span>
+<span id="2817">2817</span>
+<span id="2818">2818</span>
+<span id="2819">2819</span>
+<span id="2820">2820</span>
+<span id="2821">2821</span>
+<span id="2822">2822</span>
+<span id="2823">2823</span>
+<span id="2824">2824</span>
+<span id="2825">2825</span>
+<span id="2826">2826</span>
+<span id="2827">2827</span>
+<span id="2828">2828</span>
+<span id="2829">2829</span>
+<span id="2830">2830</span>
+<span id="2831">2831</span>
+<span id="2832">2832</span>
+<span id="2833">2833</span>
+<span id="2834">2834</span>
+<span id="2835">2835</span>
+<span id="2836">2836</span>
+<span id="2837">2837</span>
+<span id="2838">2838</span>
+<span id="2839">2839</span>
+<span id="2840">2840</span>
+<span id="2841">2841</span>
+<span id="2842">2842</span>
+<span id="2843">2843</span>
+<span id="2844">2844</span>
+<span id="2845">2845</span>
+<span id="2846">2846</span>
+<span id="2847">2847</span>
+<span id="2848">2848</span>
+<span id="2849">2849</span>
+<span id="2850">2850</span>
+<span id="2851">2851</span>
+<span id="2852">2852</span>
+<span id="2853">2853</span>
+<span id="2854">2854</span>
+<span id="2855">2855</span>
+<span id="2856">2856</span>
+<span id="2857">2857</span>
+<span id="2858">2858</span>
+<span id="2859">2859</span>
+<span id="2860">2860</span>
+<span id="2861">2861</span>
+<span id="2862">2862</span>
+<span id="2863">2863</span>
+<span id="2864">2864</span>
+<span id="2865">2865</span>
+<span id="2866">2866</span>
+<span id="2867">2867</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// This file is @generated by syn-internal-codegen.</span>
 <span class="comment">// It is not intended for manual editing.</span>
@@ -2701,6 +2877,7 @@
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="kw-2">*</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">hash</span>::{<span class="ident">Hash</span>, <span class="ident">Hasher</span>};
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">Abi</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -2710,6 +2887,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">AngleBracketedGenericArguments</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -2720,6 +2898,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">Arm</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -2733,6 +2912,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">AttrStyle</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -2749,6 +2929,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">Attribute</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -2760,6 +2941,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">BareFnArg</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -2771,6 +2953,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">BinOp</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -2865,6 +3048,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">Binding</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -2875,6 +3059,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">Block</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -2884,6 +3069,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">BoundLifetimes</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -2893,6 +3079,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">ConstParam</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -2906,6 +3093,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">Constraint</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -2916,6 +3104,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">Data</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -2938,6 +3127,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">DataEnum</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -2947,6 +3137,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">DataStruct</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -2957,6 +3148,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">DataUnion</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -2966,6 +3158,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">DeriveInput</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -2979,6 +3172,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">Expr</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -3180,6 +3374,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">ExprArray</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -3190,6 +3385,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">ExprAssign</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -3201,6 +3397,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">ExprAssignOp</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -3213,6 +3410,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">ExprAsync</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -3224,6 +3422,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">ExprAwait</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -3234,6 +3433,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">ExprBinary</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -3246,6 +3446,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">ExprBlock</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -3257,6 +3458,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">ExprBox</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -3267,6 +3469,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">ExprBreak</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -3278,6 +3481,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">ExprCall</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -3289,6 +3493,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">ExprCast</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -3300,6 +3505,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">ExprClosure</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -3315,6 +3521,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">ExprContinue</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -3325,6 +3532,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">ExprField</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -3336,6 +3544,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">ExprForLoop</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -3349,6 +3558,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">ExprGroup</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -3359,6 +3569,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">ExprIf</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -3371,6 +3582,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">ExprIndex</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -3382,6 +3594,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">ExprLet</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -3393,6 +3606,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">ExprLit</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -3403,6 +3617,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">ExprLoop</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -3414,6 +3629,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">ExprMacro</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -3424,6 +3640,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">ExprMatch</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -3435,6 +3652,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">ExprMethodCall</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -3448,6 +3666,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">ExprParen</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -3458,6 +3677,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">ExprPath</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -3469,6 +3689,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">ExprRange</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -3481,6 +3702,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">ExprReference</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -3492,6 +3714,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">ExprRepeat</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -3503,6 +3726,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">ExprReturn</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -3513,6 +3737,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">ExprStruct</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -3526,6 +3751,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">ExprTry</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -3536,6 +3762,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">ExprTryBlock</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -3546,6 +3773,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">ExprTuple</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -3556,6 +3784,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">ExprType</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -3567,6 +3796,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">ExprUnary</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -3578,6 +3808,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">ExprUnsafe</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -3588,6 +3819,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">ExprWhile</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -3600,6 +3832,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">ExprYield</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -3610,6 +3843,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">Field</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -3623,6 +3857,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">FieldPat</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -3635,6 +3870,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">FieldValue</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -3647,6 +3883,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">Fields</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -3668,6 +3905,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">FieldsNamed</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -3677,6 +3915,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">FieldsUnnamed</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -3686,6 +3925,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">File</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -3697,6 +3937,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">FnArg</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -3715,6 +3956,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">ForeignItem</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -3746,6 +3988,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">ForeignItemFn</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -3757,6 +4000,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">ForeignItemMacro</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -3768,6 +4012,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">ForeignItemStatic</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -3781,6 +4026,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">ForeignItemType</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -3792,6 +4038,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">GenericArgument</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -3822,6 +4069,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">GenericMethodArgument</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -3840,6 +4088,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">GenericParam</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -3862,6 +4111,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">Generics</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -3874,6 +4124,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">ImplItem</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -3905,6 +4156,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">ImplItemConst</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -3919,6 +4171,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">ImplItemMacro</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -3930,6 +4183,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">ImplItemMethod</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -3943,6 +4197,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">ImplItemType</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -3957,6 +4212,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">Item</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -4036,6 +4292,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">ItemConst</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -4049,6 +4306,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">ItemEnum</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -4062,6 +4320,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">ItemExternCrate</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -4074,6 +4333,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">ItemFn</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -4086,6 +4346,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">ItemForeignMod</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -4097,6 +4358,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">ItemImpl</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -4112,6 +4374,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">ItemMacro</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -4124,6 +4387,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">ItemMacro2</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -4136,6 +4400,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">ItemMod</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -4149,6 +4414,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">ItemStatic</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -4163,6 +4429,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">ItemStruct</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -4177,6 +4444,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">ItemTrait</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -4194,6 +4462,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">ItemTraitAlias</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -4207,6 +4476,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">ItemType</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -4220,6 +4490,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">ItemUnion</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -4233,6 +4504,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">ItemUse</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -4245,6 +4517,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">Label</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -4254,6 +4527,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">LifetimeDef</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -4265,6 +4539,7 @@
         <span class="self">self</span>.<span class="ident">bounds</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
     }
 }
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">Lit</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -4306,6 +4581,7 @@
         }
     }
 }
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">LitBool</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -4315,6 +4591,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">Local</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -4326,6 +4603,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">Macro</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -4337,6 +4615,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">MacroDelimiter</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -4356,6 +4635,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">Meta</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -4378,6 +4658,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">MetaList</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -4388,6 +4669,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">MetaNameValue</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -4398,6 +4680,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">MethodTurbofish</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -4407,6 +4690,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">NestedMeta</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -4425,6 +4709,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">ParenthesizedGenericArguments</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -4435,6 +4720,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">Pat</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -4510,6 +4796,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">PatBox</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -4520,6 +4807,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">PatIdent</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -4533,6 +4821,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">PatLit</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -4543,6 +4832,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">PatMacro</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -4553,6 +4843,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">PatOr</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -4564,6 +4855,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">PatPath</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -4575,6 +4867,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">PatRange</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -4587,6 +4880,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">PatReference</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -4598,6 +4892,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">PatRest</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -4607,6 +4902,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">PatSlice</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -4617,6 +4913,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">PatStruct</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -4629,6 +4926,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">PatTuple</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -4639,6 +4937,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">PatTupleStruct</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -4650,6 +4949,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">PatType</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -4661,6 +4961,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">PatWild</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -4670,6 +4971,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">Path</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -4680,6 +4982,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">PathArguments</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -4701,6 +5004,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">PathSegment</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -4711,6 +5015,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">PredicateEq</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -4721,6 +5026,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">PredicateLifetime</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -4731,6 +5037,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">PredicateType</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -4742,6 +5049,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">QSelf</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -4753,6 +5061,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">RangeLimits</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -4769,6 +5078,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">Receiver</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -4780,6 +5090,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">ReturnType</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -4797,6 +5108,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">Signature</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -4814,6 +5126,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">Stmt</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -4840,6 +5153,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">TraitBound</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -4852,6 +5166,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">TraitBoundModifier</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -4868,6 +5183,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">TraitItem</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -4899,6 +5215,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">TraitItemConst</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -4911,6 +5228,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">TraitItemMacro</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -4922,6 +5240,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">TraitItemMethod</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -4934,6 +5253,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">TraitItemType</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -4948,6 +5268,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">Type</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -5019,6 +5340,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">TypeArray</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -5029,6 +5351,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">TypeBareFn</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -5043,6 +5366,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">TypeGroup</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -5052,6 +5376,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">TypeImplTrait</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -5061,6 +5386,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">TypeInfer</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">_state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -5069,6 +5395,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">TypeMacro</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -5078,6 +5405,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">TypeNever</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">_state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -5086,6 +5414,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">TypeParam</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -5100,6 +5429,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">TypeParamBound</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -5118,6 +5448,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">TypeParen</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -5127,6 +5458,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">TypePath</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -5137,6 +5469,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">TypePtr</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -5148,6 +5481,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">TypeReference</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -5159,6 +5493,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">TypeSlice</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -5168,6 +5503,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">TypeTraitObject</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -5178,6 +5514,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">TypeTuple</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -5187,6 +5524,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">UnOp</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -5206,6 +5544,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">UseGlob</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">_state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -5214,6 +5553,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">UseGroup</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -5223,6 +5563,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">UseName</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -5232,6 +5573,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">UsePath</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -5242,6 +5584,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">UseRename</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -5252,6 +5595,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">UseTree</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -5282,6 +5626,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">Variadic</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -5291,6 +5636,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">Variant</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -5303,6 +5649,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">VisCrate</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">_state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -5311,6 +5658,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">VisPublic</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">_state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -5319,6 +5667,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">VisRestricted</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -5329,6 +5678,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">Visibility</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -5354,6 +5704,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">WhereClause</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>
@@ -5363,6 +5714,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">WherePredicate</span> {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>)
     <span class="kw">where</span>

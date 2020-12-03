@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/syn-1.0.45/src/data.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>data.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/syn-1.0.53/src/data.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>data.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
 <link rel="alternate icon" type="image/png" href="../../favicon-16x16.png">
 <link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../syn/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
                 <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
@@ -475,6 +475,28 @@
 <span id="472">472</span>
 <span id="473">473</span>
 <span id="474">474</span>
+<span id="475">475</span>
+<span id="476">476</span>
+<span id="477">477</span>
+<span id="478">478</span>
+<span id="479">479</span>
+<span id="480">480</span>
+<span id="481">481</span>
+<span id="482">482</span>
+<span id="483">483</span>
+<span id="484">484</span>
+<span id="485">485</span>
+<span id="486">486</span>
+<span id="487">487</span>
+<span id="488">488</span>
+<span id="489">489</span>
+<span id="490">490</span>
+<span id="491">491</span>
+<span id="492">492</span>
+<span id="493">493</span>
+<span id="494">494</span>
+<span id="495">495</span>
+<span id="496">496</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">punctuated</span>::<span class="ident">Punctuated</span>;
@@ -484,6 +506,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// *This type is available only if Syn is built with the `&quot;derive&quot;` or `&quot;full&quot;`</span>
     <span class="doccomment">/// feature.*</span>
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>))))]</span>
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Variant</span> {
         <span class="doccomment">/// Attributes tagged on the variant.</span>
         <span class="kw">pub</span> <span class="ident">attrs</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Attribute</span><span class="op">&gt;</span>,
@@ -513,6 +536,7 @@
     <span class="comment">//</span>
     <span class="comment">// TODO: change syntax-tree-enum link to an intra rustdoc link, currently</span>
     <span class="comment">// blocked on https://github.com/rust-lang/rust/issues/62833</span>
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>))))]</span>
     <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Fields</span> {
         <span class="doccomment">/// Named fields of a struct or struct variant such as `Point { x: f64,</span>
         <span class="doccomment">/// y: f64 }`.</span>
@@ -532,6 +556,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// *This type is available only if Syn is built with the `&quot;derive&quot;` or</span>
     <span class="doccomment">/// `&quot;full&quot;` feature.*</span>
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>))))]</span>
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">FieldsNamed</span> {
         <span class="kw">pub</span> <span class="ident">brace_token</span>: <span class="ident">token</span>::<span class="ident">Brace</span>,
         <span class="kw">pub</span> <span class="ident">named</span>: <span class="ident">Punctuated</span><span class="op">&lt;</span><span class="ident">Field</span>, <span class="macro">Token</span><span class="macro">!</span>[,]<span class="op">&gt;</span>,
@@ -543,6 +568,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// *This type is available only if Syn is built with the `&quot;derive&quot;` or</span>
     <span class="doccomment">/// `&quot;full&quot;` feature.*</span>
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>))))]</span>
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">FieldsUnnamed</span> {
         <span class="kw">pub</span> <span class="ident">paren_token</span>: <span class="ident">token</span>::<span class="ident">Paren</span>,
         <span class="kw">pub</span> <span class="ident">unnamed</span>: <span class="ident">Punctuated</span><span class="op">&lt;</span><span class="ident">Field</span>, <span class="macro">Token</span><span class="macro">!</span>[,]<span class="op">&gt;</span>,
@@ -627,6 +653,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// *This type is available only if Syn is built with the `&quot;derive&quot;` or `&quot;full&quot;`</span>
     <span class="doccomment">/// feature.*</span>
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>))))]</span>
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Field</span> {
         <span class="doccomment">/// Attributes tagged on the field.</span>
         <span class="kw">pub</span> <span class="ident">attrs</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Attribute</span><span class="op">&gt;</span>,
@@ -661,6 +688,7 @@
     <span class="comment">//</span>
     <span class="comment">// TODO: change syntax-tree-enum link to an intra rustdoc link, currently</span>
     <span class="comment">// blocked on https://github.com/rust-lang/rust/issues/62833</span>
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>))))]</span>
     <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Visibility</span> {
         <span class="doccomment">/// A public visibility level: `pub`.</span>
         <span class="ident">Public</span>(<span class="ident">VisPublic</span>),
@@ -682,6 +710,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// *This type is available only if Syn is built with the `&quot;derive&quot;` or</span>
     <span class="doccomment">/// `&quot;full&quot;` feature.*</span>
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>))))]</span>
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">VisPublic</span> {
         <span class="kw">pub</span> <span class="ident">pub_token</span>: <span class="macro">Token</span><span class="macro">!</span>[<span class="kw">pub</span>],
     }
@@ -692,6 +721,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// *This type is available only if Syn is built with the `&quot;derive&quot;` or</span>
     <span class="doccomment">/// `&quot;full&quot;` feature.*</span>
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>))))]</span>
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">VisCrate</span> {
         <span class="kw">pub</span> <span class="ident">crate_token</span>: <span class="macro">Token</span><span class="macro">!</span>[<span class="kw">crate</span>],
     }
@@ -703,6 +733,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// *This type is available only if Syn is built with the `&quot;derive&quot;` or</span>
     <span class="doccomment">/// `&quot;full&quot;` feature.*</span>
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>))))]</span>
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">VisRestricted</span> {
         <span class="kw">pub</span> <span class="ident">pub_token</span>: <span class="macro">Token</span><span class="macro">!</span>[<span class="kw">pub</span>],
         <span class="kw">pub</span> <span class="ident">paren_token</span>: <span class="ident">token</span>::<span class="ident">Paren</span>,
@@ -718,6 +749,7 @@
     <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">parse</span>::<span class="ident">discouraged</span>::<span class="ident">Speculative</span>;
     <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">parse</span>::{<span class="ident">Parse</span>, <span class="ident">ParseStream</span>, <span class="prelude-ty">Result</span>};
 
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;parsing&quot;</span>)))]</span>
     <span class="kw">impl</span> <span class="ident">Parse</span> <span class="kw">for</span> <span class="ident">Variant</span> {
         <span class="kw">fn</span> <span class="ident">parse</span>(<span class="ident">input</span>: <span class="ident">ParseStream</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
             <span class="kw">let</span> <span class="ident">attrs</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">call</span>(<span class="ident">Attribute</span>::<span class="ident">parse_outer</span>)<span class="question-mark">?</span>;
@@ -747,6 +779,7 @@
         }
     }
 
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;parsing&quot;</span>)))]</span>
     <span class="kw">impl</span> <span class="ident">Parse</span> <span class="kw">for</span> <span class="ident">FieldsNamed</span> {
         <span class="kw">fn</span> <span class="ident">parse</span>(<span class="ident">input</span>: <span class="ident">ParseStream</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
             <span class="kw">let</span> <span class="ident">content</span>;
@@ -757,6 +790,7 @@
         }
     }
 
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;parsing&quot;</span>)))]</span>
     <span class="kw">impl</span> <span class="ident">Parse</span> <span class="kw">for</span> <span class="ident">FieldsUnnamed</span> {
         <span class="kw">fn</span> <span class="ident">parse</span>(<span class="ident">input</span>: <span class="ident">ParseStream</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
             <span class="kw">let</span> <span class="ident">content</span>;
@@ -769,6 +803,7 @@
 
     <span class="kw">impl</span> <span class="ident">Field</span> {
         <span class="doccomment">/// Parses a named (braced struct) field.</span>
+        <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;parsing&quot;</span>)))]</span>
         <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">parse_named</span>(<span class="ident">input</span>: <span class="ident">ParseStream</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
             <span class="prelude-val">Ok</span>(<span class="ident">Field</span> {
                 <span class="ident">attrs</span>: <span class="ident">input</span>.<span class="ident">call</span>(<span class="ident">Attribute</span>::<span class="ident">parse_outer</span>)<span class="question-mark">?</span>,
@@ -780,6 +815,7 @@
         }
 
         <span class="doccomment">/// Parses an unnamed (tuple struct) field.</span>
+        <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;parsing&quot;</span>)))]</span>
         <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">parse_unnamed</span>(<span class="ident">input</span>: <span class="ident">ParseStream</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
             <span class="prelude-val">Ok</span>(<span class="ident">Field</span> {
                 <span class="ident">attrs</span>: <span class="ident">input</span>.<span class="ident">call</span>(<span class="ident">Attribute</span>::<span class="ident">parse_outer</span>)<span class="question-mark">?</span>,
@@ -791,6 +827,7 @@
         }
     }
 
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;parsing&quot;</span>)))]</span>
     <span class="kw">impl</span> <span class="ident">Parse</span> <span class="kw">for</span> <span class="ident">Visibility</span> {
         <span class="kw">fn</span> <span class="ident">parse</span>(<span class="ident">input</span>: <span class="ident">ParseStream</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
             <span class="comment">// Recognize an empty None-delimited group, as produced by a $:vis</span>
@@ -886,6 +923,7 @@
     <span class="kw">use</span> <span class="ident">proc_macro2</span>::<span class="ident">TokenStream</span>;
     <span class="kw">use</span> <span class="ident">quote</span>::{<span class="ident">ToTokens</span>, <span class="ident">TokenStreamExt</span>};
 
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;printing&quot;</span>)))]</span>
     <span class="kw">impl</span> <span class="ident">ToTokens</span> <span class="kw">for</span> <span class="ident">Variant</span> {
         <span class="kw">fn</span> <span class="ident">to_tokens</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">tokens</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">TokenStream</span>) {
             <span class="ident">tokens</span>.<span class="ident">append_all</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">attrs</span>);
@@ -898,6 +936,7 @@
         }
     }
 
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;printing&quot;</span>)))]</span>
     <span class="kw">impl</span> <span class="ident">ToTokens</span> <span class="kw">for</span> <span class="ident">FieldsNamed</span> {
         <span class="kw">fn</span> <span class="ident">to_tokens</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">tokens</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">TokenStream</span>) {
             <span class="self">self</span>.<span class="ident">brace_token</span>.<span class="ident">surround</span>(<span class="ident">tokens</span>, <span class="op">|</span><span class="ident">tokens</span><span class="op">|</span> {
@@ -906,6 +945,7 @@
         }
     }
 
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;printing&quot;</span>)))]</span>
     <span class="kw">impl</span> <span class="ident">ToTokens</span> <span class="kw">for</span> <span class="ident">FieldsUnnamed</span> {
         <span class="kw">fn</span> <span class="ident">to_tokens</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">tokens</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">TokenStream</span>) {
             <span class="self">self</span>.<span class="ident">paren_token</span>.<span class="ident">surround</span>(<span class="ident">tokens</span>, <span class="op">|</span><span class="ident">tokens</span><span class="op">|</span> {
@@ -914,6 +954,7 @@
         }
     }
 
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;printing&quot;</span>)))]</span>
     <span class="kw">impl</span> <span class="ident">ToTokens</span> <span class="kw">for</span> <span class="ident">Field</span> {
         <span class="kw">fn</span> <span class="ident">to_tokens</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">tokens</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">TokenStream</span>) {
             <span class="ident">tokens</span>.<span class="ident">append_all</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">attrs</span>);
@@ -926,18 +967,21 @@
         }
     }
 
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;printing&quot;</span>)))]</span>
     <span class="kw">impl</span> <span class="ident">ToTokens</span> <span class="kw">for</span> <span class="ident">VisPublic</span> {
         <span class="kw">fn</span> <span class="ident">to_tokens</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">tokens</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">TokenStream</span>) {
             <span class="self">self</span>.<span class="ident">pub_token</span>.<span class="ident">to_tokens</span>(<span class="ident">tokens</span>)
         }
     }
 
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;printing&quot;</span>)))]</span>
     <span class="kw">impl</span> <span class="ident">ToTokens</span> <span class="kw">for</span> <span class="ident">VisCrate</span> {
         <span class="kw">fn</span> <span class="ident">to_tokens</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">tokens</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">TokenStream</span>) {
             <span class="self">self</span>.<span class="ident">crate_token</span>.<span class="ident">to_tokens</span>(<span class="ident">tokens</span>);
         }
     }
 
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;printing&quot;</span>)))]</span>
     <span class="kw">impl</span> <span class="ident">ToTokens</span> <span class="kw">for</span> <span class="ident">VisRestricted</span> {
         <span class="kw">fn</span> <span class="ident">to_tokens</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">tokens</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">TokenStream</span>) {
             <span class="self">self</span>.<span class="ident">pub_token</span>.<span class="ident">to_tokens</span>(<span class="ident">tokens</span>);

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/syn-1.0.45/src/gen/clone.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>clone.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script src="../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/syn-1.0.53/src/gen/clone.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>clone.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script src="../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
 <link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png">
 <link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../syn/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
                 <a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
@@ -2052,6 +2052,189 @@
 <span id="2049">2049</span>
 <span id="2050">2050</span>
 <span id="2051">2051</span>
+<span id="2052">2052</span>
+<span id="2053">2053</span>
+<span id="2054">2054</span>
+<span id="2055">2055</span>
+<span id="2056">2056</span>
+<span id="2057">2057</span>
+<span id="2058">2058</span>
+<span id="2059">2059</span>
+<span id="2060">2060</span>
+<span id="2061">2061</span>
+<span id="2062">2062</span>
+<span id="2063">2063</span>
+<span id="2064">2064</span>
+<span id="2065">2065</span>
+<span id="2066">2066</span>
+<span id="2067">2067</span>
+<span id="2068">2068</span>
+<span id="2069">2069</span>
+<span id="2070">2070</span>
+<span id="2071">2071</span>
+<span id="2072">2072</span>
+<span id="2073">2073</span>
+<span id="2074">2074</span>
+<span id="2075">2075</span>
+<span id="2076">2076</span>
+<span id="2077">2077</span>
+<span id="2078">2078</span>
+<span id="2079">2079</span>
+<span id="2080">2080</span>
+<span id="2081">2081</span>
+<span id="2082">2082</span>
+<span id="2083">2083</span>
+<span id="2084">2084</span>
+<span id="2085">2085</span>
+<span id="2086">2086</span>
+<span id="2087">2087</span>
+<span id="2088">2088</span>
+<span id="2089">2089</span>
+<span id="2090">2090</span>
+<span id="2091">2091</span>
+<span id="2092">2092</span>
+<span id="2093">2093</span>
+<span id="2094">2094</span>
+<span id="2095">2095</span>
+<span id="2096">2096</span>
+<span id="2097">2097</span>
+<span id="2098">2098</span>
+<span id="2099">2099</span>
+<span id="2100">2100</span>
+<span id="2101">2101</span>
+<span id="2102">2102</span>
+<span id="2103">2103</span>
+<span id="2104">2104</span>
+<span id="2105">2105</span>
+<span id="2106">2106</span>
+<span id="2107">2107</span>
+<span id="2108">2108</span>
+<span id="2109">2109</span>
+<span id="2110">2110</span>
+<span id="2111">2111</span>
+<span id="2112">2112</span>
+<span id="2113">2113</span>
+<span id="2114">2114</span>
+<span id="2115">2115</span>
+<span id="2116">2116</span>
+<span id="2117">2117</span>
+<span id="2118">2118</span>
+<span id="2119">2119</span>
+<span id="2120">2120</span>
+<span id="2121">2121</span>
+<span id="2122">2122</span>
+<span id="2123">2123</span>
+<span id="2124">2124</span>
+<span id="2125">2125</span>
+<span id="2126">2126</span>
+<span id="2127">2127</span>
+<span id="2128">2128</span>
+<span id="2129">2129</span>
+<span id="2130">2130</span>
+<span id="2131">2131</span>
+<span id="2132">2132</span>
+<span id="2133">2133</span>
+<span id="2134">2134</span>
+<span id="2135">2135</span>
+<span id="2136">2136</span>
+<span id="2137">2137</span>
+<span id="2138">2138</span>
+<span id="2139">2139</span>
+<span id="2140">2140</span>
+<span id="2141">2141</span>
+<span id="2142">2142</span>
+<span id="2143">2143</span>
+<span id="2144">2144</span>
+<span id="2145">2145</span>
+<span id="2146">2146</span>
+<span id="2147">2147</span>
+<span id="2148">2148</span>
+<span id="2149">2149</span>
+<span id="2150">2150</span>
+<span id="2151">2151</span>
+<span id="2152">2152</span>
+<span id="2153">2153</span>
+<span id="2154">2154</span>
+<span id="2155">2155</span>
+<span id="2156">2156</span>
+<span id="2157">2157</span>
+<span id="2158">2158</span>
+<span id="2159">2159</span>
+<span id="2160">2160</span>
+<span id="2161">2161</span>
+<span id="2162">2162</span>
+<span id="2163">2163</span>
+<span id="2164">2164</span>
+<span id="2165">2165</span>
+<span id="2166">2166</span>
+<span id="2167">2167</span>
+<span id="2168">2168</span>
+<span id="2169">2169</span>
+<span id="2170">2170</span>
+<span id="2171">2171</span>
+<span id="2172">2172</span>
+<span id="2173">2173</span>
+<span id="2174">2174</span>
+<span id="2175">2175</span>
+<span id="2176">2176</span>
+<span id="2177">2177</span>
+<span id="2178">2178</span>
+<span id="2179">2179</span>
+<span id="2180">2180</span>
+<span id="2181">2181</span>
+<span id="2182">2182</span>
+<span id="2183">2183</span>
+<span id="2184">2184</span>
+<span id="2185">2185</span>
+<span id="2186">2186</span>
+<span id="2187">2187</span>
+<span id="2188">2188</span>
+<span id="2189">2189</span>
+<span id="2190">2190</span>
+<span id="2191">2191</span>
+<span id="2192">2192</span>
+<span id="2193">2193</span>
+<span id="2194">2194</span>
+<span id="2195">2195</span>
+<span id="2196">2196</span>
+<span id="2197">2197</span>
+<span id="2198">2198</span>
+<span id="2199">2199</span>
+<span id="2200">2200</span>
+<span id="2201">2201</span>
+<span id="2202">2202</span>
+<span id="2203">2203</span>
+<span id="2204">2204</span>
+<span id="2205">2205</span>
+<span id="2206">2206</span>
+<span id="2207">2207</span>
+<span id="2208">2208</span>
+<span id="2209">2209</span>
+<span id="2210">2210</span>
+<span id="2211">2211</span>
+<span id="2212">2212</span>
+<span id="2213">2213</span>
+<span id="2214">2214</span>
+<span id="2215">2215</span>
+<span id="2216">2216</span>
+<span id="2217">2217</span>
+<span id="2218">2218</span>
+<span id="2219">2219</span>
+<span id="2220">2220</span>
+<span id="2221">2221</span>
+<span id="2222">2222</span>
+<span id="2223">2223</span>
+<span id="2224">2224</span>
+<span id="2225">2225</span>
+<span id="2226">2226</span>
+<span id="2227">2227</span>
+<span id="2228">2228</span>
+<span id="2229">2229</span>
+<span id="2230">2230</span>
+<span id="2231">2231</span>
+<span id="2232">2232</span>
+<span id="2233">2233</span>
+<span id="2234">2234</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// This file is @generated by syn-internal-codegen.</span>
 <span class="comment">// It is not intended for manual editing.</span>
@@ -2059,6 +2242,7 @@
 <span class="attribute">#![<span class="ident">allow</span>(<span class="ident">clippy</span>::<span class="ident">clone_on_copy</span>, <span class="ident">clippy</span>::<span class="ident">expl_impl_clone_on_copy</span>)]</span>
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="kw-2">*</span>;
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">Abi</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">Abi</span> {
@@ -2068,6 +2252,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">AngleBracketedGenericArguments</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">AngleBracketedGenericArguments</span> {
@@ -2079,6 +2264,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">Arm</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">Arm</span> {
@@ -2092,14 +2278,17 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Copy</span> <span class="kw">for</span> <span class="ident">AttrStyle</span> {}
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">AttrStyle</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="kw-2">*</span><span class="self">self</span>
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">Attribute</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">Attribute</span> {
@@ -2112,6 +2301,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">BareFnArg</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">BareFnArg</span> {
@@ -2122,14 +2312,17 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Copy</span> <span class="kw">for</span> <span class="ident">BinOp</span> {}
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">BinOp</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="kw-2">*</span><span class="self">self</span>
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">Binding</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">Binding</span> {
@@ -2140,6 +2333,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">Block</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">Block</span> {
@@ -2149,6 +2343,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">BoundLifetimes</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">BoundLifetimes</span> {
@@ -2160,6 +2355,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">ConstParam</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">ConstParam</span> {
@@ -2174,6 +2370,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">Constraint</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">Constraint</span> {
@@ -2184,6 +2381,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">Data</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="kw">match</span> <span class="self">self</span> {
@@ -2194,6 +2392,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">DataEnum</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">DataEnum</span> {
@@ -2204,6 +2403,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">DataStruct</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">DataStruct</span> {
@@ -2214,6 +2414,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">DataUnion</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">DataUnion</span> {
@@ -2223,6 +2424,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">DeriveInput</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">DeriveInput</span> {
@@ -2235,6 +2437,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">Expr</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="kw">match</span> <span class="self">self</span> {
@@ -2313,6 +2516,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">ExprArray</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">ExprArray</span> {
@@ -2323,6 +2527,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">ExprAssign</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">ExprAssign</span> {
@@ -2334,6 +2539,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">ExprAssignOp</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">ExprAssignOp</span> {
@@ -2345,6 +2551,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">ExprAsync</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">ExprAsync</span> {
@@ -2356,6 +2563,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">ExprAwait</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">ExprAwait</span> {
@@ -2367,6 +2575,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">ExprBinary</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">ExprBinary</span> {
@@ -2378,6 +2587,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">ExprBlock</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">ExprBlock</span> {
@@ -2388,6 +2598,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">ExprBox</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">ExprBox</span> {
@@ -2398,6 +2609,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">ExprBreak</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">ExprBreak</span> {
@@ -2409,6 +2621,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">ExprCall</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">ExprCall</span> {
@@ -2420,6 +2633,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">ExprCast</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">ExprCast</span> {
@@ -2431,6 +2645,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">ExprClosure</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">ExprClosure</span> {
@@ -2447,6 +2662,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">ExprContinue</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">ExprContinue</span> {
@@ -2457,6 +2673,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">ExprField</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">ExprField</span> {
@@ -2468,6 +2685,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">ExprForLoop</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">ExprForLoop</span> {
@@ -2482,6 +2700,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">ExprGroup</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">ExprGroup</span> {
@@ -2492,6 +2711,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">ExprIf</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">ExprIf</span> {
@@ -2504,6 +2724,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">ExprIndex</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">ExprIndex</span> {
@@ -2515,6 +2736,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">ExprLet</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">ExprLet</span> {
@@ -2527,6 +2749,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">ExprLit</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">ExprLit</span> {
@@ -2536,6 +2759,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">ExprLoop</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">ExprLoop</span> {
@@ -2547,6 +2771,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">ExprMacro</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">ExprMacro</span> {
@@ -2556,6 +2781,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">ExprMatch</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">ExprMatch</span> {
@@ -2568,6 +2794,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">ExprMethodCall</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">ExprMethodCall</span> {
@@ -2582,6 +2809,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">ExprParen</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">ExprParen</span> {
@@ -2592,6 +2820,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">ExprPath</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">ExprPath</span> {
@@ -2602,6 +2831,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">ExprRange</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">ExprRange</span> {
@@ -2613,6 +2843,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">ExprReference</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">ExprReference</span> {
@@ -2625,6 +2856,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">ExprRepeat</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">ExprRepeat</span> {
@@ -2637,6 +2869,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">ExprReturn</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">ExprReturn</span> {
@@ -2647,6 +2880,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">ExprStruct</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">ExprStruct</span> {
@@ -2660,6 +2894,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">ExprTry</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">ExprTry</span> {
@@ -2670,6 +2905,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">ExprTryBlock</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">ExprTryBlock</span> {
@@ -2680,6 +2916,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">ExprTuple</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">ExprTuple</span> {
@@ -2690,6 +2927,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">ExprType</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">ExprType</span> {
@@ -2701,6 +2939,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">ExprUnary</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">ExprUnary</span> {
@@ -2711,6 +2950,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">ExprUnsafe</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">ExprUnsafe</span> {
@@ -2721,6 +2961,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">ExprWhile</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">ExprWhile</span> {
@@ -2733,6 +2974,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">ExprYield</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">ExprYield</span> {
@@ -2743,6 +2985,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">Field</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">Field</span> {
@@ -2755,6 +2998,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">FieldPat</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">FieldPat</span> {
@@ -2766,6 +3010,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">FieldValue</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">FieldValue</span> {
@@ -2777,6 +3022,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">Fields</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="kw">match</span> <span class="self">self</span> {
@@ -2787,6 +3033,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">FieldsNamed</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">FieldsNamed</span> {
@@ -2796,6 +3043,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">FieldsUnnamed</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">FieldsUnnamed</span> {
@@ -2805,6 +3053,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">File</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">File</span> {
@@ -2815,6 +3064,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">FnArg</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="kw">match</span> <span class="self">self</span> {
@@ -2824,6 +3074,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">ForeignItem</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="kw">match</span> <span class="self">self</span> {
@@ -2837,6 +3088,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">ForeignItemFn</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">ForeignItemFn</span> {
@@ -2848,6 +3100,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">ForeignItemMacro</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">ForeignItemMacro</span> {
@@ -2858,6 +3111,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">ForeignItemStatic</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">ForeignItemStatic</span> {
@@ -2873,6 +3127,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">ForeignItemType</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">ForeignItemType</span> {
@@ -2885,6 +3140,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">GenericArgument</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="kw">match</span> <span class="self">self</span> {
@@ -2897,6 +3153,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">GenericMethodArgument</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="kw">match</span> <span class="self">self</span> {
@@ -2906,6 +3163,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">GenericParam</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="kw">match</span> <span class="self">self</span> {
@@ -2916,6 +3174,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">Generics</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">Generics</span> {
@@ -2927,6 +3186,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">ImplItem</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="kw">match</span> <span class="self">self</span> {
@@ -2940,6 +3200,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">ImplItemConst</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">ImplItemConst</span> {
@@ -2957,6 +3218,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">ImplItemMacro</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">ImplItemMacro</span> {
@@ -2967,6 +3229,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">ImplItemMethod</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">ImplItemMethod</span> {
@@ -2979,6 +3242,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">ImplItemType</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">ImplItemType</span> {
@@ -2995,6 +3259,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">Index</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">Index</span> {
@@ -3004,6 +3269,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">Item</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="kw">match</span> <span class="self">self</span> {
@@ -3029,6 +3295,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">ItemConst</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">ItemConst</span> {
@@ -3045,6 +3312,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">ItemEnum</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">ItemEnum</span> {
@@ -3059,6 +3327,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">ItemExternCrate</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">ItemExternCrate</span> {
@@ -3073,6 +3342,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">ItemFn</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">ItemFn</span> {
@@ -3084,6 +3354,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">ItemForeignMod</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">ItemForeignMod</span> {
@@ -3095,6 +3366,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">ItemImpl</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">ItemImpl</span> {
@@ -3111,6 +3383,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">ItemMacro</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">ItemMacro</span> {
@@ -3122,6 +3395,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">ItemMacro2</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">ItemMacro2</span> {
@@ -3134,6 +3408,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">ItemMod</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">ItemMod</span> {
@@ -3147,6 +3422,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">ItemStatic</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">ItemStatic</span> {
@@ -3164,6 +3440,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">ItemStruct</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">ItemStruct</span> {
@@ -3178,6 +3455,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">ItemTrait</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">ItemTrait</span> {
@@ -3196,6 +3474,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">ItemTraitAlias</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">ItemTraitAlias</span> {
@@ -3211,6 +3490,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">ItemType</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">ItemType</span> {
@@ -3226,6 +3506,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">ItemUnion</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">ItemUnion</span> {
@@ -3239,6 +3520,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">ItemUse</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">ItemUse</span> {
@@ -3252,6 +3534,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">Label</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">Label</span> {
@@ -3261,6 +3544,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">LifetimeDef</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">LifetimeDef</span> {
@@ -3271,6 +3555,7 @@
         }
     }
 }
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">Lit</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="kw">match</span> <span class="self">self</span> {
@@ -3285,6 +3570,7 @@
         }
     }
 }
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">LitBool</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">LitBool</span> {
@@ -3294,6 +3580,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">Local</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">Local</span> {
@@ -3306,6 +3593,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">Macro</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">Macro</span> {
@@ -3317,6 +3605,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">MacroDelimiter</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="kw">match</span> <span class="self">self</span> {
@@ -3327,6 +3616,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">Member</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="kw">match</span> <span class="self">self</span> {
@@ -3336,6 +3626,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">Meta</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="kw">match</span> <span class="self">self</span> {
@@ -3346,6 +3637,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">MetaList</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">MetaList</span> {
@@ -3356,6 +3648,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">MetaNameValue</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">MetaNameValue</span> {
@@ -3366,6 +3659,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">MethodTurbofish</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">MethodTurbofish</span> {
@@ -3377,6 +3671,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">NestedMeta</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="kw">match</span> <span class="self">self</span> {
@@ -3386,6 +3681,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">ParenthesizedGenericArguments</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">ParenthesizedGenericArguments</span> {
@@ -3396,6 +3692,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">Pat</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="kw">match</span> <span class="self">self</span> {
@@ -3420,6 +3717,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">PatBox</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">PatBox</span> {
@@ -3430,6 +3728,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">PatIdent</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">PatIdent</span> {
@@ -3442,6 +3741,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">PatLit</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">PatLit</span> {
@@ -3451,6 +3751,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">PatMacro</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">PatMacro</span> {
@@ -3460,6 +3761,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">PatOr</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">PatOr</span> {
@@ -3470,6 +3772,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">PatPath</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">PatPath</span> {
@@ -3480,6 +3783,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">PatRange</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">PatRange</span> {
@@ -3491,6 +3795,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">PatReference</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">PatReference</span> {
@@ -3502,6 +3807,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">PatRest</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">PatRest</span> {
@@ -3511,6 +3817,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">PatSlice</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">PatSlice</span> {
@@ -3521,6 +3828,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">PatStruct</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">PatStruct</span> {
@@ -3533,6 +3841,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">PatTuple</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">PatTuple</span> {
@@ -3543,6 +3852,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">PatTupleStruct</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">PatTupleStruct</span> {
@@ -3553,6 +3863,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">PatType</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">PatType</span> {
@@ -3564,6 +3875,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">PatWild</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">PatWild</span> {
@@ -3573,6 +3885,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">Path</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">Path</span> {
@@ -3582,6 +3895,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">PathArguments</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="kw">match</span> <span class="self">self</span> {
@@ -3592,6 +3906,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">PathSegment</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">PathSegment</span> {
@@ -3601,6 +3916,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">PredicateEq</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">PredicateEq</span> {
@@ -3611,6 +3927,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">PredicateLifetime</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">PredicateLifetime</span> {
@@ -3621,6 +3938,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">PredicateType</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">PredicateType</span> {
@@ -3632,6 +3950,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">QSelf</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">QSelf</span> {
@@ -3644,14 +3963,17 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Copy</span> <span class="kw">for</span> <span class="ident">RangeLimits</span> {}
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">RangeLimits</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="kw-2">*</span><span class="self">self</span>
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">Receiver</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">Receiver</span> {
@@ -3663,6 +3985,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">ReturnType</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="kw">match</span> <span class="self">self</span> {
@@ -3672,6 +3995,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">Signature</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">Signature</span> {
@@ -3690,6 +4014,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">Stmt</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="kw">match</span> <span class="self">self</span> {
@@ -3701,6 +4026,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">TraitBound</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">TraitBound</span> {
@@ -3712,14 +4038,17 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Copy</span> <span class="kw">for</span> <span class="ident">TraitBoundModifier</span> {}
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">TraitBoundModifier</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="kw-2">*</span><span class="self">self</span>
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">TraitItem</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="kw">match</span> <span class="self">self</span> {
@@ -3733,6 +4062,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">TraitItemConst</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">TraitItemConst</span> {
@@ -3747,6 +4077,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">TraitItemMacro</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">TraitItemMacro</span> {
@@ -3757,6 +4088,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">TraitItemMethod</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">TraitItemMethod</span> {
@@ -3768,6 +4100,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">TraitItemType</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">TraitItemType</span> {
@@ -3783,6 +4116,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">Type</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="kw">match</span> <span class="self">self</span> {
@@ -3806,6 +4140,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">TypeArray</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">TypeArray</span> {
@@ -3817,6 +4152,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">TypeBareFn</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">TypeBareFn</span> {
@@ -3832,6 +4168,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">TypeGroup</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">TypeGroup</span> {
@@ -3841,6 +4178,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">TypeImplTrait</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">TypeImplTrait</span> {
@@ -3850,6 +4188,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">TypeInfer</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">TypeInfer</span> {
@@ -3858,6 +4197,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">TypeMacro</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">TypeMacro</span> {
@@ -3866,6 +4206,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">TypeNever</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">TypeNever</span> {
@@ -3874,6 +4215,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">TypeParam</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">TypeParam</span> {
@@ -3887,6 +4229,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">TypeParamBound</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="kw">match</span> <span class="self">self</span> {
@@ -3896,6 +4239,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">TypeParen</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">TypeParen</span> {
@@ -3905,6 +4249,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">TypePath</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">TypePath</span> {
@@ -3914,6 +4259,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">TypePtr</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">TypePtr</span> {
@@ -3925,6 +4271,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">TypeReference</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">TypeReference</span> {
@@ -3936,6 +4283,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">TypeSlice</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">TypeSlice</span> {
@@ -3945,6 +4293,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">TypeTraitObject</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">TypeTraitObject</span> {
@@ -3954,6 +4303,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">TypeTuple</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">TypeTuple</span> {
@@ -3963,14 +4313,17 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Copy</span> <span class="kw">for</span> <span class="ident">UnOp</span> {}
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">UnOp</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="kw-2">*</span><span class="self">self</span>
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">UseGlob</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">UseGlob</span> {
@@ -3979,6 +4332,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">UseGroup</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">UseGroup</span> {
@@ -3988,6 +4342,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">UseName</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">UseName</span> {
@@ -3996,6 +4351,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">UsePath</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">UsePath</span> {
@@ -4006,6 +4362,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">UseRename</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">UseRename</span> {
@@ -4016,6 +4373,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">UseTree</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="kw">match</span> <span class="self">self</span> {
@@ -4028,6 +4386,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">Variadic</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">Variadic</span> {
@@ -4037,6 +4396,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">Variant</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">Variant</span> {
@@ -4048,6 +4408,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">VisCrate</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">VisCrate</span> {
@@ -4056,6 +4417,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">VisPublic</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">VisPublic</span> {
@@ -4064,6 +4426,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">VisRestricted</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">VisRestricted</span> {
@@ -4075,6 +4438,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">Visibility</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="kw">match</span> <span class="self">self</span> {
@@ -4086,6 +4450,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">WhereClause</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">WhereClause</span> {
@@ -4095,6 +4460,7 @@
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">WherePredicate</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="kw">match</span> <span class="self">self</span> {

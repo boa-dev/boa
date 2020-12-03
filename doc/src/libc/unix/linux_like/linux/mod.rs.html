@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/libc-0.2.79/src/unix/linux_like/linux/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../../../ayu.css" disabled ><script src="../../../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../../../../favicon.svg">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/libc-0.2.80/src/unix/linux_like/linux/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../../../ayu.css" disabled ><script src="../../../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../../../../favicon.svg">
 <link rel="alternate icon" type="image/png" href="../../../../../favicon-16x16.png">
 <link rel="alternate icon" type="image/png" href="../../../../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../../../libc/index.html'><div class='logo-container rust-logo'><img src='../../../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
                 <a id="settings-menu" href="../../../../../settings.html"><img src="../../../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
@@ -3467,6 +3467,36 @@
 <span id="3464">3464</span>
 <span id="3465">3465</span>
 <span id="3466">3466</span>
+<span id="3467">3467</span>
+<span id="3468">3468</span>
+<span id="3469">3469</span>
+<span id="3470">3470</span>
+<span id="3471">3471</span>
+<span id="3472">3472</span>
+<span id="3473">3473</span>
+<span id="3474">3474</span>
+<span id="3475">3475</span>
+<span id="3476">3476</span>
+<span id="3477">3477</span>
+<span id="3478">3478</span>
+<span id="3479">3479</span>
+<span id="3480">3480</span>
+<span id="3481">3481</span>
+<span id="3482">3482</span>
+<span id="3483">3483</span>
+<span id="3484">3484</span>
+<span id="3485">3485</span>
+<span id="3486">3486</span>
+<span id="3487">3487</span>
+<span id="3488">3488</span>
+<span id="3489">3489</span>
+<span id="3490">3490</span>
+<span id="3491">3491</span>
+<span id="3492">3492</span>
+<span id="3493">3493</span>
+<span id="3494">3494</span>
+<span id="3495">3495</span>
+<span id="3496">3496</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Linux-specific definitions for linux-like values</span>
 
@@ -4008,6 +4038,13 @@
         <span class="kw">pub</span> <span class="ident">salg_name</span>: [::<span class="ident">c_uchar</span>; <span class="number">64</span>],
     }
 
+    <span class="doccomment">/// WARNING: The `PartialEq`, `Eq` and `Hash` implementations of this</span>
+    <span class="doccomment">/// type are unsound and will be removed in the future.</span>
+    <span class="attribute">#[<span class="ident">deprecated</span>(
+        <span class="ident">note</span> <span class="op">=</span> <span class="string">&quot;this struct has unsafe trait implementations that will be \
+                removed in the future&quot;</span>,
+        <span class="ident">since</span> <span class="op">=</span> <span class="string">&quot;0.2.80&quot;</span>
+    )]</span>
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">af_alg_iv</span> {
         <span class="kw">pub</span> <span class="ident">ivlen</span>: <span class="ident">u32</span>,
         <span class="kw">pub</span> <span class="ident">iv</span>: [::<span class="ident">c_uchar</span>; <span class="number">0</span>],
@@ -4251,6 +4288,7 @@
             }
         }
 
+        <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">deprecated</span>)]</span>
         <span class="kw">impl</span> <span class="ident">af_alg_iv</span> {
             <span class="kw">fn</span> <span class="ident">as_slice</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span>[<span class="ident">u8</span>] {
                 <span class="kw">unsafe</span> {
@@ -4262,22 +4300,26 @@
             }
         }
 
+        <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">deprecated</span>)]</span>
         <span class="kw">impl</span> <span class="ident">PartialEq</span> <span class="kw">for</span> <span class="ident">af_alg_iv</span> {
             <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="ident">af_alg_iv</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
                 <span class="kw-2">*</span><span class="self">self</span>.<span class="ident">as_slice</span>() <span class="op">=</span><span class="op">=</span> <span class="kw-2">*</span><span class="ident">other</span>.<span class="ident">as_slice</span>()
            }
         }
 
+        <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">deprecated</span>)]</span>
         <span class="kw">impl</span> <span class="ident">Eq</span> <span class="kw">for</span> <span class="ident">af_alg_iv</span> {}
 
+        <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">deprecated</span>)]</span>
         <span class="kw">impl</span> ::<span class="ident">fmt</span>::<span class="ident">Debug</span> <span class="kw">for</span> <span class="ident">af_alg_iv</span> {
             <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> ::<span class="ident">fmt</span>::<span class="ident">Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> ::<span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
                 <span class="ident">f</span>.<span class="ident">debug_struct</span>(<span class="string">&quot;af_alg_iv&quot;</span>)
-                    .<span class="ident">field</span>(<span class="string">&quot;iv&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">as_slice</span>())
+                    .<span class="ident">field</span>(<span class="string">&quot;ivlen&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">ivlen</span>)
                     .<span class="ident">finish</span>()
             }
         }
 
+        <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">deprecated</span>)]</span>
         <span class="kw">impl</span> ::<span class="ident">hash</span>::<span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">af_alg_iv</span> {
             <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span>: ::<span class="ident">hash</span>::<span class="ident">Hasher</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>) {
                 <span class="self">self</span>.<span class="ident">as_slice</span>().<span class="ident">hash</span>(<span class="ident">state</span>);
@@ -4698,6 +4740,7 @@
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">AT_EACCESS</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">0x200</span>;
 
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TCP_MD5SIG</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">14</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TCP_ULP</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">31</span>;
 
 <span class="macro">align_const</span><span class="macro">!</span> {
     <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">PTHREAD_MUTEX_INITIALIZER</span>: <span class="ident">pthread_mutex_t</span> <span class="op">=</span> <span class="ident">pthread_mutex_t</span> {
@@ -4732,6 +4775,17 @@
 
 <span class="comment">// netinet/in.h</span>
 <span class="comment">// NOTE: These are in addition to the constants defined in src/unix/mod.rs</span>
+
+<span class="doccomment">/// Multipath TCP</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">IPPROTO_MPTCP</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">262</span>;
+<span class="attribute">#[<span class="ident">deprecated</span>(
+    <span class="ident">since</span> <span class="op">=</span> <span class="string">&quot;0.2.80&quot;</span>,
+    <span class="ident">note</span> <span class="op">=</span> <span class="string">&quot;This value was increased in the newer kernel \
+            and we&#39;ll change this following upstream in the future release. \
+            See #1896 for more info.&quot;</span>
+)]</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">IPPROTO_MAX</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">256</span>;
+
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">AF_IB</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">27</span>;
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">AF_MPLS</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">28</span>;
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">AF_NFC</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">39</span>;
@@ -6686,6 +6740,12 @@ pub const NFQA_VLAN_TCI: ::c_int = 2;
         <span class="ident">out_fd</span>: ::<span class="ident">c_int</span>,
         <span class="ident">in_fd</span>: ::<span class="ident">c_int</span>,
         <span class="ident">offset</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">off_t</span>,
+        <span class="ident">count</span>: ::<span class="ident">size_t</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> ::<span class="ident">ssize_t</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">sendfile64</span>(
+        <span class="ident">out_fd</span>: ::<span class="ident">c_int</span>,
+        <span class="ident">in_fd</span>: ::<span class="ident">c_int</span>,
+        <span class="ident">offset</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">off64_t</span>,
         <span class="ident">count</span>: ::<span class="ident">size_t</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> ::<span class="ident">ssize_t</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">sigsuspend</span>(<span class="ident">mask</span>: <span class="kw-2">*</span><span class="kw">const</span> ::<span class="ident">sigset_t</span>) <span class="op">-</span><span class="op">&gt;</span> ::<span class="ident">c_int</span>;

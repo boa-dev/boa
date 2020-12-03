@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/libc-0.2.79/src/macros.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>macros.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/libc-0.2.80/src/macros.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>macros.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
 <link rel="alternate icon" type="image/png" href="../../favicon-16x16.png">
 <link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../libc/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
                 <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
@@ -336,6 +336,14 @@
 <span id="333">333</span>
 <span id="334">334</span>
 <span id="335">335</span>
+<span id="336">336</span>
+<span id="337">337</span>
+<span id="338">338</span>
+<span id="339">339</span>
+<span id="340">340</span>
+<span id="341">341</span>
+<span id="342">342</span>
+<span id="343">343</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">/// A macro for defining #[cfg] if-else statements.</span>
 <span class="doccomment">///</span>
@@ -379,12 +387,12 @@
 
     <span class="comment">// Internal and recursive macro to emit all the items</span>
     <span class="comment">//</span>
-    <span class="comment">// Collects all the negated cfgs in a list at the beginning and after the</span>
+    <span class="comment">// Collects all the negated `cfg`s in a list at the beginning and after the</span>
     <span class="comment">// semicolon is all the remaining items</span>
     (@<span class="ident">__items</span> ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">not</span>:<span class="ident">meta</span>,)<span class="kw-2">*</span>) ; ) <span class="op">=</span><span class="op">&gt;</span> {};
     (@<span class="ident">__items</span> ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">not</span>:<span class="ident">meta</span>,)<span class="kw-2">*</span>) ; ( ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">m</span>:<span class="ident">meta</span>),<span class="kw-2">*</span>) ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">it</span>:<span class="ident">item</span>)<span class="kw-2">*</span>) ),
      $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">rest</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) <span class="op">=</span><span class="op">&gt;</span> {
-        <span class="comment">// Emit all items within one block, applying an approprate #[cfg]. The</span>
+        <span class="comment">// Emit all items within one block, applying an appropriate #[cfg]. The</span>
         <span class="comment">// #[cfg] will require all `$m` matchers specified and must also negate</span>
         <span class="comment">// all previous matchers.</span>
         <span class="macro">cfg_if</span><span class="macro">!</span> { @<span class="ident">__apply</span> <span class="ident">cfg</span>(<span class="ident">all</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">m</span>,)<span class="op">*</span> <span class="ident">not</span>(<span class="ident">any</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">not</span>),<span class="kw-2">*</span>)))), $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">it</span>)<span class="op">*</span> }
@@ -453,7 +461,9 @@
             $(<span class="attribute">#[<span class="macro-nonterminal">$</span><span class="macro-nonterminal">attr</span>]</span>)<span class="op">*</span>
             <span class="kw">pub</span> <span class="kw">struct</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">i</span> { $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">field</span>)<span class="op">*</span> }
         }
+        <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">deprecated</span>)]</span>
         <span class="kw">impl</span> ::<span class="ident">Copy</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">i</span> {}
+        <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">deprecated</span>)]</span>
         <span class="kw">impl</span> ::<span class="ident">Clone</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">i</span> {
             <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">i</span> { <span class="kw-2">*</span><span class="self">self</span> }
         }
@@ -506,7 +516,7 @@
 <span class="comment">// so we need to avoid emitting it at all of &#39;const-extern-fn&#39;.</span>
 <span class="comment">//</span>
 <span class="comment">// Specifically, moving the &#39;cfg_if&#39; into the macro body will *not* work.</span>
-<span class="comment">// Doing so would cause the &#39;#[cfg(feature = &quot;const-extern-fn&quot;)]&#39; to be emiited</span>
+<span class="comment">// Doing so would cause the &#39;#[cfg(feature = &quot;const-extern-fn&quot;)]&#39; to be emitted</span>
 <span class="comment">// into user code. The &#39;cfg&#39; gate will not stop Rust from trying to parse the</span>
 <span class="comment">// &#39;pub const unsafe extern fn&#39;, so users would get a compiler error even when</span>
 <span class="comment">// the &#39;const-extern-fn&#39; feature is disabled</span>
@@ -514,19 +524,20 @@
 <span class="comment">// Note that users of this macro need to place &#39;const&#39; in a weird position</span>
 <span class="comment">// (after the closing &#39;)&#39; for the arguments, but before the return type).</span>
 <span class="comment">// This was the only way I could satisfy the following two requirements:</span>
-<span class="comment">// 1. Avoid ambuguity errors from &#39;macro_rules!&#39; (which happen when writing &#39;$foo:ident fn&#39;</span>
+<span class="comment">// 1. Avoid ambiguity errors from &#39;macro_rules!&#39; (which happen when writing &#39;$foo:ident fn&#39;</span>
 <span class="comment">// 2. Allow users of this macro to mix &#39;pub fn foo&#39; and &#39;pub const fn bar&#39; within the same</span>
 <span class="comment">// &#39;f!&#39; block</span>
 <span class="macro">cfg_if</span><span class="macro">!</span> {
     <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">libc_const_extern_fn</span>)]</span> {
         <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unused_macros</span>)]</span>
         <span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">f</span> {
-            ($(<span class="kw">pub</span> $({<span class="macro-nonterminal">$</span><span class="macro-nonterminal">constness</span>:<span class="ident">ident</span>})<span class="op">*</span> <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">i</span>:<span class="ident">ident</span>(
+            ($($(<span class="attribute">#[<span class="macro-nonterminal">$</span><span class="macro-nonterminal">attr</span>:<span class="ident">meta</span>]</span>)<span class="op">*</span> <span class="kw">pub</span> $({<span class="macro-nonterminal">$</span><span class="macro-nonterminal">constness</span>:<span class="ident">ident</span>})<span class="op">*</span> <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">i</span>:<span class="ident">ident</span>(
                         $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">arg</span>:<span class="ident">ident</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">argty</span>:<span class="ident">ty</span>),<span class="op">*</span>
             ) <span class="op">-</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ret</span>:<span class="ident">ty</span> {
                 $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">body</span>:<span class="ident">stmt</span>);<span class="op">*</span>
             })<span class="kw-2">*</span>) <span class="op">=</span><span class="op">&gt;</span> ($(
                 <span class="attribute">#[<span class="ident">inline</span>]</span>
+                $(<span class="attribute">#[<span class="macro-nonterminal">$</span><span class="macro-nonterminal">attr</span>]</span>)<span class="op">*</span>
                 <span class="kw">pub</span> $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">constness</span>)<span class="op">*</span> <span class="kw">unsafe</span> <span class="kw">extern</span> <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">i</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">arg</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">argty</span>),<span class="op">*</span>
                 ) <span class="op">-</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ret</span> {
                     $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">body</span>);<span class="op">*</span>
@@ -536,12 +547,13 @@
 
         <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unused_macros</span>)]</span>
         <span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">safe_f</span> {
-            ($(<span class="kw">pub</span> $({<span class="macro-nonterminal">$</span><span class="macro-nonterminal">constness</span>:<span class="ident">ident</span>})<span class="op">*</span> <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">i</span>:<span class="ident">ident</span>(
+            ($($(<span class="attribute">#[<span class="macro-nonterminal">$</span><span class="macro-nonterminal">attr</span>:<span class="ident">meta</span>]</span>)<span class="op">*</span> <span class="kw">pub</span> $({<span class="macro-nonterminal">$</span><span class="macro-nonterminal">constness</span>:<span class="ident">ident</span>})<span class="op">*</span> <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">i</span>:<span class="ident">ident</span>(
                         $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">arg</span>:<span class="ident">ident</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">argty</span>:<span class="ident">ty</span>),<span class="op">*</span>
             ) <span class="op">-</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ret</span>:<span class="ident">ty</span> {
                 $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">body</span>:<span class="ident">stmt</span>);<span class="op">*</span>
             })<span class="kw-2">*</span>) <span class="op">=</span><span class="op">&gt;</span> ($(
                 <span class="attribute">#[<span class="ident">inline</span>]</span>
+                $(<span class="attribute">#[<span class="macro-nonterminal">$</span><span class="macro-nonterminal">attr</span>]</span>)<span class="op">*</span>
                 <span class="kw">pub</span> $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">constness</span>)<span class="op">*</span> <span class="kw">extern</span> <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">i</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">arg</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">argty</span>),<span class="op">*</span>
                 ) <span class="op">-</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ret</span> {
                     $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">body</span>);<span class="op">*</span>
@@ -551,12 +563,13 @@
 
         <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unused_macros</span>)]</span>
         <span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">const_fn</span> {
-            ($($({<span class="macro-nonterminal">$</span><span class="macro-nonterminal">constness</span>:<span class="ident">ident</span>})<span class="op">*</span> <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">i</span>:<span class="ident">ident</span>(
+            ($($(<span class="attribute">#[<span class="macro-nonterminal">$</span><span class="macro-nonterminal">attr</span>:<span class="ident">meta</span>]</span>)<span class="op">*</span> $({<span class="macro-nonterminal">$</span><span class="macro-nonterminal">constness</span>:<span class="ident">ident</span>})<span class="op">*</span> <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">i</span>:<span class="ident">ident</span>(
                         $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">arg</span>:<span class="ident">ident</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">argty</span>:<span class="ident">ty</span>),<span class="op">*</span>
             ) <span class="op">-</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ret</span>:<span class="ident">ty</span> {
                 $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">body</span>:<span class="ident">stmt</span>);<span class="op">*</span>
             })<span class="kw-2">*</span>) <span class="op">=</span><span class="op">&gt;</span> ($(
                 <span class="attribute">#[<span class="ident">inline</span>]</span>
+                $(<span class="attribute">#[<span class="macro-nonterminal">$</span><span class="macro-nonterminal">attr</span>]</span>)<span class="op">*</span>
                 $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">constness</span>)<span class="op">*</span> <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">i</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">arg</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">argty</span>),<span class="op">*</span>
                 ) <span class="op">-</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ret</span> {
                     $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">body</span>);<span class="op">*</span>
@@ -567,12 +580,13 @@
     } <span class="kw">else</span> {
         <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unused_macros</span>)]</span>
         <span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">f</span> {
-            ($(<span class="kw">pub</span> $({<span class="macro-nonterminal">$</span><span class="macro-nonterminal">constness</span>:<span class="ident">ident</span>})<span class="op">*</span> <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">i</span>:<span class="ident">ident</span>(
+            ($($(<span class="attribute">#[<span class="macro-nonterminal">$</span><span class="macro-nonterminal">attr</span>:<span class="ident">meta</span>]</span>)<span class="op">*</span> <span class="kw">pub</span> $({<span class="macro-nonterminal">$</span><span class="macro-nonterminal">constness</span>:<span class="ident">ident</span>})<span class="op">*</span> <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">i</span>:<span class="ident">ident</span>(
                         $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">arg</span>:<span class="ident">ident</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">argty</span>:<span class="ident">ty</span>),<span class="op">*</span>
             ) <span class="op">-</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ret</span>:<span class="ident">ty</span> {
                 $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">body</span>:<span class="ident">stmt</span>);<span class="op">*</span>
             })<span class="kw-2">*</span>) <span class="op">=</span><span class="op">&gt;</span> ($(
                 <span class="attribute">#[<span class="ident">inline</span>]</span>
+                $(<span class="attribute">#[<span class="macro-nonterminal">$</span><span class="macro-nonterminal">attr</span>]</span>)<span class="op">*</span>
                 <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">extern</span> <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">i</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">arg</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">argty</span>),<span class="op">*</span>
                 ) <span class="op">-</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ret</span> {
                     $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">body</span>);<span class="op">*</span>
@@ -582,12 +596,13 @@
 
         <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unused_macros</span>)]</span>
         <span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">safe_f</span> {
-            ($(<span class="kw">pub</span> $({<span class="macro-nonterminal">$</span><span class="macro-nonterminal">constness</span>:<span class="ident">ident</span>})<span class="op">*</span> <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">i</span>:<span class="ident">ident</span>(
+            ($($(<span class="attribute">#[<span class="macro-nonterminal">$</span><span class="macro-nonterminal">attr</span>:<span class="ident">meta</span>]</span>)<span class="op">*</span> <span class="kw">pub</span> $({<span class="macro-nonterminal">$</span><span class="macro-nonterminal">constness</span>:<span class="ident">ident</span>})<span class="op">*</span> <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">i</span>:<span class="ident">ident</span>(
                         $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">arg</span>:<span class="ident">ident</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">argty</span>:<span class="ident">ty</span>),<span class="op">*</span>
             ) <span class="op">-</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ret</span>:<span class="ident">ty</span> {
                 $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">body</span>:<span class="ident">stmt</span>);<span class="op">*</span>
             })<span class="kw-2">*</span>) <span class="op">=</span><span class="op">&gt;</span> ($(
                 <span class="attribute">#[<span class="ident">inline</span>]</span>
+                $(<span class="attribute">#[<span class="macro-nonterminal">$</span><span class="macro-nonterminal">attr</span>]</span>)<span class="op">*</span>
                 <span class="kw">pub</span> <span class="kw">extern</span> <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">i</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">arg</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">argty</span>),<span class="op">*</span>
                 ) <span class="op">-</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ret</span> {
                     $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">body</span>);<span class="op">*</span>
@@ -597,12 +612,13 @@
 
         <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unused_macros</span>)]</span>
         <span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">const_fn</span> {
-            ($($({<span class="macro-nonterminal">$</span><span class="macro-nonterminal">constness</span>:<span class="ident">ident</span>})<span class="op">*</span> <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">i</span>:<span class="ident">ident</span>(
+            ($($(<span class="attribute">#[<span class="macro-nonterminal">$</span><span class="macro-nonterminal">attr</span>:<span class="ident">meta</span>]</span>)<span class="op">*</span> $({<span class="macro-nonterminal">$</span><span class="macro-nonterminal">constness</span>:<span class="ident">ident</span>})<span class="op">*</span> <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">i</span>:<span class="ident">ident</span>(
                         $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">arg</span>:<span class="ident">ident</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">argty</span>:<span class="ident">ty</span>),<span class="op">*</span>
             ) <span class="op">-</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ret</span>:<span class="ident">ty</span> {
                 $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">body</span>:<span class="ident">stmt</span>);<span class="op">*</span>
             })<span class="kw-2">*</span>) <span class="op">=</span><span class="op">&gt;</span> ($(
                 <span class="attribute">#[<span class="ident">inline</span>]</span>
+                $(<span class="attribute">#[<span class="macro-nonterminal">$</span><span class="macro-nonterminal">attr</span>]</span>)<span class="op">*</span>
                 <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">i</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">arg</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">argty</span>),<span class="op">*</span>
                 ) <span class="op">-</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ret</span> {
                     $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">body</span>);<span class="op">*</span>

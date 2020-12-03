@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/unicode-segmentation-1.6.0/src/word.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>word.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="https://unicode-rs.github.io/unicode-rs_sm.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../unicode_segmentation/index.html'><div class='logo-container'><img src='https://unicode-rs.github.io/unicode-rs_sm.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/unicode-segmentation-1.7.1/src/word.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>word.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="https://unicode-rs.github.io/unicode-rs_sm.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../unicode_segmentation/index.html'><div class='logo-container'><img src='https://unicode-rs.github.io/unicode-rs_sm.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
                 <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
@@ -663,6 +663,24 @@
 <span id="662">662</span>
 <span id="663">663</span>
 <span id="664">664</span>
+<span id="665">665</span>
+<span id="666">666</span>
+<span id="667">667</span>
+<span id="668">668</span>
+<span id="669">669</span>
+<span id="670">670</span>
+<span id="671">671</span>
+<span id="672">672</span>
+<span id="673">673</span>
+<span id="674">674</span>
+<span id="675">675</span>
+<span id="676">676</span>
+<span id="677">677</span>
+<span id="678">678</span>
+<span id="679">679</span>
+<span id="680">680</span>
+<span id="681">681</span>
+<span id="682">682</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Copyright 2012-2014 The Rust Project Developers. See the COPYRIGHT</span>
 <span class="comment">// file at the top-level directory of this distribution and at</span>
@@ -685,6 +703,12 @@
 <span class="doccomment">/// [Alphabetic](http://unicode.org/reports/tr44/#Alphabetic)</span>
 <span class="doccomment">/// property, or with</span>
 <span class="doccomment">/// [General_Category=Number](http://unicode.org/reports/tr44/#General_Category_Values).</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// This struct is created by the [`unicode_words`] method on the [`UnicodeSegmentation`] trait. See</span>
+<span class="doccomment">/// its documentation for more.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// [`unicode_words`]: trait.UnicodeSegmentation.html#tymethod.unicode_words</span>
+<span class="doccomment">/// [`UnicodeSegmentation`]: trait.UnicodeSegmentation.html</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">UnicodeWords</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
     <span class="ident">inner</span>: <span class="ident">Filter</span><span class="op">&lt;</span><span class="ident">UWordBounds</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>, <span class="kw">fn</span>(<span class="op">&amp;&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span><span class="op">&gt;</span>,
 }
@@ -702,6 +726,12 @@
 
 <span class="doccomment">/// External iterator for a string&#39;s</span>
 <span class="doccomment">/// [word boundaries](http://www.unicode.org/reports/tr29/#Word_Boundaries).</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// This struct is created by the [`split_word_bounds`] method on the [`UnicodeSegmentation`]</span>
+<span class="doccomment">/// trait. See its documentation for more.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// [`split_word_bounds`]: trait.UnicodeSegmentation.html#tymethod.split_word_bounds</span>
+<span class="doccomment">/// [`UnicodeSegmentation`]: trait.UnicodeSegmentation.html</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">UWordBounds</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
     <span class="ident">string</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>,
@@ -710,6 +740,12 @@
 }
 
 <span class="doccomment">/// External iterator for word boundaries and byte offsets.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// This struct is created by the [`split_word_bound_indices`] method on the</span>
+<span class="doccomment">/// [`UnicodeSegmentation`] trait. See its documentation for more.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// [`split_word_bound_indices`]: trait.UnicodeSegmentation.html#tymethod.split_word_bound_indices</span>
+<span class="doccomment">/// [`UnicodeSegmentation`]: trait.UnicodeSegmentation.html</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">UWordBoundIndices</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
     <span class="ident">start_offset</span>: <span class="ident">usize</span>,
@@ -791,7 +827,7 @@
 
 <span class="kw">fn</span> <span class="ident">is_emoji</span>(<span class="ident">ch</span>: <span class="ident">char</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
     <span class="kw">use</span> <span class="ident">tables</span>::<span class="ident">emoji</span>;
-    <span class="ident">emoji</span>::<span class="ident">emoji_category</span>(<span class="ident">ch</span>) <span class="op">=</span><span class="op">=</span> <span class="ident">emoji</span>::<span class="ident">EmojiCat</span>::<span class="ident">EC_Extended_Pictographic</span>
+    <span class="ident">emoji</span>::<span class="ident">emoji_category</span>(<span class="ident">ch</span>).<span class="number">2</span> <span class="op">=</span><span class="op">=</span> <span class="ident">emoji</span>::<span class="ident">EmojiCat</span>::<span class="ident">EC_Extended_Pictographic</span>
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">Iterator</span> <span class="kw">for</span> <span class="ident">UWordBounds</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
@@ -830,7 +866,7 @@
             <span class="ident">prev_zwj</span> <span class="op">=</span> <span class="ident">cat</span> <span class="op">=</span><span class="op">=</span> <span class="ident">wd</span>::<span class="ident">WC_ZWJ</span>;
             <span class="comment">// if there&#39;s a category cached, grab it</span>
             <span class="ident">cat</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">cat</span> {
-                <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">wd</span>::<span class="ident">word_category</span>(<span class="ident">ch</span>),
+                <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">wd</span>::<span class="ident">word_category</span>(<span class="ident">ch</span>).<span class="number">2</span>,
                 <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">cat</span>.<span class="ident">take</span>().<span class="ident">unwrap</span>()
             };
             <span class="ident">take_cat</span> <span class="op">=</span> <span class="bool-val">true</span>;
@@ -1057,7 +1093,7 @@
 
             <span class="comment">// if there&#39;s a category cached, grab it</span>
             <span class="ident">cat</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">catb</span> {
-                <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">wd</span>::<span class="ident">word_category</span>(<span class="ident">ch</span>),
+                <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">wd</span>::<span class="ident">word_category</span>(<span class="ident">ch</span>).<span class="number">2</span>,
                 <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">catb</span>.<span class="ident">take</span>().<span class="ident">unwrap</span>()
             };
             <span class="ident">take_cat</span> <span class="op">=</span> <span class="bool-val">true</span>;
@@ -1199,7 +1235,7 @@
                         <span class="kw">if</span> <span class="ident">regional_state</span> <span class="op">=</span><span class="op">=</span> <span class="ident">RegionalState</span>::<span class="ident">Unknown</span> {
                             <span class="kw">let</span> <span class="ident">count</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">string</span>[..<span class="ident">previdx</span>]
                                             .<span class="ident">chars</span>().<span class="ident">rev</span>()
-                                            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">c</span><span class="op">|</span> <span class="ident">wd</span>::<span class="ident">word_category</span>(<span class="ident">c</span>))
+                                            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">c</span><span class="op">|</span> <span class="ident">wd</span>::<span class="ident">word_category</span>(<span class="ident">c</span>).<span class="number">2</span>)
                                             .<span class="ident">filter</span>(<span class="op">|</span><span class="kw-2">&amp;</span><span class="ident">c</span><span class="op">|</span> <span class="op">!</span> (<span class="ident">c</span> <span class="op">=</span><span class="op">=</span> <span class="ident">wd</span>::<span class="ident">WC_ZWJ</span> <span class="op">|</span><span class="op">|</span> <span class="ident">c</span> <span class="op">=</span><span class="op">=</span> <span class="ident">wd</span>::<span class="ident">WC_Extend</span> <span class="op">|</span><span class="op">|</span> <span class="ident">c</span> <span class="op">=</span><span class="op">=</span> <span class="ident">wd</span>::<span class="ident">WC_Format</span>))
                                             .<span class="ident">take_while</span>(<span class="op">|</span><span class="kw-2">&amp;</span><span class="ident">c</span><span class="op">|</span> <span class="ident">c</span> <span class="op">=</span><span class="op">=</span> <span class="ident">wd</span>::<span class="ident">WC_Regional_Indicator</span>)
                                             .<span class="ident">count</span>();
@@ -1290,7 +1326,7 @@
         <span class="kw">let</span> <span class="ident">nidx</span> <span class="op">=</span> <span class="ident">idx</span> <span class="op">+</span> <span class="self">self</span>.<span class="ident">string</span>[<span class="ident">idx</span>..].<span class="ident">chars</span>().<span class="ident">next</span>().<span class="ident">unwrap</span>().<span class="ident">len_utf8</span>();
         <span class="kw">if</span> <span class="ident">nidx</span> <span class="op">&lt;</span> <span class="self">self</span>.<span class="ident">string</span>.<span class="ident">len</span>() {
             <span class="kw">let</span> <span class="ident">nch</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">string</span>[<span class="ident">nidx</span>..].<span class="ident">chars</span>().<span class="ident">next</span>().<span class="ident">unwrap</span>();
-            <span class="prelude-val">Some</span>(<span class="ident">wd</span>::<span class="ident">word_category</span>(<span class="ident">nch</span>))
+            <span class="prelude-val">Some</span>(<span class="ident">wd</span>::<span class="ident">word_category</span>(<span class="ident">nch</span>).<span class="number">2</span>)
         } <span class="kw">else</span> {
             <span class="prelude-val">None</span>
         }
@@ -1301,7 +1337,7 @@
         <span class="kw">use</span> <span class="ident">tables</span>::<span class="ident">word</span> <span class="kw">as</span> <span class="ident">wd</span>;
         <span class="kw">if</span> <span class="ident">idx</span> <span class="op">&gt;</span> <span class="number">0</span> {
             <span class="kw">let</span> <span class="ident">nch</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">string</span>[..<span class="ident">idx</span>].<span class="ident">chars</span>().<span class="ident">next_back</span>().<span class="ident">unwrap</span>();
-            <span class="prelude-val">Some</span>(<span class="ident">wd</span>::<span class="ident">word_category</span>(<span class="ident">nch</span>))
+            <span class="prelude-val">Some</span>(<span class="ident">wd</span>::<span class="ident">word_category</span>(<span class="ident">nch</span>).<span class="number">2</span>)
         } <span class="kw">else</span> {
             <span class="prelude-val">None</span>
         }

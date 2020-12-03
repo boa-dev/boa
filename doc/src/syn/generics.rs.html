@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/syn-1.0.45/src/generics.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>generics.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/syn-1.0.53/src/generics.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>generics.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
 <link rel="alternate icon" type="image/png" href="../../favicon-16x16.png">
 <link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../syn/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
                 <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
@@ -1225,6 +1225,69 @@
 <span id="1222">1222</span>
 <span id="1223">1223</span>
 <span id="1224">1224</span>
+<span id="1225">1225</span>
+<span id="1226">1226</span>
+<span id="1227">1227</span>
+<span id="1228">1228</span>
+<span id="1229">1229</span>
+<span id="1230">1230</span>
+<span id="1231">1231</span>
+<span id="1232">1232</span>
+<span id="1233">1233</span>
+<span id="1234">1234</span>
+<span id="1235">1235</span>
+<span id="1236">1236</span>
+<span id="1237">1237</span>
+<span id="1238">1238</span>
+<span id="1239">1239</span>
+<span id="1240">1240</span>
+<span id="1241">1241</span>
+<span id="1242">1242</span>
+<span id="1243">1243</span>
+<span id="1244">1244</span>
+<span id="1245">1245</span>
+<span id="1246">1246</span>
+<span id="1247">1247</span>
+<span id="1248">1248</span>
+<span id="1249">1249</span>
+<span id="1250">1250</span>
+<span id="1251">1251</span>
+<span id="1252">1252</span>
+<span id="1253">1253</span>
+<span id="1254">1254</span>
+<span id="1255">1255</span>
+<span id="1256">1256</span>
+<span id="1257">1257</span>
+<span id="1258">1258</span>
+<span id="1259">1259</span>
+<span id="1260">1260</span>
+<span id="1261">1261</span>
+<span id="1262">1262</span>
+<span id="1263">1263</span>
+<span id="1264">1264</span>
+<span id="1265">1265</span>
+<span id="1266">1266</span>
+<span id="1267">1267</span>
+<span id="1268">1268</span>
+<span id="1269">1269</span>
+<span id="1270">1270</span>
+<span id="1271">1271</span>
+<span id="1272">1272</span>
+<span id="1273">1273</span>
+<span id="1274">1274</span>
+<span id="1275">1275</span>
+<span id="1276">1276</span>
+<span id="1277">1277</span>
+<span id="1278">1278</span>
+<span id="1279">1279</span>
+<span id="1280">1280</span>
+<span id="1281">1281</span>
+<span id="1282">1282</span>
+<span id="1283">1283</span>
+<span id="1284">1284</span>
+<span id="1285">1285</span>
+<span id="1286">1286</span>
+<span id="1287">1287</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">punctuated</span>::{<span class="ident">Iter</span>, <span class="ident">IterMut</span>, <span class="ident">Punctuated</span>};
@@ -1239,6 +1302,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// *This type is available only if Syn is built with the `&quot;derive&quot;` or `&quot;full&quot;`</span>
     <span class="doccomment">/// feature.*</span>
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>))))]</span>
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Generics</span> {
         <span class="kw">pub</span> <span class="ident">lt_token</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="macro">Token</span><span class="macro">!</span>[<span class="op">&lt;</span>]<span class="op">&gt;</span>,
         <span class="kw">pub</span> <span class="ident">params</span>: <span class="ident">Punctuated</span><span class="op">&lt;</span><span class="ident">GenericParam</span>, <span class="macro">Token</span><span class="macro">!</span>[,]<span class="op">&gt;</span>,
@@ -1259,6 +1323,7 @@
     <span class="doccomment">/// This type is a [syntax tree enum].</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [syntax tree enum]: enum.Expr.html#syntax-tree-enums</span>
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>))))]</span>
     <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">GenericParam</span> {
         <span class="doccomment">/// A generic type parameter: `T: Into&lt;String&gt;`.</span>
         <span class="ident">Type</span>(<span class="ident">TypeParam</span>),
@@ -1276,6 +1341,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// *This type is available only if Syn is built with the `&quot;derive&quot;` or</span>
     <span class="doccomment">/// `&quot;full&quot;` feature.*</span>
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>))))]</span>
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">TypeParam</span> {
         <span class="kw">pub</span> <span class="ident">attrs</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Attribute</span><span class="op">&gt;</span>,
         <span class="kw">pub</span> <span class="ident">ident</span>: <span class="ident">Ident</span>,
@@ -1291,6 +1357,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// *This type is available only if Syn is built with the `&quot;derive&quot;` or</span>
     <span class="doccomment">/// `&quot;full&quot;` feature.*</span>
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>))))]</span>
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">LifetimeDef</span> {
         <span class="kw">pub</span> <span class="ident">attrs</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Attribute</span><span class="op">&gt;</span>,
         <span class="kw">pub</span> <span class="ident">lifetime</span>: <span class="ident">Lifetime</span>,
@@ -1304,6 +1371,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// *This type is available only if Syn is built with the `&quot;derive&quot;` or</span>
     <span class="doccomment">/// `&quot;full&quot;` feature.*</span>
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>))))]</span>
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ConstParam</span> {
         <span class="kw">pub</span> <span class="ident">attrs</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Attribute</span><span class="op">&gt;</span>,
         <span class="kw">pub</span> <span class="ident">const_token</span>: <span class="macro">Token</span><span class="macro">!</span>[<span class="kw">const</span>],
@@ -1522,6 +1590,10 @@
 <span class="doccomment">/// *This type is available only if Syn is built with the `&quot;derive&quot;` or `&quot;full&quot;`</span>
 <span class="doccomment">/// feature and the `&quot;printing&quot;` feature.*</span>
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;printing&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(
+    <span class="ident">doc_cfg</span>,
+    <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>), <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;printing&quot;</span>)))
+)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ImplGenerics</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Generics</span>);
 
 <span class="doccomment">/// Returned by `Generics::split_for_impl`.</span>
@@ -1529,6 +1601,10 @@
 <span class="doccomment">/// *This type is available only if Syn is built with the `&quot;derive&quot;` or `&quot;full&quot;`</span>
 <span class="doccomment">/// feature and the `&quot;printing&quot;` feature.*</span>
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;printing&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(
+    <span class="ident">doc_cfg</span>,
+    <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>), <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;printing&quot;</span>)))
+)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">TypeGenerics</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Generics</span>);
 
 <span class="doccomment">/// Returned by `TypeGenerics::as_turbofish`.</span>
@@ -1536,6 +1612,10 @@
 <span class="doccomment">/// *This type is available only if Syn is built with the `&quot;derive&quot;` or `&quot;full&quot;`</span>
 <span class="doccomment">/// feature and the `&quot;printing&quot;` feature.*</span>
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;printing&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(
+    <span class="ident">doc_cfg</span>,
+    <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>), <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;printing&quot;</span>)))
+)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Turbofish</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Generics</span>);
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;printing&quot;</span>)]</span>
@@ -1561,6 +1641,10 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// *This method is available only if Syn is built with the `&quot;derive&quot;` or</span>
     <span class="doccomment">/// `&quot;full&quot;` feature and the `&quot;printing&quot;` feature.*</span>
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(
+        <span class="ident">doc_cfg</span>,
+        <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>), <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;printing&quot;</span>)))
+    )]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">split_for_impl</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="ident">ImplGenerics</span>, <span class="ident">TypeGenerics</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">WhereClause</span><span class="op">&gt;</span>) {
         (
             <span class="ident">ImplGenerics</span>(<span class="self">self</span>),
@@ -1574,6 +1658,7 @@
 <span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">generics_wrapper_impls</span> {
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span>:<span class="ident">ident</span>) <span class="op">=</span><span class="op">&gt;</span> {
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)]</span>
+        <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)))]</span>
         <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
             <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
                 <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span>(<span class="self">self</span>.<span class="number">0</span>)
@@ -1581,6 +1666,7 @@
         }
 
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)]</span>
+        <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
         <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">Debug</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
             <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">formatter</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
                 <span class="ident">formatter</span>
@@ -1591,9 +1677,11 @@
         }
 
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)]</span>
+        <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
         <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">Eq</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {}
 
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)]</span>
+        <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
         <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">PartialEq</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
             <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
                 <span class="self">self</span>.<span class="number">0</span> <span class="op">=</span><span class="op">=</span> <span class="ident">other</span>.<span class="number">0</span>
@@ -1601,6 +1689,7 @@
         }
 
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)]</span>
+        <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)))]</span>
         <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
             <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span>: <span class="ident">Hasher</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>) {
                 <span class="self">self</span>.<span class="number">0</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
@@ -1632,6 +1721,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// *This type is available only if Syn is built with the `&quot;derive&quot;` or `&quot;full&quot;`</span>
     <span class="doccomment">/// feature.*</span>
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>))))]</span>
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">BoundLifetimes</span> {
         <span class="kw">pub</span> <span class="ident">for_token</span>: <span class="macro">Token</span><span class="macro">!</span>[<span class="kw">for</span>],
         <span class="kw">pub</span> <span class="ident">lt_token</span>: <span class="macro">Token</span><span class="macro">!</span>[<span class="op">&lt;</span>],
@@ -1680,6 +1770,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// *This type is available only if Syn is built with the `&quot;derive&quot;` or `&quot;full&quot;`</span>
     <span class="doccomment">/// feature.*</span>
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>))))]</span>
     <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">TypeParamBound</span> {
         <span class="ident">Trait</span>(<span class="ident">TraitBound</span>),
         <span class="ident">Lifetime</span>(<span class="ident">Lifetime</span>),
@@ -1691,6 +1782,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// *This type is available only if Syn is built with the `&quot;derive&quot;` or `&quot;full&quot;`</span>
     <span class="doccomment">/// feature.*</span>
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>))))]</span>
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">TraitBound</span> {
         <span class="kw">pub</span> <span class="ident">paren_token</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">token</span>::<span class="ident">Paren</span><span class="op">&gt;</span>,
         <span class="kw">pub</span> <span class="ident">modifier</span>: <span class="ident">TraitBoundModifier</span>,
@@ -1707,6 +1799,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// *This type is available only if Syn is built with the `&quot;derive&quot;` or `&quot;full&quot;`</span>
     <span class="doccomment">/// feature.*</span>
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>))))]</span>
     <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">TraitBoundModifier</span> {
         <span class="prelude-val">None</span>,
         <span class="ident">Maybe</span>(<span class="macro">Token</span><span class="macro">!</span>[<span class="question-mark">?</span>]),
@@ -1719,6 +1812,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// *This type is available only if Syn is built with the `&quot;derive&quot;` or `&quot;full&quot;`</span>
     <span class="doccomment">/// feature.*</span>
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>))))]</span>
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">WhereClause</span> {
         <span class="kw">pub</span> <span class="ident">where_token</span>: <span class="macro">Token</span><span class="macro">!</span>[<span class="kw">where</span>],
         <span class="kw">pub</span> <span class="ident">predicates</span>: <span class="ident">Punctuated</span><span class="op">&lt;</span><span class="ident">WherePredicate</span>, <span class="macro">Token</span><span class="macro">!</span>[,]<span class="op">&gt;</span>,
@@ -1736,6 +1830,7 @@
     <span class="doccomment">/// This type is a [syntax tree enum].</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [syntax tree enum]: enum.Expr.html#syntax-tree-enums</span>
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>))))]</span>
     <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">WherePredicate</span> {
         <span class="doccomment">/// A type predicate in a `where` clause: `for&lt;&#39;c&gt; Foo&lt;&#39;c&gt;: Trait&lt;&#39;c&gt;`.</span>
         <span class="ident">Type</span>(<span class="ident">PredicateType</span>),
@@ -1753,6 +1848,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// *This type is available only if Syn is built with the `&quot;derive&quot;` or</span>
     <span class="doccomment">/// `&quot;full&quot;` feature.*</span>
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>))))]</span>
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">PredicateType</span> {
         <span class="doccomment">/// Any lifetimes from a `for` binding</span>
         <span class="kw">pub</span> <span class="ident">lifetimes</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">BoundLifetimes</span><span class="op">&gt;</span>,
@@ -1769,6 +1865,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// *This type is available only if Syn is built with the `&quot;derive&quot;` or</span>
     <span class="doccomment">/// `&quot;full&quot;` feature.*</span>
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>))))]</span>
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">PredicateLifetime</span> {
         <span class="kw">pub</span> <span class="ident">lifetime</span>: <span class="ident">Lifetime</span>,
         <span class="kw">pub</span> <span class="ident">colon_token</span>: <span class="macro">Token</span><span class="macro">!</span>[:],
@@ -1781,6 +1878,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// *This type is available only if Syn is built with the `&quot;derive&quot;` or</span>
     <span class="doccomment">/// `&quot;full&quot;` feature.*</span>
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>))))]</span>
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">PredicateEq</span> {
         <span class="kw">pub</span> <span class="ident">lhs_ty</span>: <span class="ident">Type</span>,
         <span class="kw">pub</span> <span class="ident">eq_token</span>: <span class="macro">Token</span><span class="macro">!</span>[<span class="op">=</span>],
@@ -1793,6 +1891,7 @@
     <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
     <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">parse</span>::{<span class="ident">Parse</span>, <span class="ident">ParseStream</span>, <span class="prelude-ty">Result</span>};
 
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;parsing&quot;</span>)))]</span>
     <span class="kw">impl</span> <span class="ident">Parse</span> <span class="kw">for</span> <span class="ident">Generics</span> {
         <span class="kw">fn</span> <span class="ident">parse</span>(<span class="ident">input</span>: <span class="ident">ParseStream</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
             <span class="kw">if</span> <span class="op">!</span><span class="ident">input</span>.<span class="ident">peek</span>(<span class="macro">Token</span><span class="macro">!</span>[<span class="op">&lt;</span>]) {
@@ -1802,7 +1901,6 @@
             <span class="kw">let</span> <span class="ident">lt_token</span>: <span class="macro">Token</span><span class="macro">!</span>[<span class="op">&lt;</span>] <span class="op">=</span> <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>;
 
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">params</span> <span class="op">=</span> <span class="ident">Punctuated</span>::<span class="ident">new</span>();
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">allow_lifetime_param</span> <span class="op">=</span> <span class="bool-val">true</span>;
             <span class="kw">loop</span> {
                 <span class="kw">if</span> <span class="ident">input</span>.<span class="ident">peek</span>(<span class="macro">Token</span><span class="macro">!</span>[<span class="op">&gt;</span>]) {
                     <span class="kw">break</span>;
@@ -1810,19 +1908,17 @@
 
                 <span class="kw">let</span> <span class="ident">attrs</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">call</span>(<span class="ident">Attribute</span>::<span class="ident">parse_outer</span>)<span class="question-mark">?</span>;
                 <span class="kw">let</span> <span class="ident">lookahead</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">lookahead1</span>();
-                <span class="kw">if</span> <span class="ident">allow_lifetime_param</span> <span class="op">&amp;&amp;</span> <span class="ident">lookahead</span>.<span class="ident">peek</span>(<span class="ident">Lifetime</span>) {
+                <span class="kw">if</span> <span class="ident">lookahead</span>.<span class="ident">peek</span>(<span class="ident">Lifetime</span>) {
                     <span class="ident">params</span>.<span class="ident">push_value</span>(<span class="ident">GenericParam</span>::<span class="ident">Lifetime</span>(<span class="ident">LifetimeDef</span> {
                         <span class="ident">attrs</span>,
                         ..<span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>
                     }));
                 } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">lookahead</span>.<span class="ident">peek</span>(<span class="ident">Ident</span>) {
-                    <span class="ident">allow_lifetime_param</span> <span class="op">=</span> <span class="bool-val">false</span>;
                     <span class="ident">params</span>.<span class="ident">push_value</span>(<span class="ident">GenericParam</span>::<span class="ident">Type</span>(<span class="ident">TypeParam</span> {
                         <span class="ident">attrs</span>,
                         ..<span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>
                     }));
                 } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">lookahead</span>.<span class="ident">peek</span>(<span class="macro">Token</span><span class="macro">!</span>[<span class="kw">const</span>]) {
-                    <span class="ident">allow_lifetime_param</span> <span class="op">=</span> <span class="bool-val">false</span>;
                     <span class="ident">params</span>.<span class="ident">push_value</span>(<span class="ident">GenericParam</span>::<span class="ident">Const</span>(<span class="ident">ConstParam</span> {
                         <span class="ident">attrs</span>,
                         ..<span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>
@@ -1849,6 +1945,7 @@
         }
     }
 
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;parsing&quot;</span>)))]</span>
     <span class="kw">impl</span> <span class="ident">Parse</span> <span class="kw">for</span> <span class="ident">GenericParam</span> {
         <span class="kw">fn</span> <span class="ident">parse</span>(<span class="ident">input</span>: <span class="ident">ParseStream</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
             <span class="kw">let</span> <span class="ident">attrs</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">call</span>(<span class="ident">Attribute</span>::<span class="ident">parse_outer</span>)<span class="question-mark">?</span>;
@@ -1875,6 +1972,7 @@
         }
     }
 
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;parsing&quot;</span>)))]</span>
     <span class="kw">impl</span> <span class="ident">Parse</span> <span class="kw">for</span> <span class="ident">LifetimeDef</span> {
         <span class="kw">fn</span> <span class="ident">parse</span>(<span class="ident">input</span>: <span class="ident">ParseStream</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
             <span class="kw">let</span> <span class="ident">has_colon</span>;
@@ -1912,6 +2010,7 @@
         }
     }
 
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;parsing&quot;</span>)))]</span>
     <span class="kw">impl</span> <span class="ident">Parse</span> <span class="kw">for</span> <span class="ident">BoundLifetimes</span> {
         <span class="kw">fn</span> <span class="ident">parse</span>(<span class="ident">input</span>: <span class="ident">ParseStream</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
             <span class="prelude-val">Ok</span>(<span class="ident">BoundLifetimes</span> {
@@ -1933,6 +2032,7 @@
         }
     }
 
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;parsing&quot;</span>)))]</span>
     <span class="kw">impl</span> <span class="ident">Parse</span> <span class="kw">for</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">BoundLifetimes</span><span class="op">&gt;</span> {
         <span class="kw">fn</span> <span class="ident">parse</span>(<span class="ident">input</span>: <span class="ident">ParseStream</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
             <span class="kw">if</span> <span class="ident">input</span>.<span class="ident">peek</span>(<span class="macro">Token</span><span class="macro">!</span>[<span class="kw">for</span>]) {
@@ -1943,6 +2043,7 @@
         }
     }
 
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;parsing&quot;</span>)))]</span>
     <span class="kw">impl</span> <span class="ident">Parse</span> <span class="kw">for</span> <span class="ident">TypeParam</span> {
         <span class="kw">fn</span> <span class="ident">parse</span>(<span class="ident">input</span>: <span class="ident">ParseStream</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
             <span class="kw">let</span> <span class="ident">attrs</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">call</span>(<span class="ident">Attribute</span>::<span class="ident">parse_outer</span>)<span class="question-mark">?</span>;
@@ -1996,6 +2097,7 @@
         }
     }
 
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;parsing&quot;</span>)))]</span>
     <span class="kw">impl</span> <span class="ident">Parse</span> <span class="kw">for</span> <span class="ident">TypeParamBound</span> {
         <span class="kw">fn</span> <span class="ident">parse</span>(<span class="ident">input</span>: <span class="ident">ParseStream</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
             <span class="kw">if</span> <span class="ident">input</span>.<span class="ident">peek</span>(<span class="ident">Lifetime</span>) {
@@ -2014,6 +2116,7 @@
         }
     }
 
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;parsing&quot;</span>)))]</span>
     <span class="kw">impl</span> <span class="ident">Parse</span> <span class="kw">for</span> <span class="ident">TraitBound</span> {
         <span class="kw">fn</span> <span class="ident">parse</span>(<span class="ident">input</span>: <span class="ident">ParseStream</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
             <span class="kw">let</span> <span class="ident">modifier</span>: <span class="ident">TraitBoundModifier</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>;
@@ -2034,6 +2137,7 @@
         }
     }
 
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;parsing&quot;</span>)))]</span>
     <span class="kw">impl</span> <span class="ident">Parse</span> <span class="kw">for</span> <span class="ident">TraitBoundModifier</span> {
         <span class="kw">fn</span> <span class="ident">parse</span>(<span class="ident">input</span>: <span class="ident">ParseStream</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
             <span class="kw">if</span> <span class="ident">input</span>.<span class="ident">peek</span>(<span class="macro">Token</span><span class="macro">!</span>[<span class="question-mark">?</span>]) {
@@ -2044,6 +2148,7 @@
         }
     }
 
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;parsing&quot;</span>)))]</span>
     <span class="kw">impl</span> <span class="ident">Parse</span> <span class="kw">for</span> <span class="ident">ConstParam</span> {
         <span class="kw">fn</span> <span class="ident">parse</span>(<span class="ident">input</span>: <span class="ident">ParseStream</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">default</span> <span class="op">=</span> <span class="prelude-val">None</span>;
@@ -2067,6 +2172,7 @@
         }
     }
 
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;parsing&quot;</span>)))]</span>
     <span class="kw">impl</span> <span class="ident">Parse</span> <span class="kw">for</span> <span class="ident">WhereClause</span> {
         <span class="kw">fn</span> <span class="ident">parse</span>(<span class="ident">input</span>: <span class="ident">ParseStream</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
             <span class="prelude-val">Ok</span>(<span class="ident">WhereClause</span> {
@@ -2097,6 +2203,7 @@
         }
     }
 
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;parsing&quot;</span>)))]</span>
     <span class="kw">impl</span> <span class="ident">Parse</span> <span class="kw">for</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">WhereClause</span><span class="op">&gt;</span> {
         <span class="kw">fn</span> <span class="ident">parse</span>(<span class="ident">input</span>: <span class="ident">ParseStream</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
             <span class="kw">if</span> <span class="ident">input</span>.<span class="ident">peek</span>(<span class="macro">Token</span><span class="macro">!</span>[<span class="kw">where</span>]) {
@@ -2107,6 +2214,7 @@
         }
     }
 
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;parsing&quot;</span>)))]</span>
     <span class="kw">impl</span> <span class="ident">Parse</span> <span class="kw">for</span> <span class="ident">WherePredicate</span> {
         <span class="kw">fn</span> <span class="ident">parse</span>(<span class="ident">input</span>: <span class="ident">ParseStream</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
             <span class="kw">if</span> <span class="ident">input</span>.<span class="ident">peek</span>(<span class="ident">Lifetime</span>) <span class="op">&amp;&amp;</span> <span class="ident">input</span>.<span class="ident">peek2</span>(<span class="macro">Token</span><span class="macro">!</span>[:]) {
@@ -2179,6 +2287,7 @@
     <span class="kw">use</span> <span class="ident">proc_macro2</span>::<span class="ident">TokenTree</span>;
     <span class="kw">use</span> <span class="ident">quote</span>::{<span class="ident">ToTokens</span>, <span class="ident">TokenStreamExt</span>};
 
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;printing&quot;</span>)))]</span>
     <span class="kw">impl</span> <span class="ident">ToTokens</span> <span class="kw">for</span> <span class="ident">Generics</span> {
         <span class="kw">fn</span> <span class="ident">to_tokens</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">tokens</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">TokenStream</span>) {
             <span class="kw">if</span> <span class="self">self</span>.<span class="ident">params</span>.<span class="ident">is_empty</span>() {
@@ -2328,6 +2437,7 @@
         }
     }
 
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;printing&quot;</span>)))]</span>
     <span class="kw">impl</span> <span class="ident">ToTokens</span> <span class="kw">for</span> <span class="ident">BoundLifetimes</span> {
         <span class="kw">fn</span> <span class="ident">to_tokens</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">tokens</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">TokenStream</span>) {
             <span class="self">self</span>.<span class="ident">for_token</span>.<span class="ident">to_tokens</span>(<span class="ident">tokens</span>);
@@ -2337,6 +2447,7 @@
         }
     }
 
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;printing&quot;</span>)))]</span>
     <span class="kw">impl</span> <span class="ident">ToTokens</span> <span class="kw">for</span> <span class="ident">LifetimeDef</span> {
         <span class="kw">fn</span> <span class="ident">to_tokens</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">tokens</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">TokenStream</span>) {
             <span class="ident">tokens</span>.<span class="ident">append_all</span>(<span class="self">self</span>.<span class="ident">attrs</span>.<span class="ident">outer</span>());
@@ -2348,6 +2459,7 @@
         }
     }
 
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;printing&quot;</span>)))]</span>
     <span class="kw">impl</span> <span class="ident">ToTokens</span> <span class="kw">for</span> <span class="ident">TypeParam</span> {
         <span class="kw">fn</span> <span class="ident">to_tokens</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">tokens</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">TokenStream</span>) {
             <span class="ident">tokens</span>.<span class="ident">append_all</span>(<span class="self">self</span>.<span class="ident">attrs</span>.<span class="ident">outer</span>());
@@ -2361,14 +2473,21 @@
                 {
                     <span class="kw">if</span> <span class="self">self</span>.<span class="ident">eq_token</span>.<span class="ident">is_none</span>() {
                         <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Type</span>::<span class="ident">Verbatim</span>(<span class="ident">default</span>) <span class="op">=</span> <span class="ident">default</span> {
-                            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">iter</span> <span class="op">=</span> <span class="ident">default</span>.<span class="ident">clone</span>().<span class="ident">into_iter</span>();
-                            <span class="kw">match</span> (<span class="ident">iter</span>.<span class="ident">next</span>(), <span class="ident">iter</span>.<span class="ident">next</span>()) {
-                                (<span class="prelude-val">Some</span>(<span class="ident">TokenTree</span>::<span class="ident">Punct</span>(<span class="kw-2">ref</span> <span class="ident">q</span>)), <span class="prelude-val">Some</span>(<span class="ident">TokenTree</span>::<span class="ident">Ident</span>(<span class="kw-2">ref</span> <span class="ident">c</span>)))
-                                    <span class="kw">if</span> <span class="ident">q</span>.<span class="ident">as_char</span>() <span class="op">=</span><span class="op">=</span> <span class="string">&#39;?&#39;</span> <span class="op">&amp;&amp;</span> <span class="ident">c</span> <span class="op">=</span><span class="op">=</span> <span class="string">&quot;const&quot;</span> <span class="op">=</span><span class="op">&gt;</span>
-                                {
-                                    <span class="kw">return</span> <span class="ident">default</span>.<span class="ident">to_tokens</span>(<span class="ident">tokens</span>);
+                            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">iter</span> <span class="op">=</span> <span class="ident">default</span>.<span class="ident">clone</span>().<span class="ident">into_iter</span>().<span class="ident">peekable</span>();
+                            <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">token</span>) <span class="op">=</span> <span class="ident">iter</span>.<span class="ident">next</span>() {
+                                <span class="kw">if</span> <span class="kw">let</span> <span class="ident">TokenTree</span>::<span class="ident">Punct</span>(<span class="ident">q</span>) <span class="op">=</span> <span class="ident">token</span> {
+                                    <span class="kw">if</span> <span class="ident">q</span>.<span class="ident">as_char</span>() <span class="op">=</span><span class="op">=</span> <span class="string">&#39;?&#39;</span> {
+                                        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">TokenTree</span>::<span class="ident">Ident</span>(<span class="ident">c</span>)) <span class="op">=</span> <span class="ident">iter</span>.<span class="ident">peek</span>() {
+                                            <span class="kw">if</span> <span class="ident">c</span> <span class="op">=</span><span class="op">=</span> <span class="string">&quot;const&quot;</span> {
+                                                <span class="kw">if</span> <span class="self">self</span>.<span class="ident">bounds</span>.<span class="ident">is_empty</span>() {
+                                                    <span class="ident">TokensOrDefault</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">colon_token</span>)
+                                                        .<span class="ident">to_tokens</span>(<span class="ident">tokens</span>);
+                                                }
+                                                <span class="kw">return</span> <span class="ident">default</span>.<span class="ident">to_tokens</span>(<span class="ident">tokens</span>);
+                                            }
+                                        }
+                                    }
                                 }
-                                <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {}
                             }
                         }
                     }
@@ -2379,6 +2498,7 @@
         }
     }
 
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;printing&quot;</span>)))]</span>
     <span class="kw">impl</span> <span class="ident">ToTokens</span> <span class="kw">for</span> <span class="ident">TraitBound</span> {
         <span class="kw">fn</span> <span class="ident">to_tokens</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">tokens</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">TokenStream</span>) {
             <span class="kw">let</span> <span class="ident">to_tokens</span> <span class="op">=</span> <span class="op">|</span><span class="ident">tokens</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">TokenStream</span><span class="op">|</span> {
@@ -2393,6 +2513,7 @@
         }
     }
 
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;printing&quot;</span>)))]</span>
     <span class="kw">impl</span> <span class="ident">ToTokens</span> <span class="kw">for</span> <span class="ident">TraitBoundModifier</span> {
         <span class="kw">fn</span> <span class="ident">to_tokens</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">tokens</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">TokenStream</span>) {
             <span class="kw">match</span> <span class="self">self</span> {
@@ -2402,6 +2523,7 @@
         }
     }
 
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;printing&quot;</span>)))]</span>
     <span class="kw">impl</span> <span class="ident">ToTokens</span> <span class="kw">for</span> <span class="ident">ConstParam</span> {
         <span class="kw">fn</span> <span class="ident">to_tokens</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">tokens</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">TokenStream</span>) {
             <span class="ident">tokens</span>.<span class="ident">append_all</span>(<span class="self">self</span>.<span class="ident">attrs</span>.<span class="ident">outer</span>());
@@ -2416,6 +2538,7 @@
         }
     }
 
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;printing&quot;</span>)))]</span>
     <span class="kw">impl</span> <span class="ident">ToTokens</span> <span class="kw">for</span> <span class="ident">WhereClause</span> {
         <span class="kw">fn</span> <span class="ident">to_tokens</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">tokens</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">TokenStream</span>) {
             <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">predicates</span>.<span class="ident">is_empty</span>() {
@@ -2425,6 +2548,7 @@
         }
     }
 
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;printing&quot;</span>)))]</span>
     <span class="kw">impl</span> <span class="ident">ToTokens</span> <span class="kw">for</span> <span class="ident">PredicateType</span> {
         <span class="kw">fn</span> <span class="ident">to_tokens</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">tokens</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">TokenStream</span>) {
             <span class="self">self</span>.<span class="ident">lifetimes</span>.<span class="ident">to_tokens</span>(<span class="ident">tokens</span>);
@@ -2434,6 +2558,7 @@
         }
     }
 
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;printing&quot;</span>)))]</span>
     <span class="kw">impl</span> <span class="ident">ToTokens</span> <span class="kw">for</span> <span class="ident">PredicateLifetime</span> {
         <span class="kw">fn</span> <span class="ident">to_tokens</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">tokens</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">TokenStream</span>) {
             <span class="self">self</span>.<span class="ident">lifetime</span>.<span class="ident">to_tokens</span>(<span class="ident">tokens</span>);
@@ -2442,6 +2567,7 @@
         }
     }
 
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;printing&quot;</span>)))]</span>
     <span class="kw">impl</span> <span class="ident">ToTokens</span> <span class="kw">for</span> <span class="ident">PredicateEq</span> {
         <span class="kw">fn</span> <span class="ident">to_tokens</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">tokens</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">TokenStream</span>) {
             <span class="self">self</span>.<span class="ident">lhs_ty</span>.<span class="ident">to_tokens</span>(<span class="ident">tokens</span>);
