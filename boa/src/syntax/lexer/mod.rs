@@ -42,6 +42,7 @@ use self::{
 };
 use crate::syntax::ast::{Punctuator, Span};
 pub use crate::{profiler::BoaProfiler, syntax::ast::Position};
+use core::convert::TryFrom;
 pub use error::Error;
 use std::io::Read;
 pub use token::{Token, TokenKind};
@@ -69,12 +70,12 @@ impl<R> Lexer<R> {
     ///  * ECMAScript standard uses `\{Space_Separator}` + `\u{0009}`, `\u{000B}`, `\u{000C}`, `\u{FEFF}`
     ///
     /// [More information](https://tc39.es/ecma262/#table-32)
-    fn is_whitespace(ch: char) -> bool {
+    fn is_whitespace(ch: u32) -> bool {
         matches!(
             ch,
-            '\u{0020}' | '\u{0009}' | '\u{000B}' | '\u{000C}' | '\u{00A0}' | '\u{FEFF}' |
+            0x0020 | 0x0009 | 0x000B | 0x000C | 0x00A0 | 0xFEFF |
             // Unicode Space_Seperator category (minus \u{0020} and \u{00A0} which are allready stated above)
-            '\u{1680}' | '\u{2000}'..='\u{200A}' | '\u{202F}' | '\u{205F}' | '\u{3000}'
+            0x1680 | 0x2000..=0x200A | 0x202F | 0x205F | 0x3000
         )
     }
 
@@ -127,12 +128,12 @@ impl<R> Lexer<R> {
 
         if let Some(c) = self.cursor.peek()? {
             match c {
-                '/' => {
-                    self.cursor.next_char()?.expect("/ token vanished"); // Consume the '/'
+                b'/' => {
+                    self.cursor.next_byte()?.expect("/ token vanished"); // Consume the '/'
                     SingleLineComment.lex(&mut self.cursor, start)
                 }
-                '*' => {
-                    self.cursor.next_char()?.expect("* token vanished"); // Consume the '*'
+                b'*' => {
+                    self.cursor.next_byte()?.expect("* token vanished"); // Consume the '*'
                     MultiLineComment.lex(&mut self.cursor, start)
                 }
                 ch => {
@@ -140,9 +141,9 @@ impl<R> Lexer<R> {
                         InputElement::Div | InputElement::TemplateTail => {
                             // Only div punctuator allowed, regex not.
 
-                            if ch == '=' {
+                            if ch == b'=' {
                                 // Indicates this is an AssignDiv.
-                                self.cursor.next_char()?.expect("= token vanished"); // Consume the '='
+                                self.cursor.next_byte()?.expect("= token vanished"); // Consume the '='
                                 Ok(Token::new(
                                     Punctuator::AssignDiv.into(),
                                     Span::new(start, self.cursor.pos()),
@@ -178,90 +179,104 @@ impl<R> Lexer<R> {
     {
         let _timer = BoaProfiler::global().start_event("next()", "Lexing");
 
-        let (start, next_chr) = loop {
+        let (start, next_ch) = loop {
             let start = self.cursor.pos();
-            if let Some(next_chr) = self.cursor.next_char()? {
+            if let Some(next_ch) = self.cursor.next_char()? {
                 // Ignore whitespace
-                if !Self::is_whitespace(next_chr) {
-                    break (start, next_chr);
+                if !Self::is_whitespace(next_ch) {
+                    break (start, next_ch);
                 }
             } else {
                 return Ok(None);
             }
         };
 
-        let token = match next_chr {
-            '\r' | '\n' | '\u{2028}' | '\u{2029}' => Ok(Token::new(
-                TokenKind::LineTerminator,
-                Span::new(start, self.cursor.pos()),
-            )),
-            '"' | '\'' => StringLiteral::new(next_chr).lex(&mut self.cursor, start),
-            '`' => TemplateLiteral.lex(&mut self.cursor, start),
-            _ if next_chr.is_digit(10) => NumberLiteral::new(next_chr).lex(&mut self.cursor, start),
-            _ if next_chr.is_alphabetic() || next_chr == '$' || next_chr == '_' => {
-                Identifier::new(next_chr).lex(&mut self.cursor, start)
+        if let Ok(c) = char::try_from(next_ch) {
+            let token = match c {
+                '\r' | '\n' | '\u{2028}' | '\u{2029}' => Ok(Token::new(
+                    TokenKind::LineTerminator,
+                    Span::new(start, self.cursor.pos()),
+                )),
+                '"' | '\'' => StringLiteral::new(c).lex(&mut self.cursor, start),
+                '`' => TemplateLiteral.lex(&mut self.cursor, start),
+                _ if c.is_digit(10) => {
+                    NumberLiteral::new(next_ch as u8).lex(&mut self.cursor, start)
+                }
+                _ if c.is_alphabetic() || c == '$' || c == '_' => {
+                    Identifier::new(c).lex(&mut self.cursor, start)
+                }
+                ';' => Ok(Token::new(
+                    Punctuator::Semicolon.into(),
+                    Span::new(start, self.cursor.pos()),
+                )),
+                ':' => Ok(Token::new(
+                    Punctuator::Colon.into(),
+                    Span::new(start, self.cursor.pos()),
+                )),
+                '.' => SpreadLiteral::new().lex(&mut self.cursor, start),
+                '(' => Ok(Token::new(
+                    Punctuator::OpenParen.into(),
+                    Span::new(start, self.cursor.pos()),
+                )),
+                ')' => Ok(Token::new(
+                    Punctuator::CloseParen.into(),
+                    Span::new(start, self.cursor.pos()),
+                )),
+                ',' => Ok(Token::new(
+                    Punctuator::Comma.into(),
+                    Span::new(start, self.cursor.pos()),
+                )),
+                '{' => Ok(Token::new(
+                    Punctuator::OpenBlock.into(),
+                    Span::new(start, self.cursor.pos()),
+                )),
+                '}' => Ok(Token::new(
+                    Punctuator::CloseBlock.into(),
+                    Span::new(start, self.cursor.pos()),
+                )),
+                '[' => Ok(Token::new(
+                    Punctuator::OpenBracket.into(),
+                    Span::new(start, self.cursor.pos()),
+                )),
+                ']' => Ok(Token::new(
+                    Punctuator::CloseBracket.into(),
+                    Span::new(start, self.cursor.pos()),
+                )),
+                '?' => Ok(Token::new(
+                    Punctuator::Question.into(),
+                    Span::new(start, self.cursor.pos()),
+                )),
+                '/' => self.lex_slash_token(start),
+                '=' | '*' | '+' | '-' | '%' | '|' | '&' | '^' | '<' | '>' | '!' | '~' => {
+                    Operator::new(next_ch as u8).lex(&mut self.cursor, start)
+                }
+                _ => {
+                    let details = format!(
+                        "unexpected '{}' at line {}, column {}",
+                        c,
+                        start.line_number(),
+                        start.column_number()
+                    );
+                    Err(Error::syntax(details, start))
+                }
+            }?;
+
+            if token.kind() == &TokenKind::Comment {
+                // Skip comment
+                self.next()
+            } else {
+                Ok(Some(token))
             }
-            ';' => Ok(Token::new(
-                Punctuator::Semicolon.into(),
-                Span::new(start, self.cursor.pos()),
-            )),
-            ':' => Ok(Token::new(
-                Punctuator::Colon.into(),
-                Span::new(start, self.cursor.pos()),
-            )),
-            '.' => SpreadLiteral::new().lex(&mut self.cursor, start),
-            '(' => Ok(Token::new(
-                Punctuator::OpenParen.into(),
-                Span::new(start, self.cursor.pos()),
-            )),
-            ')' => Ok(Token::new(
-                Punctuator::CloseParen.into(),
-                Span::new(start, self.cursor.pos()),
-            )),
-            ',' => Ok(Token::new(
-                Punctuator::Comma.into(),
-                Span::new(start, self.cursor.pos()),
-            )),
-            '{' => Ok(Token::new(
-                Punctuator::OpenBlock.into(),
-                Span::new(start, self.cursor.pos()),
-            )),
-            '}' => Ok(Token::new(
-                Punctuator::CloseBlock.into(),
-                Span::new(start, self.cursor.pos()),
-            )),
-            '[' => Ok(Token::new(
-                Punctuator::OpenBracket.into(),
-                Span::new(start, self.cursor.pos()),
-            )),
-            ']' => Ok(Token::new(
-                Punctuator::CloseBracket.into(),
-                Span::new(start, self.cursor.pos()),
-            )),
-            '?' => Ok(Token::new(
-                Punctuator::Question.into(),
-                Span::new(start, self.cursor.pos()),
-            )),
-            '/' => self.lex_slash_token(start),
-            '=' | '*' | '+' | '-' | '%' | '|' | '&' | '^' | '<' | '>' | '!' | '~' => {
-                Operator::new(next_chr).lex(&mut self.cursor, start)
-            }
-            _ => {
-                let details = format!(
-                    "unexpected '{}' at line {}, column {}",
-                    next_chr,
+        } else {
+            Err(Error::syntax(
+                format!(
+                    "unexpected utf-8 char '\\u{}' at line {}, column {}",
+                    next_ch,
                     start.line_number(),
                     start.column_number()
-                );
-                Err(Error::syntax(details, start))
-            }
-        }?;
-
-        if token.kind() == &TokenKind::Comment {
-            // Skip comment
-            self.next()
-        } else {
-            Ok(Some(token))
+                ),
+                start,
+            ))
         }
     }
 }

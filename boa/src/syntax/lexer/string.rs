@@ -8,6 +8,7 @@ use crate::{
         lexer::{Token, TokenKind},
     },
 };
+use core::convert::TryFrom;
 use std::{
     io::{self, ErrorKind, Read},
     str,
@@ -58,12 +59,13 @@ impl<R> Tokenizer<R> for StringLiteral {
         let mut buf: Vec<u16> = Vec::new();
         loop {
             let next_chr_start = cursor.pos();
-            let next_chr = cursor.next_char()?.ok_or_else(|| {
+            let next_chr = char::try_from(cursor.next_char()?.ok_or_else(|| {
                 Error::from(io::Error::new(
                     ErrorKind::UnexpectedEof,
                     "unterminated string literal",
                 ))
-            })?;
+            })?)
+            .unwrap();
 
             match next_chr {
                 '\'' if self.terminator == StringTerminator::SingleQuote => {
@@ -76,22 +78,22 @@ impl<R> Tokenizer<R> for StringLiteral {
                     let _timer = BoaProfiler::global()
                         .start_event("StringLiteral - escape sequence", "Lexing");
 
-                    let escape = cursor.next_char()?.ok_or_else(|| {
+                    let escape = cursor.next_byte()?.ok_or_else(|| {
                         Error::from(io::Error::new(
                             ErrorKind::UnexpectedEof,
                             "unterminated escape sequence in string literal",
                         ))
                     })?;
 
-                    if escape != '\n' {
+                    if escape != b'\n' {
                         match escape {
-                            'n' => buf.push('\n' as u16),
-                            'r' => buf.push('\r' as u16),
-                            't' => buf.push('\t' as u16),
-                            'b' => buf.push('\x08' as u16),
-                            'f' => buf.push('\x0c' as u16),
-                            '0' => buf.push('\0' as u16),
-                            'x' => {
+                            b'n' => buf.push('\n' as u16),
+                            b'r' => buf.push('\r' as u16),
+                            b't' => buf.push('\t' as u16),
+                            b'b' => buf.push('\x08' as u16),
+                            b'f' => buf.push('\x0c' as u16),
+                            b'0' => buf.push('\0' as u16),
+                            b'x' => {
                                 let mut code_point_utf8_bytes = [0u8; 2];
                                 cursor.fill_bytes(&mut code_point_utf8_bytes)?;
                                 let code_point_str = str::from_utf8(&code_point_utf8_bytes)
@@ -106,17 +108,20 @@ impl<R> Tokenizer<R> for StringLiteral {
 
                                 buf.push(code_point);
                             }
-                            'u' => {
+                            b'u' => {
                                 // Support \u{X..X} (Unicode Codepoint)
-                                if cursor.next_is('{')? {
-                                    cursor.next_char()?.expect("{ character vanished"); // Consume the '{'.
+                                if cursor.next_is(b'{')? {
+                                    cursor.next_byte()?.expect("{ character vanished"); // Consume the '{'.
 
                                     // TODO: use bytes for a bit better performance (using stack)
-                                    let mut code_point_str = String::with_capacity(6);
-                                    cursor.take_until('}', &mut code_point_str)?;
+                                    let mut code_point_buf = Vec::with_capacity(6);
+                                    cursor.take_until(b'}', &mut code_point_buf)?;
 
-                                    cursor.next_char()?.expect("} character vanished"); // Consume the '}'.
+                                    cursor.next_byte()?.expect("} character vanished"); // Consume the '}'.
 
+                                    let code_point_str = unsafe {
+                                        str::from_utf8_unchecked(code_point_buf.as_slice())
+                                    };
                                     // We know this is a single unicode codepoint, convert to u32
                                     let code_point = u32::from_str_radix(&code_point_str, 16)
                                         .map_err(|_| {
@@ -156,13 +161,12 @@ impl<R> Tokenizer<R> for StringLiteral {
                                     buf.push(code_point);
                                 }
                             }
-                            '\'' | '"' | '\\' => buf.push(escape as u16),
-                            ch => {
+                            b'\'' | b'"' | b'\\' => buf.push(escape as u16),
+                            _ => {
                                 let details = format!(
-                                    "invalid escape sequence `{}` at line {}, column {}",
+                                    "invalid escape sequence at line {}, column {}",
                                     next_chr_start.line_number(),
                                     next_chr_start.column_number(),
-                                    ch
                                 );
                                 return Err(Error::syntax(details, cursor.pos()));
                             }

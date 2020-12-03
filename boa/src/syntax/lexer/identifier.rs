@@ -8,7 +8,9 @@ use crate::{
         lexer::{Token, TokenKind},
     },
 };
+use core::convert::TryFrom;
 use std::io::Read;
+use std::str;
 
 const STRICT_FORBIDDEN_IDENTIFIERS: [&str; 11] = [
     "eval",
@@ -51,13 +53,21 @@ impl<R> Tokenizer<R> for Identifier {
     {
         let _timer = BoaProfiler::global().start_event("Identifier", "Lexing");
 
-        let mut buf = self.init.to_string();
+        let mut init_buf = [0u8; 4];
+        let mut buf = Vec::new();
+        self.init.encode_utf8(&mut init_buf);
+        buf.extend(init_buf.iter().take(self.init.len_utf8()));
 
-        cursor.take_while_pred(&mut buf, &|c: char| {
-            c.is_alphabetic() || c.is_digit(10) || c == '_'
+        cursor.take_while_char_pred(&mut buf, &|c: u32| {
+            if let Ok(c) = char::try_from(c) {
+                c.is_alphabetic() || c.is_digit(10) || c == '_'
+            } else {
+                false
+            }
         })?;
 
-        let tk = match buf.as_str() {
+        let token_str = unsafe { str::from_utf8_unchecked(buf.as_slice()) };
+        let tk = match token_str {
             "true" => TokenKind::BooleanLiteral(true),
             "false" => TokenKind::BooleanLiteral(false),
             "null" => TokenKind::NullLiteral,

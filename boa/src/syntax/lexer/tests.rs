@@ -6,6 +6,7 @@ use super::token::Numeric;
 use super::*;
 use super::{Error, Position};
 use crate::syntax::ast::Keyword;
+use std::str;
 
 fn span(start: (u32, u32), end: (u32, u32)) -> Span {
     Span::new(Position::new(start.0, start.1), Position::new(end.0, end.1))
@@ -280,19 +281,19 @@ fn check_positions_codepoint() {
     // String token starts on column 13
     assert_eq!(
         lexer.next().unwrap().unwrap().span(),
-        span((1, 13), (1, 34))
+        span((1, 13), (1, 36))
     );
 
-    // Close parenthesis token starts on column 34
+    // Close parenthesis token starts on column 36
     assert_eq!(
         lexer.next().unwrap().unwrap().span(),
-        span((1, 34), (1, 35))
+        span((1, 36), (1, 37))
     );
 
-    // Semi Colon token starts on column 35
+    // Semi Colon token starts on column 37
     assert_eq!(
         lexer.next().unwrap().unwrap().span(),
-        span((1, 35), (1, 36))
+        span((1, 37), (1, 38))
     );
 }
 
@@ -554,38 +555,102 @@ fn addition_no_spaces_e_number() {
 }
 
 #[test]
-fn take_while_pred_simple() {
+fn take_while_ascii_pred_simple() {
     let mut cur = Cursor::new(&b"abcdefghijk"[..]);
 
-    let mut buf: String = String::new();
+    let mut buf: Vec<u8> = Vec::new();
 
-    cur.take_while_pred(&mut buf, &|c| c == 'a' || c == 'b' || c == 'c')
+    cur.take_while_ascii_pred(&mut buf, &|c| c == 'a' || c == 'b' || c == 'c')
         .unwrap();
 
-    assert_eq!(buf, "abc");
+    assert_eq!(str::from_utf8(buf.as_slice()).unwrap(), "abc");
 }
 
 #[test]
-fn take_while_pred_immediate_stop() {
+fn take_while_ascii_pred_immediate_stop() {
     let mut cur = Cursor::new(&b"abcdefghijk"[..]);
 
-    let mut buf: String = String::new();
+    let mut buf: Vec<u8> = Vec::new();
 
-    cur.take_while_pred(&mut buf, &|c| c == 'd').unwrap();
+    cur.take_while_ascii_pred(&mut buf, &|_| false).unwrap();
 
-    assert_eq!(buf, "");
+    assert_eq!(str::from_utf8(buf.as_slice()).unwrap(), "");
 }
 
 #[test]
-fn take_while_pred_entire_str() {
+fn take_while_ascii_pred_entire_str() {
     let mut cur = Cursor::new(&b"abcdefghijk"[..]);
 
-    let mut buf: String = String::new();
+    let mut buf: Vec<u8> = Vec::new();
 
-    cur.take_while_pred(&mut buf, &|c| c.is_alphabetic())
-        .unwrap();
+    cur.take_while_ascii_pred(&mut buf, &|_| true).unwrap();
 
-    assert_eq!(buf, "abcdefghijk");
+    assert_eq!(str::from_utf8(buf.as_slice()).unwrap(), "abcdefghijk");
+}
+
+#[test]
+fn take_while_ascii_pred_non_ascii_stop() {
+    let mut cur = Cursor::new("abcde😀fghijk".as_bytes());
+
+    let mut buf: Vec<u8> = Vec::new();
+
+    cur.take_while_ascii_pred(&mut buf, &|_| true).unwrap();
+
+    assert_eq!(str::from_utf8(buf.as_slice()).unwrap(), "abcde");
+}
+
+#[test]
+fn take_while_char_pred_simple() {
+    let mut cur = Cursor::new(&b"abcdefghijk"[..]);
+
+    let mut buf: Vec<u8> = Vec::new();
+
+    cur.take_while_char_pred(&mut buf, &|c| {
+        c == 'a' as u32 || c == 'b' as u32 || c == 'c' as u32
+    })
+    .unwrap();
+
+    assert_eq!(str::from_utf8(buf.as_slice()).unwrap(), "abc");
+}
+
+#[test]
+fn take_while_char_pred_immediate_stop() {
+    let mut cur = Cursor::new(&b"abcdefghijk"[..]);
+
+    let mut buf: Vec<u8> = Vec::new();
+
+    cur.take_while_char_pred(&mut buf, &|_| false).unwrap();
+
+    assert_eq!(str::from_utf8(buf.as_slice()).unwrap(), "");
+}
+
+#[test]
+fn take_while_char_pred_entire_str() {
+    let mut cur = Cursor::new(&b"abcdefghijk"[..]);
+
+    let mut buf: Vec<u8> = Vec::new();
+
+    cur.take_while_char_pred(&mut buf, &|_| true).unwrap();
+
+    assert_eq!(str::from_utf8(buf.as_slice()).unwrap(), "abcdefghijk");
+}
+
+#[test]
+fn take_while_char_pred_utf8_char() {
+    let mut cur = Cursor::new("abc😀defghijk".as_bytes());
+
+    let mut buf: Vec<u8> = Vec::new();
+
+    cur.take_while_char_pred(&mut buf, &|c| {
+        if let Ok(c) = char::try_from(c) {
+            c == 'a' || c == 'b' || c == 'c' || c == '😀'
+        } else {
+            false
+        }
+    })
+    .unwrap();
+
+    assert_eq!(str::from_utf8(buf.as_slice()).unwrap(), "abc😀");
 }
 
 #[test]
