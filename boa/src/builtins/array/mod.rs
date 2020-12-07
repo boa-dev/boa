@@ -712,7 +712,8 @@ impl Array {
                 if !from_idx.is_finite() {
                     return Ok(Value::from(-1));
                 } else if from_idx < 0.0 {
-                    let k = isize::try_from(len).map_err(interror_to_value)? + f64_to_isize(from_idx)?;
+                    let k =
+                        isize::try_from(len).map_err(interror_to_value)? + f64_to_isize(from_idx)?;
                     usize::try_from(max(0, k)).map_err(interror_to_value)?
                 } else {
                     f64_to_usize(from_idx)?
@@ -885,8 +886,8 @@ impl Array {
 
         let default_value = Value::undefined();
         let value = args.get(0).unwrap_or(&default_value);
-        let start = Self::as_relative_start(context, args.get(1), len)?;
-        let fin = Self::as_relative_end(context, args.get(2), len)?;
+        let start = Self::get_relative_start(context, args.get(1), len)?;
+        let fin = Self::get_relative_end(context, args.get(2), len)?;
 
         for i in start..fin {
             this.set_field(i, value.clone());
@@ -943,8 +944,8 @@ impl Array {
         let new_array = Self::new_array(context)?;
 
         let len = this.get_field("length").to_length(context)?;
-        let from = Self::as_relative_start(context, args.get(0), len)?;
-        let to = Self::as_relative_end(context, args.get(1), len)?;
+        let from = Self::get_relative_start(context, args.get(0), len)?;
+        let to = Self::get_relative_end(context, args.get(1), len)?;
 
         let span = max(to.saturating_sub(from), 0);
         let mut new_array_len: i32 = 0;
@@ -1233,7 +1234,7 @@ impl Array {
     }
 
     /// Represents the algorithm to calculate `relativeStart` (or `k`) in array functions.
-    fn as_relative_start(context: &mut Context, arg: Option<&Value>, len: usize) -> Result<usize> {
+    fn get_relative_start(context: &mut Context, arg: Option<&Value>, len: usize) -> Result<usize> {
         let default_value = Value::undefined();
         // 1. Let relativeStart be ? ToIntegerOrInfinity(start).
         let relative_start = arg
@@ -1243,9 +1244,9 @@ impl Array {
             // 2. If relativeStart is -∞, let k be 0.
             IntegerOrInfinity::NegativeInfinity => Ok(0),
             // 3. Else if relativeStart < 0, let k be max(len + relativeStart, 0).
-            IntegerOrInfinity::Integer(i) if i < 0 => {
-                Self::offset(len as u64, i).try_into().map_err(interror_to_value)
-            }
+            IntegerOrInfinity::Integer(i) if i < 0 => Self::offset(len as u64, i)
+                .try_into()
+                .map_err(interror_to_value),
             // 4. Else, let k be min(relativeStart, len).
             IntegerOrInfinity::Integer(i) => i
                 .try_into()
@@ -1258,7 +1259,7 @@ impl Array {
     }
 
     /// Represents the algorithm to calculate `relativeEnd` (or `final`) in array functions.
-    fn as_relative_end(context: &mut Context, arg: Option<&Value>, len: usize) -> Result<usize> {
+    fn get_relative_end(context: &mut Context, arg: Option<&Value>, len: usize) -> Result<usize> {
         let default_value = Value::undefined();
         let value = arg.unwrap_or(&default_value);
         // 1. If end is undefined, let relativeEnd be len [and return it]
@@ -1271,9 +1272,9 @@ impl Array {
                 // 2. If relativeEnd is -∞, let final be 0.
                 IntegerOrInfinity::NegativeInfinity => Ok(0),
                 // 3. Else if relativeEnd < 0, let final be max(len + relativeEnd, 0).
-                IntegerOrInfinity::Integer(i) if i < 0 => {
-                    Self::offset(len as u64, i).try_into().map_err(interror_to_value)
-                }
+                IntegerOrInfinity::Integer(i) if i < 0 => Self::offset(len as u64, i)
+                    .try_into()
+                    .map_err(interror_to_value),
                 // 4. Else, let final be min(relativeEnd, len).
                 IntegerOrInfinity::Integer(i) => i
                     .try_into()
