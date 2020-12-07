@@ -1234,7 +1234,11 @@ impl Array {
     }
 
     /// Represents the algorithm to calculate `relativeStart` (or `k`) in array functions.
-    fn get_relative_start(context: &mut Context, arg: Option<&Value>, len: usize) -> Result<usize> {
+    pub(super) fn get_relative_start(
+        context: &mut Context,
+        arg: Option<&Value>,
+        len: usize,
+    ) -> Result<usize> {
         let default_value = Value::undefined();
         // 1. Let relativeStart be ? ToIntegerOrInfinity(start).
         let relative_start = arg
@@ -1248,9 +1252,10 @@ impl Array {
                 .try_into()
                 .map_err(interror_to_value),
             // 4. Else, let k be min(relativeStart, len).
-            IntegerOrInfinity::Integer(i) => i
+            // Both `as` casts are safe as both variables are non-negative
+            IntegerOrInfinity::Integer(i) => (i as u64)
+                .min(len as u64)
                 .try_into()
-                .map(|x: usize| x.min(len))
                 .map_err(interror_to_value),
 
             // Special case - postive infinity. `len` is always smaller than +inf, thus from (4)
@@ -1259,7 +1264,11 @@ impl Array {
     }
 
     /// Represents the algorithm to calculate `relativeEnd` (or `final`) in array functions.
-    fn get_relative_end(context: &mut Context, arg: Option<&Value>, len: usize) -> Result<usize> {
+    pub(super) fn get_relative_end(
+        context: &mut Context,
+        arg: Option<&Value>,
+        len: usize,
+    ) -> Result<usize> {
         let default_value = Value::undefined();
         let value = arg.unwrap_or(&default_value);
         // 1. If end is undefined, let relativeEnd be len [and return it]
@@ -1276,9 +1285,10 @@ impl Array {
                     .try_into()
                     .map_err(interror_to_value),
                 // 4. Else, let final be min(relativeEnd, len).
-                IntegerOrInfinity::Integer(i) => i
+                // Both `as` casts are safe as both variables are non-negative
+                IntegerOrInfinity::Integer(i) => (i as u64)
+                    .min(len as u64)
                     .try_into()
-                    .map(|x: usize| x.min(len))
                     .map_err(interror_to_value),
 
                 // Special case - postive infinity. `len` is always smaller than +inf, thus from (4)

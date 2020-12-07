@@ -1,3 +1,5 @@
+use super::Array;
+use crate::builtins::Number;
 use crate::{forward, Context, Value};
 
 #[test]
@@ -1236,4 +1238,118 @@ fn array_spread_non_iterable() {
         }
     "#;
     assert_eq!(forward(&mut context, init), "true");
+}
+
+#[test]
+fn get_relative_start() {
+    let mut context = Context::new();
+
+    assert_eq!(Array::get_relative_start(&mut context, None, 10), Ok(0));
+    assert_eq!(
+        Array::get_relative_start(&mut context, Some(&Value::undefined()), 10),
+        Ok(0)
+    );
+    assert_eq!(
+        Array::get_relative_start(&mut context, Some(&Value::from(f64::NEG_INFINITY)), 10),
+        Ok(0)
+    );
+    assert_eq!(
+        Array::get_relative_start(&mut context, Some(&Value::from(f64::INFINITY)), 10),
+        Ok(10)
+    );
+    assert_eq!(
+        Array::get_relative_start(&mut context, Some(&Value::from(-1)), 10),
+        Ok(9)
+    );
+    assert_eq!(
+        Array::get_relative_start(&mut context, Some(&Value::from(1)), 10),
+        Ok(1)
+    );
+    assert_eq!(
+        Array::get_relative_start(&mut context, Some(&Value::from(-11)), 10),
+        Ok(0)
+    );
+    assert_eq!(
+        Array::get_relative_start(&mut context, Some(&Value::from(11)), 10),
+        Ok(10)
+    );
+    assert_eq!(
+        Array::get_relative_start(&mut context, Some(&Value::from(f64::MIN)), 10),
+        Ok(0)
+    );
+    assert_eq!(
+        Array::get_relative_start(
+            &mut context,
+            Some(&Value::from(Number::MIN_SAFE_INTEGER)),
+            10
+        ),
+        Ok(0)
+    );
+    assert_eq!(
+        Array::get_relative_start(&mut context, Some(&Value::from(f64::MAX)), 10),
+        Ok(10)
+    );
+
+    // This test is relevant only on 32-bit archs (where usize == u32 thus `len` is u32)
+    assert_eq!(
+        Array::get_relative_start(&mut context, Some(&Value::from(Number::MAX_SAFE_INTEGER)), 10),
+        Ok(10)
+    );
+}
+
+#[test]
+fn get_relative_end() {
+    let mut context = Context::new();
+
+    assert_eq!(Array::get_relative_end(&mut context, None, 10), Ok(10));
+    assert_eq!(
+        Array::get_relative_end(&mut context, Some(&Value::undefined()), 10),
+        Ok(10)
+    );
+    assert_eq!(
+        Array::get_relative_end(&mut context, Some(&Value::from(f64::NEG_INFINITY)), 10),
+        Ok(0)
+    );
+    assert_eq!(
+        Array::get_relative_end(&mut context, Some(&Value::from(f64::INFINITY)), 10),
+        Ok(10)
+    );
+    assert_eq!(
+        Array::get_relative_end(&mut context, Some(&Value::from(-1)), 10),
+        Ok(9)
+    );
+    assert_eq!(
+        Array::get_relative_end(&mut context, Some(&Value::from(1)), 10),
+        Ok(1)
+    );
+    assert_eq!(
+        Array::get_relative_end(&mut context, Some(&Value::from(-11)), 10),
+        Ok(0)
+    );
+    assert_eq!(
+        Array::get_relative_end(&mut context, Some(&Value::from(11)), 10),
+        Ok(10)
+    );
+    assert_eq!(
+        Array::get_relative_end(&mut context, Some(&Value::from(f64::MIN)), 10),
+        Ok(0)
+    );
+    assert_eq!(
+        Array::get_relative_end(
+            &mut context,
+            Some(&Value::from(Number::MIN_SAFE_INTEGER)),
+            10
+        ),
+        Ok(0)
+    );
+    assert_eq!(
+        Array::get_relative_end(&mut context, Some(&Value::from(f64::MAX)), 10),
+        Ok(10)
+    );
+
+    // This test is relevant only on 32-bit archs (where usize == u32 thus `len` is u32)
+    assert_eq!(
+        Array::get_relative_end(&mut context, Some(&Value::from(Number::MAX_SAFE_INTEGER)), 10),
+        Ok(10)
+    );
 }

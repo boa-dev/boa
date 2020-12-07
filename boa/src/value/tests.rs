@@ -525,7 +525,7 @@ fn to_integer_or_infinity() {
 
     assert_eq!(
         Value::undefined().to_integer_or_infinity(&mut context),
-        Ok(IntegerOrInfinity::Undefined)
+        Ok(IntegerOrInfinity::Integer(0))
     );
     assert_eq!(
         Value::from(NAN).to_integer_or_infinity(&mut context),
@@ -564,33 +564,6 @@ fn to_integer_or_infinity() {
     assert_eq!(
         Value::from(true).to_integer_or_infinity(&mut context),
         Ok(IntegerOrInfinity::Integer(1))
-    );
-
-    assert_eq!(IntegerOrInfinity::Undefined.as_relative_start(10), 0);
-    assert_eq!(IntegerOrInfinity::NegativeInfinity.as_relative_start(10), 0);
-    assert_eq!(
-        IntegerOrInfinity::PositiveInfinity.as_relative_start(10),
-        10
-    );
-    assert_eq!(IntegerOrInfinity::Integer(-1).as_relative_start(10), 9);
-    assert_eq!(IntegerOrInfinity::Integer(1).as_relative_start(10), 1);
-    assert_eq!(IntegerOrInfinity::Integer(-11).as_relative_start(10), 0);
-    assert_eq!(IntegerOrInfinity::Integer(11).as_relative_start(10), 10);
-    assert_eq!(
-        IntegerOrInfinity::Integer(isize::MIN).as_relative_start(10),
-        0
-    );
-
-    assert_eq!(IntegerOrInfinity::Undefined.as_relative_end(10), 10);
-    assert_eq!(IntegerOrInfinity::NegativeInfinity.as_relative_end(10), 0);
-    assert_eq!(IntegerOrInfinity::PositiveInfinity.as_relative_end(10), 10);
-    assert_eq!(IntegerOrInfinity::Integer(-1).as_relative_end(10), 9);
-    assert_eq!(IntegerOrInfinity::Integer(1).as_relative_end(10), 1);
-    assert_eq!(IntegerOrInfinity::Integer(-11).as_relative_end(10), 0);
-    assert_eq!(IntegerOrInfinity::Integer(11).as_relative_end(10), 10);
-    assert_eq!(
-        IntegerOrInfinity::Integer(isize::MIN).as_relative_end(10),
-        0
     );
 }
 
