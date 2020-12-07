@@ -164,7 +164,7 @@ impl Array {
         context: &mut Context,
     ) -> Result<Value> {
         let prototype = context.standard_objects().array_object().prototype();
-        let items_len = items.len().try_into().map_err(err_to_value)?;
+        let items_len = items.len().try_into().map_err(interror_to_value)?;
         let array = Array::array_create(this, items_len, Some(prototype), context)?;
 
         for (k, item) in items.iter().enumerate() {
@@ -712,8 +712,8 @@ impl Array {
                 if !from_idx.is_finite() {
                     return Ok(Value::from(-1));
                 } else if from_idx < 0.0 {
-                    let k = isize::try_from(len).map_err(err_to_value)? + f64_to_isize(from_idx)?;
-                    usize::try_from(max(0, k)).map_err(err_to_value)?
+                    let k = isize::try_from(len).map_err(interror_to_value)? + f64_to_isize(from_idx)?;
+                    usize::try_from(max(0, k)).map_err(interror_to_value)?
                 } else {
                     f64_to_usize(from_idx)?
                 }
@@ -767,7 +767,7 @@ impl Array {
             .get_field("length")
             .to_length(context)?
             .try_into()
-            .map_err(err_to_value)?;
+            .map_err(interror_to_value)?;
 
         let mut idx = match args.get(1) {
             Some(from_idx_ptr) => {
@@ -788,7 +788,7 @@ impl Array {
             let check_element = this.get_field(idx).clone();
 
             if check_element.strict_equals(&search_element) {
-                return Ok(Value::from(i32::try_from(idx).map_err(err_to_value)?));
+                return Ok(Value::from(i32::try_from(idx).map_err(interror_to_value)?));
             }
 
             idx -= 1;
@@ -861,7 +861,7 @@ impl Array {
             let result = context.call(predicate_arg, &this_arg, &arguments)?;
 
             if result.to_boolean() {
-                let result = i32::try_from(i).map_err(err_to_value)?;
+                let result = i32::try_from(i).map_err(interror_to_value)?;
                 return Ok(Value::integer(result));
             }
         }
@@ -1244,13 +1244,13 @@ impl Array {
             IntegerOrInfinity::NegativeInfinity => Ok(0),
             // 3. Else if relativeStart < 0, let k be max(len + relativeStart, 0).
             IntegerOrInfinity::Integer(i) if i < 0 => {
-                Self::offset(len as u64, i).try_into().map_err(err_to_value)
+                Self::offset(len as u64, i).try_into().map_err(interror_to_value)
             }
             // 4. Else, let k be min(relativeStart, len).
             IntegerOrInfinity::Integer(i) => i
                 .try_into()
                 .map(|x: usize| x.min(len))
-                .map_err(err_to_value),
+                .map_err(interror_to_value),
 
             // Special case - postive infinity. `len` is always smaller than +inf, thus from (4)
             IntegerOrInfinity::PositiveInfinity => Ok(len),
@@ -1272,13 +1272,13 @@ impl Array {
                 IntegerOrInfinity::NegativeInfinity => Ok(0),
                 // 3. Else if relativeEnd < 0, let final be max(len + relativeEnd, 0).
                 IntegerOrInfinity::Integer(i) if i < 0 => {
-                    Self::offset(len as u64, i).try_into().map_err(err_to_value)
+                    Self::offset(len as u64, i).try_into().map_err(interror_to_value)
                 }
                 // 4. Else, let final be min(relativeEnd, len).
                 IntegerOrInfinity::Integer(i) => i
                     .try_into()
                     .map(|x: usize| x.min(len))
-                    .map_err(err_to_value),
+                    .map_err(interror_to_value),
 
                 // Special case - postive infinity. `len` is always smaller than +inf, thus from (4)
                 IntegerOrInfinity::PositiveInfinity => Ok(len),
@@ -1304,6 +1304,6 @@ fn f64_to_usize(v: f64) -> Result<usize> {
         .ok_or_else(|| Value::string("cannot convert f64 to usize - out of range"))
 }
 
-fn err_to_value(err: std::num::TryFromIntError) -> Value {
+fn interror_to_value(err: std::num::TryFromIntError) -> Value {
     Value::string(format!("{}", err))
 }
