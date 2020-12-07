@@ -164,7 +164,8 @@ impl Array {
         context: &mut Context,
     ) -> Result<Value> {
         let prototype = context.standard_objects().array_object().prototype();
-        let array = Array::array_create(this, items.len().try_into()?, Some(prototype), context)?;
+        let items_len = items.len().try_into().map_err(err_to_value)?;
+        let array = Array::array_create(this, items_len, Some(prototype), context)?;
 
         for (k, item) in items.iter().enumerate() {
             array.set_field(k, item.clone());
@@ -711,8 +712,8 @@ impl Array {
                 if !from_idx.is_finite() {
                     return Ok(Value::from(-1));
                 } else if from_idx < 0.0 {
-                    let k = isize::try_from(len)? + f64_to_isize(from_idx)?;
-                    usize::try_from(max(0, k))?
+                    let k = isize::try_from(len).map_err(err_to_value)? + f64_to_isize(from_idx)?;
+                    usize::try_from(max(0, k)).map_err(err_to_value)?
                 } else {
                     f64_to_usize(from_idx)?
                 }
@@ -762,7 +763,11 @@ impl Array {
         }
 
         let search_element = args[0].clone();
-        let len: isize = this.get_field("length").to_length(context)?.try_into()?;
+        let len: isize = this
+            .get_field("length")
+            .to_length(context)?
+            .try_into()
+            .map_err(err_to_value)?;
 
         let mut idx = match args.get(1) {
             Some(from_idx_ptr) => {
@@ -783,7 +788,7 @@ impl Array {
             let check_element = this.get_field(idx).clone();
 
             if check_element.strict_equals(&search_element) {
-                return Ok(Value::from(i32::try_from(idx)?));
+                return Ok(Value::from(i32::try_from(idx).map_err(err_to_value)?));
             }
 
             idx -= 1;
@@ -856,7 +861,8 @@ impl Array {
             let result = context.call(predicate_arg, &this_arg, &arguments)?;
 
             if result.to_boolean() {
-                return Ok(Value::integer(i32::try_from(i)?));
+                let result = i32::try_from(i).map_err(err_to_value)?;
+                return Ok(Value::integer(result));
             }
         }
 
@@ -1237,9 +1243,14 @@ impl Array {
             // 2. If relativeStart is -∞, let k be 0.
             IntegerOrInfinity::NegativeInfinity => Ok(0),
             // 3. Else if relativeStart < 0, let k be max(len + relativeStart, 0).
-            IntegerOrInfinity::Integer(i) if i < 0 => Ok(Self::offset(len as u64, i).try_into()?),
+            IntegerOrInfinity::Integer(i) if i < 0 => {
+                Self::offset(len as u64, i).try_into().map_err(err_to_value)
+            }
             // 4. Else, let k be min(relativeStart, len).
-            IntegerOrInfinity::Integer(i) => Ok(i.try_into().map(|x: usize| x.min(len))?),
+            IntegerOrInfinity::Integer(i) => i
+                .try_into()
+                .map(|x: usize| x.min(len))
+                .map_err(err_to_value),
 
             // Special case - postive infinity. `len` is always smaller than +inf, thus from (4)
             IntegerOrInfinity::PositiveInfinity => Ok(len),
@@ -1261,10 +1272,13 @@ impl Array {
                 IntegerOrInfinity::NegativeInfinity => Ok(0),
                 // 3. Else if relativeEnd < 0, let final be max(len + relativeEnd, 0).
                 IntegerOrInfinity::Integer(i) if i < 0 => {
-                    Ok(Self::offset(len as u64, i).try_into()?)
+                    Self::offset(len as u64, i).try_into().map_err(err_to_value)
                 }
                 // 4. Else, let final be min(relativeEnd, len).
-                IntegerOrInfinity::Integer(i) => Ok(i.try_into().map(|x: usize| x.min(len))?),
+                IntegerOrInfinity::Integer(i) => i
+                    .try_into()
+                    .map(|x: usize| x.min(len))
+                    .map_err(err_to_value),
 
                 // Special case - postive infinity. `len` is always smaller than +inf, thus from (4)
                 IntegerOrInfinity::PositiveInfinity => Ok(len),
@@ -1288,4 +1302,8 @@ fn f64_to_isize(v: f64) -> Result<isize> {
 fn f64_to_usize(v: f64) -> Result<usize> {
     v.to_usize()
         .ok_or_else(|| Value::string("cannot convert f64 to usize - out of range"))
+}
+
+fn err_to_value(err: std::num::TryFromIntError) -> Value {
+    Value::string(format!("{}", err))
 }
