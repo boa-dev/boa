@@ -1292,7 +1292,11 @@ fn get_relative_start() {
 
     // This test is relevant only on 32-bit archs (where usize == u32 thus `len` is u32)
     assert_eq!(
-        Array::get_relative_start(&mut context, Some(&Value::from(Number::MAX_SAFE_INTEGER)), 10),
+        Array::get_relative_start(
+            &mut context,
+            Some(&Value::from(Number::MAX_SAFE_INTEGER)),
+            10
+        ),
         Ok(10)
     );
 }
@@ -1349,7 +1353,11 @@ fn get_relative_end() {
 
     // This test is relevant only on 32-bit archs (where usize == u32 thus `len` is u32)
     assert_eq!(
-        Array::get_relative_end(&mut context, Some(&Value::from(Number::MAX_SAFE_INTEGER)), 10),
+        Array::get_relative_end(
+            &mut context,
+            Some(&Value::from(Number::MAX_SAFE_INTEGER)),
+            10
+        ),
         Ok(10)
     );
 }
