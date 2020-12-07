@@ -32,7 +32,6 @@ mod operations;
 mod rcbigint;
 mod rcstring;
 mod rcsymbol;
-mod to_integer_or_infinity;
 mod r#type;
 
 pub use conversions::*;
@@ -44,7 +43,6 @@ pub use r#type::Type;
 pub use rcbigint::RcBigInt;
 pub use rcstring::RcString;
 pub use rcsymbol::RcSymbol;
-pub use to_integer_or_infinity::*;
 
 /// A Javascript value
 #[derive(Trace, Finalize, Debug, Clone)]
@@ -67,6 +65,14 @@ pub enum Value {
     Object(GcObject),
     /// `Symbol` - A Symbol Primitive type.
     Symbol(RcSymbol),
+}
+
+/// Represents the result of ToIntegerOrInfinity operation
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum IntegerOrInfinity {
+    Integer(i64),
+    PositiveInfinity,
+    NegativeInfinity,
 }
 
 impl Value {
@@ -863,6 +869,37 @@ impl Value {
             object.to_property_descriptor(context)
         } else {
             Err(context.construct_type_error("Property description must be an object"))
+        }
+    }
+
+    /// Converts argument to an integer, +∞, or -∞.
+    ///
+    /// See: <https://tc39.es/ecma262/#sec-tointegerorinfinity>
+    pub fn to_integer_or_infinity(&self, context: &mut Context) -> Result<IntegerOrInfinity> {
+        // 1. Let number be ? ToNumber(argument).
+        let number = self.to_number(context)?;
+
+        // 2. If number is NaN, +0𝔽, or -0𝔽, return 0.
+        if number.is_nan() || number == 0.0 || number == -0.0 {
+            Ok(IntegerOrInfinity::Integer(0))
+        } else if number.is_infinite() && number.is_sign_positive() {
+            // 3. If number is +∞𝔽, return +∞.
+            Ok(IntegerOrInfinity::PositiveInfinity)
+        } else if number.is_infinite() && number.is_sign_negative() {
+            // 4. If number is -∞𝔽, return -∞.
+            Ok(IntegerOrInfinity::NegativeInfinity)
+        } else {
+            // 5. Let integer be floor(abs(ℝ(number))).
+            let integer = number.abs().floor();
+            let integer = integer.min(Number::MAX_SAFE_INTEGER) as i64;
+
+            // 6. If number < +0𝔽, set integer to -integer.
+            // 7. Return integer.
+            if number < 0.0 {
+                Ok(IntegerOrInfinity::Integer(-integer))
+            } else {
+                Ok(IntegerOrInfinity::Integer(integer))
+            }
         }
     }
 }

@@ -19,7 +19,7 @@ use crate::{
     gc::GcObject,
     object::{ConstructorBuilder, FunctionBuilder, ObjectData, PROTOTYPE},
     property::{Attribute, DataDescriptor},
-    value::{same_value_zero, Value},
+    value::{same_value_zero, IntegerOrInfinity, Value},
     BoaProfiler, Context, Result,
 };
 use num_traits::*;
@@ -879,16 +879,8 @@ impl Array {
 
         let default_value = Value::undefined();
         let value = args.get(0).unwrap_or(&default_value);
-        let start = args
-            .get(1)
-            .unwrap_or(&default_value)
-            .to_integer_or_infinity(context)?
-            .as_relative_start(len);
-        let fin = args
-            .get(2)
-            .unwrap_or(&default_value)
-            .to_integer_or_infinity(context)?
-            .as_relative_end(len);
+        let start = Self::as_relative_start(context, args.get(1), len)?;
+        let fin = Self::as_relative_end(context, args.get(2), len)?;
 
         for i in start..fin {
             this.set_field(i, value.clone());
@@ -945,18 +937,8 @@ impl Array {
         let new_array = Self::new_array(context)?;
 
         let len = this.get_field("length").to_length(context)?;
-
-        let default_value = Value::undefined();
-        let from = args
-            .get(0)
-            .unwrap_or(&default_value)
-            .to_integer_or_infinity(context)?
-            .as_relative_start(len);
-        let to = args
-            .get(1)
-            .unwrap_or(&default_value)
-            .to_integer_or_infinity(context)?
-            .as_relative_end(len);
+        let from = Self::as_relative_start(context, args.get(0), len)?;
+        let to = Self::as_relative_end(context, args.get(1), len)?;
 
         let span = max(to.saturating_sub(from), 0);
         let mut new_array_len: i32 = 0;
@@ -1242,6 +1224,59 @@ impl Array {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/values
     pub(crate) fn entries(this: &Value, _: &[Value], context: &mut Context) -> Result<Value> {
         ArrayIterator::create_array_iterator(context, this.clone(), ArrayIterationKind::KeyAndValue)
+    }
+
+    /// Represents the algorithm to calculate `relativeStart` (or `k`) in array functions.
+    fn as_relative_start(context: &mut Context, arg: Option<&Value>, len: usize) -> Result<usize> {
+        let default_value = Value::undefined();
+        // 1. Let relativeStart be ? ToIntegerOrInfinity(start).
+        let relative_start = arg
+            .unwrap_or(&default_value)
+            .to_integer_or_infinity(context)?;
+        match relative_start {
+            // 2. If relativeStart is -∞, let k be 0.
+            IntegerOrInfinity::NegativeInfinity => Ok(0),
+            // 3. Else if relativeStart < 0, let k be max(len + relativeStart, 0).
+            IntegerOrInfinity::Integer(i) if i < 0 => Ok(Self::offset(len as u64, i).try_into()?),
+            // 4. Else, let k be min(relativeStart, len).
+            IntegerOrInfinity::Integer(i) => Ok(i.try_into().map(|x: usize| x.min(len))?),
+
+            // Special case - postive infinity. `len` is always smaller than +inf, thus from (4)
+            IntegerOrInfinity::PositiveInfinity => Ok(len),
+        }
+    }
+
+    /// Represents the algorithm to calculate `relativeEnd` (or `final`) in array functions.
+    fn as_relative_end(context: &mut Context, arg: Option<&Value>, len: usize) -> Result<usize> {
+        let default_value = Value::undefined();
+        let value = arg.unwrap_or(&default_value);
+        // 1. If end is undefined, let relativeEnd be len [and return it]
+        if value.is_undefined() {
+            Ok(len)
+        } else {
+            // 1. cont, else let relativeEnd be ? ToIntegerOrInfinity(end).
+            let relative_end = value.to_integer_or_infinity(context)?;
+            match relative_end {
+                // 2. If relativeEnd is -∞, let final be 0.
+                IntegerOrInfinity::NegativeInfinity => Ok(0),
+                // 3. Else if relativeEnd < 0, let final be max(len + relativeEnd, 0).
+                IntegerOrInfinity::Integer(i) if i < 0 => {
+                    Ok(Self::offset(len as u64, i).try_into()?)
+                }
+                // 4. Else, let final be min(relativeEnd, len).
+                IntegerOrInfinity::Integer(i) => Ok(i.try_into().map(|x: usize| x.min(len))?),
+
+                // Special case - postive infinity. `len` is always smaller than +inf, thus from (4)
+                IntegerOrInfinity::PositiveInfinity => Ok(len),
+            }
+        }
+    }
+
+    fn offset(len: u64, i: i64) -> u64 {
+        // `Number::MIN_SAFE_INTEGER > i64::MIN` so this should always hold
+        debug_assert!(i < 0 && i != i64::MIN);
+        // `i.staurating_neg()` will always be less than `u64::MAX`
+        len.saturating_sub(i.saturating_neg() as u64)
     }
 }
 
