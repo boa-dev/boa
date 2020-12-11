@@ -727,9 +727,7 @@ fn non_english_str() {
 fn unicode_escape_with_braces() {
     let mut lexer = Lexer::new(&br#"'{\u{20ac}\u{a0}\u{a0}}'"#[..]);
 
-    let expected = [
-        TokenKind::StringLiteral("{\u{20ac}\u{a0}\u{a0}}".into()),
-    ];
+    let expected = [TokenKind::StringLiteral("{\u{20ac}\u{a0}\u{a0}}".into())];
 
     expect_tokens(&mut lexer, &expected);
 

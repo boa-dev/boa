@@ -111,7 +111,6 @@ impl<R> Tokenizer<R> for StringLiteral {
                             b'u' => {
                                 // Support \u{X..X} (Unicode Codepoint)
                                 if cursor.next_is(b'{')? {
-
                                     // TODO: use bytes for a bit better performance (using stack)
                                     let mut code_point_buf = Vec::with_capacity(6);
                                     cursor.take_until(b'}', &mut code_point_buf)?;
