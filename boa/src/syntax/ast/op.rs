@@ -677,11 +677,11 @@ pub enum LogOp {
     /// Syntax: `x || y`
     ///
     /// More information:
-    ///  - [ECMAScript reference](
+    ///  - [ECMAScript reference][spec]
     ///  - [MDN documentation][mdn]
     ///
-    /// [spec]: <https://tc39.es/ecma262/#prod-LogicalORExpression)>
-    /// [mdn]: <https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Logical_Operators#Logical_OR>
+    /// [spec]: https://tc39.es/ecma262/#prod-LogicalORExpression
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Logical_Operators#Logical_OR
     Or,
 }
 
