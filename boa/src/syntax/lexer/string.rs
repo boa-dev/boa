@@ -111,13 +111,9 @@ impl<R> Tokenizer<R> for StringLiteral {
                             b'u' => {
                                 // Support \u{X..X} (Unicode Codepoint)
                                 if cursor.next_is(b'{')? {
-                                    cursor.next_byte()?.expect("{ character vanished"); // Consume the '{'.
-
                                     // TODO: use bytes for a bit better performance (using stack)
                                     let mut code_point_buf = Vec::with_capacity(6);
                                     cursor.take_until(b'}', &mut code_point_buf)?;
-
-                                    cursor.next_byte()?.expect("} character vanished"); // Consume the '}'.
 
                                     let code_point_str = unsafe {
                                         str::from_utf8_unchecked(code_point_buf.as_slice())

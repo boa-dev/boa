@@ -259,7 +259,7 @@ fn check_positions() {
 
 #[test]
 fn check_positions_codepoint() {
-    let s = r#"console.log("hello world\u{{2764}}"); // Test"#;
+    let s = r#"console.log("hello world\u{2764}"); // Test"#;
     // --------123456789
     let mut lexer = Lexer::new(s.as_bytes());
 
@@ -281,19 +281,19 @@ fn check_positions_codepoint() {
     // String token starts on column 13
     assert_eq!(
         lexer.next().unwrap().unwrap().span(),
-        span((1, 13), (1, 36))
+        span((1, 13), (1, 34))
     );
 
-    // Close parenthesis token starts on column 36
+    // Close parenthesis token starts on column 34
     assert_eq!(
         lexer.next().unwrap().unwrap().span(),
-        span((1, 36), (1, 37))
+        span((1, 34), (1, 35))
     );
 
-    // Semi Colon token starts on column 37
+    // Semi Colon token starts on column 35
     assert_eq!(
         lexer.next().unwrap().unwrap().span(),
-        span((1, 37), (1, 38))
+        span((1, 35), (1, 36))
     );
 }
 
@@ -702,10 +702,10 @@ fn codepoint_with_no_braces() {
 fn illegal_code_point_following_numeric_literal() {
     // Checks as per https://tc39.es/ecma262/#sec-literals-numeric-literals that a NumericLiteral cannot
     // be immediately followed by an IdentifierStart where the IdentifierStart
-    let mut lexer = Lexer::new(&br#"17.4\u{{2764}}"#[..]);
+    let mut lexer = Lexer::new(&br#"17.4\u{2764}"#[..]);
     assert!(
         lexer.next().is_err(),
-        "IdentifierStart \\u{{2764}} following NumericLiteral not rejected as expected"
+        "IdentifierStart \\u{2764} following NumericLiteral not rejected as expected"
     );
 }
 
@@ -721,6 +721,37 @@ fn non_english_str() {
     ];
 
     expect_tokens(&mut lexer, &expected);
+}
+
+#[test]
+fn unicode_escape_with_braces() {
+    let mut lexer = Lexer::new(&br#"'{\u{20ac}\u{a0}\u{a0}}'"#[..]);
+
+    let expected = [TokenKind::StringLiteral("{\u{20ac}\u{a0}\u{a0}}".into())];
+
+    expect_tokens(&mut lexer, &expected);
+
+    lexer = Lexer::new(&br#"\u{{a0}"#[..]);
+
+    if let Error::Syntax(_, pos) = lexer
+        .next()
+        .expect_err("Malformed Unicode character sequence expected")
+    {
+        assert_eq!(pos, Position::new(1, 1));
+    } else {
+        panic!("invalid error type");
+    }
+
+    lexer = Lexer::new(&br#"\u{{a0}}"#[..]);
+
+    if let Error::Syntax(_, pos) = lexer
+        .next()
+        .expect_err("Malformed Unicode character sequence expected")
+    {
+        assert_eq!(pos, Position::new(1, 1));
+    } else {
+        panic!("invalid error type");
+    }
 }
 
 mod carriage_return {
