@@ -64,7 +64,7 @@ impl Boolean {
         Ok(Value::from(data))
     }
 
-    /// An Utility function used to get the internal [[BooleanData]].
+    /// An Utility function used to get the internal `[[BooleanData]]`.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
