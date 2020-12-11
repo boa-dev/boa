@@ -247,8 +247,8 @@ impl Value {
     /// For scalar types it should be false, for objects check the private field for extensibilaty.
     /// By default true.
     ///
-    /// <https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/seal> would turn extensible to false
-    /// <https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/freeze> would also turn extensible to false
+    /// <https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/seal> would turn `extensible` to `false`
+    /// <https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/freeze> would also turn `extensible` to `false`
     pub fn is_extensible(&self) -> bool {
         true
     }
