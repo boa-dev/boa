@@ -208,7 +208,7 @@ pub fn create_unmapped_arguments_object(arguments_list: &[Value]) -> Value {
 /// name: The name of the function (how it will be called but without the ()).
 /// parent: The object to register the function on, if the global object is used then the function is instead called as name()
 ///     without requiring the parent, see parseInt() as an example.
-/// length: As described at https://tc39.es/ecma262/#sec-function-instances-length, The value of the "length" property is an integer that
+/// length: As described at <https://tc39.es/ecma262/#sec-function-instances-length>, The value of the "length" property is an integer that
 ///     indicates the typical number of arguments expected by the function. However, the language permits the function to be invoked with
 ///     some other number of arguments.
 ///

@@ -247,8 +247,8 @@ impl Value {
     /// For scalar types it should be false, for objects check the private field for extensibilaty.
     /// By default true.
     ///
-    /// <https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/seal would turn extensible to false/>
-    /// <https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/freeze would also turn extensible to false/>
+    /// <https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/seal> would turn extensible to false
+    /// <https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/freeze> would also turn extensible to false
     pub fn is_extensible(&self) -> bool {
         true
     }
@@ -446,7 +446,7 @@ impl Value {
     }
 
     /// Resolve the property in the object and get its value, or undefined if this is not an object or the field doesn't exist
-    /// get_field recieves a Property from get_prop(). It should then return the [[Get]] result value if that's set, otherwise fall back to [[Value]]
+    /// get_field receives a Property from get_prop(). It should then return the `[[Get]]` result value if that's set, otherwise fall back to `[[Value]]`
     /// TODO: this function should use the get Value if its set
     pub fn get_field<K>(&self, key: K) -> Self
     where
@@ -798,7 +798,7 @@ impl Value {
     ///
     /// This function is equivalent to the unary `+` operator (`+value`) in JavaScript
     ///
-    /// See: https://tc39.es/ecma262/#sec-tonumber
+    /// See: <https://tc39.es/ecma262/#sec-tonumber>
     pub fn to_number(&self, context: &mut Context) -> Result<f64> {
         match *self {
             Value::Null => Ok(0.0),

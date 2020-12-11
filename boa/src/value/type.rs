@@ -1,6 +1,6 @@
 use super::Value;
 
-/// Possible types of values as defined at https://tc39.es/ecma262/#sec-typeof-operator.
+/// Possible types of values as defined at <https://tc39.es/ecma262/#sec-typeof-operator>.
 /// Note that an object which implements call is referred to here as 'Function'.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum Type {
@@ -34,7 +34,7 @@ impl Type {
 impl Value {
     /// Get the type of the value.
     ///
-    /// This is similar to typeof as described at https://tc39.es/ecma262/#sec-typeof-operator but instead of
+    /// This is similar to typeof as described at <https://tc39.es/ecma262/#sec-typeof-operator> but instead of
     /// returning a string it returns a Type enum which implements fmt::Display to allow getting the string if
     /// required using to_string().
     pub fn get_type(&self) -> Type {

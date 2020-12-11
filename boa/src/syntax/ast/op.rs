@@ -680,8 +680,8 @@ pub enum LogOp {
     ///  - [ECMAScript reference](
     ///  - [MDN documentation][mdn]
     ///
-    /// [spec]: https://tc39.es/ecma262/#prod-LogicalORExpression)
-    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Logical_Operators#Logical_OR
+    /// [spec]: <https://tc39.es/ecma262/#prod-LogicalORExpression)>
+    /// [mdn]: <https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Logical_Operators#Logical_OR>
     Or,
 }
 
@@ -822,7 +822,7 @@ pub enum AssignOp {
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
-    ///  - [MDN documentation](mdn)
+    ///  - [MDN documentation][mdn]
     ///
     /// [spec]: https://tc39.es/ecma262/#prod-AssignmentOperator
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Assignment_Operators#Subtraction_assignment
