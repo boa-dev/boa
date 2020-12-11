@@ -228,7 +228,7 @@ pub enum PropertyDescriptor {
 }
 
 impl PropertyDescriptor {
-    /// An accessor Property Descriptor is one that includes any fields named either [[Get]] or [[Set]].
+    /// An accessor Property Descriptor is one that includes any fields named either `[[Get]]` or `[[Set]]`.
     ///
     /// More information:
     /// - [ECMAScript reference][spec]
@@ -248,7 +248,7 @@ impl PropertyDescriptor {
         }
     }
 
-    /// A data Property Descriptor is one that includes any fields named either [[Value]] or [[Writable]].
+    /// A data Property Descriptor is one that includes any fields named either `[[Value]]` or `[[Writable]]`.
     ///
     /// More information:
     /// - [ECMAScript reference][spec]

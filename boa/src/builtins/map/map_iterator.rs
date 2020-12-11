@@ -18,7 +18,7 @@ pub enum MapIterationKind {
 /// More information:
 ///  - [ECMAScript reference][spec]
 ///
-/// [spec]: TODO https://tc39.es/ecma262/#sec-array-iterator-objects
+/// [spec]: https://tc39.es/ecma262/#sec-array-iterator-objects
 #[derive(Debug, Clone, Finalize, Trace)]
 pub struct MapIterator {
     iterated_map: Value,

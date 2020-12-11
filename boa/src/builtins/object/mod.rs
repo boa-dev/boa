@@ -194,6 +194,7 @@ impl Object {
     /// The abstract operation `FromPropertyDescriptor`.
     ///
     /// [ECMAScript reference][spec]
+    ///
     /// [spec]: https://tc39.es/ecma262/#sec-frompropertydescriptor
     fn from_property_descriptor(desc: PropertyDescriptor, context: &mut Context) -> Result<Value> {
         let mut descriptor = ObjectInitializer::new(context);

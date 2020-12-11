@@ -774,7 +774,7 @@ impl Number {
     /// The abstract operation Number::equal takes arguments
     /// x (a Number) and y (a Number). It performs the following steps when called:
     ///
-    /// https://tc39.es/ecma262/#sec-numeric-types-number-equal
+    /// <https://tc39.es/ecma262/#sec-numeric-types-number-equal>
     #[inline]
     #[allow(clippy::float_cmp)]
     pub(crate) fn equal(x: f64, y: f64) -> bool {
@@ -784,7 +784,7 @@ impl Number {
     /// The abstract operation Number::sameValue takes arguments
     /// x (a Number) and y (a Number). It performs the following steps when called:
     ///
-    /// https://tc39.es/ecma262/#sec-numeric-types-number-sameValue
+    /// <https://tc39.es/ecma262/#sec-numeric-types-number-sameValue>
     #[allow(clippy::float_cmp)]
     pub(crate) fn same_value(a: f64, b: f64) -> bool {
         if a.is_nan() && b.is_nan() {
@@ -806,7 +806,7 @@ impl Number {
     /// The abstract operation Number::sameValueZero takes arguments
     /// x (a Number) and y (a Number). It performs the following steps when called:
     ///
-    /// https://tc39.es/ecma262/#sec-numeric-types-number-sameValueZero
+    /// <https://tc39.es/ecma262/#sec-numeric-types-number-sameValueZero>
     #[inline]
     #[allow(clippy::float_cmp)]
     pub(crate) fn same_value_zero(x: f64, y: f64) -> bool {

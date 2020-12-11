@@ -288,7 +288,7 @@ impl GcObject {
     /// The spec doesn't mention what to do in this situation, but a naive implementation
     /// would overflow the stack recursively calling `toString()`. We follow v8 and SpiderMonkey
     /// instead by returning a default value for the given `hint` -- either `0.` or `""`.
-    /// Example in v8: https://repl.it/repls/IvoryCircularCertification#index.js
+    /// Example in v8: <https://repl.it/repls/IvoryCircularCertification#index.js>
     ///
     /// More information:
     ///  - [ECMAScript][spec]
