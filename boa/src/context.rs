@@ -572,7 +572,7 @@ impl Context {
         Err(())
     }
 
-    /// https://tc39.es/ecma262/#sec-hasproperty
+    /// <https://tc39.es/ecma262/#sec-hasproperty>
     #[inline]
     pub(crate) fn has_property(&self, obj: &Value, key: &PropertyKey) -> bool {
         if let Some(obj) = obj.as_object() {

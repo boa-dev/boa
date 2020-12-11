@@ -398,7 +398,7 @@ where
 {
     type Output = Box<str>;
 
-    /// Strict mode parsing as per https://tc39.es/ecma262/#sec-identifiers-static-semantics-early-errors.
+    /// Strict mode parsing as per <https://tc39.es/ecma262/#sec-identifiers-static-semantics-early-errors>.
     fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("BindingIdentifier", "Parsing");
 
