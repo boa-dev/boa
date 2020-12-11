@@ -167,7 +167,7 @@
 
 <span class="doccomment">/// Converts a 64-bit floating point number to an `u32` according to the [`ToUint32`][ToUint32] algorithm.</span>
 <span class="doccomment">///</span>
-<span class="comment">// [ToInt32]: https://tc39.es/ecma262/#sec-touint32</span>
+<span class="doccomment">/// [ToUint32]: https://tc39.es/ecma262/#sec-touint32</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">f64_to_uint32</span>(<span class="ident">number</span>: <span class="ident">f64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span> {
     <span class="ident">f64_to_int32</span>(<span class="ident">number</span>) <span class="kw">as</span> <span class="ident">u32</span>

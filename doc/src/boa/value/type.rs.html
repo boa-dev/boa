@@ -60,7 +60,7 @@
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">super</span>::<span class="ident">Value</span>;
 
-<span class="doccomment">/// Possible types of values as defined at https://tc39.es/ecma262/#sec-typeof-operator.</span>
+<span class="doccomment">/// Possible types of values as defined at &lt;https://tc39.es/ecma262/#sec-typeof-operator&gt;.</span>
 <span class="doccomment">/// Note that an object which implements call is referred to here as &#39;Function&#39;.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">PartialOrd</span>, <span class="ident">Ord</span>, <span class="ident">Hash</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Type</span> {
@@ -94,7 +94,7 @@
 <span class="kw">impl</span> <span class="ident">Value</span> {
     <span class="doccomment">/// Get the type of the value.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// This is similar to typeof as described at https://tc39.es/ecma262/#sec-typeof-operator but instead of</span>
+    <span class="doccomment">/// This is similar to typeof as described at &lt;https://tc39.es/ecma262/#sec-typeof-operator&gt; but instead of</span>
     <span class="doccomment">/// returning a string it returns a Type enum which implements fmt::Display to allow getting the string if</span>
     <span class="doccomment">/// required using to_string().</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_type</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Type</span> {

@@ -384,6 +384,7 @@
 <span id="383">383</span>
 <span id="384">384</span>
 <span id="385">385</span>
+<span id="386">386</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements the global `Object` object.</span>
 <span class="doccomment">//!</span>
@@ -581,6 +582,7 @@
     <span class="doccomment">/// The abstract operation `FromPropertyDescriptor`.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [ECMAScript reference][spec]</span>
+    <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-frompropertydescriptor</span>
     <span class="kw">fn</span> <span class="ident">from_property_descriptor</span>(<span class="ident">desc</span>: <span class="ident">PropertyDescriptor</span>, <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">descriptor</span> <span class="op">=</span> <span class="ident">ObjectInitializer</span>::<span class="ident">new</span>(<span class="ident">context</span>);

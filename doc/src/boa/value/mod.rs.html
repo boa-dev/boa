@@ -1210,8 +1210,8 @@
     <span class="doccomment">/// For scalar types it should be false, for objects check the private field for extensibilaty.</span>
     <span class="doccomment">/// By default true.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// &lt;https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/seal would turn extensible to false/&gt;</span>
-    <span class="doccomment">/// &lt;https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/freeze would also turn extensible to false/&gt;</span>
+    <span class="doccomment">/// &lt;https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/seal&gt; would turn `extensible` to `false`</span>
+    <span class="doccomment">/// &lt;https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/freeze&gt; would also turn `extensible` to `false`</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_extensible</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
         <span class="bool-val">true</span>
     }
@@ -1409,7 +1409,7 @@
     }
 
     <span class="doccomment">/// Resolve the property in the object and get its value, or undefined if this is not an object or the field doesn&#39;t exist</span>
-    <span class="doccomment">/// get_field recieves a Property from get_prop(). It should then return the [[Get]] result value if that&#39;s set, otherwise fall back to [[Value]]</span>
+    <span class="doccomment">/// get_field receives a Property from get_prop(). It should then return the `[[Get]]` result value if that&#39;s set, otherwise fall back to `[[Value]]`</span>
     <span class="doccomment">/// TODO: this function should use the get Value if its set</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_field</span><span class="op">&lt;</span><span class="ident">K</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">key</span>: <span class="ident">K</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>
     <span class="kw">where</span>
@@ -1761,7 +1761,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// This function is equivalent to the unary `+` operator (`+value`) in JavaScript</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// See: https://tc39.es/ecma262/#sec-tonumber</span>
+    <span class="doccomment">/// See: &lt;https://tc39.es/ecma262/#sec-tonumber&gt;</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_number</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">f64</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
             <span class="ident">Value</span>::<span class="ident">Null</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="number">0.0</span>),

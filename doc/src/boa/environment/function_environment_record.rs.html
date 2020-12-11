@@ -298,11 +298,11 @@
     <span class="doccomment">/// The function object whose invocation caused this Environment Record to be created.</span>
     <span class="kw">pub</span> <span class="ident">function</span>: <span class="ident">GcObject</span>,
     <span class="doccomment">/// If the associated function has super property accesses and is not an ArrowFunction,</span>
-    <span class="doccomment">/// [[HomeObject]] is the object that the function is bound to as a method.</span>
-    <span class="doccomment">/// The default value for [[HomeObject]] is undefined.</span>
+    <span class="doccomment">/// `[[HomeObject]]` is the object that the function is bound to as a method.</span>
+    <span class="doccomment">/// The default value for `[[HomeObject]]` is undefined.</span>
     <span class="kw">pub</span> <span class="ident">home_object</span>: <span class="ident">Value</span>,
-    <span class="doccomment">/// If this Environment Record was created by the [[Construct]] internal method,</span>
-    <span class="doccomment">/// [[NewTarget]] is the value of the [[Construct]] newTarget parameter.</span>
+    <span class="doccomment">/// If this Environment Record was created by the `[[Construct]]` internal method,</span>
+    <span class="doccomment">/// `[[NewTarget]]` is the value of the `[[Construct]]` newTarget parameter.</span>
     <span class="doccomment">/// Otherwise, its value is undefined.</span>
     <span class="kw">pub</span> <span class="ident">new_target</span>: <span class="ident">Value</span>,
     <span class="doccomment">/// Reference to the outer environment to help with the scope chain</span>
