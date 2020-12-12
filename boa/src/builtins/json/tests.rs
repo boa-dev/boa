@@ -226,7 +226,10 @@ fn json_stringify_pretty_print() {
 fn json_stringify_pretty_print_four_spaces() {
     let mut context = Context::new();
 
-    let actual = forward(&mut context, r#"JSON.stringify({a: "b", b: "c"}, {}, 4.3)"#);
+    let actual = forward(
+        &mut context,
+        r#"JSON.stringify({a: "b", b: "c"}, undefined, 4.3)"#,
+    );
     let expected = forward(
         &mut context,
         r#"'{

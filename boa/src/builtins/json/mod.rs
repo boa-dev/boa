@@ -141,10 +141,6 @@ impl Json {
             None => return Ok(Value::undefined()),
             Some(obj) => obj,
         };
-        let replacer = match args.get(1) {
-            Some(replacer) if replacer.is_object() => replacer,
-            _ => return Ok(Value::from(object.to_json(context)?.to_string())),
-        };
         const SPACE_INDENT: &str = "          ";
         let space = match args.get(2) {
             Some(indent) if indent.is_number() => {
@@ -172,6 +168,15 @@ impl Json {
                 }
             }
             _ => "",
+        };
+        let replacer = match args.get(1) {
+            Some(replacer) if replacer.is_object() => replacer,
+            _ => {
+                return Ok(Value::from(json_to_pretty_string(
+                    &object.to_json(context)?,
+                    space,
+                )))
+            }
         };
 
         let replacer_as_object = replacer
