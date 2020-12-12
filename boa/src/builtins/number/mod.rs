@@ -269,7 +269,7 @@ impl Number {
         Ok(Value::from(this_str_num))
     }
 
-    fn flt_str_to_exp(flt: &String) -> i32 {
+    fn flt_str_to_exp(flt: &str) -> i32 {
         let mut nz_encountered = false;
         let mut dot_encountered = false;
         for (i, c) in flt.chars().enumerate() {
@@ -294,11 +294,13 @@ impl Number {
             let mut digit = digits.pop().unwrap() as u8;
 
             for c in to_round.chars() {
-                if c < '4' {
-                    break;
-                } else if c > '4' {
-                    digit += 1;
-                    break;
+                match c {
+                    c if c < '4' => break,
+                    c if c > '4' => {
+                        digit += 1;
+                        break;
+                    }
+                    _ => {}
                 }
             }
 
@@ -326,36 +328,40 @@ impl Number {
     ) -> Result<Value> {
         let precision_arg = args.get(0);
 
-/*1,6*/ let mut this_num = Self::this_number_value(this, context)?;
-/*2,4*/ if precision_arg.is_none() || !this_num.is_finite() {
+        let mut this_num = Self::this_number_value(this, context)?;
+        if precision_arg.is_none() || !this_num.is_finite() {
             return Self::to_string(this, &[], context);
         }
 
         let precision = match precision_arg.unwrap().to_integer(context)? as i32 {
             x @ 1..=100 => x as usize,
-/*5*/       _ => return context.throw_range_error("precision must be an integer at least 1 and no greater than 100"),
+            _ => {
+                return context.throw_range_error(
+                    "precision must be an integer at least 1 and no greater than 100",
+                )
+            }
         };
         let precision_i32 = precision as i32;
 
-/*7*/   let mut prefix = String::new(); // spec: "s"
+        let mut prefix = String::new(); // spec: "s"
         let mut suffix: String; // spec: "m"
         let exponent: i32; // spec: "e"
 
-/*8*/   if this_num < 0.0 {
-/*a*/       prefix.push('-');
-/*b*/       this_num = -this_num;
+        if this_num < 0.0 {
+            prefix.push('-');
+            this_num = -this_num;
         }
 
         let mut is_scientific = false;
 
-/*9*/   if this_num == 0.0 {
-/*a*/       suffix = "0".repeat(precision);
-/*b*/       exponent = 0;
-/*10*/  } else {
+        if this_num == 0.0 {
+            suffix = "0".repeat(precision);
+            exponent = 0;
+        } else {
             let mut buffer = ryu_js::Buffer::new();
-/*b*/       suffix = buffer.format(this_num).to_string();
+            suffix = buffer.format(this_num).to_string();
 
-/*a*/       exponent = Self::flt_str_to_exp(&suffix);
+            exponent = Self::flt_str_to_exp(&suffix);
             if exponent < 0 {
                 suffix = suffix.split_off((1 - exponent) as usize);
             } else if let Some(n) = suffix.find('.') {
@@ -364,33 +370,35 @@ impl Number {
             Self::round_to_precision(&mut suffix, precision);
 
             let great_exp = exponent >= precision_i32;
-/*c*/       if exponent < -6 || great_exp {
+            if exponent < -6 || great_exp {
                 is_scientific = true;
                 suffix.truncate(precision);
                 if precision > 1 {
                     suffix.insert(1, '.');
                 }
                 suffix.push('e');
-                if great_exp { suffix.push('+'); }
+                if great_exp {
+                    suffix.push('+');
+                }
                 suffix.push_str(&exponent.to_string());
             }
         }
 
         let e_inc = exponent + 1;
-/*11*/  if !is_scientific && e_inc != precision_i32 {
-/*12*/      if exponent >= 0 {
-/*a*/           suffix.truncate(precision);
+        if !is_scientific && e_inc != precision_i32 {
+            if exponent >= 0 {
+                suffix.truncate(precision);
                 if precision > e_inc as usize {
                     suffix.insert(e_inc as usize, '.');
                 }
-/*13*/      } else {
-/*a*/           prefix.push('0');
+            } else {
+                prefix.push('0');
                 prefix.push('.');
                 prefix.push_str(&"0".repeat(-e_inc as usize));
             }
         }
 
-/*14*/  Ok(Value::from(prefix + &suffix))
+        Ok(Value::from(prefix + &suffix))
     }
 
     // https://golang.org/src/math/nextafter.go
