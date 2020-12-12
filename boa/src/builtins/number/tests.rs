@@ -126,7 +126,6 @@ fn to_locale_string() {
 }
 
 #[test]
-#[ignore]
 fn to_precision() {
     let mut context = Context::new();
     let init = r#"
@@ -146,15 +145,15 @@ fn to_precision() {
     let over_precision = forward(&mut context, "over_precision");
     let neg_precision = forward(&mut context, "neg_precision");
 
-    assert_eq!(default_precision, String::from("0"));
-    assert_eq!(low_precision, String::from("1e+8"));
-    assert_eq!(more_precision, String::from("1.235e+8"));
-    assert_eq!(exact_precision, String::from("123456789"));
+    assert_eq!(default_precision, String::from("\"0\""));
+    assert_eq!(low_precision, String::from("\"1e+8\""));
+    assert_eq!(more_precision, String::from("\"1.235e+8\""));
+    assert_eq!(exact_precision, String::from("\"123456789\""));
+    assert_eq!(neg_precision, String::from("\"-1.235e+8\""));
     assert_eq!(
         over_precision,
-        String::from("123456789.00000000000000000000000000000000000000000")
+        String::from("\"123456789.00000000000000000000000000000000000000000\"")
     );
-    assert_eq!(neg_precision, String::from("-1.235e+8"));
 }
 
 #[test]
