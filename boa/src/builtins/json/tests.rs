@@ -211,7 +211,7 @@ fn json_stringify_fractional_numbers() {
 fn json_stringify_pretty_print() {
     let mut context = Context::new();
 
-    let actual = forward(&mut context, r#"JSON.stringify({a: "b", b: "c"}, {}, 4)"#);
+    let actual = forward(&mut context, r#"JSON.stringify({a: "b", b: "c"}, undefined, 4)"#);
     let expected = forward(
         &mut context,
         r#"'{
@@ -276,7 +276,7 @@ fn json_stringify_pretty_print_with_string() {
 
     let actual = forward(
         &mut context,
-        r#"JSON.stringify({a: "b", b: "c"}, {}, "abcd")"#,
+        r#"JSON.stringify({a: "b", b: "c"}, undefined, "abcd")"#,
     );
     let expected = forward(
         &mut context,
@@ -294,7 +294,7 @@ fn json_stringify_pretty_print_with_too_long_string() {
 
     let actual = forward(
         &mut context,
-        r#"JSON.stringify({a: "b", b: "c"}, {}, "abcdefghijklmn")"#,
+        r#"JSON.stringify({a: "b", b: "c"}, undefined, "abcdefghijklmn")"#,
     );
     let expected = forward(
         &mut context,
