@@ -241,7 +241,7 @@ impl Json {
 }
 
 fn json_to_pretty_string(json: &JSONValue, space: &str) -> String {
-    if space.len() == 0 {
+    if space.is_empty() {
         return json.to_string();
     }
     let formatter = PrettyFormatter::with_indent(space.as_bytes());
