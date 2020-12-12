@@ -19,7 +19,8 @@ use crate::{
     property::{Attribute, DataDescriptor, PropertyKey},
     BoaProfiler, Context, Result, Value,
 };
-use serde_json::{self, Value as JSONValue};
+use serde::Serialize;
+use serde_json::{self, ser::PrettyFormatter, Serializer, Value as JSONValue};
 
 #[cfg(test)]
 mod tests;
@@ -144,6 +145,34 @@ impl Json {
             Some(replacer) if replacer.is_object() => replacer,
             _ => return Ok(Value::from(object.to_json(context)?.to_string())),
         };
+        const SPACE_INDENT: &str = "          ";
+        let space = match args.get(2) {
+            Some(indent) if indent.is_number() => {
+                if let Some(indent_length) = indent.as_number() {
+                    let indent_length = if indent_length > 10.0 {
+                        10.0
+                    } else {
+                        indent_length
+                    };
+                    let indent_length = if indent_length < 0.0 || indent_length.is_nan() {
+                        0.0
+                    } else {
+                        indent_length
+                    };
+                    &SPACE_INDENT[..indent_length as usize]
+                } else {
+                    ""
+                }
+            }
+            Some(space) if space.is_string() => {
+                if let Some(space) = space.as_string() {
+                    &space[..std::cmp::min(space.len(), 10)]
+                } else {
+                    ""
+                }
+            }
+            _ => "",
+        };
 
         let replacer_as_object = replacer
             .as_object()
@@ -172,7 +201,10 @@ impl Json {
                             ),
                         );
                     }
-                    Ok(Value::from(object_to_return.to_json(context)?.to_string()))
+                    Ok(Value::from(json_to_pretty_string(
+                        &object_to_return.to_json(context)?,
+                        space,
+                    )))
                 })
                 .ok_or_else(Value::undefined)?
         } else if replacer_as_object.is_array() {
@@ -195,9 +227,30 @@ impl Json {
                     obj_to_return.insert(field.to_string(context)?.to_string(), value);
                 }
             }
-            Ok(Value::from(JSONValue::Object(obj_to_return).to_string()))
+            Ok(Value::from(json_to_pretty_string(
+                &JSONValue::Object(obj_to_return),
+                space,
+            )))
         } else {
-            Ok(Value::from(object.to_json(context)?.to_string()))
+            Ok(Value::from(json_to_pretty_string(
+                &object.to_json(context)?,
+                space,
+            )))
         }
+    }
+}
+
+fn json_to_pretty_string(json: &JSONValue, space: &str) -> String {
+    if space.len() == 0 {
+        return json.to_string();
+    }
+    let formatter = PrettyFormatter::with_indent(space.as_bytes());
+    let mut writer = Vec::with_capacity(128);
+    let mut serializer = Serializer::with_formatter(&mut writer, formatter);
+    json.serialize(&mut serializer)
+        .expect("JSON serialization failed");
+    unsafe {
+        // The serde json serializer always produce correct UTF-8
+        String::from_utf8_unchecked(writer)
     }
 }

@@ -208,6 +208,102 @@ fn json_stringify_fractional_numbers() {
 }
 
 #[test]
+fn json_stringify_pretty_print() {
+    let mut context = Context::new();
+
+    let actual = forward(&mut context, r#"JSON.stringify({a: "b", b: "c"}, {}, 4)"#);
+    let expected = forward(
+        &mut context,
+        r#"'{
+    "a": "b",
+    "b": "c"
+}'"#,
+    );
+    assert_eq!(actual, expected);
+}
+
+#[test]
+fn json_stringify_pretty_print_four_spaces() {
+    let mut context = Context::new();
+
+    let actual = forward(&mut context, r#"JSON.stringify({a: "b", b: "c"}, {}, 4.3)"#);
+    let expected = forward(
+        &mut context,
+        r#"'{
+    "a": "b",
+    "b": "c"
+}'"#,
+    );
+    assert_eq!(actual, expected);
+}
+
+#[test]
+fn json_stringify_pretty_print_twenty_spaces() {
+    let mut context = Context::new();
+
+    let actual = forward(
+        &mut context,
+        r#"JSON.stringify({a: "b", b: "c"}, ["a", "b"], 20)"#,
+    );
+    let expected = forward(
+        &mut context,
+        r#"'{
+          "a": "b",
+          "b": "c"
+}'"#,
+    );
+    assert_eq!(actual, expected);
+}
+
+#[test]
+fn json_stringify_pretty_print_bad_space_argument() {
+    let mut context = Context::new();
+
+    let actual = forward(
+        &mut context,
+        r#"JSON.stringify({a: "b", b: "c"}, ["a", "b"], [])"#,
+    );
+    let expected = forward(&mut context, r#"'{"a":"b","b":"c"}'"#);
+    assert_eq!(actual, expected);
+}
+
+#[test]
+fn json_stringify_pretty_print_with_string() {
+    let mut context = Context::new();
+
+    let actual = forward(
+        &mut context,
+        r#"JSON.stringify({a: "b", b: "c"}, {}, "abcd")"#,
+    );
+    let expected = forward(
+        &mut context,
+        r#"'{
+abcd"a": "b",
+abcd"b": "c"
+}'"#,
+    );
+    assert_eq!(actual, expected);
+}
+
+#[test]
+fn json_stringify_pretty_print_with_too_long_string() {
+    let mut context = Context::new();
+
+    let actual = forward(
+        &mut context,
+        r#"JSON.stringify({a: "b", b: "c"}, {}, "abcdefghijklmn")"#,
+    );
+    let expected = forward(
+        &mut context,
+        r#"'{
+abcdefghij"a": "b",
+abcdefghij"b": "c"
+}'"#,
+    );
+    assert_eq!(actual, expected);
+}
+
+#[test]
 fn json_parse_array_with_reviver() {
     let mut context = Context::new();
     let result = forward_val(
