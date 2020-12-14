@@ -1276,7 +1276,13 @@ fn date_proto_to_string() -> Result<(), Box<dyn std::error::Error>> {
 
     assert_eq!(
         Some(Value::string(
-            Local::now()
+            Local
+                .from_local_datetime(&NaiveDateTime::new(
+                    NaiveDate::from_ymd(2020, 6, 8),
+                    NaiveTime::from_hms_milli(9, 16, 15, 779)
+                ))
+                .earliest()
+                .unwrap()
                 .format("Wed Jul 08 2020 09:16:15 GMT%:z")
                 .to_string()
         )),
@@ -1298,7 +1304,15 @@ fn date_proto_to_time_string() -> Result<(), Box<dyn std::error::Error>> {
 
     assert_eq!(
         Some(Value::string(
-            Local::now().format("09:16:15 GMT%:z").to_string()
+            Local
+                .from_local_datetime(&NaiveDateTime::new(
+                    NaiveDate::from_ymd(2020, 6, 8),
+                    NaiveTime::from_hms_milli(9, 16, 15, 779)
+                ))
+                .earliest()
+                .unwrap()
+                .format("09:16:15 GMT%:z")
+                .to_string()
         )),
         actual
     );
