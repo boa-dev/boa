@@ -262,6 +262,24 @@ fn json_stringify_pretty_print_twenty_spaces() {
 }
 
 #[test]
+fn json_stringify_pretty_print_with_number_object() {
+    let mut context = Context::new();
+
+    let actual = forward(
+        &mut context,
+        r#"JSON.stringify({a: "b", b: "c"}, undefined, new Number(10))"#,
+    );
+    let expected = forward(
+        &mut context,
+        r#"'{
+          "a": "b",
+          "b": "c"
+}'"#,
+    );
+    assert_eq!(actual, expected);
+}
+
+#[test]
 fn json_stringify_pretty_print_bad_space_argument() {
     let mut context = Context::new();
 
@@ -270,24 +288,6 @@ fn json_stringify_pretty_print_bad_space_argument() {
         r#"JSON.stringify({a: "b", b: "c"}, ["a", "b"], [])"#,
     );
     let expected = forward(&mut context, r#"'{"a":"b","b":"c"}'"#);
-    assert_eq!(actual, expected);
-}
-
-#[test]
-fn json_stringify_pretty_print_with_string() {
-    let mut context = Context::new();
-
-    let actual = forward(
-        &mut context,
-        r#"JSON.stringify({a: "b", b: "c"}, undefined, "abcd")"#,
-    );
-    let expected = forward(
-        &mut context,
-        r#"'{
-abcd"a": "b",
-abcd"b": "c"
-}'"#,
-    );
     assert_eq!(actual, expected);
 }
 
@@ -304,6 +304,24 @@ fn json_stringify_pretty_print_with_too_long_string() {
         r#"'{
 abcdefghij"a": "b",
 abcdefghij"b": "c"
+}'"#,
+    );
+    assert_eq!(actual, expected);
+}
+
+#[test]
+fn json_stringify_pretty_print_with_string_object() {
+    let mut context = Context::new();
+
+    let actual = forward(
+        &mut context,
+        r#"JSON.stringify({a: "b", b: "c"}, undefined, new String("abcd"))"#,
+    );
+    let expected = forward(
+        &mut context,
+        r#"'{
+abcd"a": "b",
+abcd"b": "c"
 }'"#,
     );
     assert_eq!(actual, expected);

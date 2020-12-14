@@ -142,39 +142,43 @@ impl Json {
             Some(obj) => obj,
         };
         const SPACE_INDENT: &str = "          ";
-        let space = match args.get(2) {
-            Some(indent) if indent.is_number() => {
-                if let Some(indent_length) = indent.as_number() {
-                    let indent_length = if indent_length > 10.0 {
-                        10.0
-                    } else {
-                        indent_length
-                    };
-                    let indent_length = if indent_length < 0.0 || indent_length.is_nan() {
-                        0.0
-                    } else {
-                        indent_length
-                    };
-                    &SPACE_INDENT[..indent_length as usize]
-                } else {
-                    ""
-                }
-            }
-            Some(space) if space.is_string() => {
-                if let Some(space) = space.as_string() {
-                    &space[..std::cmp::min(space.len(), 10)]
-                } else {
-                    ""
-                }
-            }
-            _ => "",
+        let space = args
+            .get(2)
+            .and_then(|value| match value {
+                Value::String(s) => Some(s.clone()),
+                Value::Object(ref object) => object.borrow().as_string(),
+                _ => None,
+            })
+            .unwrap_or_default();
+        let space_len = args
+            .get(2)
+            .and_then(|value| match value {
+                Value::Rational(f) => Some(*f),
+                Value::Integer(i) => Some((*i).into()),
+                Value::Object(ref object) => object.borrow().as_number(),
+                _ => None,
+            })
+            .unwrap_or_default();
+        let space_len = if space_len < 0.0 || space_len.is_nan() {
+            0
+        } else if space_len > 10.0 {
+            10
+        } else {
+            space_len as usize
         };
+
+        let gap = if space_len > 0 {
+            &SPACE_INDENT[..space_len]
+        } else {
+            &space[..std::cmp::min(space.len(), 10)]
+        };
+
         let replacer = match args.get(1) {
             Some(replacer) if replacer.is_object() => replacer,
             _ => {
                 return Ok(Value::from(json_to_pretty_string(
                     &object.to_json(context)?,
-                    space,
+                    gap,
                 )))
             }
         };
@@ -208,7 +212,7 @@ impl Json {
                     }
                     Ok(Value::from(json_to_pretty_string(
                         &object_to_return.to_json(context)?,
-                        space,
+                        gap,
                     )))
                 })
                 .ok_or_else(Value::undefined)?
@@ -234,22 +238,22 @@ impl Json {
             }
             Ok(Value::from(json_to_pretty_string(
                 &JSONValue::Object(obj_to_return),
-                space,
+                gap,
             )))
         } else {
             Ok(Value::from(json_to_pretty_string(
                 &object.to_json(context)?,
-                space,
+                gap,
             )))
         }
     }
 }
 
-fn json_to_pretty_string(json: &JSONValue, space: &str) -> String {
-    if space.is_empty() {
+fn json_to_pretty_string(json: &JSONValue, gap: &str) -> String {
+    if gap.is_empty() {
         return json.to_string();
     }
-    let formatter = PrettyFormatter::with_indent(space.as_bytes());
+    let formatter = PrettyFormatter::with_indent(gap.as_bytes());
     let mut writer = Vec::with_capacity(128);
     let mut serializer = Serializer::with_formatter(&mut writer, formatter);
     json.serialize(&mut serializer)
