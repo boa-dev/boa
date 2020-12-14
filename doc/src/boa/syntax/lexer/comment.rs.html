@@ -125,11 +125,11 @@
 
         <span class="comment">// Skip either to the end of the line or to the end of the input</span>
         <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">ch</span>) <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">peek</span>()<span class="question-mark">?</span> {
-            <span class="kw">if</span> <span class="ident">ch</span> <span class="op">=</span><span class="op">=</span> <span class="string">b&#39;\n&#39;</span> {
+            <span class="kw">if</span> <span class="ident">ch</span> <span class="op">=</span><span class="op">=</span> <span class="string">b&#39;\n&#39;</span> <span class="op">|</span><span class="op">|</span> <span class="ident">ch</span> <span class="op">=</span><span class="op">=</span> <span class="string">b&#39;\r&#39;</span> {
                 <span class="kw">break</span>;
             } <span class="kw">else</span> {
                 <span class="comment">// Consume char.</span>
-                <span class="ident">cursor</span>.<span class="ident">next_byte</span>()<span class="question-mark">?</span>.<span class="ident">expect</span>(<span class="string">&quot;Comment character vansihed&quot;</span>);
+                <span class="ident">cursor</span>.<span class="ident">next_byte</span>()<span class="question-mark">?</span>.<span class="ident">expect</span>(<span class="string">&quot;Comment character vanished&quot;</span>);
             }
         }
         <span class="prelude-val">Ok</span>(<span class="ident">Token</span>::<span class="ident">new</span>(
