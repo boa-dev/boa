@@ -462,7 +462,7 @@
     ) {
         <span class="comment">// Create array of values</span>
         <span class="kw">let</span> <span class="ident">array</span> <span class="op">=</span> <span class="ident">Array</span>::<span class="ident">new_array</span>(<span class="ident">context</span>).<span class="ident">unwrap</span>();
-        <span class="ident">Array</span>::<span class="ident">add_to_array_object</span>(<span class="kw-2">&amp;</span><span class="ident">array</span>, <span class="kw-2">&amp;</span><span class="ident">args_list</span>[<span class="ident">index</span>..]).<span class="ident">unwrap</span>();
+        <span class="ident">Array</span>::<span class="ident">add_to_array_object</span>(<span class="kw-2">&amp;</span><span class="ident">array</span>, <span class="kw-2">&amp;</span><span class="ident">args_list</span>[<span class="ident">index</span>..], <span class="ident">context</span>).<span class="ident">unwrap</span>();
 
         <span class="comment">// Create binding</span>
         <span class="ident">local_env</span>
