@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/indexmap-1.6.0/src/map.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>map.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/indexmap-1.6.1/src/map.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>map.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
 <link rel="alternate icon" type="image/png" href="../../favicon-16x16.png">
 <link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../indexmap/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
                 <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
@@ -1628,6 +1628,65 @@
 <span id="1625">1625</span>
 <span id="1626">1626</span>
 <span id="1627">1627</span>
+<span id="1628">1628</span>
+<span id="1629">1629</span>
+<span id="1630">1630</span>
+<span id="1631">1631</span>
+<span id="1632">1632</span>
+<span id="1633">1633</span>
+<span id="1634">1634</span>
+<span id="1635">1635</span>
+<span id="1636">1636</span>
+<span id="1637">1637</span>
+<span id="1638">1638</span>
+<span id="1639">1639</span>
+<span id="1640">1640</span>
+<span id="1641">1641</span>
+<span id="1642">1642</span>
+<span id="1643">1643</span>
+<span id="1644">1644</span>
+<span id="1645">1645</span>
+<span id="1646">1646</span>
+<span id="1647">1647</span>
+<span id="1648">1648</span>
+<span id="1649">1649</span>
+<span id="1650">1650</span>
+<span id="1651">1651</span>
+<span id="1652">1652</span>
+<span id="1653">1653</span>
+<span id="1654">1654</span>
+<span id="1655">1655</span>
+<span id="1656">1656</span>
+<span id="1657">1657</span>
+<span id="1658">1658</span>
+<span id="1659">1659</span>
+<span id="1660">1660</span>
+<span id="1661">1661</span>
+<span id="1662">1662</span>
+<span id="1663">1663</span>
+<span id="1664">1664</span>
+<span id="1665">1665</span>
+<span id="1666">1666</span>
+<span id="1667">1667</span>
+<span id="1668">1668</span>
+<span id="1669">1669</span>
+<span id="1670">1670</span>
+<span id="1671">1671</span>
+<span id="1672">1672</span>
+<span id="1673">1673</span>
+<span id="1674">1674</span>
+<span id="1675">1675</span>
+<span id="1676">1676</span>
+<span id="1677">1677</span>
+<span id="1678">1678</span>
+<span id="1679">1679</span>
+<span id="1680">1680</span>
+<span id="1681">1681</span>
+<span id="1682">1682</span>
+<span id="1683">1683</span>
+<span id="1684">1684</span>
+<span id="1685">1685</span>
+<span id="1686">1686</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! `IndexMap` is a hash table where the iteration order of the key-value</span>
 <span class="doccomment">//! pairs is independent of the hash values of the keys.</span>
@@ -1883,6 +1942,13 @@
         <span class="self">self</span>.<span class="ident">core</span>.<span class="ident">clear</span>();
     }
 
+    <span class="doccomment">/// Shortens the map, keeping the first `len` elements and dropping the rest.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// If `len` is greater than the map&#39;s current length, this has no effect.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">truncate</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">len</span>: <span class="ident">usize</span>) {
+        <span class="self">self</span>.<span class="ident">core</span>.<span class="ident">truncate</span>(<span class="ident">len</span>);
+    }
+
     <span class="doccomment">/// Clears the `IndexMap` in the given index range, returning those</span>
     <span class="doccomment">/// key-value pairs as a drain iterator.</span>
     <span class="doccomment">///</span>
@@ -1902,6 +1968,23 @@
     {
         <span class="ident">Drain</span> {
             <span class="ident">iter</span>: <span class="self">self</span>.<span class="ident">core</span>.<span class="ident">drain</span>(<span class="ident">range</span>),
+        }
+    }
+
+    <span class="doccomment">/// Splits the collection into two at the given index.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Returns a newly allocated map containing the elements in the range</span>
+    <span class="doccomment">/// `[at, len)`. After the call, the original map will be left containing</span>
+    <span class="doccomment">/// the elements `[0, at)` with its previous capacity unchanged.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// ***Panics*** if `at &gt; len`.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">split_off</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">at</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>
+    <span class="kw">where</span>
+        <span class="ident">S</span>: <span class="ident">Clone</span>,
+    {
+        <span class="self">Self</span> {
+            <span class="ident">core</span>: <span class="self">self</span>.<span class="ident">core</span>.<span class="ident">split_off</span>(<span class="ident">at</span>),
+            <span class="ident">hash_builder</span>: <span class="self">self</span>.<span class="ident">hash_builder</span>.<span class="ident">clone</span>(),
         }
     }
 }
@@ -2324,6 +2407,34 @@
         <span class="self">self</span>.<span class="ident">as_entries_mut</span>().<span class="ident">get_mut</span>(<span class="ident">index</span>).<span class="ident">map</span>(<span class="ident">Bucket</span>::<span class="ident">muts</span>)
     }
 
+    <span class="doccomment">/// Get the first key-value pair</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Computes in **O(1)** time.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">first</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="kw-2">&amp;</span><span class="ident">K</span>, <span class="kw-2">&amp;</span><span class="ident">V</span>)<span class="op">&gt;</span> {
+        <span class="self">self</span>.<span class="ident">as_entries</span>().<span class="ident">first</span>().<span class="ident">map</span>(<span class="ident">Bucket</span>::<span class="ident">refs</span>)
+    }
+
+    <span class="doccomment">/// Get the first key-value pair, with mutable access to the value</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Computes in **O(1)** time.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">first_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="kw-2">&amp;</span><span class="ident">K</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">V</span>)<span class="op">&gt;</span> {
+        <span class="self">self</span>.<span class="ident">as_entries_mut</span>().<span class="ident">first_mut</span>().<span class="ident">map</span>(<span class="ident">Bucket</span>::<span class="ident">ref_mut</span>)
+    }
+
+    <span class="doccomment">/// Get the last key-value pair</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Computes in **O(1)** time.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">last</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="kw-2">&amp;</span><span class="ident">K</span>, <span class="kw-2">&amp;</span><span class="ident">V</span>)<span class="op">&gt;</span> {
+        <span class="self">self</span>.<span class="ident">as_entries</span>().<span class="ident">last</span>().<span class="ident">map</span>(<span class="ident">Bucket</span>::<span class="ident">refs</span>)
+    }
+
+    <span class="doccomment">/// Get the last key-value pair, with mutable access to the value</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Computes in **O(1)** time.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">last_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="kw-2">&amp;</span><span class="ident">K</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">V</span>)<span class="op">&gt;</span> {
+        <span class="self">self</span>.<span class="ident">as_entries_mut</span>().<span class="ident">last_mut</span>().<span class="ident">map</span>(<span class="ident">Bucket</span>::<span class="ident">ref_mut</span>)
+    }
+
     <span class="doccomment">/// Remove the key-value pair by index</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Valid indices are *0 &lt;= index &lt; self.len()*</span>
@@ -2348,6 +2459,13 @@
     <span class="doccomment">/// Computes in **O(n)** time (average).</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">shift_remove_index</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">index</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">K</span>, <span class="ident">V</span>)<span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">core</span>.<span class="ident">shift_remove_index</span>(<span class="ident">index</span>)
+    }
+
+    <span class="doccomment">/// Swaps the position of two key-value pairs in the map.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// ***Panics*** if `a` or `b` are out of bounds.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">swap_indices</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">a</span>: <span class="ident">usize</span>, <span class="ident">b</span>: <span class="ident">usize</span>) {
+        <span class="self">self</span>.<span class="ident">core</span>.<span class="ident">swap_indices</span>(<span class="ident">a</span>, <span class="ident">b</span>)
     }
 }
 
