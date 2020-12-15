@@ -119,7 +119,7 @@ impl Function {
     ) {
         // Create array of values
         let array = Array::new_array(context).unwrap();
-        Array::add_to_array_object(&array, &args_list[index..]).unwrap();
+        Array::add_to_array_object(&array, &args_list[index..], context).unwrap();
 
         // Create binding
         local_env
