@@ -342,7 +342,7 @@ impl Number {
                 // 5
                 return context.throw_range_error(
                     "precision must be an integer at least 1 and no greater than 100",
-                )
+                );
             }
         };
         let precision_i32 = precision as i32;
