@@ -252,6 +252,17 @@ fn to_string() {
 }
 
 #[test]
+fn string_length_is_not_enumerable() {
+    let mut context = Context::new();
+
+    let object = Value::from("foo").to_object(&mut context).unwrap();
+    let length_desc = object
+        .get_own_property(&PropertyKey::from("length"))
+        .unwrap();
+    assert!(!length_desc.enumerable());
+}
+
+#[test]
 fn add_number_and_number() {
     let mut context = Context::new();
 

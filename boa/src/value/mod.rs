@@ -664,7 +664,11 @@ impl Value {
                     ObjectData::String(string.clone()),
                 ));
                 // Make sure the correct length is set on our new string object
-                object.set("length".into(), string.chars().count().into());
+                object.insert_property(
+                    PropertyKey::String("length".into()),
+                    Value::from(string.chars().count()),
+                    Attribute::NON_ENUMERABLE,
+                );
                 Ok(object)
             }
             Value::Symbol(ref symbol) => {

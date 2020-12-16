@@ -40,6 +40,20 @@ fn new_string_has_length() {
 }
 
 #[test]
+fn new_string_has_length_not_enumerable() {
+    let mut context = Context::new();
+    let init = r#"
+        let a = new String("1234");
+        "#;
+
+    forward(&mut context, init);
+    assert_eq!(
+        forward(&mut context, "a.propertyIsEnumerable('length')"),
+        "false"
+    );
+}
+
+#[test]
 fn new_utf8_string_has_length() {
     let mut context = Context::new();
     let init = r#"

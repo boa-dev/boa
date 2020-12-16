@@ -13,6 +13,7 @@ pub mod string_iterator;
 #[cfg(test)]
 mod tests;
 
+use crate::property::DataDescriptor;
 use crate::{
     builtins::{string::string_iterator::StringIterator, BuiltIn, RegExp},
     object::{ConstructorBuilder, Object, ObjectData},
@@ -140,9 +141,11 @@ impl String {
             None => RcString::default(),
         };
 
-        let length = string.encode_utf16().count();
-
-        this.set_field("length", Value::from(length as i32));
+        let length = DataDescriptor::new(
+            Value::from(string.encode_utf16().count() as i32),
+            Attribute::NON_ENUMERABLE,
+        );
+        this.set_property("length", length);
 
         this.set_data(ObjectData::String(string.clone()));
 
