@@ -10,8 +10,8 @@
 //!  - [ECMAScript reference][spec]
 //!  - [MDN documentation][mdn]
 //!
-//! [spec]: https://tc39.es/ecma262/#sec-number-object
-//! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number
+//! [spec]: https://tc39.es/ecma262/#sec-number.prototype.toprecision
+//! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/toPrecision
 
 use super::function::make_builtin_fn;
 use crate::{
