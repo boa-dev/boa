@@ -352,7 +352,7 @@ impl Number {
         }
 
         // 3
-        let precision = match precision_var.to_integer_or_infinity(context).unwrap() {
+        let precision = match precision_var.to_integer_or_infinity(context)? {
             IntegerOrInfinity::Integer(x) if (1..=100).contains(&x) => x as usize,
             _ => {
                 // 5
