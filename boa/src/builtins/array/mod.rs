@@ -221,7 +221,11 @@ impl Array {
             .as_object()
             .expect("array object")
             .set_prototype_instance(context.standard_objects().array_object().prototype().into());
-        array.set_field("length", Value::from(0));
+        let length = DataDescriptor::new(
+            Value::from(0),
+            Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::PERMANENT,
+        );
+        array.set_property("length", length);
         Ok(array)
     }
 
