@@ -75,7 +75,7 @@ impl DataDescriptor {
         self.attributes.set_configurable(configurable)
     }
 
-    /// Check whether the descriptor is configurable.
+    /// Check whether the descriptor is enumerable.
     #[inline]
     pub fn enumerable(&self) -> bool {
         self.attributes.enumerable()
