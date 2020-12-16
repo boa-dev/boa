@@ -142,7 +142,7 @@ impl String {
         };
 
         let length = DataDescriptor::new(
-            Value::from(string.encode_utf16().count() as i32),
+            Value::from(string.encode_utf16().count()),
             Attribute::NON_ENUMERABLE,
         );
         this.set_property("length", length);
