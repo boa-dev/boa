@@ -269,12 +269,17 @@ impl Number {
         Ok(Value::from(this_str_num))
     }
 
+    /// flt_str_to_exp - used in to_precision
+    ///
+    /// This function traverses a string representing a number,
+    /// returning the floored log10 of this number.
+    ///
     fn flt_str_to_exp(flt: &str) -> i32 {
-        let mut nz_encountered = false;
+        let mut non_zero_encountered = false;
         let mut dot_encountered = false;
         for (i, c) in flt.chars().enumerate() {
             if c == '.' {
-                if nz_encountered {
+                if non_zero_encountered {
                     return (i as i32) - 1;
                 }
                 dot_encountered = true;
@@ -282,12 +287,23 @@ impl Number {
                 if dot_encountered {
                     return 1 - (i as i32);
                 }
-                nz_encountered = true;
+                non_zero_encountered = true;
             }
         }
         (flt.len() as i32) - 1
     }
 
+    /// round_to_precision - used in to_precision
+    ///
+    /// This procedure has two roles:
+    /// - If there are enough or more than enough digits in the
+    ///   string to show the required precision, the number
+    ///   represented by these digits is rounded using string
+    ///   manipulation.
+    /// - Else, zeroes are appended to the string.
+    ///
+    /// When this procedure returns, `digits` is exactly `precision` long.
+    ///
     fn round_to_precision(digits: &mut String, precision: usize) {
         if digits.len() > precision {
             let to_round = digits.split_off(precision);
