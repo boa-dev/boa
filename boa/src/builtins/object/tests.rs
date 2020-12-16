@@ -279,3 +279,25 @@ fn object_define_properties() {
 
     assert_eq!(forward(&mut context, "obj.p"), "42");
 }
+
+#[test]
+fn for_in_iterator_object() {
+    let mut context = Context::new();
+
+    let init = r#"
+        let result = [];
+        let obj = { a: "a", b: 2};
+        for (var i in obj) {
+            result = result.concat([i]);
+        }
+    "#;
+    eprintln!("{}", forward(&mut context, init));
+
+    assert_eq!(
+        forward(
+            &mut context,
+            "result.length === 2 && result.includes('a') && result.includes('b')"
+        ),
+        "true"
+    );
+}

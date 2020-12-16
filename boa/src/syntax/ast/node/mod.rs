@@ -33,7 +33,7 @@ pub use self::{
     },
     field::{GetConstField, GetField},
     identifier::Identifier,
-    iteration::{Continue, DoWhileLoop, ForLoop, ForOfLoop, WhileLoop},
+    iteration::{Continue, DoWhileLoop, ForInOfLoop, ForLoop, IterationKind, WhileLoop},
     new::New,
     object::Object,
     operator::{Assign, BinOp, UnaryOp},
@@ -130,8 +130,8 @@ pub enum Node {
     /// A `for` statement. [More information](./iteration/struct.ForLoop.html).
     ForLoop(ForLoop),
 
-    /// A `for...of` statement. [More information](./iteration/struct.ForOf.html).
-    ForOfLoop(ForOfLoop),
+    /// A `for...of` or `for..in` statement. [More information](./iteration/struct.ForInOf.html).
+    ForInOfLoop(ForInOfLoop),
 
     /// An 'if' statement. [More information](./conditional/struct.If.html).
     If(If),
@@ -229,7 +229,7 @@ impl Node {
             Self::Const(ref c) => write!(f, "{}", c),
             Self::ConditionalOp(ref cond_op) => Display::fmt(cond_op, f),
             Self::ForLoop(ref for_loop) => for_loop.display(f, indentation),
-            Self::ForOfLoop(ref for_of) => for_of.display(f, indentation),
+            Self::ForInOfLoop(ref for_in_of) => for_in_of.display(f, indentation),
             Self::This => write!(f, "this"),
             Self::Try(ref try_catch) => try_catch.display(f, indentation),
             Self::Break(ref break_smt) => Display::fmt(break_smt, f),
@@ -289,7 +289,7 @@ impl Executable for Node {
             Node::WhileLoop(ref while_loop) => while_loop.run(context),
             Node::DoWhileLoop(ref do_while) => do_while.run(context),
             Node::ForLoop(ref for_loop) => for_loop.run(context),
-            Node::ForOfLoop(ref for_of_loop) => for_of_loop.run(context),
+            Node::ForInOfLoop(ref for_in_of_loop) => for_in_of_loop.run(context),
             Node::If(ref if_smt) => if_smt.run(context),
             Node::ConditionalOp(ref op) => op.run(context),
             Node::Switch(ref switch) => switch.run(context),

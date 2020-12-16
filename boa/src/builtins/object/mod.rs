@@ -23,6 +23,7 @@ use crate::{
     BoaProfiler, Context, Result,
 };
 
+pub mod for_in_iterator;
 #[cfg(test)]
 mod tests;
 
