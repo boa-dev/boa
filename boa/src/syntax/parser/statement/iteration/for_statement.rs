@@ -98,7 +98,7 @@ where
                 let body = Statement::new(self.allow_yield, self.allow_await, self.allow_return)
                     .parse(cursor)?;
                 return Ok(
-                    ForInOfLoop::new(init.unwrap(), expr, body, IterationKind::ENUMERATE).into(),
+                    ForInOfLoop::new(init.unwrap(), expr, body, IterationKind::Enumerate).into(),
                 );
             }
             Some(tok) if tok.kind() == &TokenKind::Keyword(Keyword::Of) && init.is_some() => {
@@ -109,7 +109,7 @@ where
                 let body = Statement::new(self.allow_yield, self.allow_await, self.allow_return)
                     .parse(cursor)?;
                 return Ok(
-                    ForInOfLoop::new(init.unwrap(), iterable, body, IterationKind::ITERATE).into(),
+                    ForInOfLoop::new(init.unwrap(), iterable, body, IterationKind::Iterate).into(),
                 );
             }
             _ => {}

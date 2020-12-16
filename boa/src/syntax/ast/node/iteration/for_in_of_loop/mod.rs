@@ -16,8 +16,8 @@ use serde::{Deserialize, Serialize};
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub enum IterationKind {
-    ITERATE,
-    ENUMERATE,
+    Iterate,
+    Enumerate,
 }
 
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
@@ -62,8 +62,8 @@ impl ForInOfLoop {
             "for ({} {} {}) {{",
             self.variable,
             match self.kind {
-                IterationKind::ITERATE => "of",
-                IterationKind::ENUMERATE => "in",
+                IterationKind::Iterate => "of",
+                IterationKind::Enumerate => "in",
             },
             self.expr,
         )?;
@@ -90,8 +90,8 @@ impl Executable for ForInOfLoop {
         let object = self.expr().run(context)?;
         let mut result = Value::undefined();
         let iterator = match self.kind {
-            IterationKind::ITERATE => get_iterator(context, object)?,
-            IterationKind::ENUMERATE => {
+            IterationKind::Iterate => get_iterator(context, object)?,
+            IterationKind::Enumerate => {
                 if object.is_null_or_undefined() {
                     return Ok(result);
                 }
