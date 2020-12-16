@@ -17,6 +17,7 @@ use crate::{
     builtins::BuiltIn,
     object::ObjectInitializer,
     property::{Attribute, DataDescriptor, PropertyKey},
+    value::IntegerOrInfinity,
     BoaProfiler, Context, Result, Value,
 };
 use serde::Serialize;
@@ -142,36 +143,36 @@ impl Json {
             Some(obj) => obj,
         };
         const SPACE_INDENT: &str = "          ";
-        let space = args
-            .get(2)
-            .and_then(|value| match value {
-                Value::String(s) => Some(s.clone()),
-                Value::Object(ref object) => object.borrow().as_string(),
-                _ => None,
-            })
-            .unwrap_or_default();
-        let space_len = args
-            .get(2)
-            .and_then(|value| match value {
-                Value::Rational(f) => Some(*f),
-                Value::Integer(i) => Some((*i).into()),
-                Value::Object(ref object) => object.borrow().as_number(),
-                _ => None,
-            })
-            .unwrap_or_default();
-        let space_len = if space_len < 0.0 || space_len.is_nan() {
-            0
-        } else if space_len > 10.0 {
-            10
+        let gap = if let Some(space) = args.get(2) {
+            let space = if let Some(space_obj) = space.as_object() {
+                if let Some(space) = space_obj.borrow().as_number() {
+                    Value::from(space)
+                } else if let Some(space) = space_obj.borrow().as_string() {
+                    Value::from(space)
+                } else {
+                    space.clone()
+                }
+            } else {
+                space.clone()
+            };
+            if space.is_number() {
+                let space_mv = match space.to_integer_or_infinity(context)? {
+                    IntegerOrInfinity::NegativeInfinity => 0,
+                    IntegerOrInfinity::PositiveInfinity => 10,
+                    IntegerOrInfinity::Integer(i) if i < 1 => 0,
+                    IntegerOrInfinity::Integer(i) => std::cmp::min(i, 10) as usize,
+                };
+                Value::from(&SPACE_INDENT[..space_mv])
+            } else if let Some(string) = space.as_string() {
+                Value::from(&string[..std::cmp::min(string.len(), 10)])
+            } else {
+                Value::from("")
+            }
         } else {
-            space_len as usize
+            Value::from("")
         };
 
-        let gap = if space_len > 0 {
-            &SPACE_INDENT[..space_len]
-        } else {
-            &space[..std::cmp::min(space.len(), 10)]
-        };
+        let gap = &gap.to_string(context)?;
 
         let replacer = match args.get(1) {
             Some(replacer) if replacer.is_object() => replacer,
