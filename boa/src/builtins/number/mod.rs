@@ -364,9 +364,9 @@ impl Number {
         let precision_i32 = precision as i32;
 
         // 7
-        let mut prefix = String::new(); // spec: "s"
-        let mut suffix: String; // spec: "m"
-        let exponent: i32; // spec: "e"
+        let mut prefix = String::new(); // spec: 's'
+        let mut suffix: String; // spec: 'm'
+        let exponent: i32; // spec: 'e'
 
         // 8
         if this_num < 0.0 {
@@ -374,55 +374,64 @@ impl Number {
             this_num = -this_num;
         }
 
-        let mut is_scientific = false;
-
         // 9
         if this_num == 0.0 {
             suffix = "0".repeat(precision);
             exponent = 0;
         // 10
         } else {
+            // Due to f64 limitations, this part differs a bit from the spec,
+            // but has the same effect. It manipulates the string constructed
+            // by ryu-js: digits with an optional dot between two of them.
+
             let mut buffer = ryu_js::Buffer::new();
             suffix = buffer.format(this_num).to_string();
 
+            // a: getting an exponent
             exponent = Self::flt_str_to_exp(&suffix);
+            // b: getting relevant digits only
             if exponent < 0 {
                 suffix = suffix.split_off((1 - exponent) as usize);
             } else if let Some(n) = suffix.find('.') {
                 suffix.remove(n);
             }
+            // impl: having exactly `precision` digits in `suffix`
             Self::round_to_precision(&mut suffix, precision);
 
+            // c: switching to scientific notation
             let great_exp = exponent >= precision_i32;
             if exponent < -6 || great_exp {
-                is_scientific = true;
-                suffix.truncate(precision);
+                // ii
                 if precision > 1 {
                     suffix.insert(1, '.');
                 }
+                // vi
                 suffix.push('e');
+                // iii
                 if great_exp {
                     suffix.push('+');
                 }
+                // iv, v
                 suffix.push_str(&exponent.to_string());
+
+                return Ok(Value::from(prefix + &suffix));
             }
         }
 
         // 11
         let e_inc = exponent + 1;
-        if !is_scientific && e_inc != precision_i32 {
-            // 12
-            if exponent >= 0 {
-                suffix.truncate(precision);
-                if precision > e_inc as usize {
-                    suffix.insert(e_inc as usize, '.');
-                }
-            // 13
-            } else {
-                prefix.push('0');
-                prefix.push('.');
-                prefix.push_str(&"0".repeat(-e_inc as usize));
-            }
+        if e_inc == precision_i32 {
+            return Ok(Value::from(prefix + &suffix));
+        }
+
+        // 12
+        if exponent >= 0 {
+            suffix.insert(e_inc as usize, '.');
+        // 13
+        } else {
+            prefix.push('0');
+            prefix.push('.');
+            prefix.push_str(&"0".repeat(-e_inc as usize));
         }
 
         // 14
