@@ -10,15 +10,15 @@
 //!  - [ECMAScript reference][spec]
 //!  - [MDN documentation][mdn]
 //!
-//! [spec]: https://tc39.es/ecma262/#sec-number.prototype.toprecision
-//! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/toPrecision
+//! [spec]: https://tc39.es/ecma262/#sec-number-object
+//! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number
 
 use super::function::make_builtin_fn;
 use crate::{
     builtins::BuiltIn,
     object::{ConstructorBuilder, ObjectData},
     property::Attribute,
-    value::{AbstractRelation, Value},
+    value::{AbstractRelation, IntegerOrInfinity, Value},
     BoaProfiler, Context, Result,
 };
 use num_traits::float::FloatCore;
@@ -318,7 +318,7 @@ impl Number {
     ///  - [ECMAScript reference][spec]
     ///  - [MDN documentation][mdn]
     ///
-    /// [spec]: https://tc39.es/ecma262/#sec-number.prototype.toexponential
+    /// [spec]: https://tc39.es/ecma262/#sec-number.prototype.toprecision
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/toPrecision
     #[allow(clippy::wrong_self_convention)]
     pub(crate) fn to_precision(
@@ -326,16 +326,20 @@ impl Number {
         args: &[Value],
         context: &mut Context,
     ) -> Result<Value> {
-        let precision_arg = args.get(0);
+        let precision_var = args.get(0).cloned().unwrap_or_default();
 
+        // 1 & 6
         let mut this_num = Self::this_number_value(this, context)?;
-        if precision_arg.is_none() || !this_num.is_finite() {
+        // 2 & 4
+        if precision_var == Value::undefined() || !this_num.is_finite() {
             return Self::to_string(this, &[], context);
         }
 
-        let precision = match precision_arg.unwrap().to_integer(context)? as i32 {
-            x @ 1..=100 => x as usize,
+        // 3
+        let precision = match precision_var.to_integer_or_infinity(context).unwrap() {
+            IntegerOrInfinity::Integer(x) if (1..=100).contains(&x) => x as usize,
             _ => {
+                // 5
                 return context.throw_range_error(
                     "precision must be an integer at least 1 and no greater than 100",
                 )
@@ -343,10 +347,12 @@ impl Number {
         };
         let precision_i32 = precision as i32;
 
+        // 7
         let mut prefix = String::new(); // spec: "s"
         let mut suffix: String; // spec: "m"
         let exponent: i32; // spec: "e"
 
+        // 8
         if this_num < 0.0 {
             prefix.push('-');
             this_num = -this_num;
@@ -354,9 +360,11 @@ impl Number {
 
         let mut is_scientific = false;
 
+        // 9
         if this_num == 0.0 {
             suffix = "0".repeat(precision);
             exponent = 0;
+        // 10
         } else {
             let mut buffer = ryu_js::Buffer::new();
             suffix = buffer.format(this_num).to_string();
@@ -384,13 +392,16 @@ impl Number {
             }
         }
 
+        // 11
         let e_inc = exponent + 1;
         if !is_scientific && e_inc != precision_i32 {
+            // 12
             if exponent >= 0 {
                 suffix.truncate(precision);
                 if precision > e_inc as usize {
                     suffix.insert(e_inc as usize, '.');
                 }
+            // 13
             } else {
                 prefix.push('0');
                 prefix.push('.');
@@ -398,6 +409,7 @@ impl Number {
             }
         }
 
+        // 14
         Ok(Value::from(prefix + &suffix))
     }
 

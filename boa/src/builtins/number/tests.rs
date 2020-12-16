@@ -129,23 +129,29 @@ fn to_locale_string() {
 fn to_precision() {
     let mut context = Context::new();
     let init = r#"
+        var infinity = (1/0).toPrecision(3);
         var default_precision = Number().toPrecision();
-        var low_precision = Number(123456789).toPrecision(1);
-        var more_precision = Number(123456789).toPrecision(4);
-        var exact_precision = Number(123456789).toPrecision(9);
-        var over_precision = Number(123456789).toPrecision(50);
-        var neg_precision = Number(-123456789).toPrecision(4);
+        var explicit_ud_precision = Number().toPrecision(undefined);
+        var low_precision = (123456789).toPrecision(1);
+        var more_precision = (123456789).toPrecision(4);
+        var exact_precision = (123456789).toPrecision(9);
+        var over_precision = (123456789).toPrecision(50);
+        var neg_precision = (-123456789).toPrecision(4);
         "#;
 
     eprintln!("{}", forward(&mut context, init));
+    let infinity = forward(&mut context, "infinity");
     let default_precision = forward(&mut context, "default_precision");
+    let explicit_ud_precision = forward(&mut context, "explicit_ud_precision");
     let low_precision = forward(&mut context, "low_precision");
     let more_precision = forward(&mut context, "more_precision");
     let exact_precision = forward(&mut context, "exact_precision");
     let over_precision = forward(&mut context, "over_precision");
     let neg_precision = forward(&mut context, "neg_precision");
 
+    assert_eq!(infinity, String::from("\"Infinity\""));
     assert_eq!(default_precision, String::from("\"0\""));
+    assert_eq!(explicit_ud_precision, String::from("\"0\""));
     assert_eq!(low_precision, String::from("\"1e+8\""));
     assert_eq!(more_precision, String::from("\"1.235e+8\""));
     assert_eq!(exact_precision, String::from("\"123456789\""));
@@ -154,6 +160,18 @@ fn to_precision() {
         over_precision,
         String::from("\"123456789.00000000000000000000000000000000000000000\"")
     );
+
+    let expected = "Uncaught \"RangeError\": \"precision must be an integer at least 1 and no greater than 100\"";
+
+    let range_error_1 = r#"(1).toPrecision(101);"#;
+    let range_error_2 = r#"(1).toPrecision(0);"#;
+    let range_error_3 = r#"(1).toPrecision(-2000);"#;
+    let range_error_4 = r#"(1).toPrecision('%');"#;
+
+    assert_eq!(forward(&mut context, range_error_1), expected);
+    assert_eq!(forward(&mut context, range_error_2), expected);
+    assert_eq!(forward(&mut context, range_error_3), expected);
+    assert_eq!(forward(&mut context, range_error_4), expected);
 }
 
 #[test]
