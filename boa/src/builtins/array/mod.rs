@@ -58,7 +58,11 @@ impl BuiltIn for Array {
         )
         .name(Self::NAME)
         .length(Self::LENGTH)
-        .property("length", 0, Attribute::WRITABLE | Attribute::NON_ENUMERABLE)
+        .property(
+            "length",
+            0,
+            Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::PERMANENT,
+        )
         .property(
             "values",
             values_function.clone(),
