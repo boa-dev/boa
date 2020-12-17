@@ -47,6 +47,14 @@ impl Default for StandardConstructor {
 }
 
 impl StandardConstructor {
+    /// Build a constructor with a defined prototype.
+    fn with_prototype(prototype: Object) -> Self {
+        Self {
+            constructor: GcObject::new(Object::default()),
+            prototype: GcObject::new(prototype),
+        }
+    }
+
     /// Return the constructor object.
     ///
     /// This is the same as `Object`, `Array`, etc.
@@ -65,7 +73,7 @@ impl StandardConstructor {
 }
 
 /// Cached core standard objects.
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct StandardObjects {
     object: StandardConstructor,
     function: StandardConstructor,
@@ -83,6 +91,30 @@ pub struct StandardObjects {
     syntax_error: StandardConstructor,
     eval_error: StandardConstructor,
     uri_error: StandardConstructor,
+}
+
+impl Default for StandardObjects {
+
+    fn default() -> Self {
+        Self {
+            object: StandardConstructor::default(),
+            function: StandardConstructor::default(),
+            array: StandardConstructor::default(),
+            bigint: StandardConstructor::default(),
+            number: StandardConstructor::with_prototype(Object::number(0.0)),
+            boolean: StandardConstructor::with_prototype(Object::boolean(false)),
+            string: StandardConstructor::with_prototype(Object::string("")),
+            regexp: StandardConstructor::default(),
+            symbol: StandardConstructor::default(),
+            error: StandardConstructor::default(),
+            type_error: StandardConstructor::default(),
+            referece_error: StandardConstructor::default(),
+            range_error: StandardConstructor::default(),
+            syntax_error: StandardConstructor::default(),
+            eval_error: StandardConstructor::default(),
+            uri_error: StandardConstructor::default(),
+        }
+    }
 }
 
 impl StandardObjects {
