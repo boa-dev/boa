@@ -17,9 +17,11 @@ use crate::{
     builtins::BuiltIn,
     object::ObjectInitializer,
     property::{Attribute, DataDescriptor, PropertyKey},
+    value::IntegerOrInfinity,
     BoaProfiler, Context, Result, Value,
 };
-use serde_json::{self, Value as JSONValue};
+use serde::Serialize;
+use serde_json::{self, ser::PrettyFormatter, Serializer, Value as JSONValue};
 
 #[cfg(test)]
 mod tests;
@@ -140,9 +142,46 @@ impl Json {
             None => return Ok(Value::undefined()),
             Some(obj) => obj,
         };
+        const SPACE_INDENT: &str = "          ";
+        let gap = if let Some(space) = args.get(2) {
+            let space = if let Some(space_obj) = space.as_object() {
+                if let Some(space) = space_obj.borrow().as_number() {
+                    Value::from(space)
+                } else if let Some(space) = space_obj.borrow().as_string() {
+                    Value::from(space)
+                } else {
+                    space.clone()
+                }
+            } else {
+                space.clone()
+            };
+            if space.is_number() {
+                let space_mv = match space.to_integer_or_infinity(context)? {
+                    IntegerOrInfinity::NegativeInfinity => 0,
+                    IntegerOrInfinity::PositiveInfinity => 10,
+                    IntegerOrInfinity::Integer(i) if i < 1 => 0,
+                    IntegerOrInfinity::Integer(i) => std::cmp::min(i, 10) as usize,
+                };
+                Value::from(&SPACE_INDENT[..space_mv])
+            } else if let Some(string) = space.as_string() {
+                Value::from(&string[..std::cmp::min(string.len(), 10)])
+            } else {
+                Value::from("")
+            }
+        } else {
+            Value::from("")
+        };
+
+        let gap = &gap.to_string(context)?;
+
         let replacer = match args.get(1) {
             Some(replacer) if replacer.is_object() => replacer,
-            _ => return Ok(Value::from(object.to_json(context)?.to_string())),
+            _ => {
+                return Ok(Value::from(json_to_pretty_string(
+                    &object.to_json(context)?,
+                    gap,
+                )))
+            }
         };
 
         let replacer_as_object = replacer
@@ -172,7 +211,10 @@ impl Json {
                             ),
                         );
                     }
-                    Ok(Value::from(object_to_return.to_json(context)?.to_string()))
+                    Ok(Value::from(json_to_pretty_string(
+                        &object_to_return.to_json(context)?,
+                        gap,
+                    )))
                 })
                 .ok_or_else(Value::undefined)?
         } else if replacer_as_object.is_array() {
@@ -195,9 +237,30 @@ impl Json {
                     obj_to_return.insert(field.to_string(context)?.to_string(), value);
                 }
             }
-            Ok(Value::from(JSONValue::Object(obj_to_return).to_string()))
+            Ok(Value::from(json_to_pretty_string(
+                &JSONValue::Object(obj_to_return),
+                gap,
+            )))
         } else {
-            Ok(Value::from(object.to_json(context)?.to_string()))
+            Ok(Value::from(json_to_pretty_string(
+                &object.to_json(context)?,
+                gap,
+            )))
         }
+    }
+}
+
+fn json_to_pretty_string(json: &JSONValue, gap: &str) -> String {
+    if gap.is_empty() {
+        return json.to_string();
+    }
+    let formatter = PrettyFormatter::with_indent(gap.as_bytes());
+    let mut writer = Vec::with_capacity(128);
+    let mut serializer = Serializer::with_formatter(&mut writer, formatter);
+    json.serialize(&mut serializer)
+        .expect("JSON serialization failed");
+    unsafe {
+        // The serde json serializer always produce correct UTF-8
+        String::from_utf8_unchecked(writer)
     }
 }

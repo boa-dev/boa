@@ -50,11 +50,14 @@ bench = false
 [[bench]]
 name = "parser"
 harness = false
+required-features = ["serde"]
 
 [[bench]]
 name = "exec"
 harness = false
+required-features = ["serde"]
 
 [[bench]]
 name = "full"
 harness = false
+required-features = ["serde"]
