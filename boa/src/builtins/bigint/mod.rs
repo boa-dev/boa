@@ -21,7 +21,7 @@ use crate::{
     BoaProfiler, Context, Result,
 };
 
-#[cfg(feature = "serde")]
+#[cfg(feature = "deser")]
 use serde::{Deserialize, Serialize};
 
 pub mod conversions;
@@ -36,7 +36,7 @@ pub use operations::*;
 mod tests;
 
 /// `BigInt` implementation.
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
 #[derive(Clone, Hash, PartialEq, Eq, PartialOrd, Ord, Default)]
 pub struct BigInt(num_bigint::BigInt);
 

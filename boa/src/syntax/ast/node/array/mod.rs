@@ -9,7 +9,7 @@ use crate::{
 };
 use std::fmt;
 
-#[cfg(feature = "serde")]
+#[cfg(feature = "deser")]
 use serde::{Deserialize, Serialize};
 
 /// An array is an ordered collection of data (either primitive or object depending upon the
@@ -28,10 +28,10 @@ use serde::{Deserialize, Serialize};
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-ArrayLiteral
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub struct ArrayDecl {
-    #[cfg_attr(feature = "serde", serde(flatten))]
+    #[cfg_attr(feature = "deser", serde(flatten))]
     arr: Box<[Node]>,
 }
 

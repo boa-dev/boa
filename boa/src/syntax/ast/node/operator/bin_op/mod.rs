@@ -9,7 +9,7 @@ use crate::{
 };
 use std::fmt;
 
-#[cfg(feature = "serde")]
+#[cfg(feature = "deser")]
 use serde::{Deserialize, Serialize};
 
 /// Binary operators requires two operands, one before the operator and one after the operator.
@@ -18,7 +18,7 @@ use serde::{Deserialize, Serialize};
 ///  - [MDN documentation][mdn]
 ///
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Expressions_and_Operators#Operators
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub struct BinOp {
     op: op::BinOp,
