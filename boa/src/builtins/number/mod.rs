@@ -18,7 +18,7 @@ use crate::{
     builtins::BuiltIn,
     object::{ConstructorBuilder, ObjectData},
     property::Attribute,
-    value::{AbstractRelation, Value},
+    value::{AbstractRelation, IntegerOrInfinity, Value},
     BoaProfiler, Context, Result,
 };
 use num_traits::float::FloatCore;
@@ -269,6 +269,63 @@ impl Number {
         Ok(Value::from(this_str_num))
     }
 
+    /// flt_str_to_exp - used in to_precision
+    ///
+    /// This function traverses a string representing a number,
+    /// returning the floored log10 of this number.
+    ///
+    fn flt_str_to_exp(flt: &str) -> i32 {
+        let mut non_zero_encountered = false;
+        let mut dot_encountered = false;
+        for (i, c) in flt.chars().enumerate() {
+            if c == '.' {
+                if non_zero_encountered {
+                    return (i as i32) - 1;
+                }
+                dot_encountered = true;
+            } else if c != '0' {
+                if dot_encountered {
+                    return 1 - (i as i32);
+                }
+                non_zero_encountered = true;
+            }
+        }
+        (flt.len() as i32) - 1
+    }
+
+    /// round_to_precision - used in to_precision
+    ///
+    /// This procedure has two roles:
+    /// - If there are enough or more than enough digits in the
+    ///   string to show the required precision, the number
+    ///   represented by these digits is rounded using string
+    ///   manipulation.
+    /// - Else, zeroes are appended to the string.
+    ///
+    /// When this procedure returns, `digits` is exactly `precision` long.
+    ///
+    fn round_to_precision(digits: &mut String, precision: usize) {
+        if digits.len() > precision {
+            let to_round = digits.split_off(precision);
+            let mut digit = digits.pop().unwrap() as u8;
+
+            for c in to_round.chars() {
+                match c {
+                    c if c < '4' => break,
+                    c if c > '4' => {
+                        digit += 1;
+                        break;
+                    }
+                    _ => {}
+                }
+            }
+
+            digits.push(digit as char);
+        } else {
+            digits.push_str(&"0".repeat(precision - digits.len()));
+        }
+    }
+
     /// `Number.prototype.toPrecision( [precision] )`
     ///
     /// The `toPrecision()` method returns a string representing the Number object to the specified precision.
@@ -277,7 +334,7 @@ impl Number {
     ///  - [ECMAScript reference][spec]
     ///  - [MDN documentation][mdn]
     ///
-    /// [spec]: https://tc39.es/ecma262/#sec-number.prototype.toexponential
+    /// [spec]: https://tc39.es/ecma262/#sec-number.prototype.toprecision
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/toPrecision
     #[allow(clippy::wrong_self_convention)]
     pub(crate) fn to_precision(
@@ -285,17 +342,100 @@ impl Number {
         args: &[Value],
         context: &mut Context,
     ) -> Result<Value> {
-        let this_num = Self::this_number_value(this, context)?;
-        let _num_str_len = format!("{}", this_num).len();
-        let _precision = match args.get(0) {
-            Some(n) => match n.to_integer(context)? as i32 {
-                x if x > 0 => n.to_integer(context)? as usize,
-                _ => 0,
-            },
-            None => 0,
+        let precision_var = args.get(0).cloned().unwrap_or_default();
+
+        // 1 & 6
+        let mut this_num = Self::this_number_value(this, context)?;
+        // 2 & 4
+        if precision_var == Value::undefined() || !this_num.is_finite() {
+            return Self::to_string(this, &[], context);
+        }
+
+        // 3
+        let precision = match precision_var.to_integer_or_infinity(context)? {
+            IntegerOrInfinity::Integer(x) if (1..=100).contains(&x) => x as usize,
+            _ => {
+                // 5
+                return context.throw_range_error(
+                    "precision must be an integer at least 1 and no greater than 100",
+                );
+            }
         };
-        // TODO: Implement toPrecision
-        unimplemented!("TODO: Implement toPrecision");
+        let precision_i32 = precision as i32;
+
+        // 7
+        let mut prefix = String::new(); // spec: 's'
+        let mut suffix: String; // spec: 'm'
+        let exponent: i32; // spec: 'e'
+
+        // 8
+        if this_num < 0.0 {
+            prefix.push('-');
+            this_num = -this_num;
+        }
+
+        // 9
+        if this_num == 0.0 {
+            suffix = "0".repeat(precision);
+            exponent = 0;
+        // 10
+        } else {
+            // Due to f64 limitations, this part differs a bit from the spec,
+            // but has the same effect. It manipulates the string constructed
+            // by ryu-js: digits with an optional dot between two of them.
+
+            let mut buffer = ryu_js::Buffer::new();
+            suffix = buffer.format(this_num).to_string();
+
+            // a: getting an exponent
+            exponent = Self::flt_str_to_exp(&suffix);
+            // b: getting relevant digits only
+            if exponent < 0 {
+                suffix = suffix.split_off((1 - exponent) as usize);
+            } else if let Some(n) = suffix.find('.') {
+                suffix.remove(n);
+            }
+            // impl: having exactly `precision` digits in `suffix`
+            Self::round_to_precision(&mut suffix, precision);
+
+            // c: switching to scientific notation
+            let great_exp = exponent >= precision_i32;
+            if exponent < -6 || great_exp {
+                // ii
+                if precision > 1 {
+                    suffix.insert(1, '.');
+                }
+                // vi
+                suffix.push('e');
+                // iii
+                if great_exp {
+                    suffix.push('+');
+                }
+                // iv, v
+                suffix.push_str(&exponent.to_string());
+
+                return Ok(Value::from(prefix + &suffix));
+            }
+        }
+
+        // 11
+        let e_inc = exponent + 1;
+        if e_inc == precision_i32 {
+            return Ok(Value::from(prefix + &suffix));
+        }
+
+        // 12
+        if exponent >= 0 {
+            suffix.insert(e_inc as usize, '.');
+        // 13
+        } else {
+            prefix.push('0');
+            prefix.push('.');
+            prefix.push_str(&"0".repeat(-e_inc as usize));
+        }
+
+        // 14
+        Ok(Value::from(prefix + &suffix))
     }
 
     // https://golang.org/src/math/nextafter.go
