@@ -279,4 +279,3 @@ fn object_define_properties() {
 
     assert_eq!(forward(&mut context, "obj.p"), "42");
 }
-
