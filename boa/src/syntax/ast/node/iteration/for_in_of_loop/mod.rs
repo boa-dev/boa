@@ -26,6 +26,7 @@ pub struct ForInOfLoop {
     variable: Box<Node>,
     expr: Box<Node>,
     body: Box<Node>,
+    label: Option<Box<str>>,
     kind: IterationKind,
 }
 
@@ -40,6 +41,7 @@ impl ForInOfLoop {
             variable: Box::new(variable.into()),
             expr: Box::new(expr.into()),
             body: Box::new(body.into()),
+            label: None,
             kind,
         }
     }
@@ -54,6 +56,14 @@ impl ForInOfLoop {
 
     pub fn body(&self) -> &Node {
         &self.body
+    }
+
+    pub fn label(&self) -> Option<&str> {
+        self.label.as_ref().map(Box::as_ref)
+    }
+
+    pub fn set_label(&mut self, label: Box<str>) {
+        self.label = Some(label);
     }
 
     pub fn display(&self, f: &mut fmt::Formatter<'_>, indentation: usize) -> fmt::Result {
@@ -214,21 +224,12 @@ impl Executable for ForInOfLoop {
 
             result = self.body().run(context)?;
             match context.executor().get_current_state() {
-                InterpreterState::Break(_label) => {
-                    // TODO break to label.
-
-                    // Loops 'consume' breaks.
-                    context
-                        .executor()
-                        .set_current_state(InterpreterState::Executing);
+                InterpreterState::Break(label) => {
+                    handle_state_with_labels!(self, label, context, break);
                     break;
                 }
-                InterpreterState::Continue(_label) => {
-                    // TODO continue to label.
-                    context
-                        .executor()
-                        .set_current_state(InterpreterState::Executing);
-                    // after breaking out of the block, continue execution of the loop
+                InterpreterState::Continue(label) => {
+                    handle_state_with_labels!(self, label, context, continue);
                 }
                 InterpreterState::Return => return Ok(result),
                 InterpreterState::Executing => {
