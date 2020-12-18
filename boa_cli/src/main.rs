@@ -28,7 +28,7 @@
 use boa::{syntax::ast::node::StatementList, Context};
 use colored::*;
 use rustyline::{config::Config, error::ReadlineError, EditMode, Editor};
-use std::{fs::read_to_string, path::PathBuf};
+use std::{fs::read, path::PathBuf};
 use structopt::{clap::arg_enum, StructOpt};
 
 mod helper;
@@ -104,10 +104,11 @@ arg_enum! {
 ///
 /// Returns a error of type String with a message,
 /// if the token stream has a parsing error.
-fn parse_tokens(src: &str) -> Result<StatementList, String> {
+fn parse_tokens<T: AsRef<[u8]>>(src: T) -> Result<StatementList, String> {
     use boa::syntax::parser::Parser;
 
-    Parser::new(src.as_bytes(), false)
+    let src_bytes: &[u8] = src.as_ref();
+    Parser::new(src_bytes, false)
         .parse_all()
         .map_err(|e| format!("ParsingError: {}", e))
 }
@@ -116,9 +117,10 @@ fn parse_tokens(src: &str) -> Result<StatementList, String> {
 ///
 /// Returns a error of type String with a error message,
 /// if the source has a syntax or parsing error.
-fn dump(src: &str, args: &Opt) -> Result<(), String> {
+fn dump<T: AsRef<[u8]>>(src: T, args: &Opt) -> Result<(), String> {
+    let src_bytes: &[u8] = src.as_ref();
     if let Some(ref arg) = args.dump_ast {
-        let ast = parse_tokens(src)?;
+        let ast = parse_tokens(src_bytes)?;
 
         match arg {
             Some(format) => match format {
@@ -142,7 +144,7 @@ pub fn main() -> Result<(), std::io::Error> {
     let mut context = Context::new();
 
     for file in &args.files {
-        let buffer = read_to_string(file)?;
+        let buffer = read(file)?;
 
         if args.has_dump_flag() {
             if let Err(e) = dump(&buffer, &args) {
