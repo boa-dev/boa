@@ -999,6 +999,10 @@
 <span id="998"> 998</span>
 <span id="999"> 999</span>
 <span id="1000">1000</span>
+<span id="1001">1001</span>
+<span id="1002">1002</span>
+<span id="1003">1003</span>
+<span id="1004">1004</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements the JavaScript Value.</span>
 <span class="doccomment">//!</span>
@@ -1666,7 +1670,11 @@
                     <span class="ident">ObjectData</span>::<span class="ident">String</span>(<span class="ident">string</span>.<span class="ident">clone</span>()),
                 ));
                 <span class="comment">// Make sure the correct length is set on our new string object</span>
-                <span class="ident">object</span>.<span class="ident">set</span>(<span class="string">&quot;length&quot;</span>.<span class="ident">into</span>(), <span class="ident">string</span>.<span class="ident">chars</span>().<span class="ident">count</span>().<span class="ident">into</span>());
+                <span class="ident">object</span>.<span class="ident">insert_property</span>(
+                    <span class="ident">PropertyKey</span>::<span class="ident">String</span>(<span class="string">&quot;length&quot;</span>.<span class="ident">into</span>()),
+                    <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">string</span>.<span class="ident">encode_utf16</span>().<span class="ident">count</span>()),
+                    <span class="ident">Attribute</span>::<span class="ident">NON_ENUMERABLE</span>,
+                );
                 <span class="prelude-val">Ok</span>(<span class="ident">object</span>)
             }
             <span class="ident">Value</span>::<span class="ident">Symbol</span>(<span class="kw-2">ref</span> <span class="ident">symbol</span>) <span class="op">=</span><span class="op">&gt;</span> {
