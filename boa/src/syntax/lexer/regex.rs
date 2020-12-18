@@ -16,7 +16,7 @@ use std::{
     io::Read,
 };
 
-#[cfg(feature = "serde")]
+#[cfg(feature = "deser")]
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
 /// Regex literal lexing.
@@ -198,7 +198,7 @@ impl Display for RegExpFlags {
     }
 }
 
-#[cfg(feature = "serde")]
+#[cfg(feature = "deser")]
 impl Serialize for RegExpFlags {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
@@ -208,7 +208,7 @@ impl Serialize for RegExpFlags {
     }
 }
 
-#[cfg(feature = "serde")]
+#[cfg(feature = "deser")]
 impl<'de> Deserialize<'de> for RegExpFlags {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where

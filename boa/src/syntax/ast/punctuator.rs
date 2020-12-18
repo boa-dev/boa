@@ -11,7 +11,7 @@ use std::{
     fmt::{Display, Error, Formatter},
 };
 
-#[cfg(feature = "serde")]
+#[cfg(feature = "deser")]
 use serde::{Deserialize, Serialize};
 
 /// The Punctuator enum describes all of the punctuators used in JavaScript.
@@ -20,7 +20,7 @@ use serde::{Deserialize, Serialize};
 ///  - [ECMAScript Reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-Punctuator
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
 #[derive(PartialEq, Clone, Copy, Debug)]
 pub enum Punctuator {
     /// `+`

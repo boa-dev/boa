@@ -6,7 +6,7 @@ use crate::{
 };
 use std::fmt;
 
-#[cfg(feature = "serde")]
+#[cfg(feature = "deser")]
 use serde::{Deserialize, Serialize};
 
 /// The `if` statement executes a statement if a specified condition is [`truthy`][truthy]. If
@@ -25,7 +25,7 @@ use serde::{Deserialize, Serialize};
 /// [truthy]: https://developer.mozilla.org/en-US/docs/Glossary/truthy
 /// [falsy]: https://developer.mozilla.org/en-US/docs/Glossary/falsy
 /// [expression]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Expressions_and_Operators#Expressions
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub struct If {
     cond: Box<Node>,
