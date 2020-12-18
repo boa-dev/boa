@@ -252,6 +252,37 @@ fn to_string() {
 }
 
 #[test]
+fn string_length_is_not_enumerable() {
+    let mut context = Context::new();
+
+    let object = Value::from("foo").to_object(&mut context).unwrap();
+    let length_desc = object
+        .get_own_property(&PropertyKey::from("length"))
+        .unwrap();
+    assert!(!length_desc.enumerable());
+}
+
+#[test]
+fn string_length_is_in_utf16_codeunits() {
+    let mut context = Context::new();
+
+    // 😀 is one Unicode code point, but 2 UTF-16 code units
+    let object = Value::from("😀").to_object(&mut context).unwrap();
+    let length_desc = object
+        .get_own_property(&PropertyKey::from("length"))
+        .unwrap();
+    assert_eq!(
+        length_desc
+            .as_data_descriptor()
+            .unwrap()
+            .value()
+            .to_integer_or_infinity(&mut context)
+            .unwrap(),
+        IntegerOrInfinity::Integer(2)
+    );
+}
+
+#[test]
 fn add_number_and_number() {
     let mut context = Context::new();
 
