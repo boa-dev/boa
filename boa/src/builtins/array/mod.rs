@@ -58,7 +58,11 @@ impl BuiltIn for Array {
         )
         .name(Self::NAME)
         .length(Self::LENGTH)
-        .property("length", 0, Attribute::all())
+        .property(
+            "length",
+            0,
+            Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::PERMANENT,
+        )
         .property(
             "values",
             values_function.clone(),
@@ -221,7 +225,11 @@ impl Array {
             .as_object()
             .expect("array object")
             .set_prototype_instance(context.standard_objects().array_object().prototype().into());
-        array.set_field("length", Value::from(0));
+        let length = DataDescriptor::new(
+            Value::from(0),
+            Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::PERMANENT,
+        );
+        array.set_property("length", length);
         Ok(array)
     }
 
