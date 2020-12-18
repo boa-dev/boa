@@ -94,7 +94,6 @@ pub struct StandardObjects {
 }
 
 impl Default for StandardObjects {
-
     fn default() -> Self {
         Self {
             object: StandardConstructor::default(),
