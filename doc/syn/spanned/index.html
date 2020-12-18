@@ -7,8 +7,8 @@ tree node.</p>
 <code>&quot;printing&quot;</code> features.</em></p>
 <br>
 <h1 id="example" class="section-header"><a href="#example">Example</a></h1>
-<p>Suppose in a procedural macro we have a <a href="../enum.Type.html"><code>Type</code></a> that we want to assert
-implements the <a href="https://doc.rust-lang.org/std/marker/trait.Sync.html"><code>Sync</code></a> trait. Maybe this is the type of one of the fields
+<p>Suppose in a procedural macro we have a <a href="../../syn/enum.Type.html"><code>Type</code></a> that we want to assert
+implements the <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html"><code>Sync</code></a> trait. Maybe this is the type of one of the fields
 of a struct for which we are deriving a trait implementation, and we need to
 be able to pass a reference to one of those fields across threads.</p>
 <p>If the field type does <em>not</em> implement <code>Sync</code> as required, we want the

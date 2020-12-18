@@ -5,7 +5,7 @@
 <h1 id="error-reporting-in-proc-macros" class="section-header"><a href="#error-reporting-in-proc-macros">Error reporting in proc macros</a></h1>
 <p>The correct way to report errors back to the compiler from a procedural
 macro is by emitting an appropriately spanned invocation of
-<a href="https://doc.rust-lang.org/std/macro.compile_error.html"><code>compile_error!</code></a> in the generated code. This produces a better diagnostic
+<a href="https://doc.rust-lang.org/nightly/core/macro.compile_error.html"><code>compile_error!</code></a> in the generated code. This produces a better diagnostic
 message than simply panicking the macro.</p>
 <p>When parsing macro input, the <a href="../syn/macro.parse_macro_input.html" title="parse_macro_input!"><code>parse_macro_input!</code></a> macro handles the
 conversion to <code>compile_error!</code> automatically.</p>
@@ -74,7 +74,7 @@ stable Rust.</p>
 <p>Spans are not thread-safe so this function returns <code>Span::call_site()</code>
 if called from a different thread than the one on which the <code>Error</code> was
 originally created.</p>
-</div><h4 id='method.to_compile_error' class="method"><code>pub fn <a href='#method.to_compile_error' class='fnname'>to_compile_error</a>(&amp;self) -&gt; <a class="struct" href="../proc_macro2/struct.TokenStream.html" title="struct proc_macro2::TokenStream">TokenStream</a></code><a class='srclink' href='../src/syn/error.rs.html#193-198' title='goto source code'>[src]</a></h4><div class='docblock'><p>Render the error as an invocation of <a href="https://doc.rust-lang.org/std/macro.compile_error.html"><code>compile_error!</code></a>.</p>
+</div><h4 id='method.to_compile_error' class="method"><code>pub fn <a href='#method.to_compile_error' class='fnname'>to_compile_error</a>(&amp;self) -&gt; <a class="struct" href="../proc_macro2/struct.TokenStream.html" title="struct proc_macro2::TokenStream">TokenStream</a></code><a class='srclink' href='../src/syn/error.rs.html#193-198' title='goto source code'>[src]</a></h4><div class='docblock'><p>Render the error as an invocation of <a href="https://doc.rust-lang.org/nightly/core/macro.compile_error.html"><code>compile_error!</code></a>.</p>
 <p>The <a href="../syn/macro.parse_macro_input.html" title="parse_macro_input!"><code>parse_macro_input!</code></a> macro provides a convenient way to invoke
 this method correctly in a procedural macro.</p>
 </div><h4 id='method.combine' class="method"><code>pub fn <a href='#method.combine' class='fnname'>combine</a>(&amp;mut self, another: <a class="struct" href="../syn/struct.Error.html" title="struct syn::Error">Error</a>)</code><a class='srclink' href='../src/syn/error.rs.html#202-204' title='goto source code'>[src]</a></h4><div class='docblock'><p>Add another error message to self such that when <code>to_compile_error()</code> is

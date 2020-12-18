@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/libc-0.2.80/src/unix/linux_like/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled ><script src="../../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/libc-0.2.81/src/unix/linux_like/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled ><script src="../../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg">
 <link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png">
 <link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../../libc/index.html'><div class='logo-container rust-logo'><img src='../../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
                 <a id="settings-menu" href="../../../../settings.html"><img src="../../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
@@ -1706,12 +1706,6 @@
 <span id="1703">1703</span>
 <span id="1704">1704</span>
 <span id="1705">1705</span>
-<span id="1706">1706</span>
-<span id="1707">1707</span>
-<span id="1708">1708</span>
-<span id="1709">1709</span>
-<span id="1710">1710</span>
-<span id="1711">1711</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">sa_family_t</span> <span class="op">=</span> <span class="ident">u16</span>;
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">speed_t</span> <span class="op">=</span> ::<span class="ident">c_uint</span>;
@@ -3295,12 +3289,6 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pthread_condattr_setpshared</span>(
         <span class="ident">attr</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">pthread_condattr_t</span>,
         <span class="ident">pshared</span>: ::<span class="ident">c_int</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> ::<span class="ident">c_int</span>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">accept4</span>(
-        <span class="ident">fd</span>: ::<span class="ident">c_int</span>,
-        <span class="ident">addr</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> ::<span class="ident">sockaddr</span>,
-        <span class="ident">len</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> ::<span class="ident">socklen_t</span>,
-        <span class="ident">flg</span>: ::<span class="ident">c_int</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> ::<span class="ident">c_int</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pthread_mutexattr_setpshared</span>(
         <span class="ident">attr</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">pthread_mutexattr_t</span>,

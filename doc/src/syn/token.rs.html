@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/syn-1.0.53/src/token.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>token.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/syn-1.0.54/src/token.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>token.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
 <link rel="alternate icon" type="image/png" href="../../favicon-16x16.png">
 <link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../syn/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
                 <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
@@ -1021,13 +1021,13 @@
 <span class="doccomment">//! prefer to use the [`Token!`] macro instead. This is a type-macro that</span>
 <span class="doccomment">//! expands to the token type of the given token.</span>
 <span class="doccomment">//!</span>
-<span class="doccomment">//! [`Token!`]: ../macro.Token.html</span>
+<span class="doccomment">//! [`Token!`]: crate::Token</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! # Example</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! The [`ItemStatic`] syntax tree node is defined like this.</span>
 <span class="doccomment">//!</span>
-<span class="doccomment">//! [`ItemStatic`]: ../struct.ItemStatic.html</span>
+<span class="doccomment">//! [`ItemStatic`]: crate::ItemStatic</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! ```</span>
 <span class="doccomment">//! # use syn::{Attribute, Expr, Ident, Token, Type, Visibility};</span>
@@ -1052,10 +1052,10 @@
 <span class="doccomment">//! method. Delimiter tokens are parsed using the [`parenthesized!`],</span>
 <span class="doccomment">//! [`bracketed!`] and [`braced!`] macros.</span>
 <span class="doccomment">//!</span>
-<span class="doccomment">//! [`ParseStream::parse`]: ../parse/struct.ParseBuffer.html#method.parse</span>
-<span class="doccomment">//! [`parenthesized!`]: ../macro.parenthesized.html</span>
-<span class="doccomment">//! [`bracketed!`]: ../macro.bracketed.html</span>
-<span class="doccomment">//! [`braced!`]: ../macro.braced.html</span>
+<span class="doccomment">//! [`ParseStream::parse`]: crate::parse::ParseBuffer::parse()</span>
+<span class="doccomment">//! [`parenthesized!`]: crate::parenthesized!</span>
+<span class="doccomment">//! [`bracketed!`]: crate::bracketed!</span>
+<span class="doccomment">//! [`braced!`]: crate::braced!</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! ```</span>
 <span class="doccomment">//! use syn::{Attribute, Result};</span>
@@ -1100,8 +1100,8 @@
 <span class="doccomment">//!</span>
 <span class="doccomment">//! - Field access to its span — `let sp = the_token.span`</span>
 <span class="doccomment">//!</span>
-<span class="doccomment">//! [Peeking]: ../parse/struct.ParseBuffer.html#method.peek</span>
-<span class="doccomment">//! [Parsing]: ../parse/struct.ParseBuffer.html#method.parse</span>
+<span class="doccomment">//! [Peeking]: crate::parse::ParseBuffer::peek()</span>
+<span class="doccomment">//! [Parsing]: crate::parse::ParseBuffer::parse()</span>
 <span class="doccomment">//! [Printing]: https://docs.rs/quote/1.0/quote/trait.ToTokens.html</span>
 <span class="doccomment">//! [`Span`]: https://docs.rs/proc-macro2/1.0/proc_macro2/struct.Span.html</span>
 
