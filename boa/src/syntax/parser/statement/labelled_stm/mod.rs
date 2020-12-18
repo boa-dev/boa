@@ -63,6 +63,8 @@ fn set_label_for_node(stmt: &mut Node, name: Box<str>) {
     match stmt {
         Node::ForLoop(ref mut for_loop) => for_loop.set_label(name),
         Node::ForInOfLoop(ref mut for_in_of_loop) => for_in_of_loop.set_label(name),
+        Node::DoWhileLoop(ref mut do_while_loop) => do_while_loop.set_label(name),
+        Node::WhileLoop(ref mut while_loop) => while_loop.set_label(name),
         _ => (),
     }
 }
