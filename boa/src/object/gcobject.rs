@@ -198,7 +198,6 @@ impl GcObject {
     // <https://tc39.es/ecma262/#sec-ecmascript-function-objects-construct-argumentslist-newtarget>
     #[track_caller]
     pub fn construct(&self, args: &[Value], context: &mut Context) -> Result<Value> {
-
         // If the prototype of the constructor is not an object, then use the default object
         // prototype as prototype for the new object
         // see <https://tc39.es/ecma262/#sec-ordinarycreatefromconstructor>
