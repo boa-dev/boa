@@ -8,7 +8,8 @@ use std::hash::{Hash, Hasher};
 
 #[test]
 fn is_object() {
-    let val = Value::new_object(None);
+    let context = Context::new();
+    let val = Value::new_object(None, &context);
     assert_eq!(val.is_object(), true);
 }
 
@@ -29,11 +30,18 @@ fn undefined() {
 
 #[test]
 fn get_set_field() {
-    let obj = Value::new_object(None);
+    let mut context = Context::new();
+    let obj = Value::new_object(None, &context);
     // Create string and convert it to a Value
     let s = Value::from("bar");
-    obj.set_field("foo", s);
-    assert_eq!(obj.get_field("foo").display().to_string(), "\"bar\"");
+    obj.set_field("foo", s, &mut context).unwrap();
+    assert_eq!(
+        obj.get_field("foo", &mut context)
+            .unwrap()
+            .display()
+            .to_string(),
+        "\"bar\""
+    );
 }
 
 #[test]

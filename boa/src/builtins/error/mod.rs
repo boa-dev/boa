@@ -79,7 +79,7 @@ impl Error {
         context: &mut Context,
     ) -> Result<Value> {
         if let Some(message) = args.get(0) {
-            this.set_field("message", message.to_string(context)?);
+            this.set_field("message", message.to_string(context)?, context)?;
         }
 
         // This value is used by console.log and other routines to match Object type
@@ -103,7 +103,7 @@ impl Error {
         if !this.is_object() {
             return context.throw_type_error("'this' is not an Object");
         }
-        let name = this.get_field("name");
+        let name = this.get_field("name", context)?;
         let name_to_string;
         let name = if name.is_undefined() {
             "Error"
@@ -112,7 +112,7 @@ impl Error {
             name_to_string.as_str()
         };
 
-        let message = this.get_field("message");
+        let message = this.get_field("message", context)?;
         let message_to_string;
         let message = if message.is_undefined() {
             ""

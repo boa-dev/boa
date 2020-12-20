@@ -50,7 +50,7 @@ impl MapIterator {
         map: Value,
         kind: MapIterationKind,
     ) -> Result<Value> {
-        let map_iterator = Value::new_object(Some(context.global_object()));
+        let map_iterator = Value::new_object(Some(context.global_object()), context);
         map_iterator.set_data(ObjectData::MapIterator(Self::new(map, kind)));
         map_iterator
             .as_object()
@@ -143,7 +143,7 @@ impl MapIterator {
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
         // Create prototype
-        let map_iterator = Value::new_object(Some(global));
+        let map_iterator = Value::new_object(Some(global), context);
         make_builtin_fn(Self::next, "next", &map_iterator, 0, context);
         map_iterator
             .as_object()

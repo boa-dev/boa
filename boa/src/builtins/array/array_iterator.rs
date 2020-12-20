@@ -50,7 +50,7 @@ impl ArrayIterator {
         array: Value,
         kind: ArrayIterationKind,
     ) -> Result<Value> {
-        let array_iterator = Value::new_object(Some(context.global_object()));
+        let array_iterator = Value::new_object(Some(context.global_object()), context);
         array_iterator.set_data(ObjectData::ArrayIterator(Self::new(array, kind)));
         array_iterator
             .as_object()
@@ -77,7 +77,7 @@ impl ArrayIterator {
                 }
                 let len = array_iterator
                     .array
-                    .get_field("length")
+                    .get_field("length", context)?
                     .as_number()
                     .ok_or_else(|| context.construct_type_error("Not an array"))?
                     as u32;
@@ -91,13 +91,13 @@ impl ArrayIterator {
                         Ok(create_iter_result_object(context, index.into(), false))
                     }
                     ArrayIterationKind::Value => {
-                        let element_value = array_iterator.array.get_field(index);
+                        let element_value = array_iterator.array.get_field(index, context)?;
                         Ok(create_iter_result_object(context, element_value, false))
                     }
                     ArrayIterationKind::KeyAndValue => {
-                        let element_value = array_iterator.array.get_field(index);
+                        let element_value = array_iterator.array.get_field(index, context)?;
                         let result = Array::constructor(
-                            &Value::new_object(Some(context.global_object())),
+                            &Value::new_object(Some(context.global_object()), context),
                             &[index.into(), element_value],
                             context,
                         )?;
@@ -123,7 +123,7 @@ impl ArrayIterator {
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
         // Create prototype
-        let array_iterator = Value::new_object(Some(global));
+        let array_iterator = Value::new_object(Some(global), context);
         make_builtin_fn(Self::next, "next", &array_iterator, 0, context);
         array_iterator
             .as_object()

@@ -84,7 +84,7 @@ impl Object {
         }
         let global = context.global_object();
 
-        Ok(Value::new_object(Some(global)))
+        Ok(Value::new_object(Some(global), context))
     }
 
     /// `Object.create( proto, [propertiesObject] )`
@@ -330,7 +330,10 @@ impl Object {
                 }
             };
 
-            let tag = o.get(&context.well_known_symbols().to_string_tag_symbol().into());
+            let tag = o.get(
+                &context.well_known_symbols().to_string_tag_symbol().into(),
+                context,
+            )?;
 
             let tag_str = tag.as_string().map(|s| s.as_str()).unwrap_or(builtin_tag);
 

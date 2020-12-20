@@ -6,6 +6,7 @@
 //! Property keys that are not strings in the form of an `IdentifierName` are not included in the set of bound identifiers.
 //! More info:  [Object Records](https://tc39.es/ecma262/#sec-object-environment-records)
 
+use crate::property::PropertyDescriptor;
 use crate::{
     environment::{
         environment_record_trait::EnvironmentRecordTrait,
@@ -73,7 +74,10 @@ impl EnvironmentRecordTrait for ObjectEnvironmentRecord {
 
     fn get_binding_value(&self, name: &str, strict: bool) -> Value {
         if self.bindings.has_field(name) {
-            self.bindings.get_field(name)
+            match self.bindings.get_property(name) {
+                Some(PropertyDescriptor::Data(ref d)) => d.value(),
+                _ => Value::Undefined,
+            }
         } else {
             if strict {
                 // TODO: throw error here

@@ -58,7 +58,7 @@ impl IteratorPrototypes {
 ///
 /// Generates an object supporting the IteratorResult interface.
 pub fn create_iter_result_object(context: &mut Context, value: Value, done: bool) -> Value {
-    let object = Value::new_object(Some(context.global_object()));
+    let object = Value::new_object(Some(context.global_object()), context);
     // TODO: Fix attributes of value and done
     let value_property = DataDescriptor::new(value, Attribute::all());
     let done_property = DataDescriptor::new(done, Attribute::all());

@@ -74,7 +74,7 @@ impl Executable for ArrowFunctionDecl {
             FunctionFlags::CALLABLE
                 | FunctionFlags::CONSTRUCTABLE
                 | FunctionFlags::LEXICAL_THIS_MODE,
-        ))
+        )?)
     }
 }
 

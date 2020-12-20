@@ -180,10 +180,10 @@ impl Executable for BinOp {
                 }
                 Node::GetConstField(ref get_const_field) => {
                     let v_r_a = get_const_field.obj().run(context)?;
-                    let v_a = v_r_a.get_field(get_const_field.field());
+                    let v_a = v_r_a.get_field(get_const_field.field(), context)?;
                     let v_b = self.rhs().run(context)?;
                     let value = Self::run_assign(op, v_a, v_b, context)?;
-                    v_r_a.set_field(get_const_field.field(), value.clone());
+                    v_r_a.set_field(get_const_field.field(), value.clone(), context)?;
                     Ok(value)
                 }
                 _ => Ok(Value::undefined()),
