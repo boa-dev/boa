@@ -285,11 +285,7 @@ impl Context {
     /// Construct an empty object.
     #[inline]
     pub fn construct_object(&mut self) -> GcObject {
-        let object_prototype: Value = self
-            .standard_objects()
-            .object_object()
-            .prototype()
-            .into();
+        let object_prototype: Value = self.standard_objects().object_object().prototype().into();
         GcObject::new(Object::create(object_prototype))
     }
 
@@ -455,11 +451,8 @@ impl Context {
         P: Into<Box<[FormalParameter]>>,
         B: Into<StatementList>,
     {
-        let function_prototype: Value = self
-            .standard_objects()
-            .function_object()
-            .prototype()
-            .into();
+        let function_prototype: Value =
+            self.standard_objects().function_object().prototype().into();
 
         // Every new function has a prototype property pre-made
         let proto = Value::new_object(Some(self.global_object()), self);
@@ -493,11 +486,7 @@ impl Context {
         length: usize,
         body: NativeFunction,
     ) -> Result<GcObject> {
-        let function_prototype: Value = self
-            .standard_objects()
-            .object_object()
-            .prototype()
-            .into();
+        let function_prototype: Value = self.standard_objects().object_object().prototype().into();
 
         // Every new function has a prototype property pre-made
         let proto = Value::new_object(Some(self.global_object()), self);
