@@ -201,13 +201,13 @@ pub(crate) fn display_obj(v: &Value, print_internals: bool) -> String {
                 .as_ref()
                 .and_then(|p| p.as_data_descriptor())
                 .map(|d| d.value())
-                .unwrap_or(Value::undefined());
+                .unwrap_or_else(Value::undefined);
             let message = v
                 .get_property("message")
                 .as_ref()
                 .and_then(|p| p.as_data_descriptor())
                 .map(|d| d.value())
-                .unwrap_or(Value::undefined());
+                .unwrap_or_else(Value::undefined);
             return format!("{}: {}", name.display(), message.display());
         }
     }

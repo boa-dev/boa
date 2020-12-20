@@ -231,7 +231,6 @@ pub fn make_builtin_fn<N>(
             .standard_objects()
             .function_object()
             .prototype()
-            .clone()
             .into(),
     );
     function.insert_property("length", length, Attribute::all());

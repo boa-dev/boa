@@ -476,7 +476,6 @@ impl Array {
                 .standard_objects()
                 .object_object()
                 .prototype()
-                .clone()
                 .into();
             method = object_prototype.get_field("toString", context)?;
 

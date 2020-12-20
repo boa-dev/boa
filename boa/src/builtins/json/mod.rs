@@ -231,7 +231,7 @@ impl Json {
                             .as_ref()
                             .and_then(|p| p.as_data_descriptor())
                             .map(|d| d.value())
-                            .unwrap_or(Value::undefined()),
+                            .unwrap_or_else(Value::undefined),
                     )
                 }
             });

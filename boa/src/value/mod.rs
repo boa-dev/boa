@@ -168,7 +168,6 @@ impl Value {
                     .standard_objects()
                     .object_object()
                     .prototype()
-                    .clone()
                     .into(),
             );
             Self::object(object)
@@ -471,7 +470,7 @@ impl Value {
         match self.get_property(key) {
             Some(ref desc) => match desc {
                 PropertyDescriptor::Accessor(AccessorDescriptor { get: Some(get), .. }) => {
-                    get.call(&Value::from(self.clone()), &[], context)
+                    get.call(&self.clone(), &[], context)
                 }
                 PropertyDescriptor::Data(desc) => Ok(desc.value()),
                 _ => Ok(Value::undefined()),

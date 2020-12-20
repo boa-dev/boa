@@ -289,7 +289,6 @@ impl Context {
             .standard_objects()
             .object_object()
             .prototype()
-            .clone()
             .into();
         GcObject::new(Object::create(object_prototype))
     }
@@ -460,7 +459,6 @@ impl Context {
             .standard_objects()
             .function_object()
             .prototype()
-            .clone()
             .into();
 
         // Every new function has a prototype property pre-made
@@ -499,7 +497,6 @@ impl Context {
             .standard_objects()
             .object_object()
             .prototype()
-            .clone()
             .into();
 
         // Every new function has a prototype property pre-made
