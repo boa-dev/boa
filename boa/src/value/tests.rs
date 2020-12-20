@@ -606,6 +606,19 @@ fn to_integer_or_infinity() {
     );
 }
 
+#[test]
+fn test_accessors() {
+    let mut context = Context::new();
+    let src = r#"
+            let arr = [];
+            let a = { get b() { return "c" }, set b(value) { arr = arr.concat([value]) }} ;
+            a.b = "a";
+        "#;
+    context.eval(src).unwrap();
+    assert_eq!(forward(&mut context, "a.b"), r#""c""#);
+    assert_eq!(forward(&mut context, "arr"), r#"[ "a" ]"#);
+}
+
 /// Test cyclic conversions that previously caused stack overflows
 /// Relevant mitigations for these are in `GcObject::ordinary_to_primitive` and
 /// `GcObject::to_json`
