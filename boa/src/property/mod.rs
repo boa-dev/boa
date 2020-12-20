@@ -118,11 +118,11 @@ impl From<DataDescriptor> for PropertyDescriptor {
 #[derive(Debug, Clone, Trace, Finalize)]
 pub struct AccessorDescriptor {
     /// The function serving as getter.
-    pub get: Option<GcObject>,
+    pub(crate) get: Option<GcObject>,
     /// The function serving as setter.
-    pub set: Option<GcObject>,
+    pub(crate) set: Option<GcObject>,
     /// The attributes of the accessor descriptor.
-    pub attributes: Attribute,
+    pub(crate) attributes: Attribute,
 }
 
 impl AccessorDescriptor {

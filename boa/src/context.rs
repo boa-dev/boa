@@ -531,7 +531,7 @@ impl Context {
             if let ObjectData::Array = x.borrow().data {
                 let length = value.get_field("length", self)?.as_number().unwrap() as i32;
                 let values = (0..length)
-                    .map(|idx| value.get_field(idx.to_string(), self))
+                    .map(|idx| value.get_field(idx, self))
                     .collect::<Result<Vec<_>>>()?;
                 return Ok(Ok(values));
             }
@@ -559,8 +559,8 @@ impl Context {
                                 .expect("Array was not initialized")
                                 .get_field(PROTOTYPE, self)?,
                         );
-                        array.set_field("0", key, self)?;
-                        array.set_field("1", value, self)?;
+                        array.set_field(0, key, self)?;
+                        array.set_field(1, value, self)?;
                         array.set_field("length", Value::from(2), self)?;
                         Ok(array)
                     })

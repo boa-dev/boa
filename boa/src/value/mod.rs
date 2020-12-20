@@ -34,7 +34,6 @@ mod rcstring;
 mod rcsymbol;
 mod r#type;
 
-use crate::property::AccessorDescriptor;
 pub use conversions::*;
 pub use display::ValueDisplay;
 pub use equality::*;
@@ -466,16 +465,10 @@ impl Value {
         K: Into<PropertyKey>,
     {
         let _timer = BoaProfiler::global().start_event("Value::get_field", "value");
-        let key = key.into();
-        match self.get_property(key) {
-            Some(ref desc) => match desc {
-                PropertyDescriptor::Accessor(AccessorDescriptor { get: Some(get), .. }) => {
-                    get.call(&self.clone(), &[], context)
-                }
-                PropertyDescriptor::Data(desc) => Ok(desc.value()),
-                _ => Ok(Value::undefined()),
-            },
-            None => Ok(Value::undefined()),
+        if let Self::Object(ref obj) = *self {
+            obj.clone().get(&key.into(), context)
+        } else {
+            Ok(Value::undefined())
         }
     }
 

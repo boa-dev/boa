@@ -100,7 +100,7 @@ impl Map {
                         let mut map = OrderedMap::new();
                         let len = args[0].get_field("length", context)?.to_integer(context)? as i32;
                         for i in 0..len {
-                            let val = &args[0].get_field(i.to_string(), context)?;
+                            let val = &args[0].get_field(i, context)?;
                             let (key, value) =
                                 Self::get_key_value(val, context)?.ok_or_else(|| {
                                     context.construct_type_error(
