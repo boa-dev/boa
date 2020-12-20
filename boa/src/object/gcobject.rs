@@ -145,6 +145,7 @@ impl GcObject {
                                 BindingStatus::Uninitialized
                             },
                         );
+                        context.realm_mut().environment.push(local_env.clone());
 
                         // Add argument bindings to the function environment
                         for (i, param) in params.iter().enumerate() {
@@ -154,7 +155,17 @@ impl GcObject {
                                 break;
                             }
 
-                            let value = args.get(i).cloned().unwrap_or_else(Value::undefined);
+                            let value = match args.get(i).cloned() {
+                                None | Some(Value::Undefined) => {
+                                    if let Some(init) = param.init() {
+                                        init.run(context).unwrap_or(Value::Undefined)
+                                    } else {
+                                        Value::Undefined
+                                    }
+                                }
+                                Some(value) => value,
+                            };
+
                             function.add_arguments_to_environment(param, value, &local_env);
                         }
 
@@ -166,8 +177,6 @@ impl GcObject {
                         local_env
                             .borrow_mut()
                             .initialize_binding("arguments", arguments_obj);
-
-                        context.realm_mut().environment.push(local_env);
 
                         FunctionBody::Ordinary(body.clone())
                     }
@@ -226,6 +235,7 @@ impl GcObject {
                                 BindingStatus::Uninitialized
                             },
                         );
+                        context.realm_mut().environment.push(local_env.clone());
 
                         // Add argument bindings to the function environment
                         for (i, param) in params.iter().enumerate() {
@@ -235,7 +245,17 @@ impl GcObject {
                                 break;
                             }
 
-                            let value = args.get(i).cloned().unwrap_or_else(Value::undefined);
+                            let value = match args.get(i).cloned() {
+                                None | Some(Value::Undefined) => {
+                                    if let Some(init) = param.init() {
+                                        init.run(context).unwrap_or(Value::Undefined)
+                                    } else {
+                                        Value::Undefined
+                                    }
+                                }
+                                Some(value) => value,
+                            };
+
                             function.add_arguments_to_environment(param, value, &local_env);
                         }
 
@@ -247,8 +267,6 @@ impl GcObject {
                         local_env
                             .borrow_mut()
                             .initialize_binding("arguments", arguments_obj);
-
-                        context.realm_mut().environment.push(local_env);
 
                         FunctionBody::Ordinary(body.clone())
                     }
