@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/getrandom-0.1.15/src/error.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>error.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="https://www.rust-lang.org/favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../getrandom/index.html'><div class='logo-container'><img src='https://www.rust-lang.org/logos/rust-logo-128x128-blk.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/getrandom-0.2.0/src/error.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>error.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="https://www.rust-lang.org/favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../getrandom/index.html'><div class='logo-container'><img src='https://www.rust-lang.org/logos/rust-logo-128x128-blk.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
                 <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
@@ -176,6 +176,13 @@
 <span id="175">175</span>
 <span id="176">176</span>
 <span id="177">177</span>
+<span id="178">178</span>
+<span id="179">179</span>
+<span id="180">180</span>
+<span id="181">181</span>
+<span id="182">182</span>
+<span id="183">183</span>
+<span id="184">184</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Copyright 2018 Developers of the Rand project.</span>
 <span class="comment">//</span>
@@ -184,10 +191,9 @@
 <span class="comment">// &lt;LICENSE-MIT or https://opensource.org/licenses/MIT&gt;, at your</span>
 <span class="comment">// option. This file may not be copied, modified, or distributed</span>
 <span class="comment">// except according to those terms.</span>
-<span class="kw">use</span> <span class="ident">core</span>::<span class="ident">fmt</span>;
-<span class="kw">use</span> <span class="ident">core</span>::<span class="ident">num</span>::<span class="ident">NonZeroU32</span>;
+<span class="kw">use</span> <span class="ident">core</span>::{<span class="ident">fmt</span>, <span class="ident">num</span>::<span class="ident">NonZeroU32</span>};
 
-<span class="doccomment">/// A small and `no_std` compatible error type.</span>
+<span class="doccomment">/// A small and `no_std` compatible error type</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// The [`Error::raw_os_error()`] will indicate if the error is from the OS, and</span>
 <span class="doccomment">/// if so, which error code the OS gave the application. If such an error is</span>
@@ -195,16 +201,44 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// Internally this type is a NonZeroU32, with certain values reserved for</span>
 <span class="doccomment">/// certain purposes, see [`Error::INTERNAL_START`] and [`Error::CUSTOM_START`].</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// *If this crate&#39;s `&quot;std&quot;` Cargo feature is enabled*, then:</span>
+<span class="doccomment">/// - [`getrandom::Error`][Error] implements</span>
+<span class="doccomment">///   [`std::error::Error`](https://doc.rust-lang.org/std/error/trait.Error.html)</span>
+<span class="doccomment">/// - [`std::io::Error`](https://doc.rust-lang.org/std/io/struct.Error.html) implements</span>
+<span class="doccomment">///   [`From&lt;getrandom::Error&gt;`](https://doc.rust-lang.org/std/convert/trait.From.html).</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Error</span>(<span class="ident">NonZeroU32</span>);
 
+<span class="kw">const</span> <span class="kw">fn</span> <span class="ident">internal_error</span>(<span class="ident">n</span>: <span class="ident">u16</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Error</span> {
+    <span class="comment">// SAFETY: code &gt; 0 as INTERNAL_START &gt; 0 and adding n won&#39;t overflow a u32.</span>
+    <span class="kw">let</span> <span class="ident">code</span> <span class="op">=</span> <span class="ident">Error</span>::<span class="ident">INTERNAL_START</span> <span class="op">+</span> (<span class="ident">n</span> <span class="kw">as</span> <span class="ident">u32</span>);
+    <span class="ident">Error</span>(<span class="kw">unsafe</span> { <span class="ident">NonZeroU32</span>::<span class="ident">new_unchecked</span>(<span class="ident">code</span>) })
+}
+
 <span class="kw">impl</span> <span class="ident">Error</span> {
-    <span class="attribute">#[<span class="ident">deprecated</span>(<span class="ident">since</span> <span class="op">=</span> <span class="string">&quot;0.1.7&quot;</span>)]</span>
-    <span class="doccomment">/// Unknown error.</span>
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">UNKNOWN</span>: <span class="ident">Error</span> <span class="op">=</span> <span class="ident">UNSUPPORTED</span>;
-    <span class="attribute">#[<span class="ident">deprecated</span>(<span class="ident">since</span> <span class="op">=</span> <span class="string">&quot;0.1.7&quot;</span>)]</span>
-    <span class="doccomment">/// System entropy source is unavailable.</span>
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">UNAVAILABLE</span>: <span class="ident">Error</span> <span class="op">=</span> <span class="ident">UNSUPPORTED</span>;
+    <span class="doccomment">/// This target/platform is not supported by `getrandom`.</span>
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">UNSUPPORTED</span>: <span class="ident">Error</span> <span class="op">=</span> <span class="ident">internal_error</span>(<span class="number">0</span>);
+    <span class="doccomment">/// The platform-specific `errno` returned a non-positive value.</span>
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ERRNO_NOT_POSITIVE</span>: <span class="ident">Error</span> <span class="op">=</span> <span class="ident">internal_error</span>(<span class="number">1</span>);
+    <span class="doccomment">/// Call to iOS [`SecRandomCopyBytes`](https://developer.apple.com/documentation/security/1399291-secrandomcopybytes) failed.</span>
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">IOS_SEC_RANDOM</span>: <span class="ident">Error</span> <span class="op">=</span> <span class="ident">internal_error</span>(<span class="number">3</span>);
+    <span class="doccomment">/// Call to Windows [`RtlGenRandom`](https://docs.microsoft.com/en-us/windows/win32/api/ntsecapi/nf-ntsecapi-rtlgenrandom) failed.</span>
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">WINDOWS_RTL_GEN_RANDOM</span>: <span class="ident">Error</span> <span class="op">=</span> <span class="ident">internal_error</span>(<span class="number">4</span>);
+    <span class="doccomment">/// RDRAND instruction failed due to a hardware issue.</span>
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">FAILED_RDRAND</span>: <span class="ident">Error</span> <span class="op">=</span> <span class="ident">internal_error</span>(<span class="number">5</span>);
+    <span class="doccomment">/// RDRAND instruction unsupported on this target.</span>
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NO_RDRAND</span>: <span class="ident">Error</span> <span class="op">=</span> <span class="ident">internal_error</span>(<span class="number">6</span>);
+    <span class="doccomment">/// The browser does not have support for `self.crypto`.</span>
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">WEB_CRYPTO</span>: <span class="ident">Error</span> <span class="op">=</span> <span class="ident">internal_error</span>(<span class="number">7</span>);
+    <span class="doccomment">/// The browser does not have support for `crypto.getRandomValues`.</span>
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">WEB_GET_RANDOM_VALUES</span>: <span class="ident">Error</span> <span class="op">=</span> <span class="ident">internal_error</span>(<span class="number">8</span>);
+    <span class="doccomment">/// On VxWorks, call to `randSecure` failed (random number generator is not yet initialized).</span>
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">VXWORKS_RAND_SECURE</span>: <span class="ident">Error</span> <span class="op">=</span> <span class="ident">internal_error</span>(<span class="number">11</span>);
+    <span class="doccomment">/// NodeJS does not have support for the `crypto` module.</span>
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NODE_CRYPTO</span>: <span class="ident">Error</span> <span class="op">=</span> <span class="ident">internal_error</span>(<span class="number">12</span>);
+    <span class="doccomment">/// NodeJS does not have support for `crypto.randomFillSync`.</span>
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NODE_RANDOM_FILL_SYNC</span>: <span class="ident">Error</span> <span class="op">=</span> <span class="ident">internal_error</span>(<span class="number">13</span>);
 
     <span class="doccomment">/// Codes below this point represent OS Errors (i.e. positive i32 values).</span>
     <span class="doccomment">/// Codes at or above this point, but below [`Error::CUSTOM_START`] are</span>
@@ -217,9 +251,11 @@
 
     <span class="doccomment">/// Extract the raw OS error code (if this error came from the OS)</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// This method is identical to `std::io::Error::raw_os_error()`, except</span>
+    <span class="doccomment">/// This method is identical to [`std::io::Error::raw_os_error()`][1], except</span>
     <span class="doccomment">/// that it works in `no_std` contexts. If this method returns `None`, the</span>
     <span class="doccomment">/// error value can still be formatted via the `Display` implementation.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// [1]: https://doc.rust-lang.org/std/io/struct.Error.html#method.raw_os_error</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">raw_os_error</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">i32</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="self">self</span>.<span class="number">0</span>.<span class="ident">get</span>() <span class="op">&lt;</span> <span class="self">Self</span>::<span class="ident">INTERNAL_START</span> {
@@ -234,7 +270,7 @@
     <span class="doccomment">/// This code can either come from the underlying OS, or be a custom error.</span>
     <span class="doccomment">/// Use [`Error::raw_os_error()`] to disambiguate.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">code</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NonZeroU32</span> {
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">code</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NonZeroU32</span> {
         <span class="self">self</span>.<span class="number">0</span>
     }
 }
@@ -304,41 +340,19 @@
     }
 }
 
-<span class="comment">// TODO: Convert to a function when min_version &gt;= 1.33</span>
-<span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">internal_error</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">n</span>:<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> {
-        <span class="ident">Error</span>(<span class="kw">unsafe</span> { <span class="ident">NonZeroU32</span>::<span class="ident">new_unchecked</span>(<span class="ident">Error</span>::<span class="ident">INTERNAL_START</span> <span class="op">+</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">n</span> <span class="kw">as</span> <span class="ident">u16</span> <span class="kw">as</span> <span class="ident">u32</span>) })
-    };
-}
-
-<span class="doccomment">/// Internal Error constants</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const</span> <span class="ident">UNSUPPORTED</span>: <span class="ident">Error</span> <span class="op">=</span> <span class="macro">internal_error</span><span class="macro">!</span>(<span class="number">0</span>);
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const</span> <span class="ident">ERRNO_NOT_POSITIVE</span>: <span class="ident">Error</span> <span class="op">=</span> <span class="macro">internal_error</span><span class="macro">!</span>(<span class="number">1</span>);
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const</span> <span class="ident">UNKNOWN_IO_ERROR</span>: <span class="ident">Error</span> <span class="op">=</span> <span class="macro">internal_error</span><span class="macro">!</span>(<span class="number">2</span>);
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const</span> <span class="ident">SEC_RANDOM_FAILED</span>: <span class="ident">Error</span> <span class="op">=</span> <span class="macro">internal_error</span><span class="macro">!</span>(<span class="number">3</span>);
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const</span> <span class="ident">RTL_GEN_RANDOM_FAILED</span>: <span class="ident">Error</span> <span class="op">=</span> <span class="macro">internal_error</span><span class="macro">!</span>(<span class="number">4</span>);
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const</span> <span class="ident">FAILED_RDRAND</span>: <span class="ident">Error</span> <span class="op">=</span> <span class="macro">internal_error</span><span class="macro">!</span>(<span class="number">5</span>);
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const</span> <span class="ident">NO_RDRAND</span>: <span class="ident">Error</span> <span class="op">=</span> <span class="macro">internal_error</span><span class="macro">!</span>(<span class="number">6</span>);
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const</span> <span class="ident">BINDGEN_CRYPTO_UNDEF</span>: <span class="ident">Error</span> <span class="op">=</span> <span class="macro">internal_error</span><span class="macro">!</span>(<span class="number">7</span>);
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const</span> <span class="ident">BINDGEN_GRV_UNDEF</span>: <span class="ident">Error</span> <span class="op">=</span> <span class="macro">internal_error</span><span class="macro">!</span>(<span class="number">8</span>);
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const</span> <span class="ident">STDWEB_NO_RNG</span>: <span class="ident">Error</span> <span class="op">=</span> <span class="macro">internal_error</span><span class="macro">!</span>(<span class="number">9</span>);
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const</span> <span class="ident">STDWEB_RNG_FAILED</span>: <span class="ident">Error</span> <span class="op">=</span> <span class="macro">internal_error</span><span class="macro">!</span>(<span class="number">10</span>);
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const</span> <span class="ident">RAND_SECURE_FATAL</span>: <span class="ident">Error</span> <span class="op">=</span> <span class="macro">internal_error</span><span class="macro">!</span>(<span class="number">11</span>);
-
 <span class="kw">fn</span> <span class="ident">internal_desc</span>(<span class="ident">error</span>: <span class="ident">Error</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span><span class="op">&gt;</span> {
     <span class="kw">match</span> <span class="ident">error</span> {
-        <span class="ident">UNSUPPORTED</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="string">&quot;getrandom: this target is not supported&quot;</span>),
-        <span class="ident">ERRNO_NOT_POSITIVE</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="string">&quot;errno: did not return a positive value&quot;</span>),
-        <span class="ident">UNKNOWN_IO_ERROR</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="string">&quot;Unknown std::io::Error&quot;</span>),
-        <span class="ident">SEC_RANDOM_FAILED</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="string">&quot;SecRandomCopyBytes: call failed&quot;</span>),
-        <span class="ident">RTL_GEN_RANDOM_FAILED</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="string">&quot;RtlGenRandom: call failed&quot;</span>),
-        <span class="ident">FAILED_RDRAND</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="string">&quot;RDRAND: failed multiple times: CPU issue likely&quot;</span>),
-        <span class="ident">NO_RDRAND</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="string">&quot;RDRAND: instruction not supported&quot;</span>),
-        <span class="ident">BINDGEN_CRYPTO_UNDEF</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="string">&quot;wasm-bindgen: self.crypto is undefined&quot;</span>),
-        <span class="ident">BINDGEN_GRV_UNDEF</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="string">&quot;wasm-bindgen: crypto.getRandomValues is undefined&quot;</span>),
-        <span class="ident">STDWEB_NO_RNG</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="string">&quot;stdweb: no randomness source available&quot;</span>),
-        <span class="ident">STDWEB_RNG_FAILED</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="string">&quot;stdweb: failed to get randomness&quot;</span>),
-        <span class="ident">RAND_SECURE_FATAL</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="string">&quot;randSecure: random number generator module is not initialized&quot;</span>),
+        <span class="ident">Error</span>::<span class="ident">UNSUPPORTED</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="string">&quot;getrandom: this target is not supported&quot;</span>),
+        <span class="ident">Error</span>::<span class="ident">ERRNO_NOT_POSITIVE</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="string">&quot;errno: did not return a positive value&quot;</span>),
+        <span class="ident">Error</span>::<span class="ident">IOS_SEC_RANDOM</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="string">&quot;SecRandomCopyBytes: iOS Security framework failure&quot;</span>),
+        <span class="ident">Error</span>::<span class="ident">WINDOWS_RTL_GEN_RANDOM</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="string">&quot;RtlGenRandom: Windows system function failure&quot;</span>),
+        <span class="ident">Error</span>::<span class="ident">FAILED_RDRAND</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="string">&quot;RDRAND: failed multiple times: CPU issue likely&quot;</span>),
+        <span class="ident">Error</span>::<span class="ident">NO_RDRAND</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="string">&quot;RDRAND: instruction not supported&quot;</span>),
+        <span class="ident">Error</span>::<span class="ident">WEB_CRYPTO</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="string">&quot;Web API self.crypto is unavailable&quot;</span>),
+        <span class="ident">Error</span>::<span class="ident">WEB_GET_RANDOM_VALUES</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="string">&quot;Web API crypto.getRandomValues is unavailable&quot;</span>),
+        <span class="ident">Error</span>::<span class="ident">VXWORKS_RAND_SECURE</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="string">&quot;randSecure: VxWorks RNG module is not initialized&quot;</span>),
+        <span class="ident">Error</span>::<span class="ident">NODE_CRYPTO</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="string">&quot;Node.js crypto module is unavailable&quot;</span>),
+        <span class="ident">Error</span>::<span class="ident">NODE_RANDOM_FILL_SYNC</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="string">&quot;Node.js API crypto.randomFillSync is unavailable&quot;</span>),
         <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
     }
 }

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/rand-0.7.3/src/distributions/utils.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>utils.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script src="../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="shortcut icon" href="https://www.rust-lang.org/favicon.ico"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../rand/index.html'><div class='logo-container'><img src='https://www.rust-lang.org/logos/rust-logo-128x128-blk.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/rand-0.8.0/src/distributions/utils.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>utils.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script src="../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="shortcut icon" href="https://www.rust-lang.org/favicon.ico"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../rand/index.html'><div class='logo-container'><img src='https://www.rust-lang.org/logos/rust-logo-128x128-blk.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
                 <a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
@@ -428,124 +428,6 @@
 <span id="427">427</span>
 <span id="428">428</span>
 <span id="429">429</span>
-<span id="430">430</span>
-<span id="431">431</span>
-<span id="432">432</span>
-<span id="433">433</span>
-<span id="434">434</span>
-<span id="435">435</span>
-<span id="436">436</span>
-<span id="437">437</span>
-<span id="438">438</span>
-<span id="439">439</span>
-<span id="440">440</span>
-<span id="441">441</span>
-<span id="442">442</span>
-<span id="443">443</span>
-<span id="444">444</span>
-<span id="445">445</span>
-<span id="446">446</span>
-<span id="447">447</span>
-<span id="448">448</span>
-<span id="449">449</span>
-<span id="450">450</span>
-<span id="451">451</span>
-<span id="452">452</span>
-<span id="453">453</span>
-<span id="454">454</span>
-<span id="455">455</span>
-<span id="456">456</span>
-<span id="457">457</span>
-<span id="458">458</span>
-<span id="459">459</span>
-<span id="460">460</span>
-<span id="461">461</span>
-<span id="462">462</span>
-<span id="463">463</span>
-<span id="464">464</span>
-<span id="465">465</span>
-<span id="466">466</span>
-<span id="467">467</span>
-<span id="468">468</span>
-<span id="469">469</span>
-<span id="470">470</span>
-<span id="471">471</span>
-<span id="472">472</span>
-<span id="473">473</span>
-<span id="474">474</span>
-<span id="475">475</span>
-<span id="476">476</span>
-<span id="477">477</span>
-<span id="478">478</span>
-<span id="479">479</span>
-<span id="480">480</span>
-<span id="481">481</span>
-<span id="482">482</span>
-<span id="483">483</span>
-<span id="484">484</span>
-<span id="485">485</span>
-<span id="486">486</span>
-<span id="487">487</span>
-<span id="488">488</span>
-<span id="489">489</span>
-<span id="490">490</span>
-<span id="491">491</span>
-<span id="492">492</span>
-<span id="493">493</span>
-<span id="494">494</span>
-<span id="495">495</span>
-<span id="496">496</span>
-<span id="497">497</span>
-<span id="498">498</span>
-<span id="499">499</span>
-<span id="500">500</span>
-<span id="501">501</span>
-<span id="502">502</span>
-<span id="503">503</span>
-<span id="504">504</span>
-<span id="505">505</span>
-<span id="506">506</span>
-<span id="507">507</span>
-<span id="508">508</span>
-<span id="509">509</span>
-<span id="510">510</span>
-<span id="511">511</span>
-<span id="512">512</span>
-<span id="513">513</span>
-<span id="514">514</span>
-<span id="515">515</span>
-<span id="516">516</span>
-<span id="517">517</span>
-<span id="518">518</span>
-<span id="519">519</span>
-<span id="520">520</span>
-<span id="521">521</span>
-<span id="522">522</span>
-<span id="523">523</span>
-<span id="524">524</span>
-<span id="525">525</span>
-<span id="526">526</span>
-<span id="527">527</span>
-<span id="528">528</span>
-<span id="529">529</span>
-<span id="530">530</span>
-<span id="531">531</span>
-<span id="532">532</span>
-<span id="533">533</span>
-<span id="534">534</span>
-<span id="535">535</span>
-<span id="536">536</span>
-<span id="537">537</span>
-<span id="538">538</span>
-<span id="539">539</span>
-<span id="540">540</span>
-<span id="541">541</span>
-<span id="542">542</span>
-<span id="543">543</span>
-<span id="544">544</span>
-<span id="545">545</span>
-<span id="546">546</span>
-<span id="547">547</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Copyright 2018 Developers of the Rand project.</span>
 <span class="comment">//</span>
@@ -557,12 +439,10 @@
 
 <span class="doccomment">//! Math helper functions</span>
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">distributions</span>::<span class="ident">ziggurat_tables</span>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">Rng</span>;
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;simd_support&quot;</span>)]</span> <span class="kw">use</span> <span class="ident">packed_simd</span>::<span class="kw-2">*</span>;
 
 
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">WideningMultiply</span><span class="op">&lt;</span><span class="ident">RHS</span> <span class="op">=</span> <span class="self">Self</span><span class="op">&gt;</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">trait</span> <span class="ident">WideningMultiply</span><span class="op">&lt;</span><span class="ident">RHS</span> <span class="op">=</span> <span class="self">Self</span><span class="op">&gt;</span> {
     <span class="kw">type</span> <span class="ident">Output</span>;
 
     <span class="kw">fn</span> <span class="ident">wmul</span>(<span class="self">self</span>, <span class="ident">x</span>: <span class="ident">RHS</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">Output</span>;
@@ -694,7 +574,7 @@
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_pointer_width</span> <span class="op">=</span> <span class="string">&quot;64&quot;</span>)]</span>
 <span class="macro">wmul_impl_usize</span><span class="macro">!</span> { <span class="ident">u64</span> }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;simd_support&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;nightly&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;simd_support&quot;</span>)]</span>
 <span class="kw">mod</span> <span class="ident">simd_wmul</span> {
     <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;x86&quot;</span>)]</span> <span class="kw">use</span> <span class="ident">core</span>::<span class="ident">arch</span>::<span class="ident">x86</span>::<span class="kw-2">*</span>;
@@ -710,9 +590,8 @@
     }
 
     <span class="macro">wmul_impl</span><span class="macro">!</span> { (<span class="ident">u16x2</span>, <span class="ident">u32x2</span>),, <span class="number">16</span> }
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">target_feature</span> <span class="op">=</span> <span class="string">&quot;sse2&quot;</span>))]</span>
     <span class="macro">wmul_impl</span><span class="macro">!</span> { (<span class="ident">u16x4</span>, <span class="ident">u32x4</span>),, <span class="number">16</span> }
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">target_feature</span> <span class="op">=</span> <span class="string">&quot;sse4.2&quot;</span>))]</span>
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">target_feature</span> <span class="op">=</span> <span class="string">&quot;sse2&quot;</span>))]</span>
     <span class="macro">wmul_impl</span><span class="macro">!</span> { (<span class="ident">u16x8</span>, <span class="ident">u32x8</span>),, <span class="number">16</span> }
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">target_feature</span> <span class="op">=</span> <span class="string">&quot;avx2&quot;</span>))]</span>
     <span class="macro">wmul_impl</span><span class="macro">!</span> { (<span class="ident">u16x16</span>, <span class="ident">u32x16</span>),, <span class="number">16</span> }
@@ -738,8 +617,6 @@
     }
 
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_feature</span> <span class="op">=</span> <span class="string">&quot;sse2&quot;</span>)]</span>
-    <span class="macro">wmul_impl_16</span><span class="macro">!</span> { <span class="ident">u16x4</span>, <span class="ident">__m64</span>, <span class="ident">_mm_mulhi_pu16</span>, <span class="ident">_mm_mullo_pi16</span> }
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_feature</span> <span class="op">=</span> <span class="string">&quot;sse4.2&quot;</span>)]</span>
     <span class="macro">wmul_impl_16</span><span class="macro">!</span> { <span class="ident">u16x8</span>, <span class="ident">__m128i</span>, <span class="ident">_mm_mulhi_epu16</span>, <span class="ident">_mm_mullo_epi16</span> }
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_feature</span> <span class="op">=</span> <span class="string">&quot;avx2&quot;</span>)]</span>
     <span class="macro">wmul_impl_16</span><span class="macro">!</span> { <span class="ident">u16x16</span>, <span class="ident">__m256i</span>, <span class="ident">_mm256_mulhi_epu16</span>, <span class="ident">_mm256_mullo_epi16</span> }
@@ -759,9 +636,6 @@
     <span class="macro">wmul_impl_large</span><span class="macro">!</span> { (<span class="ident">u32x16</span>,) <span class="ident">u32</span>, <span class="number">16</span> }
     <span class="macro">wmul_impl_large</span><span class="macro">!</span> { (<span class="ident">u64x2</span>, <span class="ident">u64x4</span>, <span class="ident">u64x8</span>,) <span class="ident">u64</span>, <span class="number">32</span> }
 }
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;simd_support&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;nightly&quot;</span>))]</span>
-<span class="kw">pub</span> <span class="kw">use</span> <span class="self">self</span>::<span class="ident">simd_wmul</span>::<span class="kw-2">*</span>;
-
 
 <span class="doccomment">/// Helper trait when dealing with scalar and SIMD floating point types.</span>
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">trait</span> <span class="ident">FloatSIMDUtils</span> {
@@ -984,115 +858,5 @@
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span><span class="op">=</span><span class="string">&quot;simd_support&quot;</span>)]</span> <span class="macro">simd_impl</span><span class="macro">!</span> { <span class="ident">f64x2</span>, <span class="ident">f64</span>, <span class="ident">m64x2</span>, <span class="ident">u64x2</span> }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span><span class="op">=</span><span class="string">&quot;simd_support&quot;</span>)]</span> <span class="macro">simd_impl</span><span class="macro">!</span> { <span class="ident">f64x4</span>, <span class="ident">f64</span>, <span class="ident">m64x4</span>, <span class="ident">u64x4</span> }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span><span class="op">=</span><span class="string">&quot;simd_support&quot;</span>)]</span> <span class="macro">simd_impl</span><span class="macro">!</span> { <span class="ident">f64x8</span>, <span class="ident">f64</span>, <span class="ident">m64x8</span>, <span class="ident">u64x8</span> }
-
-<span class="doccomment">/// Calculates ln(gamma(x)) (natural logarithm of the gamma</span>
-<span class="doccomment">/// function) using the Lanczos approximation.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// The approximation expresses the gamma function as:</span>
-<span class="doccomment">/// `gamma(z+1) = sqrt(2*pi)*(z+g+0.5)^(z+0.5)*exp(-z-g-0.5)*Ag(z)`</span>
-<span class="doccomment">/// `g` is an arbitrary constant; we use the approximation with `g=5`.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Noting that `gamma(z+1) = z*gamma(z)` and applying `ln` to both sides:</span>
-<span class="doccomment">/// `ln(gamma(z)) = (z+0.5)*ln(z+g+0.5)-(z+g+0.5) + ln(sqrt(2*pi)*Ag(z)/z)`</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// `Ag(z)` is an infinite series with coefficients that can be calculated</span>
-<span class="doccomment">/// ahead of time - we use just the first 6 terms, which is good enough</span>
-<span class="doccomment">/// for most purposes.</span>
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">log_gamma</span>(<span class="ident">x</span>: <span class="ident">f64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">f64</span> {
-    <span class="comment">// precalculated 6 coefficients for the first 6 terms of the series</span>
-    <span class="kw">let</span> <span class="ident">coefficients</span>: [<span class="ident">f64</span>; <span class="number">6</span>] <span class="op">=</span> [
-        <span class="number">76.18009172947146</span>,
-        <span class="op">-</span><span class="number">86.50532032941677</span>,
-        <span class="number">24.01409824083091</span>,
-        <span class="op">-</span><span class="number">1.231739572450155</span>,
-        <span class="number">0.1208650973866179e-2</span>,
-        <span class="op">-</span><span class="number">0.5395239384953e-5</span>,
-    ];
-
-    <span class="comment">// (x+0.5)*ln(x+g+0.5)-(x+g+0.5)</span>
-    <span class="kw">let</span> <span class="ident">tmp</span> <span class="op">=</span> <span class="ident">x</span> <span class="op">+</span> <span class="number">5.5</span>;
-    <span class="kw">let</span> <span class="ident">log</span> <span class="op">=</span> (<span class="ident">x</span> <span class="op">+</span> <span class="number">0.5</span>) <span class="op">*</span> <span class="ident">tmp</span>.<span class="ident">ln</span>() <span class="op">-</span> <span class="ident">tmp</span>;
-
-    <span class="comment">// the first few terms of the series for Ag(x)</span>
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">a</span> <span class="op">=</span> <span class="number">1.000000000190015</span>;
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">denom</span> <span class="op">=</span> <span class="ident">x</span>;
-    <span class="kw">for</span> <span class="ident">coeff</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">coefficients</span> {
-        <span class="ident">denom</span> <span class="op">+</span><span class="op">=</span> <span class="number">1.0</span>;
-        <span class="ident">a</span> <span class="op">+</span><span class="op">=</span> <span class="ident">coeff</span> <span class="op">/</span> <span class="ident">denom</span>;
-    }
-
-    <span class="comment">// get everything together</span>
-    <span class="comment">// a is Ag(x)</span>
-    <span class="comment">// 2.5066... is sqrt(2pi)</span>
-    <span class="ident">log</span> <span class="op">+</span> (<span class="number">2.5066282746310005</span> <span class="op">*</span> <span class="ident">a</span> <span class="op">/</span> <span class="ident">x</span>).<span class="ident">ln</span>()
-}
-
-<span class="doccomment">/// Sample a random number using the Ziggurat method (specifically the</span>
-<span class="doccomment">/// ZIGNOR variant from Doornik 2005). Most of the arguments are</span>
-<span class="doccomment">/// directly from the paper:</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// * `rng`: source of randomness</span>
-<span class="doccomment">/// * `symmetric`: whether this is a symmetric distribution, or one-sided with P(x &lt; 0) = 0.</span>
-<span class="doccomment">/// * `X`: the $x_i$ abscissae.</span>
-<span class="doccomment">/// * `F`: precomputed values of the PDF at the $x_i$, (i.e. $f(x_i)$)</span>
-<span class="doccomment">/// * `F_DIFF`: precomputed values of $f(x_i) - f(x_{i+1})$</span>
-<span class="doccomment">/// * `pdf`: the probability density function</span>
-<span class="doccomment">/// * `zero_case`: manual sampling from the tail when we chose the</span>
-<span class="doccomment">///    bottom box (i.e. i == 0)</span>
-
-<span class="comment">// the perf improvement (25-50%) is definitely worth the extra code</span>
-<span class="comment">// size from force-inlining.</span>
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span>
-<span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ziggurat</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">Rng</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span>, <span class="ident">P</span>, <span class="ident">Z</span><span class="op">&gt;</span>(
-    <span class="ident">rng</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">R</span>,
-    <span class="ident">symmetric</span>: <span class="ident">bool</span>,
-    <span class="ident">x_tab</span>: <span class="ident">ziggurat_tables</span>::<span class="ident">ZigTable</span>,
-    <span class="ident">f_tab</span>: <span class="ident">ziggurat_tables</span>::<span class="ident">ZigTable</span>,
-    <span class="kw-2">mut</span> <span class="ident">pdf</span>: <span class="ident">P</span>,
-    <span class="kw-2">mut</span> <span class="ident">zero_case</span>: <span class="ident">Z</span>
-) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">f64</span>
-<span class="kw">where</span>
-    <span class="ident">P</span>: <span class="ident">FnMut</span>(<span class="ident">f64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">f64</span>,
-    <span class="ident">Z</span>: <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">R</span>, <span class="ident">f64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">f64</span>,
-{
-    <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">distributions</span>::<span class="ident">float</span>::<span class="ident">IntoFloat</span>;
-    <span class="kw">loop</span> {
-        <span class="comment">// As an optimisation we re-implement the conversion to a f64.</span>
-        <span class="comment">// From the remaining 12 most significant bits we use 8 to construct `i`.</span>
-        <span class="comment">// This saves us generating a whole extra random number, while the added</span>
-        <span class="comment">// precision of using 64 bits for f64 does not buy us much.</span>
-        <span class="kw">let</span> <span class="ident">bits</span> <span class="op">=</span> <span class="ident">rng</span>.<span class="ident">next_u64</span>();
-        <span class="kw">let</span> <span class="ident">i</span> <span class="op">=</span> <span class="ident">bits</span> <span class="kw">as</span> <span class="ident">usize</span> <span class="op">&amp;</span> <span class="number">0xff</span>;
-
-        <span class="kw">let</span> <span class="ident">u</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">symmetric</span> {
-            <span class="comment">// Convert to a value in the range [2,4) and substract to get [-1,1)</span>
-            <span class="comment">// We can&#39;t convert to an open range directly, that would require</span>
-            <span class="comment">// substracting `3.0 - EPSILON`, which is not representable.</span>
-            <span class="comment">// It is possible with an extra step, but an open range does not</span>
-            <span class="comment">// seem neccesary for the ziggurat algorithm anyway.</span>
-            (<span class="ident">bits</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">12</span>).<span class="ident">into_float_with_exponent</span>(<span class="number">1</span>) <span class="op">-</span> <span class="number">3.0</span>
-        } <span class="kw">else</span> {
-            <span class="comment">// Convert to a value in the range [1,2) and substract to get (0,1)</span>
-            (<span class="ident">bits</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">12</span>).<span class="ident">into_float_with_exponent</span>(<span class="number">0</span>) <span class="op">-</span> (<span class="number">1.0</span> <span class="op">-</span> ::<span class="ident">core</span>::<span class="ident">f64</span>::<span class="ident">EPSILON</span> <span class="op">/</span> <span class="number">2.0</span>)
-        };
-        <span class="kw">let</span> <span class="ident">x</span> <span class="op">=</span> <span class="ident">u</span> <span class="op">*</span> <span class="ident">x_tab</span>[<span class="ident">i</span>];
-
-        <span class="kw">let</span> <span class="ident">test_x</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">symmetric</span> { <span class="ident">x</span>.<span class="ident">abs</span>() } <span class="kw">else</span> { <span class="ident">x</span> };
-
-        <span class="comment">// algebraically equivalent to |u| &lt; x_tab[i+1]/x_tab[i] (or u &lt; x_tab[i+1]/x_tab[i])</span>
-        <span class="kw">if</span> <span class="ident">test_x</span> <span class="op">&lt;</span> <span class="ident">x_tab</span>[<span class="ident">i</span> <span class="op">+</span> <span class="number">1</span>] {
-            <span class="kw">return</span> <span class="ident">x</span>;
-        }
-        <span class="kw">if</span> <span class="ident">i</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
-            <span class="kw">return</span> <span class="ident">zero_case</span>(<span class="ident">rng</span>, <span class="ident">u</span>);
-        }
-        <span class="comment">// algebraically equivalent to f1 + DRanU()*(f0 - f1) &lt; 1</span>
-        <span class="kw">if</span> <span class="ident">f_tab</span>[<span class="ident">i</span> <span class="op">+</span> <span class="number">1</span>] <span class="op">+</span> (<span class="ident">f_tab</span>[<span class="ident">i</span>] <span class="op">-</span> <span class="ident">f_tab</span>[<span class="ident">i</span> <span class="op">+</span> <span class="number">1</span>]) <span class="op">*</span> <span class="ident">rng</span>.<span class="ident">gen</span>::<span class="op">&lt;</span><span class="ident">f64</span><span class="op">&gt;</span>() <span class="op">&lt;</span> <span class="ident">pdf</span>(<span class="ident">x</span>) {
-            <span class="kw">return</span> <span class="ident">x</span>;
-        }
-    }
-}
 </pre></div>
 </section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../../../";window.currentCrate = "rand";</script><script src="../../../main.js"></script><script src="../../../source-script.js"></script><script src="../../../source-files.js"></script><script defer src="../../../search-index.js"></script></body></html>

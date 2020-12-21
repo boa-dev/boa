@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/rand-0.7.3/src/rngs/thread.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>thread.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script src="../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="shortcut icon" href="https://www.rust-lang.org/favicon.ico"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../rand/index.html'><div class='logo-container'><img src='https://www.rust-lang.org/logos/rust-logo-128x128-blk.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/rand-0.8.0/src/rngs/thread.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>thread.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script src="../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="shortcut icon" href="https://www.rust-lang.org/favicon.ico"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../rand/index.html'><div class='logo-container'><img src='https://www.rust-lang.org/logos/rust-logo-128x128-blk.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
                 <a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
@@ -123,6 +123,24 @@
 <span id="122">122</span>
 <span id="123">123</span>
 <span id="124">124</span>
+<span id="125">125</span>
+<span id="126">126</span>
+<span id="127">127</span>
+<span id="128">128</span>
+<span id="129">129</span>
+<span id="130">130</span>
+<span id="131">131</span>
+<span id="132">132</span>
+<span id="133">133</span>
+<span id="134">134</span>
+<span id="135">135</span>
+<span id="136">136</span>
+<span id="137">137</span>
+<span id="138">138</span>
+<span id="139">139</span>
+<span id="140">140</span>
+<span id="141">141</span>
+<span id="142">142</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Copyright 2018 Developers of the Rand project.</span>
 <span class="comment">//</span>
@@ -134,8 +152,9 @@
 
 <span class="doccomment">//! Thread-local random number generator</span>
 
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">cell</span>::<span class="ident">UnsafeCell</span>;
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">ptr</span>::<span class="ident">NonNull</span>;
+<span class="kw">use</span> <span class="ident">core</span>::<span class="ident">cell</span>::<span class="ident">UnsafeCell</span>;
+<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">rc</span>::<span class="ident">Rc</span>;
+<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">thread_local</span>;
 
 <span class="kw">use</span> <span class="kw">super</span>::<span class="ident">std</span>::<span class="ident">Core</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">rngs</span>::<span class="ident">adapter</span>::<span class="ident">ReseedingRng</span>;
@@ -162,37 +181,42 @@
 <span class="comment">// of 32 kB and less. We choose 64 kB to avoid significant overhead.</span>
 <span class="kw">const</span> <span class="ident">THREAD_RNG_RESEED_THRESHOLD</span>: <span class="ident">u64</span> <span class="op">=</span> <span class="number">1024</span> <span class="op">*</span> <span class="number">64</span>;
 
-<span class="doccomment">/// The type returned by [`thread_rng`], essentially just a reference to the</span>
-<span class="doccomment">/// PRNG in thread-local memory.</span>
+<span class="doccomment">/// A reference to the thread-local generator</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// `ThreadRng` uses the same PRNG as [`StdRng`] for security and performance.</span>
-<span class="doccomment">/// As hinted by the name, the generator is thread-local. `ThreadRng` is a</span>
-<span class="doccomment">/// handle to this generator and thus supports `Copy`, but not `Send` or `Sync`.</span>
+<span class="doccomment">/// An instance can be obtained via [`thread_rng`] or via `ThreadRng::default()`.</span>
+<span class="doccomment">/// This handle is safe to use everywhere (including thread-local destructors)</span>
+<span class="doccomment">/// but cannot be passed between threads (is not `Send` or `Sync`).</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// `ThreadRng` uses the same PRNG as [`StdRng`] for security and performance</span>
+<span class="doccomment">/// and is automatically seeded from [`OsRng`].</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// Unlike `StdRng`, `ThreadRng` uses the  [`ReseedingRng`] wrapper to reseed</span>
-<span class="doccomment">/// the PRNG from fresh entropy every 64 kiB of random data.</span>
-<span class="doccomment">/// [`OsRng`] is used to provide seed data.</span>
-<span class="doccomment">///</span>
+<span class="doccomment">/// the PRNG from fresh entropy every 64 kiB of random data as well as after a</span>
+<span class="doccomment">/// fork on Unix (though not quite immediately; see documentation of</span>
+<span class="doccomment">/// [`ReseedingRng`]).</span>
 <span class="doccomment">/// Note that the reseeding is done as an extra precaution against side-channel</span>
 <span class="doccomment">/// attacks and mis-use (e.g. if somehow weak entropy were supplied initially).</span>
 <span class="doccomment">/// The PRNG algorithms used are assumed to be secure.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// [`ReseedingRng`]: crate::rngs::adapter::ReseedingRng</span>
 <span class="doccomment">/// [`StdRng`]: crate::rngs::StdRng</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std_rng&quot;</span>))))]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ThreadRng</span> {
-    <span class="comment">// inner raw pointer implies type is neither Send nor Sync</span>
-    <span class="ident">rng</span>: <span class="ident">NonNull</span><span class="op">&lt;</span><span class="ident">ReseedingRng</span><span class="op">&lt;</span><span class="ident">Core</span>, <span class="ident">OsRng</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="comment">// Rc is explictly !Send and !Sync</span>
+    <span class="ident">rng</span>: <span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">UnsafeCell</span><span class="op">&lt;</span><span class="ident">ReseedingRng</span><span class="op">&lt;</span><span class="ident">Core</span>, <span class="ident">OsRng</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 }
 
 <span class="macro">thread_local</span><span class="macro">!</span>(
-    <span class="kw">static</span> <span class="ident">THREAD_RNG_KEY</span>: <span class="ident">UnsafeCell</span><span class="op">&lt;</span><span class="ident">ReseedingRng</span><span class="op">&lt;</span><span class="ident">Core</span>, <span class="ident">OsRng</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> {
+    <span class="comment">// We require Rc&lt;..&gt; to avoid premature freeing when thread_rng is used</span>
+    <span class="comment">// within thread-local destructors. See #968.</span>
+    <span class="kw">static</span> <span class="ident">THREAD_RNG_KEY</span>: <span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">UnsafeCell</span><span class="op">&lt;</span><span class="ident">ReseedingRng</span><span class="op">&lt;</span><span class="ident">Core</span>, <span class="ident">OsRng</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> {
         <span class="kw">let</span> <span class="ident">r</span> <span class="op">=</span> <span class="ident">Core</span>::<span class="ident">from_rng</span>(<span class="ident">OsRng</span>).<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="ident">err</span><span class="op">|</span>
                 <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;could not initialize thread_rng: {}&quot;</span>, <span class="ident">err</span>));
         <span class="kw">let</span> <span class="ident">rng</span> <span class="op">=</span> <span class="ident">ReseedingRng</span>::<span class="ident">new</span>(<span class="ident">r</span>,
                                     <span class="ident">THREAD_RNG_RESEED_THRESHOLD</span>,
                                     <span class="ident">OsRng</span>);
-        <span class="ident">UnsafeCell</span>::<span class="ident">new</span>(<span class="ident">rng</span>)
+        <span class="ident">Rc</span>::<span class="ident">new</span>(<span class="ident">UnsafeCell</span>::<span class="ident">new</span>(<span class="ident">rng</span>))
     }
 );
 
@@ -203,10 +227,10 @@
 <span class="doccomment">/// `ThreadRng::default()` equivalent.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// For more information see [`ThreadRng`].</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std_rng&quot;</span>))))]</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">thread_rng</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ThreadRng</span> {
-    <span class="kw">let</span> <span class="ident">raw</span> <span class="op">=</span> <span class="ident">THREAD_RNG_KEY</span>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">t</span><span class="op">|</span> <span class="ident">t</span>.<span class="ident">get</span>());
-    <span class="kw">let</span> <span class="ident">nn</span> <span class="op">=</span> <span class="ident">NonNull</span>::<span class="ident">new</span>(<span class="ident">raw</span>).<span class="ident">unwrap</span>();
-    <span class="ident">ThreadRng</span> { <span class="ident">rng</span>: <span class="ident">nn</span> }
+    <span class="kw">let</span> <span class="ident">rng</span> <span class="op">=</span> <span class="ident">THREAD_RNG_KEY</span>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">t</span><span class="op">|</span> <span class="ident">t</span>.<span class="ident">clone</span>());
+    <span class="ident">ThreadRng</span> { <span class="ident">rng</span> }
 }
 
 <span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">ThreadRng</span> {
@@ -218,20 +242,32 @@
 <span class="kw">impl</span> <span class="ident">RngCore</span> <span class="kw">for</span> <span class="ident">ThreadRng</span> {
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
     <span class="kw">fn</span> <span class="ident">next_u32</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span> {
-        <span class="kw">unsafe</span> { <span class="self">self</span>.<span class="ident">rng</span>.<span class="ident">as_mut</span>().<span class="ident">next_u32</span>() }
+        <span class="comment">// SAFETY: We must make sure to stop using `rng` before anyone else</span>
+        <span class="comment">// creates another mutable reference</span>
+        <span class="kw">let</span> <span class="ident">rng</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="self">self</span>.<span class="ident">rng</span>.<span class="ident">get</span>() };
+        <span class="ident">rng</span>.<span class="ident">next_u32</span>()
     }
 
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
     <span class="kw">fn</span> <span class="ident">next_u64</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u64</span> {
-        <span class="kw">unsafe</span> { <span class="self">self</span>.<span class="ident">rng</span>.<span class="ident">as_mut</span>().<span class="ident">next_u64</span>() }
+        <span class="comment">// SAFETY: We must make sure to stop using `rng` before anyone else</span>
+        <span class="comment">// creates another mutable reference</span>
+        <span class="kw">let</span> <span class="ident">rng</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="self">self</span>.<span class="ident">rng</span>.<span class="ident">get</span>() };
+        <span class="ident">rng</span>.<span class="ident">next_u64</span>()
     }
 
     <span class="kw">fn</span> <span class="ident">fill_bytes</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">dest</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>]) {
-        <span class="kw">unsafe</span> { <span class="self">self</span>.<span class="ident">rng</span>.<span class="ident">as_mut</span>().<span class="ident">fill_bytes</span>(<span class="ident">dest</span>) }
+        <span class="comment">// SAFETY: We must make sure to stop using `rng` before anyone else</span>
+        <span class="comment">// creates another mutable reference</span>
+        <span class="kw">let</span> <span class="ident">rng</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="self">self</span>.<span class="ident">rng</span>.<span class="ident">get</span>() };
+        <span class="ident">rng</span>.<span class="ident">fill_bytes</span>(<span class="ident">dest</span>)
     }
 
     <span class="kw">fn</span> <span class="ident">try_fill_bytes</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">dest</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Error</span><span class="op">&gt;</span> {
-        <span class="kw">unsafe</span> { <span class="self">self</span>.<span class="ident">rng</span>.<span class="ident">as_mut</span>().<span class="ident">try_fill_bytes</span>(<span class="ident">dest</span>) }
+        <span class="comment">// SAFETY: We must make sure to stop using `rng` before anyone else</span>
+        <span class="comment">// creates another mutable reference</span>
+        <span class="kw">let</span> <span class="ident">rng</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="self">self</span>.<span class="ident">rng</span>.<span class="ident">get</span>() };
+        <span class="ident">rng</span>.<span class="ident">try_fill_bytes</span>(<span class="ident">dest</span>)
     }
 }
 
@@ -245,7 +281,7 @@
         <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">Rng</span>;
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">r</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">thread_rng</span>();
         <span class="ident">r</span>.<span class="ident">gen</span>::<span class="op">&lt;</span><span class="ident">i32</span><span class="op">&gt;</span>();
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">r</span>.<span class="ident">gen_range</span>(<span class="number">0</span>, <span class="number">1</span>), <span class="number">0</span>);
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">r</span>.<span class="ident">gen_range</span>(<span class="number">0</span>..<span class="number">1</span>), <span class="number">0</span>);
     }
 }
 </pre></div>

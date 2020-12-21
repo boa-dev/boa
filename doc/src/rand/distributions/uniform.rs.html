@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/rand-0.7.3/src/distributions/uniform.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>uniform.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script src="../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="shortcut icon" href="https://www.rust-lang.org/favicon.ico"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../rand/index.html'><div class='logo-container'><img src='https://www.rust-lang.org/logos/rust-logo-128x128-blk.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/rand-0.8.0/src/distributions/uniform.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>uniform.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script src="../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="shortcut icon" href="https://www.rust-lang.org/favicon.ico"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../rand/index.html'><div class='logo-container'><img src='https://www.rust-lang.org/logos/rust-logo-128x128-blk.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
                 <a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
 <span id="3">   3</span>
@@ -1379,8 +1379,242 @@
 <span id="1378">1378</span>
 <span id="1379">1379</span>
 <span id="1380">1380</span>
+<span id="1381">1381</span>
+<span id="1382">1382</span>
+<span id="1383">1383</span>
+<span id="1384">1384</span>
+<span id="1385">1385</span>
+<span id="1386">1386</span>
+<span id="1387">1387</span>
+<span id="1388">1388</span>
+<span id="1389">1389</span>
+<span id="1390">1390</span>
+<span id="1391">1391</span>
+<span id="1392">1392</span>
+<span id="1393">1393</span>
+<span id="1394">1394</span>
+<span id="1395">1395</span>
+<span id="1396">1396</span>
+<span id="1397">1397</span>
+<span id="1398">1398</span>
+<span id="1399">1399</span>
+<span id="1400">1400</span>
+<span id="1401">1401</span>
+<span id="1402">1402</span>
+<span id="1403">1403</span>
+<span id="1404">1404</span>
+<span id="1405">1405</span>
+<span id="1406">1406</span>
+<span id="1407">1407</span>
+<span id="1408">1408</span>
+<span id="1409">1409</span>
+<span id="1410">1410</span>
+<span id="1411">1411</span>
+<span id="1412">1412</span>
+<span id="1413">1413</span>
+<span id="1414">1414</span>
+<span id="1415">1415</span>
+<span id="1416">1416</span>
+<span id="1417">1417</span>
+<span id="1418">1418</span>
+<span id="1419">1419</span>
+<span id="1420">1420</span>
+<span id="1421">1421</span>
+<span id="1422">1422</span>
+<span id="1423">1423</span>
+<span id="1424">1424</span>
+<span id="1425">1425</span>
+<span id="1426">1426</span>
+<span id="1427">1427</span>
+<span id="1428">1428</span>
+<span id="1429">1429</span>
+<span id="1430">1430</span>
+<span id="1431">1431</span>
+<span id="1432">1432</span>
+<span id="1433">1433</span>
+<span id="1434">1434</span>
+<span id="1435">1435</span>
+<span id="1436">1436</span>
+<span id="1437">1437</span>
+<span id="1438">1438</span>
+<span id="1439">1439</span>
+<span id="1440">1440</span>
+<span id="1441">1441</span>
+<span id="1442">1442</span>
+<span id="1443">1443</span>
+<span id="1444">1444</span>
+<span id="1445">1445</span>
+<span id="1446">1446</span>
+<span id="1447">1447</span>
+<span id="1448">1448</span>
+<span id="1449">1449</span>
+<span id="1450">1450</span>
+<span id="1451">1451</span>
+<span id="1452">1452</span>
+<span id="1453">1453</span>
+<span id="1454">1454</span>
+<span id="1455">1455</span>
+<span id="1456">1456</span>
+<span id="1457">1457</span>
+<span id="1458">1458</span>
+<span id="1459">1459</span>
+<span id="1460">1460</span>
+<span id="1461">1461</span>
+<span id="1462">1462</span>
+<span id="1463">1463</span>
+<span id="1464">1464</span>
+<span id="1465">1465</span>
+<span id="1466">1466</span>
+<span id="1467">1467</span>
+<span id="1468">1468</span>
+<span id="1469">1469</span>
+<span id="1470">1470</span>
+<span id="1471">1471</span>
+<span id="1472">1472</span>
+<span id="1473">1473</span>
+<span id="1474">1474</span>
+<span id="1475">1475</span>
+<span id="1476">1476</span>
+<span id="1477">1477</span>
+<span id="1478">1478</span>
+<span id="1479">1479</span>
+<span id="1480">1480</span>
+<span id="1481">1481</span>
+<span id="1482">1482</span>
+<span id="1483">1483</span>
+<span id="1484">1484</span>
+<span id="1485">1485</span>
+<span id="1486">1486</span>
+<span id="1487">1487</span>
+<span id="1488">1488</span>
+<span id="1489">1489</span>
+<span id="1490">1490</span>
+<span id="1491">1491</span>
+<span id="1492">1492</span>
+<span id="1493">1493</span>
+<span id="1494">1494</span>
+<span id="1495">1495</span>
+<span id="1496">1496</span>
+<span id="1497">1497</span>
+<span id="1498">1498</span>
+<span id="1499">1499</span>
+<span id="1500">1500</span>
+<span id="1501">1501</span>
+<span id="1502">1502</span>
+<span id="1503">1503</span>
+<span id="1504">1504</span>
+<span id="1505">1505</span>
+<span id="1506">1506</span>
+<span id="1507">1507</span>
+<span id="1508">1508</span>
+<span id="1509">1509</span>
+<span id="1510">1510</span>
+<span id="1511">1511</span>
+<span id="1512">1512</span>
+<span id="1513">1513</span>
+<span id="1514">1514</span>
+<span id="1515">1515</span>
+<span id="1516">1516</span>
+<span id="1517">1517</span>
+<span id="1518">1518</span>
+<span id="1519">1519</span>
+<span id="1520">1520</span>
+<span id="1521">1521</span>
+<span id="1522">1522</span>
+<span id="1523">1523</span>
+<span id="1524">1524</span>
+<span id="1525">1525</span>
+<span id="1526">1526</span>
+<span id="1527">1527</span>
+<span id="1528">1528</span>
+<span id="1529">1529</span>
+<span id="1530">1530</span>
+<span id="1531">1531</span>
+<span id="1532">1532</span>
+<span id="1533">1533</span>
+<span id="1534">1534</span>
+<span id="1535">1535</span>
+<span id="1536">1536</span>
+<span id="1537">1537</span>
+<span id="1538">1538</span>
+<span id="1539">1539</span>
+<span id="1540">1540</span>
+<span id="1541">1541</span>
+<span id="1542">1542</span>
+<span id="1543">1543</span>
+<span id="1544">1544</span>
+<span id="1545">1545</span>
+<span id="1546">1546</span>
+<span id="1547">1547</span>
+<span id="1548">1548</span>
+<span id="1549">1549</span>
+<span id="1550">1550</span>
+<span id="1551">1551</span>
+<span id="1552">1552</span>
+<span id="1553">1553</span>
+<span id="1554">1554</span>
+<span id="1555">1555</span>
+<span id="1556">1556</span>
+<span id="1557">1557</span>
+<span id="1558">1558</span>
+<span id="1559">1559</span>
+<span id="1560">1560</span>
+<span id="1561">1561</span>
+<span id="1562">1562</span>
+<span id="1563">1563</span>
+<span id="1564">1564</span>
+<span id="1565">1565</span>
+<span id="1566">1566</span>
+<span id="1567">1567</span>
+<span id="1568">1568</span>
+<span id="1569">1569</span>
+<span id="1570">1570</span>
+<span id="1571">1571</span>
+<span id="1572">1572</span>
+<span id="1573">1573</span>
+<span id="1574">1574</span>
+<span id="1575">1575</span>
+<span id="1576">1576</span>
+<span id="1577">1577</span>
+<span id="1578">1578</span>
+<span id="1579">1579</span>
+<span id="1580">1580</span>
+<span id="1581">1581</span>
+<span id="1582">1582</span>
+<span id="1583">1583</span>
+<span id="1584">1584</span>
+<span id="1585">1585</span>
+<span id="1586">1586</span>
+<span id="1587">1587</span>
+<span id="1588">1588</span>
+<span id="1589">1589</span>
+<span id="1590">1590</span>
+<span id="1591">1591</span>
+<span id="1592">1592</span>
+<span id="1593">1593</span>
+<span id="1594">1594</span>
+<span id="1595">1595</span>
+<span id="1596">1596</span>
+<span id="1597">1597</span>
+<span id="1598">1598</span>
+<span id="1599">1599</span>
+<span id="1600">1600</span>
+<span id="1601">1601</span>
+<span id="1602">1602</span>
+<span id="1603">1603</span>
+<span id="1604">1604</span>
+<span id="1605">1605</span>
+<span id="1606">1606</span>
+<span id="1607">1607</span>
+<span id="1608">1608</span>
+<span id="1609">1609</span>
+<span id="1610">1610</span>
+<span id="1611">1611</span>
+<span id="1612">1612</span>
+<span id="1613">1613</span>
+<span id="1614">1614</span>
 </pre><div class="example-wrap"><pre class="rust ">
-<span class="comment">// Copyright 2018 Developers of the Rand project.</span>
+<span class="comment">// Copyright 2018-2020 Developers of the Rand project.</span>
 <span class="comment">// Copyright 2017 The Rust Project Developers.</span>
 <span class="comment">//</span>
 <span class="comment">// Licensed under the Apache License, Version 2.0 &lt;LICENSE-APACHE or</span>
@@ -1416,7 +1650,7 @@
 <span class="doccomment">//! let side = Uniform::new(-10.0, 10.0);</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! // sample between 1 and 10 points</span>
-<span class="doccomment">//! for _ in 0..rng.gen_range(1, 11) {</span>
+<span class="doccomment">//! for _ in 0..rng.gen_range(1..=10) {</span>
 <span class="doccomment">//!     // sample a point from the square with sides -10 - 10 in two dimensions</span>
 <span class="doccomment">//!     let (x, y) = (rng.sample(side), rng.sample(side));</span>
 <span class="doccomment">//!     println!(&quot;Point: {}, {}&quot;, x, y);</span>
@@ -1487,24 +1721,28 @@
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>))]</span> <span class="kw">use</span> <span class="ident">core</span>::<span class="ident">time</span>::<span class="ident">Duration</span>;
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span> <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">time</span>::<span class="ident">Duration</span>;
+<span class="kw">use</span> <span class="ident">core</span>::<span class="ident">ops</span>::{<span class="ident">Range</span>, <span class="ident">RangeInclusive</span>};
 
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">distributions</span>::<span class="ident">float</span>::<span class="ident">IntoFloat</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">distributions</span>::<span class="ident">utils</span>::{<span class="ident">BoolAsSIMD</span>, <span class="ident">FloatAsSIMD</span>, <span class="ident">FloatSIMDUtils</span>, <span class="ident">WideningMultiply</span>};
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">distributions</span>::<span class="ident">Distribution</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">Rng</span>;
+<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">Rng</span>, <span class="ident">RngCore</span>};
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>))]</span>
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unused_imports</span>)]</span> <span class="comment">// rustc doesn&#39;t detect that this is actually used</span>
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">distributions</span>::<span class="ident">utils</span>::<span class="ident">Float</span>;
 
-
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;simd_support&quot;</span>)]</span> <span class="kw">use</span> <span class="ident">packed_simd</span>::<span class="kw-2">*</span>;
+
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde1&quot;</span>)]</span>
+<span class="kw">use</span> <span class="ident">serde</span>::{<span class="ident">Serialize</span>, <span class="ident">Deserialize</span>};
 
 <span class="doccomment">/// Sample values uniformly between two bounds.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// [`Uniform::new`] and [`Uniform::new_inclusive`] construct a uniform</span>
 <span class="doccomment">/// distribution sampling from the given range; these functions may do extra</span>
-<span class="doccomment">/// work up front to make sampling of multiple values faster.</span>
+<span class="doccomment">/// work up front to make sampling of multiple values faster. If only one sample</span>
+<span class="doccomment">/// from the range is required, [`Rng::gen_range`] can be more efficient.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// When sampling from a constant range, many calculations can happen at</span>
 <span class="doccomment">/// compile-time and all methods should be fast; for floating-point ranges and</span>
@@ -1519,7 +1757,7 @@
 <span class="doccomment">/// are of lower quality than the high bits.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// Implementations must sample in `[low, high)` range for</span>
-<span class="doccomment">/// `Uniform::new(low, high)`, i.e., excluding `high`. In particular care must</span>
+<span class="doccomment">/// `Uniform::new(low, high)`, i.e., excluding `high`. In particular, care must</span>
 <span class="doccomment">/// be taken to ensure that rounding never results values `&lt; low` or `&gt;= high`.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// # Example</span>
@@ -1527,20 +1765,29 @@
 <span class="doccomment">/// ```</span>
 <span class="doccomment">/// use rand::distributions::{Distribution, Uniform};</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// fn main() {</span>
-<span class="doccomment">///     let between = Uniform::from(10..10000);</span>
-<span class="doccomment">///     let mut rng = rand::thread_rng();</span>
-<span class="doccomment">///     let mut sum = 0;</span>
-<span class="doccomment">///     for _ in 0..1000 {</span>
-<span class="doccomment">///         sum += between.sample(&amp;mut rng);</span>
-<span class="doccomment">///     }</span>
-<span class="doccomment">///     println!(&quot;{}&quot;, sum);</span>
+<span class="doccomment">/// let between = Uniform::from(10..10000);</span>
+<span class="doccomment">/// let mut rng = rand::thread_rng();</span>
+<span class="doccomment">/// let mut sum = 0;</span>
+<span class="doccomment">/// for _ in 0..1000 {</span>
+<span class="doccomment">///     sum += between.sample(&amp;mut rng);</span>
 <span class="doccomment">/// }</span>
+<span class="doccomment">/// println!(&quot;{}&quot;, sum);</span>
+<span class="doccomment">/// ```</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// For a single sample, [`Rng::gen_range`] may be prefered:</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// ```</span>
+<span class="doccomment">/// use rand::Rng;</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// let mut rng = rand::thread_rng();</span>
+<span class="doccomment">/// println!(&quot;{}&quot;, rng.gen_range(0..10));</span>
 <span class="doccomment">/// ```</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// [`new`]: Uniform::new</span>
 <span class="doccomment">/// [`new_inclusive`]: Uniform::new_inclusive</span>
+<span class="doccomment">/// [`Rng::gen_range`]: Rng::gen_range</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde1&quot;</span>, <span class="ident">derive</span>(<span class="ident">Serialize</span>, <span class="ident">Deserialize</span>))]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Uniform</span><span class="op">&lt;</span><span class="ident">X</span>: <span class="ident">SampleUniform</span><span class="op">&gt;</span>(<span class="ident">X</span>::<span class="ident">Sampler</span>);
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">X</span>: <span class="ident">SampleUniform</span><span class="op">&gt;</span> <span class="ident">Uniform</span><span class="op">&lt;</span><span class="ident">X</span><span class="op">&gt;</span> {
@@ -1647,19 +1894,37 @@
         <span class="kw">let</span> <span class="ident">uniform</span>: <span class="self">Self</span> <span class="op">=</span> <span class="ident">UniformSampler</span>::<span class="ident">new</span>(<span class="ident">low</span>, <span class="ident">high</span>);
         <span class="ident">uniform</span>.<span class="ident">sample</span>(<span class="ident">rng</span>)
     }
+
+    <span class="doccomment">/// Sample a single value uniformly from a range with inclusive lower bound</span>
+    <span class="doccomment">/// and inclusive upper bound `[low, high]`.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// By default this is implemented using</span>
+    <span class="doccomment">/// `UniformSampler::new_inclusive(low, high).sample(rng)`. However, for</span>
+    <span class="doccomment">/// some types more optimal implementations for single usage may be provided</span>
+    <span class="doccomment">/// via this method.</span>
+    <span class="doccomment">/// Results may not be identical.</span>
+    <span class="kw">fn</span> <span class="ident">sample_single_inclusive</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">Rng</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span>, <span class="ident">B1</span>, <span class="ident">B2</span><span class="op">&gt;</span>(<span class="ident">low</span>: <span class="ident">B1</span>, <span class="ident">high</span>: <span class="ident">B2</span>, <span class="ident">rng</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">R</span>)
+        <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">X</span>
+        <span class="kw">where</span> <span class="ident">B1</span>: <span class="ident">SampleBorrow</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">X</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Sized</span>,
+              <span class="ident">B2</span>: <span class="ident">SampleBorrow</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">X</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Sized</span>
+    {
+        <span class="kw">let</span> <span class="ident">uniform</span>: <span class="self">Self</span> <span class="op">=</span> <span class="ident">UniformSampler</span>::<span class="ident">new_inclusive</span>(<span class="ident">low</span>, <span class="ident">high</span>);
+        <span class="ident">uniform</span>.<span class="ident">sample</span>(<span class="ident">rng</span>)
+    }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">X</span>: <span class="ident">SampleUniform</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span>::<span class="ident">core</span>::<span class="ident">ops</span>::<span class="ident">Range</span><span class="op">&lt;</span><span class="ident">X</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Uniform</span><span class="op">&lt;</span><span class="ident">X</span><span class="op">&gt;</span> {
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">X</span>: <span class="ident">SampleUniform</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Range</span><span class="op">&lt;</span><span class="ident">X</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Uniform</span><span class="op">&lt;</span><span class="ident">X</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">r</span>: ::<span class="ident">core</span>::<span class="ident">ops</span>::<span class="ident">Range</span><span class="op">&lt;</span><span class="ident">X</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Uniform</span><span class="op">&lt;</span><span class="ident">X</span><span class="op">&gt;</span> {
         <span class="ident">Uniform</span>::<span class="ident">new</span>(<span class="ident">r</span>.<span class="ident">start</span>, <span class="ident">r</span>.<span class="ident">end</span>)
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">X</span>: <span class="ident">SampleUniform</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span>::<span class="ident">core</span>::<span class="ident">ops</span>::<span class="ident">RangeInclusive</span><span class="op">&lt;</span><span class="ident">X</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Uniform</span><span class="op">&lt;</span><span class="ident">X</span><span class="op">&gt;</span> {
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">X</span>: <span class="ident">SampleUniform</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">RangeInclusive</span><span class="op">&lt;</span><span class="ident">X</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Uniform</span><span class="op">&lt;</span><span class="ident">X</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">r</span>: ::<span class="ident">core</span>::<span class="ident">ops</span>::<span class="ident">RangeInclusive</span><span class="op">&lt;</span><span class="ident">X</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Uniform</span><span class="op">&lt;</span><span class="ident">X</span><span class="op">&gt;</span> {
         <span class="ident">Uniform</span>::<span class="ident">new_inclusive</span>(<span class="ident">r</span>.<span class="ident">start</span>(), <span class="ident">r</span>.<span class="ident">end</span>())
     }
 }
+
 
 <span class="doccomment">/// Helper trait similar to [`Borrow`] but implemented</span>
 <span class="doccomment">/// only for SampleUniform and references to SampleUniform in</span>
@@ -1688,6 +1953,43 @@
         <span class="kw-2">*</span><span class="self">self</span>
     }
 }
+
+<span class="doccomment">/// Range that supports generating a single sample efficiently.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// Any type implementing this trait can be used to specify the sampled range</span>
+<span class="doccomment">/// for `Rng::gen_range`.</span>
+<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">SampleRange</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+    <span class="doccomment">/// Generate a sample from the given range.</span>
+    <span class="kw">fn</span> <span class="ident">sample_single</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">RngCore</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">rng</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">R</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">T</span>;
+
+    <span class="doccomment">/// Check whether the range is empty.</span>
+    <span class="kw">fn</span> <span class="ident">is_empty</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span>;
+}
+
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">SampleUniform</span> <span class="op">+</span> <span class="ident">PartialOrd</span><span class="op">&gt;</span> <span class="ident">SampleRange</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Range</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">fn</span> <span class="ident">sample_single</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">RngCore</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">rng</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">R</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">T</span> {
+        <span class="ident">T</span>::<span class="ident">Sampler</span>::<span class="ident">sample_single</span>(<span class="self">self</span>.<span class="ident">start</span>, <span class="self">self</span>.<span class="ident">end</span>, <span class="ident">rng</span>)
+    }
+
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">fn</span> <span class="ident">is_empty</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        <span class="op">!</span>(<span class="self">self</span>.<span class="ident">start</span> <span class="op">&lt;</span> <span class="self">self</span>.<span class="ident">end</span>)
+    }
+}
+
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">SampleUniform</span> <span class="op">+</span> <span class="ident">PartialOrd</span><span class="op">&gt;</span> <span class="ident">SampleRange</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">RangeInclusive</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">fn</span> <span class="ident">sample_single</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">RngCore</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">rng</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">R</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">T</span> {
+        <span class="ident">T</span>::<span class="ident">Sampler</span>::<span class="ident">sample_single_inclusive</span>(<span class="self">self</span>.<span class="ident">start</span>(), <span class="self">self</span>.<span class="ident">end</span>(), <span class="ident">rng</span>)
+    }
+
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">fn</span> <span class="ident">is_empty</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        <span class="op">!</span>(<span class="self">self</span>.<span class="ident">start</span>() <span class="op">&lt;</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">end</span>())
+    }
+}
+
 
 <span class="comment">////////////////////////////////////////////////////////////////////////////////</span>
 
@@ -1729,6 +2031,7 @@
 <span class="doccomment">/// multiply by `range`, the result is in the high word. Then comparing the low</span>
 <span class="doccomment">/// word against `zone` makes sure our distribution is uniform.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde1&quot;</span>, <span class="ident">derive</span>(<span class="ident">Serialize</span>, <span class="ident">Deserialize</span>))]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">UniformInt</span><span class="op">&lt;</span><span class="ident">X</span><span class="op">&gt;</span> {
     <span class="ident">low</span>: <span class="ident">X</span>,
     <span class="ident">range</span>: <span class="ident">X</span>,
@@ -1786,13 +2089,14 @@
                 };
 
                 <span class="ident">UniformInt</span> {
-                    <span class="ident">low</span>: <span class="ident">low</span>,
+                    <span class="ident">low</span>,
                     <span class="comment">// These are really $unsigned values, but store as $ty:</span>
                     <span class="ident">range</span>: <span class="ident">range</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span>,
                     <span class="ident">z</span>: <span class="ident">ints_to_reject</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">unsigned</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span>,
                 }
             }
 
+            <span class="attribute">#[<span class="ident">inline</span>]</span>
             <span class="kw">fn</span> <span class="ident">sample</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">Rng</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">rng</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">R</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">X</span> {
                 <span class="kw">let</span> <span class="ident">range</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">range</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">unsigned</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">u_large</span>;
                 <span class="kw">if</span> <span class="ident">range</span> <span class="op">&gt;</span> <span class="number">0</span> {
@@ -1811,6 +2115,7 @@
                 }
             }
 
+            <span class="attribute">#[<span class="ident">inline</span>]</span>
             <span class="kw">fn</span> <span class="ident">sample_single</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">Rng</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span>, <span class="ident">B1</span>, <span class="ident">B2</span><span class="op">&gt;</span>(<span class="ident">low_b</span>: <span class="ident">B1</span>, <span class="ident">high_b</span>: <span class="ident">B2</span>, <span class="ident">rng</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">R</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">X</span>
             <span class="kw">where</span>
                 <span class="ident">B1</span>: <span class="ident">SampleBorrow</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">X</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Sized</span>,
@@ -1819,7 +2124,19 @@
                 <span class="kw">let</span> <span class="ident">low</span> <span class="op">=</span> <span class="kw-2">*</span><span class="ident">low_b</span>.<span class="ident">borrow</span>();
                 <span class="kw">let</span> <span class="ident">high</span> <span class="op">=</span> <span class="kw-2">*</span><span class="ident">high_b</span>.<span class="ident">borrow</span>();
                 <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">low</span> <span class="op">&lt;</span> <span class="ident">high</span>, <span class="string">&quot;UniformSampler::sample_single: low &gt;= high&quot;</span>);
-                <span class="kw">let</span> <span class="ident">range</span> <span class="op">=</span> <span class="ident">high</span>.<span class="ident">wrapping_sub</span>(<span class="ident">low</span>) <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">unsigned</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">u_large</span>;
+                <span class="self">Self</span>::<span class="ident">sample_single_inclusive</span>(<span class="ident">low</span>, <span class="ident">high</span> <span class="op">-</span> <span class="number">1</span>, <span class="ident">rng</span>)
+            }
+
+            <span class="attribute">#[<span class="ident">inline</span>]</span>
+            <span class="kw">fn</span> <span class="ident">sample_single_inclusive</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">Rng</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span>, <span class="ident">B1</span>, <span class="ident">B2</span><span class="op">&gt;</span>(<span class="ident">low_b</span>: <span class="ident">B1</span>, <span class="ident">high_b</span>: <span class="ident">B2</span>, <span class="ident">rng</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">R</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">X</span>
+            <span class="kw">where</span>
+                <span class="ident">B1</span>: <span class="ident">SampleBorrow</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">X</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Sized</span>,
+                <span class="ident">B2</span>: <span class="ident">SampleBorrow</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">X</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Sized</span>,
+            {
+                <span class="kw">let</span> <span class="ident">low</span> <span class="op">=</span> <span class="kw-2">*</span><span class="ident">low_b</span>.<span class="ident">borrow</span>();
+                <span class="kw">let</span> <span class="ident">high</span> <span class="op">=</span> <span class="kw-2">*</span><span class="ident">high_b</span>.<span class="ident">borrow</span>();
+                <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">low</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">high</span>, <span class="string">&quot;UniformSampler::sample_single_inclusive: low &gt; high&quot;</span>);
+                <span class="kw">let</span> <span class="ident">range</span> <span class="op">=</span> <span class="ident">high</span>.<span class="ident">wrapping_sub</span>(<span class="ident">low</span>).<span class="ident">wrapping_add</span>(<span class="number">1</span>) <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">unsigned</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">u_large</span>;
                 <span class="kw">let</span> <span class="ident">zone</span> <span class="op">=</span> <span class="kw">if</span> ::<span class="ident">core</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">unsigned</span>::<span class="ident">MAX</span> <span class="op">&lt;</span><span class="op">=</span> ::<span class="ident">core</span>::<span class="ident">u16</span>::<span class="ident">MAX</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">unsigned</span> {
                     <span class="comment">// Using a modulus is faster than the approximation for</span>
                     <span class="comment">// i8 and i16. I suppose we trade the cost of one</span>
@@ -1860,7 +2177,7 @@
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;emscripten&quot;</span>))]</span>
 <span class="macro">uniform_int_impl</span><span class="macro">!</span> { <span class="ident">u128</span>, <span class="ident">u128</span>, <span class="ident">u128</span> }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;simd_support&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;nightly&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;simd_support&quot;</span>)]</span>
 <span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">uniform_simd_int_impl</span> {
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">unsigned</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">u_scalar</span>:<span class="ident">ident</span>) <span class="op">=</span><span class="op">&gt;</span> {
         <span class="comment">// The &quot;pick the largest zone that can fit in an `u32`&quot; optimization</span>
@@ -1917,7 +2234,7 @@
                 <span class="kw">let</span> <span class="ident">zone</span> <span class="op">=</span> <span class="ident">unsigned_max</span> <span class="op">-</span> <span class="ident">ints_to_reject</span>;
 
                 <span class="ident">UniformInt</span> {
-                    <span class="ident">low</span>: <span class="ident">low</span>,
+                    <span class="ident">low</span>,
                     <span class="comment">// These are really $unsigned values, but store as $ty:</span>
                     <span class="ident">range</span>: <span class="ident">range</span>.<span class="ident">cast</span>(),
                     <span class="ident">z</span>: <span class="ident">zone</span>.<span class="ident">cast</span>(),
@@ -1967,7 +2284,7 @@
     };
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;simd_support&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;nightly&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;simd_support&quot;</span>)]</span>
 <span class="macro">uniform_simd_int_impl</span><span class="macro">!</span> {
     (<span class="ident">u64x2</span>, <span class="ident">i64x2</span>),
     (<span class="ident">u64x4</span>, <span class="ident">i64x4</span>),
@@ -1975,7 +2292,7 @@
     <span class="ident">u64</span>
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;simd_support&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;nightly&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;simd_support&quot;</span>)]</span>
 <span class="macro">uniform_simd_int_impl</span><span class="macro">!</span> {
     (<span class="ident">u32x2</span>, <span class="ident">i32x2</span>),
     (<span class="ident">u32x4</span>, <span class="ident">i32x4</span>),
@@ -1984,7 +2301,7 @@
     <span class="ident">u32</span>
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;simd_support&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;nightly&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;simd_support&quot;</span>)]</span>
 <span class="macro">uniform_simd_int_impl</span><span class="macro">!</span> {
     (<span class="ident">u16x2</span>, <span class="ident">i16x2</span>),
     (<span class="ident">u16x4</span>, <span class="ident">i16x4</span>),
@@ -1994,7 +2311,7 @@
     <span class="ident">u16</span>
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;simd_support&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;nightly&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;simd_support&quot;</span>)]</span>
 <span class="macro">uniform_simd_int_impl</span><span class="macro">!</span> {
     (<span class="ident">u8x2</span>, <span class="ident">i8x2</span>),
     (<span class="ident">u8x4</span>, <span class="ident">i8x4</span>),
@@ -2005,6 +2322,78 @@
     <span class="ident">u8</span>
 }
 
+<span class="kw">impl</span> <span class="ident">SampleUniform</span> <span class="kw">for</span> <span class="ident">char</span> {
+    <span class="kw">type</span> <span class="ident">Sampler</span> <span class="op">=</span> <span class="ident">UniformChar</span>;
+}
+
+<span class="doccomment">/// The back-end implementing [`UniformSampler`] for `char`.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// Unless you are implementing [`UniformSampler`] for your own type, this type</span>
+<span class="doccomment">/// should not be used directly, use [`Uniform`] instead.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// This differs from integer range sampling since the range `0xD800..=0xDFFF`</span>
+<span class="doccomment">/// are used for surrogate pairs in UCS and UTF-16, and consequently are not</span>
+<span class="doccomment">/// valid Unicode code points. We must therefore avoid sampling values in this</span>
+<span class="doccomment">/// range.</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde1&quot;</span>, <span class="ident">derive</span>(<span class="ident">Serialize</span>, <span class="ident">Deserialize</span>))]</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">UniformChar</span> {
+    <span class="ident">sampler</span>: <span class="ident">UniformInt</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>,
+}
+
+<span class="doccomment">/// UTF-16 surrogate range start</span>
+<span class="kw">const</span> <span class="ident">CHAR_SURROGATE_START</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">0xD800</span>;
+<span class="doccomment">/// UTF-16 surrogate range size</span>
+<span class="kw">const</span> <span class="ident">CHAR_SURROGATE_LEN</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">0xE000</span> <span class="op">-</span> <span class="ident">CHAR_SURROGATE_START</span>;
+
+<span class="doccomment">/// Convert `char` to compressed `u32`</span>
+<span class="kw">fn</span> <span class="ident">char_to_comp_u32</span>(<span class="ident">c</span>: <span class="ident">char</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span> {
+    <span class="kw">match</span> <span class="ident">c</span> <span class="kw">as</span> <span class="ident">u32</span> {
+        <span class="ident">c</span> <span class="kw">if</span> <span class="ident">c</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">CHAR_SURROGATE_START</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">c</span> <span class="op">-</span> <span class="ident">CHAR_SURROGATE_LEN</span>,
+        <span class="ident">c</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">c</span>,
+    }
+}
+
+<span class="kw">impl</span> <span class="ident">UniformSampler</span> <span class="kw">for</span> <span class="ident">UniformChar</span> {
+    <span class="kw">type</span> <span class="ident">X</span> <span class="op">=</span> <span class="ident">char</span>;
+
+    <span class="attribute">#[<span class="ident">inline</span>]</span> <span class="comment">// if the range is constant, this helps LLVM to do the</span>
+              <span class="comment">// calculations at compile-time.</span>
+    <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">B1</span>, <span class="ident">B2</span><span class="op">&gt;</span>(<span class="ident">low_b</span>: <span class="ident">B1</span>, <span class="ident">high_b</span>: <span class="ident">B2</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>
+    <span class="kw">where</span>
+        <span class="ident">B1</span>: <span class="ident">SampleBorrow</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">X</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Sized</span>,
+        <span class="ident">B2</span>: <span class="ident">SampleBorrow</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">X</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Sized</span>,
+    {
+        <span class="kw">let</span> <span class="ident">low</span> <span class="op">=</span> <span class="ident">char_to_comp_u32</span>(<span class="kw-2">*</span><span class="ident">low_b</span>.<span class="ident">borrow</span>());
+        <span class="kw">let</span> <span class="ident">high</span> <span class="op">=</span> <span class="ident">char_to_comp_u32</span>(<span class="kw-2">*</span><span class="ident">high_b</span>.<span class="ident">borrow</span>());
+        <span class="kw">let</span> <span class="ident">sampler</span> <span class="op">=</span> <span class="ident">UniformInt</span>::<span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>::<span class="ident">new</span>(<span class="ident">low</span>, <span class="ident">high</span>);
+        <span class="ident">UniformChar</span> { <span class="ident">sampler</span> }
+    }
+
+    <span class="attribute">#[<span class="ident">inline</span>]</span> <span class="comment">// if the range is constant, this helps LLVM to do the</span>
+              <span class="comment">// calculations at compile-time.</span>
+    <span class="kw">fn</span> <span class="ident">new_inclusive</span><span class="op">&lt;</span><span class="ident">B1</span>, <span class="ident">B2</span><span class="op">&gt;</span>(<span class="ident">low_b</span>: <span class="ident">B1</span>, <span class="ident">high_b</span>: <span class="ident">B2</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>
+    <span class="kw">where</span>
+        <span class="ident">B1</span>: <span class="ident">SampleBorrow</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">X</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Sized</span>,
+        <span class="ident">B2</span>: <span class="ident">SampleBorrow</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">X</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Sized</span>,
+    {
+        <span class="kw">let</span> <span class="ident">low</span> <span class="op">=</span> <span class="ident">char_to_comp_u32</span>(<span class="kw-2">*</span><span class="ident">low_b</span>.<span class="ident">borrow</span>());
+        <span class="kw">let</span> <span class="ident">high</span> <span class="op">=</span> <span class="ident">char_to_comp_u32</span>(<span class="kw-2">*</span><span class="ident">high_b</span>.<span class="ident">borrow</span>());
+        <span class="kw">let</span> <span class="ident">sampler</span> <span class="op">=</span> <span class="ident">UniformInt</span>::<span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>::<span class="ident">new_inclusive</span>(<span class="ident">low</span>, <span class="ident">high</span>);
+        <span class="ident">UniformChar</span> { <span class="ident">sampler</span> }
+    }
+
+    <span class="kw">fn</span> <span class="ident">sample</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">Rng</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">rng</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">R</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">X</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">x</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">sampler</span>.<span class="ident">sample</span>(<span class="ident">rng</span>);
+        <span class="kw">if</span> <span class="ident">x</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">CHAR_SURROGATE_START</span> {
+            <span class="ident">x</span> <span class="op">+</span><span class="op">=</span> <span class="ident">CHAR_SURROGATE_LEN</span>;
+        }
+        <span class="comment">// SAFETY: x must not be in surrogate range or greater than char::MAX.</span>
+        <span class="comment">// This relies on range constructors which accept char arguments.</span>
+        <span class="comment">// Validity of input char values is assumed.</span>
+        <span class="kw">unsafe</span> { <span class="ident">core</span>::<span class="ident">char</span>::<span class="ident">from_u32_unchecked</span>(<span class="ident">x</span>) }
+    }
+}
 
 <span class="doccomment">/// The back-end implementing [`UniformSampler`] for floating-point types.</span>
 <span class="doccomment">///</span>
@@ -2026,6 +2415,7 @@
 <span class="doccomment">/// [`new_inclusive`]: UniformSampler::new_inclusive</span>
 <span class="doccomment">/// [`Standard`]: crate::distributions::Standard</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde1&quot;</span>, <span class="ident">derive</span>(<span class="ident">Serialize</span>, <span class="ident">Deserialize</span>))]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">UniformFloat</span><span class="op">&lt;</span><span class="ident">X</span><span class="op">&gt;</span> {
     <span class="ident">low</span>: <span class="ident">X</span>,
     <span class="ident">scale</span>: <span class="ident">X</span>,
@@ -2219,12 +2609,14 @@
 <span class="doccomment">/// Unless you are implementing [`UniformSampler`] for your own types, this type</span>
 <span class="doccomment">/// should not be used directly, use [`Uniform`] instead.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde1&quot;</span>, <span class="ident">derive</span>(<span class="ident">Serialize</span>, <span class="ident">Deserialize</span>))]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">UniformDuration</span> {
     <span class="ident">mode</span>: <span class="ident">UniformDurationMode</span>,
     <span class="ident">offset</span>: <span class="ident">u32</span>,
 }
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Copy</span>, <span class="ident">Clone</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde1&quot;</span>, <span class="ident">derive</span>(<span class="ident">Serialize</span>, <span class="ident">Deserialize</span>))]</span>
 <span class="kw">enum</span> <span class="ident">UniformDurationMode</span> {
     <span class="ident">Small</span> {
         <span class="ident">secs</span>: <span class="ident">u64</span>,
@@ -2329,7 +2721,7 @@
                 <span class="ident">max_nanos</span>,
                 <span class="ident">secs</span>,
             } <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="comment">// constant folding means this is at least as fast as `gen_range`</span>
+                <span class="comment">// constant folding means this is at least as fast as `Rng::sample(Range)`</span>
                 <span class="kw">let</span> <span class="ident">nano_range</span> <span class="op">=</span> <span class="ident">Uniform</span>::<span class="ident">new</span>(<span class="number">0</span>, <span class="number">1_000_000_000</span>);
                 <span class="kw">loop</span> {
                     <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">secs</span>.<span class="ident">sample</span>(<span class="ident">rng</span>);
@@ -2348,6 +2740,56 @@
 <span class="kw">mod</span> <span class="ident">tests</span> {
     <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
     <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">rngs</span>::<span class="ident">mock</span>::<span class="ident">StepRng</span>;
+
+    <span class="attribute">#[<span class="ident">test</span>]</span>
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde1&quot;</span>)]</span>
+    <span class="kw">fn</span> <span class="ident">test_serialization_uniform_duration</span>() {
+        <span class="kw">let</span> <span class="ident">distr</span> <span class="op">=</span> <span class="ident">UniformDuration</span>::<span class="ident">new</span>(<span class="ident">std</span>::<span class="ident">time</span>::<span class="ident">Duration</span>::<span class="ident">from_secs</span>(<span class="number">10</span>), <span class="ident">std</span>::<span class="ident">time</span>::<span class="ident">Duration</span>::<span class="ident">from_secs</span>(<span class="number">60</span>));
+        <span class="kw">let</span> <span class="ident">de_distr</span>: <span class="ident">UniformDuration</span> <span class="op">=</span> <span class="ident">bincode</span>::<span class="ident">deserialize</span>(<span class="kw-2">&amp;</span><span class="ident">bincode</span>::<span class="ident">serialize</span>(<span class="kw-2">&amp;</span><span class="ident">distr</span>).<span class="ident">unwrap</span>()).<span class="ident">unwrap</span>();
+        <span class="macro">assert_eq</span><span class="macro">!</span>(
+            <span class="ident">distr</span>.<span class="ident">offset</span>, <span class="ident">de_distr</span>.<span class="ident">offset</span>
+        );
+        <span class="kw">match</span> (<span class="ident">distr</span>.<span class="ident">mode</span>, <span class="ident">de_distr</span>.<span class="ident">mode</span>) {
+            (<span class="ident">UniformDurationMode</span>::<span class="ident">Small</span> {<span class="ident">secs</span>: <span class="ident">a_secs</span>, <span class="ident">nanos</span>: <span class="ident">a_nanos</span>}, <span class="ident">UniformDurationMode</span>::<span class="ident">Small</span> {<span class="ident">secs</span>, <span class="ident">nanos</span>}) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">a_secs</span>, <span class="ident">secs</span>);
+
+                <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">a_nanos</span>.<span class="number">0</span>.<span class="ident">low</span>, <span class="ident">nanos</span>.<span class="number">0</span>.<span class="ident">low</span>);
+                <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">a_nanos</span>.<span class="number">0</span>.<span class="ident">range</span>, <span class="ident">nanos</span>.<span class="number">0</span>.<span class="ident">range</span>);
+                <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">a_nanos</span>.<span class="number">0</span>.<span class="ident">z</span>, <span class="ident">nanos</span>.<span class="number">0</span>.<span class="ident">z</span>);
+            }
+            (<span class="ident">UniformDurationMode</span>::<span class="ident">Medium</span> {<span class="ident">nanos</span>: <span class="ident">a_nanos</span>} , <span class="ident">UniformDurationMode</span>::<span class="ident">Medium</span> {<span class="ident">nanos</span>}) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">a_nanos</span>.<span class="number">0</span>.<span class="ident">low</span>, <span class="ident">nanos</span>.<span class="number">0</span>.<span class="ident">low</span>);
+                <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">a_nanos</span>.<span class="number">0</span>.<span class="ident">range</span>, <span class="ident">nanos</span>.<span class="number">0</span>.<span class="ident">range</span>);
+                <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">a_nanos</span>.<span class="number">0</span>.<span class="ident">z</span>, <span class="ident">nanos</span>.<span class="number">0</span>.<span class="ident">z</span>);
+            }
+            (<span class="ident">UniformDurationMode</span>::<span class="ident">Large</span> {<span class="ident">max_secs</span>:<span class="ident">a_max_secs</span>, <span class="ident">max_nanos</span>:<span class="ident">a_max_nanos</span>, <span class="ident">secs</span>:<span class="ident">a_secs</span>}, <span class="ident">UniformDurationMode</span>::<span class="ident">Large</span> {<span class="ident">max_secs</span>, <span class="ident">max_nanos</span>, <span class="ident">secs</span>} ) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">a_max_secs</span>, <span class="ident">max_secs</span>);
+                <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">a_max_nanos</span>, <span class="ident">max_nanos</span>);
+
+                <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">a_secs</span>.<span class="number">0</span>.<span class="ident">low</span>, <span class="ident">secs</span>.<span class="number">0</span>.<span class="ident">low</span>);
+                <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">a_secs</span>.<span class="number">0</span>.<span class="ident">range</span>, <span class="ident">secs</span>.<span class="number">0</span>.<span class="ident">range</span>);
+                <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">a_secs</span>.<span class="number">0</span>.<span class="ident">z</span>, <span class="ident">secs</span>.<span class="number">0</span>.<span class="ident">z</span>);
+            }
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;`UniformDurationMode` was not serialized/deserialized correctly&quot;</span>)
+        }
+    }
+    
+    <span class="attribute">#[<span class="ident">test</span>]</span>
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde1&quot;</span>)]</span>
+    <span class="kw">fn</span> <span class="ident">test_uniform_serialization</span>() {
+        <span class="kw">let</span> <span class="ident">unit_box</span>: <span class="ident">Uniform</span><span class="op">&lt;</span><span class="ident">i32</span><span class="op">&gt;</span>  <span class="op">=</span> <span class="ident">Uniform</span>::<span class="ident">new</span>(<span class="op">-</span><span class="number">1</span>, <span class="number">1</span>);
+        <span class="kw">let</span> <span class="ident">de_unit_box</span>: <span class="ident">Uniform</span><span class="op">&lt;</span><span class="ident">i32</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">bincode</span>::<span class="ident">deserialize</span>(<span class="kw-2">&amp;</span><span class="ident">bincode</span>::<span class="ident">serialize</span>(<span class="kw-2">&amp;</span><span class="ident">unit_box</span>).<span class="ident">unwrap</span>()).<span class="ident">unwrap</span>();
+
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">unit_box</span>.<span class="number">0</span>.<span class="ident">low</span>, <span class="ident">de_unit_box</span>.<span class="number">0</span>.<span class="ident">low</span>);
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">unit_box</span>.<span class="number">0</span>.<span class="ident">range</span>, <span class="ident">de_unit_box</span>.<span class="number">0</span>.<span class="ident">range</span>);
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">unit_box</span>.<span class="number">0</span>.<span class="ident">z</span>, <span class="ident">de_unit_box</span>.<span class="number">0</span>.<span class="ident">z</span>);
+
+        <span class="kw">let</span> <span class="ident">unit_box</span>: <span class="ident">Uniform</span><span class="op">&lt;</span><span class="ident">f32</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Uniform</span>::<span class="ident">new</span>(<span class="op">-</span><span class="number">1.</span>, <span class="number">1.</span>);
+        <span class="kw">let</span> <span class="ident">de_unit_box</span>: <span class="ident">Uniform</span><span class="op">&lt;</span><span class="ident">f32</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">bincode</span>::<span class="ident">deserialize</span>(<span class="kw-2">&amp;</span><span class="ident">bincode</span>::<span class="ident">serialize</span>(<span class="kw-2">&amp;</span><span class="ident">unit_box</span>).<span class="ident">unwrap</span>()).<span class="ident">unwrap</span>();
+
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">unit_box</span>.<span class="number">0</span>.<span class="ident">low</span>, <span class="ident">de_unit_box</span>.<span class="number">0</span>.<span class="ident">low</span>);
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">unit_box</span>.<span class="number">0</span>.<span class="ident">scale</span>, <span class="ident">de_unit_box</span>.<span class="number">0</span>.<span class="ident">scale</span>);
+    }
 
     <span class="attribute">#[<span class="ident">should_panic</span>]</span>
     <span class="attribute">#[<span class="ident">test</span>]</span>
@@ -2406,7 +2848,7 @@
                     }
 
                     <span class="kw">for</span> <span class="kw">_</span> <span class="kw">in</span> <span class="number">0</span>..<span class="number">1000</span> {
-                        <span class="kw">let</span> <span class="ident">v</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span> <span class="op">=</span> <span class="ident">rng</span>.<span class="ident">gen_range</span>(<span class="ident">low</span>, <span class="ident">high</span>);
+                        <span class="kw">let</span> <span class="ident">v</span> <span class="op">=</span> <span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span> <span class="kw">as</span> <span class="ident">SampleUniform</span><span class="op">&gt;</span>::<span class="ident">Sampler</span>::<span class="ident">sample_single</span>(<span class="ident">low</span>, <span class="ident">high</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">rng</span>);
                         <span class="macro">assert</span><span class="macro">!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">le</span>(<span class="ident">low</span>, <span class="ident">v</span>) <span class="op">&amp;&amp;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">lt</span>(<span class="ident">v</span>, <span class="ident">high</span>));
                     }
                 }
@@ -2440,7 +2882,7 @@
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;emscripten&quot;</span>))]</span>
         <span class="macro">t</span><span class="macro">!</span>(<span class="ident">i128</span>, <span class="ident">u128</span>);
 
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;simd_support&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;nightly&quot;</span>))]</span>
+        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;simd_support&quot;</span>)]</span>
         {
             <span class="macro">t</span><span class="macro">!</span>(<span class="ident">u8x2</span>, <span class="ident">u8x4</span>, <span class="ident">u8x8</span>, <span class="ident">u8x16</span>, <span class="ident">u8x32</span>, <span class="ident">u8x64</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">u8</span>);
             <span class="macro">t</span><span class="macro">!</span>(<span class="ident">i8x2</span>, <span class="ident">i8x4</span>, <span class="ident">i8x8</span>, <span class="ident">i8x16</span>, <span class="ident">i8x32</span>, <span class="ident">i8x64</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">i8</span>);
@@ -2450,6 +2892,27 @@
             <span class="macro">t</span><span class="macro">!</span>(<span class="ident">i32x2</span>, <span class="ident">i32x4</span>, <span class="ident">i32x8</span>, <span class="ident">i32x16</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">i32</span>);
             <span class="macro">t</span><span class="macro">!</span>(<span class="ident">u64x2</span>, <span class="ident">u64x4</span>, <span class="ident">u64x8</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">u64</span>);
             <span class="macro">t</span><span class="macro">!</span>(<span class="ident">i64x2</span>, <span class="ident">i64x4</span>, <span class="ident">i64x8</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">i64</span>);
+        }
+    }
+
+    <span class="attribute">#[<span class="ident">test</span>]</span>
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">miri</span>, <span class="ident">ignore</span>)]</span> <span class="comment">// Miri is too slow</span>
+    <span class="kw">fn</span> <span class="ident">test_char</span>() {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rng</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">test</span>::<span class="ident">rng</span>(<span class="number">891</span>);
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">max</span> <span class="op">=</span> <span class="ident">core</span>::<span class="ident">char</span>::<span class="ident">from_u32</span>(<span class="number">0</span>).<span class="ident">unwrap</span>();
+        <span class="kw">for</span> <span class="kw">_</span> <span class="kw">in</span> <span class="number">0</span>..<span class="number">100</span> {
+            <span class="kw">let</span> <span class="ident">c</span> <span class="op">=</span> <span class="ident">rng</span>.<span class="ident">gen_range</span>(<span class="string">&#39;A&#39;</span>..<span class="op">=</span><span class="string">&#39;Z&#39;</span>);
+            <span class="macro">assert</span><span class="macro">!</span>(<span class="string">&#39;A&#39;</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">c</span> <span class="op">&amp;&amp;</span> <span class="ident">c</span> <span class="op">&lt;</span><span class="op">=</span> <span class="string">&#39;Z&#39;</span>);
+            <span class="ident">max</span> <span class="op">=</span> <span class="ident">max</span>.<span class="ident">max</span>(<span class="ident">c</span>);
+        }
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">max</span>, <span class="string">&#39;Z&#39;</span>);
+        <span class="kw">let</span> <span class="ident">d</span> <span class="op">=</span> <span class="ident">Uniform</span>::<span class="ident">new</span>(
+            <span class="ident">core</span>::<span class="ident">char</span>::<span class="ident">from_u32</span>(<span class="number">0xD7F0</span>).<span class="ident">unwrap</span>(),
+            <span class="ident">core</span>::<span class="ident">char</span>::<span class="ident">from_u32</span>(<span class="number">0xE010</span>).<span class="ident">unwrap</span>(),
+        );
+        <span class="kw">for</span> <span class="kw">_</span> <span class="kw">in</span> <span class="number">0</span>..<span class="number">100</span> {
+            <span class="kw">let</span> <span class="ident">c</span> <span class="op">=</span> <span class="ident">d</span>.<span class="ident">sample</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">rng</span>);
+            <span class="macro">assert</span><span class="macro">!</span>((<span class="ident">c</span> <span class="kw">as</span> <span class="ident">u32</span>) <span class="op">&lt;</span> <span class="number">0xD800</span> <span class="op">|</span><span class="op">|</span> (<span class="ident">c</span> <span class="kw">as</span> <span class="ident">u32</span>) <span class="op">&gt;</span> <span class="number">0xDFFF</span>);
         }
     }
 
@@ -2488,7 +2951,8 @@
                             <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">low_scalar</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">v</span> <span class="op">&amp;&amp;</span> <span class="ident">v</span> <span class="op">&lt;</span> <span class="ident">high_scalar</span>);
                             <span class="kw">let</span> <span class="ident">v</span> <span class="op">=</span> <span class="ident">rng</span>.<span class="ident">sample</span>(<span class="ident">my_incl_uniform</span>).<span class="ident">extract</span>(<span class="ident">lane</span>);
                             <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">low_scalar</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">v</span> <span class="op">&amp;&amp;</span> <span class="ident">v</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">high_scalar</span>);
-                            <span class="kw">let</span> <span class="ident">v</span> <span class="op">=</span> <span class="ident">rng</span>.<span class="ident">gen_range</span>(<span class="ident">low</span>, <span class="ident">high</span>).<span class="ident">extract</span>(<span class="ident">lane</span>);
+                            <span class="kw">let</span> <span class="ident">v</span> <span class="op">=</span> <span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span> <span class="kw">as</span> <span class="ident">SampleUniform</span><span class="op">&gt;</span>::<span class="ident">Sampler</span>
+                                ::<span class="ident">sample_single</span>(<span class="ident">low</span>, <span class="ident">high</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">rng</span>).<span class="ident">extract</span>(<span class="ident">lane</span>);
                             <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">low_scalar</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">v</span> <span class="op">&amp;&amp;</span> <span class="ident">v</span> <span class="op">&lt;</span> <span class="ident">high_scalar</span>);
                         }
 
@@ -2499,7 +2963,9 @@
 
                         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">zero_rng</span>.<span class="ident">sample</span>(<span class="ident">my_uniform</span>).<span class="ident">extract</span>(<span class="ident">lane</span>), <span class="ident">low_scalar</span>);
                         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">zero_rng</span>.<span class="ident">sample</span>(<span class="ident">my_incl_uniform</span>).<span class="ident">extract</span>(<span class="ident">lane</span>), <span class="ident">low_scalar</span>);
-                        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">zero_rng</span>.<span class="ident">gen_range</span>(<span class="ident">low</span>, <span class="ident">high</span>).<span class="ident">extract</span>(<span class="ident">lane</span>), <span class="ident">low_scalar</span>);
+                        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span> <span class="kw">as</span> <span class="ident">SampleUniform</span><span class="op">&gt;</span>::<span class="ident">Sampler</span>
+                            ::<span class="ident">sample_single</span>(<span class="ident">low</span>, <span class="ident">high</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">zero_rng</span>)
+                            .<span class="ident">extract</span>(<span class="ident">lane</span>), <span class="ident">low_scalar</span>);
                         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">max_rng</span>.<span class="ident">sample</span>(<span class="ident">my_uniform</span>).<span class="ident">extract</span>(<span class="ident">lane</span>) <span class="op">&lt;</span> <span class="ident">high_scalar</span>);
                         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">max_rng</span>.<span class="ident">sample</span>(<span class="ident">my_incl_uniform</span>).<span class="ident">extract</span>(<span class="ident">lane</span>) <span class="op">&lt;</span><span class="op">=</span> <span class="ident">high_scalar</span>);
 
@@ -2512,7 +2978,9 @@
                                 (<span class="op">-</span><span class="number">1i64</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">bits_shifted</span>) <span class="kw">as</span> <span class="ident">u64</span>,
                             );
                             <span class="macro">assert</span><span class="macro">!</span>(
-                                <span class="ident">lowering_max_rng</span>.<span class="ident">gen_range</span>(<span class="ident">low</span>, <span class="ident">high</span>).<span class="ident">extract</span>(<span class="ident">lane</span>) <span class="op">&lt;</span> <span class="ident">high_scalar</span>
+                                <span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span> <span class="kw">as</span> <span class="ident">SampleUniform</span><span class="op">&gt;</span>::<span class="ident">Sampler</span>
+                                    ::<span class="ident">sample_single</span>(<span class="ident">low</span>, <span class="ident">high</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">lowering_max_rng</span>)
+                                    .<span class="ident">extract</span>(<span class="ident">lane</span>) <span class="op">&lt;</span> <span class="ident">high_scalar</span>
                             );
                         }
                     }
@@ -2560,7 +3028,7 @@
         <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">panic</span>::<span class="ident">catch_unwind</span>;
         <span class="kw">fn</span> <span class="ident">range</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">SampleUniform</span><span class="op">&gt;</span>(<span class="ident">low</span>: <span class="ident">T</span>, <span class="ident">high</span>: <span class="ident">T</span>) {
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rng</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">test</span>::<span class="ident">rng</span>(<span class="number">253</span>);
-            <span class="ident">rng</span>.<span class="ident">gen_range</span>(<span class="ident">low</span>, <span class="ident">high</span>);
+            <span class="ident">T</span>::<span class="ident">Sampler</span>::<span class="ident">sample_single</span>(<span class="ident">low</span>, <span class="ident">high</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">rng</span>);
         }
 
         <span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">t</span> {

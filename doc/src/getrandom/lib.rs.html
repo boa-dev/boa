@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/getrandom-0.1.15/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="https://www.rust-lang.org/favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../getrandom/index.html'><div class='logo-container'><img src='https://www.rust-lang.org/logos/rust-logo-128x128-blk.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/getrandom-0.2.0/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="https://www.rust-lang.org/favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../getrandom/index.html'><div class='logo-container'><img src='https://www.rust-lang.org/logos/rust-logo-128x128-blk.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
                 <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
@@ -251,36 +251,6 @@
 <span id="250">250</span>
 <span id="251">251</span>
 <span id="252">252</span>
-<span id="253">253</span>
-<span id="254">254</span>
-<span id="255">255</span>
-<span id="256">256</span>
-<span id="257">257</span>
-<span id="258">258</span>
-<span id="259">259</span>
-<span id="260">260</span>
-<span id="261">261</span>
-<span id="262">262</span>
-<span id="263">263</span>
-<span id="264">264</span>
-<span id="265">265</span>
-<span id="266">266</span>
-<span id="267">267</span>
-<span id="268">268</span>
-<span id="269">269</span>
-<span id="270">270</span>
-<span id="271">271</span>
-<span id="272">272</span>
-<span id="273">273</span>
-<span id="274">274</span>
-<span id="275">275</span>
-<span id="276">276</span>
-<span id="277">277</span>
-<span id="278">278</span>
-<span id="279">279</span>
-<span id="280">280</span>
-<span id="281">281</span>
-<span id="282">282</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Copyright 2019 Developers of the Rand project.</span>
 <span class="comment">//</span>
@@ -290,98 +260,120 @@
 <span class="comment">// option. This file may not be copied, modified, or distributed</span>
 <span class="comment">// except according to those terms.</span>
 
-<span class="doccomment">//! Interface to the random number generator of the operating system.</span>
+<span class="doccomment">//! Interface to the operating system&#39;s random number generator.</span>
 <span class="doccomment">//!</span>
-<span class="doccomment">//! # Platform sources</span>
+<span class="doccomment">//! # Supported targets</span>
 <span class="doccomment">//!</span>
-<span class="doccomment">//! | OS               | interface</span>
-<span class="doccomment">//! |------------------|---------------------------------------------------------</span>
-<span class="doccomment">//! | Linux, Android   | [`getrandom`][1] system call if available, otherwise [`/dev/urandom`][2] after successfully polling `/dev/random`</span>
-<span class="doccomment">//! | Windows          | [`RtlGenRandom`][3]</span>
-<span class="doccomment">//! | macOS            | [`getentropy()`][19] if available, otherwise [`/dev/random`][20] (identical to `/dev/urandom`)</span>
-<span class="doccomment">//! | iOS              | [`SecRandomCopyBytes`][4]</span>
-<span class="doccomment">//! | FreeBSD          | [`getrandom()`][21] if available, otherwise [`kern.arandom`][5]</span>
-<span class="doccomment">//! | OpenBSD          | [`getentropy`][6]</span>
-<span class="doccomment">//! | NetBSD           | [`kern.arandom`][7]</span>
-<span class="doccomment">//! | Dragonfly BSD    | [`/dev/random`][8]</span>
-<span class="doccomment">//! | Solaris, illumos | [`getrandom`][9] system call if available, otherwise [`/dev/random`][10]</span>
-<span class="doccomment">//! | Fuchsia OS       | [`cprng_draw`][11]</span>
-<span class="doccomment">//! | Redox            | [`rand:`][12]</span>
-<span class="doccomment">//! | CloudABI         | [`cloudabi_sys_random_get`][13]</span>
-<span class="doccomment">//! | Haiku            | `/dev/random` (identical to `/dev/urandom`)</span>
-<span class="doccomment">//! | L4RE, SGX, UEFI  | [RDRAND][18]</span>
-<span class="doccomment">//! | Hermit           | [RDRAND][18] as [`sys_rand`][22] is currently broken.</span>
-<span class="doccomment">//! | VxWorks          | `randABytes` after checking entropy pool initialization with `randSecure`</span>
-<span class="doccomment">//! | Web browsers     | [`Crypto.getRandomValues`][14] (see [Support for WebAssembly and asm.js][16])</span>
-<span class="doccomment">//! | Node.js          | [`crypto.randomBytes`][15] (see [Support for WebAssembly and asm.js][16])</span>
-<span class="doccomment">//! | WASI             | [`__wasi_random_get`][17]</span>
+<span class="doccomment">//! | Target            | Target Triple      | Implementation</span>
+<span class="doccomment">//! | ----------------- | ------------------ | --------------</span>
+<span class="doccomment">//! | Linux, Android    | `*‑linux‑*`        | [`getrandom`][1] system call if available, otherwise [`/dev/urandom`][2] after successfully polling `/dev/random` |</span>
+<span class="doccomment">//! | Windows           | `*‑pc‑windows‑*`   | [`RtlGenRandom`][3] |</span>
+<span class="doccomment">//! | [Windows UWP][22] | `*‑uwp‑windows‑*`  | [`BCryptGenRandom`][23] |</span>
+<span class="doccomment">//! | macOS             | `*‑apple‑darwin`   | [`getentropy()`][19] if available, otherwise [`/dev/random`][20] (identical to `/dev/urandom`)</span>
+<span class="doccomment">//! | iOS               | `*‑apple‑ios`      | [`SecRandomCopyBytes`][4]</span>
+<span class="doccomment">//! | FreeBSD           | `*‑freebsd`        | [`getrandom()`][21] if available, otherwise [`kern.arandom`][5]</span>
+<span class="doccomment">//! | OpenBSD           | `*‑openbsd`        | [`getentropy`][6]</span>
+<span class="doccomment">//! | NetBSD            | `*‑netbsd`         | [`kern.arandom`][7]</span>
+<span class="doccomment">//! | Dragonfly BSD     | `*‑dragonfly`      | [`/dev/random`][8]</span>
+<span class="doccomment">//! | Solaris, illumos  | `*‑solaris`, `*‑illumos` | [`getrandom()`][9] if available, otherwise [`/dev/random`][10]</span>
+<span class="doccomment">//! | Fuchsia OS        | `*‑fuchsia`        | [`cprng_draw`][11]</span>
+<span class="doccomment">//! | Redox             | `*‑cloudabi`       | [`rand:`][12]</span>
+<span class="doccomment">//! | CloudABI          | `*‑redox`          | [`cloudabi_sys_random_get`][13]</span>
+<span class="doccomment">//! | Haiku             | `*‑haiku`          | `/dev/random` (identical to `/dev/urandom`)</span>
+<span class="doccomment">//! | SGX               | `x86_64‑*‑sgx`     | [RDRAND][18]</span>
+<span class="doccomment">//! | VxWorks           | `*‑wrs‑vxworks‑*`  | `randABytes` after checking entropy pool initialization with `randSecure`</span>
+<span class="doccomment">//! | Emscripten        | `*‑emscripten`     | `/dev/random` (identical to `/dev/urandom`)</span>
+<span class="doccomment">//! | WASI              | `wasm32‑wasi`      | [`__wasi_random_get`][17]</span>
+<span class="doccomment">//! | Web Browser       | `wasm32‑*‑unknown` | [`Crypto.getRandomValues()`][14], see [WebAssembly support][16]</span>
+<span class="doccomment">//! | Node.js           | `wasm32‑*‑unknown` | [`crypto.randomBytes`][15], see [WebAssembly support][16]</span>
 <span class="doccomment">//!</span>
-<span class="doccomment">//! Getrandom doesn&#39;t have a blanket implementation for all Unix-like operating</span>
-<span class="doccomment">//! systems that reads from `/dev/urandom`. This ensures all supported operating</span>
-<span class="doccomment">//! systems are using the recommended interface and respect maximum buffer</span>
-<span class="doccomment">//! sizes.</span>
+<span class="doccomment">//! There is no blanket implementation on `unix` targets that reads from</span>
+<span class="doccomment">//! `/dev/urandom`. This ensures all supported targets are using the recommended</span>
+<span class="doccomment">//! interface and respect maximum buffer sizes.</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! Pull Requests that add support for new targets to `getrandom` are always welcome.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! ## Unsupported targets</span>
 <span class="doccomment">//!</span>
-<span class="doccomment">//! By default, compiling `getrandom` for an unsupported target will result in</span>
-<span class="doccomment">//! a compilation error. If you want to build an application which uses `getrandom`</span>
-<span class="doccomment">//! for such target, you can either:</span>
-<span class="doccomment">//! - Use [`[replace]`][replace] or [`[patch]`][patch] section in your `Cargo.toml`</span>
-<span class="doccomment">//! to switch to a custom implementation with a support of your target.</span>
-<span class="doccomment">//! - Enable the `dummy` feature to have getrandom use an implementation that always</span>
-<span class="doccomment">//! fails at run-time on unsupported targets.</span>
+<span class="doccomment">//! By default, `getrandom` will not compile on unsupported targets, but certain</span>
+<span class="doccomment">//! features allow a user to select a &quot;fallback&quot; implementation if no supported</span>
+<span class="doccomment">//! implementation exists.</span>
 <span class="doccomment">//!</span>
-<span class="doccomment">//! [replace]: https://doc.rust-lang.org/cargo/reference/manifest.html#the-replace-section</span>
-<span class="doccomment">//! [patch]: https://doc.rust-lang.org/cargo/reference/manifest.html#the-patch-section</span>
+<span class="doccomment">//! All of the below mechanisms only affect unsupported</span>
+<span class="doccomment">//! targets. Supported targets will _always_ use their supported implementations.</span>
+<span class="doccomment">//! This prevents a crate from overriding a secure source of randomness</span>
+<span class="doccomment">//! (either accidentally or intentionally).</span>
 <span class="doccomment">//!</span>
-<span class="doccomment">//! ## Support for WebAssembly and asm.js</span>
+<span class="doccomment">//! ### RDRAND on x86</span>
 <span class="doccomment">//!</span>
-<span class="doccomment">//! Getrandom supports all of Rust&#39;s current `wasm32` targets, and it works with</span>
-<span class="doccomment">//! both Node.js and web browsers. The three Emscripten targets</span>
-<span class="doccomment">//! `asmjs-unknown-emscripten`, `wasm32-unknown-emscripten`, and</span>
-<span class="doccomment">//! `wasm32-experimental-emscripten` use Emscripten&#39;s `/dev/random` emulation.</span>
-<span class="doccomment">//! The WASI target `wasm32-wasi` uses the [`__wasi_random_get`][17] function</span>
-<span class="doccomment">//! defined by the WASI standard.</span>
+<span class="doccomment">//! *If the `&quot;rdrand&quot;` Cargo feature is enabled*, `getrandom` will fallback to using</span>
+<span class="doccomment">//! the [`RDRAND`][18] instruction to get randomness on `no_std` `x86`/`x86_64`</span>
+<span class="doccomment">//! targets. This feature has no effect on other CPU architectures.</span>
 <span class="doccomment">//!</span>
-<span class="doccomment">//! Getrandom also supports `wasm32-unknown-unknown` by directly calling</span>
-<span class="doccomment">//! JavaScript methods. Rust currently has two ways to do this: [bindgen] and</span>
-<span class="doccomment">//! [stdweb]. Getrandom supports using either one by enabling the</span>
-<span class="doccomment">//! `wasm-bindgen` or `stdweb` crate features. Note that if both features are</span>
-<span class="doccomment">//! enabled, `wasm-bindgen` will be used. If neither feature is enabled, calls</span>
-<span class="doccomment">//! to `getrandom` will always fail at runtime.</span>
+<span class="doccomment">//! ### WebAssembly support</span>
 <span class="doccomment">//!</span>
-<span class="doccomment">//! [bindgen]: https://github.com/rust-lang/rust-bindgen</span>
-<span class="doccomment">//! [stdweb]: https://github.com/koute/stdweb</span>
+<span class="doccomment">//! This crate fully supports the</span>
+<span class="doccomment">//! [`wasm32-wasi`](https://github.com/CraneStation/wasi) and</span>
+<span class="doccomment">//! [`wasm32-unknown-emscripten`](https://www.hellorust.com/setup/emscripten/)</span>
+<span class="doccomment">//! targets. However, the `wasm32-unknown-unknown` target is not automatically</span>
+<span class="doccomment">//! supported since, from the target name alone, we cannot deduce which</span>
+<span class="doccomment">//! JavaScript interface is in use (or if JavaScript is available at all).</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! Instead, *if the `&quot;js&quot;` Cargo feature is enabled*, this crate will assume</span>
+<span class="doccomment">//! that you are building for an environment containing JavaScript, and will</span>
+<span class="doccomment">//! call the appropriate methods. Both web browser (main window and Web Workers)</span>
+<span class="doccomment">//! and Node.js environments are supported, invoking the methods</span>
+<span class="doccomment">//! [described above](#supported-targets). This crate can be built with either</span>
+<span class="doccomment">//! the [wasm-bindgen](https://github.com/rust-lang/rust-bindgen) or</span>
+<span class="doccomment">//! [cargo-web](https://github.com/koute/cargo-web) toolchains.</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! This feature has no effect on targets other than `wasm32-unknown-unknown`.</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! ### Custom implementations</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! The [`register_custom_getrandom!`] macro allows a user to mark their own</span>
+<span class="doccomment">//! function as the backing implementation for [`getrandom`]. See the macro&#39;s</span>
+<span class="doccomment">//! documentation for more information about writing and registering your own</span>
+<span class="doccomment">//! custom implementations.</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! Note that registering a custom implementation only has an effect on targets</span>
+<span class="doccomment">//! that would otherwise not compile. Any supported targets (including those</span>
+<span class="doccomment">//! using `&quot;rdrand&quot;` and `&quot;js&quot;` Cargo features) continue using their normal</span>
+<span class="doccomment">//! implementations even if a function is registered.</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! ### Indirect Dependencies</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! If `getrandom` is not a direct dependency of your crate, you can still</span>
+<span class="doccomment">//! enable any of the above fallback behaviors by enabling the relevant</span>
+<span class="doccomment">//! feature in your root crate&#39;s `Cargo.toml`:</span>
+<span class="doccomment">//! ```toml</span>
+<span class="doccomment">//! [dependencies]</span>
+<span class="doccomment">//! getrandom = { version = &quot;0.2&quot;, features = [&quot;js&quot;] }</span>
+<span class="doccomment">//! ```</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! ## Early boot</span>
 <span class="doccomment">//!</span>
-<span class="doccomment">//! It is possible that early in the boot process the OS hasn&#39;t had enough time</span>
-<span class="doccomment">//! yet to collect entropy to securely seed its RNG, especially on virtual</span>
-<span class="doccomment">//! machines.</span>
+<span class="doccomment">//! Sometimes, early in the boot process, the OS has not collected enough</span>
+<span class="doccomment">//! entropy to securely seed its RNG. This is especially common on virtual</span>
+<span class="doccomment">//! machines, where standard &quot;random&quot; events are hard to come by.</span>
 <span class="doccomment">//!</span>
-<span class="doccomment">//! Some operating systems always block the thread until the RNG is securely</span>
+<span class="doccomment">//! Some operating system interfaces always block until the RNG is securely</span>
 <span class="doccomment">//! seeded. This can take anywhere from a few seconds to more than a minute.</span>
-<span class="doccomment">//! Others make a best effort to use a seed from before the shutdown and don&#39;t</span>
-<span class="doccomment">//! document much.</span>
+<span class="doccomment">//! A few (Linux, NetBSD and Solaris) offer a choice between blocking and</span>
+<span class="doccomment">//! getting an error; in these cases, we always choose to block.</span>
 <span class="doccomment">//!</span>
-<span class="doccomment">//! A few, Linux, NetBSD and Solaris, offer a choice between blocking and</span>
-<span class="doccomment">//! getting an error; in these cases we always choose to block.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! On Linux (when the `getrandom` system call is not available) and on NetBSD</span>
-<span class="doccomment">//! reading from `/dev/urandom` never blocks, even when the OS hasn&#39;t collected</span>
-<span class="doccomment">//! enough entropy yet. To avoid returning low-entropy bytes, we first read from</span>
+<span class="doccomment">//! On Linux (when the `getrandom` system call is not available), reading from</span>
+<span class="doccomment">//! `/dev/urandom` never blocks, even when the OS hasn&#39;t collected enough</span>
+<span class="doccomment">//! entropy yet. To avoid returning low-entropy bytes, we first poll</span>
 <span class="doccomment">//! `/dev/random` and only switch to `/dev/urandom` once this has succeeded.</span>
 <span class="doccomment">//!</span>
-<span class="doccomment">//! # Error handling</span>
+<span class="doccomment">//! ## Error handling</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! We always choose failure over returning insecure &quot;random&quot; bytes. In general,</span>
 <span class="doccomment">//! on supported platforms, failure is highly unlikely, though not impossible.</span>
 <span class="doccomment">//! If an error does occur, then it is likely that it will occur on every call to</span>
 <span class="doccomment">//! `getrandom`, hence after the first successful call one can be reasonably</span>
 <span class="doccomment">//! confident that no errors will occur.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! On unsupported platforms, `getrandom` always fails. See the [`Error`] type</span>
-<span class="doccomment">//! for more information on what data is returned on failure.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! [1]: http://man7.org/linux/man-pages/man2/getrandom.2.html</span>
 <span class="doccomment">//! [2]: http://man7.org/linux/man-pages/man4/urandom.4.html</span>
@@ -398,13 +390,14 @@
 <span class="doccomment">//! [13]: https://github.com/nuxinl/cloudabi#random_get</span>
 <span class="doccomment">//! [14]: https://www.w3.org/TR/WebCryptoAPI/#Crypto-method-getRandomValues</span>
 <span class="doccomment">//! [15]: https://nodejs.org/api/crypto.html#crypto_crypto_randombytes_size_callback</span>
-<span class="doccomment">//! [16]: #support-for-webassembly-and-asmjs</span>
+<span class="doccomment">//! [16]: #webassembly-support</span>
 <span class="doccomment">//! [17]: https://github.com/WebAssembly/WASI/blob/master/design/WASI-core.md#__wasi_random_get</span>
 <span class="doccomment">//! [18]: https://software.intel.com/en-us/articles/intel-digital-random-number-generator-drng-software-implementation-guide</span>
 <span class="doccomment">//! [19]: https://www.unix.com/man-page/mojave/2/getentropy/</span>
 <span class="doccomment">//! [20]: https://www.unix.com/man-page/mojave/4/random/</span>
 <span class="doccomment">//! [21]: https://www.freebsd.org/cgi/man.cgi?query=getrandom&amp;manpath=FreeBSD+12.0-stable</span>
-<span class="doccomment">//! [22]: https://github.com/hermitcore/libhermit-rs/blob/09c38b0371cee6f56a541400ba453e319e43db53/src/syscalls/random.rs#L21</span>
+<span class="doccomment">//! [22]: https://docs.microsoft.com/en-us/windows/uwp/</span>
+<span class="doccomment">//! [23]: https://docs.microsoft.com/en-us/windows/win32/api/bcrypt/nf-bcrypt-bcryptgenrandom</span>
 
 <span class="attribute">#![<span class="ident">doc</span>(
     <span class="ident">html_logo_url</span> <span class="op">=</span> <span class="string">&quot;https://www.rust-lang.org/logos/rust-logo-128x128-blk.png&quot;</span>,
@@ -412,136 +405,78 @@
     <span class="ident">html_root_url</span> <span class="op">=</span> <span class="string">&quot;https://rust-random.github.io/rand/&quot;</span>
 )]</span>
 <span class="attribute">#![<span class="ident">no_std</span>]</span>
-<span class="attribute">#![<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;stdweb&quot;</span>, <span class="ident">recursion_limit</span> <span class="op">=</span> <span class="string">&quot;128&quot;</span>)]</span>
 <span class="attribute">#![<span class="ident">warn</span>(<span class="ident">rust_2018_idioms</span>, <span class="ident">unused_lifetimes</span>, <span class="ident">missing_docs</span>)]</span>
 
 <span class="attribute">#[<span class="ident">macro_use</span>]</span>
 <span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">cfg_if</span>;
 
-<span class="macro">cfg_if</span><span class="macro">!</span> {
-    <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;log&quot;</span>)]</span> {
-        <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unused</span>)]</span>
-        <span class="attribute">#[<span class="ident">macro_use</span>]</span>
-        <span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">log</span>;
-    } <span class="kw">else</span> {
-        <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unused</span>)]</span>
-        <span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">error</span> {
-            ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">x</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) <span class="op">=</span><span class="op">&gt;</span> {};
-        }
-        <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unused</span>)]</span>
-        <span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">warn</span> {
-            ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">x</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) <span class="op">=</span><span class="op">&gt;</span> {};
-        }
-        <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unused</span>)]</span>
-        <span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">info</span> {
-            ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">x</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) <span class="op">=</span><span class="op">&gt;</span> {};
-        }
-    }
-}
-
 <span class="kw">mod</span> <span class="ident">error</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">error</span>::<span class="ident">Error</span>;
-
-<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">dead_code</span>)]</span>
 <span class="kw">mod</span> <span class="ident">util</span>;
+<span class="comment">// To prevent a breaking change when targets are added, we always export the</span>
+<span class="comment">// register_custom_getrandom macro, so old Custom RNG crates continue to build.</span>
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;custom&quot;</span>)]</span>
+<span class="kw">mod</span> <span class="ident">custom</span>;
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span>
+<span class="kw">mod</span> <span class="ident">error_impls</span>;
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;vxworks&quot;</span>)]</span>
-<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">dead_code</span>)]</span>
-<span class="kw">mod</span> <span class="ident">util_libc</span>;
-
-<span class="macro">cfg_if</span><span class="macro">!</span> {
-    <span class="comment">// Unlike the other Unix, Fuchsia and iOS don&#39;t use the libc to make any calls.</span>
-    <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;dragonfly&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;emscripten&quot;</span>,
-                 <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;freebsd&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;haiku&quot;</span>,     <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;illumos&quot;</span>,
-                 <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>,   <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;macos&quot;</span>,     <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;netbsd&quot;</span>,
-                 <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;openbsd&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;redox&quot;</span>,     <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;solaris&quot;</span>))]</span> {
-        <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">dead_code</span>)]</span>
-        <span class="kw">mod</span> <span class="ident">util_libc</span>;
-        <span class="comment">// Keep std-only trait definitions for backwards compatibility</span>
-        <span class="kw">mod</span> <span class="ident">error_impls</span>;
-    } <span class="kw">else</span> <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span> {
-        <span class="kw">mod</span> <span class="ident">error_impls</span>;
-    }
-}
-
-<span class="comment">// These targets read from a file as a fallback method.</span>
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(
-    <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>,
-    <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>,
-    <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;macos&quot;</span>,
-    <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;solaris&quot;</span>,
-    <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;illumos&quot;</span>,
-))]</span>
-<span class="kw">mod</span> <span class="ident">use_file</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">error</span>::<span class="ident">Error</span>;
 
 <span class="comment">// System-specific implementations.</span>
 <span class="comment">//</span>
 <span class="comment">// These should all provide getrandom_inner with the same signature as getrandom.</span>
 <span class="macro">cfg_if</span><span class="macro">!</span> {
-    <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>)]</span> {
+    <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;dragonfly&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;emscripten&quot;</span>,
+                 <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;haiku&quot;</span>,     <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;redox&quot;</span>))]</span> {
+        <span class="kw">mod</span> <span class="ident">util_libc</span>;
+        <span class="attribute">#[<span class="ident">path</span> <span class="op">=</span> <span class="string">&quot;use_file.rs&quot;</span>]</span> <span class="kw">mod</span> <span class="ident">imp</span>;
+    } <span class="kw">else</span> <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>))]</span> {
+        <span class="kw">mod</span> <span class="ident">util_libc</span>;
+        <span class="kw">mod</span> <span class="ident">use_file</span>;
         <span class="attribute">#[<span class="ident">path</span> <span class="op">=</span> <span class="string">&quot;linux_android.rs&quot;</span>]</span> <span class="kw">mod</span> <span class="ident">imp</span>;
+    } <span class="kw">else</span> <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;illumos&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;solaris&quot;</span>))]</span> {
+        <span class="kw">mod</span> <span class="ident">util_libc</span>;
+        <span class="kw">mod</span> <span class="ident">use_file</span>;
+        <span class="attribute">#[<span class="ident">path</span> <span class="op">=</span> <span class="string">&quot;solaris_illumos.rs&quot;</span>]</span> <span class="kw">mod</span> <span class="ident">imp</span>;
+    } <span class="kw">else</span> <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;freebsd&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;netbsd&quot;</span>))]</span> {
+        <span class="kw">mod</span> <span class="ident">util_libc</span>;
+        <span class="attribute">#[<span class="ident">path</span> <span class="op">=</span> <span class="string">&quot;bsd_arandom.rs&quot;</span>]</span> <span class="kw">mod</span> <span class="ident">imp</span>;
     } <span class="kw">else</span> <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;cloudabi&quot;</span>)]</span> {
         <span class="attribute">#[<span class="ident">path</span> <span class="op">=</span> <span class="string">&quot;cloudabi.rs&quot;</span>]</span> <span class="kw">mod</span> <span class="ident">imp</span>;
-    } <span class="kw">else</span> <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;dragonfly&quot;</span>)]</span> {
-        <span class="attribute">#[<span class="ident">path</span> <span class="op">=</span> <span class="string">&quot;use_file.rs&quot;</span>]</span> <span class="kw">mod</span> <span class="ident">imp</span>;
-    } <span class="kw">else</span> <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;emscripten&quot;</span>)]</span> {
-        <span class="attribute">#[<span class="ident">path</span> <span class="op">=</span> <span class="string">&quot;use_file.rs&quot;</span>]</span> <span class="kw">mod</span> <span class="ident">imp</span>;
-    } <span class="kw">else</span> <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;freebsd&quot;</span>)]</span> {
-        <span class="attribute">#[<span class="ident">path</span> <span class="op">=</span> <span class="string">&quot;bsd_arandom.rs&quot;</span>]</span> <span class="kw">mod</span> <span class="ident">imp</span>;
     } <span class="kw">else</span> <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;fuchsia&quot;</span>)]</span> {
         <span class="attribute">#[<span class="ident">path</span> <span class="op">=</span> <span class="string">&quot;fuchsia.rs&quot;</span>]</span> <span class="kw">mod</span> <span class="ident">imp</span>;
-    } <span class="kw">else</span> <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;haiku&quot;</span>)]</span> {
-        <span class="attribute">#[<span class="ident">path</span> <span class="op">=</span> <span class="string">&quot;use_file.rs&quot;</span>]</span> <span class="kw">mod</span> <span class="ident">imp</span>;
-    } <span class="kw">else</span> <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;illumos&quot;</span>)]</span> {
-        <span class="attribute">#[<span class="ident">path</span> <span class="op">=</span> <span class="string">&quot;solaris_illumos.rs&quot;</span>]</span> <span class="kw">mod</span> <span class="ident">imp</span>;
     } <span class="kw">else</span> <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;ios&quot;</span>)]</span> {
         <span class="attribute">#[<span class="ident">path</span> <span class="op">=</span> <span class="string">&quot;ios.rs&quot;</span>]</span> <span class="kw">mod</span> <span class="ident">imp</span>;
-    } <span class="kw">else</span> <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>)]</span> {
-        <span class="attribute">#[<span class="ident">path</span> <span class="op">=</span> <span class="string">&quot;linux_android.rs&quot;</span>]</span> <span class="kw">mod</span> <span class="ident">imp</span>;
     } <span class="kw">else</span> <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;macos&quot;</span>)]</span> {
+        <span class="kw">mod</span> <span class="ident">util_libc</span>;
+        <span class="kw">mod</span> <span class="ident">use_file</span>;
         <span class="attribute">#[<span class="ident">path</span> <span class="op">=</span> <span class="string">&quot;macos.rs&quot;</span>]</span> <span class="kw">mod</span> <span class="ident">imp</span>;
-    } <span class="kw">else</span> <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;netbsd&quot;</span>)]</span> {
-        <span class="attribute">#[<span class="ident">path</span> <span class="op">=</span> <span class="string">&quot;bsd_arandom.rs&quot;</span>]</span> <span class="kw">mod</span> <span class="ident">imp</span>;
     } <span class="kw">else</span> <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;openbsd&quot;</span>)]</span> {
+        <span class="kw">mod</span> <span class="ident">util_libc</span>;
         <span class="attribute">#[<span class="ident">path</span> <span class="op">=</span> <span class="string">&quot;openbsd.rs&quot;</span>]</span> <span class="kw">mod</span> <span class="ident">imp</span>;
-    } <span class="kw">else</span> <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;redox&quot;</span>)]</span> {
-        <span class="attribute">#[<span class="ident">path</span> <span class="op">=</span> <span class="string">&quot;use_file.rs&quot;</span>]</span> <span class="kw">mod</span> <span class="ident">imp</span>;
-    } <span class="kw">else</span> <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;solaris&quot;</span>)]</span> {
-        <span class="attribute">#[<span class="ident">path</span> <span class="op">=</span> <span class="string">&quot;solaris_illumos.rs&quot;</span>]</span> <span class="kw">mod</span> <span class="ident">imp</span>;
     } <span class="kw">else</span> <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;wasi&quot;</span>)]</span> {
         <span class="attribute">#[<span class="ident">path</span> <span class="op">=</span> <span class="string">&quot;wasi.rs&quot;</span>]</span> <span class="kw">mod</span> <span class="ident">imp</span>;
     } <span class="kw">else</span> <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;vxworks&quot;</span>)]</span> {
+        <span class="kw">mod</span> <span class="ident">util_libc</span>;
         <span class="attribute">#[<span class="ident">path</span> <span class="op">=</span> <span class="string">&quot;vxworks.rs&quot;</span>]</span> <span class="kw">mod</span> <span class="ident">imp</span>;
-    } <span class="kw">else</span> <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">windows</span>, <span class="ident">getrandom_uwp</span>))]</span> {
+    } <span class="kw">else</span> <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">windows</span>, <span class="ident">target_vendor</span> <span class="op">=</span> <span class="string">&quot;uwp&quot;</span>))]</span> {
         <span class="attribute">#[<span class="ident">path</span> <span class="op">=</span> <span class="string">&quot;windows_uwp.rs&quot;</span>]</span> <span class="kw">mod</span> <span class="ident">imp</span>;
     } <span class="kw">else</span> <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">windows</span>)]</span> {
         <span class="attribute">#[<span class="ident">path</span> <span class="op">=</span> <span class="string">&quot;windows.rs&quot;</span>]</span> <span class="kw">mod</span> <span class="ident">imp</span>;
-    } <span class="kw">else</span> <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;x86_64&quot;</span>, <span class="ident">any</span>(
-                  <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;hermit&quot;</span>,
-                  <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;l4re&quot;</span>,
-                  <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;uefi&quot;</span>,
-                  <span class="ident">target_env</span> <span class="op">=</span> <span class="string">&quot;sgx&quot;</span>,
-              )))]</span> {
+    } <span class="kw">else</span> <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;x86_64&quot;</span>, <span class="ident">target_env</span> <span class="op">=</span> <span class="string">&quot;sgx&quot;</span>))]</span> {
         <span class="attribute">#[<span class="ident">path</span> <span class="op">=</span> <span class="string">&quot;rdrand.rs&quot;</span>]</span> <span class="kw">mod</span> <span class="ident">imp</span>;
-    } <span class="kw">else</span> <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;wasm32&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;unknown&quot;</span>))]</span> {
-        <span class="macro">cfg_if</span><span class="macro">!</span> {
-            <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;wasm-bindgen&quot;</span>)]</span> {
-                <span class="attribute">#[<span class="ident">path</span> <span class="op">=</span> <span class="string">&quot;wasm32_bindgen.rs&quot;</span>]</span> <span class="kw">mod</span> <span class="ident">imp</span>;
-            } <span class="kw">else</span> <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;stdweb&quot;</span>)]</span> {
-                <span class="attribute">#[<span class="ident">path</span> <span class="op">=</span> <span class="string">&quot;wasm32_stdweb.rs&quot;</span>]</span> <span class="kw">mod</span> <span class="ident">imp</span>;
-            } <span class="kw">else</span> {
-                <span class="comment">// Always have an implementation for wasm32-unknown-unknown.</span>
-                <span class="comment">// See https://github.com/rust-random/getrandom/issues/87</span>
-                <span class="attribute">#[<span class="ident">path</span> <span class="op">=</span> <span class="string">&quot;dummy.rs&quot;</span>]</span> <span class="kw">mod</span> <span class="ident">imp</span>;
-            }
-        }
-    } <span class="kw">else</span> <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;dummy&quot;</span>)]</span> {
-        <span class="attribute">#[<span class="ident">path</span> <span class="op">=</span> <span class="string">&quot;dummy.rs&quot;</span>]</span> <span class="kw">mod</span> <span class="ident">imp</span>;
+    } <span class="kw">else</span> <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;rdrand&quot;</span>,
+                        <span class="ident">any</span>(<span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;x86_64&quot;</span>, <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;x86&quot;</span>)))]</span> {
+        <span class="attribute">#[<span class="ident">path</span> <span class="op">=</span> <span class="string">&quot;rdrand.rs&quot;</span>]</span> <span class="kw">mod</span> <span class="ident">imp</span>;
+    } <span class="kw">else</span> <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;js&quot;</span>,
+                        <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;wasm32&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;unknown&quot;</span>))]</span> {
+        <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">cargo_web</span>, <span class="ident">path</span> <span class="op">=</span> <span class="string">&quot;stdweb.rs&quot;</span>)]</span>
+        <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">not</span>(<span class="ident">cargo_web</span>), <span class="ident">path</span> <span class="op">=</span> <span class="string">&quot;wasm-bindgen.rs&quot;</span>)]</span>
+        <span class="kw">mod</span> <span class="ident">imp</span>;
+    } <span class="kw">else</span> <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;custom&quot;</span>)]</span> {
+        <span class="kw">use</span> <span class="ident">custom</span> <span class="kw">as</span> <span class="ident">imp</span>;
     } <span class="kw">else</span> {
-        <span class="macro">compile_error</span><span class="macro">!</span>(<span class="string">&quot;\
-            target is not supported, for more information see: \
-            https://docs.rs/getrandom/#unsupported-targets\
-        &quot;</span>);
+        <span class="macro">compile_error</span><span class="macro">!</span>(<span class="string">&quot;target is not supported, for more information see: \
+                        https://docs.rs/getrandom/#unsupported-targets&quot;</span>);
     }
 }
 
@@ -558,11 +493,16 @@
 <span class="doccomment">/// In general, `getrandom` will be fast enough for interactive usage, though</span>
 <span class="doccomment">/// significantly slower than a user-space CSPRNG; for the latter consider</span>
 <span class="doccomment">/// [`rand::thread_rng`](https://docs.rs/rand/*/rand/fn.thread_rng.html).</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">getrandom</span>(<span class="ident">dest</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">error</span>::<span class="ident">Error</span><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">getrandom</span>(<span class="ident">dest</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Error</span><span class="op">&gt;</span> {
     <span class="kw">if</span> <span class="ident">dest</span>.<span class="ident">is_empty</span>() {
         <span class="kw">return</span> <span class="prelude-val">Ok</span>(());
     }
     <span class="ident">imp</span>::<span class="ident">getrandom_inner</span>(<span class="ident">dest</span>)
 }
+
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
+<span class="kw">mod</span> <span class="ident">test_common</span>;
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
+<span class="kw">mod</span> <span class="ident">test_rdrand</span>;
 </pre></div>
 </section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../../";window.currentCrate = "getrandom";</script><script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script><script defer src="../../search-index.js"></script></body></html>

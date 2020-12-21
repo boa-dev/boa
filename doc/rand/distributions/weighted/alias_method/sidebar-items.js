@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["WeightedIndex","A distribution using weighted sampling to pick a discretely selected item."]],"trait":[["Weight","Trait that must be implemented for weights, that are used with [`WeightedIndex`]. Currently no guarantees on the correctness of [`WeightedIndex`] are given for custom implementations of this trait."]]});
+initSidebarItems({"struct":[["WeightedIndex",""]],"trait":[["Weight",""]]});

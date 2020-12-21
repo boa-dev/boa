@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/rand_chacha-0.2.2/src/chacha.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>chacha.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="https://www.rust-lang.org/favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../rand_chacha/index.html'><div class='logo-container'><img src='https://www.rust-lang.org/logos/rust-logo-128x128-blk.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/rand_chacha-0.3.0/src/chacha.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>chacha.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="https://www.rust-lang.org/favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../rand_chacha/index.html'><div class='logo-container'><img src='https://www.rust-lang.org/logos/rust-logo-128x128-blk.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
                 <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
@@ -458,6 +458,56 @@
 <span id="457">457</span>
 <span id="458">458</span>
 <span id="459">459</span>
+<span id="460">460</span>
+<span id="461">461</span>
+<span id="462">462</span>
+<span id="463">463</span>
+<span id="464">464</span>
+<span id="465">465</span>
+<span id="466">466</span>
+<span id="467">467</span>
+<span id="468">468</span>
+<span id="469">469</span>
+<span id="470">470</span>
+<span id="471">471</span>
+<span id="472">472</span>
+<span id="473">473</span>
+<span id="474">474</span>
+<span id="475">475</span>
+<span id="476">476</span>
+<span id="477">477</span>
+<span id="478">478</span>
+<span id="479">479</span>
+<span id="480">480</span>
+<span id="481">481</span>
+<span id="482">482</span>
+<span id="483">483</span>
+<span id="484">484</span>
+<span id="485">485</span>
+<span id="486">486</span>
+<span id="487">487</span>
+<span id="488">488</span>
+<span id="489">489</span>
+<span id="490">490</span>
+<span id="491">491</span>
+<span id="492">492</span>
+<span id="493">493</span>
+<span id="494">494</span>
+<span id="495">495</span>
+<span id="496">496</span>
+<span id="497">497</span>
+<span id="498">498</span>
+<span id="499">499</span>
+<span id="500">500</span>
+<span id="501">501</span>
+<span id="502">502</span>
+<span id="503">503</span>
+<span id="504">504</span>
+<span id="505">505</span>
+<span id="506">506</span>
+<span id="507">507</span>
+<span id="508">508</span>
+<span id="509">509</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Copyright 2018 Developers of the Rand project.</span>
 <span class="comment">//</span>
@@ -479,6 +529,11 @@
 
 <span class="kw">const</span> <span class="ident">STREAM_PARAM_NONCE</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">1</span>;
 <span class="kw">const</span> <span class="ident">STREAM_PARAM_BLOCK</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">0</span>;
+
+<span class="comment">// NB. this must remain consistent with some currently hard-coded numbers in this module</span>
+<span class="kw">const</span> <span class="ident">BUF_BLOCKS</span>: <span class="ident">u8</span> <span class="op">=</span> <span class="number">4</span>;
+<span class="comment">// number of 32-bit words per ChaCha block (fixed by algorithm definition)</span>
+<span class="kw">const</span> <span class="ident">BLOCK_WORDS</span>: <span class="ident">u8</span> <span class="op">=</span> <span class="number">16</span>;
 
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Array64</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>([<span class="ident">T</span>; <span class="number">64</span>]);
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">Array64</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>
@@ -526,7 +581,7 @@
 <span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">chacha_impl</span> {
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">ChaChaXCore</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ChaChaXRng</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">rounds</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">doc</span>:<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> {
         <span class="attribute">#[<span class="ident">doc</span><span class="op">=</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">doc</span>]</span>
-        <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>)]</span>
+        <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
         <span class="kw">pub</span> <span class="kw">struct</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ChaChaXCore</span> {
             <span class="ident">state</span>: <span class="ident">ChaCha</span>,
         }
@@ -648,10 +703,19 @@
             <span class="doccomment">/// byte-offset.</span>
             <span class="attribute">#[<span class="ident">inline</span>]</span>
             <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_word_pos</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u128</span> {
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">block</span> <span class="op">=</span> <span class="ident">u128</span>::<span class="ident">from</span>(<span class="self">self</span>.<span class="ident">rng</span>.<span class="ident">core</span>.<span class="ident">state</span>.<span class="ident">get_stream_param</span>(<span class="ident">STREAM_PARAM_BLOCK</span>));
-                <span class="comment">// counter is incremented *after* filling buffer</span>
-                <span class="ident">block</span> <span class="op">-</span><span class="op">=</span> <span class="number">4</span>;
-                (<span class="ident">block</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">4</span>) <span class="op">+</span> <span class="self">self</span>.<span class="ident">rng</span>.<span class="ident">index</span>() <span class="kw">as</span> <span class="ident">u128</span>
+                <span class="kw">let</span> <span class="ident">buf_start_block</span> <span class="op">=</span> {
+                    <span class="kw">let</span> <span class="ident">buf_end_block</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">rng</span>.<span class="ident">core</span>.<span class="ident">state</span>.<span class="ident">get_stream_param</span>(<span class="ident">STREAM_PARAM_BLOCK</span>);
+                    <span class="ident">u64</span>::<span class="ident">wrapping_sub</span>(<span class="ident">buf_end_block</span>, <span class="ident">BUF_BLOCKS</span>.<span class="ident">into</span>())
+                };
+                <span class="kw">let</span> (<span class="ident">buf_offset_blocks</span>, <span class="ident">block_offset_words</span>) <span class="op">=</span> {
+                    <span class="kw">let</span> <span class="ident">buf_offset_words</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">rng</span>.<span class="ident">index</span>() <span class="kw">as</span> <span class="ident">u64</span>;
+                    <span class="kw">let</span> <span class="ident">blocks_part</span> <span class="op">=</span> <span class="ident">buf_offset_words</span> <span class="op">/</span> <span class="ident">u64</span>::<span class="ident">from</span>(<span class="ident">BLOCK_WORDS</span>);
+                    <span class="kw">let</span> <span class="ident">words_part</span> <span class="op">=</span> <span class="ident">buf_offset_words</span> <span class="op">%</span> <span class="ident">u64</span>::<span class="ident">from</span>(<span class="ident">BLOCK_WORDS</span>);
+                    (<span class="ident">blocks_part</span>, <span class="ident">words_part</span>)
+                };
+                <span class="kw">let</span> <span class="ident">pos_block</span> <span class="op">=</span> <span class="ident">u64</span>::<span class="ident">wrapping_add</span>(<span class="ident">buf_start_block</span>, <span class="ident">buf_offset_blocks</span>);
+                <span class="kw">let</span> <span class="ident">pos_block_words</span> <span class="op">=</span> <span class="ident">u128</span>::<span class="ident">from</span>(<span class="ident">pos_block</span>) <span class="op">*</span> <span class="ident">u128</span>::<span class="ident">from</span>(<span class="ident">BLOCK_WORDS</span>);
+                <span class="ident">pos_block_words</span> <span class="op">+</span> <span class="ident">u128</span>::<span class="ident">from</span>(<span class="ident">block_offset_words</span>)
             }
 
             <span class="doccomment">/// Set the offset from the start of the stream, in 32-bit words.</span>
@@ -661,12 +725,12 @@
             <span class="doccomment">/// 60 bits.</span>
             <span class="attribute">#[<span class="ident">inline</span>]</span>
             <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_word_pos</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">word_offset</span>: <span class="ident">u128</span>) {
-                <span class="kw">let</span> <span class="ident">block</span> <span class="op">=</span> (<span class="ident">word_offset</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">4</span>) <span class="kw">as</span> <span class="ident">u64</span>;
+                <span class="kw">let</span> <span class="ident">block</span> <span class="op">=</span> (<span class="ident">word_offset</span> <span class="op">/</span> <span class="ident">u128</span>::<span class="ident">from</span>(<span class="ident">BLOCK_WORDS</span>)) <span class="kw">as</span> <span class="ident">u64</span>;
                 <span class="self">self</span>.<span class="ident">rng</span>
                     .<span class="ident">core</span>
                     .<span class="ident">state</span>
                     .<span class="ident">set_stream_param</span>(<span class="ident">STREAM_PARAM_BLOCK</span>, <span class="ident">block</span>);
-                <span class="self">self</span>.<span class="ident">rng</span>.<span class="ident">generate_and_set</span>((<span class="ident">word_offset</span> <span class="op">&amp;</span> <span class="number">15</span>) <span class="kw">as</span> <span class="ident">usize</span>);
+                <span class="self">self</span>.<span class="ident">rng</span>.<span class="ident">generate_and_set</span>((<span class="ident">word_offset</span> <span class="op">%</span> <span class="ident">u128</span>::<span class="ident">from</span>(<span class="ident">BLOCK_WORDS</span>)) <span class="kw">as</span> <span class="ident">usize</span>);
             }
 
             <span class="doccomment">/// Set the stream number.</span>
@@ -702,6 +766,14 @@
                 }
             }
         }
+
+        <span class="kw">impl</span> <span class="ident">PartialEq</span><span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">ChaChaXRng</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ChaChaXRng</span> {
+            <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">rhs</span>: <span class="kw-2">&amp;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">ChaChaXRng</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+                <span class="self">self</span>.<span class="ident">rng</span>.<span class="ident">core</span>.<span class="ident">state</span>.<span class="ident">stream64_eq</span>(<span class="kw-2">&amp;</span><span class="ident">rhs</span>.<span class="ident">rng</span>.<span class="ident">core</span>.<span class="ident">state</span>)
+                    <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">get_word_pos</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">rhs</span>.<span class="ident">get_word_pos</span>()
+            }
+        }
+        <span class="kw">impl</span> <span class="ident">Eq</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ChaChaXRng</span> {}
     }
 }
 
@@ -916,6 +988,34 @@
         <span class="kw">for</span> <span class="kw">_</span> <span class="kw">in</span> <span class="number">7</span>..<span class="number">16</span> {
             <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">rng</span>.<span class="ident">next_u32</span>(), <span class="ident">clone</span>.<span class="ident">next_u32</span>());
         }
+    }
+
+    <span class="attribute">#[<span class="ident">test</span>]</span>
+    <span class="kw">fn</span> <span class="ident">test_chacha_word_pos_wrap_exact</span>() {
+        <span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">BUF_BLOCKS</span>, <span class="ident">BLOCK_WORDS</span>};
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rng</span> <span class="op">=</span> <span class="ident">ChaChaRng</span>::<span class="ident">from_seed</span>(<span class="ident">Default</span>::<span class="ident">default</span>());
+        <span class="comment">// refilling the buffer in set_word_pos will wrap the block counter to 0</span>
+        <span class="kw">let</span> <span class="ident">last_block</span> <span class="op">=</span> (<span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">68</span>) <span class="op">-</span> <span class="ident">u128</span>::<span class="ident">from</span>(<span class="ident">BUF_BLOCKS</span> <span class="op">*</span> <span class="ident">BLOCK_WORDS</span>);
+        <span class="ident">rng</span>.<span class="ident">set_word_pos</span>(<span class="ident">last_block</span>);
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">rng</span>.<span class="ident">get_word_pos</span>(), <span class="ident">last_block</span>);
+    }
+
+    <span class="attribute">#[<span class="ident">test</span>]</span>
+    <span class="kw">fn</span> <span class="ident">test_chacha_word_pos_wrap_excess</span>() {
+        <span class="kw">use</span> <span class="kw">super</span>::<span class="ident">BLOCK_WORDS</span>;
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rng</span> <span class="op">=</span> <span class="ident">ChaChaRng</span>::<span class="ident">from_seed</span>(<span class="ident">Default</span>::<span class="ident">default</span>());
+        <span class="comment">// refilling the buffer in set_word_pos will wrap the block counter past 0</span>
+        <span class="kw">let</span> <span class="ident">last_block</span> <span class="op">=</span> (<span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">68</span>) <span class="op">-</span> <span class="ident">u128</span>::<span class="ident">from</span>(<span class="ident">BLOCK_WORDS</span>);
+        <span class="ident">rng</span>.<span class="ident">set_word_pos</span>(<span class="ident">last_block</span>);
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">rng</span>.<span class="ident">get_word_pos</span>(), <span class="ident">last_block</span>);
+    }
+
+    <span class="attribute">#[<span class="ident">test</span>]</span>
+    <span class="kw">fn</span> <span class="ident">test_chacha_word_pos_zero</span>() {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rng</span> <span class="op">=</span> <span class="ident">ChaChaRng</span>::<span class="ident">from_seed</span>(<span class="ident">Default</span>::<span class="ident">default</span>());
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">rng</span>.<span class="ident">get_word_pos</span>(), <span class="number">0</span>);
+        <span class="ident">rng</span>.<span class="ident">set_word_pos</span>(<span class="number">0</span>);
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">rng</span>.<span class="ident">get_word_pos</span>(), <span class="number">0</span>);
     }
 }
 </pre></div>
