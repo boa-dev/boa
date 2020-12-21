@@ -3,12 +3,12 @@
 use crate::{
     exec::Executable,
     gc::{Finalize, Trace},
+    property::{AccessorDescriptor, Attribute, PropertyDescriptor},
     syntax::ast::node::{MethodDefinitionKind, Node, PropertyDefinition},
     Context, Result, Value,
 };
 use std::fmt;
 
-use crate::property::{AccessorDescriptor, Attribute, PropertyDescriptor};
 #[cfg(feature = "deser")]
 use serde::{Deserialize, Serialize};
 

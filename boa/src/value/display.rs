@@ -48,29 +48,29 @@ macro_rules! print_obj_value {
     };
     (props of $obj:expr, $display_fn:ident, $indent:expr, $encounters:expr, $print_internals:expr) => {
         print_obj_value!(impl $obj, |(key, val)| {
-        if val.is_data_descriptor() {
-            let v = &val
+            if val.is_data_descriptor() {
+                let v = &val
 
-                .as_data_descriptor()
-                .unwrap()
-                .value();
+                    .as_data_descriptor()
+                    .unwrap()
+                    .value();
 
-            format!(
-                "{:>width$}: {}",
-                key,
-                $display_fn(v, $encounters, $indent.wrapping_add(4), $print_internals),
-                width = $indent,
-            )
-        } else {
-           let accessor = val.as_accessor_descriptor().unwrap();
-           let display = match (accessor.setter().is_some(), accessor.getter().is_some()) {
-                (true, true) => "Getter & Setter",
-                (true, false) => "Setter",
-                (false, true) => "Getter",
-                _ => "No Getter/Setter"
-            };
-           format!("{:>width$}: {}", key, display, width = $indent)
-        }
+                format!(
+                    "{:>width$}: {}",
+                    key,
+                    $display_fn(v, $encounters, $indent.wrapping_add(4), $print_internals),
+                    width = $indent,
+                )
+            } else {
+               let accessor = val.as_accessor_descriptor().unwrap();
+               let display = match (accessor.setter().is_some(), accessor.getter().is_some()) {
+                    (true, true) => "Getter & Setter",
+                    (true, false) => "Setter",
+                    (false, true) => "Getter",
+                    _ => "No Getter/Setter"
+                };
+               format!("{:>width$}: {}", key, display, width = $indent)
+            }
         })
     };
 

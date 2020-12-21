@@ -2,14 +2,13 @@
 
 use crate::{
     builtins::BuiltIn,
-    object::{ConstructorBuilder, FunctionBuilder, ObjectData},
+    object::{ConstructorBuilder, FunctionBuilder, ObjectData, PROTOTYPE},
     property::{Attribute, DataDescriptor},
     BoaProfiler, Context, Result, Value,
 };
 use ordered_map::OrderedMap;
 
 pub mod map_iterator;
-use crate::object::PROTOTYPE;
 use map_iterator::{MapIterationKind, MapIterator};
 
 pub mod ordered_map;
