@@ -279,3 +279,14 @@ fn object_define_properties() {
 
     assert_eq!(forward(&mut context, "obj.p"), "42");
 }
+
+#[test]
+fn object_is_prototype_of() {
+    let mut context = Context::new();
+
+    let init = r#"
+        Object.prototype.isPrototypeOf(String.prototype)
+    "#;
+
+    assert_eq!(context.eval(init).unwrap(), Value::boolean(true));
+}
