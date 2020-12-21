@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/git2-0.13.12/src/repo.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>repo.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/git2-0.13.13/src/repo.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>repo.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
 <link rel="alternate icon" type="image/png" href="../../favicon-16x16.png">
 <link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../git2/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
                 <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
@@ -3565,6 +3565,66 @@
 <span id="3562">3562</span>
 <span id="3563">3563</span>
 <span id="3564">3564</span>
+<span id="3565">3565</span>
+<span id="3566">3566</span>
+<span id="3567">3567</span>
+<span id="3568">3568</span>
+<span id="3569">3569</span>
+<span id="3570">3570</span>
+<span id="3571">3571</span>
+<span id="3572">3572</span>
+<span id="3573">3573</span>
+<span id="3574">3574</span>
+<span id="3575">3575</span>
+<span id="3576">3576</span>
+<span id="3577">3577</span>
+<span id="3578">3578</span>
+<span id="3579">3579</span>
+<span id="3580">3580</span>
+<span id="3581">3581</span>
+<span id="3582">3582</span>
+<span id="3583">3583</span>
+<span id="3584">3584</span>
+<span id="3585">3585</span>
+<span id="3586">3586</span>
+<span id="3587">3587</span>
+<span id="3588">3588</span>
+<span id="3589">3589</span>
+<span id="3590">3590</span>
+<span id="3591">3591</span>
+<span id="3592">3592</span>
+<span id="3593">3593</span>
+<span id="3594">3594</span>
+<span id="3595">3595</span>
+<span id="3596">3596</span>
+<span id="3597">3597</span>
+<span id="3598">3598</span>
+<span id="3599">3599</span>
+<span id="3600">3600</span>
+<span id="3601">3601</span>
+<span id="3602">3602</span>
+<span id="3603">3603</span>
+<span id="3604">3604</span>
+<span id="3605">3605</span>
+<span id="3606">3606</span>
+<span id="3607">3607</span>
+<span id="3608">3608</span>
+<span id="3609">3609</span>
+<span id="3610">3610</span>
+<span id="3611">3611</span>
+<span id="3612">3612</span>
+<span id="3613">3613</span>
+<span id="3614">3614</span>
+<span id="3615">3615</span>
+<span id="3616">3616</span>
+<span id="3617">3617</span>
+<span id="3618">3618</span>
+<span id="3619">3619</span>
+<span id="3620">3620</span>
+<span id="3621">3621</span>
+<span id="3622">3622</span>
+<span id="3623">3623</span>
+<span id="3624">3624</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">libc</span>::{<span class="ident">c_char</span>, <span class="ident">c_int</span>, <span class="ident">c_uint</span>, <span class="ident">c_void</span>, <span class="ident">size_t</span>};
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">env</span>;
@@ -3584,6 +3644,7 @@
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">string_array</span>::<span class="ident">StringArray</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">tagforeach</span>::{<span class="ident">tag_foreach_cb</span>, <span class="ident">TagForeachCB</span>, <span class="ident">TagForeachData</span>};
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">util</span>::{<span class="self">self</span>, <span class="ident">path_to_repo_path</span>, <span class="ident">Binding</span>};
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">worktree</span>::{<span class="ident">Worktree</span>, <span class="ident">WorktreeAddOptions</span>};
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">CherrypickOptions</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">RevertOptions</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::{
@@ -3730,6 +3791,18 @@
         }
     }
 
+    <span class="doccomment">/// Attempt to open an already-existing repository from a worktree.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">open_from_worktree</span>(<span class="ident">worktree</span>: <span class="kw-2">&amp;</span><span class="ident">Worktree</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Repository</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">ret</span> <span class="op">=</span> <span class="ident">ptr</span>::<span class="ident">null_mut</span>();
+        <span class="kw">unsafe</span> {
+            <span class="macro">try_call</span><span class="macro">!</span>(<span class="ident">raw</span>::<span class="ident">git_repository_open_from_worktree</span>(
+                <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ret</span>,
+                <span class="ident">worktree</span>.<span class="ident">raw</span>()
+            ));
+            <span class="prelude-val">Ok</span>(<span class="ident">Binding</span>::<span class="ident">from_raw</span>(<span class="ident">ret</span>))
+        }
+    }
+
     <span class="doccomment">/// Attempt to open an already-existing repository at or above `path`</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// This starts at `path` and looks up the filesystem hierarchy</span>
@@ -3868,7 +3941,7 @@
     <span class="doccomment">/// Find a single object and intermediate reference by a revision string.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// See `man gitrevisions`, or</span>
-    <span class="doccomment">/// http://git-scm.com/docs/git-rev-parse.html#_specifying_revisions for</span>
+    <span class="doccomment">/// &lt;http://git-scm.com/docs/git-rev-parse.html#_specifying_revisions&gt; for</span>
     <span class="doccomment">/// information on the syntax accepted.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// In some cases (`@{&lt;-n&gt;}` or `&lt;branchname&gt;@{upstream}`), the expression</span>
@@ -6357,6 +6430,53 @@
                 <span class="ident">options</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">o</span><span class="op">|</span> <span class="ident">o</span>.<span class="ident">raw</span>())
             ));
             <span class="prelude-val">Ok</span>(<span class="ident">Binding</span>::<span class="ident">from_raw</span>(<span class="ident">ret</span>))
+        }
+    }
+
+    <span class="doccomment">/// Lists all the worktrees for the repository</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">worktrees</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">StringArray</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">arr</span> <span class="op">=</span> <span class="ident">raw</span>::<span class="ident">git_strarray</span> {
+            <span class="ident">strings</span>: <span class="ident">ptr</span>::<span class="ident">null_mut</span>(),
+            <span class="ident">count</span>: <span class="number">0</span>,
+        };
+        <span class="kw">unsafe</span> {
+            <span class="macro">try_call</span><span class="macro">!</span>(<span class="ident">raw</span>::<span class="ident">git_worktree_list</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">arr</span>, <span class="self">self</span>.<span class="ident">raw</span>));
+            <span class="prelude-val">Ok</span>(<span class="ident">Binding</span>::<span class="ident">from_raw</span>(<span class="ident">arr</span>))
+        }
+    }
+
+    <span class="doccomment">/// Opens a worktree by name for the given repository</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// This can open any worktree that the worktrees method returns.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">find_worktree</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Worktree</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">raw</span> <span class="op">=</span> <span class="ident">ptr</span>::<span class="ident">null_mut</span>();
+        <span class="kw">let</span> <span class="ident">raw_name</span> <span class="op">=</span> <span class="ident">CString</span>::<span class="ident">new</span>(<span class="ident">name</span>)<span class="question-mark">?</span>;
+        <span class="kw">unsafe</span> {
+            <span class="macro">try_call</span><span class="macro">!</span>(<span class="ident">raw</span>::<span class="ident">git_worktree_lookup</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">raw</span>, <span class="self">self</span>.<span class="ident">raw</span>, <span class="ident">raw_name</span>));
+            <span class="prelude-val">Ok</span>(<span class="ident">Binding</span>::<span class="ident">from_raw</span>(<span class="ident">raw</span>))
+        }
+    }
+
+    <span class="doccomment">/// Creates a new worktree for the repository</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">worktree</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(
+        <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="self">self</span>,
+        <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
+        <span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>,
+        <span class="ident">opts</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">WorktreeAddOptions</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Worktree</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">raw</span> <span class="op">=</span> <span class="ident">ptr</span>::<span class="ident">null_mut</span>();
+        <span class="kw">let</span> <span class="ident">raw_name</span> <span class="op">=</span> <span class="ident">CString</span>::<span class="ident">new</span>(<span class="ident">name</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">raw_path</span> <span class="op">=</span> <span class="ident">path</span>.<span class="ident">into_c_string</span>()<span class="question-mark">?</span>;
+
+        <span class="kw">unsafe</span> {
+            <span class="macro">try_call</span><span class="macro">!</span>(<span class="ident">raw</span>::<span class="ident">git_worktree_add</span>(
+                <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">raw</span>,
+                <span class="self">self</span>.<span class="ident">raw</span>,
+                <span class="ident">raw_name</span>,
+                <span class="ident">raw_path</span>,
+                <span class="ident">opts</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">o</span><span class="op">|</span> <span class="ident">o</span>.<span class="ident">raw</span>())
+            ));
+            <span class="prelude-val">Ok</span>(<span class="ident">Binding</span>::<span class="ident">from_raw</span>(<span class="ident">raw</span>))
         }
     }
 }

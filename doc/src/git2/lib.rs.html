@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/git2-0.13.12/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/git2-0.13.13/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
 <link rel="alternate icon" type="image/png" href="../../favicon-16x16.png">
 <link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../git2/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
                 <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
@@ -1451,6 +1451,8 @@
 <span id="1448">1448</span>
 <span id="1449">1449</span>
 <span id="1450">1450</span>
+<span id="1451">1451</span>
+<span id="1452">1452</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! # libgit2 bindings for Rust</span>
 <span class="doccomment">//!</span>
@@ -1515,7 +1517,7 @@
 <span class="doccomment">//!</span>
 <span class="doccomment">//! ## Working with a `Repository`</span>
 <span class="doccomment">//!</span>
-<span class="doccomment">//! All deriviative objects, references, etc are attached to the lifetime of the</span>
+<span class="doccomment">//! All derivative objects, references, etc are attached to the lifetime of the</span>
 <span class="doccomment">//! source `Repository`, to ensure that they do not outlive the repository</span>
 <span class="doccomment">//! itself.</span>
 
@@ -1585,6 +1587,7 @@
 <span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">tree</span>::{<span class="ident">Tree</span>, <span class="ident">TreeEntry</span>, <span class="ident">TreeIter</span>, <span class="ident">TreeWalkMode</span>, <span class="ident">TreeWalkResult</span>};
 <span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">treebuilder</span>::<span class="ident">TreeBuilder</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">util</span>::<span class="ident">IntoCString</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">worktree</span>::{<span class="ident">Worktree</span>, <span class="ident">WorktreeAddOptions</span>, <span class="ident">WorktreeLockStatus</span>, <span class="ident">WorktreePruneOptions</span>};
 
 <span class="comment">// Create a convinience method on bitflag struct which checks the given flag</span>
 <span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">is_bit_set</span> {
@@ -2140,6 +2143,7 @@
 <span class="kw">mod</span> <span class="ident">time</span>;
 <span class="kw">mod</span> <span class="ident">tree</span>;
 <span class="kw">mod</span> <span class="ident">treebuilder</span>;
+<span class="kw">mod</span> <span class="ident">worktree</span>;
 
 <span class="kw">fn</span> <span class="ident">init</span>() {
     <span class="kw">static</span> <span class="ident">INIT</span>: <span class="ident">Once</span> <span class="op">=</span> <span class="ident">Once</span>::<span class="ident">new</span>();
