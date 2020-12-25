@@ -15,13 +15,13 @@ use serde::{Deserialize, Serialize};
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub struct ForOfLoop {
     variable: Box<Node>,
-    expr: Box<Node>,
+    iterable: Box<Node>,
     body: Box<Node>,
     label: Option<Box<str>>,
 }
 
 impl ForOfLoop {
-    pub fn new<V, I, B>(variable: V, expr: I, body: B) -> Self
+    pub fn new<V, I, B>(variable: V, iterable: I, body: B) -> Self
     where
         V: Into<Node>,
         I: Into<Node>,
@@ -29,7 +29,7 @@ impl ForOfLoop {
     {
         Self {
             variable: Box::new(variable.into()),
-            expr: Box::new(expr.into()),
+            iterable: Box::new(iterable.into()),
             body: Box::new(body.into()),
             label: None,
         }
@@ -39,8 +39,8 @@ impl ForOfLoop {
         &self.variable
     }
 
-    pub fn expr(&self) -> &Node {
-        &self.expr
+    pub fn iterable(&self) -> &Node {
+        &self.iterable
     }
 
     pub fn body(&self) -> &Node {
@@ -56,7 +56,7 @@ impl ForOfLoop {
     }
 
     pub fn display(&self, f: &mut fmt::Formatter<'_>, indentation: usize) -> fmt::Result {
-        write!(f, "for ({} of {}) {{", self.variable, self.expr,)?;
+        write!(f, "for ({} of {}) {{", self.variable, self.iterable)?;
         self.body().display(f, indentation + 1)?;
         f.write_str("}")
     }
@@ -77,9 +77,9 @@ impl From<ForOfLoop> for Node {
 impl Executable for ForOfLoop {
     fn run(&self, context: &mut Context) -> Result<Value> {
         let _timer = BoaProfiler::global().start_event("ForOf", "exec");
-        let object = self.expr().run(context)?;
+        let iterable = self.iterable().run(context)?;
+        let iterator = get_iterator(context, iterable)?;
         let mut result = Value::undefined();
-        let iterator = get_iterator(context, object)?;
 
         loop {
             {
@@ -129,9 +129,11 @@ impl Executable for ForOfLoop {
                             environment.initialize_binding(var.name(), next_result);
                         }
                     }
-                    _ => return context.throw_syntax_error(
-                        "only one variable can be declared in the head of a for-in or for-of loop",
-                    ),
+                    _ => {
+                        return context.throw_syntax_error(
+                            "only one variable can be declared in the head of a for-of loop",
+                        )
+                    }
                 },
                 Node::LetDeclList(ref list) => match list.as_ref() {
                     [var] => {

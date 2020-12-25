@@ -79,18 +79,17 @@ impl Executable for ForInLoop {
         let _timer = BoaProfiler::global().start_event("ForIn", "exec");
         let object = self.expr().run(context)?;
         let mut result = Value::undefined();
-        let iterator = {
-            if object.is_null_or_undefined() {
-                return Ok(result);
-            }
-            let object = object.to_object(context)?;
-            let iterator = ForInIterator::create_for_in_iterator(context, Value::from(object))?;
-            let next_function = iterator
-                .get_property("next")
-                .map(|p| p.as_data_descriptor().unwrap().value())
-                .ok_or_else(|| context.construct_type_error("Could not find property `next`"))?;
-            IteratorRecord::new(iterator, next_function)
-        };
+
+        if object.is_null_or_undefined() {
+            return Ok(result);
+        }
+        let object = object.to_object(context)?;
+        let for_in_iterator = ForInIterator::create_for_in_iterator(context, Value::from(object))?;
+        let next_function = for_in_iterator
+            .get_property("next")
+            .map(|p| p.as_data_descriptor().unwrap().value())
+            .ok_or_else(|| context.construct_type_error("Could not find property `next`"))?;
+        let iterator = IteratorRecord::new(for_in_iterator, next_function);
 
         loop {
             {
@@ -126,7 +125,7 @@ impl Executable for ForInLoop {
                         let environment = &mut context.realm_mut().environment;
 
                         if var.init().is_some() {
-                            return context.throw_syntax_error("a declaration in the head of a for-of loop can't have an initializer");
+                            return context.throw_syntax_error("a declaration in the head of a for-in loop can't have an initializer");
                         }
 
                         if environment.has_binding(var.name()) {
@@ -140,16 +139,18 @@ impl Executable for ForInLoop {
                             environment.initialize_binding(var.name(), next_result);
                         }
                     }
-                    _ => return context.throw_syntax_error(
-                        "only one variable can be declared in the head of a for-in or for-of loop",
-                    ),
+                    _ => {
+                        return context.throw_syntax_error(
+                            "only one variable can be declared in the head of a for-in loop",
+                        )
+                    }
                 },
                 Node::LetDeclList(ref list) => match list.as_ref() {
                     [var] => {
                         let environment = &mut context.realm_mut().environment;
 
                         if var.init().is_some() {
-                            return context.throw_syntax_error("a declaration in the head of a for-of loop can't have an initializer");
+                            return context.throw_syntax_error("a declaration in the head of a for-in loop can't have an initializer");
                         }
 
                         environment.create_mutable_binding(
@@ -161,7 +162,7 @@ impl Executable for ForInLoop {
                     }
                     _ => {
                         return context.throw_syntax_error(
-                            "only one variable can be declared in the head of a for-of loop",
+                            "only one variable can be declared in the head of a for-in loop",
                         )
                     }
                 },
@@ -170,7 +171,7 @@ impl Executable for ForInLoop {
                         let environment = &mut context.realm_mut().environment;
 
                         if var.init().is_some() {
-                            return context.throw_syntax_error("a declaration in the head of a for-of loop can't have an initializer");
+                            return context.throw_syntax_error("a declaration in the head of a for-in loop can't have an initializer");
                         }
 
                         environment.create_immutable_binding(
@@ -182,18 +183,18 @@ impl Executable for ForInLoop {
                     }
                     _ => {
                         return context.throw_syntax_error(
-                            "only one variable can be declared in the head of a for-of loop",
+                            "only one variable can be declared in the head of a for-in loop",
                         )
                     }
                 },
                 Node::Assign(_) => {
                     return context.throw_syntax_error(
-                        "a declaration in the head of a for-of loop can't have an initializer",
+                        "a declaration in the head of a for-in loop can't have an initializer",
                     );
                 }
                 _ => {
                     return context
-                        .throw_syntax_error("unknown left hand side in head of for-of loop")
+                        .throw_syntax_error("unknown left hand side in head of for-in loop")
                 }
             }
 
