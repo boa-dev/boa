@@ -1,14 +1,14 @@
 use crate::{
     exec::Executable,
     exec::InterpreterState,
+    gc::{Finalize, Trace},
     syntax::ast::node::{join_nodes, Node},
     value::{Type, Value},
     BoaProfiler, Context, Result,
 };
-use gc::{Finalize, Trace};
 use std::fmt;
 
-#[cfg(feature = "serde")]
+#[cfg(feature = "deser")]
 use serde::{Deserialize, Serialize};
 
 /// Calling the function actually performs the specified actions with the indicated parameters.
@@ -25,7 +25,7 @@ use serde::{Deserialize, Serialize};
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-CallExpression
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Functions#Calling_functions
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub struct Call {
     expr: Box<Node>,
@@ -57,45 +57,39 @@ impl Call {
 }
 
 impl Executable for Call {
-    fn run(&self, interpreter: &mut Context) -> Result<Value> {
+    fn run(&self, context: &mut Context) -> Result<Value> {
         let _timer = BoaProfiler::global().start_event("Call", "exec");
         let (this, func) = match self.expr() {
             Node::GetConstField(ref get_const_field) => {
-                let mut obj = get_const_field.obj().run(interpreter)?;
+                let mut obj = get_const_field.obj().run(context)?;
                 if obj.get_type() != Type::Object {
-                    obj = Value::Object(obj.to_object(interpreter)?);
+                    obj = Value::Object(obj.to_object(context)?);
                 }
                 (obj.clone(), obj.get_field(get_const_field.field()))
             }
             Node::GetField(ref get_field) => {
-                let obj = get_field.obj().run(interpreter)?;
-                let field = get_field.field().run(interpreter)?;
-                (
-                    obj.clone(),
-                    obj.get_field(field.to_property_key(interpreter)?),
-                )
+                let obj = get_field.obj().run(context)?;
+                let field = get_field.field().run(context)?;
+                (obj.clone(), obj.get_field(field.to_property_key(context)?))
             }
-            _ => (
-                interpreter.realm().global_obj.clone(),
-                self.expr().run(interpreter)?,
-            ), // 'this' binding should come from the function's self-contained environment
+            _ => (context.global_object().clone(), self.expr().run(context)?), // 'this' binding should come from the function's self-contained environment
         };
         let mut v_args = Vec::with_capacity(self.args().len());
         for arg in self.args() {
             if let Node::Spread(ref x) = arg {
-                let val = x.run(interpreter)?;
-                let mut vals = interpreter.extract_array_properties(&val).unwrap();
+                let val = x.run(context)?;
+                let mut vals = context.extract_array_properties(&val).unwrap();
                 v_args.append(&mut vals);
                 break; // after spread we don't accept any new arguments
             }
-            v_args.push(arg.run(interpreter)?);
+            v_args.push(arg.run(context)?);
         }
 
         // execute the function call itself
-        let fnct_result = interpreter.call(&func, &this, &v_args);
+        let fnct_result = context.call(&func, &this, &v_args);
 
         // unset the early return flag
-        interpreter
+        context
             .executor()
             .set_current_state(InterpreterState::Executing);
 

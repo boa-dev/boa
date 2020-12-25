@@ -2,13 +2,13 @@
 
 use crate::{
     exec::Executable,
+    gc::{Finalize, Trace},
     syntax::ast::node::{MethodDefinitionKind, Node, PropertyDefinition},
     Context, Result, Value,
 };
-use gc::{Finalize, Trace};
 use std::fmt;
 
-#[cfg(feature = "serde")]
+#[cfg(feature = "deser")]
 use serde::{Deserialize, Serialize};
 
 /// Objects in JavaScript may be defined as an unordered collection of related data, of
@@ -30,8 +30,8 @@ use serde::{Deserialize, Serialize};
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Object_initializer
 /// [object]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object
 /// [primitive]: https://developer.mozilla.org/en-US/docs/Glossary/primitive
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-#[cfg_attr(feature = "serde", serde(transparent))]
+#[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "deser", serde(transparent))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub struct Object {
     properties: Box<[PropertyDefinition]>,
@@ -71,8 +71,8 @@ impl Object {
 }
 
 impl Executable for Object {
-    fn run(&self, interpreter: &mut Context) -> Result<Value> {
-        let global_val = &interpreter
+    fn run(&self, context: &mut Context) -> Result<Value> {
+        let global_val = &context
             .realm()
             .environment
             .get_global_object()
@@ -83,17 +83,17 @@ impl Executable for Object {
         for property in self.properties().iter() {
             match property {
                 PropertyDefinition::Property(key, value) => {
-                    obj.set_field(key.clone(), value.run(interpreter)?);
+                    obj.set_field(key.clone(), value.run(context)?);
                 }
                 PropertyDefinition::MethodDefinition(kind, name, func) => {
                     if let MethodDefinitionKind::Ordinary = kind {
-                        obj.set_field(name.clone(), func.run(interpreter)?);
+                        obj.set_field(name.clone(), func.run(context)?);
                     } else {
                         // TODO: Implement other types of MethodDefinitionKinds.
-                        unimplemented!("other types of property method definitions.");
+                        //unimplemented!("other types of property method definitions.");
                     }
                 }
-                i => unimplemented!("{:?} type of property", i),
+                _ => {} //unimplemented!("{:?} type of property", i),
             }
         }
 

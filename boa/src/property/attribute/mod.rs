@@ -1,7 +1,7 @@
 //! This module implements the `Attribute` struct which contains the attibutes for property descriptors.
 
+use crate::gc::{empty_trace, Finalize, Trace};
 use bitflags::bitflags;
-use gc::{unsafe_empty_trace, Finalize, Trace};
 
 #[cfg(test)]
 mod tests;
@@ -44,7 +44,7 @@ bitflags! {
 // SAFETY: The `Attribute` struct only contains an `u8`
 // and therefore it should be safe to implement an empty trace.
 unsafe impl Trace for Attribute {
-    unsafe_empty_trace!();
+    empty_trace!();
 }
 
 impl Attribute {

@@ -1,13 +1,13 @@
 use crate::{
     environment::lexical_environment::VariableScope,
     exec::Executable,
+    gc::{Finalize, Trace},
     syntax::ast::node::{join_nodes, Identifier, Node},
     Context, Result, Value,
 };
-use gc::{Finalize, Trace};
 use std::fmt;
 
-#[cfg(feature = "serde")]
+#[cfg(feature = "deser")]
 use serde::{Deserialize, Serialize};
 
 /// The `let` statement declares a block scope local variable, optionally initializing it to a
@@ -27,30 +27,30 @@ use serde::{Deserialize, Serialize};
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-let-and-const-declarations
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/let
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub struct LetDeclList {
-    #[cfg_attr(feature = "serde", serde(flatten))]
+    #[cfg_attr(feature = "deser", serde(flatten))]
     list: Box<[LetDecl]>,
 }
 
 impl Executable for LetDeclList {
-    fn run(&self, interpreter: &mut Context) -> Result<Value> {
+    fn run(&self, context: &mut Context) -> Result<Value> {
         for var in self.as_ref() {
             let val = match var.init() {
-                Some(v) => v.run(interpreter)?,
+                Some(v) => v.run(context)?,
                 None => Value::undefined(),
             };
-            interpreter
+            context
                 .realm_mut()
                 .environment
                 .create_mutable_binding(var.name().to_owned(), false, VariableScope::Block)
-                .map_err(|e| e.to_error(interpreter))?;
-            interpreter
+                .map_err(|e| e.to_error(context))?;
+            context
                 .realm_mut()
                 .environment
                 .initialize_binding(var.name(), val)
-                .map_err(|e| e.to_error(interpreter))?;
+                .map_err(|e| e.to_error(context))?;
         }
         Ok(Value::undefined())
     }
@@ -97,7 +97,7 @@ impl From<LetDeclList> for Node {
 }
 
 /// Individual constant declaration.
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub struct LetDecl {
     name: Identifier,

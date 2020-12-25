@@ -2,13 +2,13 @@ use crate::{
     builtins::function::FunctionFlags,
     environment::lexical_environment::VariableScope,
     exec::Executable,
+    gc::{Finalize, Trace},
     syntax::ast::node::{join_nodes, FormalParameter, Node, StatementList},
     BoaProfiler, Context, Result, Value,
 };
-use gc::{Finalize, Trace};
 use std::fmt;
 
-#[cfg(feature = "serde")]
+#[cfg(feature = "deser")]
 use serde::{Deserialize, Serialize};
 
 /// The `function` declaration (function statement) defines a function with the specified
@@ -29,7 +29,7 @@ use serde::{Deserialize, Serialize};
 /// [spec]: https://tc39.es/ecma262/#sec-terms-and-definitions-function
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function
 /// [func_expr]: ../enum.Node.html#variant.FunctionExpr
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub struct FunctionDecl {
     name: Box<str>,
@@ -84,9 +84,9 @@ impl FunctionDecl {
 }
 
 impl Executable for FunctionDecl {
-    fn run(&self, interpreter: &mut Context) -> Result<Value> {
+    fn run(&self, context: &mut Context) -> Result<Value> {
         let _timer = BoaProfiler::global().start_event("FunctionDecl", "exec");
-        let val = interpreter.create_function(
+        let val = context.create_function(
             self.parameters().to_vec(),
             self.body().to_vec(),
             FunctionFlags::CALLABLE | FunctionFlags::CONSTRUCTABLE,
@@ -94,17 +94,17 @@ impl Executable for FunctionDecl {
 
         // Set the name and assign it in the current environment
         val.set_field("name", self.name());
-        interpreter
+        context
             .realm_mut()
             .environment
             .create_mutable_binding(self.name().to_owned(), false, VariableScope::Function)
-            .map_err(|e| e.to_error(interpreter))?;
+            .map_err(|e| e.to_error(context))?;
 
-        interpreter
+        context
             .realm_mut()
             .environment
             .initialize_binding(self.name(), val)
-            .map_err(|e| e.to_error(interpreter))?;
+            .map_err(|e| e.to_error(context))?;
 
         Ok(Value::undefined())
     }

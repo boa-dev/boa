@@ -1,9 +1,13 @@
 use super::Node;
-use crate::{exec::Executable, exec::InterpreterState, Context, Result, Value};
-use gc::{Finalize, Trace};
+use crate::{
+    exec::Executable,
+    exec::InterpreterState,
+    gc::{Finalize, Trace},
+    Context, Result, Value,
+};
 use std::fmt;
 
-#[cfg(feature = "serde")]
+#[cfg(feature = "deser")]
 use serde::{Deserialize, Serialize};
 
 #[cfg(test)]
@@ -23,7 +27,7 @@ mod tests;
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-BreakStatement
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/break
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub struct Break {
     label: Option<Box<str>>,
@@ -48,8 +52,8 @@ impl Break {
 }
 
 impl Executable for Break {
-    fn run(&self, interpreter: &mut Context) -> Result<Value> {
-        interpreter
+    fn run(&self, context: &mut Context) -> Result<Value> {
+        context
             .executor()
             .set_current_state(InterpreterState::Break(self.label().map(Box::from)));
 

@@ -1,13 +1,13 @@
 use crate::{
     builtins::function::FunctionFlags,
     exec::Executable,
+    gc::{Finalize, Trace},
     syntax::ast::node::{join_nodes, FormalParameter, Node, StatementList},
     Context, Result, Value,
 };
-use gc::{Finalize, Trace};
 use std::fmt;
 
-#[cfg(feature = "serde")]
+#[cfg(feature = "deser")]
 use serde::{Deserialize, Serialize};
 
 /// The `function` expression defines a function with the specified parameters.
@@ -26,7 +26,7 @@ use serde::{Deserialize, Serialize};
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-terms-and-definitions-function
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/function
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub struct FunctionExpr {
     name: Option<Box<str>>,
@@ -85,8 +85,8 @@ impl FunctionExpr {
 }
 
 impl Executable for FunctionExpr {
-    fn run(&self, interpreter: &mut Context) -> Result<Value> {
-        let val = interpreter.create_function(
+    fn run(&self, context: &mut Context) -> Result<Value> {
+        let val = context.create_function(
             self.parameters().to_vec(),
             self.body().to_vec(),
             FunctionFlags::CALLABLE | FunctionFlags::CONSTRUCTABLE,

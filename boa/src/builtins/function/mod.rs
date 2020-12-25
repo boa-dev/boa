@@ -14,26 +14,26 @@
 use crate::{
     builtins::{Array, BuiltIn},
     environment::lexical_environment::Environment,
+    gc::{empty_trace, Finalize, Trace},
     object::{ConstructorBuilder, FunctionBuilder, GcObject, Object, ObjectData},
     property::{Attribute, DataDescriptor},
     syntax::ast::node::{FormalParameter, RcStatementList},
     BoaProfiler, Context, Result, Value,
 };
 use bitflags::bitflags;
-use gc::{unsafe_empty_trace, Finalize, Trace};
 use std::fmt::{self, Debug};
 
 #[cfg(test)]
 mod tests;
 
-/// _fn(this, arguments, ctx) -> ResultValue_ - The signature of a built-in function
+/// _fn(this, arguments, context) -> ResultValue_ - The signature of a built-in function
 pub type NativeFunction = fn(&Value, &[Value], &mut Context) -> Result<Value>;
 
 #[derive(Clone, Copy, Finalize)]
 pub struct BuiltInFunction(pub(crate) NativeFunction);
 
 unsafe impl Trace for BuiltInFunction {
-    unsafe_empty_trace!();
+    empty_trace!();
 }
 
 impl From<NativeFunction> for BuiltInFunction {
@@ -88,7 +88,7 @@ impl FunctionFlags {
 }
 
 unsafe impl Trace for FunctionFlags {
-    unsafe_empty_trace!();
+    empty_trace!();
 }
 
 /// Boa representation of a Function Object.
@@ -114,12 +114,12 @@ impl Function {
         param: &FormalParameter,
         index: usize,
         args_list: &[Value],
-        interpreter: &mut Context,
+        context: &mut Context,
         local_env: &Environment,
     ) {
         // Create array of values
-        let array = Array::new_array(interpreter).unwrap();
-        Array::add_to_array_object(&array, &args_list[index..]).unwrap();
+        let array = Array::new_array(context).unwrap();
+        Array::add_to_array_object(&array, &args_list[index..], context).unwrap();
 
         // Create binding
         local_env
@@ -212,7 +212,7 @@ pub fn create_unmapped_arguments_object(arguments_list: &[Value]) -> Value {
 /// name: The name of the function (how it will be called but without the ()).
 /// parent: The object to register the function on, if the global object is used then the function is instead called as name()
 ///     without requiring the parent, see parseInt() as an example.
-/// length: As described at https://tc39.es/ecma262/#sec-function-instances-length, The value of the "length" property is an integer that
+/// length: As described at <https://tc39.es/ecma262/#sec-function-instances-length>, The value of the "length" property is an integer that
 ///     indicates the typical number of arguments expected by the function. However, the language permits the function to be invoked with
 ///     some other number of arguments.
 ///

@@ -1,8 +1,10 @@
-use gc::{custom_trace, Finalize, Trace};
+use crate::gc::{custom_trace, Finalize, Trace};
 use indexmap::{map::IntoIter, map::Iter, map::IterMut, IndexMap};
-use std::collections::hash_map::RandomState;
-use std::fmt::Debug;
-use std::hash::{BuildHasher, Hash};
+use std::{
+    collections::hash_map::RandomState,
+    fmt::Debug,
+    hash::{BuildHasher, Hash},
+};
 
 /// A newtype wrapping indexmap::IndexMap
 #[derive(Clone)]

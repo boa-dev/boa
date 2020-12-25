@@ -1,8 +1,12 @@
-use crate::{exec::Executable, syntax::ast::node::Node, Context, Result, Value};
-use gc::{Finalize, Trace};
+use crate::{
+    exec::Executable,
+    gc::{Finalize, Trace},
+    syntax::ast::node::Node,
+    Context, Result, Value,
+};
 use std::fmt;
 
-#[cfg(feature = "serde")]
+#[cfg(feature = "deser")]
 use serde::{Deserialize, Serialize};
 
 /// The `conditional` (ternary) operator is the only JavaScript operator that takes three
@@ -19,7 +23,7 @@ use serde::{Deserialize, Serialize};
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-ConditionalExpression
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Grammar_and_types#Literals
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub struct ConditionalOp {
     condition: Box<Node>,
@@ -56,11 +60,11 @@ impl ConditionalOp {
 }
 
 impl Executable for ConditionalOp {
-    fn run(&self, interpreter: &mut Context) -> Result<Value> {
-        Ok(if self.cond().run(interpreter)?.to_boolean() {
-            self.if_true().run(interpreter)?
+    fn run(&self, context: &mut Context) -> Result<Value> {
+        Ok(if self.cond().run(context)?.to_boolean() {
+            self.if_true().run(context)?
         } else {
-            self.if_false().run(interpreter)?
+            self.if_false().run(context)?
         })
     }
 }

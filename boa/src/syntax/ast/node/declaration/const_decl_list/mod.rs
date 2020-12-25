@@ -1,13 +1,13 @@
 use crate::{
     environment::lexical_environment::VariableScope,
     exec::Executable,
+    gc::{Finalize, Trace},
     syntax::ast::node::{join_nodes, Identifier, Node},
     Context, Result, Value,
 };
-use gc::{Finalize, Trace};
 use std::fmt;
 
-#[cfg(feature = "serde")]
+#[cfg(feature = "deser")]
 use serde::{Deserialize, Serialize};
 
 /// The `const` statements are block-scoped, much like variables defined using the `let`
@@ -28,33 +28,32 @@ use serde::{Deserialize, Serialize};
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/const
 /// [identifier]: https://developer.mozilla.org/en-US/docs/Glossary/identifier
 /// [expression]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Expressions_and_Operators#Expressions
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub struct ConstDeclList {
-    #[cfg_attr(feature = "serde", serde(flatten))]
+    #[cfg_attr(feature = "deser", serde(flatten))]
     list: Box<[ConstDecl]>,
 }
 
 impl Executable for ConstDeclList {
-    fn run(&self, interpreter: &mut Context) -> Result<Value> {
+    fn run(&self, context: &mut Context) -> Result<Value> {
         for decl in self.as_ref() {
             let val = if let Some(init) = decl.init() {
-                init.run(interpreter)?
+                init.run(context)?
             } else {
-                return interpreter.throw_syntax_error("missing = in const declaration");
+                return context.throw_syntax_error("missing = in const declaration");
             };
-
-            interpreter
+            context
                 .realm_mut()
                 .environment
                 .create_immutable_binding(decl.name().to_owned(), false, VariableScope::Block)
-                .map_err(|e| e.to_error(interpreter))?;
+                .map_err(|e| e.to_error(context))?;
 
-            interpreter
+            context
                 .realm_mut()
                 .environment
                 .initialize_binding(decl.name(), val)
-                .map_err(|e| e.to_error(interpreter))?;
+                .map_err(|e| e.to_error(context))?;
         }
         Ok(Value::undefined())
     }
@@ -101,7 +100,7 @@ impl From<ConstDeclList> for Node {
 }
 
 /// Individual constant declaration.
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub struct ConstDecl {
     name: Identifier,

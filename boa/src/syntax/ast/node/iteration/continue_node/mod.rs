@@ -1,12 +1,12 @@
 use crate::{
     exec::{Executable, InterpreterState},
+    gc::{Finalize, Trace},
     syntax::ast::node::Node,
     Context, Result, Value,
 };
-use gc::{Finalize, Trace};
 use std::fmt;
 
-#[cfg(feature = "serde")]
+#[cfg(feature = "deser")]
 use serde::{Deserialize, Serialize};
 
 /// The `continue` statement terminates execution of the statements in the current iteration of
@@ -22,7 +22,7 @@ use serde::{Deserialize, Serialize};
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-ContinueStatement
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/continue
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub struct Continue {
     label: Option<Box<str>>,
@@ -46,8 +46,8 @@ impl Continue {
 }
 
 impl Executable for Continue {
-    fn run(&self, interpreter: &mut Context) -> Result<Value> {
-        interpreter
+    fn run(&self, context: &mut Context) -> Result<Value> {
+        context
             .executor()
             .set_current_state(InterpreterState::Continue(self.label().map(Box::from)));
 

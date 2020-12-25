@@ -1,8 +1,12 @@
-use crate::{exec::Executable, syntax::ast::node::Node, Context, Result, Value};
-use gc::{Finalize, Trace};
+use crate::{
+    exec::Executable,
+    gc::{Finalize, Trace},
+    syntax::ast::node::Node,
+    Context, Result, Value,
+};
 use std::fmt;
 
-#[cfg(feature = "serde")]
+#[cfg(feature = "deser")]
 use serde::{Deserialize, Serialize};
 
 /// The `spread` operator allows an iterable such as an array expression or string to be
@@ -21,8 +25,8 @@ use serde::{Deserialize, Serialize};
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-SpreadElement
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Spread_syntax
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-#[cfg_attr(feature = "serde", serde(transparent))]
+#[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "deser", serde(transparent))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub struct Spread {
     val: Box<Node>,
@@ -45,9 +49,9 @@ impl Spread {
 }
 
 impl Executable for Spread {
-    fn run(&self, interpreter: &mut Context) -> Result<Value> {
+    fn run(&self, context: &mut Context) -> Result<Value> {
         // TODO: for now we can do nothing but return the value as-is
-        self.val().run(interpreter)
+        self.val().run(context)
     }
 }
 

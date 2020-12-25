@@ -1,12 +1,12 @@
 use crate::{
     exec::{Executable, InterpreterState},
+    gc::{Finalize, Trace},
     syntax::ast::node::Node,
     Context, Result, Value,
 };
-use gc::{Finalize, Trace};
 use std::fmt;
 
-#[cfg(feature = "serde")]
+#[cfg(feature = "deser")]
 use serde::{Deserialize, Serialize};
 
 /// The `while` statement creates a loop that executes a specified statement as long as the
@@ -20,7 +20,7 @@ use serde::{Deserialize, Serialize};
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-grammar-notation-WhileStatement
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/while
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub struct WhileLoop {
     cond: Box<Node>,
@@ -65,17 +65,17 @@ impl WhileLoop {
 }
 
 impl Executable for WhileLoop {
-    fn run(&self, interpreter: &mut Context) -> Result<Value> {
+    fn run(&self, context: &mut Context) -> Result<Value> {
         let mut result = Value::undefined();
-        while self.cond().run(interpreter)?.to_boolean() {
-            result = self.expr().run(interpreter)?;
-            match interpreter.executor().get_current_state() {
+        while self.cond().run(context)?.to_boolean() {
+            result = self.expr().run(context)?;
+            match context.executor().get_current_state() {
                 InterpreterState::Break(label) => {
-                    handle_state_with_labels!(self, label, interpreter, break);
+                    handle_state_with_labels!(self, label, context, break);
                     break;
                 }
                 InterpreterState::Continue(label) => {
-                    handle_state_with_labels!(self, label, interpreter, continue)
+                    handle_state_with_labels!(self, label, context, continue)
                 }
                 InterpreterState::Return => {
                     return Ok(result);

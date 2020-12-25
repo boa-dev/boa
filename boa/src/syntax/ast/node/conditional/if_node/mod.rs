@@ -1,8 +1,12 @@
-use crate::{exec::Executable, syntax::ast::node::Node, Context, Result, Value};
-use gc::{Finalize, Trace};
+use crate::{
+    exec::Executable,
+    gc::{Finalize, Trace},
+    syntax::ast::node::Node,
+    Context, Result, Value,
+};
 use std::fmt;
 
-#[cfg(feature = "serde")]
+#[cfg(feature = "deser")]
 use serde::{Deserialize, Serialize};
 
 /// The `if` statement executes a statement if a specified condition is [`truthy`][truthy]. If
@@ -21,7 +25,7 @@ use serde::{Deserialize, Serialize};
 /// [truthy]: https://developer.mozilla.org/en-US/docs/Glossary/truthy
 /// [falsy]: https://developer.mozilla.org/en-US/docs/Glossary/falsy
 /// [expression]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Expressions_and_Operators#Expressions
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub struct If {
     cond: Box<Node>,
@@ -75,11 +79,11 @@ impl If {
 }
 
 impl Executable for If {
-    fn run(&self, interpreter: &mut Context) -> Result<Value> {
-        Ok(if self.cond().run(interpreter)?.to_boolean() {
-            self.body().run(interpreter)?
+    fn run(&self, context: &mut Context) -> Result<Value> {
+        Ok(if self.cond().run(context)?.to_boolean() {
+            self.body().run(context)?
         } else if let Some(ref else_e) = self.else_node() {
-            else_e.run(interpreter)?
+            else_e.run(context)?
         } else {
             Value::undefined()
         })

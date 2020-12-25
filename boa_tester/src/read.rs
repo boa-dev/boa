@@ -186,7 +186,8 @@ fn read_metadata(code: &str) -> io::Result<MetaData> {
         .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidData, "no metadata found"))?
         .get(1)
         .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidData, "no metadata found"))?
-        .as_str();
+        .as_str()
+        .replace('\r', "\n");
 
-    serde_yaml::from_str(yaml).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+    serde_yaml::from_str(&yaml).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
 }

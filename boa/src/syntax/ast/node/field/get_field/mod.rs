@@ -1,19 +1,19 @@
 use crate::{
     exec::Executable,
+    gc::{Finalize, Trace},
     syntax::ast::node::Node,
     value::{Type, Value},
     Context, Result,
 };
-use gc::{Finalize, Trace};
 use std::fmt;
 
-#[cfg(feature = "serde")]
+#[cfg(feature = "deser")]
 use serde::{Deserialize, Serialize};
 
 /// This property accessor provides access to an object's properties by using the
 /// [bracket notation][mdn].
 ///
-/// In the object[property_name] syntax, the property_name is just a string or
+/// In the object\[property_name\] syntax, the property_name is just a string or
 /// [Symbol][symbol]. So, it can be any string, including '1foo', '!bar!', or even ' ' (a
 /// space).
 ///
@@ -32,7 +32,7 @@ use serde::{Deserialize, Serialize};
 /// [spec]: https://tc39.es/ecma262/#sec-property-accessors
 /// [symbol]: https://developer.mozilla.org/en-US/docs/Glossary/Symbol
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Property_accessors#Bracket_notation
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub struct GetField {
     obj: Box<Node>,
@@ -62,14 +62,14 @@ impl GetField {
 }
 
 impl Executable for GetField {
-    fn run(&self, interpreter: &mut Context) -> Result<Value> {
-        let mut obj = self.obj().run(interpreter)?;
+    fn run(&self, context: &mut Context) -> Result<Value> {
+        let mut obj = self.obj().run(context)?;
         if obj.get_type() != Type::Object {
-            obj = Value::Object(obj.to_object(interpreter)?);
+            obj = Value::Object(obj.to_object(context)?);
         }
-        let field = self.field().run(interpreter)?;
+        let field = self.field().run(context)?;
 
-        Ok(obj.get_field(field.to_property_key(interpreter)?))
+        Ok(obj.get_field(field.to_property_key(context)?))
     }
 }
 

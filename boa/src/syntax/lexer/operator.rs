@@ -17,8 +17,8 @@ macro_rules! vop {
     ($cursor:ident, $assign_op:expr, $op:expr) => ({
         match $cursor.peek()? {
             None => Err(Error::syntax("abrupt end - could not preview next value as part of the operator", $cursor.pos())),
-            Some('=') => {
-                $cursor.next_char()?.expect("= token vanished");
+            Some(b'=') => {
+                $cursor.next_byte()?.expect("= token vanished");
                 $cursor.next_column();
                 $assign_op
             }
@@ -28,13 +28,13 @@ macro_rules! vop {
     ($cursor:ident, $assign_op:expr, $op:expr, {$($case:pat => $block:expr), +}) => ({
         match $cursor.peek()? {
             None => Err(Error::syntax("abrupt end - could not preview next value as part of the operator", $cursor.pos())),
-            Some('=') => {
-                $cursor.next_char()?.expect("= token vanished");
+            Some(b'=') => {
+                $cursor.next_byte()?.expect("= token vanished");
                 $cursor.next_column();
                 $assign_op
             },
             $($case => {
-                $cursor.next_char()?.expect("Token vanished");
+                $cursor.next_byte()?.expect("Token vanished");
                 $cursor.next_column();
                 $block
             })+,
@@ -44,7 +44,7 @@ macro_rules! vop {
     ($cursor:ident, $op:expr, {$($case:pat => $block:expr),+}) => {
         match $cursor.peek().ok_or_else(|| Error::syntax("could not preview next value", $cursor.pos()))? {
             $($case => {
-                $cursor.next_char()?;
+                $cursor.next_byte()?;
                 $cursor.next_column();
                 $block
             })+,
@@ -72,7 +72,7 @@ macro_rules! op {
 
 #[derive(Debug, Clone, Copy)]
 pub(super) struct Operator {
-    init: char,
+    init: u8,
 }
 
 /// Operator lexing.
@@ -87,7 +87,7 @@ pub(super) struct Operator {
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators
 impl Operator {
     /// Creates a new operator lexer.
-    pub(super) fn new(init: char) -> Self {
+    pub(super) fn new(init: u8) -> Self {
         Self { init }
     }
 }
@@ -100,61 +100,63 @@ impl<R> Tokenizer<R> for Operator {
         let _timer = BoaProfiler::global().start_event("Operator", "Lexing");
 
         match self.init {
-            '*' => op!(cursor, start_pos, Ok(Punctuator::AssignMul), Ok(Punctuator::Mul), {
-                Some('*') => vop!(cursor, Ok(Punctuator::AssignPow), Ok(Punctuator::Exp))
+            b'*' => op!(cursor, start_pos, Ok(Punctuator::AssignMul), Ok(Punctuator::Mul), {
+                Some(b'*') => vop!(cursor, Ok(Punctuator::AssignPow), Ok(Punctuator::Exp))
             }),
-            '+' => op!(cursor, start_pos, Ok(Punctuator::AssignAdd), Ok(Punctuator::Add), {
-                Some('+') => Ok(Punctuator::Inc)
+            b'+' => op!(cursor, start_pos, Ok(Punctuator::AssignAdd), Ok(Punctuator::Add), {
+                Some(b'+') => Ok(Punctuator::Inc)
             }),
-            '-' => op!(cursor, start_pos, Ok(Punctuator::AssignSub), Ok(Punctuator::Sub), {
-                Some('-') => {
+            b'-' => op!(cursor, start_pos, Ok(Punctuator::AssignSub), Ok(Punctuator::Sub), {
+                Some(b'-') => {
                     Ok(Punctuator::Dec)
                 }
             }),
-            '%' => op!(
+            b'%' => op!(
                 cursor,
                 start_pos,
                 Ok(Punctuator::AssignMod),
                 Ok(Punctuator::Mod)
             ),
-            '|' => op!(cursor, start_pos, Ok(Punctuator::AssignOr), Ok(Punctuator::Or), {
-                Some('|') => Ok(Punctuator::BoolOr)
+            b'|' => op!(cursor, start_pos, Ok(Punctuator::AssignOr), Ok(Punctuator::Or), {
+                Some(b'|') => Ok(Punctuator::BoolOr)
             }),
-            '&' => op!(cursor, start_pos, Ok(Punctuator::AssignAnd), Ok(Punctuator::And), {
-                Some('&') => Ok(Punctuator::BoolAnd)
+            b'&' => op!(cursor, start_pos, Ok(Punctuator::AssignAnd), Ok(Punctuator::And), {
+                Some(b'&') => Ok(Punctuator::BoolAnd)
             }),
-            '^' => op!(
+            b'^' => op!(
                 cursor,
                 start_pos,
                 Ok(Punctuator::AssignXor),
                 Ok(Punctuator::Xor)
             ),
-            '=' => op!(cursor, start_pos, if cursor.next_is('=')? {
+            b'=' => op!(cursor, start_pos, if cursor.next_is(b'=')? {
                 Ok(Punctuator::StrictEq)
             } else {
                 Ok(Punctuator::Eq)
             }, Ok(Punctuator::Assign), {
-                Some('>') => {
+                Some(b'>') => {
                     Ok(Punctuator::Arrow)
                 }
             }),
-            '<' => op!(cursor, start_pos, Ok(Punctuator::LessThanOrEq), Ok(Punctuator::LessThan), {
-                Some('<') => vop!(cursor, Ok(Punctuator::AssignLeftSh), Ok(Punctuator::LeftSh))
-            }),
-            '>' => {
+            b'<' => {
+                op!(cursor, start_pos, Ok(Punctuator::LessThanOrEq), Ok(Punctuator::LessThan), {
+                    Some(b'<') => vop!(cursor, Ok(Punctuator::AssignLeftSh), Ok(Punctuator::LeftSh))
+                })
+            }
+            b'>' => {
                 op!(cursor, start_pos, Ok(Punctuator::GreaterThanOrEq), Ok(Punctuator::GreaterThan), {
-                    Some('>') => vop!(cursor, Ok(Punctuator::AssignRightSh), Ok(Punctuator::RightSh), {
-                        Some('>') => vop!(cursor, Ok(Punctuator::AssignURightSh), Ok(Punctuator::URightSh))
+                    Some(b'>') => vop!(cursor, Ok(Punctuator::AssignRightSh), Ok(Punctuator::RightSh), {
+                        Some(b'>') => vop!(cursor, Ok(Punctuator::AssignURightSh), Ok(Punctuator::URightSh))
                     })
                 })
             }
-            '!' => op!(
+            b'!' => op!(
                 cursor,
                 start_pos,
                 vop!(cursor, Ok(Punctuator::StrictNotEq), Ok(Punctuator::NotEq)),
                 Ok(Punctuator::Not)
             ),
-            '~' => Ok(Token::new(
+            b'~' => Ok(Token::new(
                 Punctuator::Neg.into(),
                 Span::new(start_pos, cursor.pos()),
             )),

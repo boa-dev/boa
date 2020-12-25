@@ -2,15 +2,13 @@
 
 use crate::{
     exec::{Executable, InterpreterState},
+    gc::{empty_trace, Finalize, Trace},
     syntax::ast::node::Node,
     BoaProfiler, Context, Result, Value,
 };
-use gc::{unsafe_empty_trace, Finalize, Trace};
-use std::fmt;
-use std::ops::Deref;
-use std::rc::Rc;
+use std::{fmt, ops::Deref, rc::Rc};
 
-#[cfg(feature = "serde")]
+#[cfg(feature = "deser")]
 use serde::{Deserialize, Serialize};
 
 /// List of statements.
@@ -21,10 +19,10 @@ use serde::{Deserialize, Serialize};
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-StatementList
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub struct StatementList {
-    #[cfg_attr(feature = "serde", serde(flatten))]
+    #[cfg_attr(feature = "deser", serde(flatten))]
     statements: Box<[Node]>,
 }
 
@@ -57,18 +55,18 @@ impl StatementList {
 }
 
 impl Executable for StatementList {
-    fn run(&self, interpreter: &mut Context) -> Result<Value> {
+    fn run(&self, context: &mut Context) -> Result<Value> {
         let _timer = BoaProfiler::global().start_event("StatementList", "exec");
 
         // https://tc39.es/ecma262/#sec-block-runtime-semantics-evaluation
         // The return value is uninitialized, which means it defaults to Value::Undefined
         let mut obj = Value::default();
-        interpreter
+        context
             .executor()
             .set_current_state(InterpreterState::Executing);
         for (i, item) in self.statements().iter().enumerate() {
-            let val = item.run(interpreter)?;
-            match interpreter.executor().get_current_state() {
+            let val = item.run(context)?;
+            match context.executor().get_current_state() {
                 InterpreterState::Return => {
                     // Early return.
                     obj = val;
@@ -133,5 +131,5 @@ impl From<StatementList> for RcStatementList {
 
 // SAFETY: This is safe for types not containing any `Trace` types.
 unsafe impl Trace for RcStatementList {
-    unsafe_empty_trace!();
+    empty_trace!();
 }

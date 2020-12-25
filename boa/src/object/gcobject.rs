@@ -114,7 +114,7 @@ impl GcObject {
     // <https://tc39.es/ecma262/#sec-prepareforordinarycall>
     // <https://tc39.es/ecma262/#sec-ecmascript-function-objects-call-thisargument-argumentslist>
     #[track_caller]
-    pub fn call(&self, this: &Value, args: &[Value], ctx: &mut Context) -> Result<Value> {
+    pub fn call(&self, this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
         let this_function_object = self.clone();
         let f_body = if let Some(function) = self.borrow().as_function() {
             if function.is_callable() {
@@ -150,7 +150,7 @@ impl GcObject {
                         for (i, param) in params.iter().enumerate() {
                             // Rest Parameters
                             if param.is_rest_param() {
-                                function.add_rest_param(param, i, args, ctx, &local_env);
+                                function.add_rest_param(param, i, args, context, &local_env);
                                 break;
                             }
 
@@ -163,29 +163,29 @@ impl GcObject {
                         local_env
                             .borrow_mut()
                             .create_mutable_binding("arguments".to_string(), false)
-                            .map_err(|e| e.to_error(ctx))?;
+                            .map_err(|e| e.to_error(context))?;
                         local_env
                             .borrow_mut()
                             .initialize_binding("arguments", arguments_obj)
-                            .map_err(|e| e.to_error(ctx))?;
+                            .map_err(|e| e.to_error(context))?;
 
-                        ctx.realm_mut().environment.push(local_env);
+                        context.realm_mut().environment.push(local_env);
 
                         FunctionBody::Ordinary(body.clone())
                     }
                 }
             } else {
-                return ctx.throw_type_error("function object is not callable");
+                return context.throw_type_error("function object is not callable");
             }
         } else {
-            return ctx.throw_type_error("not a function");
+            return context.throw_type_error("not a function");
         };
 
         match f_body {
-            FunctionBody::BuiltIn(func) => func(this, args, ctx),
+            FunctionBody::BuiltIn(func) => func(this, args, context),
             FunctionBody::Ordinary(body) => {
-                let result = body.run(ctx);
-                ctx.realm_mut().environment.pop();
+                let result = body.run(context);
+                context.realm_mut().environment.pop();
 
                 result
             }
@@ -199,8 +199,22 @@ impl GcObject {
     /// Panics if the object is currently mutably borrowed.
     // <https://tc39.es/ecma262/#sec-ecmascript-function-objects-construct-argumentslist-newtarget>
     #[track_caller]
-    pub fn construct(&self, args: &[Value], ctx: &mut Context) -> Result<Value> {
-        let this: Value = Object::create(self.get(&PROTOTYPE.into())).into();
+    pub fn construct(&self, args: &[Value], context: &mut Context) -> Result<Value> {
+        // If the prototype of the constructor is not an object, then use the default object
+        // prototype as prototype for the new object
+        // see <https://tc39.es/ecma262/#sec-ordinarycreatefromconstructor>
+        // see <https://tc39.es/ecma262/#sec-getprototypefromconstructor>
+        let proto = self.get(&PROTOTYPE.into());
+        let proto = if proto.is_object() {
+            proto
+        } else {
+            context
+                .standard_objects()
+                .object_object()
+                .prototype()
+                .into()
+        };
+        let this: Value = Object::create(proto).into();
 
         let this_function_object = self.clone();
         let body = if let Some(function) = self.borrow().as_function() {
@@ -233,7 +247,7 @@ impl GcObject {
                         for (i, param) in params.iter().enumerate() {
                             // Rest Parameters
                             if param.is_rest_param() {
-                                function.add_rest_param(param, i, args, ctx, &local_env);
+                                function.add_rest_param(param, i, args, context, &local_env);
                                 break;
                             }
 
@@ -246,36 +260,36 @@ impl GcObject {
                         local_env
                             .borrow_mut()
                             .create_mutable_binding("arguments".to_string(), false)
-                            .map_err(|e| e.to_error(ctx))?;
+                            .map_err(|e| e.to_error(context))?;
                         local_env
                             .borrow_mut()
                             .initialize_binding("arguments", arguments_obj)
-                            .map_err(|e| e.to_error(ctx))?;
+                            .map_err(|e| e.to_error(context))?;
 
-                        ctx.realm_mut().environment.push(local_env);
+                        context.realm_mut().environment.push(local_env);
 
                         FunctionBody::Ordinary(body.clone())
                     }
                 }
             } else {
                 let name = this.get_field("name").display().to_string();
-                return ctx.throw_type_error(format!("{} is not a constructor", name));
+                return context.throw_type_error(format!("{} is not a constructor", name));
             }
         } else {
-            return ctx.throw_type_error("not a function");
+            return context.throw_type_error("not a function");
         };
 
         match body {
             FunctionBody::BuiltIn(function) => {
-                function(&this, args, ctx)?;
+                function(&this, args, context)?;
                 Ok(this)
             }
             FunctionBody::Ordinary(body) => {
-                let _ = body.run(ctx);
+                let _ = body.run(context);
 
                 // local_env gets dropped here, its no longer needed
-                let binding = ctx.realm_mut().environment.get_this_binding();
-                binding.map_err(|e| e.to_error(ctx))
+                let binding = context.realm_mut().environment.get_this_binding();
+                binding.map_err(|e| e.to_error(context))
             }
         }
     }
@@ -292,7 +306,7 @@ impl GcObject {
     /// The spec doesn't mention what to do in this situation, but a naive implementation
     /// would overflow the stack recursively calling `toString()`. We follow v8 and SpiderMonkey
     /// instead by returning a default value for the given `hint` -- either `0.` or `""`.
-    /// Example in v8: https://repl.it/repls/IvoryCircularCertification#index.js
+    /// Example in v8: <https://repl.it/repls/IvoryCircularCertification#index.js>
     ///
     /// More information:
     ///  - [ECMAScript][spec]
@@ -300,7 +314,7 @@ impl GcObject {
     /// [spec]: https://tc39.es/ecma262/#sec-ordinarytoprimitive
     pub(crate) fn ordinary_to_primitive(
         &self,
-        interpreter: &mut Context,
+        context: &mut Context,
         hint: PreferredType,
     ) -> Result<Value> {
         // 1. Assert: Type(O) is Object.
@@ -340,7 +354,7 @@ impl GcObject {
             // b. If IsCallable(method) is true, then
             if method.is_function() {
                 // i. Let result be ? Call(method, O).
-                let result = interpreter.call(&method, &this, &[])?;
+                let result = context.call(&method, &this, &[])?;
                 // ii. If Type(result) is not Object, return result.
                 if !result.is_object() {
                     return Ok(result);
@@ -349,14 +363,14 @@ impl GcObject {
         }
 
         // 6. Throw a TypeError exception.
-        interpreter.throw_type_error("cannot convert object to primitive value")
+        context.throw_type_error("cannot convert object to primitive value")
     }
 
     /// Converts an object to JSON, checking for reference cycles and throwing a TypeError if one is found
-    pub(crate) fn to_json(&self, interpreter: &mut Context) -> Result<JSONValue> {
+    pub(crate) fn to_json(&self, context: &mut Context) -> Result<JSONValue> {
         let rec_limiter = RecursionLimiter::new(self);
         if rec_limiter.live {
-            Err(interpreter.construct_type_error("cyclic object value"))
+            Err(context.construct_type_error("cyclic object value"))
         } else if self.is_array() {
             let mut keys: Vec<u32> = self.borrow().index_property_keys().cloned().collect();
             keys.sort_unstable();
@@ -367,7 +381,7 @@ impl GcObject {
                 if value.is_undefined() || value.is_function() || value.is_symbol() {
                     arr.push(JSONValue::Null);
                 } else {
-                    arr.push(value.to_json(interpreter)?);
+                    arr.push(value.to_json(context)?);
                 }
             }
             Ok(JSONValue::Array(arr))
@@ -378,7 +392,7 @@ impl GcObject {
                 let key = k.clone();
                 let value = this.get_field(k.to_string());
                 if !value.is_undefined() && !value.is_function() && !value.is_symbol() {
-                    new_obj.insert(key.to_string(), value.to_json(interpreter)?);
+                    new_obj.insert(key.to_string(), value.to_json(context)?);
                 }
             }
             Ok(JSONValue::Object(new_obj))
@@ -679,6 +693,67 @@ impl GcObject {
     #[track_caller]
     pub fn is_native_object(&self) -> bool {
         self.borrow().is_native_object()
+    }
+
+    /// Retrieves value of specific property, when the value of the property is expected to be a function.
+    ///
+    /// More information:
+    /// - [EcmaScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-getmethod
+    #[inline]
+    pub fn get_method<K>(&self, context: &mut Context, key: K) -> Result<Option<GcObject>>
+    where
+        K: Into<PropertyKey>,
+    {
+        let key = key.into();
+        let value = self.get(&key);
+
+        if value.is_null_or_undefined() {
+            return Ok(None);
+        }
+
+        match value.as_object() {
+            Some(object) if object.is_callable() => Ok(Some(object)),
+            _ => Err(context
+                .construct_type_error("value returned for property of object is not a function")),
+        }
+    }
+
+    /// Determines if `value` inherits from the instance object inheritance path.
+    ///
+    /// More information:
+    /// - [EcmaScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-ordinaryhasinstance
+    #[inline]
+    pub fn ordinary_has_instance(&self, context: &mut Context, value: &Value) -> Result<bool> {
+        if !self.is_callable() {
+            return Ok(false);
+        }
+
+        // TODO: If C has a [[BoundTargetFunction]] internal slot, then
+        //           Let BC be C.[[BoundTargetFunction]].
+        //           Return ? InstanceofOperator(O, BC).
+
+        if let Some(object) = value.as_object() {
+            if let Some(prototype) = self.get(&"prototype".into()).as_object() {
+                let mut object = object.get_prototype_of();
+                while let Some(object_prototype) = object.as_object() {
+                    if GcObject::equals(&prototype, &object_prototype) {
+                        return Ok(true);
+                    }
+                    object = object_prototype.get_prototype_of();
+                }
+
+                Ok(false)
+            } else {
+                Err(context
+                    .construct_type_error("function has non-object prototype in instanceof check"))
+            }
+        } else {
+            Ok(false)
+        }
     }
 }
 

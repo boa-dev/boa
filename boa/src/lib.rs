@@ -78,28 +78,31 @@ pub type Result<T> = StdResult<T, Value>;
 /// It will return either the statement list AST node for the code, or a parsing error if something
 /// goes wrong.
 #[inline]
-pub fn parse(src: &str, strict_mode: bool) -> StdResult<StatementList, ParseError> {
-    Parser::new(src.as_bytes(), strict_mode).parse_all()
+pub fn parse<T: AsRef<[u8]>>(src: T, strict_mode: bool) -> StdResult<StatementList, ParseError> {
+    let src_bytes: &[u8] = src.as_ref();
+    Parser::new(src_bytes, strict_mode).parse_all()
 }
 
 /// Execute the code using an existing Context
 /// The str is consumed and the state of the Context is changed
 #[cfg(test)]
-pub(crate) fn forward(engine: &mut Context, src: &str) -> String {
+pub(crate) fn forward<T: AsRef<[u8]>>(context: &mut Context, src: T) -> String {
+    let src_bytes: &[u8] = src.as_ref();
+
     // Setup executor
-    let expr = match parse(src, false) {
+    let expr = match parse(src_bytes, false) {
         Ok(res) => res,
         Err(e) => {
             return format!(
                 "Uncaught {}",
-                engine
+                context
                     .throw_syntax_error(e.to_string())
                     .expect_err("interpreter.throw_syntax_error() did not return an error")
                     .display()
             );
         }
     };
-    expr.run(engine).map_or_else(
+    expr.run(context).map_or_else(
         |e| format!("Uncaught {}", e.display()),
         |v| v.display().to_string(),
     )
@@ -111,16 +114,18 @@ pub(crate) fn forward(engine: &mut Context, src: &str) -> String {
 /// If the interpreter fails parsing an error value is returned instead (error object)
 #[allow(clippy::unit_arg, clippy::drop_copy)]
 #[cfg(test)]
-pub(crate) fn forward_val(engine: &mut Context, src: &str) -> Result<Value> {
+pub(crate) fn forward_val<T: AsRef<[u8]>>(context: &mut Context, src: T) -> Result<Value> {
     let main_timer = BoaProfiler::global().start_event("Main", "Main");
+
+    let src_bytes: &[u8] = src.as_ref();
     // Setup executor
-    let result = parse(src, false)
+    let result = parse(src_bytes, false)
         .map_err(|e| {
-            engine
+            context
                 .throw_syntax_error(e.to_string())
                 .expect_err("interpreter.throw_syntax_error() did not return an error")
         })
-        .and_then(|expr| expr.run(engine));
+        .and_then(|expr| expr.run(context));
 
     // The main_timer needs to be dropped before the BoaProfiler is.
     drop(main_timer);
@@ -131,8 +136,10 @@ pub(crate) fn forward_val(engine: &mut Context, src: &str) -> Result<Value> {
 
 /// Create a clean Context and execute the code
 #[cfg(test)]
-pub(crate) fn exec(src: &str) -> String {
-    match Context::new().eval(src) {
+pub(crate) fn exec<T: AsRef<[u8]>>(src: T) -> String {
+    let src_bytes: &[u8] = src.as_ref();
+
+    match Context::new().eval(src_bytes) {
         Ok(value) => value.display().to_string(),
         Err(error) => error.display().to_string(),
     }

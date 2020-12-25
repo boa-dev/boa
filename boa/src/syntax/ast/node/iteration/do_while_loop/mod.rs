@@ -1,12 +1,12 @@
 use crate::{
     exec::{Executable, InterpreterState},
+    gc::{Finalize, Trace},
     syntax::ast::node::Node,
     Context, Result, Value,
 };
-use gc::{Finalize, Trace};
 use std::fmt;
 
-#[cfg(feature = "serde")]
+#[cfg(feature = "deser")]
 use serde::{Deserialize, Serialize};
 
 /// The `do...while` statement creates a loop that executes a specified statement until the
@@ -21,7 +21,7 @@ use serde::{Deserialize, Serialize};
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-do-while-statement
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/do...while
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub struct DoWhileLoop {
     body: Box<Node>,
@@ -67,21 +67,21 @@ impl DoWhileLoop {
 }
 
 impl Executable for DoWhileLoop {
-    fn run(&self, interpreter: &mut Context) -> Result<Value> {
-        let mut result = self.body().run(interpreter)?;
-        match interpreter.executor().get_current_state() {
+    fn run(&self, context: &mut Context) -> Result<Value> {
+        let mut result = self.body().run(context)?;
+        match context.executor().get_current_state() {
             InterpreterState::Break(_label) => {
                 // TODO break to label.
 
                 // Loops 'consume' breaks.
-                interpreter
+                context
                     .executor()
                     .set_current_state(InterpreterState::Executing);
                 return Ok(result);
             }
             InterpreterState::Continue(_label) => {
                 // TODO continue to label;
-                interpreter
+                context
                     .executor()
                     .set_current_state(InterpreterState::Executing);
                 // after breaking out of the block, continue execution of the loop
@@ -94,21 +94,21 @@ impl Executable for DoWhileLoop {
             }
         }
 
-        while self.cond().run(interpreter)?.to_boolean() {
-            result = self.body().run(interpreter)?;
-            match interpreter.executor().get_current_state() {
+        while self.cond().run(context)?.to_boolean() {
+            result = self.body().run(context)?;
+            match context.executor().get_current_state() {
                 InterpreterState::Break(_label) => {
                     // TODO break to label.
 
                     // Loops 'consume' breaks.
-                    interpreter
+                    context
                         .executor()
                         .set_current_state(InterpreterState::Executing);
                     break;
                 }
                 InterpreterState::Continue(_label) => {
                     // TODO continue to label.
-                    interpreter
+                    context
                         .executor()
                         .set_current_state(InterpreterState::Executing);
                     // after breaking out of the block, continue execution of the loop

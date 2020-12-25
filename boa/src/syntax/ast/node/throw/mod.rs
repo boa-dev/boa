@@ -1,8 +1,12 @@
-use crate::{exec::Executable, syntax::ast::node::Node, Context, Result, Value};
-use gc::{Finalize, Trace};
+use crate::{
+    exec::Executable,
+    gc::{Finalize, Trace},
+    syntax::ast::node::Node,
+    Context, Result, Value,
+};
 use std::fmt;
 
-#[cfg(feature = "serde")]
+#[cfg(feature = "deser")]
 use serde::{Deserialize, Serialize};
 
 /// The `throw` statement throws a user-defined exception.
@@ -19,7 +23,7 @@ use serde::{Deserialize, Serialize};
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-ThrowStatement
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/throw
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub struct Throw {
     expr: Box<Node>,
@@ -43,8 +47,8 @@ impl Throw {
 
 impl Executable for Throw {
     #[inline]
-    fn run(&self, interpreter: &mut Context) -> Result<Value> {
-        Err(self.expr().run(interpreter)?)
+    fn run(&self, context: &mut Context) -> Result<Value> {
+        Err(self.expr().run(context)?)
     }
 }
 

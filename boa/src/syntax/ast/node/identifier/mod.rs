@@ -1,10 +1,14 @@
 //! Local identifier node.
 
-use crate::{exec::Executable, syntax::ast::node::Node, Context, Result, Value};
-use gc::{Finalize, Trace};
+use crate::{
+    exec::Executable,
+    gc::{Finalize, Trace},
+    syntax::ast::node::Node,
+    Context, Result, Value,
+};
 use std::fmt;
 
-#[cfg(feature = "serde")]
+#[cfg(feature = "deser")]
 use serde::{Deserialize, Serialize};
 
 /// An `identifier` is a sequence of characters in the code that identifies a variable,
@@ -23,20 +27,20 @@ use serde::{Deserialize, Serialize};
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-Identifier
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Glossary/Identifier
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-#[cfg_attr(feature = "serde", serde(transparent))]
+#[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "deser", serde(transparent))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub struct Identifier {
     ident: Box<str>,
 }
 
 impl Executable for Identifier {
-    fn run(&self, interpreter: &mut Context) -> Result<Value> {
-        interpreter
+    fn run(&self, context: &mut Context) -> Result<Value> {
+        context
             .realm()
             .environment
             .get_binding_value(self.as_ref())
-            .map_err(|e| e.to_error(interpreter))
+            .map_err(|e| e.to_error(context))
     }
 }
 

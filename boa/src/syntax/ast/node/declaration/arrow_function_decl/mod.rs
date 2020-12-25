@@ -1,13 +1,13 @@
 use crate::{
     builtins::function::FunctionFlags,
     exec::Executable,
+    gc::{Finalize, Trace},
     syntax::ast::node::{join_nodes, FormalParameter, Node, StatementList},
     Context, Result, Value,
 };
-use gc::{Finalize, Trace};
 use std::fmt;
 
-#[cfg(feature = "serde")]
+#[cfg(feature = "deser")]
 use serde::{Deserialize, Serialize};
 
 /// An arrow function expression is a syntactically compact alternative to a regular function
@@ -23,7 +23,7 @@ use serde::{Deserialize, Serialize};
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-ArrowFunction
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/Arrow_functions
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub struct ArrowFunctionDecl {
     params: Box<[FormalParameter]>,
@@ -67,8 +67,8 @@ impl ArrowFunctionDecl {
 }
 
 impl Executable for ArrowFunctionDecl {
-    fn run(&self, interpreter: &mut Context) -> Result<Value> {
-        Ok(interpreter.create_function(
+    fn run(&self, context: &mut Context) -> Result<Value> {
+        Ok(context.create_function(
             self.params().to_vec(),
             self.body().to_vec(),
             FunctionFlags::CALLABLE

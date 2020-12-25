@@ -16,32 +16,35 @@ pub struct IteratorPrototypes {
 }
 
 impl IteratorPrototypes {
-    pub fn init(ctx: &mut Context) -> Self {
-        let iterator_prototype = create_iterator_prototype(ctx);
+    pub(crate) fn init(context: &mut Context) -> Self {
+        let iterator_prototype = create_iterator_prototype(context);
         Self {
             iterator_prototype: iterator_prototype
                 .as_object()
                 .expect("Iterator prototype is not an object"),
-            array_iterator: ArrayIterator::create_prototype(ctx, iterator_prototype.clone())
+            array_iterator: ArrayIterator::create_prototype(context, iterator_prototype.clone())
                 .as_object()
                 .expect("Array Iterator Prototype is not an object"),
-            string_iterator: StringIterator::create_prototype(ctx, iterator_prototype.clone())
+            string_iterator: StringIterator::create_prototype(context, iterator_prototype.clone())
                 .as_object()
                 .expect("String Iterator Prototype is not an object"),
-            map_iterator: MapIterator::create_prototype(ctx, iterator_prototype)
+            map_iterator: MapIterator::create_prototype(context, iterator_prototype)
                 .as_object()
                 .expect("Map Iterator Prototype is not an object"),
         }
     }
 
+    #[inline]
     pub fn array_iterator(&self) -> GcObject {
         self.array_iterator.clone()
     }
 
+    #[inline]
     pub fn iterator_prototype(&self) -> GcObject {
         self.iterator_prototype.clone()
     }
 
+    #[inline]
     pub fn string_iterator(&self) -> GcObject {
         self.string_iterator.clone()
     }
@@ -54,8 +57,8 @@ impl IteratorPrototypes {
 /// CreateIterResultObject( value, done )
 ///
 /// Generates an object supporting the IteratorResult interface.
-pub fn create_iter_result_object(ctx: &mut Context, value: Value, done: bool) -> Value {
-    let object = Value::new_object(Some(ctx.global_object()));
+pub fn create_iter_result_object(context: &mut Context, value: Value, done: bool) -> Value {
+    let object = Value::new_object(Some(context.global_object()));
     // TODO: Fix attributes of value and done
     let value_property = DataDescriptor::new(value, Attribute::all());
     let done_property = DataDescriptor::new(done, Attribute::all());
@@ -65,17 +68,17 @@ pub fn create_iter_result_object(ctx: &mut Context, value: Value, done: bool) ->
 }
 
 /// Get an iterator record
-pub fn get_iterator(ctx: &mut Context, iterable: Value) -> Result<IteratorRecord> {
+pub fn get_iterator(context: &mut Context, iterable: Value) -> Result<IteratorRecord> {
     // TODO: Fix the accessor handling
     let iterator_function = iterable
-        .get_property(ctx.well_known_symbols().iterator_symbol())
+        .get_property(context.well_known_symbols().iterator_symbol())
         .map(|p| p.as_data_descriptor().unwrap().value())
-        .ok_or_else(|| ctx.construct_type_error("Not an iterable"))?;
-    let iterator_object = ctx.call(&iterator_function, &iterable, &[])?;
+        .ok_or_else(|| context.construct_type_error("Not an iterable"))?;
+    let iterator_object = context.call(&iterator_function, &iterable, &[])?;
     let next_function = iterator_object
         .get_property("next")
         .map(|p| p.as_data_descriptor().unwrap().value())
-        .ok_or_else(|| ctx.construct_type_error("Could not find property `next`"))?;
+        .ok_or_else(|| context.construct_type_error("Could not find property `next`"))?;
     Ok(IteratorRecord::new(iterator_object, next_function))
 }
 
@@ -85,11 +88,11 @@ pub fn get_iterator(ctx: &mut Context, iterable: Value) -> Result<IteratorRecord
 ///  - [ECMA reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-%iteratorprototype%-object
-fn create_iterator_prototype(ctx: &mut Context) -> Value {
+fn create_iterator_prototype(context: &mut Context) -> Value {
     let _timer = BoaProfiler::global().start_event("Iterator Prototype", "init");
 
-    let symbol_iterator = ctx.well_known_symbols().iterator_symbol();
-    let iterator_prototype = ObjectInitializer::new(ctx)
+    let symbol_iterator = context.well_known_symbols().iterator_symbol();
+    let iterator_prototype = ObjectInitializer::new(context)
         .function(
             |v, _, _| Ok(v.clone()),
             (symbol_iterator, "[Symbol.iterator]"),
@@ -120,14 +123,14 @@ impl IteratorRecord {
     ///  - [ECMA reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-iteratornext
-    pub(crate) fn next(&self, ctx: &mut Context) -> Result<IteratorResult> {
-        let next = ctx.call(&self.next_function, &self.iterator_object, &[])?;
+    pub(crate) fn next(&self, context: &mut Context) -> Result<IteratorResult> {
+        let next = context.call(&self.next_function, &self.iterator_object, &[])?;
         // FIXME: handle accessor descriptors
         let done = next
             .get_property("done")
             .map(|p| p.as_data_descriptor().unwrap().value())
             .and_then(|v| v.as_boolean())
-            .ok_or_else(|| ctx.construct_type_error("Could not find property `done`"))?;
+            .ok_or_else(|| context.construct_type_error("Could not find property `done`"))?;
 
         // FIXME: handle accessor descriptors
         let next_result = next

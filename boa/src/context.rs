@@ -10,7 +10,7 @@ use crate::{
     class::{Class, ClassBuilder},
     exec::Interpreter,
     object::{GcObject, Object, ObjectData, PROTOTYPE},
-    property::{DataDescriptor, PropertyKey},
+    property::{Attribute, DataDescriptor, PropertyKey},
     realm::Realm,
     syntax::{
         ast::{
@@ -47,6 +47,14 @@ impl Default for StandardConstructor {
 }
 
 impl StandardConstructor {
+    /// Build a constructor with a defined prototype.
+    fn with_prototype(prototype: Object) -> Self {
+        Self {
+            constructor: GcObject::new(Object::default()),
+            prototype: GcObject::new(prototype),
+        }
+    }
+
     /// Return the constructor object.
     ///
     /// This is the same as `Object`, `Array`, etc.
@@ -65,7 +73,7 @@ impl StandardConstructor {
 }
 
 /// Cached core standard objects.
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct StandardObjects {
     object: StandardConstructor,
     function: StandardConstructor,
@@ -83,6 +91,29 @@ pub struct StandardObjects {
     syntax_error: StandardConstructor,
     eval_error: StandardConstructor,
     uri_error: StandardConstructor,
+}
+
+impl Default for StandardObjects {
+    fn default() -> Self {
+        Self {
+            object: StandardConstructor::default(),
+            function: StandardConstructor::default(),
+            array: StandardConstructor::default(),
+            bigint: StandardConstructor::default(),
+            number: StandardConstructor::with_prototype(Object::number(0.0)),
+            boolean: StandardConstructor::with_prototype(Object::boolean(false)),
+            string: StandardConstructor::with_prototype(Object::string("")),
+            regexp: StandardConstructor::default(),
+            symbol: StandardConstructor::default(),
+            error: StandardConstructor::default(),
+            type_error: StandardConstructor::default(),
+            referece_error: StandardConstructor::default(),
+            range_error: StandardConstructor::default(),
+            syntax_error: StandardConstructor::default(),
+            eval_error: StandardConstructor::default(),
+            uri_error: StandardConstructor::default(),
+        }
+    }
 }
 
 impl StandardObjects {
@@ -181,8 +212,8 @@ pub struct Context {
 
     /// Symbol hash.
     ///
-    /// For now this is an incremented u32 number.
-    symbol_count: u32,
+    /// For now this is an incremented u64 number.
+    symbol_count: u64,
 
     /// console object state.
     #[cfg(feature = "console")]
@@ -225,18 +256,22 @@ impl Default for Context {
 
 impl Context {
     /// Create a new `Context`.
+    #[inline]
     pub fn new() -> Self {
         Default::default()
     }
 
+    #[inline]
     pub fn realm(&self) -> &Realm {
         &self.realm
     }
 
+    #[inline]
     pub fn realm_mut(&mut self) -> &mut Realm {
         &mut self.realm
     }
 
+    #[inline]
     pub fn executor(&mut self) -> &mut Interpreter {
         &mut self.executor
     }
@@ -249,11 +284,13 @@ impl Context {
 
     /// A helper function for getting a mutable reference to the `console` object.
     #[cfg(feature = "console")]
+    #[inline]
     pub(crate) fn console_mut(&mut self) -> &mut Console {
         &mut self.console
     }
 
     /// Sets up the default global objects within Global
+    #[inline]
     fn create_intrinsics(&mut self) {
         let _timer = BoaProfiler::global().start_event("create_intrinsics", "interpreter");
         // Create intrinsics, add global objects here
@@ -264,7 +301,7 @@ impl Context {
     ///
     /// This currently is an incremented value.
     #[inline]
-    fn generate_hash(&mut self) -> u32 {
+    fn generate_hash(&mut self) -> u64 {
         let hash = self.symbol_count;
         self.symbol_count += 1;
         hash
@@ -287,6 +324,7 @@ impl Context {
     }
 
     /// <https://tc39.es/ecma262/#sec-call>
+    #[inline]
     pub(crate) fn call(&mut self, f: &Value, this: &Value, args: &[Value]) -> Result<Value> {
         match *f {
             Value::Object(ref object) => object.call(this, args, self),
@@ -295,11 +333,13 @@ impl Context {
     }
 
     /// Return the global object.
+    #[inline]
     pub fn global_object(&self) -> &Value {
-        &self.realm.global_obj
+        &self.realm().global_object
     }
 
     /// Constructs a `RangeError` with the specified message.
+    #[inline]
     pub fn construct_range_error<M>(&mut self, message: M) -> Value
     where
         M: Into<Box<str>>,
@@ -314,6 +354,7 @@ impl Context {
     }
 
     /// Throws a `RangeError` with the specified message.
+    #[inline]
     pub fn throw_range_error<M>(&mut self, message: M) -> Result<Value>
     where
         M: Into<Box<str>>,
@@ -322,6 +363,7 @@ impl Context {
     }
 
     /// Constructs a `TypeError` with the specified message.
+    #[inline]
     pub fn construct_type_error<M>(&mut self, message: M) -> Value
     where
         M: Into<Box<str>>,
@@ -336,6 +378,7 @@ impl Context {
     }
 
     /// Throws a `TypeError` with the specified message.
+    #[inline]
     pub fn throw_type_error<M>(&mut self, message: M) -> Result<Value>
     where
         M: Into<Box<str>>,
@@ -344,6 +387,7 @@ impl Context {
     }
 
     /// Constructs a `ReferenceError` with the specified message.
+    #[inline]
     pub fn construct_reference_error<M>(&mut self, message: M) -> Value
     where
         M: Into<Box<str>>,
@@ -357,6 +401,7 @@ impl Context {
     }
 
     /// Throws a `ReferenceError` with the specified message.
+    #[inline]
     pub fn throw_reference_error<M>(&mut self, message: M) -> Result<Value>
     where
         M: Into<Box<str>>,
@@ -365,6 +410,7 @@ impl Context {
     }
 
     /// Constructs a `SyntaxError` with the specified message.
+    #[inline]
     pub fn construct_syntax_error<M>(&mut self, message: M) -> Value
     where
         M: Into<Box<str>>,
@@ -378,6 +424,7 @@ impl Context {
     }
 
     /// Throws a `SyntaxError` with the specified message.
+    #[inline]
     pub fn throw_syntax_error<M>(&mut self, message: M) -> Result<Value>
     where
         M: Into<Box<str>>,
@@ -494,6 +541,7 @@ impl Context {
     }
 
     /// Register a global function.
+    #[inline]
     pub fn register_global_function(
         &mut self,
         name: &str,
@@ -555,7 +603,8 @@ impl Context {
         Err(())
     }
 
-    /// https://tc39.es/ecma262/#sec-hasproperty
+    /// <https://tc39.es/ecma262/#sec-hasproperty>
+    #[inline]
     pub(crate) fn has_property(&self, obj: &Value, key: &PropertyKey) -> bool {
         if let Some(obj) = obj.as_object() {
             obj.has_property(key)
@@ -564,6 +613,7 @@ impl Context {
         }
     }
 
+    #[inline]
     pub(crate) fn set_value(&mut self, node: &Node, value: Value) -> Result<Value> {
         match node {
             Node::Identifier(ref name) => {
@@ -599,6 +649,7 @@ impl Context {
     ///
     /// context.register_global_class::<MyClass>();
     /// ```
+    #[inline]
     pub fn register_global_class<T>(&mut self) -> Result<()>
     where
         T: Class,
@@ -615,6 +666,35 @@ impl Context {
         Ok(())
     }
 
+    /// Register a global property.
+    ///
+    /// # Example
+    /// ```
+    /// use boa::{Context, property::Attribute, object::ObjectInitializer};
+    ///
+    /// let mut context = Context::new();
+    ///
+    /// context.register_global_property("myPrimitiveProperty", 10, Attribute::all());
+    ///
+    /// let object = ObjectInitializer::new(&mut context)
+    ///    .property("x", 0, Attribute::all())
+    ///    .property("y", 1, Attribute::all())
+    ///    .build();
+    /// context.register_global_property("myObjectProperty", object, Attribute::all());
+    /// ```
+    #[inline]
+    pub fn register_global_property<K, V>(&mut self, key: K, value: V, attribute: Attribute)
+    where
+        K: Into<PropertyKey>,
+        V: Into<Value>,
+    {
+        let property = DataDescriptor::new(value, attribute);
+        self.global_object()
+            .as_object()
+            .unwrap()
+            .insert(key, property);
+    }
+
     /// Evaluates the given code.
     ///
     /// # Examples
@@ -628,10 +708,12 @@ impl Context {
     /// assert_eq!(value.as_number().unwrap(), 4.0);
     /// ```
     #[allow(clippy::unit_arg, clippy::drop_copy)]
-    pub fn eval(&mut self, src: &str) -> Result<Value> {
+    #[inline]
+    pub fn eval<T: AsRef<[u8]>>(&mut self, src: T) -> Result<Value> {
         let main_timer = BoaProfiler::global().start_event("Main", "Main");
+        let src_bytes: &[u8] = src.as_ref();
 
-        let parsing_result = Parser::new(src.as_bytes(), false)
+        let parsing_result = Parser::new(src_bytes, false)
             .parse_all()
             .map_err(|e| e.to_string());
 

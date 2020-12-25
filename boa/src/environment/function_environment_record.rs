@@ -15,10 +15,10 @@ use crate::{
         environment_record_trait::EnvironmentRecordTrait,
         lexical_environment::{Environment, EnvironmentType},
     },
+    gc::{empty_trace, Finalize, Trace},
     object::GcObject,
     Value,
 };
-use gc::{unsafe_empty_trace, Finalize, Trace};
 use rustc_hash::FxHashMap;
 
 /// Different binding status for `this`.
@@ -34,7 +34,7 @@ pub enum BindingStatus {
 }
 
 unsafe impl Trace for BindingStatus {
-    unsafe_empty_trace!();
+    empty_trace!();
 }
 
 /// <https://tc39.es/ecma262/#table-16>
@@ -48,11 +48,11 @@ pub struct FunctionEnvironmentRecord {
     /// The function object whose invocation caused this Environment Record to be created.
     pub function: GcObject,
     /// If the associated function has super property accesses and is not an ArrowFunction,
-    /// [[HomeObject]] is the object that the function is bound to as a method.
-    /// The default value for [[HomeObject]] is undefined.
+    /// `[[HomeObject]]` is the object that the function is bound to as a method.
+    /// The default value for `[[HomeObject]]` is undefined.
     pub home_object: Value,
-    /// If this Environment Record was created by the [[Construct]] internal method,
-    /// [[NewTarget]] is the value of the [[Construct]] newTarget parameter.
+    /// If this Environment Record was created by the `[[Construct]]` internal method,
+    /// `[[NewTarget]]` is the value of the `[[Construct]]` newTarget parameter.
     /// Otherwise, its value is undefined.
     pub new_target: Value,
     /// Reference to the outer environment to help with the scope chain

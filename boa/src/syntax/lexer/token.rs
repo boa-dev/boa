@@ -14,7 +14,7 @@ use crate::{
 
 use std::fmt::{self, Debug, Display, Formatter};
 
-#[cfg(feature = "serde")]
+#[cfg(feature = "deser")]
 use serde::{Deserialize, Serialize};
 
 /// This represents the smallest individual words, phrases, or characters that JavaScript can understand.
@@ -23,7 +23,7 @@ use serde::{Deserialize, Serialize};
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-tokens
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
 #[derive(Debug, Clone, PartialEq)]
 pub struct Token {
     /// The token kind, which contains the actual data of the token.
@@ -59,7 +59,7 @@ impl Display for Token {
 }
 
 /// Represents the type differenct types of numeric literals.
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
 #[derive(Clone, PartialEq, Debug)]
 pub enum Numeric {
     /// A floating point number
@@ -94,7 +94,7 @@ impl From<BigInt> for Numeric {
 }
 
 /// Represents the type of Token and the data it has inside.
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
 #[derive(Clone, PartialEq, Debug)]
 pub enum TokenKind {
     /// A boolean literal, which is either `true` or `false`.

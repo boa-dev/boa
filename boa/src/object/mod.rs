@@ -22,6 +22,9 @@ use std::{
     ops::{Deref, DerefMut},
 };
 
+#[cfg(test)]
+mod tests;
+
 mod gcobject;
 mod internal_methods;
 mod iter;
@@ -242,7 +245,7 @@ impl Object {
         }
     }
 
-    /// It determines if Object is a callable function with a [[Call]] internal method.
+    /// It determines if Object is a callable function with a `[[Call]]` internal method.
     ///
     /// More information:
     /// - [EcmaScript reference][spec]
@@ -253,7 +256,7 @@ impl Object {
         matches!(self.data, ObjectData::Function(ref f) if f.is_callable())
     }
 
-    /// It determines if Object is a function object with a [[Construct]] internal method.
+    /// It determines if Object is a function object with a `[[Construct]]` internal method.
     ///
     /// More information:
     /// - [EcmaScript reference][spec]

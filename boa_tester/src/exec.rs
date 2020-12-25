@@ -126,16 +126,20 @@ impl Test {
                 Outcome::Positive => {
                     // TODO: implement async and add `harness/doneprintHandle.js` to the includes.
 
-                    let mut engine = self.set_up_env(&harness, strict);
-                    let res = engine.eval(&self.content);
+                    match self.set_up_env(&harness, strict) {
+                        Ok(mut context) => {
+                            let res = context.eval(&self.content.as_ref());
 
-                    let passed = res.is_ok();
-                    let text = match res {
-                        Ok(val) => format!("{}", val.display()),
-                        Err(e) => format!("Uncaught {}", e.display()),
-                    };
+                            let passed = res.is_ok();
+                            let text = match res {
+                                Ok(val) => format!("{}", val.display()),
+                                Err(e) => format!("Uncaught {}", e.display()),
+                            };
 
-                    (passed, text)
+                            (passed, text)
+                        }
+                        Err(e) => (false, e),
+                    }
                 }
                 Outcome::Negative {
                     phase: Phase::Parse,
@@ -152,7 +156,7 @@ impl Test {
                         self.name
                     );
 
-                    match parse(&self.content, strict) {
+                    match parse(&self.content.as_ref(), strict) {
                         Ok(n) => (false, format!("{:?}", n)),
                         Err(e) => (true, format!("Uncaught {}", e)),
                     }
@@ -165,18 +169,20 @@ impl Test {
                     phase: Phase::Runtime,
                     ref error_type,
                 } => {
-                    if let Err(e) = parse(&self.content, strict) {
+                    if let Err(e) = parse(&self.content.as_ref(), strict) {
                         (false, format!("Uncaught {}", e))
                     } else {
-                        let mut engine = self.set_up_env(&harness, strict);
+                        match self.set_up_env(&harness, strict) {
+                            Ok(mut context) => match context.eval(&self.content.as_ref()) {
+                                Ok(res) => (false, format!("{}", res.display())),
+                                Err(e) => {
+                                    let passed =
+                                        e.display().to_string().contains(error_type.as_ref());
 
-                        match engine.eval(&self.content) {
-                            Ok(res) => (false, format!("{}", res.display())),
-                            Err(e) => {
-                                let passed = e.display().to_string().contains(error_type.as_ref());
-
-                                (passed, format!("Uncaught {}", e.display()))
-                            }
+                                    (passed, format!("Uncaught {}", e.display()))
+                                }
+                            },
+                            Err(e) => (false, e),
                         }
                     }
                 }
@@ -195,20 +201,43 @@ impl Test {
                     (TestOutcomeResult::Panic, String::new())
                 });
 
-            print!(
-                "{}",
-                if let (TestOutcomeResult::Passed, _) = result {
-                    ".".green()
-                } else {
-                    ".".red()
-                }
-            );
+            if verbose > 1 {
+                println!(
+                    "Result: {}",
+                    if matches!(result, (TestOutcomeResult::Passed, _)) {
+                        "Passed".green()
+                    } else if matches!(result, (TestOutcomeResult::Failed, _)) {
+                        "Failed".red()
+                    } else {
+                        "⚠ Panic ⚠".red()
+                    }
+                );
+            } else {
+                print!(
+                    "{}",
+                    if matches!(result, (TestOutcomeResult::Passed, _)) {
+                        ".".green()
+                    } else {
+                        ".".red()
+                    }
+                );
+            }
 
             result
         } else {
-            print!("{}", ".".yellow());
+            if verbose > 1 {
+                println!("Result: {}", "Ignored".yellow());
+            } else {
+                print!("{}", ".".yellow());
+            }
             (TestOutcomeResult::Ignored, String::new())
         };
+
+        if verbose > 1 {
+            println!("Result text:");
+            println!("{}", result_text);
+            println!();
+        }
 
         TestResult {
             name: self.name.clone(),
@@ -219,46 +248,58 @@ impl Test {
     }
 
     /// Sets the environment up to run the test.
-    fn set_up_env(&self, harness: &Harness, strict: bool) -> Context {
+    fn set_up_env(&self, harness: &Harness, strict: bool) -> Result<Context, String> {
         // Create new Realm
         // TODO: in parallel.
-        let mut engine = Context::new();
+        let mut context = Context::new();
 
         // Register the print() function.
-        engine
+        context
             .register_global_function("print", 1, test262_print)
-            .expect("could not register the global print() function");
+            .map_err(|e| {
+                format!(
+                    "could not register the global print() function:\n{}",
+                    e.display()
+                )
+            })?;
         // TODO: add the $262 object.
 
         if strict {
-            engine
+            context
                 .eval(r#""use strict";"#)
-                .expect("could not set strict mode");
+                .map_err(|e| format!("could not set strict mode:\n{}", e.display()))?;
         }
 
-        engine
-            .eval(&harness.assert)
-            .expect("could not run assert.js");
-        engine.eval(&harness.sta).expect("could not run sta.js");
+        context
+            .eval(&harness.assert.as_ref())
+            .map_err(|e| format!("could not run assert.js:\n{}", e.display()))?;
+        context
+            .eval(&harness.sta.as_ref())
+            .map_err(|e| format!("could not run sta.js:\n{}", e.display()))?;
 
-        self.includes.iter().for_each(|include| {
-            let res = engine.eval(
-                &harness
-                    .includes
-                    .get(include)
-                    .expect("could not find include file"),
-            );
-            if let Err(e) = res {
-                eprintln!("could not run the {} include file.", include);
-                panic!("Uncaught {}", e.display());
-            }
-        });
+        for include in self.includes.iter() {
+            context
+                .eval(
+                    &harness
+                        .includes
+                        .get(include)
+                        .ok_or_else(|| format!("could not find the {} include file.", include))?
+                        .as_ref(),
+                )
+                .map_err(|e| {
+                    format!(
+                        "could not run the {} include file:\nUncaught {}",
+                        include,
+                        e.display()
+                    )
+                })?;
+        }
 
-        engine
+        Ok(context)
     }
 }
 
 /// `print()` function required by the test262 suite.
-fn test262_print(_this: &Value, _args: &[Value], _context: &mut Context) -> boa::Result<Value> {
+fn test262_print(_this: &Value, _: &[Value], _context: &mut Context) -> boa::Result<Value> {
     todo!("print() function");
 }

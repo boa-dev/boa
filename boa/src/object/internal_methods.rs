@@ -69,8 +69,8 @@ impl GcObject {
         }
     }
 
-    /// [[Get]]
-    /// https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-get-p-receiver
+    /// `[[Get]]`
+    /// <https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-get-p-receiver>
     pub fn get(&self, key: &PropertyKey) -> Value {
         match self.get_own_property(key) {
             None => {
@@ -90,7 +90,7 @@ impl GcObject {
         }
     }
 
-    /// [[Set]]
+    /// `[[Set]]`
     /// <https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-set-p-v-receiver>
     pub fn set(&mut self, key: PropertyKey, val: Value) -> bool {
         let _timer = BoaProfiler::global().start_event("Object::set", "object");
@@ -239,7 +239,7 @@ impl GcObject {
     /// More information:
     ///  - [ECMAScript reference][spec]
     ///
-    /// [spec](https://tc39.es/ecma262/#table-essential-internal-methods)
+    /// [spec]: https://tc39.es/ecma262/#table-essential-internal-methods
     #[inline]
     pub fn own_property_keys(&self) -> Vec<PropertyKey> {
         self.borrow().keys().collect()
@@ -252,8 +252,8 @@ impl GcObject {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-object.defineproperties
     #[inline]
-    pub fn define_properties(&mut self, props: Value, ctx: &mut Context) -> Result<()> {
-        let props = props.to_object(ctx)?;
+    pub fn define_properties(&mut self, props: Value, context: &mut Context) -> Result<()> {
+        let props = props.to_object(context)?;
         let keys = props.own_property_keys();
         let mut descriptors: Vec<(PropertyKey, PropertyDescriptor)> = Vec::new();
 
@@ -261,7 +261,7 @@ impl GcObject {
             if let Some(prop_desc) = props.get_own_property(&next_key) {
                 if prop_desc.enumerable() {
                     let desc_obj = props.get(&next_key);
-                    let desc = desc_obj.to_property_descriptor(ctx)?;
+                    let desc = desc_obj.to_property_descriptor(context)?;
                     descriptors.push((next_key, desc));
                 }
             }
@@ -323,6 +323,7 @@ impl GcObject {
     ///  - [MDN documentation][mdn]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-getprototypeof
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/getPrototypeOf
     #[inline]
     pub fn get_prototype_of(&self) -> Value {
         self.borrow().prototype.clone()
@@ -362,7 +363,7 @@ impl GcObject {
         self.insert(key.into(), DataDescriptor::new(value, attribute))
     }
 
-    /// It determines if Object is a callable function with a [[Call]] internal method.
+    /// It determines if Object is a callable function with a `[[Call]]` internal method.
     ///
     /// More information:
     /// - [EcmaScript reference][spec]
@@ -374,7 +375,7 @@ impl GcObject {
         self.borrow().is_callable()
     }
 
-    /// It determines if Object is a function object with a [[Construct]] internal method.
+    /// It determines if Object is a function object with a `[[Construct]]` internal method.
     ///
     /// More information:
     /// - [EcmaScript reference][spec]

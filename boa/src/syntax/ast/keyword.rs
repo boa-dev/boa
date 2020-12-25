@@ -10,7 +10,7 @@
 use crate::syntax::ast::op::{BinOp, CompOp};
 use std::{convert::TryInto, error, fmt, str::FromStr};
 
-#[cfg(feature = "serde")]
+#[cfg(feature = "deser")]
 use serde::{Deserialize, Serialize};
 
 /// Keywords are tokens that have special meaning in JavaScript.
@@ -23,7 +23,7 @@ use serde::{Deserialize, Serialize};
 ///
 /// [spec]: https://www.ecma-international.org/ecma-262/#sec-keywords
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Lexical_grammar#Keywords
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
 #[derive(Clone, Copy, PartialEq, Debug)]
 pub enum Keyword {
     /// The `await` keyword.

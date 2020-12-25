@@ -45,17 +45,20 @@ pub use self::{
     try_node::{Catch, Finally, Try},
 };
 use super::Const;
-use crate::{exec::Executable, BoaProfiler, Context, Result, Value};
-use gc::{unsafe_empty_trace, Finalize, Trace};
+use crate::{
+    exec::Executable,
+    gc::{empty_trace, Finalize, Trace},
+    BoaProfiler, Context, Result, Value,
+};
 use std::{
     cmp::Ordering,
     fmt::{self, Display},
 };
 
-#[cfg(feature = "serde")]
+#[cfg(feature = "deser")]
 use serde::{Deserialize, Serialize};
 
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub enum Node {
     /// Array declaration node. [More information](./array/struct.ArrayDecl.html).
@@ -262,13 +265,13 @@ impl Node {
 }
 
 impl Executable for Node {
-    fn run(&self, interpreter: &mut Context) -> Result<Value> {
+    fn run(&self, context: &mut Context) -> Result<Value> {
         let _timer = BoaProfiler::global().start_event("Executable", "exec");
         match *self {
-            Node::AsyncFunctionDecl(ref decl) => decl.run(interpreter),
-            Node::AsyncFunctionExpr(ref function_expr) => function_expr.run(interpreter),
-            Node::AwaitExpr(ref expr) => expr.run(interpreter),
-            Node::Call(ref call) => call.run(interpreter),
+            Node::AsyncFunctionDecl(ref decl) => decl.run(context),
+            Node::AsyncFunctionExpr(ref function_expr) => function_expr.run(context),
+            Node::AwaitExpr(ref expr) => expr.run(context),
+            Node::Call(ref call) => call.run(context),
             Node::Const(Const::Null) => Ok(Value::null()),
             Node::Const(Const::Num(num)) => Ok(Value::rational(num)),
             Node::Const(Const::Int(num)) => Ok(Value::integer(num)),
@@ -279,45 +282,45 @@ impl Executable for Node {
             // Do Const values need to be garbage collected? We no longer need them once we've generated Values
             Node::Const(Const::String(ref value)) => Ok(Value::string(value.to_string())),
             Node::Const(Const::Bool(value)) => Ok(Value::boolean(value)),
-            Node::Block(ref block) => block.run(interpreter),
-            Node::Identifier(ref identifier) => identifier.run(interpreter),
-            Node::GetConstField(ref get_const_field_node) => get_const_field_node.run(interpreter),
-            Node::GetField(ref get_field) => get_field.run(interpreter),
-            Node::WhileLoop(ref while_loop) => while_loop.run(interpreter),
-            Node::DoWhileLoop(ref do_while) => do_while.run(interpreter),
-            Node::ForLoop(ref for_loop) => for_loop.run(interpreter),
-            Node::ForOfLoop(ref for_of_loop) => for_of_loop.run(interpreter),
-            Node::If(ref if_smt) => if_smt.run(interpreter),
-            Node::ConditionalOp(ref op) => op.run(interpreter),
-            Node::Switch(ref switch) => switch.run(interpreter),
-            Node::Object(ref obj) => obj.run(interpreter),
-            Node::ArrayDecl(ref arr) => arr.run(interpreter),
+            Node::Block(ref block) => block.run(context),
+            Node::Identifier(ref identifier) => identifier.run(context),
+            Node::GetConstField(ref get_const_field_node) => get_const_field_node.run(context),
+            Node::GetField(ref get_field) => get_field.run(context),
+            Node::WhileLoop(ref while_loop) => while_loop.run(context),
+            Node::DoWhileLoop(ref do_while) => do_while.run(context),
+            Node::ForLoop(ref for_loop) => for_loop.run(context),
+            Node::ForOfLoop(ref for_of_loop) => for_of_loop.run(context),
+            Node::If(ref if_smt) => if_smt.run(context),
+            Node::ConditionalOp(ref op) => op.run(context),
+            Node::Switch(ref switch) => switch.run(context),
+            Node::Object(ref obj) => obj.run(context),
+            Node::ArrayDecl(ref arr) => arr.run(context),
             // <https://tc39.es/ecma262/#sec-createdynamicfunction>
-            Node::FunctionDecl(ref decl) => decl.run(interpreter),
+            Node::FunctionDecl(ref decl) => decl.run(context),
             // <https://tc39.es/ecma262/#sec-createdynamicfunction>
-            Node::FunctionExpr(ref function_expr) => function_expr.run(interpreter),
-            Node::ArrowFunctionDecl(ref decl) => decl.run(interpreter),
-            Node::BinOp(ref op) => op.run(interpreter),
-            Node::UnaryOp(ref op) => op.run(interpreter),
-            Node::New(ref call) => call.run(interpreter),
-            Node::Return(ref ret) => ret.run(interpreter),
-            Node::Throw(ref throw) => throw.run(interpreter),
-            Node::Assign(ref op) => op.run(interpreter),
-            Node::VarDeclList(ref decl) => decl.run(interpreter),
-            Node::LetDeclList(ref decl) => decl.run(interpreter),
-            Node::ConstDeclList(ref decl) => decl.run(interpreter),
-            Node::Spread(ref spread) => spread.run(interpreter),
+            Node::FunctionExpr(ref function_expr) => function_expr.run(context),
+            Node::ArrowFunctionDecl(ref decl) => decl.run(context),
+            Node::BinOp(ref op) => op.run(context),
+            Node::UnaryOp(ref op) => op.run(context),
+            Node::New(ref call) => call.run(context),
+            Node::Return(ref ret) => ret.run(context),
+            Node::Throw(ref throw) => throw.run(context),
+            Node::Assign(ref op) => op.run(context),
+            Node::VarDeclList(ref decl) => decl.run(context),
+            Node::LetDeclList(ref decl) => decl.run(context),
+            Node::ConstDeclList(ref decl) => decl.run(context),
+            Node::Spread(ref spread) => spread.run(context),
             Node::This => {
                 // Will either return `this` binding or undefined
-                interpreter
+                context
                     .realm()
                     .environment
                     .get_this_binding()
-                    .map_err(|e| e.to_error(interpreter))
+                    .map_err(|e| e.to_error(context))
             }
-            Node::Try(ref try_node) => try_node.run(interpreter),
-            Node::Break(ref break_node) => break_node.run(interpreter),
-            Node::Continue(ref continue_node) => continue_node.run(interpreter),
+            Node::Try(ref try_node) => try_node.run(context),
+            Node::Break(ref break_node) => break_node.run(context),
+            Node::Continue(ref continue_node) => continue_node.run(context),
         }
     }
 }
@@ -353,7 +356,7 @@ where
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-FormalParameter
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Errors/Missing_formal_parameter
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, PartialEq, Trace, Finalize)]
 pub struct FormalParameter {
     name: Box<str>,
@@ -416,7 +419,7 @@ impl Display for FormalParameter {
 /// [spec]: https://tc39.es/ecma262/#prod-PropertyDefinition
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Glossary/property/JavaScript
 // TODO: Support all features: https://tc39.es/ecma262/#prod-PropertyDefinition
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, PartialEq, Trace, Finalize)]
 pub enum PropertyDefinition {
     /// Puts a variable into an object.
@@ -509,7 +512,7 @@ impl PropertyDefinition {
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-MethodDefinition
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/Method_definitions
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, PartialEq, Copy, Finalize)]
 pub enum MethodDefinitionKind {
     /// The `get` syntax binds an object property to a function that will be called when that property is looked up.
@@ -556,5 +559,5 @@ pub enum MethodDefinitionKind {
 }
 
 unsafe impl Trace for MethodDefinitionKind {
-    unsafe_empty_trace!();
+    empty_trace!();
 }

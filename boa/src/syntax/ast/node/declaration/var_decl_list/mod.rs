@@ -1,13 +1,13 @@
 use crate::{
     environment::lexical_environment::VariableScope,
     exec::Executable,
+    gc::{Finalize, Trace},
     syntax::ast::node::{join_nodes, Identifier, Node},
     Context, Result, Value,
 };
-use gc::{Finalize, Trace};
 use std::fmt;
 
-#[cfg(feature = "serde")]
+#[cfg(feature = "deser")]
 use serde::{Deserialize, Serialize};
 
 /// The `var` statement declares a variable, optionally initializing it to a value.
@@ -28,36 +28,36 @@ use serde::{Deserialize, Serialize};
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-VariableStatement
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/var
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub struct VarDeclList {
-    #[cfg_attr(feature = "serde", serde(flatten))]
+    #[cfg_attr(feature = "deser", serde(flatten))]
     vars: Box<[VarDecl]>,
 }
 
 impl Executable for VarDeclList {
-    fn run(&self, interpreter: &mut Context) -> Result<Value> {
+    fn run(&self, context: &mut Context) -> Result<Value> {
         for var in self.as_ref() {
             let val = match var.init() {
-                Some(v) => v.run(interpreter)?,
+                Some(v) => v.run(context)?,
                 None => Value::undefined(),
             };
-            let environment = &mut interpreter.realm_mut().environment;
+            let environment = &mut context.realm_mut().environment;
 
             if environment.has_binding(var.name()) {
                 if var.init().is_some() {
                     environment
                         .set_mutable_binding(var.name(), val, true)
-                        .map_err(|e| e.to_error(interpreter))?;
+                        .map_err(|e| e.to_error(context))?;
                 }
             } else {
                 environment
                     .create_mutable_binding(var.name().to_owned(), false, VariableScope::Function)
-                    .map_err(|e| e.to_error(interpreter))?;
-                let environment = &mut interpreter.realm_mut().environment;
+                    .map_err(|e| e.to_error(context))?;
+                let environment = &mut context.realm_mut().environment;
                 environment
                     .initialize_binding(var.name(), val)
-                    .map_err(|e| e.to_error(interpreter))?;
+                    .map_err(|e| e.to_error(context))?;
             }
         }
         Ok(Value::undefined())
@@ -105,7 +105,7 @@ impl From<VarDeclList> for Node {
 }
 
 /// Individual variable declaration.
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub struct VarDecl {
     name: Identifier,

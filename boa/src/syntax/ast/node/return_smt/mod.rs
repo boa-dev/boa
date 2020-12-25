@@ -1,12 +1,12 @@
 use crate::{
     exec::{Executable, InterpreterState},
+    gc::{Finalize, Trace},
     syntax::ast::node::Node,
     Context, Result, Value,
 };
-use gc::{Finalize, Trace};
 use std::fmt;
 
-#[cfg(feature = "serde")]
+#[cfg(feature = "deser")]
 use serde::{Deserialize, Serialize};
 
 /// The `return` statement ends function execution and specifies a value to be returned to the
@@ -27,7 +27,7 @@ use serde::{Deserialize, Serialize};
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-ReturnStatement
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/return
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub struct Return {
     expr: Option<Box<Node>>,
@@ -58,13 +58,13 @@ impl Return {
 }
 
 impl Executable for Return {
-    fn run(&self, interpreter: &mut Context) -> Result<Value> {
+    fn run(&self, context: &mut Context) -> Result<Value> {
         let result = match self.expr() {
-            Some(ref v) => v.run(interpreter),
+            Some(ref v) => v.run(context),
             None => Ok(Value::undefined()),
         };
         // Set flag for return
-        interpreter
+        context
             .executor()
             .set_current_state(InterpreterState::Return);
         result

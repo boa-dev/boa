@@ -9,6 +9,7 @@ use crate::{
         lexer::{token::Numeric, Token},
     },
 };
+use std::str;
 use std::{io::Read, str::FromStr};
 
 /// Number literal lexing.
@@ -23,12 +24,12 @@ use std::{io::Read, str::FromStr};
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type
 #[derive(Debug, Clone, Copy)]
 pub(super) struct NumberLiteral {
-    init: char,
+    init: u8,
 }
 
 impl NumberLiteral {
     /// Creates a new string literal lexer.
-    pub(super) fn new(init: char) -> Self {
+    pub(super) fn new(init: u8) -> Self {
         Self { init }
     }
 }
@@ -63,8 +64,9 @@ impl NumericKind {
     }
 }
 
+#[inline]
 fn take_signed_integer<R>(
-    buf: &mut String,
+    buf: &mut Vec<u8>,
     cursor: &mut Cursor<R>,
     kind: &NumericKind,
 ) -> Result<(), Error>
@@ -73,30 +75,31 @@ where
 {
     // The next part must be SignedInteger.
     // This is optionally a '+' or '-' followed by 1 or more DecimalDigits.
-    match cursor.next_char()? {
-        Some('+') => {
-            buf.push('+');
-            if !cursor.next_is_pred(&|c: char| c.is_digit(kind.base()))? {
+    match cursor.next_byte()? {
+        Some(b'+') => {
+            buf.push(b'+');
+            if !cursor.next_is_ascii_pred(&|ch| ch.is_digit(kind.base()))? {
                 // A digit must follow the + or - symbol.
                 return Err(Error::syntax("No digit found after + symbol", cursor.pos()));
             }
         }
-        Some('-') => {
-            buf.push('-');
-            if !cursor.next_is_pred(&|c: char| c.is_digit(kind.base()))? {
+        Some(b'-') => {
+            buf.push(b'-');
+            if !cursor.next_is_ascii_pred(&|ch| ch.is_digit(kind.base()))? {
                 // A digit must follow the + or - symbol.
                 return Err(Error::syntax("No digit found after - symbol", cursor.pos()));
             }
         }
-        Some(c) if c.is_digit(kind.base()) => buf.push(c),
-        Some(c) => {
-            return Err(Error::syntax(
-                format!(
-                    "When lexing exponential value found unexpected char: '{}'",
-                    c
-                ),
-                cursor.pos(),
-            ));
+        Some(byte) => {
+            let ch = char::from(byte);
+            if ch.is_ascii() && ch.is_digit(kind.base()) {
+                buf.push(byte);
+            } else {
+                return Err(Error::syntax(
+                    "When lexing exponential value found unexpected char",
+                    cursor.pos(),
+                ));
+            }
         }
         None => {
             return Err(Error::syntax(
@@ -107,7 +110,7 @@ where
     }
 
     // Consume the decimal digits.
-    cursor.take_while_pred(buf, &|c: char| c.is_digit(kind.base()))?;
+    cursor.take_while_ascii_pred(buf, &|ch| ch.is_digit(kind.base()))?;
 
     Ok(())
 }
@@ -118,12 +121,12 @@ where
 ///  - [ECMAScript Specification][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-literals-numeric-literals
+#[inline]
 fn check_after_numeric_literal<R>(cursor: &mut Cursor<R>) -> Result<(), Error>
 where
     R: Read,
 {
-    let pred = |ch: char| ch.is_ascii_alphanumeric() || ch == '$' || ch == '_';
-    if cursor.next_is_pred(&pred)? {
+    if cursor.next_is_ascii_pred(&|ch| ch.is_ascii_alphanumeric() || ch == '$' || ch == '_')? {
         Err(Error::syntax(
             "a numeric literal must not be followed by an alphanumeric, $ or _ characters",
             cursor.pos(),
@@ -140,17 +143,17 @@ impl<R> Tokenizer<R> for NumberLiteral {
     {
         let _timer = BoaProfiler::global().start_event("NumberLiteral", "Lexing");
 
-        let mut buf = self.init.to_string();
+        let mut buf = vec![self.init];
 
         // Default assume the number is a base 10 integer.
         let mut kind = NumericKind::Integer(10);
 
         let c = cursor.peek();
 
-        if self.init == '0' {
+        if self.init == b'0' {
             if let Some(ch) = c? {
                 match ch {
-                    'x' | 'X' => {
+                    b'x' | b'X' => {
                         // Remove the initial '0' from buffer.
                         cursor.next_char()?.expect("x or X character vanished");
                         buf.pop();
@@ -159,16 +162,14 @@ impl<R> Tokenizer<R> for NumberLiteral {
                         kind = NumericKind::Integer(16);
 
                         // Checks if the next char after '0x' is a digit of that base. if not return an error.
-                        if let Some(digit) = cursor.peek()? {
-                            if !digit.is_digit(16) {
-                                return Err(Error::syntax(
-                                    "expected hexadecimal digit after number base prefix",
-                                    cursor.pos(),
-                                ));
-                            }
+                        if !cursor.next_is_ascii_pred(&|ch| ch.is_digit(16))? {
+                            return Err(Error::syntax(
+                                "expected hexadecimal digit after number base prefix",
+                                cursor.pos(),
+                            ));
                         }
                     }
-                    'o' | 'O' => {
+                    b'o' | b'O' => {
                         // Remove the initial '0' from buffer.
                         cursor.next_char()?.expect("o or O character vanished");
                         buf.pop();
@@ -177,16 +178,14 @@ impl<R> Tokenizer<R> for NumberLiteral {
                         kind = NumericKind::Integer(8);
 
                         // Checks if the next char after '0o' is a digit of that base. if not return an error.
-                        if let Some(digit) = cursor.peek()? {
-                            if !digit.is_digit(8) {
-                                return Err(Error::syntax(
-                                    "expected hexadecimal digit after number base prefix",
-                                    cursor.pos(),
-                                ));
-                            }
+                        if !cursor.next_is_ascii_pred(&|ch| ch.is_digit(8))? {
+                            return Err(Error::syntax(
+                                "expected hexadecimal digit after number base prefix",
+                                cursor.pos(),
+                            ));
                         }
                     }
-                    'b' | 'B' => {
+                    b'b' | b'B' => {
                         // Remove the initial '0' from buffer.
                         cursor.next_char()?.expect("b or B character vanished");
                         buf.pop();
@@ -195,16 +194,14 @@ impl<R> Tokenizer<R> for NumberLiteral {
                         kind = NumericKind::Integer(2);
 
                         // Checks if the next char after '0b' is a digit of that base. if not return an error.
-                        if let Some(digit) = cursor.peek()? {
-                            if !digit.is_digit(2) {
-                                return Err(Error::syntax(
-                                    "expected hexadecimal digit after number base prefix",
-                                    cursor.pos(),
-                                ));
-                            }
+                        if !cursor.next_is_ascii_pred(&|ch| ch.is_digit(2))? {
+                            return Err(Error::syntax(
+                                "expected hexadecimal digit after number base prefix",
+                                cursor.pos(),
+                            ));
                         }
                     }
-                    'n' => {
+                    b'n' => {
                         cursor.next_char()?.expect("n character vanished");
 
                         // DecimalBigIntegerLiteral '0n'
@@ -213,7 +210,8 @@ impl<R> Tokenizer<R> for NumberLiteral {
                             Span::new(start_pos, cursor.pos()),
                         ));
                     }
-                    ch => {
+                    byte => {
+                        let ch = char::from(byte);
                         if ch.is_digit(8) {
                             // LegacyOctalIntegerLiteral
                             if cursor.strict_mode() {
@@ -226,7 +224,7 @@ impl<R> Tokenizer<R> for NumberLiteral {
                                 // Remove the initial '0' from buffer.
                                 buf.pop();
 
-                                buf.push(cursor.next_char()?.expect("'0' character vanished"));
+                                buf.push(cursor.next_byte()?.expect("'0' character vanished"));
 
                                 kind = NumericKind::Integer(8);
                             }
@@ -240,7 +238,7 @@ impl<R> Tokenizer<R> for NumberLiteral {
                                     start_pos,
                                 ));
                             } else {
-                                buf.push(cursor.next_char()?.expect("Number digit vanished"));
+                                buf.push(cursor.next_byte()?.expect("Number digit vanished"));
                             }
                         } // Else indicates that the symbol is a non-number.
                     }
@@ -256,42 +254,42 @@ impl<R> Tokenizer<R> for NumberLiteral {
         }
 
         // Consume digits until a non-digit character is encountered or all the characters are consumed.
-        cursor.take_while_pred(&mut buf, &|c: char| c.is_digit(kind.base()))?;
+        cursor.take_while_ascii_pred(&mut buf, &|c: char| c.is_digit(kind.base()))?;
 
         // The non-digit character could be:
         // 'n' To indicate a BigIntLiteralSuffix.
         // '.' To indicate a decimal seperator.
         // 'e' | 'E' To indicate an ExponentPart.
         match cursor.peek()? {
-            Some('n') => {
+            Some(b'n') => {
                 // DecimalBigIntegerLiteral
                 // Lexing finished.
 
                 // Consume the n
-                cursor.next_char()?.expect("n character vanished");
+                cursor.next_byte()?.expect("n character vanished");
 
                 kind = kind.to_bigint();
             }
-            Some('.') => {
+            Some(b'.') => {
                 if kind.base() == 10 {
                     // Only base 10 numbers can have a decimal seperator.
                     // Number literal lexing finished if a . is found for a number in a different base.
 
-                    cursor.next_char()?.expect(". token vanished");
-                    buf.push('.'); // Consume the .
+                    cursor.next_byte()?.expect(". token vanished");
+                    buf.push(b'.'); // Consume the .
                     kind = NumericKind::Rational;
 
                     // Consume digits until a non-digit character is encountered or all the characters are consumed.
-                    cursor.take_while_pred(&mut buf, &|c: char| c.is_digit(kind.base()))?;
+                    cursor.take_while_ascii_pred(&mut buf, &|c: char| c.is_digit(kind.base()))?;
 
                     // The non-digit character at this point must be an 'e' or 'E' to indicate an Exponent Part.
                     // Another '.' or 'n' is not allowed.
                     match cursor.peek()? {
-                        Some('e') | Some('E') => {
+                        Some(b'e') | Some(b'E') => {
                             // Consume the ExponentIndicator.
-                            cursor.next_char()?.expect("e or E token vanished");
+                            cursor.next_byte()?.expect("e or E token vanished");
 
-                            buf.push('E');
+                            buf.push(b'E');
 
                             take_signed_integer(&mut buf, cursor, &kind)?;
                         }
@@ -301,10 +299,10 @@ impl<R> Tokenizer<R> for NumberLiteral {
                     }
                 }
             }
-            Some('e') | Some('E') => {
+            Some(b'e') | Some(b'E') => {
                 kind = NumericKind::Rational;
-                cursor.next_char()?.expect("e or E character vanished"); // Consume the ExponentIndicator.
-                buf.push('E');
+                cursor.next_byte()?.expect("e or E character vanished"); // Consume the ExponentIndicator.
+                buf.push(b'E');
                 take_signed_integer(&mut buf, cursor, &kind)?;
             }
             Some(_) | None => {
@@ -314,14 +312,15 @@ impl<R> Tokenizer<R> for NumberLiteral {
 
         check_after_numeric_literal(cursor)?;
 
+        let num_str = unsafe { str::from_utf8_unchecked(buf.as_slice()) };
         let num = match kind {
             NumericKind::BigInt(base) => {
                 Numeric::BigInt(
-                    BigInt::from_string_radix(&buf, base).expect("Could not convert to BigInt")
+                    BigInt::from_string_radix(num_str, base).expect("Could not convert to BigInt")
                     )
             }
             NumericKind::Rational /* base: 10 */ => {
-                let val = f64::from_str(&buf).expect("Failed to parse float after checks");
+                let val = f64::from_str(num_str).expect("Failed to parse float after checks");
                 let int_val = val as i32;
 
                 // The truncated float should be identically to the non-truncated float for the conversion to be loss-less,
@@ -335,12 +334,12 @@ impl<R> Tokenizer<R> for NumberLiteral {
                 }
             },
             NumericKind::Integer(base) => {
-                if let Ok(num) = i32::from_str_radix(&buf, base) {
+                if let Ok(num) = i32::from_str_radix(num_str, base) {
                     Numeric::Integer(num)
                 } else {
                     let b = f64::from(base);
                     let mut result = 0.0_f64;
-                    for c in buf.chars() {
+                    for c in num_str.chars() {
                         let digit = f64::from(c.to_digit(base).expect("could not parse digit after already checking validity"));
                         result = result * b + digit;
                     }

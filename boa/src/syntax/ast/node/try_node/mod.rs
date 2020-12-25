@@ -1,13 +1,13 @@
 use crate::{
     environment::lexical_environment::{new_declarative_environment, VariableScope},
     exec::Executable,
+    gc::{Finalize, Trace},
     syntax::ast::node::{Block, Identifier, Node},
     BoaProfiler, Context, Result, Value,
 };
-use gc::{Finalize, Trace};
 use std::fmt;
 
-#[cfg(feature = "serde")]
+#[cfg(feature = "deser")]
 use serde::{Deserialize, Serialize};
 
 #[cfg(test)]
@@ -26,7 +26,7 @@ mod tests;
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-TryStatement
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/try...catch
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub struct Try {
     block: Block,
@@ -92,13 +92,13 @@ impl Try {
 }
 
 impl Executable for Try {
-    fn run(&self, interpreter: &mut Context) -> Result<Value> {
+    fn run(&self, context: &mut Context) -> Result<Value> {
         let _timer = BoaProfiler::global().start_event("Try", "exec");
-        let res = self.block().run(interpreter).map_or_else(
+        let res = self.block().run(context).map_or_else(
             |err| {
                 if let Some(catch) = self.catch() {
                     {
-                        let env = &mut interpreter.realm_mut().environment;
+                        let env = &mut context.realm_mut().environment;
                         env.push(new_declarative_environment(Some(
                             env.get_current_environment_ref().clone(),
                         )));
@@ -109,17 +109,17 @@ impl Executable for Try {
                                 false,
                                 VariableScope::Block,
                             )
-                            .map_err(|e| e.to_error(interpreter))?;
-                            let env = &mut interpreter.realm_mut().environment;
+                            .map_err(|e| e.to_error(context))?;
+                            let env = &mut context.realm_mut().environment;
                             env.initialize_binding(param, err)
-                                .map_err(|e| e.to_error(interpreter))?;
+                                .map_err(|e| e.to_error(context))?;
                         }
                     }
 
-                    let res = catch.block().run(interpreter);
+                    let res = catch.block().run(context);
 
                     // pop the block env
-                    let _ = interpreter.realm_mut().environment.pop();
+                    let _ = context.realm_mut().environment.pop();
 
                     res
                 } else {
@@ -130,7 +130,7 @@ impl Executable for Try {
         );
 
         if let Some(finally) = self.finally() {
-            finally.run(interpreter)?;
+            finally.run(context)?;
         }
 
         res
@@ -150,7 +150,7 @@ impl From<Try> for Node {
 }
 
 /// Catch block.
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub struct Catch {
     parameter: Option<Identifier>,
@@ -199,7 +199,7 @@ impl fmt::Display for Catch {
 }
 
 /// Finally block.
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub struct Finally {
     block: Block,

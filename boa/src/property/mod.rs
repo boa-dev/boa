@@ -75,7 +75,7 @@ impl DataDescriptor {
         self.attributes.set_configurable(configurable)
     }
 
-    /// Check whether the descriptor is configurable.
+    /// Check whether the descriptor is enumerable.
     #[inline]
     pub fn enumerable(&self) -> bool {
         self.attributes.enumerable()
@@ -228,7 +228,7 @@ pub enum PropertyDescriptor {
 }
 
 impl PropertyDescriptor {
-    /// An accessor Property Descriptor is one that includes any fields named either [[Get]] or [[Set]].
+    /// An accessor Property Descriptor is one that includes any fields named either `[[Get]]` or `[[Set]]`.
     ///
     /// More information:
     /// - [ECMAScript reference][spec]
@@ -248,7 +248,7 @@ impl PropertyDescriptor {
         }
     }
 
-    /// A data Property Descriptor is one that includes any fields named either [[Value]] or [[Writable]].
+    /// A data Property Descriptor is one that includes any fields named either `[[Value]]` or `[[Writable]]`.
     ///
     /// More information:
     /// - [ECMAScript reference][spec]

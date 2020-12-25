@@ -17,9 +17,11 @@ use crate::{
     builtins::BuiltIn,
     object::ObjectInitializer,
     property::{Attribute, DataDescriptor, PropertyKey},
+    value::IntegerOrInfinity,
     BoaProfiler, Context, Result, Value,
 };
-use serde_json::{self, Value as JSONValue};
+use serde::Serialize;
+use serde_json::{self, ser::PrettyFormatter, Serializer, Value as JSONValue};
 
 #[cfg(test)]
 mod tests;
@@ -60,26 +62,26 @@ impl Json {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-json.parse
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/parse
-    pub(crate) fn parse(_: &Value, args: &[Value], ctx: &mut Context) -> Result<Value> {
+    pub(crate) fn parse(_: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
         let arg = args
             .get(0)
             .cloned()
             .unwrap_or_else(Value::undefined)
-            .to_string(ctx)?;
+            .to_string(context)?;
 
         match serde_json::from_str::<JSONValue>(&arg) {
             Ok(json) => {
-                let j = Value::from_json(json, ctx);
+                let j = Value::from_json(json, context);
                 match args.get(1) {
                     Some(reviver) if reviver.is_function() => {
                         let mut holder = Value::new_object(None);
                         holder.set_field("", j);
-                        Self::walk(reviver, ctx, &mut holder, &PropertyKey::from(""))
+                        Self::walk(reviver, context, &mut holder, &PropertyKey::from(""))
                     }
                     _ => Ok(j),
                 }
             }
-            Err(err) => ctx.throw_syntax_error(err.to_string()),
+            Err(err) => context.throw_syntax_error(err.to_string()),
         }
     }
 
@@ -91,7 +93,7 @@ impl Json {
     /// [polyfill]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/parse
     fn walk(
         reviver: &Value,
-        ctx: &mut Context,
+        context: &mut Context,
         holder: &mut Value,
         key: &PropertyKey,
     ) -> Result<Value> {
@@ -101,7 +103,7 @@ impl Json {
             let keys: Vec<_> = object.borrow().keys().collect();
 
             for key in keys {
-                let v = Self::walk(reviver, ctx, &mut value.clone(), &key);
+                let v = Self::walk(reviver, context, &mut value.clone(), &key);
                 match v {
                     Ok(v) if !v.is_undefined() => {
                         value.set_field(key, v);
@@ -113,7 +115,7 @@ impl Json {
                 }
             }
         }
-        ctx.call(reviver, holder, &[key.into(), value])
+        context.call(reviver, holder, &[key.into(), value])
     }
 
     /// `JSON.stringify( value[, replacer[, space]] )`
@@ -132,7 +134,7 @@ impl Json {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-json.stringify
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify
-    pub(crate) fn stringify(_: &Value, args: &[Value], ctx: &mut Context) -> Result<Value> {
+    pub(crate) fn stringify(_: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
         let object = match args.get(0) {
             Some(obj) if obj.is_symbol() || obj.is_function() || obj.is_undefined() => {
                 return Ok(Value::undefined())
@@ -140,9 +142,46 @@ impl Json {
             None => return Ok(Value::undefined()),
             Some(obj) => obj,
         };
+        const SPACE_INDENT: &str = "          ";
+        let gap = if let Some(space) = args.get(2) {
+            let space = if let Some(space_obj) = space.as_object() {
+                if let Some(space) = space_obj.borrow().as_number() {
+                    Value::from(space)
+                } else if let Some(space) = space_obj.borrow().as_string() {
+                    Value::from(space)
+                } else {
+                    space.clone()
+                }
+            } else {
+                space.clone()
+            };
+            if space.is_number() {
+                let space_mv = match space.to_integer_or_infinity(context)? {
+                    IntegerOrInfinity::NegativeInfinity => 0,
+                    IntegerOrInfinity::PositiveInfinity => 10,
+                    IntegerOrInfinity::Integer(i) if i < 1 => 0,
+                    IntegerOrInfinity::Integer(i) => std::cmp::min(i, 10) as usize,
+                };
+                Value::from(&SPACE_INDENT[..space_mv])
+            } else if let Some(string) = space.as_string() {
+                Value::from(&string[..std::cmp::min(string.len(), 10)])
+            } else {
+                Value::from("")
+            }
+        } else {
+            Value::from("")
+        };
+
+        let gap = &gap.to_string(context)?;
+
         let replacer = match args.get(1) {
             Some(replacer) if replacer.is_object() => replacer,
-            _ => return Ok(Value::from(object.to_json(ctx)?.to_string())),
+            _ => {
+                return Ok(Value::from(json_to_pretty_string(
+                    &object.to_json(context)?,
+                    gap,
+                )))
+            }
         };
 
         let replacer_as_object = replacer
@@ -163,7 +202,7 @@ impl Json {
                         object_to_return.set_property(
                             key.to_owned(),
                             DataDescriptor::new(
-                                ctx.call(
+                                context.call(
                                     replacer,
                                     &this_arg,
                                     &[Value::from(key.clone()), val.clone()],
@@ -172,7 +211,10 @@ impl Json {
                             ),
                         );
                     }
-                    Ok(Value::from(object_to_return.to_json(ctx)?.to_string()))
+                    Ok(Value::from(json_to_pretty_string(
+                        &object_to_return.to_json(context)?,
+                        gap,
+                    )))
                 })
                 .ok_or_else(Value::undefined)?
         } else if replacer_as_object.is_array() {
@@ -187,17 +229,38 @@ impl Json {
             });
             for field in fields {
                 if let Some(value) = object
-                    .get_property(field.to_string(ctx)?)
+                    .get_property(field.to_string(context)?)
                     // FIXME: handle accessor descriptors
-                    .map(|prop| prop.as_data_descriptor().unwrap().value().to_json(ctx))
+                    .map(|prop| prop.as_data_descriptor().unwrap().value().to_json(context))
                     .transpose()?
                 {
-                    obj_to_return.insert(field.to_string(ctx)?.to_string(), value);
+                    obj_to_return.insert(field.to_string(context)?.to_string(), value);
                 }
             }
-            Ok(Value::from(JSONValue::Object(obj_to_return).to_string()))
+            Ok(Value::from(json_to_pretty_string(
+                &JSONValue::Object(obj_to_return),
+                gap,
+            )))
         } else {
-            Ok(Value::from(object.to_json(ctx)?.to_string()))
+            Ok(Value::from(json_to_pretty_string(
+                &object.to_json(context)?,
+                gap,
+            )))
         }
+    }
+}
+
+fn json_to_pretty_string(json: &JSONValue, gap: &str) -> String {
+    if gap.is_empty() {
+        return json.to_string();
+    }
+    let formatter = PrettyFormatter::with_indent(gap.as_bytes());
+    let mut writer = Vec::with_capacity(128);
+    let mut serializer = Serializer::with_formatter(&mut writer, formatter);
+    json.serialize(&mut serializer)
+        .expect("JSON serialization failed");
+    unsafe {
+        // The serde json serializer always produce correct UTF-8
+        String::from_utf8_unchecked(writer)
     }
 }

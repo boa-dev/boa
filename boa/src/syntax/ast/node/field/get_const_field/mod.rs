@@ -1,13 +1,13 @@
 use crate::{
     exec::Executable,
+    gc::{Finalize, Trace},
     syntax::ast::node::Node,
     value::{Type, Value},
     Context, Result,
 };
-use gc::{Finalize, Trace};
 use std::fmt;
 
-#[cfg(feature = "serde")]
+#[cfg(feature = "deser")]
 use serde::{Deserialize, Serialize};
 
 /// This property accessor provides access to an object's properties by using the
@@ -31,7 +31,7 @@ use serde::{Deserialize, Serialize};
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-property-accessors
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Property_accessors#Dot_notation
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub struct GetConstField {
     obj: Box<Node>,
@@ -63,10 +63,10 @@ impl GetConstField {
 }
 
 impl Executable for GetConstField {
-    fn run(&self, interpreter: &mut Context) -> Result<Value> {
-        let mut obj = self.obj().run(interpreter)?;
+    fn run(&self, context: &mut Context) -> Result<Value> {
+        let mut obj = self.obj().run(context)?;
         if obj.get_type() != Type::Object {
-            obj = Value::Object(obj.to_object(interpreter)?);
+            obj = Value::Object(obj.to_object(context)?);
         }
 
         Ok(obj.get_field(self.field()))
