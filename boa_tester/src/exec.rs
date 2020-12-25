@@ -128,7 +128,7 @@ impl Test {
 
                     match self.set_up_env(&harness, strict) {
                         Ok(mut context) => {
-                            let res = context.eval(&self.content);
+                            let res = context.eval(&self.content.as_ref());
 
                             let passed = res.is_ok();
                             let text = match res {
@@ -156,7 +156,7 @@ impl Test {
                         self.name
                     );
 
-                    match parse(&self.content, strict) {
+                    match parse(&self.content.as_ref(), strict) {
                         Ok(n) => (false, format!("{:?}", n)),
                         Err(e) => (true, format!("Uncaught {}", e)),
                     }
@@ -169,11 +169,11 @@ impl Test {
                     phase: Phase::Runtime,
                     ref error_type,
                 } => {
-                    if let Err(e) = parse(&self.content, strict) {
+                    if let Err(e) = parse(&self.content.as_ref(), strict) {
                         (false, format!("Uncaught {}", e))
                     } else {
                         match self.set_up_env(&harness, strict) {
-                            Ok(mut context) => match context.eval(&self.content) {
+                            Ok(mut context) => match context.eval(&self.content.as_ref()) {
                                 Ok(res) => (false, format!("{}", res.display())),
                                 Err(e) => {
                                     let passed =
@@ -271,10 +271,10 @@ impl Test {
         }
 
         context
-            .eval(&harness.assert)
+            .eval(&harness.assert.as_ref())
             .map_err(|e| format!("could not run assert.js:\n{}", e.display()))?;
         context
-            .eval(&harness.sta)
+            .eval(&harness.sta.as_ref())
             .map_err(|e| format!("could not run sta.js:\n{}", e.display()))?;
 
         for include in self.includes.iter() {
@@ -283,7 +283,8 @@ impl Test {
                     &harness
                         .includes
                         .get(include)
-                        .ok_or_else(|| format!("could not find the {} include file.", include))?,
+                        .ok_or_else(|| format!("could not find the {} include file.", include))?
+                        .as_ref(),
                 )
                 .map_err(|e| {
                     format!(

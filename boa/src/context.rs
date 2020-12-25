@@ -47,6 +47,14 @@ impl Default for StandardConstructor {
 }
 
 impl StandardConstructor {
+    /// Build a constructor with a defined prototype.
+    fn with_prototype(prototype: Object) -> Self {
+        Self {
+            constructor: GcObject::new(Object::default()),
+            prototype: GcObject::new(prototype),
+        }
+    }
+
     /// Return the constructor object.
     ///
     /// This is the same as `Object`, `Array`, etc.
@@ -65,7 +73,7 @@ impl StandardConstructor {
 }
 
 /// Cached core standard objects.
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct StandardObjects {
     object: StandardConstructor,
     function: StandardConstructor,
@@ -83,6 +91,29 @@ pub struct StandardObjects {
     syntax_error: StandardConstructor,
     eval_error: StandardConstructor,
     uri_error: StandardConstructor,
+}
+
+impl Default for StandardObjects {
+    fn default() -> Self {
+        Self {
+            object: StandardConstructor::default(),
+            function: StandardConstructor::default(),
+            array: StandardConstructor::default(),
+            bigint: StandardConstructor::default(),
+            number: StandardConstructor::with_prototype(Object::number(0.0)),
+            boolean: StandardConstructor::with_prototype(Object::boolean(false)),
+            string: StandardConstructor::with_prototype(Object::string("")),
+            regexp: StandardConstructor::default(),
+            symbol: StandardConstructor::default(),
+            error: StandardConstructor::default(),
+            type_error: StandardConstructor::default(),
+            referece_error: StandardConstructor::default(),
+            range_error: StandardConstructor::default(),
+            syntax_error: StandardConstructor::default(),
+            eval_error: StandardConstructor::default(),
+            uri_error: StandardConstructor::default(),
+        }
+    }
 }
 
 impl StandardObjects {
@@ -677,10 +708,11 @@ impl Context {
     /// ```
     #[allow(clippy::unit_arg, clippy::drop_copy)]
     #[inline]
-    pub fn eval(&mut self, src: &str) -> Result<Value> {
+    pub fn eval<T: AsRef<[u8]>>(&mut self, src: T) -> Result<Value> {
         let main_timer = BoaProfiler::global().start_event("Main", "Main");
+        let src_bytes: &[u8] = src.as_ref();
 
-        let parsing_result = Parser::new(src.as_bytes(), false)
+        let parsing_result = Parser::new(src_bytes, false)
             .parse_all()
             .map_err(|e| e.to_string());
 
