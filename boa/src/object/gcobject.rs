@@ -198,7 +198,21 @@ impl GcObject {
     // <https://tc39.es/ecma262/#sec-ecmascript-function-objects-construct-argumentslist-newtarget>
     #[track_caller]
     pub fn construct(&self, args: &[Value], context: &mut Context) -> Result<Value> {
-        let this: Value = Object::create(self.get(&PROTOTYPE.into(), context)?).into();
+        // If the prototype of the constructor is not an object, then use the default object
+        // prototype as prototype for the new object
+        // see <https://tc39.es/ecma262/#sec-ordinarycreatefromconstructor>
+        // see <https://tc39.es/ecma262/#sec-getprototypefromconstructor>
+        let proto = self.get(&PROTOTYPE.into(), context)?;
+        let proto = if proto.is_object() {
+            proto
+        } else {
+            context
+                .standard_objects()
+                .object_object()
+                .prototype()
+                .into()
+        };
+        let this: Value = Object::create(proto).into();
 
         let this_function_object = self.clone();
         let body = if let Some(function) = self.borrow().as_function() {

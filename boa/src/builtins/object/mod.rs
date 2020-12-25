@@ -51,6 +51,7 @@ impl BuiltIn for Object {
         .method(Self::has_own_property, "hasOwnProperty", 0)
         .method(Self::property_is_enumerable, "propertyIsEnumerable", 0)
         .method(Self::to_string, "toString", 0)
+        .method(Self::is_prototype_of, "isPrototypeOf", 0)
         .static_method(Self::create, "create", 2)
         .static_method(Self::set_prototype_of, "setPrototypeOf", 2)
         .static_method(Self::get_prototype_of, "getPrototypeOf", 1)
@@ -256,6 +257,34 @@ impl Object {
         let proto = args.get(1).expect("Cannot get object").clone();
         obj.as_object().unwrap().set_prototype_instance(proto);
         Ok(obj)
+    }
+
+    /// `Object.prototype.isPrototypeOf( proto )`
+    ///
+    /// Check whether or not an object exists within another object's prototype chain.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-object.prototype.isprototypeof
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/isPrototypeOf
+    pub fn is_prototype_of(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+        let undefined = Value::undefined();
+        let mut v = args.get(0).unwrap_or(&undefined).clone();
+        if !v.is_object() {
+            return Ok(Value::Boolean(false));
+        }
+        let o = Value::from(this.to_object(context)?);
+        loop {
+            v = Self::get_prototype_of(this, &[v], context)?;
+            if v.is_null() {
+                return Ok(Value::Boolean(false));
+            }
+            if same_value(&o, &v) {
+                return Ok(Value::Boolean(true));
+            }
+        }
     }
 
     /// Define a property in an object
