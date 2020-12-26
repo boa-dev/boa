@@ -320,7 +320,7 @@ impl Value {
                 a.as_inner()
                     .clone()
                     .shift_left(b.as_inner().clone())
-                    .map_err(|msg| context.construct_range_error(msg))?
+                    .map_err(|msg| context.construct_range_error(msg))?,
             ),
 
             // Slow path:
