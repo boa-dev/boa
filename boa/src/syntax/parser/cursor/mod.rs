@@ -47,6 +47,11 @@ where
     }
 
     #[inline]
+    pub(super) fn lex_template(&mut self, start: Position) -> Result<Token, ParseError> {
+        self.buffered_lexer.lex_template(start)
+    }
+
+    #[inline]
     pub(super) fn next(&mut self) -> Result<Option<Token>, ParseError> {
         self.buffered_lexer.next(true)
     }

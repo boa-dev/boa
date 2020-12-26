@@ -279,6 +279,13 @@ impl<R> Lexer<R> {
             ))
         }
     }
+
+    pub(crate) fn lex_template(&mut self, start: Position) -> Result<Token, Error>
+    where
+        R: Read,
+    {
+        TemplateLiteral.lex(&mut self.cursor, start)
+    }
 }
 
 /// ECMAScript goal symbols.

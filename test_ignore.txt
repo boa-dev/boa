@@ -54,3 +54,7 @@ S15.1.3.4_A1.3_T1
 
 // This one seems to terminate the process somehow:
 arg-length-near-integer-limit
+
+// These generate a stack overflow
+tco-call
+tco-member

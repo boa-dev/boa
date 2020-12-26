@@ -125,7 +125,17 @@ pub enum TokenKind {
     /// A string literal.
     StringLiteral(Box<str>),
 
-    TemplateLiteral(Box<str>),
+    // A part of a template literal without substitution
+    TemplateNoSubstitution {
+        raw: Box<str>,
+        cooked: Box<str>,
+    },
+
+    // The part of a template literal between substitutions
+    TemplateMiddle {
+        raw: Box<str>,
+        cooked: Box<str>,
+    },
 
     /// A regular expression, consisting of body and flags.
     RegularExpressionLiteral(Box<str>, RegExpFlags),
@@ -206,12 +216,26 @@ impl TokenKind {
         Self::StringLiteral(lit.into())
     }
 
-    /// Creates a `TemplateLiteral` token type.
-    pub fn template_literal<S>(lit: S) -> Self
+    pub fn template_middle<R, C>(raw: R, cooked: C) -> Self
     where
-        S: Into<Box<str>>,
+        R: Into<Box<str>>,
+        C: Into<Box<str>>,
     {
-        Self::TemplateLiteral(lit.into())
+        Self::TemplateMiddle {
+            raw: raw.into(),
+            cooked: cooked.into(),
+        }
+    }
+
+    pub fn template_no_substitution<R, C>(raw: R, cooked: C) -> Self
+    where
+        R: Into<Box<str>>,
+        C: Into<Box<str>>,
+    {
+        Self::TemplateNoSubstitution {
+            raw: raw.into(),
+            cooked: cooked.into(),
+        }
     }
 
     /// Creates a `RegularExpressionLiteral` token kind.
@@ -247,7 +271,8 @@ impl Display for TokenKind {
             Self::NumericLiteral(Numeric::BigInt(ref num)) => write!(f, "{}n", num),
             Self::Punctuator(ref punc) => write!(f, "{}", punc),
             Self::StringLiteral(ref lit) => write!(f, "{}", lit),
-            Self::TemplateLiteral(ref lit) => write!(f, "{}", lit),
+            Self::TemplateNoSubstitution { ref cooked, .. } => write!(f, "{}", cooked),
+            Self::TemplateMiddle { ref cooked, .. } => write!(f, "{}", cooked),
             Self::RegularExpressionLiteral(ref body, ref flags) => write!(f, "/{}/{}", body, flags),
             Self::LineTerminator => write!(f, "line terminator"),
             Self::Comment => write!(f, "comment"),

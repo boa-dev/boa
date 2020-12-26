@@ -10,6 +10,7 @@
 mod arguments;
 mod call;
 mod member;
+mod template;
 
 use self::{call::CallExpression, member::MemberExpression};
 use crate::{
