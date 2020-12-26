@@ -314,7 +314,7 @@ impl<R> Tokenizer<R> for NumberLiteral {
                 // Consume the n
                 if legacy_octal {
                     return Err(Error::syntax(
-                        "n suffix not allowed in octal representation",
+                        "'n' suffix not allowed in octal representation",
                         cursor.pos(),
                     ));
                 }
@@ -327,14 +327,14 @@ impl<R> Tokenizer<R> for NumberLiteral {
                     // Only base 10 numbers can have a decimal separator.
                     // Number literal lexing finished if a . is found for a number in a different base.
                     if self.init != b'.' {
-                        cursor.next_byte()?.expect(". token vanished");
+                        cursor.next_byte()?.expect("'.' token vanished");
                         buf.push(b'.'); // Consume the .
                     }
                     kind = NumericKind::Rational;
 
                     if cursor.peek()? == Some(b'_') {
                         return Err(Error::syntax(
-                            "numeric separator not allowed after .",
+                            "numeric separator not allowed after '.'",
                             cursor.pos(),
                         ));
                     }
