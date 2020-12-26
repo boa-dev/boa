@@ -154,7 +154,7 @@ impl Executable for BinOp {
                 LogOp::And => {
                     let left = self.lhs().run(context)?;
                     if !left.to_boolean() {
-                        left.clone()
+                        left
                     } else {
                         self.rhs().run(context)?
                     }
@@ -162,7 +162,7 @@ impl Executable for BinOp {
                 LogOp::Or => {
                     let left = self.lhs().run(context)?;
                     if left.to_boolean() {
-                        left.clone()
+                        left
                     } else {
                         self.rhs().run(context)?
                     }
