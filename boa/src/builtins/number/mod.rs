@@ -973,10 +973,10 @@ impl Number {
             return AbstractRelation::True;
         }
         if x.is_infinite() && x.is_sign_negative() {
-            return AbstractRelation::False;
+            return AbstractRelation::True;
         }
         if y.is_infinite() && y.is_sign_negative() {
-            return AbstractRelation::True;
+            return AbstractRelation::False;
         }
         (x < y).into()
     }
