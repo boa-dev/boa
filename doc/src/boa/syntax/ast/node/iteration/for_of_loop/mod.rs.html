@@ -207,6 +207,31 @@
 <span id="206">206</span>
 <span id="207">207</span>
 <span id="208">208</span>
+<span id="209">209</span>
+<span id="210">210</span>
+<span id="211">211</span>
+<span id="212">212</span>
+<span id="213">213</span>
+<span id="214">214</span>
+<span id="215">215</span>
+<span id="216">216</span>
+<span id="217">217</span>
+<span id="218">218</span>
+<span id="219">219</span>
+<span id="220">220</span>
+<span id="221">221</span>
+<span id="222">222</span>
+<span id="223">223</span>
+<span id="224">224</span>
+<span id="225">225</span>
+<span id="226">226</span>
+<span id="227">227</span>
+<span id="228">228</span>
+<span id="229">229</span>
+<span id="230">230</span>
+<span id="231">231</span>
+<span id="232">232</span>
+<span id="233">233</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">builtins</span>::<span class="ident">iterable</span>::<span class="ident">get_iterator</span>,
@@ -300,14 +325,21 @@
 
                     <span class="kw">if</span> <span class="ident">environment</span>.<span class="ident">has_binding</span>(<span class="ident">name</span>.<span class="ident">as_ref</span>()) {
                         <span class="comment">// Binding already exists</span>
-                        <span class="ident">environment</span>.<span class="ident">set_mutable_binding</span>(<span class="ident">name</span>.<span class="ident">as_ref</span>(), <span class="ident">next_result</span>.<span class="ident">clone</span>(), <span class="bool-val">true</span>);
+                        <span class="ident">environment</span>
+                            .<span class="ident">set_mutable_binding</span>(<span class="ident">name</span>.<span class="ident">as_ref</span>(), <span class="ident">next_result</span>.<span class="ident">clone</span>(), <span class="bool-val">true</span>)
+                            .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">e</span>.<span class="ident">to_error</span>(<span class="ident">context</span>))<span class="question-mark">?</span>;
                     } <span class="kw">else</span> {
-                        <span class="ident">environment</span>.<span class="ident">create_mutable_binding</span>(
-                            <span class="ident">name</span>.<span class="ident">as_ref</span>().<span class="ident">to_owned</span>(),
-                            <span class="bool-val">true</span>,
-                            <span class="ident">VariableScope</span>::<span class="ident">Function</span>,
-                        );
-                        <span class="ident">environment</span>.<span class="ident">initialize_binding</span>(<span class="ident">name</span>.<span class="ident">as_ref</span>(), <span class="ident">next_result</span>.<span class="ident">clone</span>());
+                        <span class="ident">environment</span>
+                            .<span class="ident">create_mutable_binding</span>(
+                                <span class="ident">name</span>.<span class="ident">as_ref</span>().<span class="ident">to_owned</span>(),
+                                <span class="bool-val">true</span>,
+                                <span class="ident">VariableScope</span>::<span class="ident">Function</span>,
+                            )
+                            .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">e</span>.<span class="ident">to_error</span>(<span class="ident">context</span>))<span class="question-mark">?</span>;
+                        <span class="kw">let</span> <span class="ident">environment</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">context</span>.<span class="ident">realm_mut</span>().<span class="ident">environment</span>;
+                        <span class="ident">environment</span>
+                            .<span class="ident">initialize_binding</span>(<span class="ident">name</span>.<span class="ident">as_ref</span>(), <span class="ident">next_result</span>.<span class="ident">clone</span>())
+                            .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">e</span>.<span class="ident">to_error</span>(<span class="ident">context</span>))<span class="question-mark">?</span>;
                     }
                 }
                 <span class="ident">Node</span>::<span class="ident">VarDeclList</span>(<span class="kw-2">ref</span> <span class="ident">list</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">list</span>.<span class="ident">as_ref</span>() {
@@ -319,14 +351,21 @@
                         }
 
                         <span class="kw">if</span> <span class="ident">environment</span>.<span class="ident">has_binding</span>(<span class="ident">var</span>.<span class="ident">name</span>()) {
-                            <span class="ident">environment</span>.<span class="ident">set_mutable_binding</span>(<span class="ident">var</span>.<span class="ident">name</span>(), <span class="ident">next_result</span>, <span class="bool-val">true</span>);
+                            <span class="ident">environment</span>
+                                .<span class="ident">set_mutable_binding</span>(<span class="ident">var</span>.<span class="ident">name</span>(), <span class="ident">next_result</span>, <span class="bool-val">true</span>)
+                                .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">e</span>.<span class="ident">to_error</span>(<span class="ident">context</span>))<span class="question-mark">?</span>;
                         } <span class="kw">else</span> {
-                            <span class="ident">environment</span>.<span class="ident">create_mutable_binding</span>(
-                                <span class="ident">var</span>.<span class="ident">name</span>().<span class="ident">to_owned</span>(),
-                                <span class="bool-val">false</span>,
-                                <span class="ident">VariableScope</span>::<span class="ident">Function</span>,
-                            );
-                            <span class="ident">environment</span>.<span class="ident">initialize_binding</span>(<span class="ident">var</span>.<span class="ident">name</span>(), <span class="ident">next_result</span>);
+                            <span class="ident">environment</span>
+                                .<span class="ident">create_mutable_binding</span>(
+                                    <span class="ident">var</span>.<span class="ident">name</span>().<span class="ident">to_owned</span>(),
+                                    <span class="bool-val">false</span>,
+                                    <span class="ident">VariableScope</span>::<span class="ident">Function</span>,
+                                )
+                                .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">e</span>.<span class="ident">to_error</span>(<span class="ident">context</span>))<span class="question-mark">?</span>;
+                            <span class="kw">let</span> <span class="ident">environment</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">context</span>.<span class="ident">realm_mut</span>().<span class="ident">environment</span>;
+                            <span class="ident">environment</span>
+                                .<span class="ident">initialize_binding</span>(<span class="ident">var</span>.<span class="ident">name</span>(), <span class="ident">next_result</span>)
+                                .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">e</span>.<span class="ident">to_error</span>(<span class="ident">context</span>))<span class="question-mark">?</span>;
                         }
                     }
                     <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {
@@ -343,12 +382,18 @@
                             <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_syntax_error</span>(<span class="string">&quot;a declaration in the head of a for-of loop can&#39;t have an initializer&quot;</span>);
                         }
 
-                        <span class="ident">environment</span>.<span class="ident">create_mutable_binding</span>(
-                            <span class="ident">var</span>.<span class="ident">name</span>().<span class="ident">to_owned</span>(),
-                            <span class="bool-val">false</span>,
-                            <span class="ident">VariableScope</span>::<span class="ident">Block</span>,
-                        );
-                        <span class="ident">environment</span>.<span class="ident">initialize_binding</span>(<span class="ident">var</span>.<span class="ident">name</span>(), <span class="ident">next_result</span>);
+                        <span class="ident">environment</span>
+                            .<span class="ident">create_mutable_binding</span>(
+                                <span class="ident">var</span>.<span class="ident">name</span>().<span class="ident">to_owned</span>(),
+                                <span class="bool-val">false</span>,
+                                <span class="ident">VariableScope</span>::<span class="ident">Block</span>,
+                            )
+                            .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">e</span>.<span class="ident">to_error</span>(<span class="ident">context</span>))<span class="question-mark">?</span>;
+
+                        <span class="kw">let</span> <span class="ident">environment</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">context</span>.<span class="ident">realm_mut</span>().<span class="ident">environment</span>;
+                        <span class="ident">environment</span>
+                            .<span class="ident">initialize_binding</span>(<span class="ident">var</span>.<span class="ident">name</span>(), <span class="ident">next_result</span>)
+                            .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">e</span>.<span class="ident">to_error</span>(<span class="ident">context</span>))<span class="question-mark">?</span>;
                     }
                     <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {
                         <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_syntax_error</span>(
@@ -364,12 +409,17 @@
                             <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_syntax_error</span>(<span class="string">&quot;a declaration in the head of a for-of loop can&#39;t have an initializer&quot;</span>);
                         }
 
-                        <span class="ident">environment</span>.<span class="ident">create_immutable_binding</span>(
-                            <span class="ident">var</span>.<span class="ident">name</span>().<span class="ident">to_owned</span>(),
-                            <span class="bool-val">false</span>,
-                            <span class="ident">VariableScope</span>::<span class="ident">Block</span>,
-                        );
-                        <span class="ident">environment</span>.<span class="ident">initialize_binding</span>(<span class="ident">var</span>.<span class="ident">name</span>(), <span class="ident">next_result</span>);
+                        <span class="ident">environment</span>
+                            .<span class="ident">create_immutable_binding</span>(
+                                <span class="ident">var</span>.<span class="ident">name</span>().<span class="ident">to_owned</span>(),
+                                <span class="bool-val">false</span>,
+                                <span class="ident">VariableScope</span>::<span class="ident">Block</span>,
+                            )
+                            .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">e</span>.<span class="ident">to_error</span>(<span class="ident">context</span>))<span class="question-mark">?</span>;
+                        <span class="kw">let</span> <span class="ident">environment</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">context</span>.<span class="ident">realm_mut</span>().<span class="ident">environment</span>;
+                        <span class="ident">environment</span>
+                            .<span class="ident">initialize_binding</span>(<span class="ident">var</span>.<span class="ident">name</span>(), <span class="ident">next_result</span>)
+                            .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">e</span>.<span class="ident">to_error</span>(<span class="ident">context</span>))<span class="question-mark">?</span>;
                     }
                     <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {
                         <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_syntax_error</span>(

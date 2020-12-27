@@ -114,7 +114,7 @@
             .<span class="ident">realm</span>()
             .<span class="ident">environment</span>
             .<span class="ident">get_binding_value</span>(<span class="self">self</span>.<span class="ident">as_ref</span>())
-            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">context</span>.<span class="ident">construct_reference_error</span>(<span class="self">self</span>.<span class="ident">as_ref</span>()))
+            .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">e</span>.<span class="ident">to_error</span>(<span class="ident">context</span>))
     }
 }
 

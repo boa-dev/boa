@@ -227,6 +227,8 @@
 <span id="226">226</span>
 <span id="227">227</span>
 <span id="228">228</span>
+<span id="229">229</span>
+<span id="230">230</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">environment</span>::<span class="ident">lexical_environment</span>::{<span class="ident">new_declarative_environment</span>, <span class="ident">VariableScope</span>},
@@ -338,9 +340,11 @@
                                 <span class="ident">param</span>.<span class="ident">to_owned</span>(),
                                 <span class="bool-val">false</span>,
                                 <span class="ident">VariableScope</span>::<span class="ident">Block</span>,
-                            );
-
-                            <span class="ident">env</span>.<span class="ident">initialize_binding</span>(<span class="ident">param</span>, <span class="ident">err</span>);
+                            )
+                            .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">e</span>.<span class="ident">to_error</span>(<span class="ident">context</span>))<span class="question-mark">?</span>;
+                            <span class="kw">let</span> <span class="ident">env</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">context</span>.<span class="ident">realm_mut</span>().<span class="ident">environment</span>;
+                            <span class="ident">env</span>.<span class="ident">initialize_binding</span>(<span class="ident">param</span>, <span class="ident">err</span>)
+                                .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">e</span>.<span class="ident">to_error</span>(<span class="ident">context</span>))<span class="question-mark">?</span>;
                         }
                     }
 

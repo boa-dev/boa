@@ -886,6 +886,10 @@
 <span id="885">885</span>
 <span id="886">886</span>
 <span id="887">887</span>
+<span id="888">888</span>
+<span id="889">889</span>
+<span id="890">890</span>
+<span id="891">891</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements the `GcObject` structure.</span>
 <span class="doccomment">//!</span>
@@ -1051,10 +1055,12 @@
                         <span class="kw">let</span> <span class="ident">arguments_obj</span> <span class="op">=</span> <span class="ident">create_unmapped_arguments_object</span>(<span class="ident">args</span>);
                         <span class="ident">local_env</span>
                             .<span class="ident">borrow_mut</span>()
-                            .<span class="ident">create_mutable_binding</span>(<span class="string">&quot;arguments&quot;</span>.<span class="ident">to_string</span>(), <span class="bool-val">false</span>);
+                            .<span class="ident">create_mutable_binding</span>(<span class="string">&quot;arguments&quot;</span>.<span class="ident">to_string</span>(), <span class="bool-val">false</span>)
+                            .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">e</span>.<span class="ident">to_error</span>(<span class="ident">context</span>))<span class="question-mark">?</span>;
                         <span class="ident">local_env</span>
                             .<span class="ident">borrow_mut</span>()
-                            .<span class="ident">initialize_binding</span>(<span class="string">&quot;arguments&quot;</span>, <span class="ident">arguments_obj</span>);
+                            .<span class="ident">initialize_binding</span>(<span class="string">&quot;arguments&quot;</span>, <span class="ident">arguments_obj</span>)
+                            .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">e</span>.<span class="ident">to_error</span>(<span class="ident">context</span>))<span class="question-mark">?</span>;
 
                         <span class="ident">context</span>.<span class="ident">realm_mut</span>().<span class="ident">environment</span>.<span class="ident">push</span>(<span class="ident">local_env</span>);
 
@@ -1146,10 +1152,12 @@
                         <span class="kw">let</span> <span class="ident">arguments_obj</span> <span class="op">=</span> <span class="ident">create_unmapped_arguments_object</span>(<span class="ident">args</span>);
                         <span class="ident">local_env</span>
                             .<span class="ident">borrow_mut</span>()
-                            .<span class="ident">create_mutable_binding</span>(<span class="string">&quot;arguments&quot;</span>.<span class="ident">to_string</span>(), <span class="bool-val">false</span>);
+                            .<span class="ident">create_mutable_binding</span>(<span class="string">&quot;arguments&quot;</span>.<span class="ident">to_string</span>(), <span class="bool-val">false</span>)
+                            .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">e</span>.<span class="ident">to_error</span>(<span class="ident">context</span>))<span class="question-mark">?</span>;
                         <span class="ident">local_env</span>
                             .<span class="ident">borrow_mut</span>()
-                            .<span class="ident">initialize_binding</span>(<span class="string">&quot;arguments&quot;</span>, <span class="ident">arguments_obj</span>);
+                            .<span class="ident">initialize_binding</span>(<span class="string">&quot;arguments&quot;</span>, <span class="ident">arguments_obj</span>)
+                            .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">e</span>.<span class="ident">to_error</span>(<span class="ident">context</span>))<span class="question-mark">?</span>;
 
                         <span class="ident">context</span>.<span class="ident">realm_mut</span>().<span class="ident">environment</span>.<span class="ident">push</span>(<span class="ident">local_env</span>);
 
@@ -1174,7 +1182,7 @@
 
                 <span class="comment">// local_env gets dropped here, its no longer needed</span>
                 <span class="kw">let</span> <span class="ident">binding</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">realm_mut</span>().<span class="ident">environment</span>.<span class="ident">get_this_binding</span>();
-                <span class="prelude-val">Ok</span>(<span class="ident">binding</span>)
+                <span class="ident">binding</span>.<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">e</span>.<span class="ident">to_error</span>(<span class="ident">context</span>))
             }
         }
     }

@@ -340,6 +340,10 @@
 <span id="339">339</span>
 <span id="340">340</span>
 <span id="341">341</span>
+<span id="342">342</span>
+<span id="343">343</span>
+<span id="344">344</span>
+<span id="345">345</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements the global `Function` object as well as creates Native Functions.</span>
 <span class="doccomment">//!</span>
@@ -467,12 +471,14 @@
         <span class="comment">// Create binding</span>
         <span class="ident">local_env</span>
             .<span class="ident">borrow_mut</span>()
-            .<span class="ident">create_mutable_binding</span>(<span class="ident">param</span>.<span class="ident">name</span>().<span class="ident">to_owned</span>(), <span class="bool-val">false</span>);
+            .<span class="ident">create_mutable_binding</span>(<span class="ident">param</span>.<span class="ident">name</span>().<span class="ident">to_owned</span>(), <span class="bool-val">false</span>)
+            .<span class="ident">expect</span>(<span class="string">&quot;Failed to create binding for rest param&quot;</span>);
 
         <span class="comment">// Set Binding to value</span>
         <span class="ident">local_env</span>
             .<span class="ident">borrow_mut</span>()
-            .<span class="ident">initialize_binding</span>(<span class="ident">param</span>.<span class="ident">name</span>(), <span class="ident">array</span>);
+            .<span class="ident">initialize_binding</span>(<span class="ident">param</span>.<span class="ident">name</span>(), <span class="ident">array</span>)
+            .<span class="ident">expect</span>(<span class="string">&quot;Failed to initialize rest param&quot;</span>);
     }
 
     <span class="comment">// Adds an argument to the environment</span>
@@ -485,12 +491,14 @@
         <span class="comment">// Create binding</span>
         <span class="ident">local_env</span>
             .<span class="ident">borrow_mut</span>()
-            .<span class="ident">create_mutable_binding</span>(<span class="ident">param</span>.<span class="ident">name</span>().<span class="ident">to_owned</span>(), <span class="bool-val">false</span>);
+            .<span class="ident">create_mutable_binding</span>(<span class="ident">param</span>.<span class="ident">name</span>().<span class="ident">to_owned</span>(), <span class="bool-val">false</span>)
+            .<span class="ident">expect</span>(<span class="string">&quot;Failed to create binding&quot;</span>);
 
         <span class="comment">// Set Binding to value</span>
         <span class="ident">local_env</span>
             .<span class="ident">borrow_mut</span>()
-            .<span class="ident">initialize_binding</span>(<span class="ident">param</span>.<span class="ident">name</span>(), <span class="ident">value</span>);
+            .<span class="ident">initialize_binding</span>(<span class="ident">param</span>.<span class="ident">name</span>(), <span class="ident">value</span>)
+            .<span class="ident">expect</span>(<span class="string">&quot;Failed to intialize binding&quot;</span>);
     }
 
     <span class="doccomment">/// Returns true if the function object is callable.</span>
