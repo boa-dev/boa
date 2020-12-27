@@ -150,18 +150,24 @@ impl Executable for BinOp {
                     }
                 }))
             }
-            op::BinOp::Log(op) => {
-                // turn a `Value` into a `bool`
-                let to_bool = |value| bool::from(&value);
-                Ok(match op {
-                    LogOp::And => Value::from(
-                        to_bool(self.lhs().run(context)?) && to_bool(self.rhs().run(context)?),
-                    ),
-                    LogOp::Or => Value::from(
-                        to_bool(self.lhs().run(context)?) || to_bool(self.rhs().run(context)?),
-                    ),
-                })
-            }
+            op::BinOp::Log(op) => Ok(match op {
+                LogOp::And => {
+                    let left = self.lhs().run(context)?;
+                    if !left.to_boolean() {
+                        left
+                    } else {
+                        self.rhs().run(context)?
+                    }
+                }
+                LogOp::Or => {
+                    let left = self.lhs().run(context)?;
+                    if left.to_boolean() {
+                        left
+                    } else {
+                        self.rhs().run(context)?
+                    }
+                }
+            }),
             op::BinOp::Assign(op) => match self.lhs() {
                 Node::Identifier(ref name) => {
                     let v_a = context
