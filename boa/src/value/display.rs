@@ -50,11 +50,9 @@ macro_rules! print_obj_value {
         print_obj_value!(impl $obj, |(key, val)| {
             if val.is_data_descriptor() {
                 let v = &val
-
                     .as_data_descriptor()
                     .unwrap()
                     .value();
-
                 format!(
                     "{:>width$}: {}",
                     key,
