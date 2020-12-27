@@ -43,17 +43,17 @@ impl Executable for ConstDeclList {
             } else {
                 return context.throw_syntax_error("missing = in const declaration");
             };
-
-            context.realm_mut().environment.create_immutable_binding(
-                decl.name().to_owned(),
-                false,
-                VariableScope::Block,
-            );
+            context
+                .realm_mut()
+                .environment
+                .create_immutable_binding(decl.name().to_owned(), false, VariableScope::Block)
+                .map_err(|e| e.to_error(context))?;
 
             context
                 .realm_mut()
                 .environment
-                .initialize_binding(decl.name(), val);
+                .initialize_binding(decl.name(), val)
+                .map_err(|e| e.to_error(context))?;
         }
         Ok(Value::undefined())
     }

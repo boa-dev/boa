@@ -41,15 +41,16 @@ impl Executable for LetDeclList {
                 Some(v) => v.run(context)?,
                 None => Value::undefined(),
             };
-            context.realm_mut().environment.create_mutable_binding(
-                var.name().to_owned(),
-                false,
-                VariableScope::Block,
-            );
             context
                 .realm_mut()
                 .environment
-                .initialize_binding(var.name(), val);
+                .create_mutable_binding(var.name().to_owned(), false, VariableScope::Block)
+                .map_err(|e| e.to_error(context))?;
+            context
+                .realm_mut()
+                .environment
+                .initialize_binding(var.name(), val)
+                .map_err(|e| e.to_error(context))?;
         }
         Ok(Value::undefined())
     }
