@@ -1,6 +1,6 @@
 use super::id_unicode_tables;
-use unicode_categories::UnicodeCategories;
-pub trait IdentifierUnicodeCategories: Sized + Copy + UnicodeCategories {
+use unicode_general_category::{get_general_category, GeneralCategory};
+pub trait IdentifierUnicodeCategories: Sized + Copy {
     fn is_id_start(self) -> bool;
     fn is_id_continue(self) -> bool;
 
@@ -19,7 +19,16 @@ impl IdentifierUnicodeCategories for char {
     fn is_id_start(self) -> bool {
         !self.is_pattern_syntax()
             && !self.is_pattern_whitespace()
-            && (self.is_letter() || self.is_number_letter() || self.is_other_id_start())
+            && (self.is_other_id_start()
+                || matches!(
+                    get_general_category(self),
+                    GeneralCategory::LowercaseLetter
+                        | GeneralCategory::ModifierLetter
+                        | GeneralCategory::OtherLetter
+                        | GeneralCategory::TitlecaseLetter
+                        | GeneralCategory::UppercaseLetter
+                        | GeneralCategory::LetterNumber
+                ))
     }
 
     #[inline]
@@ -27,11 +36,14 @@ impl IdentifierUnicodeCategories for char {
         !self.is_pattern_syntax()
             && !self.is_pattern_whitespace()
             && (self.is_id_start()
-                || self.is_mark_nonspacing()
-                || self.is_mark_spacing_combining()
-                || self.is_number_decimal_digit()
-                || self.is_punctuation_connector()
-                || self.is_other_id_continue())
+                || self.is_other_id_continue()
+                || matches!(
+                    get_general_category(self),
+                    GeneralCategory::NonspacingMark
+                        | GeneralCategory::SpacingMark
+                        | GeneralCategory::DecimalNumber
+                        | GeneralCategory::ConnectorPunctuation
+                ))
     }
 
     #[inline]
