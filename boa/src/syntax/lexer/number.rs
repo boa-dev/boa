@@ -110,11 +110,52 @@ where
     }
 
     // Consume the decimal digits.
-    cursor.take_while_ascii_pred(buf, &|ch| ch.is_digit(kind.base()))?;
+    take_integer(buf, cursor, kind, true)?;
 
     Ok(())
 }
 
+fn take_integer<R>(
+    buf: &mut Vec<u8>,
+    cursor: &mut Cursor<R>,
+    kind: &NumericKind,
+    separator_allowed: bool,
+) -> Result<(), Error>
+where
+    R: Read,
+{
+    let mut prev_is_underscore = false;
+    let mut pos = cursor.pos();
+    while cursor.next_is_ascii_pred(&|c| c.is_digit(kind.base()) || c == '_')? {
+        pos = cursor.pos();
+        match cursor.next_byte()? {
+            Some(c) if char::from(c).is_digit(kind.base()) => {
+                prev_is_underscore = false;
+                buf.push(c);
+            }
+            Some(b'_') if separator_allowed => {
+                if prev_is_underscore {
+                    return Err(Error::syntax(
+                        "only one underscore is allowed as numeric separator",
+                        cursor.pos(),
+                    ));
+                }
+                prev_is_underscore = true;
+            }
+            Some(b'_') if !separator_allowed => {
+                return Err(Error::syntax("separator is not allowed", pos));
+            }
+            _ => (),
+        }
+    }
+    if prev_is_underscore {
+        return Err(Error::syntax(
+            "underscores are not allowed at the end of numeric literals",
+            pos,
+        ));
+    }
+    Ok(())
+}
 /// Utility function for checking the NumericLiteral is not followed by an `IdentifierStart` or `DecimalDigit` character.
 ///
 /// More information:
@@ -149,6 +190,7 @@ impl<R> Tokenizer<R> for NumberLiteral {
         let mut kind = NumericKind::Integer(10);
 
         let c = cursor.peek();
+        let mut legacy_octal = false;
 
         if self.init == b'0' {
             if let Some(ch) = c? {
@@ -180,7 +222,7 @@ impl<R> Tokenizer<R> for NumberLiteral {
                         // Checks if the next char after '0o' is a digit of that base. if not return an error.
                         if !cursor.next_is_ascii_pred(&|ch| ch.is_digit(8))? {
                             return Err(Error::syntax(
-                                "expected hexadecimal digit after number base prefix",
+                                "expected octal digit after number base prefix",
                                 cursor.pos(),
                             ));
                         }
@@ -196,7 +238,7 @@ impl<R> Tokenizer<R> for NumberLiteral {
                         // Checks if the next char after '0b' is a digit of that base. if not return an error.
                         if !cursor.next_is_ascii_pred(&|ch| ch.is_digit(2))? {
                             return Err(Error::syntax(
-                                "expected hexadecimal digit after number base prefix",
+                                "expected binary digit after number base prefix",
                                 cursor.pos(),
                             ));
                         }
@@ -211,6 +253,7 @@ impl<R> Tokenizer<R> for NumberLiteral {
                         ));
                     }
                     byte => {
+                        legacy_octal = true;
                         let ch = char::from(byte);
                         if ch.is_digit(8) {
                             // LegacyOctalIntegerLiteral
@@ -237,8 +280,6 @@ impl<R> Tokenizer<R> for NumberLiteral {
                                     "leading 0's are not allowed in strict mode",
                                     start_pos,
                                 ));
-                            } else {
-                                buf.push(cursor.next_byte()?.expect("Number digit vanished"));
                             }
                         } // Else indicates that the symbol is a non-number.
                     }
@@ -253,34 +294,54 @@ impl<R> Tokenizer<R> for NumberLiteral {
             }
         }
 
-        // Consume digits until a non-digit character is encountered or all the characters are consumed.
-        cursor.take_while_ascii_pred(&mut buf, &|c: char| c.is_digit(kind.base()))?;
+        let next = if self.init == b'.' {
+            Some(b'.')
+        } else {
+            // Consume digits and separators until a non-digit non-separator
+            // character is encountered or all the characters are consumed.
+            take_integer(&mut buf, cursor, &kind, !legacy_octal)?;
+            cursor.peek()?
+        };
 
         // The non-digit character could be:
         // 'n' To indicate a BigIntLiteralSuffix.
-        // '.' To indicate a decimal seperator.
+        // '.' To indicate a decimal separator.
         // 'e' | 'E' To indicate an ExponentPart.
-        match cursor.peek()? {
+        match next {
             Some(b'n') => {
                 // DecimalBigIntegerLiteral
                 // Lexing finished.
-
                 // Consume the n
+                if legacy_octal {
+                    return Err(Error::syntax(
+                        "'n' suffix not allowed in octal representation",
+                        cursor.pos(),
+                    ));
+                }
                 cursor.next_byte()?.expect("n character vanished");
 
                 kind = kind.to_bigint();
             }
             Some(b'.') => {
                 if kind.base() == 10 {
-                    // Only base 10 numbers can have a decimal seperator.
+                    // Only base 10 numbers can have a decimal separator.
                     // Number literal lexing finished if a . is found for a number in a different base.
-
-                    cursor.next_byte()?.expect(". token vanished");
-                    buf.push(b'.'); // Consume the .
+                    if self.init != b'.' {
+                        cursor.next_byte()?.expect("'.' token vanished");
+                        buf.push(b'.'); // Consume the .
+                    }
                     kind = NumericKind::Rational;
 
-                    // Consume digits until a non-digit character is encountered or all the characters are consumed.
-                    cursor.take_while_ascii_pred(&mut buf, &|c: char| c.is_digit(kind.base()))?;
+                    if cursor.peek()? == Some(b'_') {
+                        return Err(Error::syntax(
+                            "numeric separator not allowed after '.'",
+                            cursor.pos(),
+                        ));
+                    }
+
+                    // Consume digits and separators until a non-digit non-separator
+                    // character is encountered or all the characters are consumed.
+                    take_integer(&mut buf, cursor, &kind, true)?;
 
                     // The non-digit character at this point must be an 'e' or 'E' to indicate an Exponent Part.
                     // Another '.' or 'n' is not allowed.

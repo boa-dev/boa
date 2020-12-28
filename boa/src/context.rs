@@ -342,7 +342,7 @@ impl Context {
     #[inline]
     pub fn construct_range_error<M>(&mut self, message: M) -> Value
     where
-        M: Into<String>,
+        M: Into<Box<str>>,
     {
         // Runs a `new RangeError(message)`.
         New::from(Call::new(
@@ -357,7 +357,7 @@ impl Context {
     #[inline]
     pub fn throw_range_error<M>(&mut self, message: M) -> Result<Value>
     where
-        M: Into<String>,
+        M: Into<Box<str>>,
     {
         Err(self.construct_range_error(message))
     }
@@ -366,7 +366,7 @@ impl Context {
     #[inline]
     pub fn construct_type_error<M>(&mut self, message: M) -> Value
     where
-        M: Into<String>,
+        M: Into<Box<str>>,
     {
         // Runs a `new TypeError(message)`.
         New::from(Call::new(
@@ -381,7 +381,7 @@ impl Context {
     #[inline]
     pub fn throw_type_error<M>(&mut self, message: M) -> Result<Value>
     where
-        M: Into<String>,
+        M: Into<Box<str>>,
     {
         Err(self.construct_type_error(message))
     }
@@ -390,11 +390,11 @@ impl Context {
     #[inline]
     pub fn construct_reference_error<M>(&mut self, message: M) -> Value
     where
-        M: Into<String>,
+        M: Into<Box<str>>,
     {
         New::from(Call::new(
             Identifier::from("ReferenceError"),
-            vec![Const::from(message.into() + " is not defined").into()],
+            vec![Const::from(message.into()).into()],
         ))
         .run(self)
         .expect("Into<String> used as message")
@@ -404,7 +404,7 @@ impl Context {
     #[inline]
     pub fn throw_reference_error<M>(&mut self, message: M) -> Result<Value>
     where
-        M: Into<String>,
+        M: Into<Box<str>>,
     {
         Err(self.construct_reference_error(message))
     }
@@ -413,7 +413,7 @@ impl Context {
     #[inline]
     pub fn construct_syntax_error<M>(&mut self, message: M) -> Value
     where
-        M: Into<String>,
+        M: Into<Box<str>>,
     {
         New::from(Call::new(
             Identifier::from("SyntaxError"),
@@ -427,7 +427,7 @@ impl Context {
     #[inline]
     pub fn throw_syntax_error<M>(&mut self, message: M) -> Result<Value>
     where
-        M: Into<String>,
+        M: Into<Box<str>>,
     {
         Err(self.construct_syntax_error(message))
     }
@@ -435,7 +435,7 @@ impl Context {
     /// Constructs a `EvalError` with the specified message.
     pub fn construct_eval_error<M>(&mut self, message: M) -> Value
     where
-        M: Into<String>,
+        M: Into<Box<str>>,
     {
         New::from(Call::new(
             Identifier::from("EvalError"),
@@ -448,7 +448,7 @@ impl Context {
     /// Constructs a `URIError` with the specified message.
     pub fn construct_uri_error<M>(&mut self, message: M) -> Value
     where
-        M: Into<String>,
+        M: Into<Box<str>>,
     {
         New::from(Call::new(
             Identifier::from("URIError"),
@@ -461,7 +461,7 @@ impl Context {
     /// Throws a `EvalError` with the specified message.
     pub fn throw_eval_error<M>(&mut self, message: M) -> Result<Value>
     where
-        M: Into<String>,
+        M: Into<Box<str>>,
     {
         Err(self.construct_eval_error(message))
     }
@@ -469,7 +469,7 @@ impl Context {
     /// Throws a `URIError` with the specified message.
     pub fn throw_uri_error<M>(&mut self, message: M) -> Result<Value>
     where
-        M: Into<String>,
+        M: Into<Box<str>>,
     {
         Err(self.construct_uri_error(message))
     }
@@ -619,7 +619,8 @@ impl Context {
             Node::Identifier(ref name) => {
                 self.realm
                     .environment
-                    .set_mutable_binding(name.as_ref(), value.clone(), true);
+                    .set_mutable_binding(name.as_ref(), value.clone(), true)
+                    .map_err(|e| e.to_error(self))?;
                 Ok(value)
             }
             Node::GetConstField(ref get_const_field_node) => Ok(get_const_field_node

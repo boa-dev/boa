@@ -150,32 +150,39 @@ impl Executable for BinOp {
                     }
                 }))
             }
-            op::BinOp::Log(op) => {
-                // turn a `Value` into a `bool`
-                let to_bool = |value| bool::from(&value);
-                Ok(match op {
-                    LogOp::And => Value::from(
-                        to_bool(self.lhs().run(context)?) && to_bool(self.rhs().run(context)?),
-                    ),
-                    LogOp::Or => Value::from(
-                        to_bool(self.lhs().run(context)?) || to_bool(self.rhs().run(context)?),
-                    ),
-                })
-            }
+            op::BinOp::Log(op) => Ok(match op {
+                LogOp::And => {
+                    let left = self.lhs().run(context)?;
+                    if !left.to_boolean() {
+                        left
+                    } else {
+                        self.rhs().run(context)?
+                    }
+                }
+                LogOp::Or => {
+                    let left = self.lhs().run(context)?;
+                    if left.to_boolean() {
+                        left
+                    } else {
+                        self.rhs().run(context)?
+                    }
+                }
+            }),
             op::BinOp::Assign(op) => match self.lhs() {
                 Node::Identifier(ref name) => {
                     let v_a = context
                         .realm()
                         .environment
                         .get_binding_value(name.as_ref())
-                        .ok_or_else(|| context.construct_reference_error(name.as_ref()))?;
+                        .map_err(|e| e.to_error(context))?;
+
                     let v_b = self.rhs().run(context)?;
                     let value = Self::run_assign(op, v_a, v_b, context)?;
-                    context.realm_mut().environment.set_mutable_binding(
-                        name.as_ref(),
-                        value.clone(),
-                        true,
-                    );
+                    context
+                        .realm_mut()
+                        .environment
+                        .set_mutable_binding(name.as_ref(), value.clone(), true)
+                        .map_err(|e| e.to_error(context))?;
                     Ok(value)
                 }
                 Node::GetConstField(ref get_const_field) => {
