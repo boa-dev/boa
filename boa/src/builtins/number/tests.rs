@@ -1,6 +1,6 @@
 #![allow(clippy::float_cmp)]
 
-use crate::{builtins::Number, forward, forward_val, Context};
+use crate::{builtins::Number, forward, forward_val, value::AbstractRelation, Context};
 
 #[test]
 fn integer_number_primitive_to_number_object() {
@@ -442,6 +442,34 @@ fn same_value() {
     assert_eq!(Number::same_value(f64::NAN, -0.0), false);
     assert_eq!(Number::same_value(0.0, f64::NAN), false);
     assert_eq!(Number::equal(1.0, 1.0), true);
+}
+
+#[test]
+fn less_than() {
+    assert_eq!(
+        Number::less_than(f64::NAN, 0.0),
+        AbstractRelation::Undefined
+    );
+    assert_eq!(
+        Number::less_than(0.0, f64::NAN),
+        AbstractRelation::Undefined
+    );
+    assert_eq!(
+        Number::less_than(f64::NEG_INFINITY, 0.0),
+        AbstractRelation::True
+    );
+    assert_eq!(
+        Number::less_than(0.0, f64::NEG_INFINITY),
+        AbstractRelation::False
+    );
+    assert_eq!(
+        Number::less_than(f64::INFINITY, 0.0),
+        AbstractRelation::False
+    );
+    assert_eq!(
+        Number::less_than(0.0, f64::INFINITY),
+        AbstractRelation::True
+    );
 }
 
 #[test]
