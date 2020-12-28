@@ -25,6 +25,8 @@ mod spread;
 mod string;
 mod template;
 pub mod token;
+mod id_unicode_categories;
+mod id_unicode_tables;
 
 #[cfg(test)]
 mod tests;
@@ -46,6 +48,7 @@ use core::convert::TryFrom;
 pub use error::Error;
 use std::io::Read;
 pub use token::{Token, TokenKind};
+pub use id_unicode_categories::IdentifierUnicodeCategories;
 
 trait Tokenizer<R> {
     /// Lexes the next token.

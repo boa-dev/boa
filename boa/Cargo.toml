@@ -35,7 +35,7 @@ chrono = "0.4.19"
 # Optional Dependencies
 measureme = { version = "9.0.0", optional = true }
 once_cell = { version = "1.5.2", optional = true }
-ucd = "0.1.1"
+unicode_categories = "0.1.1"
 
 [dev-dependencies]
 criterion = "0.3.3"

@@ -1,6 +1,6 @@
 //! This module implements lexing for identifiers (foo, myvar, etc.) used in the JavaScript programing language.
 
-use super::{Cursor, Error, Tokenizer};
+use super::{Cursor, Error, IdentifierUnicodeCategories, Tokenizer};
 use crate::{
     profiler::BoaProfiler,
     syntax::{
@@ -11,7 +11,6 @@ use crate::{
 use core::convert::TryFrom;
 use std::io::Read;
 use std::str;
-use ucd::Codepoint;
 
 const STRICT_FORBIDDEN_IDENTIFIERS: [&str; 11] = [
     "eval",
