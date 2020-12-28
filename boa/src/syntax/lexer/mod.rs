@@ -18,6 +18,8 @@ mod comment;
 mod cursor;
 pub mod error;
 mod identifier;
+mod identifier_unicode_properties;
+mod identifier_unicode_tables;
 mod number;
 mod operator;
 mod regex;
@@ -25,8 +27,6 @@ mod spread;
 mod string;
 mod template;
 pub mod token;
-mod id_unicode_categories;
-mod id_unicode_tables;
 
 #[cfg(test)]
 mod tests;
@@ -46,9 +46,9 @@ use crate::syntax::ast::{Punctuator, Span};
 pub use crate::{profiler::BoaProfiler, syntax::ast::Position};
 use core::convert::TryFrom;
 pub use error::Error;
+pub use identifier_unicode_properties::IdentifierUnicodeProperties;
 use std::io::Read;
 pub use token::{Token, TokenKind};
-pub use id_unicode_categories::IdentifierUnicodeCategories;
 
 trait Tokenizer<R> {
     /// Lexes the next token.

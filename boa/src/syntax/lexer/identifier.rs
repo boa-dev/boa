@@ -1,6 +1,6 @@
 //! This module implements lexing for identifiers (foo, myvar, etc.) used in the JavaScript programing language.
 
-use super::{Cursor, Error, IdentifierUnicodeCategories, Tokenizer};
+use super::{Cursor, Error, IdentifierUnicodeProperties, Tokenizer};
 use crate::{
     profiler::BoaProfiler,
     syntax::{
@@ -45,6 +45,12 @@ impl Identifier {
         Self { init }
     }
 
+    /// Checks if a character is IdentifierStart as per ECMAScript standards.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-names-and-keywords
     pub(super) fn is_identifier_start(ch: u32) -> bool {
         matches!(ch, 0x0024 /* $ */ | 0x005F /* _ */)
             || if let Ok(ch) = char::try_from(ch) {
@@ -54,6 +60,12 @@ impl Identifier {
             }
     }
 
+    /// Checks if a character is IdentifierPart as per ECMAScript standards.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-names-and-keywords
     fn is_identifier_part(ch: u32) -> bool {
         matches!(
             ch,

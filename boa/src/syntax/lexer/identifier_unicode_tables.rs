@@ -1,3 +1,12 @@
+//! This module implements the unicode lookup tables for identifier and pattern syntax.
+//!
+//! Unicode version: 13.0.0
+//!
+//! More information:
+//!  - [Unicode® Standard Annex #44][uax44]
+//!
+//! [uax44]: http://unicode.org/reports/tr44
+
 pub(super) static PATTERN_SYNTAX: &'static [char] = &[
     '\u{0021}', '\u{0022}', '\u{0023}', '\u{0024}', '\u{0025}', '\u{0026}', '\u{0027}', '\u{0028}',
     '\u{0029}', '\u{002A}', '\u{002B}', '\u{002C}', '\u{002D}', '\u{002E}', '\u{002F}', '\u{003A}',
@@ -345,13 +354,16 @@ pub(super) static PATTERN_SYNTAX: &'static [char] = &[
     '\u{3016}', '\u{3017}', '\u{3018}', '\u{3019}', '\u{301A}', '\u{301B}', '\u{301C}', '\u{301D}',
     '\u{301E}', '\u{301F}', '\u{3020}', '\u{3030}', '\u{FD3E}', '\u{FD3F}', '\u{FE45}', '\u{FE46}',
 ];
+
 pub(super) static OTHER_ID_CONTINUE: &'static [char] = &[
     '\u{00B7}', '\u{0387}', '\u{1369}', '\u{136A}', '\u{136B}', '\u{136C}', '\u{136D}', '\u{136E}',
     '\u{136F}', '\u{1370}', '\u{1371}', '\u{19DA}',
 ];
+
 pub(super) static OTHER_ID_START: &'static [char] = &[
     '\u{1885}', '\u{1886}', '\u{2118}', '\u{212E}', '\u{309B}', '\u{309C}',
 ];
+
 pub(super) static PATTERN_WHITE_SPACE: &'static [char] = &[
     '\u{0009}', '\u{000A}', '\u{000B}', '\u{000C}', '\u{000D}', '\u{0020}', '\u{0085}', '\u{200E}',
     '\u{200F}', '\u{2028}', '\u{2029}',
