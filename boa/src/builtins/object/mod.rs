@@ -301,7 +301,7 @@ impl Object {
             return context.throw_type_error("Property description must be an object");
         };
         obj.set_property(prop, desc);
-        Ok(Value::undefined())
+        Ok(obj.clone())
     }
 
     /// `Object.defineProperties( proto, [propertiesObject] )`

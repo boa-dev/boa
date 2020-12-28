@@ -972,6 +972,9 @@ impl Array {
         let to = Self::get_relative_end(context, args.get(1), len)?;
 
         let span = max(to.saturating_sub(from), 0);
+        if span > 2usize.pow(32) - 1 {
+            return context.throw_range_error("Invalid array length");
+        }
         let mut new_array_len: i32 = 0;
         for i in from..from.saturating_add(span) {
             new_array.set_field(new_array_len, this.get_field(i, context)?, context)?;
