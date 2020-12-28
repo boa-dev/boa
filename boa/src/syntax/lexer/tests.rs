@@ -71,6 +71,52 @@ fn check_multi_line_comment() {
 }
 
 #[test]
+fn check_identifier() {
+    let s = "x x1 _x $x __ $$ Ѐ ЀЀ x\u{200C}\u{200D}";
+    let mut lexer = Lexer::new(s.as_bytes());
+
+    let expected = [
+        TokenKind::identifier("x"),
+        TokenKind::identifier("x1"),
+        TokenKind::identifier("_x"),
+        TokenKind::identifier("$x"),
+        TokenKind::identifier("__"),
+        TokenKind::identifier("$$"),
+        TokenKind::identifier("Ѐ"),
+        TokenKind::identifier("ЀЀ"),
+        TokenKind::identifier("x\u{200C}\u{200D}"),
+    ];
+
+    expect_tokens(&mut lexer, &expected);
+}
+
+#[test]
+fn check_invalid_identifier_start() {
+    let invalid_identifier_starts = ["\u{200C}", "\u{200D}", "😀"];
+
+    for s in invalid_identifier_starts.iter() {
+        let mut lexer = Lexer::new(s.as_bytes());
+        lexer
+            .next()
+            .expect_err("Invalid identifier start not rejected as expected");
+    }
+}
+
+#[test]
+fn check_invalid_identifier_part() {
+    let invalid_identifier_parts = [" ", "\n", ".", "*", "😀", "\u{007F}"];
+
+    for part in invalid_identifier_parts.iter() {
+        let s = String::from("x") + part;
+        let mut lexer = Lexer::new(s.as_bytes());
+        assert_eq!(
+            lexer.next().unwrap().unwrap().kind(),
+            &TokenKind::identifier("x")
+        );
+    }
+}
+
+#[test]
 fn check_string() {
     let s = "'aaa' \"bbb\"";
     let mut lexer = Lexer::new(s.as_bytes());
