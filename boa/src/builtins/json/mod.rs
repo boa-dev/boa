@@ -193,12 +193,8 @@ impl Json {
                 .as_object()
                 .map(|obj| {
                     let object_to_return = Value::object(Object::default());
-                    for (key, val) in obj
-                        .borrow()
-                        .iter()
-                        // FIXME: handle accessor descriptors
-                        .map(|(k, v)| (k, v.as_data_descriptor().unwrap().value()))
-                    {
+                    for key in obj.borrow().keys() {
+                        let val = obj.get(&key, context)?;
                         let this_arg = object.clone();
                         object_to_return.set_property(
                             key.to_owned(),
@@ -236,12 +232,9 @@ impl Json {
                 }
             });
             for field in fields {
-                if let Some(value) = object
-                    .get_property(field.to_string(context)?)
-                    // FIXME: handle accessor descriptors
-                    .map(|prop| prop.as_data_descriptor().unwrap().value().to_json(context))
-                    .transpose()?
-                {
+                let v = object.get_field(field.to_string(context)?, context)?;
+                if !v.is_undefined() {
+                    let value = v.to_json(context)?;
                     obj_to_return.insert(field.to_string(context)?.to_string(), value);
                 }
             }
