@@ -124,12 +124,14 @@ impl Function {
         // Create binding
         local_env
             .borrow_mut()
-            .create_mutable_binding(param.name().to_owned(), false);
+            .create_mutable_binding(param.name().to_owned(), false)
+            .expect("Failed to create binding for rest param");
 
         // Set Binding to value
         local_env
             .borrow_mut()
-            .initialize_binding(param.name(), array);
+            .initialize_binding(param.name(), array)
+            .expect("Failed to initialize rest param");
     }
 
     // Adds an argument to the environment
@@ -142,12 +144,14 @@ impl Function {
         // Create binding
         local_env
             .borrow_mut()
-            .create_mutable_binding(param.name().to_owned(), false);
+            .create_mutable_binding(param.name().to_owned(), false)
+            .expect("Failed to create binding");
 
         // Set Binding to value
         local_env
             .borrow_mut()
-            .initialize_binding(param.name(), value);
+            .initialize_binding(param.name(), value)
+            .expect("Failed to intialize binding");
     }
 
     /// Returns true if the function object is callable.
