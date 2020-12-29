@@ -158,21 +158,9 @@ impl Value {
     }
 
     /// Returns a new empty object
-    pub fn new_object(global: Option<&Value>, context: &Context) -> Self {
+    pub fn new_object(context: &Context) -> Self {
         let _timer = BoaProfiler::global().start_event("new_object", "value");
-
-        if global.is_some() {
-            let object = Object::create(
-                context
-                    .standard_objects()
-                    .object_object()
-                    .prototype()
-                    .into(),
-            );
-            Self::object(object)
-        } else {
-            Self::object(Object::default())
-        }
+        context.construct_object().into()
     }
 
     /// Convert from a JSON value to a JS value
@@ -209,7 +197,7 @@ impl Value {
                 new_obj
             }
             JSONValue::Object(obj) => {
-                let new_obj = Value::new_object(Some(context.global_object()), context);
+                let new_obj = Value::new_object(context);
                 for (key, json) in obj.into_iter() {
                     let value = Self::from_json(json, context);
                     new_obj.set_property(

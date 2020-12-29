@@ -315,7 +315,7 @@ impl Context {
 
     /// Construct an empty object.
     #[inline]
-    pub fn construct_object(&mut self) -> GcObject {
+    pub fn construct_object(&self) -> GcObject {
         let object_prototype: Value = self.standard_objects().object_object().prototype().into();
         GcObject::new(Object::create(object_prototype))
     }
@@ -486,7 +486,7 @@ impl Context {
             self.standard_objects().function_object().prototype().into();
 
         // Every new function has a prototype property pre-made
-        let proto = Value::new_object(Some(self.global_object()), self);
+        let proto = Value::new_object(self);
 
         let params = params.into();
         let params_len = params.len();
@@ -520,7 +520,7 @@ impl Context {
         let function_prototype: Value = self.standard_objects().object_object().prototype().into();
 
         // Every new function has a prototype property pre-made
-        let proto = Value::new_object(Some(self.global_object()), self);
+        let proto = Value::new_object(self);
         let mut function = GcObject::new(Object::function(
             Function::BuiltIn(body.into(), FunctionFlags::CALLABLE),
             function_prototype,
@@ -572,16 +572,7 @@ impl Context {
                     .iter()
                     .map(|(key, value)| {
                         // Construct a new array containing the key-value pair
-                        let array = Value::new_object(
-                            Some(
-                                &self
-                                    .realm()
-                                    .environment
-                                    .get_global_object()
-                                    .expect("Could not get global object"),
-                            ),
-                            self,
-                        );
+                        let array = Value::new_object(self);
                         array.set_data(ObjectData::Array);
                         array.as_object().expect("object").set_prototype_instance(
                             self.realm()

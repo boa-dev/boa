@@ -217,16 +217,7 @@ impl Array {
 
     /// Creates a new `Array` instance.
     pub(crate) fn new_array(context: &Context) -> Result<Value> {
-        let array = Value::new_object(
-            Some(
-                &context
-                    .realm()
-                    .environment
-                    .get_global_object()
-                    .expect("Could not get global object"),
-            ),
-            context,
-        );
+        let array = Value::new_object(context);
         array.set_data(ObjectData::Array);
         array
             .as_object()

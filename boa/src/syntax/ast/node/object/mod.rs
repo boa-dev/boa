@@ -73,12 +73,7 @@ impl Object {
 
 impl Executable for Object {
     fn run(&self, context: &mut Context) -> Result<Value> {
-        let global_val = &context
-            .realm()
-            .environment
-            .get_global_object()
-            .expect("Could not get the global object");
-        let obj = Value::new_object(Some(global_val), context);
+        let obj = Value::new_object(context);
 
         // TODO: Implement the rest of the property types.
         for property in self.properties().iter() {

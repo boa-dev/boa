@@ -83,9 +83,7 @@ impl Object {
                 return Ok(arg.to_object(context)?.into());
             }
         }
-        let global = context.global_object();
-
-        Ok(Value::new_object(Some(global), context))
+        Ok(Value::new_object(context))
     }
 
     /// `Object.create( proto, [propertiesObject] )`

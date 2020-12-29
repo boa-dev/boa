@@ -75,7 +75,7 @@ impl Json {
                 let j = Value::from_json(json, context);
                 match args.get(1) {
                     Some(reviver) if reviver.is_function() => {
-                        let mut holder = Value::new_object(None, context);
+                        let mut holder = Value::object(Object::default());
                         holder.set_field("", j, context)?;
                         Self::walk(reviver, context, &mut holder, &PropertyKey::from(""))
                     }

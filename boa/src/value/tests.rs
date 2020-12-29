@@ -9,7 +9,7 @@ use std::hash::{Hash, Hasher};
 #[test]
 fn is_object() {
     let context = Context::new();
-    let val = Value::new_object(None, &context);
+    let val = Value::new_object(&context);
     assert_eq!(val.is_object(), true);
 }
 
@@ -31,7 +31,7 @@ fn undefined() {
 #[test]
 fn get_set_field() {
     let mut context = Context::new();
-    let obj = Value::new_object(None, &context);
+    let obj = Value::new_object(&context);
     // Create string and convert it to a Value
     let s = Value::from("bar");
     obj.set_field("foo", s, &mut context).unwrap();

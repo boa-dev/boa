@@ -50,7 +50,7 @@ impl ArrayIterator {
         array: Value,
         kind: ArrayIterationKind,
     ) -> Result<Value> {
-        let array_iterator = Value::new_object(Some(context.global_object()), context);
+        let array_iterator = Value::new_object(context);
         array_iterator.set_data(ObjectData::ArrayIterator(Self::new(array, kind)));
         array_iterator
             .as_object()
@@ -97,7 +97,7 @@ impl ArrayIterator {
                     ArrayIterationKind::KeyAndValue => {
                         let element_value = array_iterator.array.get_field(index, context)?;
                         let result = Array::constructor(
-                            &Value::new_object(Some(context.global_object()), context),
+                            &Value::new_object(context),
                             &[index.into(), element_value],
                             context,
                         )?;
@@ -119,11 +119,10 @@ impl ArrayIterator {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-%arrayiteratorprototype%-object
     pub(crate) fn create_prototype(context: &mut Context, iterator_prototype: Value) -> Value {
-        let global = context.global_object();
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
         // Create prototype
-        let array_iterator = Value::new_object(Some(global), context);
+        let array_iterator = Value::new_object(context);
         make_builtin_fn(Self::next, "next", &array_iterator, 0, context);
         array_iterator
             .as_object()
