@@ -39,6 +39,8 @@ This is an experimental Javascript lexer, parser and compiler written in Rust. C
     clippy::missing_errors_doc,
     clippy::as_conversions,
     clippy::let_unit_value,
+    // NativeFunctions always return Result<Value>, so we sometimes need to wrap everything in Ok()
+    clippy::unnecessary_wraps,
     missing_doc_code_examples
 )]
 

@@ -759,6 +759,7 @@ fn illegal_code_point_following_numeric_literal() {
     let mut lexer = Lexer::new(&br#"17.4\u{2764}"#[..]);
     assert!(
         lexer.next().is_err(),
+        "{}",
         r#"IdentifierStart \u{2764} following NumericLiteral not rejected as expected"#
     );
 }
