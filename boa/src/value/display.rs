@@ -48,18 +48,22 @@ macro_rules! print_obj_value {
     };
     (props of $obj:expr, $display_fn:ident, $indent:expr, $encounters:expr, $print_internals:expr) => {
         print_obj_value!(impl $obj, |(key, val)| {
-            let v = &val
-                // FIXME: handle accessor descriptors
-                .as_data_descriptor()
-                .unwrap()
-                .value();
+            if val.is_data_descriptor() {
+                let v = &val
+                    .as_data_descriptor()
+                    .unwrap()
+                    .value();
 
-            format!(
-                "{:>width$}: {}",
-                key,
-                $display_fn(v, $encounters, $indent.wrapping_add(4), $print_internals),
-                width = $indent,
-            )
+                format!(
+                    "{:>width$}: {}",
+                    key,
+                    $display_fn(v, $encounters, $indent.wrapping_add(4), $print_internals),
+                    width = $indent,
+                )
+            } else {
+                // FIXME: handle accessor descriptors
+                "".to_string()
+            }
         })
     };
 

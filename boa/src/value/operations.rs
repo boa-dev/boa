@@ -320,7 +320,7 @@ impl Value {
                 a.as_inner()
                     .clone()
                     .shift_left(b.as_inner().clone())
-                    .map_err(|msg| context.construct_range_error(&msg))?,
+                    .map_err(|msg| context.construct_range_error(msg))?,
             ),
 
             // Slow path:
@@ -332,7 +332,7 @@ impl Value {
                     x.as_inner()
                         .clone()
                         .shift_left(y.as_inner().clone())
-                        .map_err(|msg| context.construct_range_error(&msg))?,
+                        .map_err(|msg| context.construct_range_error(msg))?,
                 ),
                 (_, _) => {
                     return context.throw_type_error(
@@ -362,7 +362,7 @@ impl Value {
                 a.as_inner()
                     .clone()
                     .shift_right(b.as_inner().clone())
-                    .map_err(|msg| context.construct_range_error(&msg))?,
+                    .map_err(|msg| context.construct_range_error(msg))?,
             ),
 
             // Slow path:
@@ -374,7 +374,7 @@ impl Value {
                     x.as_inner()
                         .clone()
                         .shift_right(y.as_inner().clone())
-                        .map_err(|msg| context.construct_range_error(&msg))?,
+                        .map_err(|msg| context.construct_range_error(msg))?,
                 ),
                 (_, _) => {
                     return context.throw_type_error(

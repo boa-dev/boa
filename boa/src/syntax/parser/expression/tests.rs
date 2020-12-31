@@ -1,10 +1,10 @@
 use crate::syntax::{
-    ast::op::{AssignOp, BitOp, CompOp, NumOp},
+    ast::op::{AssignOp, BitOp, CompOp, LogOp, NumOp},
     ast::{
         node::{BinOp, Identifier},
         Const,
     },
-    parser::tests::check_parser,
+    parser::tests::{check_invalid, check_parser},
 };
 
 /// Checks numeric operations
@@ -191,6 +191,15 @@ fn check_assign_operations() {
         )
         .into()],
     );
+    check_parser(
+        "a ??= b",
+        vec![BinOp::new(
+            AssignOp::Coalesce,
+            Identifier::from("a"),
+            Identifier::from("b"),
+        )
+        .into()],
+    );
 }
 
 #[test]
@@ -235,4 +244,40 @@ fn check_relational_operations() {
         "p in o",
         vec![BinOp::new(CompOp::In, Identifier::from("p"), Identifier::from("o")).into()],
     );
+}
+
+#[test]
+fn check_logical_expressions() {
+    check_parser(
+        "a && b || c && d || e",
+        vec![BinOp::new(
+            LogOp::Or,
+            BinOp::new(LogOp::And, Identifier::from("a"), Identifier::from("b")),
+            BinOp::new(
+                LogOp::Or,
+                BinOp::new(LogOp::And, Identifier::from("c"), Identifier::from("d")),
+                Identifier::from("e"),
+            ),
+        )
+        .into()],
+    );
+
+    check_parser(
+        "a ?? b ?? c",
+        vec![BinOp::new(
+            LogOp::Coalesce,
+            BinOp::new(
+                LogOp::Coalesce,
+                Identifier::from("a"),
+                Identifier::from("b"),
+            ),
+            Identifier::from("c"),
+        )
+        .into()],
+    );
+
+    check_invalid("a ?? b && c");
+    check_invalid("a && b ?? c");
+    check_invalid("a ?? b || c");
+    check_invalid("a || b ?? c");
 }

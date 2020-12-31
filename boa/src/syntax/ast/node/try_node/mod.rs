@@ -108,9 +108,11 @@ impl Executable for Try {
                                 param.to_owned(),
                                 false,
                                 VariableScope::Block,
-                            );
-
-                            env.initialize_binding(param, err);
+                            )
+                            .map_err(|e| e.to_error(context))?;
+                            let env = &mut context.realm_mut().environment;
+                            env.initialize_binding(param, err)
+                                .map_err(|e| e.to_error(context))?;
                         }
                     }
 

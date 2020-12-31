@@ -110,7 +110,7 @@ fn check_punctuators() {
     // https://tc39.es/ecma262/#sec-punctuators
     let s = "{ ( ) [ ] . ... ; , < > <= >= == != === !== \
              + - * % -- << >> >>> & | ^ ! ~ && || ? : \
-             = += -= *= &= **= ++ ** <<= >>= >>>= &= |= ^= =>";
+             = += -= *= &= **= ++ ** <<= >>= >>>= &= |= ^= => ?? ??=";
     let mut lexer = Lexer::new(s.as_bytes());
 
     let expected = [
@@ -163,6 +163,8 @@ fn check_punctuators() {
         TokenKind::Punctuator(Punctuator::AssignOr),
         TokenKind::Punctuator(Punctuator::AssignXor),
         TokenKind::Punctuator(Punctuator::Arrow),
+        TokenKind::Punctuator(Punctuator::Coalesce),
+        TokenKind::Punctuator(Punctuator::AssignCoalesce),
     ];
 
     expect_tokens(&mut lexer, &expected);
@@ -391,6 +393,44 @@ fn numbers() {
 }
 
 #[test]
+fn numbers_with_separators() {
+    let mut lexer = Lexer::new(
+        "1_0 2_0 0x3_4 056 7.8_9 4_2. 5_0e2 5_0e+2 5_0e-4 0b1_0 1_0.0_0e2 1.0E-0_1 -3_2".as_bytes(),
+    );
+
+    let expected = [
+        TokenKind::numeric_literal(10),
+        TokenKind::numeric_literal(20),
+        TokenKind::numeric_literal(52),
+        TokenKind::numeric_literal(46),
+        TokenKind::numeric_literal(7.89),
+        TokenKind::numeric_literal(42),
+        TokenKind::numeric_literal(5000),
+        TokenKind::numeric_literal(5000),
+        TokenKind::numeric_literal(0.005),
+        TokenKind::numeric_literal(2),
+        TokenKind::numeric_literal(1000),
+        TokenKind::numeric_literal(0.1),
+        TokenKind::Punctuator(Punctuator::Sub),
+        TokenKind::numeric_literal(32),
+    ];
+
+    expect_tokens(&mut lexer, &expected);
+}
+
+#[test]
+fn numbers_with_bad_separators() {
+    let numbers = [
+        "0b_10", "0x_10", "10_", "1._10", "1e+_10", "1E_10", "10__00",
+    ];
+
+    for n in numbers.iter() {
+        let mut lexer = Lexer::new(n.as_bytes());
+        assert!(lexer.next().is_err());
+    }
+}
+
+#[test]
 fn big_exp_numbers() {
     let mut lexer = Lexer::new(&b"1.0e25 1.0e36 9.0e50"[..]);
 
@@ -419,8 +459,7 @@ fn implicit_octal_edge_case() {
 
     let expected = [
         TokenKind::numeric_literal(36),
-        TokenKind::Punctuator(Punctuator::Dot),
-        TokenKind::numeric_literal(5),
+        TokenKind::numeric_literal(0.5),
         TokenKind::numeric_literal(94.5),
     ];
 
