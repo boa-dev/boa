@@ -23,13 +23,13 @@ use serde::{Deserialize, Serialize};
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub struct StatementList {
     #[cfg_attr(feature = "deser", serde(flatten))]
-    statements: Box<[Node]>,
+    items: Box<[Node]>,
 }
 
 impl StatementList {
-    /// Gets the list of statements.
-    pub fn statements(&self) -> &[Node] {
-        &self.statements
+    /// Gets the list of items.
+    pub fn items(&self) -> &[Node] {
+        &self.items
     }
 
     /// Implements the display formatting with indentation.
@@ -40,7 +40,7 @@ impl StatementList {
     ) -> fmt::Result {
         let indent = "    ".repeat(indentation);
         // Print statements
-        for node in self.statements.iter() {
+        for node in self.items.iter() {
             f.write_str(&indent)?;
             node.display(f, indentation + 1)?;
 
@@ -64,7 +64,7 @@ impl Executable for StatementList {
         context
             .executor()
             .set_current_state(InterpreterState::Executing);
-        for (i, item) in self.statements().iter().enumerate() {
+        for (i, item) in self.items().iter().enumerate() {
             let val = item.run(context)?;
             match context.executor().get_current_state() {
                 InterpreterState::Return => {
@@ -83,7 +83,7 @@ impl Executable for StatementList {
                     // Continue execution
                 }
             }
-            if i + 1 == self.statements().len() {
+            if i + 1 == self.items().len() {
                 obj = val;
             }
         }
@@ -98,7 +98,7 @@ where
 {
     fn from(stm: T) -> Self {
         Self {
-            statements: stm.into(),
+            items: stm.into(),
         }
     }
 }
