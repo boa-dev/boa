@@ -77,8 +77,9 @@ impl Map {
         // Set Prototype
         let prototype = context
             .global_object()
-            .get_field("Map")
-            .get_field(PROTOTYPE);
+            .clone()
+            .get_field("Map", context)?
+            .get_field(PROTOTYPE, context)?;
 
         this.as_object()
             .expect("this is map object")
@@ -96,14 +97,15 @@ impl Map {
                         map
                     } else if object.is_array() {
                         let mut map = OrderedMap::new();
-                        let len = args[0].get_field("length").to_integer(context)? as i32;
+                        let len = args[0].get_field("length", context)?.to_integer(context)? as i32;
                         for i in 0..len {
-                            let val = &args[0].get_field(i.to_string());
-                            let (key, value) = Self::get_key_value(val).ok_or_else(|| {
-                                context.construct_type_error(
-                                    "iterable for Map should have array-like objects",
-                                )
-                            })?;
+                            let val = &args[0].get_field(i, context)?;
+                            let (key, value) =
+                                Self::get_key_value(val, context)?.ok_or_else(|| {
+                                    context.construct_type_error(
+                                        "iterable for Map should have array-like objects",
+                                    )
+                                })?;
                             map.insert(key, value);
                         }
                         map
@@ -354,17 +356,21 @@ impl Map {
     }
 
     /// Helper function to get a key-value pair from an array.
-    fn get_key_value(value: &Value) -> Option<(Value, Value)> {
+    fn get_key_value(value: &Value, context: &mut Context) -> Result<Option<(Value, Value)>> {
         if let Value::Object(object) = value {
             if object.is_array() {
-                let (key, value) = match value.get_field("length").as_number().unwrap() as i32 {
-                    0 => (Value::Undefined, Value::Undefined),
-                    1 => (value.get_field("0"), Value::Undefined),
-                    _ => (value.get_field("0"), value.get_field("1")),
-                };
-                return Some((key, value));
+                let (key, value) =
+                    match value.get_field("length", context)?.as_number().unwrap() as i32 {
+                        0 => (Value::Undefined, Value::Undefined),
+                        1 => (value.get_field("0", context)?, Value::Undefined),
+                        _ => (
+                            value.get_field("0", context)?,
+                            value.get_field("1", context)?,
+                        ),
+                    };
+                return Ok(Some((key, value)));
             }
         }
-        None
+        Ok(None)
     }
 }

@@ -232,9 +232,10 @@ pub fn make_builtin_fn<N>(
     let mut function = Object::function(
         Function::BuiltIn(function.into(), FunctionFlags::CALLABLE),
         interpreter
-            .global_object()
-            .get_field("Function")
-            .get_field("prototype"),
+            .standard_objects()
+            .function_object()
+            .prototype()
+            .into(),
     );
     function.insert_property("length", length, Attribute::all());
 
@@ -304,7 +305,7 @@ impl BuiltInFunctionObject {
             return context.call(this, &this_arg, &[]);
         }
         let arg_list = context
-            .extract_array_properties(&arg_array)
+            .extract_array_properties(&arg_array)?
             .map_err(|()| arg_array)?;
         // TODO?: 5. PrepareForTailCall
         context.call(this, &this_arg, &arg_list)

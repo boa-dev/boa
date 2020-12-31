@@ -3,6 +3,7 @@
 use crate::{
     exec::Executable,
     gc::{Finalize, Trace},
+    property::{AccessorDescriptor, Attribute, PropertyDescriptor},
     syntax::ast::node::{MethodDefinitionKind, Node, PropertyDefinition},
     Context, Result, Value,
 };
@@ -72,27 +73,53 @@ impl Object {
 
 impl Executable for Object {
     fn run(&self, context: &mut Context) -> Result<Value> {
-        let global_val = &context
-            .realm()
-            .environment
-            .get_global_object()
-            .expect("Could not get the global object");
-        let obj = Value::new_object(Some(global_val));
+        let obj = Value::new_object(context);
 
         // TODO: Implement the rest of the property types.
         for property in self.properties().iter() {
             match property {
                 PropertyDefinition::Property(key, value) => {
-                    obj.set_field(key.clone(), value.run(context)?);
+                    obj.set_field(key.clone(), value.run(context)?, context)?;
                 }
-                PropertyDefinition::MethodDefinition(kind, name, func) => {
-                    if let MethodDefinitionKind::Ordinary = kind {
-                        obj.set_field(name.clone(), func.run(context)?);
-                    } else {
-                        // TODO: Implement other types of MethodDefinitionKinds.
-                        //unimplemented!("other types of property method definitions.");
+                PropertyDefinition::MethodDefinition(kind, name, func) => match kind {
+                    MethodDefinitionKind::Ordinary => {
+                        obj.set_field(name.clone(), func.run(context)?, context)?;
                     }
-                }
+                    MethodDefinitionKind::Get => {
+                        let set = obj
+                            .get_property(name.clone())
+                            .as_ref()
+                            .and_then(|p| p.as_accessor_descriptor())
+                            .and_then(|a| a.setter().cloned());
+                        obj.set_property(
+                            name.clone(),
+                            PropertyDescriptor::Accessor(AccessorDescriptor {
+                                get: func.run(context)?.as_object(),
+                                set,
+                                attributes: Attribute::WRITABLE
+                                    | Attribute::ENUMERABLE
+                                    | Attribute::CONFIGURABLE,
+                            }),
+                        )
+                    }
+                    MethodDefinitionKind::Set => {
+                        let get = obj
+                            .get_property(name.clone())
+                            .as_ref()
+                            .and_then(|p| p.as_accessor_descriptor())
+                            .and_then(|a| a.getter().cloned());
+                        obj.set_property(
+                            name.clone(),
+                            PropertyDescriptor::Accessor(AccessorDescriptor {
+                                get,
+                                set: func.run(context)?.as_object(),
+                                attributes: Attribute::WRITABLE
+                                    | Attribute::ENUMERABLE
+                                    | Attribute::CONFIGURABLE,
+                            }),
+                        )
+                    }
+                },
                 _ => {} //unimplemented!("{:?} type of property", i),
             }
         }

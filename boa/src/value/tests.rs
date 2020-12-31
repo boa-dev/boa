@@ -8,7 +8,8 @@ use std::hash::{Hash, Hasher};
 
 #[test]
 fn is_object() {
-    let val = Value::new_object(None);
+    let context = Context::new();
+    let val = Value::new_object(&context);
     assert_eq!(val.is_object(), true);
 }
 
@@ -29,11 +30,18 @@ fn undefined() {
 
 #[test]
 fn get_set_field() {
-    let obj = Value::new_object(None);
+    let mut context = Context::new();
+    let obj = Value::new_object(&context);
     // Create string and convert it to a Value
     let s = Value::from("bar");
-    obj.set_field("foo", s);
-    assert_eq!(obj.get_field("foo").display().to_string(), "\"bar\"");
+    obj.set_field("foo", s, &mut context).unwrap();
+    assert_eq!(
+        obj.get_field("foo", &mut context)
+            .unwrap()
+            .display()
+            .to_string(),
+        "\"bar\""
+    );
 }
 
 #[test]
@@ -596,6 +604,19 @@ fn to_integer_or_infinity() {
         Value::from(true).to_integer_or_infinity(&mut context),
         Ok(IntegerOrInfinity::Integer(1))
     );
+}
+
+#[test]
+fn test_accessors() {
+    let mut context = Context::new();
+    let src = r#"
+            let arr = [];
+            let a = { get b() { return "c" }, set b(value) { arr = arr.concat([value]) }} ;
+            a.b = "a";
+        "#;
+    context.eval(src).unwrap();
+    assert_eq!(forward(&mut context, "a.b"), r#""c""#);
+    assert_eq!(forward(&mut context, "arr"), r#"[ "a" ]"#);
 }
 
 /// Test cyclic conversions that previously caused stack overflows
