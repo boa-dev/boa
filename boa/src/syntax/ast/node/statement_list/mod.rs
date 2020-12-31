@@ -97,9 +97,7 @@ where
     T: Into<Box<[Node]>>,
 {
     fn from(stm: T) -> Self {
-        Self {
-            items: stm.into(),
-        }
+        Self { items: stm.into() }
     }
 }
 
