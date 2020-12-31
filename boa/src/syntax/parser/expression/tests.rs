@@ -191,6 +191,15 @@ fn check_assign_operations() {
         )
         .into()],
     );
+    check_parser(
+        "a ??= b",
+        vec![BinOp::new(
+            AssignOp::Coalesce,
+            Identifier::from("a"),
+            Identifier::from("b"),
+        )
+        .into()],
+    );
 }
 
 #[test]
