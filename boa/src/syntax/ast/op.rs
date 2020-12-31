@@ -683,6 +683,19 @@ pub enum LogOp {
     /// [spec]: https://tc39.es/ecma262/#prod-LogicalORExpression
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Logical_Operators#Logical_OR
     Or,
+
+    /// The nullish coalescing operator is a logical operator that returns the second operand
+    /// when its first operand is null or undefined, and otherwise returns its first operand.
+    ///
+    /// Syntax: `x ?? y`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#prod-CoalesceExpression
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Nullish_coalescing_operator
+    Coalesce,
 }
 
 impl Display for LogOp {
@@ -693,6 +706,7 @@ impl Display for LogOp {
             match *self {
                 Self::And => "&&",
                 Self::Or => "||",
+                Self::Coalesce => "??",
             }
         )
     }
@@ -950,6 +964,18 @@ pub enum AssignOp {
     /// [spec]: https://tc39.es/ecma262/#prod-AssignmentOperator
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Unsigned_right_shift_assignment
     Ushr,
+
+    /// The logical nullish assignment operator only assigns if the target variable is nullish (null or undefined).
+    ///
+    /// Syntax: `x ??= y`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#prod-AssignmentExpression
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Logical_nullish_assignment
+    Coalesce,
 }
 
 unsafe impl Trace for AssignOp {
@@ -974,6 +1000,7 @@ impl Display for AssignOp {
                 Self::Shl => "<<=",
                 Self::Shr => ">>=",
                 Self::Ushr => ">>>=",
+                Self::Coalesce => "??=",
             }
         )
     }

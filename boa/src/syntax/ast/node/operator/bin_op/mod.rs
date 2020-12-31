@@ -57,20 +57,27 @@ impl BinOp {
     }
 
     /// Runs the assignment operators.
-    fn run_assign(op: AssignOp, x: Value, y: Value, context: &mut Context) -> Result<Value> {
+    fn run_assign(op: AssignOp, x: Value, y: &Node, context: &mut Context) -> Result<Value> {
         match op {
-            AssignOp::Add => x.add(&y, context),
-            AssignOp::Sub => x.sub(&y, context),
-            AssignOp::Mul => x.mul(&y, context),
-            AssignOp::Exp => x.pow(&y, context),
-            AssignOp::Div => x.div(&y, context),
-            AssignOp::Mod => x.rem(&y, context),
-            AssignOp::And => x.bitand(&y, context),
-            AssignOp::Or => x.bitor(&y, context),
-            AssignOp::Xor => x.bitxor(&y, context),
-            AssignOp::Shl => x.shl(&y, context),
-            AssignOp::Shr => x.shr(&y, context),
-            AssignOp::Ushr => x.ushr(&y, context),
+            AssignOp::Add => x.add(&y.run(context)?, context),
+            AssignOp::Sub => x.sub(&y.run(context)?, context),
+            AssignOp::Mul => x.mul(&y.run(context)?, context),
+            AssignOp::Exp => x.pow(&y.run(context)?, context),
+            AssignOp::Div => x.div(&y.run(context)?, context),
+            AssignOp::Mod => x.rem(&y.run(context)?, context),
+            AssignOp::And => x.bitand(&y.run(context)?, context),
+            AssignOp::Or => x.bitor(&y.run(context)?, context),
+            AssignOp::Xor => x.bitxor(&y.run(context)?, context),
+            AssignOp::Shl => x.shl(&y.run(context)?, context),
+            AssignOp::Shr => x.shr(&y.run(context)?, context),
+            AssignOp::Ushr => x.ushr(&y.run(context)?, context),
+            AssignOp::Coalesce => {
+                if x.is_null_or_undefined() {
+                    Ok(y.run(context)?)
+                } else {
+                    Ok(x)
+                }
+            }
         }
     }
 }
@@ -167,6 +174,14 @@ impl Executable for BinOp {
                         self.rhs().run(context)?
                     }
                 }
+                LogOp::Coalesce => {
+                    let left = self.lhs.run(context)?;
+                    if left.is_null_or_undefined() {
+                        self.rhs().run(context)?
+                    } else {
+                        left
+                    }
+                }
             }),
             op::BinOp::Assign(op) => match self.lhs() {
                 Node::Identifier(ref name) => {
@@ -176,8 +191,7 @@ impl Executable for BinOp {
                         .get_binding_value(name.as_ref())
                         .map_err(|e| e.to_error(context))?;
 
-                    let v_b = self.rhs().run(context)?;
-                    let value = Self::run_assign(op, v_a, v_b, context)?;
+                    let value = Self::run_assign(op, v_a, self.rhs(), context)?;
                     context
                         .realm_mut()
                         .environment
@@ -188,8 +202,7 @@ impl Executable for BinOp {
                 Node::GetConstField(ref get_const_field) => {
                     let v_r_a = get_const_field.obj().run(context)?;
                     let v_a = v_r_a.get_field(get_const_field.field());
-                    let v_b = self.rhs().run(context)?;
-                    let value = Self::run_assign(op, v_a, v_b, context)?;
+                    let value = Self::run_assign(op, v_a, self.rhs(), context)?;
                     v_r_a.set_field(get_const_field.field(), value.clone());
                     Ok(value)
                 }
