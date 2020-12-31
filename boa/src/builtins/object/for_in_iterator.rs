@@ -46,7 +46,7 @@ impl ForInIterator {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-createforiniterator
     pub(crate) fn create_for_in_iterator(context: &Context, object: Value) -> Result<Value> {
-        let for_in_iterator = Value::new_object(Some(context.global_object()));
+        let for_in_iterator = Value::new_object(context);
         for_in_iterator.set_data(ObjectData::ForInIterator(Self::new(object)));
         for_in_iterator
             .as_object()
@@ -126,11 +126,10 @@ impl ForInIterator {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-%foriniteratorprototype%-object
     pub(crate) fn create_prototype(context: &mut Context, iterator_prototype: Value) -> Value {
-        let global = context.global_object();
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
         // Create prototype
-        let for_in_iterator = Value::new_object(Some(global));
+        let for_in_iterator = Value::new_object(context);
         make_builtin_fn(Self::next, "next", &for_in_iterator, 0, context);
         for_in_iterator
             .as_object()

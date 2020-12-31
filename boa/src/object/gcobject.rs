@@ -204,7 +204,7 @@ impl GcObject {
         // prototype as prototype for the new object
         // see <https://tc39.es/ecma262/#sec-ordinarycreatefromconstructor>
         // see <https://tc39.es/ecma262/#sec-getprototypefromconstructor>
-        let proto = self.get(&PROTOTYPE.into());
+        let proto = self.get(&PROTOTYPE.into(), context)?;
         let proto = if proto.is_object() {
             proto
         } else {
@@ -272,7 +272,7 @@ impl GcObject {
                     }
                 }
             } else {
-                let name = this.get_field("name").display().to_string();
+                let name = this.get_field("name", context)?.display().to_string();
                 return context.throw_type_error(format!("{} is not a constructor", name));
             }
         } else {
@@ -350,7 +350,7 @@ impl GcObject {
         let this = Value::from(self.clone());
         for name in &method_names {
             // a. Let method be ? Get(O, name).
-            let method: Value = this.get_field(*name);
+            let method: Value = this.get_field(*name, context)?;
             // b. If IsCallable(method) is true, then
             if method.is_function() {
                 // i. Let result be ? Call(method, O).
@@ -377,7 +377,7 @@ impl GcObject {
             let mut arr: Vec<JSONValue> = Vec::with_capacity(keys.len());
             let this = Value::from(self.clone());
             for key in keys {
-                let value = this.get_field(key);
+                let value = this.get_field(key, context)?;
                 if value.is_undefined() || value.is_function() || value.is_symbol() {
                     arr.push(JSONValue::Null);
                 } else {
@@ -390,7 +390,7 @@ impl GcObject {
             let this = Value::from(self.clone());
             for k in self.borrow().keys() {
                 let key = k.clone();
-                let value = this.get_field(k.to_string());
+                let value = this.get_field(k.to_string(), context)?;
                 if !value.is_undefined() && !value.is_function() && !value.is_symbol() {
                     new_obj.insert(key.to_string(), value.to_json(context)?);
                 }
@@ -408,26 +408,28 @@ impl GcObject {
         let mut attribute = Attribute::empty();
 
         let enumerable_key = PropertyKey::from("enumerable");
-        if self.has_property(&enumerable_key) && self.get(&enumerable_key).to_boolean() {
+        if self.has_property(&enumerable_key) && self.get(&enumerable_key, context)?.to_boolean() {
             attribute |= Attribute::ENUMERABLE;
         }
 
         let configurable_key = PropertyKey::from("configurable");
-        if self.has_property(&configurable_key) && self.get(&configurable_key).to_boolean() {
+        if self.has_property(&configurable_key)
+            && self.get(&configurable_key, context)?.to_boolean()
+        {
             attribute |= Attribute::CONFIGURABLE;
         }
 
         let mut value = None;
         let value_key = PropertyKey::from("value");
         if self.has_property(&value_key) {
-            value = Some(self.get(&value_key));
+            value = Some(self.get(&value_key, context)?);
         }
 
         let mut has_writable = false;
         let writable_key = PropertyKey::from("writable");
         if self.has_property(&writable_key) {
             has_writable = true;
-            if self.get(&writable_key).to_boolean() {
+            if self.get(&writable_key, context)?.to_boolean() {
                 attribute |= Attribute::WRITABLE;
             }
         }
@@ -435,7 +437,7 @@ impl GcObject {
         let mut get = None;
         let get_key = PropertyKey::from("get");
         if self.has_property(&get_key) {
-            let getter = self.get(&get_key);
+            let getter = self.get(&get_key, context)?;
             match getter {
                 Value::Object(ref object) if object.is_callable() => {
                     get = Some(object.clone());
@@ -451,7 +453,7 @@ impl GcObject {
         let mut set = None;
         let set_key = PropertyKey::from("set");
         if self.has_property(&set_key) {
-            let setter = self.get(&set_key);
+            let setter = self.get(&set_key, context)?;
             match setter {
                 Value::Object(ref object) if object.is_callable() => {
                     set = Some(object.clone());
@@ -707,7 +709,7 @@ impl GcObject {
         K: Into<PropertyKey>,
     {
         let key = key.into();
-        let value = self.get(&key);
+        let value = self.get(&key, context)?;
 
         if value.is_null_or_undefined() {
             return Ok(None);
@@ -741,7 +743,7 @@ impl GcObject {
         //           Return ? InstanceofOperator(O, BC).
 
         if let Some(object) = value.as_object() {
-            if let Some(prototype) = self.get(&"prototype".into()).as_object() {
+            if let Some(prototype) = self.get(&"prototype".into(), context)?.as_object() {
                 let mut object = object.get_prototype_of();
                 while let Some(object_prototype) = object.as_object() {
                     if GcObject::equals(&prototype, &object_prototype) {

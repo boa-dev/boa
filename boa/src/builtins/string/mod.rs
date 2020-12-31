@@ -1219,7 +1219,7 @@ impl String {
             ),
         }?;
 
-        RegExp::match_all(&re, this.to_string(context)?.to_string())
+        RegExp::match_all(&re, this.to_string(context)?.to_string(), context)
     }
 
     pub(crate) fn iterator(this: &Value, _: &[Value], context: &mut Context) -> Result<Value> {

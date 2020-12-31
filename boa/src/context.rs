@@ -316,10 +316,7 @@ impl Context {
     /// Construct an empty object.
     #[inline]
     pub fn construct_object(&self) -> GcObject {
-        let object_prototype = self
-            .global_object()
-            .get_field("Object")
-            .get_field(PROTOTYPE);
+        let object_prototype: Value = self.standard_objects().object_object().prototype().into();
         GcObject::new(Object::create(object_prototype))
     }
 
@@ -480,18 +477,16 @@ impl Context {
         params: P,
         body: B,
         flags: FunctionFlags,
-    ) -> Value
+    ) -> Result<Value>
     where
         P: Into<Box<[FormalParameter]>>,
         B: Into<StatementList>,
     {
-        let function_prototype = self
-            .global_object()
-            .get_field("Function")
-            .get_field(PROTOTYPE);
+        let function_prototype: Value =
+            self.standard_objects().function_object().prototype().into();
 
         // Every new function has a prototype property pre-made
-        let proto = Value::new_object(Some(self.global_object()));
+        let proto = Value::new_object(self);
 
         let params = params.into();
         let params_len = params.len();
@@ -507,12 +502,12 @@ impl Context {
         let val = Value::from(new_func);
 
         // Set constructor field to the newly created Value (function object)
-        proto.set_field("constructor", val.clone());
+        proto.set_field("constructor", val.clone(), self)?;
 
-        val.set_field(PROTOTYPE, proto);
-        val.set_field("length", Value::from(params_len));
+        val.set_field(PROTOTYPE, proto, self)?;
+        val.set_field("length", Value::from(params_len), self)?;
 
-        val
+        Ok(val)
     }
 
     /// Create a new builin function.
@@ -522,20 +517,17 @@ impl Context {
         length: usize,
         body: NativeFunction,
     ) -> Result<GcObject> {
-        let function_prototype = self
-            .global_object()
-            .get_field("Function")
-            .get_field(PROTOTYPE);
+        let function_prototype: Value = self.standard_objects().object_object().prototype().into();
 
         // Every new function has a prototype property pre-made
-        let proto = Value::new_object(Some(self.global_object()));
+        let proto = Value::new_object(self);
         let mut function = GcObject::new(Object::function(
             Function::BuiltIn(body.into(), FunctionFlags::CALLABLE),
             function_prototype,
         ));
-        function.set(PROTOTYPE.into(), proto);
-        function.set("length".into(), length.into());
-        function.set("name".into(), name.into());
+        function.set(PROTOTYPE.into(), proto, self)?;
+        function.set("length".into(), length.into(), self)?;
+        function.set("name".into(), name.into(), self)?;
 
         Ok(function)
     }
@@ -549,7 +541,11 @@ impl Context {
         body: NativeFunction,
     ) -> Result<()> {
         let function = self.create_builtin_function(name, length, body)?;
-        self.global_object().set_field(name, function);
+        let global = self.global_object();
+        global
+            .as_object()
+            .unwrap()
+            .insert_property(name, function, Attribute::all());
         Ok(())
     }
 
@@ -557,15 +553,18 @@ impl Context {
     ///
     /// This is useful for the spread operator, for any other object an `Err` is returned
     /// TODO: Not needed for spread of arrays. Check in the future for Map and remove if necessary
-    pub(crate) fn extract_array_properties(&mut self, value: &Value) -> StdResult<Vec<Value>, ()> {
+    pub(crate) fn extract_array_properties(
+        &mut self,
+        value: &Value,
+    ) -> Result<StdResult<Vec<Value>, ()>> {
         if let Value::Object(ref x) = value {
             // Check if object is array
             if let ObjectData::Array = x.borrow().data {
-                let length = value.get_field("length").as_number().unwrap() as i32;
+                let length = value.get_field("length", self)?.as_number().unwrap() as i32;
                 let values = (0..length)
-                    .map(|idx| value.get_field(idx.to_string()))
-                    .collect();
-                return Ok(values);
+                    .map(|idx| value.get_field(idx, self))
+                    .collect::<Result<Vec<_>>>()?;
+                return Ok(Ok(values));
             }
             // Check if object is a Map
             else if let ObjectData::Map(ref map) = x.borrow().data {
@@ -573,34 +572,28 @@ impl Context {
                     .iter()
                     .map(|(key, value)| {
                         // Construct a new array containing the key-value pair
-                        let array = Value::new_object(Some(
-                            &self
-                                .realm()
-                                .environment
-                                .get_global_object()
-                                .expect("Could not get global object"),
-                        ));
+                        let array = Value::new_object(self);
                         array.set_data(ObjectData::Array);
                         array.as_object().expect("object").set_prototype_instance(
                             self.realm()
                                 .environment
                                 .get_binding_value("Array")
                                 .expect("Array was not initialized")
-                                .get_field(PROTOTYPE),
+                                .get_field(PROTOTYPE, self)?,
                         );
-                        array.set_field("0", key);
-                        array.set_field("1", value);
-                        array.set_field("length", Value::from(2));
-                        array
+                        array.set_field(0, key, self)?;
+                        array.set_field(1, value, self)?;
+                        array.set_field("length", Value::from(2), self)?;
+                        Ok(array)
                     })
-                    .collect();
-                return Ok(values);
+                    .collect::<Result<Vec<_>>>()?;
+                return Ok(Ok(values));
             }
 
-            return Err(());
+            return Ok(Err(()));
         }
 
-        Err(())
+        Ok(Err(()))
     }
 
     /// <https://tc39.es/ecma262/#sec-hasproperty>
@@ -626,11 +619,11 @@ impl Context {
             Node::GetConstField(ref get_const_field_node) => Ok(get_const_field_node
                 .obj()
                 .run(self)?
-                .set_field(get_const_field_node.field(), value)),
+                .set_field(get_const_field_node.field(), value, self)?),
             Node::GetField(ref get_field) => {
                 let field = get_field.field().run(self)?;
                 let key = field.to_property_key(self)?;
-                Ok(get_field.obj().run(self)?.set_field(key, value))
+                Ok(get_field.obj().run(self)?.set_field(key, value, self)?)
             }
             _ => panic!("TypeError: invalid assignment to {}", node),
         }

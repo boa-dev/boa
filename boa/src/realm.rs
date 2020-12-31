@@ -4,6 +4,7 @@
 //!
 //! A realm is represented in this implementation as a Realm struct with the fields specified from the spec.
 
+use crate::object::Object;
 use crate::{
     environment::{
         declarative_environment_record::DeclarativeEnvironmentRecord,
@@ -31,7 +32,7 @@ impl Realm {
         let _timer = BoaProfiler::global().start_event("Realm::create", "realm");
         // Create brand new global object
         // Global has no prototype to pass None to new_obj
-        let global = Value::new_object(None);
+        let global = Value::from(Object::default());
 
         // Allow identification of the global object easily
         global.set_data(crate::object::ObjectData::Global);
