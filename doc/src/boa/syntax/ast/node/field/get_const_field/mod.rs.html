@@ -157,7 +157,7 @@
             <span class="ident">obj</span> <span class="op">=</span> <span class="ident">Value</span>::<span class="ident">Object</span>(<span class="ident">obj</span>.<span class="ident">to_object</span>(<span class="ident">context</span>)<span class="question-mark">?</span>);
         }
 
-        <span class="prelude-val">Ok</span>(<span class="ident">obj</span>.<span class="ident">get_field</span>(<span class="self">self</span>.<span class="ident">field</span>()))
+        <span class="prelude-val">Ok</span>(<span class="ident">obj</span>.<span class="ident">get_field</span>(<span class="self">self</span>.<span class="ident">field</span>(), <span class="ident">context</span>)<span class="question-mark">?</span>)
     }
 }
 

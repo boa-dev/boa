@@ -1327,6 +1327,34 @@
 <span id="1326">1326</span>
 <span id="1327">1327</span>
 <span id="1328">1328</span>
+<span id="1329">1329</span>
+<span id="1330">1330</span>
+<span id="1331">1331</span>
+<span id="1332">1332</span>
+<span id="1333">1333</span>
+<span id="1334">1334</span>
+<span id="1335">1335</span>
+<span id="1336">1336</span>
+<span id="1337">1337</span>
+<span id="1338">1338</span>
+<span id="1339">1339</span>
+<span id="1340">1340</span>
+<span id="1341">1341</span>
+<span id="1342">1342</span>
+<span id="1343">1343</span>
+<span id="1344">1344</span>
+<span id="1345">1345</span>
+<span id="1346">1346</span>
+<span id="1347">1347</span>
+<span id="1348">1348</span>
+<span id="1349">1349</span>
+<span id="1350">1350</span>
+<span id="1351">1351</span>
+<span id="1352">1352</span>
+<span id="1353">1353</span>
+<span id="1354">1354</span>
+<span id="1355">1355</span>
+<span id="1356">1356</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements the global `Array` object.</span>
 <span class="doccomment">//!</span>
@@ -1347,7 +1375,7 @@
     <span class="ident">builtins</span>::<span class="ident">array</span>::<span class="ident">array_iterator</span>::{<span class="ident">ArrayIterationKind</span>, <span class="ident">ArrayIterator</span>},
     <span class="ident">builtins</span>::<span class="ident">BuiltIn</span>,
     <span class="ident">gc</span>::<span class="ident">GcObject</span>,
-    <span class="ident">object</span>::{<span class="ident">ConstructorBuilder</span>, <span class="ident">FunctionBuilder</span>, <span class="ident">ObjectData</span>, <span class="ident">PROTOTYPE</span>},
+    <span class="ident">object</span>::{<span class="ident">ConstructorBuilder</span>, <span class="ident">FunctionBuilder</span>, <span class="ident">ObjectData</span>},
     <span class="ident">property</span>::{<span class="ident">Attribute</span>, <span class="ident">DataDescriptor</span>},
     <span class="ident">value</span>::{<span class="ident">same_value_zero</span>, <span class="ident">IntegerOrInfinity</span>, <span class="ident">Value</span>},
     <span class="ident">BoaProfiler</span>, <span class="ident">Context</span>, <span class="prelude-ty">Result</span>,
@@ -1474,13 +1502,17 @@
         <span class="kw">let</span> <span class="ident">array</span> <span class="op">=</span> <span class="ident">Array</span>::<span class="ident">array_create</span>(<span class="ident">this</span>, <span class="number">0</span>, <span class="prelude-val">Some</span>(<span class="ident">prototype</span>), <span class="ident">context</span>)<span class="question-mark">?</span>;
 
         <span class="kw">if</span> <span class="op">!</span><span class="ident">length</span>.<span class="ident">is_number</span>() {
-            <span class="ident">array</span>.<span class="ident">set_field</span>(<span class="number">0</span>, <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">length</span>));
-            <span class="ident">array</span>.<span class="ident">set_field</span>(<span class="string">&quot;length&quot;</span>, <span class="ident">Value</span>::<span class="ident">from</span>(<span class="number">1</span>));
+            <span class="ident">array</span>.<span class="ident">set_field</span>(<span class="number">0</span>, <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">length</span>), <span class="ident">context</span>)<span class="question-mark">?</span>;
+            <span class="ident">array</span>.<span class="ident">set_field</span>(<span class="string">&quot;length&quot;</span>, <span class="ident">Value</span>::<span class="ident">from</span>(<span class="number">1</span>), <span class="ident">context</span>)<span class="question-mark">?</span>;
         } <span class="kw">else</span> {
             <span class="kw">if</span> <span class="ident">length</span>.<span class="ident">is_double</span>() {
                 <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_range_error</span>(<span class="string">&quot;Invalid array length&quot;</span>);
             }
-            <span class="ident">array</span>.<span class="ident">set_field</span>(<span class="string">&quot;length&quot;</span>, <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">length</span>.<span class="ident">to_u32</span>(<span class="ident">context</span>).<span class="ident">unwrap</span>()));
+            <span class="ident">array</span>.<span class="ident">set_field</span>(
+                <span class="string">&quot;length&quot;</span>,
+                <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">length</span>.<span class="ident">to_u32</span>(<span class="ident">context</span>).<span class="ident">unwrap</span>()),
+                <span class="ident">context</span>,
+            )<span class="question-mark">?</span>;
         }
 
         <span class="prelude-val">Ok</span>(<span class="ident">array</span>)
@@ -1502,7 +1534,7 @@
         <span class="kw">let</span> <span class="ident">array</span> <span class="op">=</span> <span class="ident">Array</span>::<span class="ident">array_create</span>(<span class="ident">this</span>, <span class="ident">items_len</span>, <span class="prelude-val">Some</span>(<span class="ident">prototype</span>), <span class="ident">context</span>)<span class="question-mark">?</span>;
 
         <span class="kw">for</span> (<span class="ident">k</span>, <span class="ident">item</span>) <span class="kw">in</span> <span class="ident">items</span>.<span class="ident">iter</span>().<span class="ident">enumerate</span>() {
-            <span class="ident">array</span>.<span class="ident">set_field</span>(<span class="ident">k</span>, <span class="ident">item</span>.<span class="ident">clone</span>());
+            <span class="ident">array</span>.<span class="ident">set_field</span>(<span class="ident">k</span>, <span class="ident">item</span>.<span class="ident">clone</span>(), <span class="ident">context</span>)<span class="question-mark">?</span>;
         }
 
         <span class="prelude-val">Ok</span>(<span class="ident">array</span>)
@@ -1543,13 +1575,7 @@
 
     <span class="doccomment">/// Creates a new `Array` instance.</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new_array</span>(<span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">array</span> <span class="op">=</span> <span class="ident">Value</span>::<span class="ident">new_object</span>(<span class="prelude-val">Some</span>(
-            <span class="kw-2">&amp;</span><span class="ident">context</span>
-                .<span class="ident">realm</span>()
-                .<span class="ident">environment</span>
-                .<span class="ident">get_global_object</span>()
-                .<span class="ident">expect</span>(<span class="string">&quot;Could not get global object&quot;</span>),
-        ));
+        <span class="kw">let</span> <span class="ident">array</span> <span class="op">=</span> <span class="ident">Value</span>::<span class="ident">new_object</span>(<span class="ident">context</span>);
         <span class="ident">array</span>.<span class="ident">set_data</span>(<span class="ident">ObjectData</span>::<span class="ident">Array</span>);
         <span class="ident">array</span>
             .<span class="ident">as_object</span>()
@@ -1575,7 +1601,7 @@
         <span class="kw">let</span> <span class="ident">array_obj_ptr</span> <span class="op">=</span> <span class="ident">array_obj</span>.<span class="ident">clone</span>();
 
         <span class="comment">// Wipe existing contents of the array object</span>
-        <span class="kw">let</span> <span class="ident">orig_length</span> <span class="op">=</span> <span class="ident">array_obj</span>.<span class="ident">get_field</span>(<span class="string">&quot;length&quot;</span>).<span class="ident">to_length</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">orig_length</span> <span class="op">=</span> <span class="ident">array_obj</span>.<span class="ident">get_field</span>(<span class="string">&quot;length&quot;</span>, <span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">to_length</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
         <span class="kw">for</span> <span class="ident">n</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">orig_length</span> {
             <span class="ident">array_obj_ptr</span>.<span class="ident">remove_property</span>(<span class="ident">n</span>);
         }
@@ -1588,7 +1614,7 @@
         <span class="ident">array_obj_ptr</span>.<span class="ident">set_property</span>(<span class="string">&quot;length&quot;</span>.<span class="ident">to_string</span>(), <span class="ident">length</span>);
 
         <span class="kw">for</span> (<span class="ident">n</span>, <span class="ident">value</span>) <span class="kw">in</span> <span class="ident">array_contents</span>.<span class="ident">iter</span>().<span class="ident">enumerate</span>() {
-            <span class="ident">array_obj_ptr</span>.<span class="ident">set_field</span>(<span class="ident">n</span>, <span class="ident">value</span>);
+            <span class="ident">array_obj_ptr</span>.<span class="ident">set_field</span>(<span class="ident">n</span>, <span class="ident">value</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
         }
         <span class="prelude-val">Ok</span>(<span class="ident">array_obj_ptr</span>)
     }
@@ -1600,17 +1626,18 @@
         <span class="ident">add_values</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>],
         <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">orig_length</span> <span class="op">=</span> <span class="ident">array_ptr</span>.<span class="ident">get_field</span>(<span class="string">&quot;length&quot;</span>).<span class="ident">to_length</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">orig_length</span> <span class="op">=</span> <span class="ident">array_ptr</span>.<span class="ident">get_field</span>(<span class="string">&quot;length&quot;</span>, <span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">to_length</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
 
         <span class="kw">for</span> (<span class="ident">n</span>, <span class="ident">value</span>) <span class="kw">in</span> <span class="ident">add_values</span>.<span class="ident">iter</span>().<span class="ident">enumerate</span>() {
             <span class="kw">let</span> <span class="ident">new_index</span> <span class="op">=</span> <span class="ident">orig_length</span>.<span class="ident">wrapping_add</span>(<span class="ident">n</span>);
-            <span class="ident">array_ptr</span>.<span class="ident">set_field</span>(<span class="ident">new_index</span>, <span class="ident">value</span>);
+            <span class="ident">array_ptr</span>.<span class="ident">set_field</span>(<span class="ident">new_index</span>, <span class="ident">value</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
         }
 
         <span class="ident">array_ptr</span>.<span class="ident">set_field</span>(
             <span class="string">&quot;length&quot;</span>,
             <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">orig_length</span>.<span class="ident">wrapping_add</span>(<span class="ident">add_values</span>.<span class="ident">len</span>())),
-        );
+            <span class="ident">context</span>,
+        )<span class="question-mark">?</span>;
 
         <span class="prelude-val">Ok</span>(<span class="ident">array_ptr</span>.<span class="ident">clone</span>())
     }
@@ -1655,15 +1682,17 @@
         <span class="comment">// one)</span>
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">new_values</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Vec</span>::<span class="ident">new</span>();
 
-        <span class="kw">let</span> <span class="ident">this_length</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="string">&quot;length&quot;</span>).<span class="ident">to_length</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">this_length</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="string">&quot;length&quot;</span>, <span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">to_length</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
         <span class="kw">for</span> <span class="ident">n</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">this_length</span> {
-            <span class="ident">new_values</span>.<span class="ident">push</span>(<span class="ident">this</span>.<span class="ident">get_field</span>(<span class="ident">n</span>));
+            <span class="ident">new_values</span>.<span class="ident">push</span>(<span class="ident">this</span>.<span class="ident">get_field</span>(<span class="ident">n</span>, <span class="ident">context</span>)<span class="question-mark">?</span>);
         }
 
         <span class="kw">for</span> <span class="ident">concat_array</span> <span class="kw">in</span> <span class="ident">args</span> {
-            <span class="kw">let</span> <span class="ident">concat_length</span> <span class="op">=</span> <span class="ident">concat_array</span>.<span class="ident">get_field</span>(<span class="string">&quot;length&quot;</span>).<span class="ident">to_length</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+            <span class="kw">let</span> <span class="ident">concat_length</span> <span class="op">=</span> <span class="ident">concat_array</span>
+                .<span class="ident">get_field</span>(<span class="string">&quot;length&quot;</span>, <span class="ident">context</span>)<span class="question-mark">?</span>
+                .<span class="ident">to_length</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
             <span class="kw">for</span> <span class="ident">n</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">concat_length</span> {
-                <span class="ident">new_values</span>.<span class="ident">push</span>(<span class="ident">concat_array</span>.<span class="ident">get_field</span>(<span class="ident">n</span>));
+                <span class="ident">new_values</span>.<span class="ident">push</span>(<span class="ident">concat_array</span>.<span class="ident">get_field</span>(<span class="ident">n</span>, <span class="ident">context</span>)<span class="question-mark">?</span>);
             }
         }
 
@@ -1684,7 +1713,7 @@
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/push</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">push</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">new_array</span> <span class="op">=</span> <span class="self">Self</span>::<span class="ident">add_to_array_object</span>(<span class="ident">this</span>, <span class="ident">args</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<span class="ident">new_array</span>.<span class="ident">get_field</span>(<span class="string">&quot;length&quot;</span>))
+        <span class="prelude-val">Ok</span>(<span class="ident">new_array</span>.<span class="ident">get_field</span>(<span class="string">&quot;length&quot;</span>, <span class="ident">context</span>)<span class="question-mark">?</span>)
     }
 
     <span class="doccomment">/// `Array.prototype.pop()`</span>
@@ -1698,15 +1727,15 @@
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-array.prototype.pop</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/pop</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">pop</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">curr_length</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="string">&quot;length&quot;</span>).<span class="ident">to_length</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">curr_length</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="string">&quot;length&quot;</span>, <span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">to_length</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
 
         <span class="kw">if</span> <span class="ident">curr_length</span> <span class="op">&lt;</span> <span class="number">1</span> {
             <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">undefined</span>());
         }
         <span class="kw">let</span> <span class="ident">pop_index</span> <span class="op">=</span> <span class="ident">curr_length</span>.<span class="ident">wrapping_sub</span>(<span class="number">1</span>);
-        <span class="kw">let</span> <span class="ident">pop_value</span>: <span class="ident">Value</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="ident">pop_index</span>.<span class="ident">to_string</span>());
+        <span class="kw">let</span> <span class="ident">pop_value</span>: <span class="ident">Value</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="ident">pop_index</span>.<span class="ident">to_string</span>(), <span class="ident">context</span>)<span class="question-mark">?</span>;
         <span class="ident">this</span>.<span class="ident">remove_property</span>(<span class="ident">pop_index</span>);
-        <span class="ident">this</span>.<span class="ident">set_field</span>(<span class="string">&quot;length&quot;</span>, <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">pop_index</span>));
+        <span class="ident">this</span>.<span class="ident">set_field</span>(<span class="string">&quot;length&quot;</span>, <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">pop_index</span>), <span class="ident">context</span>)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(<span class="ident">pop_value</span>)
     }
 
@@ -1728,10 +1757,10 @@
         <span class="kw">let</span> <span class="ident">callback_arg</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">expect</span>(<span class="string">&quot;Could not get `callbackFn` argument.&quot;</span>);
         <span class="kw">let</span> <span class="ident">this_arg</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">1</span>).<span class="ident">cloned</span>().<span class="ident">unwrap_or_else</span>(<span class="ident">Value</span>::<span class="ident">undefined</span>);
 
-        <span class="kw">let</span> <span class="ident">length</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="string">&quot;length&quot;</span>).<span class="ident">to_length</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">length</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="string">&quot;length&quot;</span>, <span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">to_length</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
 
         <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">length</span> {
-            <span class="kw">let</span> <span class="ident">element</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="ident">i</span>);
+            <span class="kw">let</span> <span class="ident">element</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="ident">i</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
             <span class="kw">let</span> <span class="ident">arguments</span> <span class="op">=</span> [<span class="ident">element</span>, <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">i</span>), <span class="ident">this</span>.<span class="ident">clone</span>()];
 
             <span class="ident">context</span>.<span class="ident">call</span>(<span class="ident">callback_arg</span>, <span class="kw-2">&amp;</span><span class="ident">this_arg</span>, <span class="kw-2">&amp;</span><span class="ident">arguments</span>)<span class="question-mark">?</span>;
@@ -1763,9 +1792,9 @@
         };
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">elem_strs</span> <span class="op">=</span> <span class="ident">Vec</span>::<span class="ident">new</span>();
-        <span class="kw">let</span> <span class="ident">length</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="string">&quot;length&quot;</span>).<span class="ident">to_length</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">length</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="string">&quot;length&quot;</span>, <span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">to_length</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
         <span class="kw">for</span> <span class="ident">n</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">length</span> {
-            <span class="kw">let</span> <span class="ident">elem_str</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="ident">n</span>).<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">to_string</span>();
+            <span class="kw">let</span> <span class="ident">elem_str</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="ident">n</span>, <span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">to_string</span>();
             <span class="ident">elem_strs</span>.<span class="ident">push</span>(<span class="ident">elem_str</span>);
         }
 
@@ -1789,14 +1818,15 @@
         <span class="kw">let</span> <span class="ident">method_name</span> <span class="op">=</span> <span class="string">&quot;join&quot;</span>;
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">arguments</span> <span class="op">=</span> <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">Value</span>::<span class="ident">from</span>(<span class="string">&quot;,&quot;</span>)];
         <span class="comment">// 2.</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">method</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="ident">method_name</span>);
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">method</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="ident">method_name</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
         <span class="comment">// 3.</span>
         <span class="kw">if</span> <span class="op">!</span><span class="ident">method</span>.<span class="ident">is_function</span>() {
-            <span class="ident">method</span> <span class="op">=</span> <span class="ident">context</span>
-                .<span class="ident">global_object</span>()
-                .<span class="ident">get_field</span>(<span class="string">&quot;Object&quot;</span>)
-                .<span class="ident">get_field</span>(<span class="ident">PROTOTYPE</span>)
-                .<span class="ident">get_field</span>(<span class="string">&quot;toString&quot;</span>);
+            <span class="kw">let</span> <span class="ident">object_prototype</span>: <span class="ident">Value</span> <span class="op">=</span> <span class="ident">context</span>
+                .<span class="ident">standard_objects</span>()
+                .<span class="ident">object_object</span>()
+                .<span class="ident">prototype</span>()
+                .<span class="ident">into</span>();
+            <span class="ident">method</span> <span class="op">=</span> <span class="ident">object_prototype</span>.<span class="ident">get_field</span>(<span class="string">&quot;toString&quot;</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
 
             <span class="ident">arguments</span> <span class="op">=</span> <span class="ident">Vec</span>::<span class="ident">new</span>();
         }
@@ -1825,7 +1855,7 @@
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/reverse</span>
     <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy</span>::<span class="ident">else_if_without_else</span>)]</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">reverse</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="string">&quot;length&quot;</span>).<span class="ident">to_length</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="string">&quot;length&quot;</span>, <span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">to_length</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
 
         <span class="kw">let</span> <span class="ident">middle</span> <span class="op">=</span> <span class="ident">len</span>.<span class="ident">wrapping_div</span>(<span class="number">2</span>);
 
@@ -1835,17 +1865,17 @@
             <span class="kw">let</span> <span class="ident">upper_exists</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">has_field</span>(<span class="ident">upper</span>);
             <span class="kw">let</span> <span class="ident">lower_exists</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">has_field</span>(<span class="ident">lower</span>);
 
-            <span class="kw">let</span> <span class="ident">upper_value</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="ident">upper</span>);
-            <span class="kw">let</span> <span class="ident">lower_value</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="ident">lower</span>);
+            <span class="kw">let</span> <span class="ident">upper_value</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="ident">upper</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
+            <span class="kw">let</span> <span class="ident">lower_value</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="ident">lower</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
 
             <span class="kw">if</span> <span class="ident">upper_exists</span> <span class="op">&amp;&amp;</span> <span class="ident">lower_exists</span> {
-                <span class="ident">this</span>.<span class="ident">set_field</span>(<span class="ident">upper</span>, <span class="ident">lower_value</span>);
-                <span class="ident">this</span>.<span class="ident">set_field</span>(<span class="ident">lower</span>, <span class="ident">upper_value</span>);
+                <span class="ident">this</span>.<span class="ident">set_field</span>(<span class="ident">upper</span>, <span class="ident">lower_value</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
+                <span class="ident">this</span>.<span class="ident">set_field</span>(<span class="ident">lower</span>, <span class="ident">upper_value</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
             } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">upper_exists</span> {
-                <span class="ident">this</span>.<span class="ident">set_field</span>(<span class="ident">lower</span>, <span class="ident">upper_value</span>);
+                <span class="ident">this</span>.<span class="ident">set_field</span>(<span class="ident">lower</span>, <span class="ident">upper_value</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
                 <span class="ident">this</span>.<span class="ident">remove_property</span>(<span class="ident">upper</span>);
             } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">lower_exists</span> {
-                <span class="ident">this</span>.<span class="ident">set_field</span>(<span class="ident">upper</span>, <span class="ident">lower_value</span>);
+                <span class="ident">this</span>.<span class="ident">set_field</span>(<span class="ident">upper</span>, <span class="ident">lower_value</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
                 <span class="ident">this</span>.<span class="ident">remove_property</span>(<span class="ident">lower</span>);
             }
         }
@@ -1864,30 +1894,30 @@
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-array.prototype.shift</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/shift</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">shift</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="string">&quot;length&quot;</span>).<span class="ident">to_length</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="string">&quot;length&quot;</span>, <span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">to_length</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
 
         <span class="kw">if</span> <span class="ident">len</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
-            <span class="ident">this</span>.<span class="ident">set_field</span>(<span class="string">&quot;length&quot;</span>, <span class="number">0</span>);
+            <span class="ident">this</span>.<span class="ident">set_field</span>(<span class="string">&quot;length&quot;</span>, <span class="number">0</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
             <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">undefined</span>());
         }
 
-        <span class="kw">let</span> <span class="ident">first</span>: <span class="ident">Value</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="number">0</span>);
+        <span class="kw">let</span> <span class="ident">first</span>: <span class="ident">Value</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="number">0</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
 
         <span class="kw">for</span> <span class="ident">k</span> <span class="kw">in</span> <span class="number">1</span>..<span class="ident">len</span> {
             <span class="kw">let</span> <span class="ident">from</span> <span class="op">=</span> <span class="ident">k</span>;
             <span class="kw">let</span> <span class="ident">to</span> <span class="op">=</span> <span class="ident">k</span>.<span class="ident">wrapping_sub</span>(<span class="number">1</span>);
 
-            <span class="kw">let</span> <span class="ident">from_value</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="ident">from</span>);
+            <span class="kw">let</span> <span class="ident">from_value</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="ident">from</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
             <span class="kw">if</span> <span class="ident">from_value</span>.<span class="ident">is_undefined</span>() {
                 <span class="ident">this</span>.<span class="ident">remove_property</span>(<span class="ident">to</span>);
             } <span class="kw">else</span> {
-                <span class="ident">this</span>.<span class="ident">set_field</span>(<span class="ident">to</span>, <span class="ident">from_value</span>);
+                <span class="ident">this</span>.<span class="ident">set_field</span>(<span class="ident">to</span>, <span class="ident">from_value</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
             }
         }
 
         <span class="kw">let</span> <span class="ident">final_index</span> <span class="op">=</span> <span class="ident">len</span>.<span class="ident">wrapping_sub</span>(<span class="number">1</span>);
         <span class="ident">this</span>.<span class="ident">remove_property</span>(<span class="ident">final_index</span>);
-        <span class="ident">this</span>.<span class="ident">set_field</span>(<span class="string">&quot;length&quot;</span>, <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">final_index</span>));
+        <span class="ident">this</span>.<span class="ident">set_field</span>(<span class="string">&quot;length&quot;</span>, <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">final_index</span>), <span class="ident">context</span>)<span class="question-mark">?</span>;
 
         <span class="prelude-val">Ok</span>(<span class="ident">first</span>)
     }
@@ -1905,7 +1935,7 @@
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-array.prototype.unshift</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/unshift</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">unshift</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="string">&quot;length&quot;</span>).<span class="ident">to_length</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="string">&quot;length&quot;</span>, <span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">to_length</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
 
         <span class="kw">let</span> <span class="ident">arg_c</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">len</span>();
 
@@ -1914,20 +1944,24 @@
                 <span class="kw">let</span> <span class="ident">from</span> <span class="op">=</span> <span class="ident">k</span>.<span class="ident">wrapping_sub</span>(<span class="number">1</span>);
                 <span class="kw">let</span> <span class="ident">to</span> <span class="op">=</span> <span class="ident">k</span>.<span class="ident">wrapping_add</span>(<span class="ident">arg_c</span>).<span class="ident">wrapping_sub</span>(<span class="number">1</span>);
 
-                <span class="kw">let</span> <span class="ident">from_value</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="ident">from</span>);
+                <span class="kw">let</span> <span class="ident">from_value</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="ident">from</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
                 <span class="kw">if</span> <span class="ident">from_value</span>.<span class="ident">is_undefined</span>() {
                     <span class="ident">this</span>.<span class="ident">remove_property</span>(<span class="ident">to</span>);
                 } <span class="kw">else</span> {
-                    <span class="ident">this</span>.<span class="ident">set_field</span>(<span class="ident">to</span>, <span class="ident">from_value</span>);
+                    <span class="ident">this</span>.<span class="ident">set_field</span>(<span class="ident">to</span>, <span class="ident">from_value</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
                 }
             }
             <span class="kw">for</span> <span class="ident">j</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">arg_c</span> {
-                <span class="ident">this</span>.<span class="ident">set_field</span>(<span class="ident">j</span>, <span class="ident">args</span>.<span class="ident">get</span>(<span class="ident">j</span>).<span class="ident">expect</span>(<span class="string">&quot;Could not get argument&quot;</span>).<span class="ident">clone</span>());
+                <span class="ident">this</span>.<span class="ident">set_field</span>(
+                    <span class="ident">j</span>,
+                    <span class="ident">args</span>.<span class="ident">get</span>(<span class="ident">j</span>).<span class="ident">expect</span>(<span class="string">&quot;Could not get argument&quot;</span>).<span class="ident">clone</span>(),
+                    <span class="ident">context</span>,
+                )<span class="question-mark">?</span>;
             }
         }
 
         <span class="kw">let</span> <span class="ident">temp</span> <span class="op">=</span> <span class="ident">len</span>.<span class="ident">wrapping_add</span>(<span class="ident">arg_c</span>);
-        <span class="ident">this</span>.<span class="ident">set_field</span>(<span class="string">&quot;length&quot;</span>, <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">temp</span>));
+        <span class="ident">this</span>.<span class="ident">set_field</span>(<span class="string">&quot;length&quot;</span>, <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">temp</span>), <span class="ident">context</span>)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">temp</span>))
     }
 
@@ -1957,16 +1991,19 @@
             <span class="ident">Value</span>::<span class="ident">undefined</span>()
         };
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">i</span> <span class="op">=</span> <span class="number">0</span>;
-        <span class="kw">let</span> <span class="ident">max_len</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="string">&quot;length&quot;</span>).<span class="ident">to_length</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">max_len</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="string">&quot;length&quot;</span>, <span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">to_length</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">max_len</span>;
         <span class="kw">while</span> <span class="ident">i</span> <span class="op">&lt;</span> <span class="ident">len</span> {
-            <span class="kw">let</span> <span class="ident">element</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="ident">i</span>);
+            <span class="kw">let</span> <span class="ident">element</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="ident">i</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
             <span class="kw">let</span> <span class="ident">arguments</span> <span class="op">=</span> [<span class="ident">element</span>, <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">i</span>), <span class="ident">this</span>.<span class="ident">clone</span>()];
             <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">call</span>(<span class="ident">callback</span>, <span class="kw-2">&amp;</span><span class="ident">this_arg</span>, <span class="kw-2">&amp;</span><span class="ident">arguments</span>)<span class="question-mark">?</span>;
             <span class="kw">if</span> <span class="op">!</span><span class="ident">result</span>.<span class="ident">to_boolean</span>() {
                 <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="bool-val">false</span>));
             }
-            <span class="ident">len</span> <span class="op">=</span> <span class="ident">min</span>(<span class="ident">max_len</span>, <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="string">&quot;length&quot;</span>).<span class="ident">to_length</span>(<span class="ident">context</span>)<span class="question-mark">?</span>);
+            <span class="ident">len</span> <span class="op">=</span> <span class="ident">min</span>(
+                <span class="ident">max_len</span>,
+                <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="string">&quot;length&quot;</span>, <span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">to_length</span>(<span class="ident">context</span>)<span class="question-mark">?</span>,
+            );
             <span class="ident">i</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
         }
         <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="bool-val">true</span>))
@@ -1993,7 +2030,7 @@
         <span class="kw">let</span> <span class="ident">callback</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">cloned</span>().<span class="ident">unwrap_or_else</span>(<span class="ident">Value</span>::<span class="ident">undefined</span>);
         <span class="kw">let</span> <span class="ident">this_val</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">1</span>).<span class="ident">cloned</span>().<span class="ident">unwrap_or_else</span>(<span class="ident">Value</span>::<span class="ident">undefined</span>);
 
-        <span class="kw">let</span> <span class="ident">length</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="string">&quot;length&quot;</span>).<span class="ident">to_length</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">length</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="string">&quot;length&quot;</span>, <span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">to_length</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
 
         <span class="kw">if</span> <span class="ident">length</span> <span class="op">&gt;</span> <span class="number">2usize</span>.<span class="ident">pow</span>(<span class="number">32</span>) <span class="op">-</span> <span class="number">1</span> {
             <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_range_error</span>(<span class="string">&quot;Invalid array length&quot;</span>);
@@ -2001,16 +2038,14 @@
 
         <span class="kw">let</span> <span class="ident">new</span> <span class="op">=</span> <span class="self">Self</span>::<span class="ident">new_array</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
 
-        <span class="kw">let</span> <span class="ident">values</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> <span class="op">=</span> (<span class="number">0</span>..<span class="ident">length</span>)
+        <span class="kw">let</span> <span class="ident">values</span> <span class="op">=</span> (<span class="number">0</span>..<span class="ident">length</span>)
             .<span class="ident">map</span>(<span class="op">|</span><span class="ident">idx</span><span class="op">|</span> {
-                <span class="kw">let</span> <span class="ident">element</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="ident">idx</span>);
+                <span class="kw">let</span> <span class="ident">element</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="ident">idx</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
                 <span class="kw">let</span> <span class="ident">args</span> <span class="op">=</span> [<span class="ident">element</span>, <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">idx</span>), <span class="ident">new</span>.<span class="ident">clone</span>()];
 
-                <span class="ident">context</span>
-                    .<span class="ident">call</span>(<span class="kw-2">&amp;</span><span class="ident">callback</span>, <span class="kw-2">&amp;</span><span class="ident">this_val</span>, <span class="kw-2">&amp;</span><span class="ident">args</span>)
-                    .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">Value</span>::<span class="ident">undefined</span>())
+                <span class="ident">context</span>.<span class="ident">call</span>(<span class="kw-2">&amp;</span><span class="ident">callback</span>, <span class="kw-2">&amp;</span><span class="ident">this_val</span>, <span class="kw-2">&amp;</span><span class="ident">args</span>)
             })
-            .<span class="ident">collect</span>();
+            .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>()<span class="question-mark">?</span>;
 
         <span class="self">Self</span>::<span class="ident">construct_array</span>(<span class="kw-2">&amp;</span><span class="ident">new</span>, <span class="kw-2">&amp;</span><span class="ident">values</span>, <span class="ident">context</span>)
     }
@@ -2041,7 +2076,7 @@
         }
 
         <span class="kw">let</span> <span class="ident">search_element</span> <span class="op">=</span> <span class="ident">args</span>[<span class="number">0</span>].<span class="ident">clone</span>();
-        <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="string">&quot;length&quot;</span>).<span class="ident">to_length</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="string">&quot;length&quot;</span>, <span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">to_length</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">idx</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">1</span>) {
             <span class="prelude-val">Some</span>(<span class="ident">from_idx_ptr</span>) <span class="op">=</span><span class="op">&gt;</span> {
@@ -2061,7 +2096,7 @@
         };
 
         <span class="kw">while</span> <span class="ident">idx</span> <span class="op">&lt;</span> <span class="ident">len</span> {
-            <span class="kw">let</span> <span class="ident">check_element</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="ident">idx</span>).<span class="ident">clone</span>();
+            <span class="kw">let</span> <span class="ident">check_element</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="ident">idx</span>, <span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">clone</span>();
 
             <span class="kw">if</span> <span class="ident">check_element</span>.<span class="ident">strict_equals</span>(<span class="kw-2">&amp;</span><span class="ident">search_element</span>) {
                 <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">idx</span>));
@@ -2103,7 +2138,7 @@
 
         <span class="kw">let</span> <span class="ident">search_element</span> <span class="op">=</span> <span class="ident">args</span>[<span class="number">0</span>].<span class="ident">clone</span>();
         <span class="kw">let</span> <span class="ident">len</span>: <span class="ident">isize</span> <span class="op">=</span> <span class="ident">this</span>
-            .<span class="ident">get_field</span>(<span class="string">&quot;length&quot;</span>)
+            .<span class="ident">get_field</span>(<span class="string">&quot;length&quot;</span>, <span class="ident">context</span>)<span class="question-mark">?</span>
             .<span class="ident">to_length</span>(<span class="ident">context</span>)<span class="question-mark">?</span>
             .<span class="ident">try_into</span>()
             .<span class="ident">map_err</span>(<span class="ident">interror_to_value</span>)<span class="question-mark">?</span>;
@@ -2124,7 +2159,7 @@
         };
 
         <span class="kw">while</span> <span class="ident">idx</span> <span class="op">&gt;</span><span class="op">=</span> <span class="number">0</span> {
-            <span class="kw">let</span> <span class="ident">check_element</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="ident">idx</span>).<span class="ident">clone</span>();
+            <span class="kw">let</span> <span class="ident">check_element</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="ident">idx</span>, <span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">clone</span>();
 
             <span class="kw">if</span> <span class="ident">check_element</span>.<span class="ident">strict_equals</span>(<span class="kw-2">&amp;</span><span class="ident">search_element</span>) {
                 <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">i32</span>::<span class="ident">try_from</span>(<span class="ident">idx</span>).<span class="ident">map_err</span>(<span class="ident">interror_to_value</span>)<span class="question-mark">?</span>));
@@ -2156,9 +2191,9 @@
         }
         <span class="kw">let</span> <span class="ident">callback</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">args</span>[<span class="number">0</span>];
         <span class="kw">let</span> <span class="ident">this_arg</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">1</span>).<span class="ident">cloned</span>().<span class="ident">unwrap_or_else</span>(<span class="ident">Value</span>::<span class="ident">undefined</span>);
-        <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="string">&quot;length&quot;</span>).<span class="ident">to_length</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="string">&quot;length&quot;</span>, <span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">to_length</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
         <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">len</span> {
-            <span class="kw">let</span> <span class="ident">element</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="ident">i</span>);
+            <span class="kw">let</span> <span class="ident">element</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="ident">i</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
             <span class="kw">let</span> <span class="ident">arguments</span> <span class="op">=</span> [<span class="ident">element</span>.<span class="ident">clone</span>(), <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">i</span>), <span class="ident">this</span>.<span class="ident">clone</span>()];
             <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">call</span>(<span class="ident">callback</span>, <span class="kw-2">&amp;</span><span class="ident">this_arg</span>, <span class="kw-2">&amp;</span><span class="ident">arguments</span>)<span class="question-mark">?</span>;
             <span class="kw">if</span> <span class="ident">result</span>.<span class="ident">to_boolean</span>() {
@@ -2191,10 +2226,10 @@
 
         <span class="kw">let</span> <span class="ident">this_arg</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">1</span>).<span class="ident">cloned</span>().<span class="ident">unwrap_or_else</span>(<span class="ident">Value</span>::<span class="ident">undefined</span>);
 
-        <span class="kw">let</span> <span class="ident">length</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="string">&quot;length&quot;</span>).<span class="ident">to_length</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">length</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="string">&quot;length&quot;</span>, <span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">to_length</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
 
         <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">length</span> {
-            <span class="kw">let</span> <span class="ident">element</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="ident">i</span>);
+            <span class="kw">let</span> <span class="ident">element</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="ident">i</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
             <span class="kw">let</span> <span class="ident">arguments</span> <span class="op">=</span> [<span class="ident">element</span>, <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">i</span>), <span class="ident">this</span>.<span class="ident">clone</span>()];
 
             <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">call</span>(<span class="ident">predicate_arg</span>, <span class="kw-2">&amp;</span><span class="ident">this_arg</span>, <span class="kw-2">&amp;</span><span class="ident">arguments</span>)<span class="question-mark">?</span>;
@@ -2220,7 +2255,7 @@
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-array.prototype.fill</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/fill</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">fill</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="string">&quot;length&quot;</span>).<span class="ident">to_length</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="string">&quot;length&quot;</span>, <span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">to_length</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
 
         <span class="kw">let</span> <span class="ident">default_value</span> <span class="op">=</span> <span class="ident">Value</span>::<span class="ident">undefined</span>();
         <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">unwrap_or</span>(<span class="kw-2">&amp;</span><span class="ident">default_value</span>);
@@ -2228,7 +2263,7 @@
         <span class="kw">let</span> <span class="ident">fin</span> <span class="op">=</span> <span class="self">Self</span>::<span class="ident">get_relative_end</span>(<span class="ident">context</span>, <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">2</span>), <span class="ident">len</span>)<span class="question-mark">?</span>;
 
         <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="ident">start</span>..<span class="ident">fin</span> {
-            <span class="ident">this</span>.<span class="ident">set_field</span>(<span class="ident">i</span>, <span class="ident">value</span>.<span class="ident">clone</span>());
+            <span class="ident">this</span>.<span class="ident">set_field</span>(<span class="ident">i</span>, <span class="ident">value</span>.<span class="ident">clone</span>(), <span class="ident">context</span>)<span class="question-mark">?</span>;
         }
 
         <span class="prelude-val">Ok</span>(<span class="ident">this</span>.<span class="ident">clone</span>())
@@ -2251,10 +2286,10 @@
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">search_element</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">cloned</span>().<span class="ident">unwrap_or_else</span>(<span class="ident">Value</span>::<span class="ident">undefined</span>);
 
-        <span class="kw">let</span> <span class="ident">length</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="string">&quot;length&quot;</span>).<span class="ident">to_length</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">length</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="string">&quot;length&quot;</span>, <span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">to_length</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
 
         <span class="kw">for</span> <span class="ident">idx</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">length</span> {
-            <span class="kw">let</span> <span class="ident">check_element</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="ident">idx</span>).<span class="ident">clone</span>();
+            <span class="kw">let</span> <span class="ident">check_element</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="ident">idx</span>, <span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">clone</span>();
 
             <span class="kw">if</span> <span class="ident">same_value_zero</span>(<span class="kw-2">&amp;</span><span class="ident">check_element</span>, <span class="kw-2">&amp;</span><span class="ident">search_element</span>) {
                 <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="bool-val">true</span>));
@@ -2281,17 +2316,20 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">slice</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">new_array</span> <span class="op">=</span> <span class="self">Self</span>::<span class="ident">new_array</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
 
-        <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="string">&quot;length&quot;</span>).<span class="ident">to_length</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="string">&quot;length&quot;</span>, <span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">to_length</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">from</span> <span class="op">=</span> <span class="self">Self</span>::<span class="ident">get_relative_start</span>(<span class="ident">context</span>, <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>), <span class="ident">len</span>)<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">to</span> <span class="op">=</span> <span class="self">Self</span>::<span class="ident">get_relative_end</span>(<span class="ident">context</span>, <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">1</span>), <span class="ident">len</span>)<span class="question-mark">?</span>;
 
         <span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <span class="ident">max</span>(<span class="ident">to</span>.<span class="ident">saturating_sub</span>(<span class="ident">from</span>), <span class="number">0</span>);
+        <span class="kw">if</span> <span class="ident">span</span> <span class="op">&gt;</span> <span class="number">2usize</span>.<span class="ident">pow</span>(<span class="number">32</span>) <span class="op">-</span> <span class="number">1</span> {
+            <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_range_error</span>(<span class="string">&quot;Invalid array length&quot;</span>);
+        }
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">new_array_len</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="number">0</span>;
         <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="ident">from</span>..<span class="ident">from</span>.<span class="ident">saturating_add</span>(<span class="ident">span</span>) {
-            <span class="ident">new_array</span>.<span class="ident">set_field</span>(<span class="ident">new_array_len</span>, <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="ident">i</span>));
+            <span class="ident">new_array</span>.<span class="ident">set_field</span>(<span class="ident">new_array_len</span>, <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="ident">i</span>, <span class="ident">context</span>)<span class="question-mark">?</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
             <span class="ident">new_array_len</span> <span class="op">=</span> <span class="ident">new_array_len</span>.<span class="ident">saturating_add</span>(<span class="number">1</span>);
         }
-        <span class="ident">new_array</span>.<span class="ident">set_field</span>(<span class="string">&quot;length&quot;</span>, <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">new_array_len</span>));
+        <span class="ident">new_array</span>.<span class="ident">set_field</span>(<span class="string">&quot;length&quot;</span>, <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">new_array_len</span>), <span class="ident">context</span>)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(<span class="ident">new_array</span>)
     }
 
@@ -2316,27 +2354,26 @@
         <span class="kw">let</span> <span class="ident">callback</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">cloned</span>().<span class="ident">unwrap_or_else</span>(<span class="ident">Value</span>::<span class="ident">undefined</span>);
         <span class="kw">let</span> <span class="ident">this_val</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">1</span>).<span class="ident">cloned</span>().<span class="ident">unwrap_or_else</span>(<span class="ident">Value</span>::<span class="ident">undefined</span>);
 
-        <span class="kw">let</span> <span class="ident">length</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="string">&quot;length&quot;</span>).<span class="ident">to_length</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">length</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="string">&quot;length&quot;</span>, <span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">to_length</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
 
         <span class="kw">let</span> <span class="ident">new</span> <span class="op">=</span> <span class="self">Self</span>::<span class="ident">new_array</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
 
         <span class="kw">let</span> <span class="ident">values</span> <span class="op">=</span> (<span class="number">0</span>..<span class="ident">length</span>)
-            .<span class="ident">filter_map</span>(<span class="op">|</span><span class="ident">idx</span><span class="op">|</span> {
-                <span class="kw">let</span> <span class="ident">element</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="ident">idx</span>);
+            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">idx</span><span class="op">|</span> {
+                <span class="kw">let</span> <span class="ident">element</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="ident">idx</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
 
                 <span class="kw">let</span> <span class="ident">args</span> <span class="op">=</span> [<span class="ident">element</span>.<span class="ident">clone</span>(), <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">idx</span>), <span class="ident">new</span>.<span class="ident">clone</span>()];
 
-                <span class="kw">let</span> <span class="ident">callback_result</span> <span class="op">=</span> <span class="ident">context</span>
-                    .<span class="ident">call</span>(<span class="kw-2">&amp;</span><span class="ident">callback</span>, <span class="kw-2">&amp;</span><span class="ident">this_val</span>, <span class="kw-2">&amp;</span><span class="ident">args</span>)
-                    .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">Value</span>::<span class="ident">undefined</span>());
+                <span class="kw">let</span> <span class="ident">callback_result</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">call</span>(<span class="kw-2">&amp;</span><span class="ident">callback</span>, <span class="kw-2">&amp;</span><span class="ident">this_val</span>, <span class="kw-2">&amp;</span><span class="ident">args</span>)<span class="question-mark">?</span>;
 
                 <span class="kw">if</span> <span class="ident">callback_result</span>.<span class="ident">to_boolean</span>() {
-                    <span class="prelude-val">Some</span>(<span class="ident">element</span>)
+                    <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="ident">element</span>))
                 } <span class="kw">else</span> {
-                    <span class="prelude-val">None</span>
+                    <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>)
                 }
             })
-            .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span><span class="op">&gt;</span>();
+            .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>()<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">values</span> <span class="op">=</span> <span class="ident">values</span>.<span class="ident">into_iter</span>().<span class="ident">filter_map</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> <span class="ident">v</span>).<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>();
 
         <span class="self">Self</span>::<span class="ident">construct_array</span>(<span class="kw-2">&amp;</span><span class="ident">new</span>, <span class="kw-2">&amp;</span><span class="ident">values</span>, <span class="ident">context</span>)
     }
@@ -2369,17 +2406,20 @@
             <span class="ident">Value</span>::<span class="ident">undefined</span>()
         };
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">i</span> <span class="op">=</span> <span class="number">0</span>;
-        <span class="kw">let</span> <span class="ident">max_len</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="string">&quot;length&quot;</span>).<span class="ident">to_length</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">max_len</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="string">&quot;length&quot;</span>, <span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">to_length</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">max_len</span>;
         <span class="kw">while</span> <span class="ident">i</span> <span class="op">&lt;</span> <span class="ident">len</span> {
-            <span class="kw">let</span> <span class="ident">element</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="ident">i</span>);
+            <span class="kw">let</span> <span class="ident">element</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="ident">i</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
             <span class="kw">let</span> <span class="ident">arguments</span> <span class="op">=</span> [<span class="ident">element</span>, <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">i</span>), <span class="ident">this</span>.<span class="ident">clone</span>()];
             <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">call</span>(<span class="ident">callback</span>, <span class="kw-2">&amp;</span><span class="ident">this_arg</span>, <span class="kw-2">&amp;</span><span class="ident">arguments</span>)<span class="question-mark">?</span>;
             <span class="kw">if</span> <span class="ident">result</span>.<span class="ident">to_boolean</span>() {
                 <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="bool-val">true</span>));
             }
             <span class="comment">// the length of the array must be updated because the callback can mutate it.</span>
-            <span class="ident">len</span> <span class="op">=</span> <span class="ident">min</span>(<span class="ident">max_len</span>, <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="string">&quot;length&quot;</span>).<span class="ident">to_length</span>(<span class="ident">context</span>)<span class="question-mark">?</span>);
+            <span class="ident">len</span> <span class="op">=</span> <span class="ident">min</span>(
+                <span class="ident">max_len</span>,
+                <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="string">&quot;length&quot;</span>, <span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">to_length</span>(<span class="ident">context</span>)<span class="question-mark">?</span>,
+            );
             <span class="ident">i</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
         }
         <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="bool-val">false</span>))
@@ -2403,7 +2443,7 @@
             <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;Reduce was called without a callback&quot;</span>),
         };
         <span class="kw">let</span> <span class="ident">initial_value</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">1</span>).<span class="ident">cloned</span>().<span class="ident">unwrap_or_else</span>(<span class="ident">Value</span>::<span class="ident">undefined</span>);
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">length</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="string">&quot;length&quot;</span>).<span class="ident">to_length</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">length</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="string">&quot;length&quot;</span>, <span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">to_length</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
         <span class="kw">if</span> <span class="ident">length</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> <span class="op">&amp;&amp;</span> <span class="ident">initial_value</span>.<span class="ident">is_undefined</span>() {
             <span class="kw">return</span> <span class="ident">context</span>
                 .<span class="ident">throw_type_error</span>(<span class="string">&quot;Reduce was called on an empty array and with no initial value&quot;</span>);
@@ -2423,7 +2463,7 @@
                     <span class="string">&quot;Reduce was called on an empty array and with no initial value&quot;</span>,
                 );
             }
-            <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="ident">k</span>);
+            <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="ident">k</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
             <span class="ident">k</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
             <span class="ident">result</span>
         } <span class="kw">else</span> {
@@ -2431,12 +2471,20 @@
         };
         <span class="kw">while</span> <span class="ident">k</span> <span class="op">&lt;</span> <span class="ident">length</span> {
             <span class="kw">if</span> <span class="ident">this</span>.<span class="ident">has_field</span>(<span class="ident">k</span>) {
-                <span class="kw">let</span> <span class="ident">arguments</span> <span class="op">=</span> [<span class="ident">accumulator</span>, <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="ident">k</span>), <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">k</span>), <span class="ident">this</span>.<span class="ident">clone</span>()];
+                <span class="kw">let</span> <span class="ident">arguments</span> <span class="op">=</span> [
+                    <span class="ident">accumulator</span>,
+                    <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="ident">k</span>, <span class="ident">context</span>)<span class="question-mark">?</span>,
+                    <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">k</span>),
+                    <span class="ident">this</span>.<span class="ident">clone</span>(),
+                ];
                 <span class="ident">accumulator</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">call</span>(<span class="kw-2">&amp;</span><span class="ident">callback</span>, <span class="kw-2">&amp;</span><span class="ident">Value</span>::<span class="ident">undefined</span>(), <span class="kw-2">&amp;</span><span class="ident">arguments</span>)<span class="question-mark">?</span>;
                 <span class="comment">/* We keep track of possibly shortened length in order to prevent unnecessary iteration.
                 It may also be necessary to do this since shortening the array length does not
                 delete array elements. See: https://github.com/boa-dev/boa/issues/557 */</span>
-                <span class="ident">length</span> <span class="op">=</span> <span class="ident">min</span>(<span class="ident">length</span>, <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="string">&quot;length&quot;</span>).<span class="ident">to_length</span>(<span class="ident">context</span>)<span class="question-mark">?</span>);
+                <span class="ident">length</span> <span class="op">=</span> <span class="ident">min</span>(
+                    <span class="ident">length</span>,
+                    <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="string">&quot;length&quot;</span>, <span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">to_length</span>(<span class="ident">context</span>)<span class="question-mark">?</span>,
+                );
             }
             <span class="ident">k</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
         }
@@ -2465,7 +2513,7 @@
             <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;reduceRight was called without a callback&quot;</span>),
         };
         <span class="kw">let</span> <span class="ident">initial_value</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">1</span>).<span class="ident">cloned</span>().<span class="ident">unwrap_or_else</span>(<span class="ident">Value</span>::<span class="ident">undefined</span>);
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">length</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="string">&quot;length&quot;</span>).<span class="ident">to_length</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">length</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="string">&quot;length&quot;</span>, <span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">to_length</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
         <span class="kw">if</span> <span class="ident">length</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
             <span class="kw">return</span> <span class="kw">if</span> <span class="ident">initial_value</span>.<span class="ident">is_undefined</span>() {
                 <span class="ident">context</span>.<span class="ident">throw_type_error</span>(
@@ -2495,7 +2543,7 @@
                     <span class="string">&quot;reduceRight was called on an empty array and with no initial value&quot;</span>,
                 );
             }
-            <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="ident">k</span>);
+            <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="ident">k</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
             <span class="ident">k</span> <span class="op">=</span> <span class="ident">k</span>.<span class="ident">overflowing_sub</span>(<span class="number">1</span>).<span class="number">0</span>;
             <span class="ident">result</span>
         } <span class="kw">else</span> {
@@ -2504,12 +2552,20 @@
         <span class="comment">// usize::MAX is bigger than the maximum array size so we can use it check for integer undeflow</span>
         <span class="kw">while</span> <span class="ident">k</span> <span class="op">!</span><span class="op">=</span> <span class="ident">usize</span>::<span class="ident">MAX</span> {
             <span class="kw">if</span> <span class="ident">this</span>.<span class="ident">has_field</span>(<span class="ident">k</span>) {
-                <span class="kw">let</span> <span class="ident">arguments</span> <span class="op">=</span> [<span class="ident">accumulator</span>, <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="ident">k</span>), <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">k</span>), <span class="ident">this</span>.<span class="ident">clone</span>()];
+                <span class="kw">let</span> <span class="ident">arguments</span> <span class="op">=</span> [
+                    <span class="ident">accumulator</span>,
+                    <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="ident">k</span>, <span class="ident">context</span>)<span class="question-mark">?</span>,
+                    <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">k</span>),
+                    <span class="ident">this</span>.<span class="ident">clone</span>(),
+                ];
                 <span class="ident">accumulator</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">call</span>(<span class="kw-2">&amp;</span><span class="ident">callback</span>, <span class="kw-2">&amp;</span><span class="ident">Value</span>::<span class="ident">undefined</span>(), <span class="kw-2">&amp;</span><span class="ident">arguments</span>)<span class="question-mark">?</span>;
                 <span class="comment">/* We keep track of possibly shortened length in order to prevent unnecessary iteration.
                 It may also be necessary to do this since shortening the array length does not
                 delete array elements. See: https://github.com/boa-dev/boa/issues/557 */</span>
-                <span class="ident">length</span> <span class="op">=</span> <span class="ident">min</span>(<span class="ident">length</span>, <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="string">&quot;length&quot;</span>).<span class="ident">to_length</span>(<span class="ident">context</span>)<span class="question-mark">?</span>);
+                <span class="ident">length</span> <span class="op">=</span> <span class="ident">min</span>(
+                    <span class="ident">length</span>,
+                    <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="string">&quot;length&quot;</span>, <span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">to_length</span>(<span class="ident">context</span>)<span class="question-mark">?</span>,
+                );
 
                 <span class="comment">// move k to the last defined element if necessary or return if the length was set to 0</span>
                 <span class="kw">if</span> <span class="ident">k</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">length</span> {

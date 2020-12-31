@@ -271,6 +271,21 @@
 <span id="270">270</span>
 <span id="271">271</span>
 <span id="272">272</span>
+<span id="273">273</span>
+<span id="274">274</span>
+<span id="275">275</span>
+<span id="276">276</span>
+<span id="277">277</span>
+<span id="278">278</span>
+<span id="279">279</span>
+<span id="280">280</span>
+<span id="281">281</span>
+<span id="282">282</span>
+<span id="283">283</span>
+<span id="284">284</span>
+<span id="285">285</span>
+<span id="286">286</span>
+<span id="287">287</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
 
@@ -327,7 +342,6 @@
                     .<span class="ident">as_data_descriptor</span>()
                     .<span class="ident">unwrap</span>()
                     .<span class="ident">value</span>();
-
                 <span class="macro">format</span><span class="macro">!</span>(
                     <span class="string">&quot;{:&gt;width$}: {}&quot;</span>,
                     <span class="ident">key</span>,
@@ -335,8 +349,14 @@
                     <span class="ident">width</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">indent</span>,
                 )
             } <span class="kw">else</span> {
-                <span class="comment">// FIXME: handle accessor descriptors</span>
-                <span class="string">&quot;&quot;</span>.<span class="ident">to_string</span>()
+               <span class="kw">let</span> <span class="ident">accessor</span> <span class="op">=</span> <span class="ident">val</span>.<span class="ident">as_accessor_descriptor</span>().<span class="ident">unwrap</span>();
+               <span class="kw">let</span> <span class="ident">display</span> <span class="op">=</span> <span class="kw">match</span> (<span class="ident">accessor</span>.<span class="ident">setter</span>().<span class="ident">is_some</span>(), <span class="ident">accessor</span>.<span class="ident">getter</span>().<span class="ident">is_some</span>()) {
+                    (<span class="bool-val">true</span>, <span class="bool-val">true</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;Getter &amp; Setter&quot;</span>,
+                    (<span class="bool-val">true</span>, <span class="bool-val">false</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;Setter&quot;</span>,
+                    (<span class="bool-val">false</span>, <span class="bool-val">true</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;Getter&quot;</span>,
+                    <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;No Getter/Setter&quot;</span>
+                };
+               <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{:&gt;width$}: {}&quot;</span>, <span class="ident">key</span>, <span class="ident">display</span>, <span class="ident">width</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">indent</span>)
             }
         })
     };
@@ -463,8 +483,18 @@
 
     <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Value</span>::<span class="ident">Object</span>(<span class="ident">object</span>) <span class="op">=</span> <span class="ident">v</span> {
         <span class="kw">if</span> <span class="ident">object</span>.<span class="ident">borrow</span>().<span class="ident">is_error</span>() {
-            <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="ident">v</span>.<span class="ident">get_field</span>(<span class="string">&quot;name&quot;</span>);
-            <span class="kw">let</span> <span class="ident">message</span> <span class="op">=</span> <span class="ident">v</span>.<span class="ident">get_field</span>(<span class="string">&quot;message&quot;</span>);
+            <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="ident">v</span>
+                .<span class="ident">get_property</span>(<span class="string">&quot;name&quot;</span>)
+                .<span class="ident">as_ref</span>()
+                .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <span class="ident">p</span>.<span class="ident">as_data_descriptor</span>())
+                .<span class="ident">map</span>(<span class="op">|</span><span class="ident">d</span><span class="op">|</span> <span class="ident">d</span>.<span class="ident">value</span>())
+                .<span class="ident">unwrap_or_else</span>(<span class="ident">Value</span>::<span class="ident">undefined</span>);
+            <span class="kw">let</span> <span class="ident">message</span> <span class="op">=</span> <span class="ident">v</span>
+                .<span class="ident">get_property</span>(<span class="string">&quot;message&quot;</span>)
+                .<span class="ident">as_ref</span>()
+                .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <span class="ident">p</span>.<span class="ident">as_data_descriptor</span>())
+                .<span class="ident">map</span>(<span class="op">|</span><span class="ident">d</span><span class="op">|</span> <span class="ident">d</span>.<span class="ident">value</span>())
+                .<span class="ident">unwrap_or_else</span>(<span class="ident">Value</span>::<span class="ident">undefined</span>);
             <span class="kw">return</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}: {}&quot;</span>, <span class="ident">name</span>.<span class="ident">display</span>(), <span class="ident">message</span>.<span class="ident">display</span>());
         }
     }

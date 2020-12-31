@@ -213,7 +213,7 @@
         <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">message</span>) <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>) {
-            <span class="ident">this</span>.<span class="ident">set_field</span>(<span class="string">&quot;message&quot;</span>, <span class="ident">message</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>);
+            <span class="ident">this</span>.<span class="ident">set_field</span>(<span class="string">&quot;message&quot;</span>, <span class="ident">message</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
         }
 
         <span class="comment">// This value is used by console.log and other routines to match Object type</span>
@@ -237,7 +237,7 @@
         <span class="kw">if</span> <span class="op">!</span><span class="ident">this</span>.<span class="ident">is_object</span>() {
             <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;&#39;this&#39; is not an Object&quot;</span>);
         }
-        <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="string">&quot;name&quot;</span>);
+        <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="string">&quot;name&quot;</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">name_to_string</span>;
         <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">name</span>.<span class="ident">is_undefined</span>() {
             <span class="string">&quot;Error&quot;</span>
@@ -246,7 +246,7 @@
             <span class="ident">name_to_string</span>.<span class="ident">as_str</span>()
         };
 
-        <span class="kw">let</span> <span class="ident">message</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="string">&quot;message&quot;</span>);
+        <span class="kw">let</span> <span class="ident">message</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="string">&quot;message&quot;</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">message_to_string</span>;
         <span class="kw">let</span> <span class="ident">message</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">message</span>.<span class="ident">is_undefined</span>() {
             <span class="string">&quot;&quot;</span>

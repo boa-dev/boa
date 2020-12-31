@@ -215,10 +215,10 @@
             <span class="self">self</span>.<span class="ident">parameters</span>().<span class="ident">to_vec</span>(),
             <span class="self">self</span>.<span class="ident">body</span>().<span class="ident">to_vec</span>(),
             <span class="ident">FunctionFlags</span>::<span class="ident">CALLABLE</span> <span class="op">|</span> <span class="ident">FunctionFlags</span>::<span class="ident">CONSTRUCTABLE</span>,
-        );
+        )<span class="question-mark">?</span>;
 
         <span class="comment">// Set the name and assign it in the current environment</span>
-        <span class="ident">val</span>.<span class="ident">set_field</span>(<span class="string">&quot;name&quot;</span>, <span class="self">self</span>.<span class="ident">name</span>());
+        <span class="ident">val</span>.<span class="ident">set_field</span>(<span class="string">&quot;name&quot;</span>, <span class="self">self</span>.<span class="ident">name</span>(), <span class="ident">context</span>)<span class="question-mark">?</span>;
         <span class="ident">context</span>
             .<span class="ident">realm_mut</span>()
             .<span class="ident">environment</span>
