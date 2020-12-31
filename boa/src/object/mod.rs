@@ -169,7 +169,7 @@ impl Object {
     // TODO: proto should be a &Value here
     #[inline]
     pub fn create(proto: Value) -> Self {
-        let mut obj = Self::default();
+        let mut obj = Self::new();
         obj.prototype = proto;
         obj
     }
@@ -474,7 +474,7 @@ impl Object {
     /// Similar to `Value::new_object`, but you can pass a prototype to create from, plus a kind
     #[inline]
     pub fn with_prototype(proto: Value, data: ObjectData) -> Object {
-        let mut object = Object::default();
+        let mut object = Object::new();
         object.data = data;
         object.set_prototype_instance(proto);
         object
