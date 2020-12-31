@@ -1220,7 +1220,7 @@
     <span class="comment">// TODO: proto should be a &amp;Value here</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">create</span>(<span class="ident">proto</span>: <span class="ident">Value</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">obj</span> <span class="op">=</span> <span class="self">Self</span>::<span class="ident">default</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">obj</span> <span class="op">=</span> <span class="self">Self</span>::<span class="ident">new</span>();
         <span class="ident">obj</span>.<span class="ident">prototype</span> <span class="op">=</span> <span class="ident">proto</span>;
         <span class="ident">obj</span>
     }
@@ -1525,7 +1525,7 @@
     <span class="doccomment">/// Similar to `Value::new_object`, but you can pass a prototype to create from, plus a kind</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">with_prototype</span>(<span class="ident">proto</span>: <span class="ident">Value</span>, <span class="ident">data</span>: <span class="ident">ObjectData</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Object</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">object</span> <span class="op">=</span> <span class="ident">Object</span>::<span class="ident">default</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">object</span> <span class="op">=</span> <span class="ident">Object</span>::<span class="ident">new</span>();
         <span class="ident">object</span>.<span class="ident">data</span> <span class="op">=</span> <span class="ident">data</span>;
         <span class="ident">object</span>.<span class="ident">set_prototype_instance</span>(<span class="ident">proto</span>);
         <span class="ident">object</span>

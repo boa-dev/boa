@@ -507,9 +507,6 @@
 <span id="506">506</span>
 <span id="507">507</span>
 <span id="508">508</span>
-<span id="509">509</span>
-<span id="510">510</span>
-<span id="511">511</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Module implementing the lexer cursor. This is used for managing the input byte stream.</span>
 <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">profiler</span>::<span class="ident">BoaProfiler</span>, <span class="ident">syntax</span>::<span class="ident">ast</span>::<span class="ident">Position</span>};
@@ -1004,10 +1001,7 @@
 
 <span class="attribute">#[<span class="ident">inline</span>]</span>
 <span class="kw">fn</span> <span class="ident">unwrap_or_0</span>(<span class="ident">opt</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u8</span> {
-    <span class="kw">match</span> <span class="ident">opt</span> {
-        <span class="prelude-val">Some</span>(<span class="ident">byte</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">byte</span>,
-        <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">0</span>,
-    }
+    <span class="ident">opt</span>.<span class="ident">unwrap_or</span>(<span class="number">0</span>)
 }
 
 <span class="attribute">#[<span class="ident">inline</span>]</span>
