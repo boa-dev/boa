@@ -92,7 +92,6 @@ fn object_is() {
     assert_eq!(forward(&mut context, "Object.is()"), "true");
     assert_eq!(forward(&mut context, "Object.is(undefined)"), "true");
     assert!(context.global_object().is_global());
-    assert!(!context.global_object().get_field("Object").is_global());
 }
 #[test]
 fn object_has_own_property() {

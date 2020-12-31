@@ -782,7 +782,7 @@ mod in_operator {
         let foo_val = forward_val(&mut context, "Foo").unwrap();
         assert!(bar_obj
             .prototype_instance()
-            .strict_equals(&foo_val.get_field("prototype")));
+            .strict_equals(&foo_val.get_field("prototype", &mut context).unwrap()));
     }
 }
 

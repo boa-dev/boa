@@ -10,7 +10,7 @@ use crate::{
         number::{f64_to_int32, f64_to_uint32},
         BigInt, Number,
     },
-    object::{GcObject, Object, ObjectData, PROTOTYPE},
+    object::{GcObject, Object, ObjectData},
     property::{Attribute, DataDescriptor, PropertyDescriptor, PropertyKey},
     BoaProfiler, Context, Result,
 };
@@ -158,17 +158,9 @@ impl Value {
     }
 
     /// Returns a new empty object
-    pub fn new_object(global: Option<&Value>) -> Self {
+    pub fn new_object(context: &Context) -> Self {
         let _timer = BoaProfiler::global().start_event("new_object", "value");
-
-        if let Some(global) = global {
-            let object_prototype = global.get_field("Object").get_field(PROTOTYPE);
-
-            let object = Object::create(object_prototype);
-            Self::object(object)
-        } else {
-            Self::object(Object::default())
-        }
+        context.construct_object().into()
     }
 
     /// Convert from a JSON value to a JS value
@@ -205,7 +197,7 @@ impl Value {
                 new_obj
             }
             JSONValue::Object(obj) => {
-                let new_obj = Value::new_object(Some(context.global_object()));
+                let new_obj = Value::new_object(context);
                 for (key, json) in obj.into_iter() {
                     let value = Self::from_json(json, context);
                     new_obj.set_property(
@@ -224,7 +216,7 @@ impl Value {
 
     /// Converts the `Value` to `JSON`.
     pub fn to_json(&self, context: &mut Context) -> Result<JSONValue> {
-        let to_json = self.get_field("toJSON");
+        let to_json = self.get_field("toJSON", context)?;
         if to_json.is_function() {
             let json_value = context.call(&to_json, self, &[])?;
             return json_value.to_json(context);
@@ -456,19 +448,15 @@ impl Value {
     /// Resolve the property in the object and get its value, or undefined if this is not an object or the field doesn't exist
     /// get_field receives a Property from get_prop(). It should then return the `[[Get]]` result value if that's set, otherwise fall back to `[[Value]]`
     /// TODO: this function should use the get Value if its set
-    pub fn get_field<K>(&self, key: K) -> Self
+    pub fn get_field<K>(&self, key: K, context: &mut Context) -> Result<Self>
     where
         K: Into<PropertyKey>,
     {
         let _timer = BoaProfiler::global().start_event("Value::get_field", "value");
-        let key = key.into();
-        match self.get_property(key) {
-            Some(ref desc) => match desc {
-                // TODO: Add accessors
-                PropertyDescriptor::Accessor(_) => Value::undefined(),
-                PropertyDescriptor::Data(desc) => desc.value(),
-            },
-            None => Value::undefined(),
+        if let Self::Object(ref obj) = *self {
+            obj.clone().get(&key.into(), context)
+        } else {
+            Ok(Value::undefined())
         }
     }
 
@@ -486,7 +474,7 @@ impl Value {
 
     /// Set the field in the value
     #[inline]
-    pub fn set_field<K, V>(&self, key: K, value: V) -> Value
+    pub fn set_field<K, V>(&self, key: K, value: V, context: &mut Context) -> Result<Value>
     where
         K: Into<PropertyKey>,
         V: Into<Value>,
@@ -497,15 +485,15 @@ impl Value {
         if let Self::Object(ref obj) = *self {
             if let PropertyKey::Index(index) = key {
                 if obj.is_array() {
-                    let len = self.get_field("length").as_number().unwrap() as u32;
+                    let len = self.get_field("length", context)?.as_number().unwrap() as u32;
                     if len < index + 1 {
-                        self.set_field("length", index + 1);
+                        self.set_field("length", index + 1, context)?;
                     }
                 }
             }
-            obj.clone().set(key, value.clone());
+            obj.clone().set(key, value.clone(), context)?;
         }
-        value
+        Ok(value)
     }
 
     /// Set the kind of an object.

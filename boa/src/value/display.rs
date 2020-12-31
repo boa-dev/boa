@@ -53,7 +53,6 @@ macro_rules! print_obj_value {
                     .as_data_descriptor()
                     .unwrap()
                     .value();
-
                 format!(
                     "{:>width$}: {}",
                     key,
@@ -61,8 +60,14 @@ macro_rules! print_obj_value {
                     width = $indent,
                 )
             } else {
-                // FIXME: handle accessor descriptors
-                "".to_string()
+               let accessor = val.as_accessor_descriptor().unwrap();
+               let display = match (accessor.setter().is_some(), accessor.getter().is_some()) {
+                    (true, true) => "Getter & Setter",
+                    (true, false) => "Setter",
+                    (false, true) => "Getter",
+                    _ => "No Getter/Setter"
+                };
+               format!("{:>width$}: {}", key, display, width = $indent)
             }
         })
     };
@@ -189,8 +194,18 @@ pub(crate) fn display_obj(v: &Value, print_internals: bool) -> String {
 
     if let Value::Object(object) = v {
         if object.borrow().is_error() {
-            let name = v.get_field("name");
-            let message = v.get_field("message");
+            let name = v
+                .get_property("name")
+                .as_ref()
+                .and_then(|p| p.as_data_descriptor())
+                .map(|d| d.value())
+                .unwrap_or_else(Value::undefined);
+            let message = v
+                .get_property("message")
+                .as_ref()
+                .and_then(|p| p.as_data_descriptor())
+                .map(|d| d.value())
+                .unwrap_or_else(Value::undefined);
             return format!("{}: {}", name.display(), message.display());
         }
     }
