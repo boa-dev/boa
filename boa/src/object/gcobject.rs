@@ -727,7 +727,11 @@ impl GcObject {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-ordinaryhasinstance
     #[inline]
-    pub fn ordinary_has_instance(&self, context: &mut Context, value: &Value) -> Result<bool> {
+    pub(crate) fn ordinary_has_instance(
+        &self,
+        context: &mut Context,
+        value: &Value,
+    ) -> Result<bool> {
         if !self.is_callable() {
             return Ok(false);
         }
@@ -754,6 +758,16 @@ impl GcObject {
         } else {
             Ok(false)
         }
+    }
+
+    #[inline]
+    #[track_caller]
+    pub fn has_own_property<K>(&self, key: K) -> bool
+    where
+        K: Into<PropertyKey>,
+    {
+        let key = key.into();
+        self.get_own_property(&key).is_some()
     }
 }
 

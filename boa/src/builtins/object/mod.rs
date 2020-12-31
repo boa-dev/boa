@@ -380,20 +380,13 @@ impl Object {
     /// [spec]: https://tc39.es/ecma262/#sec-object.prototype.hasownproperty
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/hasOwnProperty
     pub fn has_own_property(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
-        let prop = if args.is_empty() {
-            None
-        } else {
-            Some(args.get(0).expect("Cannot get object").to_string(context)?)
-        };
-        let own_property = this
-            .as_object()
-            .expect("Cannot get THIS object")
-            .get_own_property(&prop.expect("cannot get prop").into());
-        if own_property.is_none() {
-            Ok(Value::from(false))
-        } else {
-            Ok(Value::from(true))
-        }
+        let key = args
+            .get(0)
+            .unwrap_or(&Value::undefined())
+            .to_property_key(context)?;
+        let object = this.to_object(context)?;
+
+        Ok(object.has_own_property(key).into())
     }
 
     pub fn property_is_enumerable(

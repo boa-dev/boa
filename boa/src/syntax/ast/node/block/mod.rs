@@ -37,9 +37,9 @@ pub struct Block {
 }
 
 impl Block {
-    /// Gets the list of statements in this block.
-    pub(crate) fn statements(&self) -> &[Node] {
-        self.statements.statements()
+    /// Gets the list of statements and declarations in this block.
+    pub(crate) fn items(&self) -> &[Node] {
+        self.statements.items()
     }
 
     /// Implements the display formatting with indentation.
@@ -63,7 +63,7 @@ impl Executable for Block {
         // https://tc39.es/ecma262/#sec-block-runtime-semantics-evaluation
         // The return value is uninitialized, which means it defaults to Value::Undefined
         let mut obj = Value::default();
-        for statement in self.statements() {
+        for statement in self.items() {
             obj = statement.run(context)?;
 
             match context.executor().get_current_state() {
