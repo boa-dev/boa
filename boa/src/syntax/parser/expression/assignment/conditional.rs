@@ -12,7 +12,7 @@ use crate::{
     syntax::{
         ast::{node::ConditionalOp, Node, Punctuator},
         parser::{
-            expression::{AssignmentExpression, LogicalORExpression},
+            expression::{AssignmentExpression, ShortCircuitExpression},
             AllowAwait, AllowIn, AllowYield, Cursor, ParseResult, TokenParser,
         },
     },
@@ -65,8 +65,7 @@ where
     fn parse(self, cursor: &mut Cursor<R>) -> ParseResult {
         let _timer = BoaProfiler::global().start_event("ConditionalExpression", "Parsing");
 
-        // TODO: coalesce expression
-        let lhs = LogicalORExpression::new(self.allow_in, self.allow_yield, self.allow_await)
+        let lhs = ShortCircuitExpression::new(self.allow_in, self.allow_yield, self.allow_await)
             .parse(cursor)?;
 
         if let Some(tok) = cursor.peek(0)? {

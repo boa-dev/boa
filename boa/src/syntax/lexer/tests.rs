@@ -109,7 +109,7 @@ fn check_punctuators() {
     // https://tc39.es/ecma262/#sec-punctuators
     let s = "{ ( ) [ ] . ... ; , < > <= >= == != === !== \
              + - * % -- << >> >>> & | ^ ! ~ && || ? : \
-             = += -= *= &= **= ++ ** <<= >>= >>>= &= |= ^= =>";
+             = += -= *= &= **= ++ ** <<= >>= >>>= &= |= ^= => ?? ??=";
     let mut lexer = Lexer::new(s.as_bytes());
 
     let expected = [
@@ -162,6 +162,8 @@ fn check_punctuators() {
         TokenKind::Punctuator(Punctuator::AssignOr),
         TokenKind::Punctuator(Punctuator::AssignXor),
         TokenKind::Punctuator(Punctuator::Arrow),
+        TokenKind::Punctuator(Punctuator::Coalesce),
+        TokenKind::Punctuator(Punctuator::AssignCoalesce),
     ];
 
     expect_tokens(&mut lexer, &expected);

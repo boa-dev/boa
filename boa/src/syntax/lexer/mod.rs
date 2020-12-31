@@ -248,12 +248,8 @@ impl<R> Lexer<R> {
                     Punctuator::CloseBracket.into(),
                     Span::new(start, self.cursor.pos()),
                 )),
-                '?' => Ok(Token::new(
-                    Punctuator::Question.into(),
-                    Span::new(start, self.cursor.pos()),
-                )),
                 '/' => self.lex_slash_token(start),
-                '=' | '*' | '+' | '-' | '%' | '|' | '&' | '^' | '<' | '>' | '!' | '~' => {
+                '=' | '*' | '+' | '-' | '%' | '|' | '&' | '^' | '<' | '>' | '!' | '~' | '?' => {
                     Operator::new(next_ch as u8).lex(&mut self.cursor, start)
                 }
                 _ => {
