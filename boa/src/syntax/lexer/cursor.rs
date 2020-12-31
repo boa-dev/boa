@@ -501,10 +501,7 @@ fn utf8_is_first_byte(byte: u8) -> bool {
 
 #[inline]
 fn unwrap_or_0(opt: Option<u8>) -> u8 {
-    match opt {
-        Some(byte) => byte,
-        None => 0,
-    }
+    opt.unwrap_or(0)
 }
 
 #[inline]

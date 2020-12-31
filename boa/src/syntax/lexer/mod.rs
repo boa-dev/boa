@@ -214,7 +214,7 @@ impl<R> Lexer<R> {
                     Span::new(start, self.cursor.pos()),
                 )),
                 '.' => {
-                    if self.cursor.peek()?.map(|c| c >= b'0' && c <= b'9') == Some(true) {
+                    if self.cursor.peek()?.map(|c| (b'0'..=b'9').contains(&c)) == Some(true) {
                         NumberLiteral::new(next_ch as u8).lex(&mut self.cursor, start)
                     } else {
                         SpreadLiteral::new().lex(&mut self.cursor, start)
