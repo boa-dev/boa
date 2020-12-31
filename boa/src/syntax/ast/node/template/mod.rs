@@ -85,13 +85,13 @@ impl Executable for TaggedTemplate {
         let raw_array = Array::new_array(context)?;
 
         for (i, raw) in self.raws.iter().enumerate() {
-            raw_array.set_field(i, Value::from(raw));
+            raw_array.set_field(i, Value::from(raw), context)?;
         }
 
         for (i, cooked) in self.cookeds.iter().enumerate() {
-            template_object.set_field(i, Value::from(cooked));
+            template_object.set_field(i, Value::from(cooked), context)?;
         }
-        template_object.set_field("raw", raw_array);
+        template_object.set_field("raw", raw_array, context)?;
 
         let (this, func) = match *self.tag {
             Node::GetConstField(ref get_const_field) => {
@@ -99,12 +99,18 @@ impl Executable for TaggedTemplate {
                 if obj.get_type() != Type::Object {
                     obj = Value::Object(obj.to_object(context)?);
                 }
-                (obj.clone(), obj.get_field(get_const_field.field()))
+                (
+                    obj.clone(),
+                    obj.get_field(get_const_field.field(), context)?,
+                )
             }
             Node::GetField(ref get_field) => {
                 let obj = get_field.obj().run(context)?;
                 let field = get_field.field().run(context)?;
-                (obj.clone(), obj.get_field(field.to_property_key(context)?))
+                (
+                    obj.clone(),
+                    obj.get_field(field.to_property_key(context)?, context)?,
+                )
             }
             _ => (context.global_object().clone(), self.tag.run(context)?),
         };
