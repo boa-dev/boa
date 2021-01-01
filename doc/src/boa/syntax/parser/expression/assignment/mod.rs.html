@@ -220,6 +220,7 @@
 <span id="219">219</span>
 <span id="220">220</span>
 <span id="221">221</span>
+<span id="222">222</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Assignment operator parsing.</span>
 <span class="doccomment">//!</span>
@@ -440,7 +441,8 @@
 <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-assignment-operators-static-semantics-early-errors</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">is_assignable</span>(<span class="ident">node</span>: <span class="kw-2">&amp;</span><span class="ident">Node</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-    <span class="op">!</span><span class="macro">matches</span><span class="macro">!</span>(<span class="ident">node</span>, <span class="ident">Node</span>::<span class="ident">Const</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="ident">Node</span>::<span class="ident">ArrayDecl</span>(<span class="kw">_</span>))
+    <span class="macro">matches</span><span class="macro">!</span>(<span class="ident">node</span>, <span class="ident">Node</span>::<span class="ident">GetConstField</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="ident">Node</span>::<span class="ident">GetField</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="ident">Node</span>::<span class="ident">Assign</span>(<span class="kw">_</span>)
+                   <span class="op">|</span> <span class="ident">Node</span>::<span class="ident">Call</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="ident">Node</span>::<span class="ident">Identifier</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="ident">Node</span>::<span class="ident">Object</span>(<span class="kw">_</span>))
 }
 </pre></div>
 </section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../../../../../../";window.currentCrate = "boa";</script><script src="../../../../../../main.js"></script><script src="../../../../../../source-script.js"></script><script src="../../../../../../source-files.js"></script><script defer src="../../../../../../search-index.js"></script></body></html>
