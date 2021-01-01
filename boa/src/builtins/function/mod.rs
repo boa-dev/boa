@@ -237,12 +237,15 @@ pub fn make_builtin_fn<N>(
             .prototype()
             .into(),
     );
-    function.insert_property("length", length, Attribute::all());
+    let attribute = Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE;
+    function.insert_property("length", length, attribute);
+    function.insert_property("name", name.as_str(), attribute);
 
-    parent
-        .as_object()
-        .unwrap()
-        .insert_property(name, function, Attribute::all());
+    parent.as_object().unwrap().insert_property(
+        name,
+        function,
+        Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+    );
 }
 
 #[derive(Debug, Clone, Copy)]
