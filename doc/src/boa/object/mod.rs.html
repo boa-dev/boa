@@ -1048,6 +1048,25 @@
 <span id="1047">1047</span>
 <span id="1048">1048</span>
 <span id="1049">1049</span>
+<span id="1050">1050</span>
+<span id="1051">1051</span>
+<span id="1052">1052</span>
+<span id="1053">1053</span>
+<span id="1054">1054</span>
+<span id="1055">1055</span>
+<span id="1056">1056</span>
+<span id="1057">1057</span>
+<span id="1058">1058</span>
+<span id="1059">1059</span>
+<span id="1060">1060</span>
+<span id="1061">1061</span>
+<span id="1062">1062</span>
+<span id="1063">1063</span>
+<span id="1064">1064</span>
+<span id="1065">1065</span>
+<span id="1066">1066</span>
+<span id="1067">1067</span>
+<span id="1068">1068</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements the Rust representation of a JavaScript object.</span>
 
@@ -1080,6 +1099,7 @@
 <span class="kw">mod</span> <span class="ident">internal_methods</span>;
 <span class="kw">mod</span> <span class="ident">iter</span>;
 
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">builtins</span>::<span class="ident">object</span>::<span class="ident">for_in_iterator</span>::<span class="ident">ForInIterator</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">gcobject</span>::{<span class="ident">GcObject</span>, <span class="ident">RecursionLimiter</span>, <span class="ident">Ref</span>, <span class="ident">RefMut</span>};
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">iter</span>::<span class="kw-2">*</span>;
 
@@ -1135,6 +1155,7 @@
     <span class="ident">RegExp</span>(<span class="ident">Box</span><span class="op">&lt;</span><span class="ident">RegExp</span><span class="op">&gt;</span>),
     <span class="ident">BigInt</span>(<span class="ident">RcBigInt</span>),
     <span class="ident">Boolean</span>(<span class="ident">bool</span>),
+    <span class="ident">ForInIterator</span>(<span class="ident">ForInIterator</span>),
     <span class="ident">Function</span>(<span class="ident">Function</span>),
     <span class="ident">String</span>(<span class="ident">RcString</span>),
     <span class="ident">StringIterator</span>(<span class="ident">StringIterator</span>),
@@ -1155,6 +1176,7 @@
             <span class="kw">match</span> <span class="self">self</span> {
                 <span class="self">Self</span>::<span class="ident">Array</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;Array&quot;</span>,
                 <span class="self">Self</span>::<span class="ident">ArrayIterator</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;ArrayIterator&quot;</span>,
+                <span class="self">Self</span>::<span class="ident">ForInIterator</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;ForInIterator&quot;</span>,
                 <span class="self">Self</span>::<span class="ident">Function</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;Function&quot;</span>,
                 <span class="self">Self</span>::<span class="ident">RegExp</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;RegExp&quot;</span>,
                 <span class="self">Self</span>::<span class="ident">Map</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;Map&quot;</span>,
@@ -1358,6 +1380,22 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_string_iterator_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">StringIterator</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">data</span> {
             <span class="ident">ObjectData</span>::<span class="ident">StringIterator</span>(<span class="ident">iter</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">iter</span>),
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
+        }
+    }
+
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_for_in_iterator</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">ForInIterator</span><span class="op">&gt;</span> {
+        <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">data</span> {
+            <span class="ident">ObjectData</span>::<span class="ident">ForInIterator</span>(<span class="ident">iter</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">iter</span>),
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
+        }
+    }
+
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_for_in_iterator_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ForInIterator</span><span class="op">&gt;</span> {
+        <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">data</span> {
+            <span class="ident">ObjectData</span>::<span class="ident">ForInIterator</span>(<span class="ident">iter</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">iter</span>),
             <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
         }
     }

@@ -65,6 +65,11 @@
 <span id="64">64</span>
 <span id="65">65</span>
 <span id="66">66</span>
+<span id="67">67</span>
+<span id="68">68</span>
+<span id="69">69</span>
+<span id="70">70</span>
+<span id="71">71</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">Read</span>;
 
@@ -128,8 +133,13 @@
 }
 
 <span class="kw">fn</span> <span class="ident">set_label_for_node</span>(<span class="ident">stmt</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Node</span>, <span class="ident">name</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span>) {
-    <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Node</span>::<span class="ident">ForLoop</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">for_loop</span>) <span class="op">=</span> <span class="ident">stmt</span> {
-        <span class="ident">for_loop</span>.<span class="ident">set_label</span>(<span class="ident">name</span>)
+    <span class="kw">match</span> <span class="ident">stmt</span> {
+        <span class="ident">Node</span>::<span class="ident">ForLoop</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">for_loop</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">for_loop</span>.<span class="ident">set_label</span>(<span class="ident">name</span>),
+        <span class="ident">Node</span>::<span class="ident">ForOfLoop</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">for_of_loop</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">for_of_loop</span>.<span class="ident">set_label</span>(<span class="ident">name</span>),
+        <span class="ident">Node</span>::<span class="ident">ForInLoop</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">for_in_loop</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">for_in_loop</span>.<span class="ident">set_label</span>(<span class="ident">name</span>),
+        <span class="ident">Node</span>::<span class="ident">DoWhileLoop</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">do_while_loop</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">do_while_loop</span>.<span class="ident">set_label</span>(<span class="ident">name</span>),
+        <span class="ident">Node</span>::<span class="ident">WhileLoop</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">while_loop</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">while_loop</span>.<span class="ident">set_label</span>(<span class="ident">name</span>),
+        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> (),
     }
 }
 </pre></div>

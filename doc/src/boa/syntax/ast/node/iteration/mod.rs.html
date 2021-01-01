@@ -36,12 +36,13 @@
 <span id="35">35</span>
 <span id="36">36</span>
 <span id="37">37</span>
+<span id="38">38</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Iteration nodes</span>
 
 <span class="kw">pub</span> <span class="kw">use</span> <span class="self">self</span>::{
-    <span class="ident">continue_node</span>::<span class="ident">Continue</span>, <span class="ident">do_while_loop</span>::<span class="ident">DoWhileLoop</span>, <span class="ident">for_loop</span>::<span class="ident">ForLoop</span>, <span class="ident">for_of_loop</span>::<span class="ident">ForOfLoop</span>,
-    <span class="ident">while_loop</span>::<span class="ident">WhileLoop</span>,
+    <span class="ident">continue_node</span>::<span class="ident">Continue</span>, <span class="ident">do_while_loop</span>::<span class="ident">DoWhileLoop</span>, <span class="ident">for_in_loop</span>::<span class="ident">ForInLoop</span>, <span class="ident">for_loop</span>::<span class="ident">ForLoop</span>,
+    <span class="ident">for_of_loop</span>::<span class="ident">ForOfLoop</span>, <span class="ident">while_loop</span>::<span class="ident">WhileLoop</span>,
 };
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
@@ -71,6 +72,7 @@
 
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">continue_node</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">do_while_loop</span>;
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">for_in_loop</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">for_loop</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">for_of_loop</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">while_loop</span>;
