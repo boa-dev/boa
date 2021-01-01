@@ -22,7 +22,7 @@ fn spread_with_call() {
         return m;
     }
     function g(...args) {
-        f(...args);
+        return f(...args);
     }
     let a = g('message');
     a;
