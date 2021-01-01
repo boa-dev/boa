@@ -119,10 +119,10 @@ impl<R> Tokenizer<R> for Operator {
                 Ok(Punctuator::Mod)
             ),
             b'|' => op!(cursor, start_pos, Ok(Punctuator::AssignOr), Ok(Punctuator::Or), {
-                Some(b'|') => Ok(Punctuator::BoolOr)
+                Some(b'|') => vop!(cursor, Ok(Punctuator::AssignBoolOr), Ok(Punctuator::BoolOr))
             }),
             b'&' => op!(cursor, start_pos, Ok(Punctuator::AssignAnd), Ok(Punctuator::And), {
-                Some(b'&') => Ok(Punctuator::BoolAnd)
+                Some(b'&') => vop!(cursor, Ok(Punctuator::AssignBoolAnd), Ok(Punctuator::BoolAnd))
             }),
             b'?' => match cursor.peek()? {
                 Some(b'?') => {
