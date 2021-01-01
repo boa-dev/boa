@@ -630,7 +630,7 @@ fn to_primitive() {
     let primitive = a + 0;
     "#;
     context.eval(src).unwrap();
-    assert_eq!(forward(&mut context, "primitive"), r#"42"#);
+    assert_eq!(forward(&mut context, "primitive"), "42");
 }
 
 /// Test cyclic conversions that previously caused stack overflows
