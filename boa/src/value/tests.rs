@@ -619,6 +619,20 @@ fn test_accessors() {
     assert_eq!(forward(&mut context, "arr"), r#"[ "a" ]"#);
 }
 
+#[test]
+fn to_primitive() {
+    let mut context = Context::new();
+    let src = r#"
+    let a = {};
+    a[Symbol.toPrimitive] = function() {
+        return 42;
+    };
+    let primitive = a + 0;
+    "#;
+    context.eval(src).unwrap();
+    assert_eq!(forward(&mut context, "primitive"), r#"42"#);
+}
+
 /// Test cyclic conversions that previously caused stack overflows
 /// Relevant mitigations for these are in `GcObject::ordinary_to_primitive` and
 /// `GcObject::to_json`
