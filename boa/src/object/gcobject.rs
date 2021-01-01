@@ -761,7 +761,6 @@ impl GcObject {
             Ok(false)
         }
     }
-
     #[inline]
     #[track_caller]
     pub fn has_own_property<K>(&self, key: K) -> bool
@@ -770,6 +769,34 @@ impl GcObject {
     {
         let key = key.into();
         self.get_own_property(&key).is_some()
+    }
+
+    /// Defines the property or throws a `TypeError` if the operation fails.
+    ///
+    /// More information:
+    /// - [EcmaScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-definepropertyorthrow
+    #[inline]
+    pub(crate) fn define_property_or_throw<K, P>(
+        &mut self,
+        key: K,
+        desc: P,
+        context: &mut Context,
+    ) -> Result<()>
+    where
+        K: Into<PropertyKey>,
+        P: Into<PropertyDescriptor>,
+    {
+        let key = key.into();
+        let desc = desc.into();
+
+        let success = self.define_own_property(key.clone(), desc);
+        if !success {
+            Err(context.construct_type_error(format!("Cannot redefine property: {}", key)))
+        } else {
+            Ok(())
+        }
     }
 }
 
