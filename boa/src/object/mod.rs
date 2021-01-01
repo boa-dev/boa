@@ -701,7 +701,7 @@ impl<'context> FunctionBuilder<'context> {
                 .prototype()
                 .into(),
         );
-        let attribute = Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT;
+        let attribute = Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE;
         if let Some(name) = self.name.take() {
             function.insert_property("name", name, attribute);
         } else {
@@ -1014,11 +1014,11 @@ impl<'context> ConstructorBuilder<'context> {
 
         let length = DataDescriptor::new(
             self.length,
-            Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT,
+            Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
         );
         let name = DataDescriptor::new(
             self.name.take().unwrap_or_else(|| String::from("[object]")),
-            Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT,
+            Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
         );
 
         {
