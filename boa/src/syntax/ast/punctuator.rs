@@ -35,6 +35,10 @@ pub enum Punctuator {
     AssignAdd,
     /// `&=`
     AssignAnd,
+    /// `&&=`
+    AssignBoolAnd,
+    /// `||=`
+    AssignBoolOr,
     /// `??=`,
     AssignCoalesce,
     /// `/=`
@@ -141,6 +145,8 @@ impl Punctuator {
         match self {
             Self::AssignAdd => Some(BinOp::Assign(AssignOp::Add)),
             Self::AssignAnd => Some(BinOp::Assign(AssignOp::And)),
+            Self::AssignBoolAnd => Some(BinOp::Assign(AssignOp::BoolAnd)),
+            Self::AssignBoolOr => Some(BinOp::Assign(AssignOp::BoolOr)),
             Self::AssignCoalesce => Some(BinOp::Assign(AssignOp::Coalesce)),
             Self::AssignDiv => Some(BinOp::Assign(AssignOp::Div)),
             Self::AssignLeftSh => Some(BinOp::Assign(AssignOp::Shl)),
@@ -200,6 +206,8 @@ impl Display for Punctuator {
                 Self::Assign => "=",
                 Self::AssignAdd => "+=",
                 Self::AssignAnd => "&=",
+                Self::AssignBoolAnd => "&&=",
+                Self::AssignBoolOr => "||=",
                 Self::AssignCoalesce => "??=",
                 Self::AssignDiv => "/=",
                 Self::AssignLeftSh => "<<=",

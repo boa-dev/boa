@@ -71,6 +71,20 @@ impl BinOp {
             AssignOp::Shl => x.shl(&y.run(context)?, context),
             AssignOp::Shr => x.shr(&y.run(context)?, context),
             AssignOp::Ushr => x.ushr(&y.run(context)?, context),
+            AssignOp::BoolAnd => {
+                if x.to_boolean() {
+                    Ok(y.run(context)?)
+                } else {
+                    Ok(x)
+                }
+            }
+            AssignOp::BoolOr => {
+                if x.to_boolean() {
+                    Ok(x)
+                } else {
+                    Ok(y.run(context)?)
+                }
+            }
             AssignOp::Coalesce => {
                 if x.is_null_or_undefined() {
                     Ok(y.run(context)?)

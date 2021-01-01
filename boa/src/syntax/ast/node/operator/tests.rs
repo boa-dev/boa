@@ -79,3 +79,37 @@ fn logical_nullish_assignment() {
 
     assert_eq!(&exec(scenario), "20");
 }
+
+#[test]
+fn logical_assignment() {
+    let scenario = r#"
+        let a = false;
+        a &&= 10;
+        a;
+        "#;
+
+    assert_eq!(&exec(scenario), "false");
+
+    let scenario = r#"
+        let a = 20;
+        a &&= 10;
+        a;
+        "#;
+
+    assert_eq!(&exec(scenario), "10");
+
+    let scenario = r#"
+        let a = null;
+        a ||= 10;
+        a;
+        "#;
+
+    assert_eq!(&exec(scenario), "10");
+    let scenario = r#"
+        let a = 20;
+        a ||= 10;
+        a;
+        "#;
+
+    assert_eq!(&exec(scenario), "20");
+}
