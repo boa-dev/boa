@@ -4,7 +4,10 @@ use crate::{
     gc::{Finalize, Trace},
     syntax::ast::node::{join_nodes, Node},
     value::{Type, Value},
-    BoaProfiler, Context, Result,
+    BoaProfiler,
+    Context,
+    Result,
+    builtins::iterable
 };
 use std::fmt;
 
@@ -84,11 +87,19 @@ impl Executable for Call {
         for arg in self.args() {
             if let Node::Spread(ref x) = arg {
                 let val = x.run(context)?;
-                let mut vals = context.extract_array_properties(&val)?.unwrap();
-                v_args.append(&mut vals);
+                let iterator_record = iterable::get_iterator(context, val)?;
+                loop {
+                    let next = iterator_record.next(context)?;
+                    if next.is_done() {
+                        break;
+                    }
+                    let next_value = next.value();
+                    v_args.push(next_value.clone());
+                }
                 break; // after spread we don't accept any new arguments
+            } else {
+                v_args.push(arg.run(context)?);
             }
-            v_args.push(arg.run(context)?);
         }
 
         // execute the function call itself

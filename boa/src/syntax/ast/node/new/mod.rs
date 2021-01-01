@@ -3,7 +3,10 @@ use crate::{
     gc::{Finalize, Trace},
     syntax::ast::node::{Call, Node},
     value::Value,
-    BoaProfiler, Context, Result,
+    BoaProfiler,
+    Context,
+    Result,
+    builtins::iterable
 };
 use std::fmt;
 
@@ -50,7 +53,21 @@ impl Executable for New {
         let func_object = self.expr().run(context)?;
         let mut v_args = Vec::with_capacity(self.args().len());
         for arg in self.args() {
-            v_args.push(arg.run(context)?);
+            if let Node::Spread(ref x) = arg {
+                let val = x.run(context)?;
+                let iterator_record = iterable::get_iterator(context, val)?;
+                loop {
+                    let next = iterator_record.next(context)?;
+                    if next.is_done() {
+                        break;
+                    }
+                    let next_value = next.value();
+                    v_args.push(next_value.clone());
+                }
+                break; // after spread we don't accept any new arguments
+            } else {
+                v_args.push(arg.run(context)?);
+            }
         }
 
         match func_object {
