@@ -42,12 +42,14 @@ impl EnvironmentRecordTrait for DeclarativeEnvironmentRecord {
         self.env_rec.contains_key(name)
     }
 
-    fn create_mutable_binding(&mut self, name: String, deletion: bool) -> Result<(), ErrorKind> {
-        assert!(
-            !self.env_rec.contains_key(&name),
-            "Identifier {} has already been declared",
-            name
-        );
+    fn create_mutable_binding(&mut self, name: String, deletion: bool, allow_name_reuse: bool) -> Result<(), ErrorKind> {
+        if !allow_name_reuse {
+            assert!(
+                !self.env_rec.contains_key(&name),
+                "Identifier {} has already been declared",
+                name
+            );
+        }
 
         self.env_rec.insert(
             name,
@@ -105,7 +107,7 @@ impl EnvironmentRecordTrait for DeclarativeEnvironmentRecord {
                 )));
             }
 
-            self.create_mutable_binding(name.to_owned(), true)?;
+            self.create_mutable_binding(name.to_owned(), true, false)?;
             self.initialize_binding(name, value)?;
             return Ok(());
         }

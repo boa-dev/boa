@@ -37,7 +37,7 @@ impl EnvironmentRecordTrait for ObjectEnvironmentRecord {
         }
     }
 
-    fn create_mutable_binding(&mut self, name: String, deletion: bool) -> Result<(), ErrorKind> {
+    fn create_mutable_binding(&mut self, name: String, deletion: bool, _allow_name_reuse: bool) -> Result<(), ErrorKind> {
         // TODO: could save time here and not bother generating a new undefined object,
         // only for it to be replace with the real value later. We could just add the name to a Vector instead
         let bindings = &mut self.bindings;

@@ -86,7 +86,7 @@ impl GlobalEnvironmentRecord {
         let has_property = global_object.has_field(name.as_str());
         let extensible = global_object.is_extensible();
         if !has_property && extensible {
-            obj_rec.create_mutable_binding(name.clone(), deletion)?;
+            obj_rec.create_mutable_binding(name.clone(), deletion, false)?;
             obj_rec.initialize_binding(&name, Value::undefined())?;
         }
 
@@ -131,8 +131,8 @@ impl EnvironmentRecordTrait for GlobalEnvironmentRecord {
         self.object_record.has_binding(name)
     }
 
-    fn create_mutable_binding(&mut self, name: String, deletion: bool) -> Result<(), ErrorKind> {
-        if self.declarative_record.has_binding(&name) {
+    fn create_mutable_binding(&mut self, name: String, deletion: bool, allow_name_reuse: bool) -> Result<(), ErrorKind> {
+        if !allow_name_reuse && self.declarative_record.has_binding(&name) {
             return Err(ErrorKind::new_type_error(format!(
                 "Binding already exists for {}",
                 name
@@ -140,7 +140,7 @@ impl EnvironmentRecordTrait for GlobalEnvironmentRecord {
         }
 
         self.declarative_record
-            .create_mutable_binding(name, deletion)
+            .create_mutable_binding(name, deletion, allow_name_reuse)
     }
 
     fn create_immutable_binding(&mut self, name: String, strict: bool) -> Result<(), ErrorKind> {
