@@ -408,6 +408,10 @@
 <span id="407">407</span>
 <span id="408">408</span>
 <span id="409">409</span>
+<span id="410">410</span>
+<span id="411">411</span>
+<span id="412">412</span>
+<span id="413">413</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements the global `Object` object.</span>
 <span class="doccomment">//!</span>
@@ -698,19 +702,23 @@
 
     <span class="doccomment">/// Define a property in an object</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">define_property</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">expect</span>(<span class="string">&quot;Cannot get object&quot;</span>);
-        <span class="kw">let</span> <span class="ident">prop</span> <span class="op">=</span> <span class="ident">args</span>
-            .<span class="ident">get</span>(<span class="number">1</span>)
-            .<span class="ident">expect</span>(<span class="string">&quot;Cannot get object&quot;</span>)
-            .<span class="ident">to_property_key</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">object</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">cloned</span>().<span class="ident">unwrap_or_else</span>(<span class="ident">Value</span>::<span class="ident">undefined</span>);
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">mut</span> <span class="ident">object</span>) <span class="op">=</span> <span class="ident">object</span>.<span class="ident">as_object</span>() {
+            <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="ident">args</span>
+                .<span class="ident">get</span>(<span class="number">1</span>)
+                .<span class="ident">unwrap_or</span>(<span class="kw-2">&amp;</span><span class="ident">Value</span>::<span class="ident">undefined</span>())
+                .<span class="ident">to_property_key</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+            <span class="kw">let</span> <span class="ident">desc</span> <span class="op">=</span> <span class="ident">args</span>
+                .<span class="ident">get</span>(<span class="number">2</span>)
+                .<span class="ident">unwrap_or</span>(<span class="kw-2">&amp;</span><span class="ident">Value</span>::<span class="ident">undefined</span>())
+                .<span class="ident">to_property_descriptor</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
 
-        <span class="kw">let</span> <span class="ident">desc</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Value</span>::<span class="ident">Object</span>(<span class="kw-2">ref</span> <span class="ident">object</span>) <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">2</span>).<span class="ident">cloned</span>().<span class="ident">unwrap_or_default</span>() {
-            <span class="ident">object</span>.<span class="ident">to_property_descriptor</span>(<span class="ident">context</span>)<span class="question-mark">?</span>
+            <span class="ident">object</span>.<span class="ident">define_property_or_throw</span>(<span class="ident">key</span>, <span class="ident">desc</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
+
+            <span class="prelude-val">Ok</span>(<span class="ident">object</span>.<span class="ident">into</span>())
         } <span class="kw">else</span> {
-            <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;Property description must be an object&quot;</span>);
-        };
-        <span class="ident">obj</span>.<span class="ident">set_property</span>(<span class="ident">prop</span>, <span class="ident">desc</span>);
-        <span class="prelude-val">Ok</span>(<span class="ident">obj</span>.<span class="ident">clone</span>())
+            <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;Object.defineProperty called on non-object&quot;</span>)
+        }
     }
 
     <span class="doccomment">/// `Object.defineProperties( proto, [propertiesObject] )`</span>
