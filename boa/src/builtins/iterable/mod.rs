@@ -1,6 +1,7 @@
 use crate::{
     builtins::string::string_iterator::StringIterator,
     builtins::ArrayIterator,
+    builtins::ForInIterator,
     builtins::MapIterator,
     object::{GcObject, ObjectInitializer},
     property::{Attribute, DataDescriptor},
@@ -13,6 +14,7 @@ pub struct IteratorPrototypes {
     array_iterator: GcObject,
     string_iterator: GcObject,
     map_iterator: GcObject,
+    for_in_iterator: GcObject,
 }
 
 impl IteratorPrototypes {
@@ -28,9 +30,12 @@ impl IteratorPrototypes {
             string_iterator: StringIterator::create_prototype(context, iterator_prototype.clone())
                 .as_object()
                 .expect("String Iterator Prototype is not an object"),
-            map_iterator: MapIterator::create_prototype(context, iterator_prototype)
+            map_iterator: MapIterator::create_prototype(context, iterator_prototype.clone())
                 .as_object()
                 .expect("Map Iterator Prototype is not an object"),
+            for_in_iterator: ForInIterator::create_prototype(context, iterator_prototype)
+                .as_object()
+                .expect("For In Iterator Prototype is not an object"),
         }
     }
 
@@ -49,8 +54,14 @@ impl IteratorPrototypes {
         self.string_iterator.clone()
     }
 
+    #[inline]
     pub fn map_iterator(&self) -> GcObject {
         self.map_iterator.clone()
+    }
+
+    #[inline]
+    pub fn for_in_iterator(&self) -> GcObject {
+        self.for_in_iterator.clone()
     }
 }
 
@@ -110,7 +121,7 @@ pub struct IteratorRecord {
 }
 
 impl IteratorRecord {
-    fn new(iterator_object: Value, next_function: Value) -> Self {
+    pub fn new(iterator_object: Value, next_function: Value) -> Self {
         Self {
             iterator_object,
             next_function,

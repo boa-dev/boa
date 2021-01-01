@@ -29,6 +29,7 @@ mod gcobject;
 mod internal_methods;
 mod iter;
 
+use crate::builtins::object::for_in_iterator::ForInIterator;
 pub use gcobject::{GcObject, RecursionLimiter, Ref, RefMut};
 pub use iter::*;
 
@@ -84,6 +85,7 @@ pub enum ObjectData {
     RegExp(Box<RegExp>),
     BigInt(RcBigInt),
     Boolean(bool),
+    ForInIterator(ForInIterator),
     Function(Function),
     String(RcString),
     StringIterator(StringIterator),
@@ -104,6 +106,7 @@ impl Display for ObjectData {
             match self {
                 Self::Array => "Array",
                 Self::ArrayIterator(_) => "ArrayIterator",
+                Self::ForInIterator(_) => "ForInIterator",
                 Self::Function(_) => "Function",
                 Self::RegExp(_) => "RegExp",
                 Self::Map(_) => "Map",
@@ -307,6 +310,22 @@ impl Object {
     pub fn as_string_iterator_mut(&mut self) -> Option<&mut StringIterator> {
         match &mut self.data {
             ObjectData::StringIterator(iter) => Some(iter),
+            _ => None,
+        }
+    }
+
+    #[inline]
+    pub fn as_for_in_iterator(&self) -> Option<&ForInIterator> {
+        match &self.data {
+            ObjectData::ForInIterator(iter) => Some(iter),
+            _ => None,
+        }
+    }
+
+    #[inline]
+    pub fn as_for_in_iterator_mut(&mut self) -> Option<&mut ForInIterator> {
+        match &mut self.data {
+            ObjectData::ForInIterator(iter) => Some(iter),
             _ => None,
         }
     }

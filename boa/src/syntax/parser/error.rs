@@ -98,6 +98,7 @@ impl ParseError {
     }
 
     /// Creates a new `Unimplemented` parsing error.
+    #[allow(dead_code)]
     pub(super) fn unimplemented(message: &'static str, position: Position) -> Self {
         Self::Unimplemented { message, position }
     }

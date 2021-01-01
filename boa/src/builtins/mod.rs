@@ -37,6 +37,7 @@ pub(crate) use self::{
     math::Math,
     nan::NaN,
     number::Number,
+    object::for_in_iterator::ForInIterator,
     object::Object as BuiltInObjectObject,
     regexp::RegExp,
     string::String,

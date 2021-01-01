@@ -965,6 +965,30 @@ pub enum AssignOp {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Unsigned_right_shift_assignment
     Ushr,
 
+    /// The logical and assignment operator only assigns if the target variable is truthy.
+    ///
+    /// Syntax: `x &&= y`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#prod-AssignmentExpression
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Logical_AND_assignment
+    BoolAnd,
+
+    /// The logical or assignment operator only assigns if the target variable is falsy.
+    ///
+    /// Syntax: `x ||= y`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#prod-AssignmentExpression
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Logical_OR_assignment
+    BoolOr,
+
     /// The logical nullish assignment operator only assigns if the target variable is nullish (null or undefined).
     ///
     /// Syntax: `x ??= y`
@@ -1000,6 +1024,8 @@ impl Display for AssignOp {
                 Self::Shl => "<<=",
                 Self::Shr => ">>=",
                 Self::Ushr => ">>>=",
+                Self::BoolAnd => "&&=",
+                Self::BoolOr => "||=",
                 Self::Coalesce => "??=",
             }
         )

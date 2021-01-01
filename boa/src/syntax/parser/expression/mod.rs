@@ -473,20 +473,55 @@ impl RelationalExpression {
     }
 }
 
-expression!(
-    RelationalExpression,
-    ShiftExpression,
-    [
-        Punctuator::LessThan,
-        Punctuator::GreaterThan,
-        Punctuator::LessThanOrEq,
-        Punctuator::GreaterThanOrEq,
-        Keyword::InstanceOf,
-        Keyword::In
-    ],
-    [allow_yield, allow_await],
-    None::<InputElement>
-);
+impl<R> TokenParser<R> for RelationalExpression
+where
+    R: Read,
+{
+    type Output = Node;
+
+    fn parse(self, cursor: &mut Cursor<R>) -> ParseResult {
+        let _timer = BoaProfiler::global().start_event("Relation Expression", "Parsing");
+
+        if None::<InputElement>.is_some() {
+            cursor.set_goal(None::<InputElement>.unwrap());
+        }
+
+        let mut lhs = ShiftExpression::new(self.allow_yield, self.allow_await).parse(cursor)?;
+        while let Some(tok) = cursor.peek(0)? {
+            match *tok.kind() {
+                TokenKind::Punctuator(op)
+                    if op == Punctuator::LessThan
+                        || op == Punctuator::GreaterThan
+                        || op == Punctuator::LessThanOrEq
+                        || op == Punctuator::GreaterThanOrEq =>
+                {
+                    let _ = cursor.next().expect("token disappeared");
+                    lhs = BinOp::new(
+                        op.as_binop().expect("Could not get binary operation."),
+                        lhs,
+                        ShiftExpression::new(self.allow_yield, self.allow_await).parse(cursor)?,
+                    )
+                    .into();
+                }
+                TokenKind::Keyword(op)
+                    if op == Keyword::InstanceOf
+                        || (op == Keyword::In && self.allow_in == AllowIn(true)) =>
+                {
+                    let _ = cursor.next().expect("token disappeared");
+                    lhs = BinOp::new(
+                        op.as_binop().expect("Could not get binary operation."),
+                        lhs,
+                        ShiftExpression::new(self.allow_yield, self.allow_await).parse(cursor)?,
+                    )
+                    .into();
+                }
+                _ => break,
+            }
+        }
+
+        Ok(lhs)
+    }
+}
 
 /// Parses a bitwise shift expression.
 ///
