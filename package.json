@@ -13,7 +13,6 @@
     "html-webpack-plugin": "^4.5.0",
     "prettier": "2.2.1",
     "style-loader": "^2.0.0",
-    "text-encoding": "^0.7.0",
     "webpack": "^5.11.1",
     "webpack-cli": "^4.3.1",
     "webpack-dev-server": "^3.11.1"
