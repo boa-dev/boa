@@ -182,7 +182,7 @@ pub fn create_unmapped_arguments_object(arguments_list: &[Value]) -> Value {
     // Set length
     let length = DataDescriptor::new(
         len,
-        Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::PERMANENT,
+        Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
     );
     // Define length as a property
     obj.ordinary_define_own_property("length", length.into());
