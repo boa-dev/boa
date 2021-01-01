@@ -144,7 +144,8 @@ impl LexicalEnvironment {
                     })
                     .expect("No function or global environment");
 
-                env.borrow_mut().create_mutable_binding(name, deletion, false)
+                env.borrow_mut()
+                    .create_mutable_binding(name, deletion, false)
             }
         }
     }

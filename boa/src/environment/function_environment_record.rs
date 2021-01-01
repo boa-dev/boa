@@ -98,7 +98,12 @@ impl EnvironmentRecordTrait for FunctionEnvironmentRecord {
         self.env_rec.contains_key(name)
     }
 
-    fn create_mutable_binding(&mut self, name: String, deletion: bool, allow_name_reuse: bool) -> Result<(), ErrorKind> {
+    fn create_mutable_binding(
+        &mut self,
+        name: String,
+        deletion: bool,
+        allow_name_reuse: bool,
+    ) -> Result<(), ErrorKind> {
         if !allow_name_reuse {
             assert!(
                 !self.env_rec.contains_key(&name),
