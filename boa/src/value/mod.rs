@@ -536,7 +536,7 @@ impl Value {
                     PreferredType::Default => "default",
                 }
                 .into();
-                let result = context.call(&exotic_to_prim.into(), &self, &[hint])?;
+                let result = exotic_to_prim.call(&self, &[hint], context)?;
                 return if result.is_object() {
                     Err(context.construct_type_error("Symbol.toPrimitive cannot return an object"))
                 } else {
