@@ -287,19 +287,23 @@ impl Object {
 
     /// Define a property in an object
     pub fn define_property(_: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
-        let obj = args.get(0).expect("Cannot get object");
-        let prop = args
-            .get(1)
-            .expect("Cannot get object")
-            .to_property_key(context)?;
+        let object = args.get(0).cloned().unwrap_or_else(Value::undefined);
+        if let Some(mut object) = object.as_object() {
+            let key = args
+                .get(1)
+                .unwrap_or(&Value::undefined())
+                .to_property_key(context)?;
+            let desc = args
+                .get(2)
+                .unwrap_or(&Value::undefined())
+                .to_property_descriptor(context)?;
 
-        let desc = if let Value::Object(ref object) = args.get(2).cloned().unwrap_or_default() {
-            object.to_property_descriptor(context)?
+            object.define_property_or_throw(key, desc, context)?;
+
+            Ok(object.into())
         } else {
-            return context.throw_type_error("Property description must be an object");
-        };
-        obj.set_property(prop, desc);
-        Ok(obj.clone())
+            context.throw_type_error("Object.defineProperty called on non-object")
+        }
     }
 
     /// `Object.defineProperties( proto, [propertiesObject] )`
