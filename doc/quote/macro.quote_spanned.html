@@ -47,7 +47,7 @@ safely shared between threads.</p>
     <span class="kw">struct</span> <span class="ident">_AssertSync</span> <span class="kw">where</span> #<span class="ident">ty</span>: <span class="ident">Sync</span>;
 };</pre></div>
 <p>If the assertion fails, the user will see an error like the following. The
-input span of their type is hightlighted in the error.</p>
+input span of their type is highlighted in the error.</p>
 <pre><code class="language-text">error[E0277]: the trait bound `*const (): std::marker::Sync` is not satisfied
   --&gt; src/main.rs:10:21
    |

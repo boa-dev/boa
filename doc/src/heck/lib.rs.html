@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/heck-0.3.1/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings"></script><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/heck-0.3.2/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings"></script><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
 <link rel="alternate icon" type="image/png" href="../../favicon-16x16.png">
 <link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../heck/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
                 <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
@@ -166,6 +166,8 @@
 <span id="163">163</span>
 <span id="164">164</span>
 <span id="165">165</span>
+<span id="166">166</span>
+<span id="167">167</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! **heck** is a case conversion library.</span>
 <span class="doccomment">//!</span>
@@ -203,12 +205,13 @@
 <span class="doccomment">//! 4. SHOUTY_SNAKE_CASE</span>
 <span class="doccomment">//! 5. mixedCase</span>
 <span class="doccomment">//! 6. Title Case</span>
+<span class="doccomment">//! 7. SHOUTY-KEBAB-CASE</span>
 <span class="attribute">#![<span class="ident">deny</span>(<span class="ident">missing_docs</span>)]</span>
-<span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">unicode_segmentation</span>;
 
 <span class="kw">mod</span> <span class="ident">camel</span>;
 <span class="kw">mod</span> <span class="ident">kebab</span>;
 <span class="kw">mod</span> <span class="ident">mixed</span>;
+<span class="kw">mod</span> <span class="ident">shouty_kebab</span>;
 <span class="kw">mod</span> <span class="ident">shouty_snake</span>;
 <span class="kw">mod</span> <span class="ident">snake</span>;
 <span class="kw">mod</span> <span class="ident">title</span>;
@@ -216,6 +219,7 @@
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">camel</span>::<span class="ident">CamelCase</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">kebab</span>::<span class="ident">KebabCase</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">mixed</span>::<span class="ident">MixedCase</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">shouty_kebab</span>::<span class="ident">ShoutyKebabCase</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">shouty_snake</span>::{<span class="ident">ShoutySnakeCase</span>, <span class="ident">ShoutySnekCase</span>};
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">snake</span>::{<span class="ident">SnakeCase</span>, <span class="ident">SnekCase</span>};
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">title</span>::<span class="ident">TitleCase</span>;
