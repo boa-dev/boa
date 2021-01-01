@@ -11,7 +11,7 @@ use crate::syntax::lexer::TokenKind;
 use crate::{
     syntax::{
         ast::{
-            node::{ForLoop, ForOfLoop, Node},
+            node::{ForInLoop, ForLoop, ForOfLoop, Node},
             Const, Keyword, Punctuator,
         },
         parser::{
@@ -85,16 +85,18 @@ where
                 Some(Declaration::new(self.allow_yield, self.allow_await, false).parse(cursor)?)
             }
             TokenKind::Punctuator(Punctuator::Semicolon) => None,
-            _ => Some(Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?),
+            _ => Some(Expression::new(false, self.allow_yield, self.allow_await).parse(cursor)?),
         };
 
         match cursor.peek(0)? {
-            Some(tok) if tok.kind() == &TokenKind::Keyword(Keyword::In) => {
-                // TODO: for...in
-                return Err(ParseError::unimplemented(
-                    "for...in loops",
-                    tok.span().start(),
-                ));
+            Some(tok) if tok.kind() == &TokenKind::Keyword(Keyword::In) && init.is_some() => {
+                let _ = cursor.next();
+                let expr =
+                    Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?;
+                cursor.expect(Punctuator::CloseParen, "for in statement")?;
+                let body = Statement::new(self.allow_yield, self.allow_await, self.allow_return)
+                    .parse(cursor)?;
+                return Ok(ForInLoop::new(init.unwrap(), expr, body).into());
             }
             Some(tok) if tok.kind() == &TokenKind::Keyword(Keyword::Of) && init.is_some() => {
                 let _ = cursor.next();

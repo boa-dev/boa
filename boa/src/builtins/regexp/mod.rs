@@ -314,7 +314,7 @@ impl RegExp {
             .get(0)
             .expect("could not get argument")
             .to_string(context)?;
-        let mut last_index = this.get_field("lastIndex").to_index(context)?;
+        let mut last_index = this.get_field("lastIndex", context)?.to_index(context)?;
         let result = if let Some(object) = this.as_object() {
             let object = object.borrow();
             let regex = object.as_regexp().unwrap();
@@ -334,7 +334,7 @@ impl RegExp {
         } else {
             panic!("object is not a regexp")
         };
-        this.set_field("lastIndex", Value::from(last_index));
+        this.set_field("lastIndex", Value::from(last_index), context)?;
         result
     }
 
@@ -355,7 +355,7 @@ impl RegExp {
             .get(0)
             .expect("could not get argument")
             .to_string(context)?;
-        let mut last_index = this.get_field("lastIndex").to_index(context)?;
+        let mut last_index = this.get_field("lastIndex", context)?.to_index(context)?;
         let result = if let Some(object) = this.as_object() {
             let object = object.borrow();
             let regex = object.as_regexp().unwrap();
@@ -391,7 +391,7 @@ impl RegExp {
         } else {
             panic!("object is not a regexp")
         };
-        this.set_field("lastIndex", Value::from(last_index));
+        this.set_field("lastIndex", Value::from(last_index), context)?;
         result
     }
 
@@ -463,7 +463,7 @@ impl RegExp {
     /// [spec]: https://tc39.es/ecma262/#sec-regexp-prototype-matchall
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/@@matchAll
     // TODO: it's returning an array, it should return an iterator
-    pub(crate) fn match_all(this: &Value, arg_str: String) -> Result<Value> {
+    pub(crate) fn match_all(this: &Value, arg_str: String, context: &mut Context) -> Result<Value> {
         let matches = if let Some(object) = this.as_object() {
             let object = object.borrow();
             let regex = object.as_regexp().unwrap();
@@ -499,7 +499,7 @@ impl RegExp {
 
         let length = matches.len();
         let result = Value::from(matches);
-        result.set_field("length", Value::from(length));
+        result.set_field("length", Value::from(length), context)?;
         result.set_data(ObjectData::Array);
 
         Ok(result)

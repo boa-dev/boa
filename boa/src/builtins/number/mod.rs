@@ -591,7 +591,7 @@ impl Number {
             .map_or(10, |radix| radix as u8);
 
         // 4. If radixNumber < 2 or radixNumber > 36, throw a RangeError exception.
-        if radix < 2 || radix > 36 {
+        if !(2..=36).contains(&radix) {
             return context
                 .throw_range_error("radix must be an integer at least 2 and no greater than 36");
         }

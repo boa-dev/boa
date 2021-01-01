@@ -59,7 +59,7 @@ impl ReferenceError {
         context: &mut Context,
     ) -> Result<Value> {
         if let Some(message) = args.get(0) {
-            this.set_field("message", message.to_string(context)?);
+            this.set_field("message", message.to_string(context)?, context)?;
         }
 
         // This value is used by console.log and other routines to match Object type

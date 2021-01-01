@@ -13,6 +13,7 @@
 //! [json]: https://www.json.org/json-en.html
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON
 
+use crate::object::Object;
 use crate::{
     builtins::BuiltIn,
     object::ObjectInitializer,
@@ -74,8 +75,8 @@ impl Json {
                 let j = Value::from_json(json, context);
                 match args.get(1) {
                     Some(reviver) if reviver.is_function() => {
-                        let mut holder = Value::new_object(None);
-                        holder.set_field("", j);
+                        let mut holder = Value::object(Object::default());
+                        holder.set_field("", j, context)?;
                         Self::walk(reviver, context, &mut holder, &PropertyKey::from(""))
                     }
                     _ => Ok(j),
@@ -97,7 +98,7 @@ impl Json {
         holder: &mut Value,
         key: &PropertyKey,
     ) -> Result<Value> {
-        let value = holder.get_field(key.clone());
+        let value = holder.get_field(key.clone(), context)?;
 
         if let Value::Object(ref object) = value {
             let keys: Vec<_> = object.borrow().keys().collect();
@@ -106,7 +107,7 @@ impl Json {
                 let v = Self::walk(reviver, context, &mut value.clone(), &key);
                 match v {
                     Ok(v) if !v.is_undefined() => {
-                        value.set_field(key, v);
+                        value.set_field(key, v, context)?;
                     }
                     Ok(_) => {
                         value.remove_property(key);
@@ -191,13 +192,9 @@ impl Json {
             object
                 .as_object()
                 .map(|obj| {
-                    let object_to_return = Value::new_object(None);
-                    for (key, val) in obj
-                        .borrow()
-                        .iter()
-                        // FIXME: handle accessor descriptors
-                        .map(|(k, v)| (k, v.as_data_descriptor().unwrap().value()))
-                    {
+                    let object_to_return = Value::object(Object::default());
+                    for key in obj.borrow().keys() {
+                        let val = obj.get(&key, context)?;
                         let this_arg = object.clone();
                         object_to_return.set_property(
                             key.to_owned(),
@@ -224,16 +221,20 @@ impl Json {
                 if key == "length" {
                     None
                 } else {
-                    Some(replacer.get_field(key))
+                    Some(
+                        replacer
+                            .get_property(key)
+                            .as_ref()
+                            .and_then(|p| p.as_data_descriptor())
+                            .map(|d| d.value())
+                            .unwrap_or_else(Value::undefined),
+                    )
                 }
             });
             for field in fields {
-                if let Some(value) = object
-                    .get_property(field.to_string(context)?)
-                    // FIXME: handle accessor descriptors
-                    .map(|prop| prop.as_data_descriptor().unwrap().value().to_json(context))
-                    .transpose()?
-                {
+                let v = object.get_field(field.to_string(context)?, context)?;
+                if !v.is_undefined() {
+                    let value = v.to_json(context)?;
                     obj_to_return.insert(field.to_string(context)?.to_string(), value);
                 }
             }

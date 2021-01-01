@@ -454,7 +454,7 @@ impl Date {
         let sec = sec as u32;
         let milli = milli as u32;
 
-        let year = if 0 <= year && year <= 99 {
+        let year = if (0..=99).contains(&year) {
             1900 + year
         } else {
             year
@@ -936,7 +936,7 @@ impl Date {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/setYear
     pub fn set_year(&mut self, year: Option<f64>, month: Option<f64>, day: Option<f64>) {
         if let Some(mut year) = year {
-            year += if 0f64 <= year && year < 100f64 {
+            year += if (0f64..100f64).contains(&year) {
                 1900f64
             } else {
                 0f64
@@ -1330,7 +1330,7 @@ impl Date {
         let sec = sec as u32;
         let milli = milli as u32;
 
-        let year = if 0 <= year && year <= 99 {
+        let year = if (0..=99).contains(&year) {
             1900 + year
         } else {
             year

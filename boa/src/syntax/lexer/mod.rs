@@ -211,7 +211,7 @@ impl<R> Lexer<R> {
                     Span::new(start, self.cursor.pos()),
                 )),
                 '.' => {
-                    if self.cursor.peek()?.map(|c| c >= b'0' && c <= b'9') == Some(true) {
+                    if self.cursor.peek()?.map(|c| (b'0'..=b'9').contains(&c)) == Some(true) {
                         NumberLiteral::new(next_ch as u8).lex(&mut self.cursor, start)
                     } else {
                         SpreadLiteral::new().lex(&mut self.cursor, start)
@@ -245,12 +245,8 @@ impl<R> Lexer<R> {
                     Punctuator::CloseBracket.into(),
                     Span::new(start, self.cursor.pos()),
                 )),
-                '?' => Ok(Token::new(
-                    Punctuator::Question.into(),
-                    Span::new(start, self.cursor.pos()),
-                )),
                 '/' => self.lex_slash_token(start),
-                '=' | '*' | '+' | '-' | '%' | '|' | '&' | '^' | '<' | '>' | '!' | '~' => {
+                '=' | '*' | '+' | '-' | '%' | '|' | '&' | '^' | '<' | '>' | '!' | '~' | '?' => {
                     Operator::new(next_ch as u8).lex(&mut self.cursor, start)
                 }
                 _ if c.is_digit(10) => {

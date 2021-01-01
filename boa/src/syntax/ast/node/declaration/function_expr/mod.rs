@@ -61,7 +61,7 @@ impl FunctionExpr {
 
     /// Gets the body of the function declaration.
     pub fn body(&self) -> &[Node] {
-        self.body.statements()
+        self.body.items()
     }
 
     /// Implements the display formatting with indentation.
@@ -90,10 +90,10 @@ impl Executable for FunctionExpr {
             self.parameters().to_vec(),
             self.body().to_vec(),
             FunctionFlags::CALLABLE | FunctionFlags::CONSTRUCTABLE,
-        );
+        )?;
 
         if let Some(name) = self.name() {
-            val.set_field("name", Value::from(name));
+            val.set_field("name", Value::from(name), context)?;
         }
 
         Ok(val)

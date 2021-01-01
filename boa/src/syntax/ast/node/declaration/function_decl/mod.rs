@@ -64,7 +64,7 @@ impl FunctionDecl {
 
     /// Gets the body of the function declaration.
     pub fn body(&self) -> &[Node] {
-        self.body.statements()
+        self.body.items()
     }
 
     /// Implements the display formatting with indentation.
@@ -90,10 +90,10 @@ impl Executable for FunctionDecl {
             self.parameters().to_vec(),
             self.body().to_vec(),
             FunctionFlags::CALLABLE | FunctionFlags::CONSTRUCTABLE,
-        );
+        )?;
 
         // Set the name and assign it in the current environment
-        val.set_field("name", self.name());
+        val.set_field("name", self.name(), context)?;
         context
             .realm_mut()
             .environment

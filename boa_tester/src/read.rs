@@ -104,7 +104,7 @@ pub(super) fn read_harness(test262_path: &Path) -> io::Result<Harness> {
 /// Reads a test suite in the given path.
 pub(super) fn read_suite(path: &Path) -> io::Result<TestSuite> {
     let name = path
-        .file_stem()
+        .file_name()
         .ok_or_else(|| {
             io::Error::new(
                 io::ErrorKind::InvalidInput,

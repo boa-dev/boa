@@ -1,6 +1,7 @@
 //! This module implements lexing for operators (+, - etc.) used in the JavaScript programing language.
 
 use super::{Cursor, Error, Tokenizer};
+use crate::syntax::lexer::TokenKind;
 use crate::{
     profiler::BoaProfiler,
     syntax::{
@@ -118,11 +119,26 @@ impl<R> Tokenizer<R> for Operator {
                 Ok(Punctuator::Mod)
             ),
             b'|' => op!(cursor, start_pos, Ok(Punctuator::AssignOr), Ok(Punctuator::Or), {
-                Some(b'|') => Ok(Punctuator::BoolOr)
+                Some(b'|') => vop!(cursor, Ok(Punctuator::AssignBoolOr), Ok(Punctuator::BoolOr))
             }),
             b'&' => op!(cursor, start_pos, Ok(Punctuator::AssignAnd), Ok(Punctuator::And), {
-                Some(b'&') => Ok(Punctuator::BoolAnd)
+                Some(b'&') => vop!(cursor, Ok(Punctuator::AssignBoolAnd), Ok(Punctuator::BoolAnd))
             }),
+            b'?' => match cursor.peek()? {
+                Some(b'?') => {
+                    let _ = cursor.next_byte()?.expect("? vanished");
+                    op!(
+                        cursor,
+                        start_pos,
+                        Ok(Punctuator::AssignCoalesce),
+                        Ok(Punctuator::Coalesce)
+                    )
+                }
+                _ => Ok(Token::new(
+                    TokenKind::Punctuator(Punctuator::Question),
+                    Span::new(start_pos, cursor.pos()),
+                )),
+            },
             b'^' => op!(
                 cursor,
                 start_pos,
