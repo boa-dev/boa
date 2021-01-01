@@ -205,7 +205,14 @@ where
         let _timer = BoaProfiler::global().start_event("MethodDefinition", "Parsing");
 
         let (methodkind, prop_name, params) = match self.identifier.as_str() {
-            idn @ "get" | idn @ "set" => {
+            idn @ "get" | idn @ "set"
+                if matches!(
+                    cursor.peek(0)?.map(|t| t.kind()),
+                    Some(&TokenKind::Identifier(_)) | Some(&TokenKind::Keyword(_))
+                        | Some(&TokenKind::BooleanLiteral(_)) | Some(&TokenKind::NullLiteral)
+                        | Some(&TokenKind::NumericLiteral(_))
+                ) =>
+            {
                 let prop_name = cursor.next()?.ok_or(ParseError::AbruptEnd)?.to_string();
                 cursor.expect(
                     TokenKind::Punctuator(Punctuator::OpenParen),

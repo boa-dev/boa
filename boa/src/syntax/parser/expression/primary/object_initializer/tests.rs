@@ -140,3 +140,45 @@ fn check_object_setter() {
         .into()],
     );
 }
+
+#[test]
+fn check_object_short_function_get() {
+    let object_properties = vec![PropertyDefinition::method_definition(
+        MethodDefinitionKind::Ordinary,
+        "get",
+        FunctionExpr::new(None, vec![], vec![]),
+    )];
+
+    check_parser(
+        "const x = {
+            get() {}
+         };
+        ",
+        vec![ConstDeclList::from(vec![ConstDecl::new(
+            "x",
+            Some(Object::from(object_properties)),
+        )])
+        .into()],
+    );
+}
+
+#[test]
+fn check_object_short_function_set() {
+    let object_properties = vec![PropertyDefinition::method_definition(
+        MethodDefinitionKind::Ordinary,
+        "set",
+        FunctionExpr::new(None, vec![], vec![]),
+    )];
+
+    check_parser(
+        "const x = {
+            set() {}
+         };
+        ",
+        vec![ConstDeclList::from(vec![ConstDecl::new(
+            "x",
+            Some(Object::from(object_properties)),
+        )])
+        .into()],
+    );
+}
