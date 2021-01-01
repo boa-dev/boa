@@ -79,8 +79,24 @@
 <span id="78">78</span>
 <span id="79">79</span>
 <span id="80">80</span>
+<span id="81">81</span>
+<span id="82">82</span>
+<span id="83">83</span>
+<span id="84">84</span>
+<span id="85">85</span>
+<span id="86">86</span>
+<span id="87">87</span>
+<span id="88">88</span>
+<span id="89">89</span>
+<span id="90">90</span>
+<span id="91">91</span>
+<span id="92">92</span>
+<span id="93">93</span>
+<span id="94">94</span>
+<span id="95">95</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">crate</span>::{
+    <span class="ident">builtins</span>::<span class="ident">iterable</span>,
     <span class="ident">exec</span>::<span class="ident">Executable</span>,
     <span class="ident">gc</span>::{<span class="ident">Finalize</span>, <span class="ident">Trace</span>},
     <span class="ident">syntax</span>::<span class="ident">ast</span>::<span class="ident">node</span>::{<span class="ident">Call</span>, <span class="ident">Node</span>},
@@ -132,7 +148,21 @@
         <span class="kw">let</span> <span class="ident">func_object</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">expr</span>().<span class="ident">run</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">v_args</span> <span class="op">=</span> <span class="ident">Vec</span>::<span class="ident">with_capacity</span>(<span class="self">self</span>.<span class="ident">args</span>().<span class="ident">len</span>());
         <span class="kw">for</span> <span class="ident">arg</span> <span class="kw">in</span> <span class="self">self</span>.<span class="ident">args</span>() {
-            <span class="ident">v_args</span>.<span class="ident">push</span>(<span class="ident">arg</span>.<span class="ident">run</span>(<span class="ident">context</span>)<span class="question-mark">?</span>);
+            <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Node</span>::<span class="ident">Spread</span>(<span class="kw-2">ref</span> <span class="ident">x</span>) <span class="op">=</span> <span class="ident">arg</span> {
+                <span class="kw">let</span> <span class="ident">val</span> <span class="op">=</span> <span class="ident">x</span>.<span class="ident">run</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+                <span class="kw">let</span> <span class="ident">iterator_record</span> <span class="op">=</span> <span class="ident">iterable</span>::<span class="ident">get_iterator</span>(<span class="ident">context</span>, <span class="ident">val</span>)<span class="question-mark">?</span>;
+                <span class="kw">loop</span> {
+                    <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> <span class="ident">iterator_record</span>.<span class="ident">next</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+                    <span class="kw">if</span> <span class="ident">next</span>.<span class="ident">is_done</span>() {
+                        <span class="kw">break</span>;
+                    }
+                    <span class="kw">let</span> <span class="ident">next_value</span> <span class="op">=</span> <span class="ident">next</span>.<span class="ident">value</span>();
+                    <span class="ident">v_args</span>.<span class="ident">push</span>(<span class="ident">next_value</span>.<span class="ident">clone</span>());
+                }
+                <span class="kw">break</span>; <span class="comment">// after spread we don&#39;t accept any new arguments</span>
+            } <span class="kw">else</span> {
+                <span class="ident">v_args</span>.<span class="ident">push</span>(<span class="ident">arg</span>.<span class="ident">run</span>(<span class="ident">context</span>)<span class="question-mark">?</span>);
+            }
         }
 
         <span class="kw">match</span> <span class="ident">func_object</span> {
