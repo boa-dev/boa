@@ -85,7 +85,7 @@ where
     /// Lexes the next tokens as template middle or template tail assuming that the starting
     /// '}' has already been consumed.
     pub(super) fn lex_template(&mut self, start: Position) -> Result<Token, ParseError> {
-        self.lexer.lex_template(start).map_err(|e| e.into())
+        self.lexer.lex_template(start).map_err(ParseError::from)
     }
 
     #[inline]
