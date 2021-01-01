@@ -1,13 +1,11 @@
 use crate::{
+    builtins::iterable,
     exec::Executable,
     exec::InterpreterState,
     gc::{Finalize, Trace},
     syntax::ast::node::{join_nodes, Node},
     value::{Type, Value},
-    BoaProfiler,
-    Context,
-    Result,
-    builtins::iterable
+    BoaProfiler, Context, Result,
 };
 use std::fmt;
 
