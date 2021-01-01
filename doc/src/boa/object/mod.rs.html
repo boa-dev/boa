@@ -1771,7 +1771,7 @@
                 .<span class="ident">prototype</span>()
                 .<span class="ident">into</span>(),
         );
-        <span class="kw">let</span> <span class="ident">attribute</span> <span class="op">=</span> <span class="ident">Attribute</span>::<span class="ident">READONLY</span> <span class="op">|</span> <span class="ident">Attribute</span>::<span class="ident">NON_ENUMERABLE</span> <span class="op">|</span> <span class="ident">Attribute</span>::<span class="ident">PERMANENT</span>;
+        <span class="kw">let</span> <span class="ident">attribute</span> <span class="op">=</span> <span class="ident">Attribute</span>::<span class="ident">READONLY</span> <span class="op">|</span> <span class="ident">Attribute</span>::<span class="ident">NON_ENUMERABLE</span> <span class="op">|</span> <span class="ident">Attribute</span>::<span class="ident">CONFIGURABLE</span>;
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">name</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">name</span>.<span class="ident">take</span>() {
             <span class="ident">function</span>.<span class="ident">insert_property</span>(<span class="string">&quot;name&quot;</span>, <span class="ident">name</span>, <span class="ident">attribute</span>);
         } <span class="kw">else</span> {
@@ -2084,11 +2084,11 @@
 
         <span class="kw">let</span> <span class="ident">length</span> <span class="op">=</span> <span class="ident">DataDescriptor</span>::<span class="ident">new</span>(
             <span class="self">self</span>.<span class="ident">length</span>,
-            <span class="ident">Attribute</span>::<span class="ident">READONLY</span> <span class="op">|</span> <span class="ident">Attribute</span>::<span class="ident">NON_ENUMERABLE</span> <span class="op">|</span> <span class="ident">Attribute</span>::<span class="ident">PERMANENT</span>,
+            <span class="ident">Attribute</span>::<span class="ident">READONLY</span> <span class="op">|</span> <span class="ident">Attribute</span>::<span class="ident">NON_ENUMERABLE</span> <span class="op">|</span> <span class="ident">Attribute</span>::<span class="ident">CONFIGURABLE</span>,
         );
         <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="ident">DataDescriptor</span>::<span class="ident">new</span>(
             <span class="self">self</span>.<span class="ident">name</span>.<span class="ident">take</span>().<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">String</span>::<span class="ident">from</span>(<span class="string">&quot;[object]&quot;</span>)),
-            <span class="ident">Attribute</span>::<span class="ident">READONLY</span> <span class="op">|</span> <span class="ident">Attribute</span>::<span class="ident">NON_ENUMERABLE</span> <span class="op">|</span> <span class="ident">Attribute</span>::<span class="ident">PERMANENT</span>,
+            <span class="ident">Attribute</span>::<span class="ident">READONLY</span> <span class="op">|</span> <span class="ident">Attribute</span>::<span class="ident">NON_ENUMERABLE</span> <span class="op">|</span> <span class="ident">Attribute</span>::<span class="ident">CONFIGURABLE</span>,
         );
 
         {
