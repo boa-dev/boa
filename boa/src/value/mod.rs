@@ -527,11 +527,25 @@ impl Value {
         // 1. Assert: input is an ECMAScript language value. (always a value not need to check)
         // 2. If Type(input) is Object, then
         if let Value::Object(obj) = self {
+            if let Some(exotic_to_prim) =
+                obj.get_method(context, context.well_known_symbols().to_primitive_symbol())?
+            {
+                let hint = match preferred_type {
+                    PreferredType::String => "string",
+                    PreferredType::Number => "number",
+                    PreferredType::Default => "default",
+                }
+                .into();
+                let result = exotic_to_prim.call(&self, &[hint], context)?;
+                return if result.is_object() {
+                    Err(context.construct_type_error("Symbol.toPrimitive cannot return an object"))
+                } else {
+                    Ok(result)
+                };
+            }
+
             let mut hint = preferred_type;
 
-            // Skip d, e we don't support Symbols yet
-            // TODO: add when symbols are supported
-            // TODO: Add other steps.
             if hint == PreferredType::Default {
                 hint = PreferredType::Number;
             };
