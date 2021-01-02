@@ -1182,50 +1182,46 @@ impl String {
         let this = this.require_object_coercible(context)?;
         let string = this.to_string(context)?;
 
-        let separator = if args.is_empty() {
-            None
-        } else {
-            let arg0 = args
-                .get(0)
-                .expect("Failed to get argument for String method");
+        let separator = args.get(0).filter(|value| !value.is_null_or_undefined());
 
-            if arg0.is_null_or_undefined() {
-                None
-            } else {
-                if let Some(splitter) =
-                    arg0.get_property(context.well_known_symbols().split_symbol())
-                {
-                    let splitter = splitter.as_data_descriptor().unwrap().value();
-                    if splitter.is_function() {
+        if let Some(result) = separator
+            .and_then(|separator| separator.as_object())
+            .and_then(|separator| {
+                let key = context.well_known_symbols().split_symbol();
+
+                match separator.get_method(context, key) {
+                    Ok(splitter) => splitter.map(|splitter| {
                         let arguments = vec![
-                            Value::from(string),
+                            Value::from(string.clone()),
                             args.get(1)
                                 .map(|x| x.to_owned())
                                 .unwrap_or(Value::Undefined),
                         ];
-                        return context.call(&splitter, this, &arguments);
-                    } else if !splitter.is_undefined() {
-                        return Err(Value::from(
-                            "TypeError: separator[Symbol.split] is not a function",
-                        ));
-                    }
+                        splitter.call(this, &arguments, context)
+                    }),
+                    Err(_) => Some(Err(
+                        context.construct_type_error("separator[Symbol.split] is not a function")
+                    )),
                 }
-                arg0.to_string(context).ok()
-            }
-        };
+            })
+        {
+            return result;
+        }
 
-        let limit = if args.len() < 2 {
-            std::u32::MAX as usize
-        } else {
-            args.get(1)
-                .expect("Could not get the limit argument")
-                .to_integer(context)? as usize
-        };
+        let separator = separator
+            .map(|separator| separator.to_string(context))
+            .transpose()?;
+
+        let limit = args
+            .get(1)
+            .map(|arg| arg.to_integer(context).map(|limit| limit as usize))
+            .transpose()?
+            .unwrap_or(std::u32::MAX as usize);
 
         let values: Vec<Value> = match separator {
             None if limit == 0 => vec![],
             None => vec![Value::from(string)],
-            Some(separator) if separator == "" => string
+            Some(separator) if separator.is_empty() => string
                 .encode_utf16()
                 // TODO: Support keeping invalid code point in string
                 .map(|cp| Value::from(std::string::String::from_utf16_lossy(&[cp])))
