@@ -1224,6 +1224,7 @@ impl String {
             None => vec![Value::from(string)],
             Some(separator) if separator == "" => string
                 .encode_utf16()
+                // TODO: Support keeping invalid code point in string
                 .map(|cp| Value::from(std::string::String::from_utf16_lossy(&[cp])))
                 .take(limit)
                 .collect(),

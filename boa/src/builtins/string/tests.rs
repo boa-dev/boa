@@ -631,7 +631,7 @@ fn split() {
         forward(&mut context, "['']")
     );
 
-    // TODO: Support invalid code point in string
+    // TODO: Support keeping invalid code point in string
     assert_eq!(
         forward(&mut context, "'𝟘𝟙𝟚𝟛'.split('')"),
         forward(&mut context, "['�','�','�','�','�','�','�','�']")
