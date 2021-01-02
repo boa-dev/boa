@@ -1204,7 +1204,9 @@ impl String {
                         ];
                         return context.call(&splitter, this, &arguments);
                     } else if !splitter.is_undefined() {
-                        return Err(Value::from("separator[Symbol.split] is not a function"));
+                        return Err(Value::from(
+                            "TypeError: separator[Symbol.split] is not a function",
+                        ));
                     }
                 }
                 arg0.to_string(context).ok()
