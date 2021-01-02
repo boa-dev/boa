@@ -495,12 +495,10 @@ impl Object {
         if self.extensible {
             self.prototype = prototype;
             true
-        } else if same_value(&prototype, &self.prototype) {
-            // unless V is the SameValue as the target's observed [[GetPrototypeOf]] value.
-            true
         } else {
             // If target is non-extensible, [[SetPrototypeOf]] must return false
-            false
+            // unless V is the SameValue as the target's observed [[GetPrototypeOf]] value.
+            same_value(&prototype, &self.prototype)
         }
     }
 
