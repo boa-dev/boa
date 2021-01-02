@@ -613,6 +613,29 @@ fn split() {
         forward(&mut context, "'Hello'.split(undefined, 0)"),
         forward(&mut context, "[]")
     );
+
+    assert_eq!(
+        forward(&mut context, "''.split()"),
+        forward(&mut context, "['']")
+    );
+    assert_eq!(
+        forward(&mut context, "''.split(undefined)"),
+        forward(&mut context, "['']")
+    );
+    assert_eq!(
+        forward(&mut context, "''.split('')"),
+        forward(&mut context, "[]")
+    );
+    assert_eq!(
+        forward(&mut context, "''.split('1')"),
+        forward(&mut context, "['']")
+    );
+
+    // TODO: Support invalid code point in string
+    assert_eq!(
+        forward(&mut context, "'𝟘𝟙𝟚𝟛'.split('')"),
+        forward(&mut context, "['�','�','�','�','�','�','�','�']")
+    );
 }
 
 #[test]
