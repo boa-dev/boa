@@ -271,7 +271,11 @@ impl Object {
         }
 
         // 1. Set O to ? RequireObjectCoercible(O).
-        let obj = args.get(0).cloned().unwrap_or_default(); // TODO: RequireObjectCoercible
+        let obj = args
+            .get(0)
+            .cloned()
+            .unwrap_or_default()
+            .require_object_coercible(ctx);
 
         // 2. If Type(proto) is neither Object nor Null, throw a TypeError exception.
         let proto = args.get(1).cloned().unwrap_or_default();
