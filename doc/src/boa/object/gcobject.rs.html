@@ -1064,7 +1064,7 @@
                         <span class="ident">environment</span>,
                         <span class="ident">flags</span>,
                     } <span class="op">=</span><span class="op">&gt;</span> {
-                        <span class="comment">// Create a new Function environment who&#39;s parent is set to the scope of the function declaration (self.environment)</span>
+                        <span class="comment">// Create a new Function environment whose parent is set to the scope of the function declaration (self.environment)</span>
                         <span class="comment">// &lt;https://tc39.es/ecma262/#sec-prepareforordinarycall&gt;</span>
                         <span class="kw">let</span> <span class="ident">local_env</span> <span class="op">=</span> <span class="ident">new_function_environment</span>(
                             <span class="ident">this_function_object</span>,
@@ -1098,7 +1098,7 @@
                         <span class="kw">let</span> <span class="ident">arguments_obj</span> <span class="op">=</span> <span class="ident">create_unmapped_arguments_object</span>(<span class="ident">args</span>);
                         <span class="ident">local_env</span>
                             .<span class="ident">borrow_mut</span>()
-                            .<span class="ident">create_mutable_binding</span>(<span class="string">&quot;arguments&quot;</span>.<span class="ident">to_string</span>(), <span class="bool-val">false</span>)
+                            .<span class="ident">create_mutable_binding</span>(<span class="string">&quot;arguments&quot;</span>.<span class="ident">to_string</span>(), <span class="bool-val">false</span>, <span class="bool-val">false</span>)
                             .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">e</span>.<span class="ident">to_error</span>(<span class="ident">context</span>))<span class="question-mark">?</span>;
                         <span class="ident">local_env</span>
                             .<span class="ident">borrow_mut</span>()
@@ -1195,7 +1195,7 @@
                         <span class="kw">let</span> <span class="ident">arguments_obj</span> <span class="op">=</span> <span class="ident">create_unmapped_arguments_object</span>(<span class="ident">args</span>);
                         <span class="ident">local_env</span>
                             .<span class="ident">borrow_mut</span>()
-                            .<span class="ident">create_mutable_binding</span>(<span class="string">&quot;arguments&quot;</span>.<span class="ident">to_string</span>(), <span class="bool-val">false</span>)
+                            .<span class="ident">create_mutable_binding</span>(<span class="string">&quot;arguments&quot;</span>.<span class="ident">to_string</span>(), <span class="bool-val">false</span>, <span class="bool-val">false</span>)
                             .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">e</span>.<span class="ident">to_error</span>(<span class="ident">context</span>))<span class="question-mark">?</span>;
                         <span class="ident">local_env</span>
                             .<span class="ident">borrow_mut</span>()

@@ -237,6 +237,11 @@
 <span id="236">236</span>
 <span id="237">237</span>
 <span id="238">238</span>
+<span id="239">239</span>
+<span id="240">240</span>
+<span id="241">241</span>
+<span id="242">242</span>
+<span id="243">243</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! # Global Environment Records</span>
 <span class="doccomment">//!</span>
@@ -326,7 +331,7 @@
         <span class="kw">let</span> <span class="ident">has_property</span> <span class="op">=</span> <span class="ident">global_object</span>.<span class="ident">has_field</span>(<span class="ident">name</span>.<span class="ident">as_str</span>());
         <span class="kw">let</span> <span class="ident">extensible</span> <span class="op">=</span> <span class="ident">global_object</span>.<span class="ident">is_extensible</span>();
         <span class="kw">if</span> <span class="op">!</span><span class="ident">has_property</span> <span class="op">&amp;&amp;</span> <span class="ident">extensible</span> {
-            <span class="ident">obj_rec</span>.<span class="ident">create_mutable_binding</span>(<span class="ident">name</span>.<span class="ident">clone</span>(), <span class="ident">deletion</span>)<span class="question-mark">?</span>;
+            <span class="ident">obj_rec</span>.<span class="ident">create_mutable_binding</span>(<span class="ident">name</span>.<span class="ident">clone</span>(), <span class="ident">deletion</span>, <span class="bool-val">false</span>)<span class="question-mark">?</span>;
             <span class="ident">obj_rec</span>.<span class="ident">initialize_binding</span>(<span class="kw-2">&amp;</span><span class="ident">name</span>, <span class="ident">Value</span>::<span class="ident">undefined</span>())<span class="question-mark">?</span>;
         }
 
@@ -371,8 +376,13 @@
         <span class="self">self</span>.<span class="ident">object_record</span>.<span class="ident">has_binding</span>(<span class="ident">name</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">create_mutable_binding</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">name</span>: <span class="ident">String</span>, <span class="ident">deletion</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">ErrorKind</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">declarative_record</span>.<span class="ident">has_binding</span>(<span class="kw-2">&amp;</span><span class="ident">name</span>) {
+    <span class="kw">fn</span> <span class="ident">create_mutable_binding</span>(
+        <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
+        <span class="ident">name</span>: <span class="ident">String</span>,
+        <span class="ident">deletion</span>: <span class="ident">bool</span>,
+        <span class="ident">allow_name_reuse</span>: <span class="ident">bool</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">ErrorKind</span><span class="op">&gt;</span> {
+        <span class="kw">if</span> <span class="op">!</span><span class="ident">allow_name_reuse</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">declarative_record</span>.<span class="ident">has_binding</span>(<span class="kw-2">&amp;</span><span class="ident">name</span>) {
             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ErrorKind</span>::<span class="ident">new_type_error</span>(<span class="macro">format</span><span class="macro">!</span>(
                 <span class="string">&quot;Binding already exists for {}&quot;</span>,
                 <span class="ident">name</span>
@@ -380,7 +390,7 @@
         }
 
         <span class="self">self</span>.<span class="ident">declarative_record</span>
-            .<span class="ident">create_mutable_binding</span>(<span class="ident">name</span>, <span class="ident">deletion</span>)
+            .<span class="ident">create_mutable_binding</span>(<span class="ident">name</span>, <span class="ident">deletion</span>, <span class="ident">allow_name_reuse</span>)
     }
 
     <span class="kw">fn</span> <span class="ident">create_immutable_binding</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">name</span>: <span class="ident">String</span>, <span class="ident">strict</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">ErrorKind</span><span class="op">&gt;</span> {

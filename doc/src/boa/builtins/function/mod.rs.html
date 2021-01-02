@@ -348,6 +348,7 @@
 <span id="347">347</span>
 <span id="348">348</span>
 <span id="349">349</span>
+<span id="350">350</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements the global `Function` object as well as creates Native Functions.</span>
 <span class="doccomment">//!</span>
@@ -475,7 +476,8 @@
         <span class="comment">// Create binding</span>
         <span class="ident">local_env</span>
             .<span class="ident">borrow_mut</span>()
-            .<span class="ident">create_mutable_binding</span>(<span class="ident">param</span>.<span class="ident">name</span>().<span class="ident">to_owned</span>(), <span class="bool-val">false</span>)
+            <span class="comment">// Function parameters can share names in JavaScript...</span>
+            .<span class="ident">create_mutable_binding</span>(<span class="ident">param</span>.<span class="ident">name</span>().<span class="ident">to_owned</span>(), <span class="bool-val">false</span>, <span class="bool-val">true</span>)
             .<span class="ident">expect</span>(<span class="string">&quot;Failed to create binding for rest param&quot;</span>);
 
         <span class="comment">// Set Binding to value</span>
@@ -495,7 +497,7 @@
         <span class="comment">// Create binding</span>
         <span class="ident">local_env</span>
             .<span class="ident">borrow_mut</span>()
-            .<span class="ident">create_mutable_binding</span>(<span class="ident">param</span>.<span class="ident">name</span>().<span class="ident">to_owned</span>(), <span class="bool-val">false</span>)
+            .<span class="ident">create_mutable_binding</span>(<span class="ident">param</span>.<span class="ident">name</span>().<span class="ident">to_owned</span>(), <span class="bool-val">false</span>, <span class="bool-val">true</span>)
             .<span class="ident">expect</span>(<span class="string">&quot;Failed to create binding&quot;</span>);
 
         <span class="comment">// Set Binding to value</span>

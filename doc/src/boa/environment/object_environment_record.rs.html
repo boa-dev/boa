@@ -146,6 +146,11 @@
 <span id="145">145</span>
 <span id="146">146</span>
 <span id="147">147</span>
+<span id="148">148</span>
+<span id="149">149</span>
+<span id="150">150</span>
+<span id="151">151</span>
+<span id="152">152</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! # Object Records</span>
 <span class="doccomment">//!</span>
@@ -186,7 +191,12 @@
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">create_mutable_binding</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">name</span>: <span class="ident">String</span>, <span class="ident">deletion</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">ErrorKind</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">create_mutable_binding</span>(
+        <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
+        <span class="ident">name</span>: <span class="ident">String</span>,
+        <span class="ident">deletion</span>: <span class="ident">bool</span>,
+        <span class="ident">_allow_name_reuse</span>: <span class="ident">bool</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">ErrorKind</span><span class="op">&gt;</span> {
         <span class="comment">// TODO: could save time here and not bother generating a new undefined object,</span>
         <span class="comment">// only for it to be replace with the real value later. We could just add the name to a Vector instead</span>
         <span class="kw">let</span> <span class="ident">bindings</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">bindings</span>;

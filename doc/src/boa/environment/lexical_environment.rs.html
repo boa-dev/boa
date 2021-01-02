@@ -397,6 +397,7 @@
 <span id="396">396</span>
 <span id="397">397</span>
 <span id="398">398</span>
+<span id="399">399</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! # Lexical Environment</span>
 <span class="doccomment">//!</span>
@@ -531,7 +532,7 @@
             <span class="ident">VariableScope</span>::<span class="ident">Block</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>
                 .<span class="ident">get_current_environment</span>()
                 .<span class="ident">borrow_mut</span>()
-                .<span class="ident">create_mutable_binding</span>(<span class="ident">name</span>, <span class="ident">deletion</span>),
+                .<span class="ident">create_mutable_binding</span>(<span class="ident">name</span>, <span class="ident">deletion</span>, <span class="bool-val">false</span>),
             <span class="ident">VariableScope</span>::<span class="ident">Function</span> <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="comment">// Find the first function or global environment (from the top of the stack)</span>
                 <span class="kw">let</span> <span class="ident">env</span> <span class="op">=</span> <span class="self">self</span>
@@ -544,7 +545,8 @@
                     })
                     .<span class="ident">expect</span>(<span class="string">&quot;No function or global environment&quot;</span>);
 
-                <span class="ident">env</span>.<span class="ident">borrow_mut</span>().<span class="ident">create_mutable_binding</span>(<span class="ident">name</span>, <span class="ident">deletion</span>)
+                <span class="ident">env</span>.<span class="ident">borrow_mut</span>()
+                    .<span class="ident">create_mutable_binding</span>(<span class="ident">name</span>, <span class="ident">deletion</span>, <span class="bool-val">false</span>)
             }
         }
     }
