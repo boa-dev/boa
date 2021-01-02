@@ -242,6 +242,62 @@
 <span id="241">241</span>
 <span id="242">242</span>
 <span id="243">243</span>
+<span id="244">244</span>
+<span id="245">245</span>
+<span id="246">246</span>
+<span id="247">247</span>
+<span id="248">248</span>
+<span id="249">249</span>
+<span id="250">250</span>
+<span id="251">251</span>
+<span id="252">252</span>
+<span id="253">253</span>
+<span id="254">254</span>
+<span id="255">255</span>
+<span id="256">256</span>
+<span id="257">257</span>
+<span id="258">258</span>
+<span id="259">259</span>
+<span id="260">260</span>
+<span id="261">261</span>
+<span id="262">262</span>
+<span id="263">263</span>
+<span id="264">264</span>
+<span id="265">265</span>
+<span id="266">266</span>
+<span id="267">267</span>
+<span id="268">268</span>
+<span id="269">269</span>
+<span id="270">270</span>
+<span id="271">271</span>
+<span id="272">272</span>
+<span id="273">273</span>
+<span id="274">274</span>
+<span id="275">275</span>
+<span id="276">276</span>
+<span id="277">277</span>
+<span id="278">278</span>
+<span id="279">279</span>
+<span id="280">280</span>
+<span id="281">281</span>
+<span id="282">282</span>
+<span id="283">283</span>
+<span id="284">284</span>
+<span id="285">285</span>
+<span id="286">286</span>
+<span id="287">287</span>
+<span id="288">288</span>
+<span id="289">289</span>
+<span id="290">290</span>
+<span id="291">291</span>
+<span id="292">292</span>
+<span id="293">293</span>
+<span id="294">294</span>
+<span id="295">295</span>
+<span id="296">296</span>
+<span id="297">297</span>
+<span id="298">298</span>
+<span id="299">299</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">exec</span>::<span class="ident">Executable</span>,
@@ -256,6 +312,12 @@
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deser&quot;</span>)]</span>
 <span class="kw">use</span> <span class="ident">serde</span>::{<span class="ident">Deserialize</span>, <span class="ident">Serialize</span>};
+
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;vm&quot;</span>)]</span>
+<span class="kw">use</span> <span class="kw">crate</span>::{
+    <span class="ident">profiler</span>::<span class="ident">BoaProfiler</span>,
+    <span class="ident">vm</span>::{<span class="ident">compilation</span>::<span class="ident">CodeGen</span>, <span class="ident">Compiler</span>, <span class="ident">Instruction</span>},
+};
 
 <span class="doccomment">/// Binary operators requires two operands, one before the operator and one after the operator.</span>
 <span class="doccomment">///</span>
@@ -471,6 +533,56 @@
                 <span class="self">self</span>.<span class="ident">lhs</span>().<span class="ident">run</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
                 <span class="prelude-val">Ok</span>(<span class="self">self</span>.<span class="ident">rhs</span>().<span class="ident">run</span>(<span class="ident">context</span>)<span class="question-mark">?</span>)
             }
+        }
+    }
+}
+
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;vm&quot;</span>)]</span>
+<span class="kw">impl</span> <span class="ident">CodeGen</span> <span class="kw">for</span> <span class="ident">BinOp</span> {
+    <span class="kw">fn</span> <span class="ident">compile</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">compiler</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Compiler</span>) {
+        <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">BoaProfiler</span>::<span class="ident">global</span>().<span class="ident">start_event</span>(<span class="string">&quot;binOp&quot;</span>, <span class="string">&quot;codeGen&quot;</span>);
+        <span class="kw">match</span> <span class="self">self</span>.<span class="ident">op</span>() {
+            <span class="ident">op</span>::<span class="ident">BinOp</span>::<span class="ident">Num</span>(<span class="ident">op</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="self">self</span>.<span class="ident">lhs</span>().<span class="ident">compile</span>(<span class="ident">compiler</span>);
+                <span class="self">self</span>.<span class="ident">rhs</span>().<span class="ident">compile</span>(<span class="ident">compiler</span>);
+                <span class="kw">match</span> <span class="ident">op</span> {
+                    <span class="ident">NumOp</span>::<span class="ident">Add</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">compiler</span>.<span class="ident">add_instruction</span>(<span class="ident">Instruction</span>::<span class="ident">Add</span>),
+                    <span class="ident">NumOp</span>::<span class="ident">Sub</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">compiler</span>.<span class="ident">add_instruction</span>(<span class="ident">Instruction</span>::<span class="ident">Sub</span>),
+                    <span class="ident">NumOp</span>::<span class="ident">Mul</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">compiler</span>.<span class="ident">add_instruction</span>(<span class="ident">Instruction</span>::<span class="ident">Mul</span>),
+                    <span class="ident">NumOp</span>::<span class="ident">Div</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">compiler</span>.<span class="ident">add_instruction</span>(<span class="ident">Instruction</span>::<span class="ident">Div</span>),
+                    <span class="ident">NumOp</span>::<span class="ident">Exp</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">compiler</span>.<span class="ident">add_instruction</span>(<span class="ident">Instruction</span>::<span class="ident">Pow</span>),
+                    <span class="ident">NumOp</span>::<span class="ident">Mod</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">compiler</span>.<span class="ident">add_instruction</span>(<span class="ident">Instruction</span>::<span class="ident">Mod</span>),
+                }
+            }
+            <span class="ident">op</span>::<span class="ident">BinOp</span>::<span class="ident">Bit</span>(<span class="ident">op</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="self">self</span>.<span class="ident">lhs</span>().<span class="ident">compile</span>(<span class="ident">compiler</span>);
+                <span class="self">self</span>.<span class="ident">rhs</span>().<span class="ident">compile</span>(<span class="ident">compiler</span>);
+                <span class="kw">match</span> <span class="ident">op</span> {
+                    <span class="ident">BitOp</span>::<span class="ident">And</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">compiler</span>.<span class="ident">add_instruction</span>(<span class="ident">Instruction</span>::<span class="ident">BitAnd</span>),
+                    <span class="ident">BitOp</span>::<span class="ident">Or</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">compiler</span>.<span class="ident">add_instruction</span>(<span class="ident">Instruction</span>::<span class="ident">BitOr</span>),
+                    <span class="ident">BitOp</span>::<span class="ident">Xor</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">compiler</span>.<span class="ident">add_instruction</span>(<span class="ident">Instruction</span>::<span class="ident">BitXor</span>),
+                    <span class="ident">BitOp</span>::<span class="ident">Shl</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">compiler</span>.<span class="ident">add_instruction</span>(<span class="ident">Instruction</span>::<span class="ident">Shl</span>),
+                    <span class="ident">BitOp</span>::<span class="ident">Shr</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">compiler</span>.<span class="ident">add_instruction</span>(<span class="ident">Instruction</span>::<span class="ident">Shr</span>),
+                    <span class="ident">BitOp</span>::<span class="ident">UShr</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">compiler</span>.<span class="ident">add_instruction</span>(<span class="ident">Instruction</span>::<span class="ident">UShr</span>),
+                }
+            }
+            <span class="ident">op</span>::<span class="ident">BinOp</span>::<span class="ident">Comp</span>(<span class="ident">op</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="self">self</span>.<span class="ident">lhs</span>().<span class="ident">compile</span>(<span class="ident">compiler</span>);
+                <span class="self">self</span>.<span class="ident">rhs</span>().<span class="ident">compile</span>(<span class="ident">compiler</span>);
+                <span class="kw">match</span> <span class="ident">op</span> {
+                    <span class="ident">CompOp</span>::<span class="ident">Equal</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">compiler</span>.<span class="ident">add_instruction</span>(<span class="ident">Instruction</span>::<span class="ident">Eq</span>),
+                    <span class="ident">CompOp</span>::<span class="ident">NotEqual</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">compiler</span>.<span class="ident">add_instruction</span>(<span class="ident">Instruction</span>::<span class="ident">NotEq</span>),
+                    <span class="ident">CompOp</span>::<span class="ident">StrictEqual</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">compiler</span>.<span class="ident">add_instruction</span>(<span class="ident">Instruction</span>::<span class="ident">StrictEq</span>),
+                    <span class="ident">CompOp</span>::<span class="ident">StrictNotEqual</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">compiler</span>.<span class="ident">add_instruction</span>(<span class="ident">Instruction</span>::<span class="ident">StrictNotEq</span>),
+                    <span class="ident">CompOp</span>::<span class="ident">GreaterThan</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">compiler</span>.<span class="ident">add_instruction</span>(<span class="ident">Instruction</span>::<span class="ident">Gt</span>),
+                    <span class="ident">CompOp</span>::<span class="ident">GreaterThanOrEqual</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">compiler</span>.<span class="ident">add_instruction</span>(<span class="ident">Instruction</span>::<span class="ident">Ge</span>),
+                    <span class="ident">CompOp</span>::<span class="ident">LessThan</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">compiler</span>.<span class="ident">add_instruction</span>(<span class="ident">Instruction</span>::<span class="ident">Lt</span>),
+                    <span class="ident">CompOp</span>::<span class="ident">LessThanOrEqual</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">compiler</span>.<span class="ident">add_instruction</span>(<span class="ident">Instruction</span>::<span class="ident">Le</span>),
+                    <span class="ident">CompOp</span>::<span class="ident">In</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">compiler</span>.<span class="ident">add_instruction</span>(<span class="ident">Instruction</span>::<span class="ident">In</span>),
+                    <span class="ident">CompOp</span>::<span class="ident">InstanceOf</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">compiler</span>.<span class="ident">add_instruction</span>(<span class="ident">Instruction</span>::<span class="ident">InstanceOf</span>),
+                }
+            }
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unimplemented</span><span class="macro">!</span>(),
         }
     }
 }

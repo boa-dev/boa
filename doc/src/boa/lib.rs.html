@@ -145,6 +145,8 @@
 <span id="144">144</span>
 <span id="145">145</span>
 <span id="146">146</span>
+<span id="147">147</span>
+<span id="148">148</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">/*!
 This is an experimental Javascript lexer, parser and compiler written in Rust. Currently, it has support for some of the language.
@@ -201,6 +203,8 @@ This is an experimental Javascript lexer, parser and compiler written in Rust. C
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">realm</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">syntax</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">value</span>;
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;vm&quot;</span>)]</span>
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">vm</span>;
 
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">context</span>;
 
