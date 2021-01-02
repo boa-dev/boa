@@ -310,29 +310,41 @@ impl RegExp {
     /// [spec]: https://tc39.es/ecma262/#sec-regexp.prototype.test
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/test
     pub(crate) fn test(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
-        let arg_str = args
-            .get(0)
-            .expect("could not get argument")
-            .to_string(context)?;
         let mut last_index = this.get_field("lastIndex", context)?.to_index(context)?;
         let result = if let Some(object) = this.as_object() {
+            // 3. Let string be ? ToString(S).
+            let arg_str = args
+                .get(0)
+                .cloned()
+                .unwrap_or_default()
+                .to_string(context)?;
+
+            // 4. Let match be ? RegExpExec(R, string).
             let object = object.borrow();
-            let regex = object.as_regexp().unwrap();
-            let result =
-                if let Some(m) = regex.matcher.find_from(arg_str.as_str(), last_index).next() {
-                    if regex.use_last_index {
-                        last_index = m.end();
-                    }
-                    true
-                } else {
-                    if regex.use_last_index {
-                        last_index = 0;
-                    }
-                    false
-                };
-            Ok(Value::boolean(result))
+            if let Some(regex) = object.as_regexp() {
+                let result =
+                    if let Some(m) = regex.matcher.find_from(arg_str.as_str(), last_index).next() {
+                        if regex.use_last_index {
+                            last_index = m.end();
+                        }
+                        true
+                    } else {
+                        if regex.use_last_index {
+                            last_index = 0;
+                        }
+                        false
+                    };
+
+                // 5. If match is not null, return true; else return false.
+                Ok(Value::boolean(result))
+            } else {
+                return context
+                    .throw_type_error("RegExp.prototype.exec method called on incompatible value");
+            }
         } else {
-            panic!("object is not a regexp")
+            // 2. If Type(R) is not Object, throw a TypeError exception.
+            return context
+                .throw_type_error("RegExp.prototype.exec method called on incompatible value");
         };
         this.set_field("lastIndex", Value::from(last_index), context)?;
         result
@@ -351,46 +363,61 @@ impl RegExp {
     /// [spec]: https://tc39.es/ecma262/#sec-regexp.prototype.exec
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/exec
     pub(crate) fn exec(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
-        let arg_str = args
-            .get(0)
-            .expect("could not get argument")
-            .to_string(context)?;
+        // 4. Return ? RegExpBuiltinExec(R, S).
         let mut last_index = this.get_field("lastIndex", context)?.to_index(context)?;
         let result = if let Some(object) = this.as_object() {
             let object = object.borrow();
-            let regex = object.as_regexp().unwrap();
-            let result = {
-                if let Some(m) = regex.matcher.find_from(arg_str.as_str(), last_index).next() {
-                    if regex.use_last_index {
-                        last_index = m.end();
-                    }
-                    let groups = m.captures.len() + 1;
-                    let mut result = Vec::with_capacity(groups);
-                    for i in 0..groups {
-                        if let Some(range) = m.group(i) {
-                            result.push(Value::from(
-                                arg_str.get(range).expect("Could not get slice"),
-                            ));
-                        } else {
-                            result.push(Value::undefined());
-                        }
-                    }
+            if let Some(regex) = object.as_regexp() {
+                // 3. Let S be ? ToString(string).
+                let arg_str = args
+                    .get(0)
+                    .cloned()
+                    .unwrap_or_default()
+                    .to_string(context)?;
 
-                    let result = Value::from(result);
-                    result.set_property("index", DataDescriptor::new(m.start(), Attribute::all()));
-                    result.set_property("input", DataDescriptor::new(arg_str, Attribute::all()));
-                    result
-                } else {
-                    if regex.use_last_index {
-                        last_index = 0;
+                let result = {
+                    if let Some(m) = regex.matcher.find_from(arg_str.as_str(), last_index).next() {
+                        if regex.use_last_index {
+                            last_index = m.end();
+                        }
+                        let groups = m.captures.len() + 1;
+                        let mut result = Vec::with_capacity(groups);
+                        for i in 0..groups {
+                            if let Some(range) = m.group(i) {
+                                result.push(Value::from(
+                                    arg_str.get(range).expect("Could not get slice"),
+                                ));
+                            } else {
+                                result.push(Value::undefined());
+                            }
+                        }
+
+                        let result = Value::from(result);
+                        result.set_property(
+                            "index",
+                            DataDescriptor::new(m.start(), Attribute::all()),
+                        );
+                        result
+                            .set_property("input", DataDescriptor::new(arg_str, Attribute::all()));
+                        result
+                    } else {
+                        if regex.use_last_index {
+                            last_index = 0;
+                        }
+                        Value::null()
                     }
-                    Value::null()
-                }
-            };
-            Ok(result)
+                };
+
+                Ok(result)
+            } else {
+                // 2. Perform ? RequireInternalSlot(R, [[RegExpMatcher]]).
+                context
+                    .throw_type_error("RegExp.prototype.exec method called on incompatible value")
+            }
         } else {
-            panic!("object is not a regexp")
+            return context.throw_type_error("exec method called on incompatible value");
         };
+
         this.set_field("lastIndex", Value::from(last_index), context)?;
         result
     }
@@ -408,10 +435,15 @@ impl RegExp {
     pub(crate) fn r#match(this: &Value, arg: RcString, context: &mut Context) -> Result<Value> {
         let (matcher, flags) = if let Some(object) = this.as_object() {
             let object = object.borrow();
-            let regex = object.as_regexp().unwrap();
-            (regex.matcher.clone(), regex.flags.clone())
+            if let Some(regex) = object.as_regexp() {
+                (regex.matcher.clone(), regex.flags.clone())
+            } else {
+                return context
+                    .throw_type_error("RegExp.prototype.exec method called on incompatible value");
+            }
         } else {
-            panic!("object is not a regexp")
+            return context
+                .throw_type_error("RegExp.prototype.match method called on incompatible value");
         };
         if flags.contains('g') {
             let mut matches = Vec::new();
@@ -466,35 +498,43 @@ impl RegExp {
     pub(crate) fn match_all(this: &Value, arg_str: String, context: &mut Context) -> Result<Value> {
         let matches = if let Some(object) = this.as_object() {
             let object = object.borrow();
-            let regex = object.as_regexp().unwrap();
-            let mut matches = Vec::new();
+            if let Some(regex) = object.as_regexp() {
+                let mut matches = Vec::new();
 
-            for mat in regex.matcher.find_iter(&arg_str) {
-                let match_vec: Vec<Value> = mat
-                    .groups()
-                    .map(|group| match group {
-                        Some(range) => Value::from(&arg_str[range]),
-                        None => Value::undefined(),
-                    })
-                    .collect();
+                for mat in regex.matcher.find_iter(&arg_str) {
+                    let match_vec: Vec<Value> = mat
+                        .groups()
+                        .map(|group| match group {
+                            Some(range) => Value::from(&arg_str[range]),
+                            None => Value::undefined(),
+                        })
+                        .collect();
 
-                let match_val = Value::from(match_vec);
+                    let match_val = Value::from(match_vec);
 
-                match_val.set_property("index", DataDescriptor::new(mat.start(), Attribute::all()));
-                match_val.set_property(
-                    "input",
-                    DataDescriptor::new(arg_str.clone(), Attribute::all()),
-                );
-                matches.push(match_val);
+                    match_val
+                        .set_property("index", DataDescriptor::new(mat.start(), Attribute::all()));
+                    match_val.set_property(
+                        "input",
+                        DataDescriptor::new(arg_str.clone(), Attribute::all()),
+                    );
+                    matches.push(match_val);
 
-                if !regex.flags.contains('g') {
-                    break;
+                    if !regex.flags.contains('g') {
+                        break;
+                    }
                 }
-            }
 
-            matches
+                matches
+            } else {
+                return context.throw_type_error(
+                    "RegExp.prototype.match_all method called on incompatible value",
+                );
+            }
         } else {
-            panic!("object is not a regexp")
+            return context.throw_type_error(
+                "RegExp.prototype.match_all method called on incompatible value",
+            );
         };
 
         let length = matches.len();
