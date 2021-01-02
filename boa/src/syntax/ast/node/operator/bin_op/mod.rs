@@ -1,7 +1,6 @@
 use crate::{
     exec::Executable,
     gc::{Finalize, Trace},
-    profiler::BoaProfiler,
     syntax::ast::{
         node::Node,
         op::{self, AssignOp, BitOp, CompOp, LogOp, NumOp},
@@ -14,7 +13,10 @@ use std::fmt;
 use serde::{Deserialize, Serialize};
 
 #[cfg(feature = "vm")]
-use crate::vm::{compilation::CodeGen, Compiler, Instruction};
+use crate::{
+    profiler::BoaProfiler,
+    vm::{compilation::CodeGen, Compiler, Instruction},
+};
 
 /// Binary operators requires two operands, one before the operator and one after the operator.
 ///

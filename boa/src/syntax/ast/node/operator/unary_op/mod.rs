@@ -1,7 +1,6 @@
 use crate::{
     exec::Executable,
     gc::{Finalize, Trace},
-    profiler::BoaProfiler,
     syntax::ast::{node::Node, op},
     Context, Result, Value,
 };
@@ -11,7 +10,10 @@ use std::fmt;
 use serde::{Deserialize, Serialize};
 
 #[cfg(feature = "vm")]
-use crate::vm::{compilation::CodeGen, Compiler, Instruction};
+use crate::{
+    profiler::BoaProfiler,
+    vm::{compilation::CodeGen, Compiler, Instruction},
+};
 
 /// A unary operation is an operation with only one operand.
 ///
