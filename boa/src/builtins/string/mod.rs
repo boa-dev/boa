@@ -1213,7 +1213,7 @@ impl String {
                 .collect(),
             Some(separator) => string
                 .split(separator.as_str())
-                .map(|v| Value::from(v))
+                .map(&Value::from)
                 .take(limit)
                 .collect(),
         };
