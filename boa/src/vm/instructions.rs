@@ -57,6 +57,8 @@ pub enum Instruction {
     Neg,
     BitNot,
     Not,
+
+    DefVar(usize, usize),
 }
 
 impl std::fmt::Display for Instruction {
@@ -100,6 +102,7 @@ impl std::fmt::Display for Instruction {
             Self::Neg => write!(f, "Neg"),
             Self::BitNot => write!(f, "BitNot"),
             Self::Not => write!(f, "Not"),
+            Self::DefVar(name, value) => write!(f, "DefVar({}, {})", name, value),
         }
     }
 }

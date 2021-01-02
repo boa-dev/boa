@@ -757,7 +757,7 @@ impl Context {
         };
 
         let mut compiler = Compiler::default();
-        statement_list.compile(&mut compiler);
+        statement_list.compile(&mut compiler, self);
         dbg!(&compiler);
 
         let mut vm = VM::new(compiler, self);

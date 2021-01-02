@@ -238,12 +238,12 @@ impl Executable for BinOp {
 
 #[cfg(feature = "vm")]
 impl CodeGen for BinOp {
-    fn compile(&self, compiler: &mut Compiler) {
+    fn compile(&self, compiler: &mut Compiler, context: &mut Context) {
         let _timer = BoaProfiler::global().start_event("binOp", "codeGen");
         match self.op() {
             op::BinOp::Num(op) => {
-                self.lhs().compile(compiler);
-                self.rhs().compile(compiler);
+                self.lhs().compile(compiler, context);
+                self.rhs().compile(compiler, context);
                 match op {
                     NumOp::Add => compiler.add_instruction(Instruction::Add),
                     NumOp::Sub => compiler.add_instruction(Instruction::Sub),
@@ -254,8 +254,8 @@ impl CodeGen for BinOp {
                 }
             }
             op::BinOp::Bit(op) => {
-                self.lhs().compile(compiler);
-                self.rhs().compile(compiler);
+                self.lhs().compile(compiler, context);
+                self.rhs().compile(compiler, context);
                 match op {
                     BitOp::And => compiler.add_instruction(Instruction::BitAnd),
                     BitOp::Or => compiler.add_instruction(Instruction::BitOr),
@@ -266,8 +266,8 @@ impl CodeGen for BinOp {
                 }
             }
             op::BinOp::Comp(op) => {
-                self.lhs().compile(compiler);
-                self.rhs().compile(compiler);
+                self.lhs().compile(compiler, context);
+                self.rhs().compile(compiler, context);
                 match op {
                     CompOp::Equal => compiler.add_instruction(Instruction::Eq),
                     CompOp::NotEqual => compiler.add_instruction(Instruction::NotEq),
