@@ -100,7 +100,7 @@ impl CodeGen for StatementList {
     fn compile(&self, compiler: &mut Compiler) {
         let _timer = BoaProfiler::global().start_event("StatementList - Code Gen", "codeGen");
 
-        for item in self.statements().iter() {
+        for item in self.items().iter() {
             item.compile(compiler);
         }
     }

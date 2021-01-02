@@ -277,11 +277,6 @@ impl Context {
         &mut self.realm
     }
 
-    #[cfg(feature = "vm")]
-    pub fn instructions_mut(&mut self) -> &mut Vec<Instruction> {
-        &mut self.instruction_stack
-    }
-
     #[inline]
     pub fn executor(&mut self) -> &mut Interpreter {
         &mut self.executor
@@ -748,10 +743,11 @@ impl Context {
     /// ```
     #[cfg(feature = "vm")]
     #[allow(clippy::unit_arg, clippy::drop_copy)]
-    pub fn eval(&mut self, src: &str) -> Result<Value> {
+    pub fn eval<T: AsRef<[u8]>>(&mut self, src: T) -> Result<Value> {
         let main_timer = BoaProfiler::global().start_event("Main", "Main");
+        let src_bytes: &[u8] = src.as_ref();
 
-        let parsing_result = Parser::new(src.as_bytes())
+        let parsing_result = Parser::new(src_bytes, false)
             .parse_all()
             .map_err(|e| e.to_string());
 
