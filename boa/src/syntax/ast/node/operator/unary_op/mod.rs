@@ -90,12 +90,15 @@ impl Executable for UnaryOp {
                     get_const_field
                         .obj()
                         .run(context)?
-                        .remove_property(get_const_field.field()),
+                        .to_object(context)?
+                        .delete(&get_const_field.field().into()),
                 ),
                 Node::GetField(ref get_field) => {
                     let obj = get_field.obj().run(context)?;
                     let field = &get_field.field().run(context)?;
-                    let res = obj.remove_property(field.to_string(context)?.as_str());
+                    let res = obj
+                        .to_object(context)?
+                        .delete(&field.to_property_key(context)?);
                     return Ok(Value::boolean(res));
                 }
                 Node::Identifier(_) => Value::boolean(false),
