@@ -1179,6 +1179,7 @@ impl String {
     /// [spec]: https://tc39.es/ecma262/#sec-string.prototype.split
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/split
     pub(crate) fn split(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+        let this = this.require_object_coercible(context)?;
         let string = this.to_string(context)?;
 
         let separator = if args.is_empty() {
