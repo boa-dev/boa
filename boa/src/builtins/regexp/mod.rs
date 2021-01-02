@@ -98,7 +98,7 @@ impl RegExp {
     pub(crate) const LENGTH: usize = 2;
 
     /// Create a new `RegExp`
-    pub(crate) fn constructor(this: &Value, args: &[Value], _: &mut Context) -> Result<Value> {
+    pub(crate) fn constructor(this: &Value, args: &[Value], ctx: &mut Context) -> Result<Value> {
         let arg = args.get(0).ok_or_else(Value::undefined)?;
 
         let (regex_body, mut regex_flags) = match arg {
@@ -161,8 +161,15 @@ impl RegExp {
             sorted_flags.push('y');
         }
 
-        let matcher = Regex::with_flags(&regex_body, sorted_flags.as_str())
-            .expect("failed to create matcher");
+        let matcher = match Regex::with_flags(&regex_body, sorted_flags.as_str()) {
+            Err(error) => {
+                return Err(
+                    ctx.construct_syntax_error(format!("failed to create matcher: {}", error.text))
+                );
+            }
+            Ok(val) => val,
+        };
+
         let regexp = RegExp {
             matcher,
             use_last_index: global || sticky,
