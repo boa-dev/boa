@@ -30,6 +30,12 @@ use std::result::Result as StdResult;
 #[cfg(feature = "console")]
 use crate::builtins::console::Console;
 
+#[cfg(feature = "vm")]
+use crate::vm::{
+    compilation::{CodeGen, Compiler},
+    VM,
+};
+
 /// Store a builtin constructor (such as `Object`) and its corresponding prototype.
 #[derive(Debug, Clone)]
 pub struct StandardConstructor {
@@ -225,7 +231,7 @@ pub struct Context {
     /// Cached iterator prototypes.
     iterator_prototypes: IteratorPrototypes,
 
-    /// Cached standard objects and their prototypes
+    /// Cached standard objects and their prototypes.
     standard_objects: StandardObjects,
 }
 
@@ -700,6 +706,7 @@ impl Context {
     /// assert!(value.is_number());
     /// assert_eq!(value.as_number().unwrap(), 4.0);
     /// ```
+    #[cfg(not(feature = "vm"))]
     #[allow(clippy::unit_arg, clippy::drop_copy)]
     #[inline]
     pub fn eval<T: AsRef<[u8]>>(&mut self, src: T) -> Result<Value> {
@@ -720,6 +727,48 @@ impl Context {
         BoaProfiler::global().drop();
 
         execution_result
+    }
+
+    /// Evaluates the given code by compiling down to bytecode, then interpreting the bytecode into a value
+    ///
+    /// # Examples
+    /// ```
+    ///# use boa::Context;
+    /// let mut context = Context::new();
+    ///
+    /// let value = context.eval("1 + 3").unwrap();
+    ///
+    /// assert!(value.is_number());
+    /// assert_eq!(value.as_number().unwrap(), 4.0);
+    /// ```
+    #[cfg(feature = "vm")]
+    #[allow(clippy::unit_arg, clippy::drop_copy)]
+    pub fn eval<T: AsRef<[u8]>>(&mut self, src: T) -> Result<Value> {
+        let main_timer = BoaProfiler::global().start_event("Main", "Main");
+        let src_bytes: &[u8] = src.as_ref();
+
+        let parsing_result = Parser::new(src_bytes, false)
+            .parse_all()
+            .map_err(|e| e.to_string());
+
+        let statement_list = match parsing_result {
+            Ok(statement_list) => statement_list,
+            Err(e) => return self.throw_syntax_error(e),
+        };
+
+        let mut compiler = Compiler::default();
+        statement_list.compile(&mut compiler);
+        dbg!(&compiler);
+
+        let mut vm = VM::new(compiler, self);
+        // Generate Bytecode and place it into instruction_stack
+        // Interpret the Bytecode
+        let result = vm.run();
+        // The main_timer needs to be dropped before the BoaProfiler is.
+        drop(main_timer);
+        BoaProfiler::global().drop();
+
+        result
     }
 
     /// Returns a structure that contains the JavaScript well known symbols.

@@ -12,8 +12,6 @@ use std::{
 };
 
 #[cfg(feature = "profiler")]
-type SerializationSink = measureme::SerializationSink;
-#[cfg(feature = "profiler")]
 pub struct BoaProfiler {
     profiler: Profiler,
 }
