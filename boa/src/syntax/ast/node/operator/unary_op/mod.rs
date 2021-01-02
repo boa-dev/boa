@@ -98,7 +98,7 @@ impl Executable for UnaryOp {
                     let field = &get_field.field().run(context)?;
                     let res = obj
                         .to_object(context)?
-                        .delete(&field.to_string(context)?.as_str().into());
+                        .delete(&field.to_property_key(context)?);
                     return Ok(Value::boolean(res));
                 }
                 Node::Identifier(_) => Value::boolean(false),
