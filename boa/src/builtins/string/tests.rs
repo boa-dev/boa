@@ -564,6 +564,58 @@ fn trim_end() {
 }
 
 #[test]
+fn split() {
+    let mut context = Context::new();
+    assert_eq!(
+        forward(&mut context, "'Hello'.split()"),
+        forward(&mut context, "['Hello']")
+    );
+    assert_eq!(
+        forward(&mut context, "'Hello'.split(null)"),
+        forward(&mut context, "['Hello']")
+    );
+    assert_eq!(
+        forward(&mut context, "'Hello'.split(undefined)"),
+        forward(&mut context, "['Hello']")
+    );
+    assert_eq!(
+        forward(&mut context, "'Hello'.split('')"),
+        forward(&mut context, "['H','e','l','l','o']")
+    );
+
+    assert_eq!(
+        forward(&mut context, "'x1x2'.split('x')"),
+        forward(&mut context, "['','1','2']")
+    );
+    assert_eq!(
+        forward(&mut context, "'x1x2x'.split('x')"),
+        forward(&mut context, "['','1','2','']")
+    );
+
+    assert_eq!(
+        forward(&mut context, "'x1x2x'.split('x', 0)"),
+        forward(&mut context, "[]")
+    );
+    assert_eq!(
+        forward(&mut context, "'x1x2x'.split('x', 2)"),
+        forward(&mut context, "['','1']")
+    );
+    assert_eq!(
+        forward(&mut context, "'x1x2x'.split('x', 10)"),
+        forward(&mut context, "['','1','2','']")
+    );
+
+    assert_eq!(
+        forward(&mut context, "'Hello'.split(null, 0)"),
+        forward(&mut context, "[]")
+    );
+    assert_eq!(
+        forward(&mut context, "'Hello'.split(undefined, 0)"),
+        forward(&mut context, "[]")
+    );
+}
+
+#[test]
 fn index_of_with_no_arguments() {
     let mut context = Context::new();
     assert_eq!(forward(&mut context, "''.indexOf()"), "-1");
