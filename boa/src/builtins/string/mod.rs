@@ -15,7 +15,7 @@ mod tests;
 
 use crate::property::DataDescriptor;
 use crate::{
-    builtins::{string::string_iterator::StringIterator, BuiltIn, RegExp},
+    builtins::{string::string_iterator::StringIterator, Array, BuiltIn, RegExp},
     object::{ConstructorBuilder, Object, ObjectData},
     property::Attribute,
     value::{RcString, Value},
@@ -105,6 +105,7 @@ impl BuiltIn for String {
         .method(Self::to_uppercase, "toUpperCase", 0)
         .method(Self::substring, "substring", 2)
         .method(Self::substr, "substr", 2)
+        .method(Self::split, "split", 2)
         .method(Self::value_of, "valueOf", 0)
         .method(Self::match_all, "matchAll", 1)
         .method(Self::replace, "replace", 2)
@@ -1163,6 +1164,62 @@ impl String {
 
             Ok(Value::from(extracted_string))
         }
+    }
+
+    /// String.prototype.split()
+    ///
+    /// The `split()` method divides a String into an ordered list of substrings, puts these substrings into an array, and returns the array.
+    ///
+    /// The division is done by searching for a pattern; where the pattern is provided as the first parameter in the method's call.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-string.prototype.split
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/split
+    pub(crate) fn split(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+        let string = this.to_string(context)?;
+
+        let separator = if args.is_empty() {
+            None
+        } else {
+            let arg0 = args
+                .get(0)
+                .expect("failed to get argument for String method");
+
+            if arg0.is_null_or_undefined() {
+                None
+            } else {
+                arg0.to_string(context).ok()
+            }
+        };
+
+        let limit = if args.len() < 2 {
+            std::u32::MAX as usize
+        } else {
+            args.get(1)
+                .expect("Could not get the limit argument")
+                .to_integer(context)? as usize
+        };
+
+        let values: Vec<Value> = match separator {
+            None if limit == 0 => vec![],
+            None => vec![Value::from(string)],
+            Some(separator) if separator == "" => string
+                .encode_utf16()
+                .map(|cp| Value::from(std::string::String::from_utf16_lossy(&[cp])))
+                .take(limit)
+                .collect(),
+            Some(separator) => string
+                .split(separator.as_str())
+                .map(|v| Value::from(v))
+                .take(limit)
+                .collect(),
+        };
+
+        let new = Array::new_array(context)?;
+        Array::construct_array(&new, &values, context)
     }
 
     /// String.prototype.valueOf()
