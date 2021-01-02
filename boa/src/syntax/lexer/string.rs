@@ -73,7 +73,7 @@ pub(super) fn unescape_string<R>(
 where
     R: Read,
 {
-    let mut buf: Vec<u16> = Vec::new();
+    let mut buf = Vec::new();
     loop {
         let next_chr = cursor.next_char()?.map(char::try_from).transpose().unwrap();
 
@@ -171,7 +171,7 @@ where
                         n if char::is_digit(char::from(n), 8) => {
                             if strict_mode {
                                 return Err(Error::syntax(
-                                    "octal escape sequence are deprecated",
+                                    "octal escape sequences are deprecated",
                                     cursor.pos(),
                                 ));
                             }

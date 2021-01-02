@@ -54,7 +54,14 @@ impl Executable for TemplateLit {
 
 impl fmt::Display for TemplateLit {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "template literal")
+        write!(f, "`")?;
+        for elt in &self.elements {
+            match elt {
+                TemplateElement::String(s) => write!(f, "{}", s)?,
+                TemplateElement::Expr(n) => write!(f, "${{{}}}", n)?,
+            }
+        }
+        write!(f, "`")
     }
 }
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
@@ -127,7 +134,11 @@ impl Executable for TaggedTemplate {
 
 impl fmt::Display for TaggedTemplate {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "tagged template")
+        write!(f, "{}`", self.tag)?;
+        for (raw, expr) in self.raws.iter().zip(self.exprs.iter()) {
+            write!(f, "{}${{{}}}", raw, expr)?;
+        }
+        write!(f, "`")
     }
 }
 

@@ -125,15 +125,19 @@ pub enum TokenKind {
     /// A string literal.
     StringLiteral(Box<str>),
 
-    // A part of a template literal without substitution
+    /// A part of a template literal without substitution.
     TemplateNoSubstitution {
+        /// The string as it has been entered, without processing escape sequences.
         raw: Box<str>,
+        /// The raw string with escape sequences processed.
         cooked: Box<str>,
     },
 
-    // The part of a template literal between substitutions
+    /// The part of a template literal between substitutions
     TemplateMiddle {
+        /// The string as it has been entered, without processing escape sequences.
         raw: Box<str>,
+        /// The raw string with escape sequences processed.
         cooked: Box<str>,
     },
 
