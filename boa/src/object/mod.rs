@@ -483,13 +483,13 @@ impl Object {
         &self.prototype
     }
 
-    #[track_caller]
-    #[inline]
     /// Sets the prototype instance of the object.
     ///
     /// [More information][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-invariants-of-the-essential-internal-methods
+    #[inline]
+    #[track_caller]
     pub fn set_prototype_instance(&mut self, prototype: Value) -> bool {
         assert!(prototype.is_null() || prototype.is_object());
         if self.extensible {
