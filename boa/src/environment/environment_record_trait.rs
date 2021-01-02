@@ -26,7 +26,17 @@ pub trait EnvironmentRecordTrait: Debug + Trace + Finalize {
 
     /// Create a new but uninitialized mutable binding in an Environment Record. The String value N is the text of the bound name.
     /// If the Boolean argument deletion is true the binding may be subsequently deleted.
-    fn create_mutable_binding(&mut self, name: String, deletion: bool) -> Result<(), ErrorKind>;
+    ///
+    /// * `allow_name_reuse` - specifies whether or not reusing binding names is allowed.
+    ///
+    /// Most variable names cannot be reused, but functions in JavaScript are allowed to have multiple
+    /// paraments with the same name.
+    fn create_mutable_binding(
+        &mut self,
+        name: String,
+        deletion: bool,
+        allow_name_reuse: bool,
+    ) -> Result<(), ErrorKind>;
 
     /// Create a new but uninitialized immutable binding in an Environment Record.
     /// The String value N is the text of the bound name.
