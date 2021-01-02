@@ -1186,11 +1186,27 @@ impl String {
         } else {
             let arg0 = args
                 .get(0)
-                .expect("failed to get argument for String method");
+                .expect("Failed to get argument for String method");
 
             if arg0.is_null_or_undefined() {
                 None
             } else {
+                if let Some(splitter) =
+                    arg0.get_property(context.well_known_symbols().split_symbol())
+                {
+                    let splitter = splitter.as_data_descriptor().unwrap().value();
+                    if splitter.is_function() {
+                        let arguments = vec![
+                            Value::from(string),
+                            args.get(1)
+                                .map(|x| x.to_owned())
+                                .unwrap_or(Value::Undefined),
+                        ];
+                        return context.call(&splitter, this, &arguments);
+                    } else if !splitter.is_undefined() {
+                        return Err(Value::from("separator[Symbol.split] is not a function"));
+                    }
+                }
                 arg0.to_string(context).ok()
             }
         };
