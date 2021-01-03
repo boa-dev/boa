@@ -550,7 +550,7 @@ impl GcObject {
     /// or if th prototype is not an object or undefined.
     #[inline]
     #[track_caller]
-    pub fn set_prototype_instance(&mut self, prototype: Value) {
+    pub fn set_prototype_instance(&mut self, prototype: Value) -> bool {
         self.borrow_mut().set_prototype_instance(prototype)
     }
 

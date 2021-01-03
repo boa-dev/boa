@@ -12,7 +12,7 @@ use crate::{
     context::StandardConstructor,
     gc::{Finalize, Trace},
     property::{Attribute, DataDescriptor, PropertyDescriptor, PropertyKey},
-    value::{RcBigInt, RcString, RcSymbol, Value},
+    value::{same_value, RcBigInt, RcString, RcSymbol, Value},
     BoaProfiler, Context,
 };
 use rustc_hash::FxHashMap;
@@ -483,11 +483,23 @@ impl Object {
         &self.prototype
     }
 
-    #[track_caller]
+    /// Sets the prototype instance of the object.
+    ///
+    /// [More information][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-invariants-of-the-essential-internal-methods
     #[inline]
-    pub fn set_prototype_instance(&mut self, prototype: Value) {
+    #[track_caller]
+    pub fn set_prototype_instance(&mut self, prototype: Value) -> bool {
         assert!(prototype.is_null() || prototype.is_object());
-        self.prototype = prototype
+        if self.extensible {
+            self.prototype = prototype;
+            true
+        } else {
+            // If target is non-extensible, [[SetPrototypeOf]] must return false
+            // unless V is the SameValue as the target's observed [[GetPrototypeOf]] value.
+            same_value(&prototype, &self.prototype)
+        }
     }
 
     /// Similar to `Value::new_object`, but you can pass a prototype to create from, plus a kind
