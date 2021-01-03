@@ -246,6 +246,7 @@ impl GcObject {
     ///
     /// [spec]: https://tc39.es/ecma262/#table-essential-internal-methods
     #[inline]
+    #[track_caller]
     pub fn own_property_keys(&self) -> Vec<PropertyKey> {
         self.borrow().keys().collect()
     }
@@ -330,12 +331,14 @@ impl GcObject {
     /// [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-getprototypeof
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/getPrototypeOf
     #[inline]
+    #[track_caller]
     pub fn get_prototype_of(&self) -> Value {
         self.borrow().prototype.clone()
     }
 
     /// Helper function for property insertion.
     #[inline]
+    #[track_caller]
     pub(crate) fn insert<K, P>(&mut self, key: K, property: P) -> Option<PropertyDescriptor>
     where
         K: Into<PropertyKey>,
@@ -346,6 +349,7 @@ impl GcObject {
 
     /// Helper function for property removal.
     #[inline]
+    #[track_caller]
     pub(crate) fn remove(&mut self, key: &PropertyKey) -> Option<PropertyDescriptor> {
         self.borrow_mut().remove(key)
     }

@@ -128,7 +128,7 @@ impl GcObject {
                         environment,
                         flags,
                     } => {
-                        // Create a new Function environment who's parent is set to the scope of the function declaration (self.environment)
+                        // Create a new Function environment whose parent is set to the scope of the function declaration (self.environment)
                         // <https://tc39.es/ecma262/#sec-prepareforordinarycall>
                         let local_env = new_function_environment(
                             this_function_object,
@@ -162,7 +162,7 @@ impl GcObject {
                         let arguments_obj = create_unmapped_arguments_object(args);
                         local_env
                             .borrow_mut()
-                            .create_mutable_binding("arguments".to_string(), false)
+                            .create_mutable_binding("arguments".to_string(), false, false)
                             .map_err(|e| e.to_error(context))?;
                         local_env
                             .borrow_mut()
@@ -259,7 +259,7 @@ impl GcObject {
                         let arguments_obj = create_unmapped_arguments_object(args);
                         local_env
                             .borrow_mut()
-                            .create_mutable_binding("arguments".to_string(), false)
+                            .create_mutable_binding("arguments".to_string(), false, false)
                             .map_err(|e| e.to_error(context))?;
                         local_env
                             .borrow_mut()
