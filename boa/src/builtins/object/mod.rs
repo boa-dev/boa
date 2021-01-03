@@ -275,7 +275,7 @@ impl Object {
             .get(0)
             .cloned()
             .unwrap_or_default()
-            .require_object_coercible(ctx);
+            .require_object_coercible(ctx)?.clone();
 
         // 2. If Type(proto) is neither Object nor Null, throw a TypeError exception.
         let proto = args.get(1).cloned().unwrap_or_default();
