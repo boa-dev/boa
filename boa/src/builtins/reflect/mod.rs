@@ -214,7 +214,8 @@ impl Reflect {
             Some(v) if v.is_object() => (),
             _ => return context.throw_type_error("target must be an object"),
         }
-
+        // This function is the same as Object.prototype.getOwnPropertyDescriptor, that why
+        // it is invoked here.
         builtins::object::Object::get_own_property_descriptor(&Value::undefined(), args, context)
     }
 
@@ -231,11 +232,11 @@ impl Reflect {
         args: &[Value],
         context: &mut Context,
     ) -> Result<Value> {
-        match args.get(0) {
-            Some(v) if v.is_object() => (),
-            _ => return context.throw_type_error("target must be an object"),
-        }
-        builtins::object::Object::get_prototype_of(&Value::undefined(), args, context)
+        let target = args
+            .get(0)
+            .and_then(|v| v.as_object())
+            .ok_or_else(|| context.construct_type_error("target must be an object"))?;
+        Ok(target.get_prototype_of())
     }
 
     /// Returns `true` if the object has the property, `false` otherwise.
@@ -358,17 +359,15 @@ impl Reflect {
         args: &[Value],
         context: &mut Context,
     ) -> Result<Value> {
+        let undefined = Value::undefined();
         let mut target = args
             .get(0)
             .and_then(|v| v.as_object())
             .ok_or_else(|| context.construct_type_error("target must be an object"))?;
-        let proto = args
-            .get(1)
-            .ok_or_else(|| context.construct_type_error("proto cannot be undefined"))?;
+        let proto = args.get(1).unwrap_or(&undefined);
         if !proto.is_null() && !proto.is_object() {
             return Err(context.construct_type_error("proto must be an object or null"));
         }
-        target.set_prototype_instance(proto.clone());
-        Ok(Value::Boolean(true))
+        Ok(target.set_prototype_instance(proto.clone()).into())
     }
 }
