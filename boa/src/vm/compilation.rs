@@ -43,6 +43,28 @@ impl Compiler {
         self.pool.push(name.into().into());
         self.pool.push(value.into().into());
     }
+
+    pub fn add_deflet_instruction<N, V>(&mut self, name: N, value: V)
+    where
+        N: Into<RcString>,
+        V: Into<Value>,
+    {
+        let index = self.pool.len();
+        self.add_instruction(Instruction::DefLet(index, index + 1));
+        self.pool.push(name.into().into());
+        self.pool.push(value.into().into());
+    }
+
+    pub fn add_defconst_instruction<N, V>(&mut self, name: N, value: V)
+    where
+        N: Into<RcString>,
+        V: Into<Value>,
+    {
+        let index = self.pool.len();
+        self.add_instruction(Instruction::DefConst(index, index + 1));
+        self.pool.push(name.into().into());
+        self.pool.push(value.into().into());
+    }
 }
 
 pub(crate) trait CodeGen {
@@ -71,6 +93,16 @@ impl CodeGen for Node {
             }
             Node::BinOp(ref op) => op.compile(compiler, context),
             Node::UnaryOp(ref op) => op.compile(compiler, context),
+            Node::VarDeclList(ref list) => {
+                for var_decl in list.as_ref() {
+                    let value = match var_decl.init() {
+                        Some(v) => v.run(context).unwrap_or_else(|_| Value::undefined()),
+                        None => Value::undefined(),
+                    };
+
+                    compiler.add_defvar_instruction(var_decl.name(), value);
+                }
+            }
             Node::LetDeclList(ref list) => {
                 for let_decl in list.as_ref() {
                     let value = match let_decl.init() {
@@ -78,7 +110,17 @@ impl CodeGen for Node {
                         None => Value::undefined(),
                     };
 
-                    compiler.add_defvar_instruction(let_decl.name(), value);
+                    compiler.add_deflet_instruction(let_decl.name(), value);
+                }
+            }
+            Node::ConstDeclList(ref list) => {
+                for const_decl in list.as_ref() {
+                    let value = match const_decl.init() {
+                        Some(v) => v.run(context).unwrap_or_else(|_| Value::undefined()),
+                        None => Value::undefined(),
+                    };
+
+                    compiler.add_defconst_instruction(const_decl.name(), value);
                 }
             }
             _ => unimplemented!(),

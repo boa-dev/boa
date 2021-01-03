@@ -59,6 +59,8 @@ pub enum Instruction {
     Not,
 
     DefVar(usize, usize),
+    DefLet(usize, usize),
+    DefConst(usize, usize),
 }
 
 impl std::fmt::Display for Instruction {
@@ -103,6 +105,8 @@ impl std::fmt::Display for Instruction {
             Self::BitNot => write!(f, "BitNot"),
             Self::Not => write!(f, "Not"),
             Self::DefVar(name, value) => write!(f, "DefVar({}, {})", name, value),
+            Self::DefLet(name, value) => write!(f, "DefLet({}, {})", name, value),
+            Self::DefConst(name, value) => write!(f, "DefConst({}, {})", name, value),
         }
     }
 }

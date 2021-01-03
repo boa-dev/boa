@@ -268,6 +268,30 @@ impl<'a> VM<'a> {
                     self.push(value.into());
                 }
                 Instruction::DefVar(name_index, value_index) => {
+                    let name: String = self.pool[name_index].to_string(self.ctx)?.to_string();
+                    let value = self.pool[value_index].clone();
+
+                    let environment = &mut self.ctx.realm_mut().environment;
+
+                    if environment.has_binding(&name) {
+                        environment
+                            .set_mutable_binding(&name, value, true)
+                            .map_err(|e| e.to_error(self.ctx))?;
+                    } else {
+                        environment
+                            .create_mutable_binding(name.clone(), false, VariableScope::Function)
+                            .map_err(|e| e.to_error(self.ctx))?;
+
+                        let environment = &mut self.ctx.realm_mut().environment;
+
+                        environment
+                            .initialize_binding(&name, value)
+                            .map_err(|e| e.to_error(self.ctx))?;
+                    }
+
+                    self.push(Value::undefined());
+                }
+                Instruction::DefLet(name_index, value_index) => {
                     let name = self.pool[name_index].to_string(self.ctx)?;
                     let value = self.pool[value_index].clone();
 
@@ -275,6 +299,24 @@ impl<'a> VM<'a> {
                         .realm_mut()
                         .environment
                         .create_mutable_binding(name.to_string(), false, VariableScope::Block)
+                        .map_err(|e| e.to_error(self.ctx))?;
+
+                    self.ctx
+                        .realm_mut()
+                        .environment
+                        .initialize_binding(&name, value)
+                        .map_err(|e| e.to_error(self.ctx))?;
+
+                    self.push(Value::undefined());
+                }
+                Instruction::DefConst(name_index, value_index) => {
+                    let name = self.pool[name_index].to_string(self.ctx)?;
+                    let value = self.pool[value_index].clone();
+
+                    self.ctx
+                        .realm_mut()
+                        .environment
+                        .create_immutable_binding(name.to_string(), false, VariableScope::Block)
                         .map_err(|e| e.to_error(self.ctx))?;
 
                     self.ctx
