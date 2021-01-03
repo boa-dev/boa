@@ -17,6 +17,7 @@ pub mod math;
 pub mod nan;
 pub mod number;
 pub mod object;
+pub mod reflect;
 pub mod regexp;
 pub mod string;
 pub mod symbol;
@@ -39,6 +40,7 @@ pub(crate) use self::{
     number::Number,
     object::for_in_iterator::ForInIterator,
     object::Object as BuiltInObjectObject,
+    reflect::Reflect,
     regexp::RegExp,
     string::String,
     symbol::Symbol,
@@ -86,6 +88,7 @@ pub fn init(context: &mut Context) {
         SyntaxError::init,
         EvalError::init,
         UriError::init,
+        Reflect::init,
         #[cfg(feature = "console")]
         console::Console::init,
     ];
