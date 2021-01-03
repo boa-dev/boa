@@ -1067,6 +1067,18 @@
 <span id="1066">1066</span>
 <span id="1067">1067</span>
 <span id="1068">1068</span>
+<span id="1069">1069</span>
+<span id="1070">1070</span>
+<span id="1071">1071</span>
+<span id="1072">1072</span>
+<span id="1073">1073</span>
+<span id="1074">1074</span>
+<span id="1075">1075</span>
+<span id="1076">1076</span>
+<span id="1077">1077</span>
+<span id="1078">1078</span>
+<span id="1079">1079</span>
+<span id="1080">1080</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements the Rust representation of a JavaScript object.</span>
 
@@ -1082,7 +1094,7 @@
     <span class="ident">context</span>::<span class="ident">StandardConstructor</span>,
     <span class="ident">gc</span>::{<span class="ident">Finalize</span>, <span class="ident">Trace</span>},
     <span class="ident">property</span>::{<span class="ident">Attribute</span>, <span class="ident">DataDescriptor</span>, <span class="ident">PropertyDescriptor</span>, <span class="ident">PropertyKey</span>},
-    <span class="ident">value</span>::{<span class="ident">RcBigInt</span>, <span class="ident">RcString</span>, <span class="ident">RcSymbol</span>, <span class="ident">Value</span>},
+    <span class="ident">value</span>::{<span class="ident">same_value</span>, <span class="ident">RcBigInt</span>, <span class="ident">RcString</span>, <span class="ident">RcSymbol</span>, <span class="ident">Value</span>},
     <span class="ident">BoaProfiler</span>, <span class="ident">Context</span>,
 };
 <span class="kw">use</span> <span class="ident">rustc_hash</span>::<span class="ident">FxHashMap</span>;
@@ -1553,11 +1565,23 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">prototype</span>
     }
 
-    <span class="attribute">#[<span class="ident">track_caller</span>]</span>
+    <span class="doccomment">/// Sets the prototype instance of the object.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// [More information][spec]</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-invariants-of-the-essential-internal-methods</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_prototype_instance</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">prototype</span>: <span class="ident">Value</span>) {
+    <span class="attribute">#[<span class="ident">track_caller</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_prototype_instance</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">prototype</span>: <span class="ident">Value</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">prototype</span>.<span class="ident">is_null</span>() <span class="op">|</span><span class="op">|</span> <span class="ident">prototype</span>.<span class="ident">is_object</span>());
-        <span class="self">self</span>.<span class="ident">prototype</span> <span class="op">=</span> <span class="ident">prototype</span>
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">extensible</span> {
+            <span class="self">self</span>.<span class="ident">prototype</span> <span class="op">=</span> <span class="ident">prototype</span>;
+            <span class="bool-val">true</span>
+        } <span class="kw">else</span> {
+            <span class="comment">// If target is non-extensible, [[SetPrototypeOf]] must return false</span>
+            <span class="comment">// unless V is the SameValue as the target&#39;s observed [[GetPrototypeOf]] value.</span>
+            <span class="ident">same_value</span>(<span class="kw-2">&amp;</span><span class="ident">prototype</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">prototype</span>)
+        }
     }
 
     <span class="doccomment">/// Similar to `Value::new_object`, but you can pass a prototype to create from, plus a kind</span>

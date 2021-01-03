@@ -286,6 +286,7 @@
 <span id="285">285</span>
 <span id="286">286</span>
 <span id="287">287</span>
+<span id="288">288</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
 
@@ -399,7 +400,8 @@
                         .<span class="ident">unwrap</span>()
                         .<span class="ident">value</span>()
                         .<span class="ident">as_number</span>()
-                        .<span class="ident">unwrap</span>() <span class="kw">as</span> <span class="ident">i32</span>;
+                        .<span class="ident">map</span>(<span class="op">|</span><span class="ident">n</span><span class="op">|</span> <span class="ident">n</span> <span class="kw">as</span> <span class="ident">i32</span>)
+                        .<span class="ident">unwrap_or_default</span>();
 
                     <span class="kw">if</span> <span class="ident">print_children</span> {
                         <span class="kw">if</span> <span class="ident">len</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
