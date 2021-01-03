@@ -1,6 +1,5 @@
 //! This module implements lexing for identifiers (foo, myvar, etc.) used in the JavaScript programing language.
 
-use boa_unicode::IdentifierUnicodeProperties;
 use super::{Cursor, Error, Tokenizer};
 use crate::{
     profiler::BoaProfiler,
@@ -9,6 +8,7 @@ use crate::{
         lexer::{Token, TokenKind},
     },
 };
+use boa_unicode::UnicodeProperties;
 use core::convert::TryFrom;
 use std::io::Read;
 use std::str;

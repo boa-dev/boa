@@ -9,7 +9,7 @@
 mod tables;
 
 use unicode_general_category::{get_general_category, GeneralCategory};
-pub trait IdentifierUnicodeProperties: Sized + Copy {
+pub trait UnicodeProperties: Sized + Copy {
     /// Returns `true` if this value is a member of "ID_Start".
     fn is_id_start(self) -> bool;
 
@@ -33,7 +33,7 @@ fn table_binary_search(target: char, table: &'static [char]) -> bool {
     table.binary_search(&target).is_ok()
 }
 
-impl IdentifierUnicodeProperties for char {
+impl UnicodeProperties for char {
     #[inline]
     fn is_id_start(self) -> bool {
         !self.is_pattern_syntax()
