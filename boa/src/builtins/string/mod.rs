@@ -1191,13 +1191,13 @@ impl String {
 
                 match separator.get_method(context, key) {
                     Ok(splitter) => splitter.map(|splitter| {
-                        let arguments = vec![
+                        let arguments = &[
                             Value::from(string.clone()),
                             args.get(1)
                                 .map(|x| x.to_owned())
                                 .unwrap_or(Value::Undefined),
                         ];
-                        splitter.call(this, &arguments, context)
+                        splitter.call(this, arguments, context)
                     }),
                     Err(_) => Some(Err(
                         context.construct_type_error("separator[Symbol.split] is not a function")
