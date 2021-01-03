@@ -1,6 +1,7 @@
 //! This module implements lexing for identifiers (foo, myvar, etc.) used in the JavaScript programing language.
 
-use super::{Cursor, Error, IdentifierUnicodeProperties, Tokenizer};
+use boa_unicode::IdentifierUnicodeProperties;
+use super::{Cursor, Error, Tokenizer};
 use crate::{
     profiler::BoaProfiler,
     syntax::{

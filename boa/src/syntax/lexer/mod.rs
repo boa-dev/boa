@@ -18,8 +18,6 @@ mod comment;
 mod cursor;
 pub mod error;
 mod identifier;
-mod identifier_unicode_properties;
-mod identifier_unicode_tables;
 mod number;
 mod operator;
 mod regex;
@@ -46,7 +44,6 @@ use crate::syntax::ast::{Punctuator, Span};
 pub use crate::{profiler::BoaProfiler, syntax::ast::Position};
 use core::convert::TryFrom;
 pub use error::Error;
-pub use identifier_unicode_properties::IdentifierUnicodeProperties;
 use std::io::Read;
 pub use token::{Token, TokenKind};
 

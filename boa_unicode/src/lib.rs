@@ -1,5 +1,4 @@
-//! This module implements the extension to query if a char belongs to a particular unicode identifier property.
-//!
+//! This crate implements the extension to query if a char belongs to a particular unicode identifier property.
 //! Unicode version: 13.0.0
 //!
 //! More information:
@@ -7,7 +6,8 @@
 //!
 //! [uax31]: http://unicode.org/reports/tr31
 
-use super::identifier_unicode_tables;
+mod tables;
+
 use unicode_general_category::{get_general_category, GeneralCategory};
 pub trait IdentifierUnicodeProperties: Sized + Copy {
     /// Returns `true` if this value is a member of "ID_Start".
@@ -67,18 +67,18 @@ impl IdentifierUnicodeProperties for char {
 
     #[inline]
     fn is_other_id_start(self) -> bool {
-        table_binary_search(self, identifier_unicode_tables::OTHER_ID_START)
+        table_binary_search(self, tables::OTHER_ID_START)
     }
     #[inline]
     fn is_other_id_continue(self) -> bool {
-        table_binary_search(self, identifier_unicode_tables::OTHER_ID_CONTINUE)
+        table_binary_search(self, tables::OTHER_ID_CONTINUE)
     }
     #[inline]
     fn is_pattern_syntax(self) -> bool {
-        table_binary_search(self, identifier_unicode_tables::PATTERN_SYNTAX)
+        table_binary_search(self, tables::PATTERN_SYNTAX)
     }
     #[inline]
     fn is_pattern_whitespace(self) -> bool {
-        table_binary_search(self, identifier_unicode_tables::PATTERN_WHITE_SPACE)
+        table_binary_search(self, tables::PATTERN_WHITE_SPACE)
     }
 }

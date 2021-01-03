@@ -5,6 +5,7 @@ name = "Boa"
 version = "0.10.0"
 dependencies = [
  "bitflags",
+ "boa_unicode",
  "chrono",
  "criterion",
  "float-cmp",
@@ -113,6 +114,13 @@ dependencies = [
  "serde_json",
  "serde_yaml",
  "structopt",
+]
+
+[[package]]
+name = "boa_unicode"
+version = "0.10.0"
+dependencies = [
+ "unicode-general-category",
 ]
 
 [[package]]
