@@ -110,7 +110,8 @@ pub(crate) fn log_string_from(x: &Value, print_internals: bool, print_children: 
                         .unwrap()
                         .value()
                         .as_number()
-                        .unwrap() as i32;
+                        .map(|n| n as i32)
+                        .unwrap_or_default();
 
                     if print_children {
                         if len == 0 {
