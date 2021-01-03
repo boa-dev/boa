@@ -1,6 +1,6 @@
 use super::*;
 use crate::{
-    exec::Executable, syntax::ast::Const, syntax::ast::Node, value::RcBigInt, value::RcString,
+    syntax::ast::Const, syntax::ast::Node, value::RcBigInt, value::RcString,
 };
 
 #[derive(Debug, Default)]
@@ -32,36 +32,14 @@ impl Compiler {
         self.add_instruction(Instruction::BigInt(index));
         self.pool.push(bigint.into().into());
     }
-
-    pub fn add_defvar_instruction<N, V>(&mut self, name: N, value: V)
-    where
-        N: Into<RcString>,
-        V: Into<Value>,
-    {
-        let index = self.pool.len();
-        self.add_instruction(Instruction::DefVar(index, index + 1));
-        self.pool.push(name.into().into());
-        self.pool.push(value.into());
-    }
-
-    pub fn add_defconst_instruction<N, V>(&mut self, name: N, value: V)
-    where
-        N: Into<RcString>,
-        V: Into<Value>,
-    {
-        let index = self.pool.len();
-        self.add_instruction(Instruction::DefConst(index, index + 1));
-        self.pool.push(name.into().into());
-        self.pool.push(value.into());
-    }
 }
 
 pub(crate) trait CodeGen {
-    fn compile(&self, compiler: &mut Compiler, context: &mut Context);
+    fn compile(&self, compiler: &mut Compiler);
 }
 
 impl CodeGen for Node {
-    fn compile(&self, compiler: &mut Compiler, context: &mut Context) {
+    fn compile(&self, compiler: &mut Compiler) {
         let _timer = BoaProfiler::global().start_event(&format!("Node ({})", &self), "codeGen");
         match *self {
             Node::Const(Const::Undefined) => compiler.add_instruction(Instruction::Undefined),
@@ -80,16 +58,19 @@ impl CodeGen for Node {
             Node::Const(Const::BigInt(ref bigint)) => {
                 compiler.add_bigint_instruction(bigint.clone())
             }
-            Node::BinOp(ref op) => op.compile(compiler, context),
-            Node::UnaryOp(ref op) => op.compile(compiler, context),
+            Node::BinOp(ref op) => op.compile(compiler),
+            Node::UnaryOp(ref op) => op.compile(compiler),
             Node::VarDeclList(ref list) => {
                 for var_decl in list.as_ref() {
-                    let value = match var_decl.init() {
-                        Some(v) => v.run(context).unwrap_or_else(|_| Value::undefined()),
-                        None => Value::undefined(),
-                    };
+                    let name = var_decl.name();
+                    let index = compiler.pool.len();
+                    compiler.add_instruction(Instruction::DefVar(index));
+                    compiler.pool.push(name.into());
 
-                    compiler.add_defvar_instruction(var_decl.name(), value);
+                    if let Some(v) = var_decl.init() {
+                        v.compile(compiler);
+                        compiler.add_instruction(Instruction::InitLexical(index))
+                    };
                 }
             }
             Node::LetDeclList(ref list) => {
@@ -101,19 +82,22 @@ impl CodeGen for Node {
 
                     // If name has a value we can init here too
                     if let Some(v) = let_decl.init() {
-                        v.compile(compiler, context);
+                        v.compile(compiler);
                         compiler.add_instruction(Instruction::InitLexical(index))
                     };
                 }
             }
             Node::ConstDeclList(ref list) => {
                 for const_decl in list.as_ref() {
-                    let value = match const_decl.init() {
-                        Some(v) => v.run(context).unwrap_or_else(|_| Value::undefined()),
-                        None => Value::undefined(),
-                    };
+                    let name = const_decl.name();
+                    let index = compiler.pool.len();
+                    compiler.add_instruction(Instruction::DefConst(index));
+                    compiler.pool.push(name.into());
 
-                    compiler.add_defconst_instruction(const_decl.name(), value);
+                    if let Some(v) = const_decl.init() {
+                        v.compile(compiler);
+                        compiler.add_instruction(Instruction::InitLexical(index))
+                    };
                 }
             }
             _ => unimplemented!(),

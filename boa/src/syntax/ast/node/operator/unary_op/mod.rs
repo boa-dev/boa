@@ -137,9 +137,9 @@ impl From<UnaryOp> for Node {
 
 #[cfg(feature = "vm")]
 impl CodeGen for UnaryOp {
-    fn compile(&self, compiler: &mut Compiler, context: &mut Context) {
+    fn compile(&self, compiler: &mut Compiler) {
         let _timer = BoaProfiler::global().start_event("UnaryOp", "codeGen");
-        self.target().compile(compiler, context);
+        self.target().compile(compiler);
         match self.op {
             op::UnaryOp::Void => compiler.add_instruction(Instruction::Void),
             op::UnaryOp::Plus => compiler.add_instruction(Instruction::Pos),
