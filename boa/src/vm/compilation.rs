@@ -41,18 +41,7 @@ impl Compiler {
         let index = self.pool.len();
         self.add_instruction(Instruction::DefVar(index, index + 1));
         self.pool.push(name.into().into());
-        self.pool.push(value.into().into());
-    }
-
-    pub fn add_deflet_instruction<N, V>(&mut self, name: N, value: V)
-    where
-        N: Into<RcString>,
-        V: Into<Value>,
-    {
-        let index = self.pool.len();
-        self.add_instruction(Instruction::DefLet(index, index + 1));
-        self.pool.push(name.into().into());
-        self.pool.push(value.into().into());
+        self.pool.push(value.into());
     }
 
     pub fn add_defconst_instruction<N, V>(&mut self, name: N, value: V)
@@ -63,7 +52,7 @@ impl Compiler {
         let index = self.pool.len();
         self.add_instruction(Instruction::DefConst(index, index + 1));
         self.pool.push(name.into().into());
-        self.pool.push(value.into().into());
+        self.pool.push(value.into());
     }
 }
 
@@ -105,12 +94,16 @@ impl CodeGen for Node {
             }
             Node::LetDeclList(ref list) => {
                 for let_decl in list.as_ref() {
-                    let value = match let_decl.init() {
-                        Some(v) => v.run(context).unwrap_or_else(|_| Value::undefined()),
-                        None => Value::undefined(),
-                    };
+                    let name = let_decl.name();
+                    let index = compiler.pool.len();
+                    compiler.add_instruction(Instruction::DefLet(index));
+                    compiler.pool.push(name.into());
 
-                    compiler.add_deflet_instruction(let_decl.name(), value);
+                    // If name has a value we can init here too
+                    if let Some(v) = let_decl.init() {
+                        v.compile(compiler, context);
+                        compiler.add_instruction(Instruction::InitLexical(index))
+                    };
                 }
             }
             Node::ConstDeclList(ref list) => {

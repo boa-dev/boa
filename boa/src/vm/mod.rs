@@ -291,23 +291,14 @@ impl<'a> VM<'a> {
 
                     self.push(Value::undefined());
                 }
-                Instruction::DefLet(name_index, value_index) => {
+                Instruction::DefLet(name_index) => {
                     let name = self.pool[name_index].to_string(self.ctx)?;
-                    let value = self.pool[value_index].clone();
 
                     self.ctx
                         .realm_mut()
                         .environment
                         .create_mutable_binding(name.to_string(), false, VariableScope::Block)
                         .map_err(|e| e.to_error(self.ctx))?;
-
-                    self.ctx
-                        .realm_mut()
-                        .environment
-                        .initialize_binding(&name, value)
-                        .map_err(|e| e.to_error(self.ctx))?;
-
-                    self.push(Value::undefined());
                 }
                 Instruction::DefConst(name_index, value_index) => {
                     let name = self.pool[name_index].to_string(self.ctx)?;
@@ -326,6 +317,17 @@ impl<'a> VM<'a> {
                         .map_err(|e| e.to_error(self.ctx))?;
 
                     self.push(Value::undefined());
+                }
+                Instruction::InitLexical(name_index) => {
+                    let name = self.pool[name_index].to_string(self.ctx)?;
+                    let value = self.pop();
+                    self.ctx
+                        .realm_mut()
+                        .environment
+                        .initialize_binding(&name, value.clone())
+                        .map_err(|e| e.to_error(self.ctx))?;
+
+                    self.push(value);
                 }
             }
 
