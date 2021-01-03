@@ -16,29 +16,20 @@
       "sourceLanguages": ["rust"]
     },
     {
-      "name": "(Windows) Launch",
-      "type": "cppvsdbg",
+      "type": "lldb",
       "request": "launch",
-      "args": ["${workspaceFolder}/tests/js/test.js"],
-      "program": "${workspaceFolder}/target/debug/boa.exe",
-      "cwd": "${workspaceFolder}",
-      "sourceFileMap": {
-        "/rustc/5e1a799842ba6ed4a57e91f7ab9435947482f7d8": "${env:USERPROFILE}/.rustup/toolchains/stable-x86_64-pc-windows-msvc/lib/rustlib/src/rust",
-        "/rustc/b8cedc00407a4c56a3bda1ed605c6fc166655447": "${env:USERPROFILE}/.rustup/toolchains/stable-x86_64-pc-windows-msvc/lib/rustlib/src/rust"
+      "name": "Launch (VM)",
+      "cargo": {
+        "args": [
+          "run",
+          "--manifest-path",
+          "./boa_cli/Cargo.toml",
+          "--features",
+          "vm"
+        ]
       },
-      "stopAtEntry": false,
-      "symbolSearchPath": "https://msdl.microsoft.com/download/symbols"
-    },
-    {
-      "name": "(Windows) Launch Debug",
-      "type": "cppvsdbg",
-      "request": "launch",
-      "program": "${workspaceRoot}/target/debug/foo.exe",
-      "args": [],
-      "stopAtEntry": false,
-      "cwd": "${workspaceRoot}",
-      "environment": [],
-      "externalConsole": true
+      "args": ["${workspaceFolder}/tests/js/test.js"],
+      "sourceLanguages": ["rust"]
     }
   ]
 }
