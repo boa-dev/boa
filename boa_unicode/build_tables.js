@@ -69,6 +69,7 @@ function buildRustFile(propListText) {
           return codePoints;
         }, []);
 
+      codePoints.sort((a, b) => a - b);
       const rustTable = `&[${codePoints
         .map((cp) => `'\\u{${cp.toString(16).padStart(4, "0").toUpperCase()}}'`)
         .join(",")}]`;
