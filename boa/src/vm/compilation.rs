@@ -1,7 +1,5 @@
 use super::*;
-use crate::{
-    syntax::ast::Const, syntax::ast::Node, value::RcBigInt, value::RcString,
-};
+use crate::{syntax::ast::Const, syntax::ast::Node, value::RcBigInt, value::RcString};
 
 #[derive(Debug, Default)]
 pub struct Compiler {
