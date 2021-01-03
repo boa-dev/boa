@@ -11,6 +11,9 @@ use std::{fmt, ops::Deref, rc::Rc};
 #[cfg(feature = "deser")]
 use serde::{Deserialize, Serialize};
 
+#[cfg(feature = "vm")]
+use crate::vm::{compilation::CodeGen, Compiler};
+
 /// List of statements.
 ///
 /// Similar to `Node::Block` but without the braces.
@@ -89,6 +92,17 @@ impl Executable for StatementList {
         }
 
         Ok(obj)
+    }
+}
+
+#[cfg(feature = "vm")]
+impl CodeGen for StatementList {
+    fn compile(&self, compiler: &mut Compiler) {
+        let _timer = BoaProfiler::global().start_event("StatementList - Code Gen", "codeGen");
+
+        for item in self.items().iter() {
+            item.compile(compiler);
+        }
     }
 }
 
