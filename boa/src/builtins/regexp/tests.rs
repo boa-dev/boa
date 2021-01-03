@@ -98,3 +98,12 @@ fn to_string() {
     );
     assert_eq!(forward(&mut context, "/\\n/g.toString()"), "\"/\\n/g\"");
 }
+
+#[test]
+fn no_panic_on_invalid_character_escape() {
+    let mut context = Context::new();
+
+    // This used to panic, we now return an error
+    // The line below should not cause Boa to panic
+    forward(&mut context, r"const a = /,\;/");
+}

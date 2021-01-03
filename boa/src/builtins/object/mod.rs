@@ -19,7 +19,7 @@ use crate::{
     property::Attribute,
     property::DataDescriptor,
     property::PropertyDescriptor,
-    value::{same_value, Value},
+    value::{same_value, Type, Value},
     BoaProfiler, Context, Result,
 };
 
@@ -243,18 +243,67 @@ impl Object {
     }
 
     /// Get the `prototype` of an object.
-    pub fn get_prototype_of(_: &Value, args: &[Value], _: &mut Context) -> Result<Value> {
-        let obj = args.get(0).expect("Cannot get object");
-        Ok(obj
-            .as_object()
-            .map_or_else(Value::undefined, |object| object.prototype_instance()))
+    pub fn get_prototype_of(_: &Value, args: &[Value], ctx: &mut Context) -> Result<Value> {
+        if args.is_empty() {
+            return ctx.throw_type_error(
+                "Object.getPrototypeOf: At least 1 argument required, but only 0 passed",
+            );
+        }
+
+        // 1. Let obj be ? ToObject(O).
+        let obj = args[0].clone().to_object(ctx)?;
+
+        // 2. Return ? obj.[[GetPrototypeOf]]().
+        Ok(obj.prototype_instance())
     }
 
     /// Set the `prototype` of an object.
-    pub fn set_prototype_of(_: &Value, args: &[Value], _: &mut Context) -> Result<Value> {
-        let obj = args.get(0).expect("Cannot get object").clone();
-        let proto = args.get(1).expect("Cannot get object").clone();
-        obj.as_object().unwrap().set_prototype_instance(proto);
+    ///
+    /// [More information][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-object.setprototypeof
+    pub fn set_prototype_of(_: &Value, args: &[Value], ctx: &mut Context) -> Result<Value> {
+        if args.len() < 2 {
+            return ctx.throw_type_error(format!(
+                "Object.setPrototypeOf: At least 2 arguments required, but only {} passed",
+                args.len()
+            ));
+        }
+
+        // 1. Set O to ? RequireObjectCoercible(O).
+        let obj = args
+            .get(0)
+            .cloned()
+            .unwrap_or_default()
+            .require_object_coercible(ctx)?
+            .clone();
+
+        // 2. If Type(proto) is neither Object nor Null, throw a TypeError exception.
+        let proto = args.get(1).cloned().unwrap_or_default();
+        if !matches!(proto.get_type(), Type::Object | Type::Null) {
+            return ctx.throw_type_error(format!(
+                "expected an object or null, got {}",
+                proto.get_type().as_str()
+            ));
+        }
+
+        // 3. If Type(O) is not Object, return O.
+        if obj.get_type() != Type::Object {
+            return Ok(obj);
+        }
+
+        // 4. Let status be ? O.[[SetPrototypeOf]](proto).
+        let status = obj
+            .as_object()
+            .expect("obj was not an object")
+            .set_prototype_instance(proto);
+
+        // 5. If status is false, throw a TypeError exception.
+        if !status {
+            return ctx.throw_type_error("can't set prototype of this object");
+        }
+
+        // 6. Return O.
         Ok(obj)
     }
 

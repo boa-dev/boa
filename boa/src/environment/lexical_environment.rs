@@ -131,7 +131,7 @@ impl LexicalEnvironment {
             VariableScope::Block => self
                 .get_current_environment()
                 .borrow_mut()
-                .create_mutable_binding(name, deletion),
+                .create_mutable_binding(name, deletion, false),
             VariableScope::Function => {
                 // Find the first function or global environment (from the top of the stack)
                 let env = self
@@ -144,7 +144,8 @@ impl LexicalEnvironment {
                     })
                     .expect("No function or global environment");
 
-                env.borrow_mut().create_mutable_binding(name, deletion)
+                env.borrow_mut()
+                    .create_mutable_binding(name, deletion, false)
             }
         }
     }
