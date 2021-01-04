@@ -7,6 +7,7 @@
 //! More info:  [Object Records](https://tc39.es/ecma262/#sec-object-environment-records)
 
 use super::*;
+use crate::property::PropertyDescriptor;
 use crate::{
     environment::{
         environment_record_trait::EnvironmentRecordTrait,
@@ -36,7 +37,12 @@ impl EnvironmentRecordTrait for ObjectEnvironmentRecord {
         }
     }
 
-    fn create_mutable_binding(&mut self, name: String, deletion: bool) -> Result<(), ErrorKind> {
+    fn create_mutable_binding(
+        &mut self,
+        name: String,
+        deletion: bool,
+        _allow_name_reuse: bool,
+    ) -> Result<(), ErrorKind> {
         // TODO: could save time here and not bother generating a new undefined object,
         // only for it to be replace with the real value later. We could just add the name to a Vector instead
         let bindings = &mut self.bindings;
@@ -80,7 +86,10 @@ impl EnvironmentRecordTrait for ObjectEnvironmentRecord {
 
     fn get_binding_value(&self, name: &str, strict: bool) -> Result<Value, ErrorKind> {
         if self.bindings.has_field(name) {
-            Ok(self.bindings.get_field(name))
+            match self.bindings.get_property(name) {
+                Some(PropertyDescriptor::Data(ref d)) => Ok(d.value()),
+                _ => Ok(Value::undefined()),
+            }
         } else if strict {
             Err(ErrorKind::new_reference_error(format!(
                 "{} has no binding",

@@ -5,7 +5,7 @@
 #![allow(clippy::unsafe_removed_from_name)]
 
 pub use crate::object::GcObject;
-pub use ::gc::{
+pub use gc::{
     custom_trace, force_collect, unsafe_empty_trace as empty_trace, Finalize, GcCellRef as Ref,
     GcCellRefMut as RefMut, Trace,
 };

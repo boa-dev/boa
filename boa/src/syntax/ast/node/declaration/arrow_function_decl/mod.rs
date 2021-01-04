@@ -50,7 +50,7 @@ impl ArrowFunctionDecl {
 
     /// Gets the body of the arrow function.
     pub(crate) fn body(&self) -> &[Node] {
-        &self.body.statements()
+        &self.body.items()
     }
 
     /// Implements the display formatting with indentation.
@@ -74,7 +74,7 @@ impl Executable for ArrowFunctionDecl {
             FunctionFlags::CALLABLE
                 | FunctionFlags::CONSTRUCTABLE
                 | FunctionFlags::LEXICAL_THIS_MODE,
-        ))
+        )?)
     }
 }
 

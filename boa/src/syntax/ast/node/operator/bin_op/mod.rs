@@ -12,6 +12,12 @@ use std::fmt;
 #[cfg(feature = "deser")]
 use serde::{Deserialize, Serialize};
 
+#[cfg(feature = "vm")]
+use crate::{
+    profiler::BoaProfiler,
+    vm::{compilation::CodeGen, Compiler, Instruction},
+};
+
 /// Binary operators requires two operands, one before the operator and one after the operator.
 ///
 /// More information:
@@ -57,20 +63,41 @@ impl BinOp {
     }
 
     /// Runs the assignment operators.
-    fn run_assign(op: AssignOp, x: Value, y: Value, context: &mut Context) -> Result<Value> {
+    fn run_assign(op: AssignOp, x: Value, y: &Node, context: &mut Context) -> Result<Value> {
         match op {
-            AssignOp::Add => x.add(&y, context),
-            AssignOp::Sub => x.sub(&y, context),
-            AssignOp::Mul => x.mul(&y, context),
-            AssignOp::Exp => x.pow(&y, context),
-            AssignOp::Div => x.div(&y, context),
-            AssignOp::Mod => x.rem(&y, context),
-            AssignOp::And => x.bitand(&y, context),
-            AssignOp::Or => x.bitor(&y, context),
-            AssignOp::Xor => x.bitxor(&y, context),
-            AssignOp::Shl => x.shl(&y, context),
-            AssignOp::Shr => x.shr(&y, context),
-            AssignOp::Ushr => x.ushr(&y, context),
+            AssignOp::Add => x.add(&y.run(context)?, context),
+            AssignOp::Sub => x.sub(&y.run(context)?, context),
+            AssignOp::Mul => x.mul(&y.run(context)?, context),
+            AssignOp::Exp => x.pow(&y.run(context)?, context),
+            AssignOp::Div => x.div(&y.run(context)?, context),
+            AssignOp::Mod => x.rem(&y.run(context)?, context),
+            AssignOp::And => x.bitand(&y.run(context)?, context),
+            AssignOp::Or => x.bitor(&y.run(context)?, context),
+            AssignOp::Xor => x.bitxor(&y.run(context)?, context),
+            AssignOp::Shl => x.shl(&y.run(context)?, context),
+            AssignOp::Shr => x.shr(&y.run(context)?, context),
+            AssignOp::Ushr => x.ushr(&y.run(context)?, context),
+            AssignOp::BoolAnd => {
+                if x.to_boolean() {
+                    Ok(y.run(context)?)
+                } else {
+                    Ok(x)
+                }
+            }
+            AssignOp::BoolOr => {
+                if x.to_boolean() {
+                    Ok(x)
+                } else {
+                    Ok(y.run(context)?)
+                }
+            }
+            AssignOp::Coalesce => {
+                if x.is_null_or_undefined() {
+                    Ok(y.run(context)?)
+                } else {
+                    Ok(x)
+                }
+            }
         }
     }
 }
@@ -167,6 +194,14 @@ impl Executable for BinOp {
                         self.rhs().run(context)?
                     }
                 }
+                LogOp::Coalesce => {
+                    let left = self.lhs.run(context)?;
+                    if left.is_null_or_undefined() {
+                        self.rhs().run(context)?
+                    } else {
+                        left
+                    }
+                }
             }),
             op::BinOp::Assign(op) => match self.lhs() {
                 Node::Identifier(ref name) => {
@@ -176,8 +211,7 @@ impl Executable for BinOp {
                         .get_binding_value(name.as_ref())
                         .map_err(|e| e.to_error(context))?;
 
-                    let v_b = self.rhs().run(context)?;
-                    let value = Self::run_assign(op, v_a, v_b, context)?;
+                    let value = Self::run_assign(op, v_a, self.rhs(), context)?;
                     context
                         .realm_mut()
                         .environment
@@ -187,10 +221,9 @@ impl Executable for BinOp {
                 }
                 Node::GetConstField(ref get_const_field) => {
                     let v_r_a = get_const_field.obj().run(context)?;
-                    let v_a = v_r_a.get_field(get_const_field.field());
-                    let v_b = self.rhs().run(context)?;
-                    let value = Self::run_assign(op, v_a, v_b, context)?;
-                    v_r_a.set_field(get_const_field.field(), value.clone());
+                    let v_a = v_r_a.get_field(get_const_field.field(), context)?;
+                    let value = Self::run_assign(op, v_a, self.rhs(), context)?;
+                    v_r_a.set_field(get_const_field.field(), value.clone(), context)?;
                     Ok(value)
                 }
                 _ => Ok(Value::undefined()),
@@ -199,6 +232,56 @@ impl Executable for BinOp {
                 self.lhs().run(context)?;
                 Ok(self.rhs().run(context)?)
             }
+        }
+    }
+}
+
+#[cfg(feature = "vm")]
+impl CodeGen for BinOp {
+    fn compile(&self, compiler: &mut Compiler) {
+        let _timer = BoaProfiler::global().start_event("binOp", "codeGen");
+        match self.op() {
+            op::BinOp::Num(op) => {
+                self.lhs().compile(compiler);
+                self.rhs().compile(compiler);
+                match op {
+                    NumOp::Add => compiler.add_instruction(Instruction::Add),
+                    NumOp::Sub => compiler.add_instruction(Instruction::Sub),
+                    NumOp::Mul => compiler.add_instruction(Instruction::Mul),
+                    NumOp::Div => compiler.add_instruction(Instruction::Div),
+                    NumOp::Exp => compiler.add_instruction(Instruction::Pow),
+                    NumOp::Mod => compiler.add_instruction(Instruction::Mod),
+                }
+            }
+            op::BinOp::Bit(op) => {
+                self.lhs().compile(compiler);
+                self.rhs().compile(compiler);
+                match op {
+                    BitOp::And => compiler.add_instruction(Instruction::BitAnd),
+                    BitOp::Or => compiler.add_instruction(Instruction::BitOr),
+                    BitOp::Xor => compiler.add_instruction(Instruction::BitXor),
+                    BitOp::Shl => compiler.add_instruction(Instruction::Shl),
+                    BitOp::Shr => compiler.add_instruction(Instruction::Shr),
+                    BitOp::UShr => compiler.add_instruction(Instruction::UShr),
+                }
+            }
+            op::BinOp::Comp(op) => {
+                self.lhs().compile(compiler);
+                self.rhs().compile(compiler);
+                match op {
+                    CompOp::Equal => compiler.add_instruction(Instruction::Eq),
+                    CompOp::NotEqual => compiler.add_instruction(Instruction::NotEq),
+                    CompOp::StrictEqual => compiler.add_instruction(Instruction::StrictEq),
+                    CompOp::StrictNotEqual => compiler.add_instruction(Instruction::StrictNotEq),
+                    CompOp::GreaterThan => compiler.add_instruction(Instruction::Gt),
+                    CompOp::GreaterThanOrEqual => compiler.add_instruction(Instruction::Ge),
+                    CompOp::LessThan => compiler.add_instruction(Instruction::Lt),
+                    CompOp::LessThanOrEqual => compiler.add_instruction(Instruction::Le),
+                    CompOp::In => compiler.add_instruction(Instruction::In),
+                    CompOp::InstanceOf => compiler.add_instruction(Instruction::InstanceOf),
+                }
+            }
+            _ => unimplemented!(),
         }
     }
 }

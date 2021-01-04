@@ -1,4 +1,5 @@
 use crate::{
+    builtins::iterable,
     exec::Executable,
     exec::InterpreterState,
     gc::{Finalize, Trace},
@@ -65,12 +66,18 @@ impl Executable for Call {
                 if obj.get_type() != Type::Object {
                     obj = Value::Object(obj.to_object(context)?);
                 }
-                (obj.clone(), obj.get_field(get_const_field.field()))
+                (
+                    obj.clone(),
+                    obj.get_field(get_const_field.field(), context)?,
+                )
             }
             Node::GetField(ref get_field) => {
                 let obj = get_field.obj().run(context)?;
                 let field = get_field.field().run(context)?;
-                (obj.clone(), obj.get_field(field.to_property_key(context)?))
+                (
+                    obj.clone(),
+                    obj.get_field(field.to_property_key(context)?, context)?,
+                )
             }
             _ => (context.global_object().clone(), self.expr().run(context)?), // 'this' binding should come from the function's self-contained environment
         };
@@ -78,11 +85,19 @@ impl Executable for Call {
         for arg in self.args() {
             if let Node::Spread(ref x) = arg {
                 let val = x.run(context)?;
-                let mut vals = context.extract_array_properties(&val).unwrap();
-                v_args.append(&mut vals);
+                let iterator_record = iterable::get_iterator(context, val)?;
+                loop {
+                    let next = iterator_record.next(context)?;
+                    if next.is_done() {
+                        break;
+                    }
+                    let next_value = next.value();
+                    v_args.push(next_value.clone());
+                }
                 break; // after spread we don't accept any new arguments
+            } else {
+                v_args.push(arg.run(context)?);
             }
-            v_args.push(arg.run(context)?);
         }
 
         // execute the function call itself

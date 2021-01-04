@@ -23,7 +23,7 @@ impl StringIterator {
     }
 
     pub fn create_string_iterator(context: &mut Context, string: Value) -> Result<Value> {
-        let string_iterator = Value::new_object(Some(context.global_object()));
+        let string_iterator = Value::new_object(context);
         string_iterator.set_data(ObjectData::StringIterator(Self::new(string)));
         string_iterator
             .as_object()
@@ -70,11 +70,10 @@ impl StringIterator {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-%arrayiteratorprototype%-object
     pub(crate) fn create_prototype(context: &mut Context, iterator_prototype: Value) -> Value {
-        let global = context.global_object();
         let _timer = BoaProfiler::global().start_event("String Iterator", "init");
 
         // Create prototype
-        let array_iterator = Value::new_object(Some(global));
+        let array_iterator = Value::new_object(context);
         make_builtin_fn(Self::next, "next", &array_iterator, 0, context);
         array_iterator
             .as_object()

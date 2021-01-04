@@ -1,4 +1,4 @@
-use crate::{forward, forward_val, object::PROTOTYPE, value::same_value, Context};
+use crate::{forward, forward_val, value::same_value, Context, Value};
 
 #[test]
 fn json_sanity() {
@@ -341,19 +341,35 @@ fn json_parse_array_with_reviver() {
     )
     .unwrap();
     assert_eq!(
-        result.get_field("0").to_number(&mut context).unwrap() as u8,
+        result
+            .get_field("0", &mut context)
+            .unwrap()
+            .to_number(&mut context)
+            .unwrap() as u8,
         2u8
     );
     assert_eq!(
-        result.get_field("1").to_number(&mut context).unwrap() as u8,
+        result
+            .get_field("1", &mut context)
+            .unwrap()
+            .to_number(&mut context)
+            .unwrap() as u8,
         4u8
     );
     assert_eq!(
-        result.get_field("2").to_number(&mut context).unwrap() as u8,
+        result
+            .get_field("2", &mut context)
+            .unwrap()
+            .to_number(&mut context)
+            .unwrap() as u8,
         6u8
     );
     assert_eq!(
-        result.get_field("3").to_number(&mut context).unwrap() as u8,
+        result
+            .get_field("3", &mut context)
+            .unwrap()
+            .to_number(&mut context)
+            .unwrap() as u8,
         8u8
     );
 }
@@ -405,14 +421,13 @@ fn json_parse_sets_prototypes() {
         .as_object()
         .unwrap()
         .prototype_instance();
-    let global_object_prototype = context
-        .global_object()
-        .get_field("Object")
-        .get_field(PROTOTYPE);
-    let global_array_prototype = context
-        .global_object()
-        .get_field("Array")
-        .get_field(PROTOTYPE);
+    let global_object_prototype: Value = context
+        .standard_objects()
+        .object_object()
+        .prototype()
+        .into();
+    let global_array_prototype: Value =
+        context.standard_objects().array_object().prototype().into();
     assert_eq!(
         same_value(&object_prototype, &global_object_prototype),
         true

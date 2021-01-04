@@ -353,3 +353,152 @@ fn for_loop_continue_label() {
     "#;
     assert_eq!(&exec(scenario), "10");
 }
+
+#[test]
+fn for_in_declaration() {
+    let mut context = Context::new();
+
+    let init = r#"
+        let result = [];
+        let obj = { a: "a", b: 2};
+        var i;
+        for (i in obj) {
+            result = result.concat([i]);
+        }
+    "#;
+    eprintln!("{}", forward(&mut context, init));
+
+    assert_eq!(
+        forward(
+            &mut context,
+            "result.length === 2 && result.includes('a') && result.includes('b')"
+        ),
+        "true"
+    );
+}
+
+#[test]
+fn for_in_var_object() {
+    let mut context = Context::new();
+
+    let init = r#"
+        let result = [];
+        let obj = { a: "a", b: 2};
+        for (var i in obj) {
+            result = result.concat([i]);
+        }
+    "#;
+    eprintln!("{}", forward(&mut context, init));
+
+    assert_eq!(
+        forward(
+            &mut context,
+            "result.length === 2 && result.includes('a') && result.includes('b')"
+        ),
+        "true"
+    );
+}
+
+#[test]
+fn for_in_var_array() {
+    let mut context = Context::new();
+
+    let init = r#"
+        let result = [];
+        let arr = ["a", "b"];
+        for (var i in arr) {
+            result = result.concat([i]);
+        }
+    "#;
+    eprintln!("{}", forward(&mut context, init));
+
+    assert_eq!(
+        forward(
+            &mut context,
+            "result.length === 2 && result.includes('0') && result.includes('1')"
+        ),
+        "true"
+    );
+}
+
+#[test]
+fn for_in_let_object() {
+    let mut context = Context::new();
+
+    let init = r#"
+        let result = [];
+        let obj = { a: "a", b: 2};
+        for (let i in obj) {
+            result = result.concat([i]);
+        }
+    "#;
+    eprintln!("{}", forward(&mut context, init));
+
+    assert_eq!(
+        forward(
+            &mut context,
+            "result.length === 2 && result.includes('a') && result.includes('b')"
+        ),
+        "true"
+    );
+}
+
+#[test]
+fn for_in_const_array() {
+    let mut context = Context::new();
+
+    let init = r#"
+        let result = [];
+        let arr = ["a", "b"];
+        for (const i in arr) {
+            result = result.concat([i]);
+        }
+    "#;
+    eprintln!("{}", forward(&mut context, init));
+
+    assert_eq!(
+        forward(
+            &mut context,
+            "result.length === 2 && result.includes('0') && result.includes('1')"
+        ),
+        "true"
+    );
+}
+
+#[test]
+fn for_in_break_label() {
+    let scenario = r#"
+        var str = "";
+
+        outer: for (let i in [1, 2]) {
+            inner: for (let b in [2, 3, 4]) {
+                if (b === "1") {
+                    break outer;
+                }
+                str = str + b;
+            }
+            str = str + i;
+        }
+        str
+    "#;
+    assert_eq!(&exec(scenario), "\"0\"")
+}
+
+#[test]
+fn for_in_continue_label() {
+    let scenario = r#"
+        var str = "";
+
+        outer: for (let i in [1, 2]) {
+            inner: for (let b in [2, 3, 4]) {
+                if (b === "1") {
+                    continue outer;
+                }
+                str = str + b;
+            }
+            str = str + i;
+        }
+        str
+    "#;
+    assert_eq!(&exec(scenario), "\"00\"")
+}

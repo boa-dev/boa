@@ -124,7 +124,8 @@ impl Function {
         // Create binding
         local_env
             .borrow_mut()
-            .create_mutable_binding(param.name().to_owned(), false)
+            // Function parameters can share names in JavaScript...
+            .create_mutable_binding(param.name().to_owned(), false, true)
             .expect("Failed to create binding for rest param");
 
         // Set Binding to value
@@ -144,7 +145,7 @@ impl Function {
         // Create binding
         local_env
             .borrow_mut()
-            .create_mutable_binding(param.name().to_owned(), false)
+            .create_mutable_binding(param.name().to_owned(), false, true)
             .expect("Failed to create binding");
 
         // Set Binding to value
@@ -232,16 +233,20 @@ pub fn make_builtin_fn<N>(
     let mut function = Object::function(
         Function::BuiltIn(function.into(), FunctionFlags::CALLABLE),
         interpreter
-            .global_object()
-            .get_field("Function")
-            .get_field("prototype"),
+            .standard_objects()
+            .function_object()
+            .prototype()
+            .into(),
     );
-    function.insert_property("length", length, Attribute::all());
+    let attribute = Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE;
+    function.insert_property("length", length, attribute);
+    function.insert_property("name", name.as_str(), attribute);
 
-    parent
-        .as_object()
-        .unwrap()
-        .insert_property(name, function, Attribute::all());
+    parent.as_object().unwrap().insert_property(
+        name,
+        function,
+        Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+    );
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -304,7 +309,7 @@ impl BuiltInFunctionObject {
             return context.call(this, &this_arg, &[]);
         }
         let arg_list = context
-            .extract_array_properties(&arg_array)
+            .extract_array_properties(&arg_array)?
             .map_err(|()| arg_array)?;
         // TODO?: 5. PrepareForTailCall
         context.call(this, &this_arg, &arg_list)

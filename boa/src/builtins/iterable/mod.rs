@@ -1,6 +1,7 @@
 use crate::{
     builtins::string::string_iterator::StringIterator,
     builtins::ArrayIterator,
+    builtins::ForInIterator,
     builtins::MapIterator,
     object::{GcObject, ObjectInitializer},
     property::{Attribute, DataDescriptor},
@@ -13,6 +14,7 @@ pub struct IteratorPrototypes {
     array_iterator: GcObject,
     string_iterator: GcObject,
     map_iterator: GcObject,
+    for_in_iterator: GcObject,
 }
 
 impl IteratorPrototypes {
@@ -28,9 +30,12 @@ impl IteratorPrototypes {
             string_iterator: StringIterator::create_prototype(context, iterator_prototype.clone())
                 .as_object()
                 .expect("String Iterator Prototype is not an object"),
-            map_iterator: MapIterator::create_prototype(context, iterator_prototype)
+            map_iterator: MapIterator::create_prototype(context, iterator_prototype.clone())
                 .as_object()
                 .expect("Map Iterator Prototype is not an object"),
+            for_in_iterator: ForInIterator::create_prototype(context, iterator_prototype)
+                .as_object()
+                .expect("For In Iterator Prototype is not an object"),
         }
     }
 
@@ -49,8 +54,14 @@ impl IteratorPrototypes {
         self.string_iterator.clone()
     }
 
+    #[inline]
     pub fn map_iterator(&self) -> GcObject {
         self.map_iterator.clone()
+    }
+
+    #[inline]
+    pub fn for_in_iterator(&self) -> GcObject {
+        self.for_in_iterator.clone()
     }
 }
 
@@ -58,7 +69,7 @@ impl IteratorPrototypes {
 ///
 /// Generates an object supporting the IteratorResult interface.
 pub fn create_iter_result_object(context: &mut Context, value: Value, done: bool) -> Value {
-    let object = Value::new_object(Some(context.global_object()));
+    let object = Value::new_object(context);
     // TODO: Fix attributes of value and done
     let value_property = DataDescriptor::new(value, Attribute::all());
     let done_property = DataDescriptor::new(done, Attribute::all());
@@ -69,16 +80,16 @@ pub fn create_iter_result_object(context: &mut Context, value: Value, done: bool
 
 /// Get an iterator record
 pub fn get_iterator(context: &mut Context, iterable: Value) -> Result<IteratorRecord> {
-    // TODO: Fix the accessor handling
-    let iterator_function = iterable
-        .get_property(context.well_known_symbols().iterator_symbol())
-        .map(|p| p.as_data_descriptor().unwrap().value())
-        .ok_or_else(|| context.construct_type_error("Not an iterable"))?;
+    let iterator_function =
+        iterable.get_field(context.well_known_symbols().iterator_symbol(), context)?;
+    if iterator_function.is_null_or_undefined() {
+        return Err(context.construct_type_error("Not an iterable"));
+    }
     let iterator_object = context.call(&iterator_function, &iterable, &[])?;
-    let next_function = iterator_object
-        .get_property("next")
-        .map(|p| p.as_data_descriptor().unwrap().value())
-        .ok_or_else(|| context.construct_type_error("Could not find property `next`"))?;
+    let next_function = iterator_object.get_field("next", context)?;
+    if next_function.is_null_or_undefined() {
+        return Err(context.construct_type_error("Could not find property `next`"));
+    }
     Ok(IteratorRecord::new(iterator_object, next_function))
 }
 
@@ -110,7 +121,7 @@ pub struct IteratorRecord {
 }
 
 impl IteratorRecord {
-    fn new(iterator_object: Value, next_function: Value) -> Self {
+    pub fn new(iterator_object: Value, next_function: Value) -> Self {
         Self {
             iterator_object,
             next_function,
@@ -125,18 +136,9 @@ impl IteratorRecord {
     /// [spec]: https://tc39.es/ecma262/#sec-iteratornext
     pub(crate) fn next(&self, context: &mut Context) -> Result<IteratorResult> {
         let next = context.call(&self.next_function, &self.iterator_object, &[])?;
-        // FIXME: handle accessor descriptors
-        let done = next
-            .get_property("done")
-            .map(|p| p.as_data_descriptor().unwrap().value())
-            .and_then(|v| v.as_boolean())
-            .ok_or_else(|| context.construct_type_error("Could not find property `done`"))?;
+        let done = next.get_field("done", context)?.to_boolean();
 
-        // FIXME: handle accessor descriptors
-        let next_result = next
-            .get_property("value")
-            .map(|p| p.as_data_descriptor().unwrap().value())
-            .unwrap_or_default();
+        let next_result = next.get_field("value", context)?;
         Ok(IteratorResult::new(next_result, done))
     }
 }

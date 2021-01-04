@@ -17,7 +17,7 @@ use crate::{
     builtins::array::array_iterator::{ArrayIterationKind, ArrayIterator},
     builtins::BuiltIn,
     gc::GcObject,
-    object::{ConstructorBuilder, FunctionBuilder, ObjectData, PROTOTYPE},
+    object::{ConstructorBuilder, FunctionBuilder, ObjectData},
     property::{Attribute, DataDescriptor},
     value::{same_value_zero, IntegerOrInfinity, Value},
     BoaProfiler, Context, Result,
@@ -144,13 +144,17 @@ impl Array {
         let array = Array::array_create(this, 0, Some(prototype), context)?;
 
         if !length.is_number() {
-            array.set_field(0, Value::from(length));
-            array.set_field("length", Value::from(1));
+            array.set_field(0, Value::from(length), context)?;
+            array.set_field("length", Value::from(1), context)?;
         } else {
             if length.is_double() {
                 return context.throw_range_error("Invalid array length");
             }
-            array.set_field("length", Value::from(length.to_u32(context).unwrap()));
+            array.set_field(
+                "length",
+                Value::from(length.to_u32(context).unwrap()),
+                context,
+            )?;
         }
 
         Ok(array)
@@ -172,7 +176,7 @@ impl Array {
         let array = Array::array_create(this, items_len, Some(prototype), context)?;
 
         for (k, item) in items.iter().enumerate() {
-            array.set_field(k, item.clone());
+            array.set_field(k, item.clone(), context)?;
         }
 
         Ok(array)
@@ -213,13 +217,7 @@ impl Array {
 
     /// Creates a new `Array` instance.
     pub(crate) fn new_array(context: &Context) -> Result<Value> {
-        let array = Value::new_object(Some(
-            &context
-                .realm()
-                .environment
-                .get_global_object()
-                .expect("Could not get global object"),
-        ));
+        let array = Value::new_object(context);
         array.set_data(ObjectData::Array);
         array
             .as_object()
@@ -245,7 +243,7 @@ impl Array {
         let array_obj_ptr = array_obj.clone();
 
         // Wipe existing contents of the array object
-        let orig_length = array_obj.get_field("length").to_length(context)?;
+        let orig_length = array_obj.get_field("length", context)?.to_length(context)?;
         for n in 0..orig_length {
             array_obj_ptr.remove_property(n);
         }
@@ -258,7 +256,7 @@ impl Array {
         array_obj_ptr.set_property("length".to_string(), length);
 
         for (n, value) in array_contents.iter().enumerate() {
-            array_obj_ptr.set_field(n, value);
+            array_obj_ptr.set_field(n, value, context)?;
         }
         Ok(array_obj_ptr)
     }
@@ -270,17 +268,18 @@ impl Array {
         add_values: &[Value],
         context: &mut Context,
     ) -> Result<Value> {
-        let orig_length = array_ptr.get_field("length").to_length(context)?;
+        let orig_length = array_ptr.get_field("length", context)?.to_length(context)?;
 
         for (n, value) in add_values.iter().enumerate() {
             let new_index = orig_length.wrapping_add(n);
-            array_ptr.set_field(new_index, value);
+            array_ptr.set_field(new_index, value, context)?;
         }
 
         array_ptr.set_field(
             "length",
             Value::from(orig_length.wrapping_add(add_values.len())),
-        );
+            context,
+        )?;
 
         Ok(array_ptr.clone())
     }
@@ -325,15 +324,17 @@ impl Array {
         // one)
         let mut new_values: Vec<Value> = Vec::new();
 
-        let this_length = this.get_field("length").to_length(context)?;
+        let this_length = this.get_field("length", context)?.to_length(context)?;
         for n in 0..this_length {
-            new_values.push(this.get_field(n));
+            new_values.push(this.get_field(n, context)?);
         }
 
         for concat_array in args {
-            let concat_length = concat_array.get_field("length").to_length(context)?;
+            let concat_length = concat_array
+                .get_field("length", context)?
+                .to_length(context)?;
             for n in 0..concat_length {
-                new_values.push(concat_array.get_field(n));
+                new_values.push(concat_array.get_field(n, context)?);
             }
         }
 
@@ -354,7 +355,7 @@ impl Array {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/push
     pub(crate) fn push(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
         let new_array = Self::add_to_array_object(this, args, context)?;
-        Ok(new_array.get_field("length"))
+        Ok(new_array.get_field("length", context)?)
     }
 
     /// `Array.prototype.pop()`
@@ -368,15 +369,15 @@ impl Array {
     /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.pop
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/pop
     pub(crate) fn pop(this: &Value, _: &[Value], context: &mut Context) -> Result<Value> {
-        let curr_length = this.get_field("length").to_length(context)?;
+        let curr_length = this.get_field("length", context)?.to_length(context)?;
 
         if curr_length < 1 {
             return Ok(Value::undefined());
         }
         let pop_index = curr_length.wrapping_sub(1);
-        let pop_value: Value = this.get_field(pop_index.to_string());
+        let pop_value: Value = this.get_field(pop_index.to_string(), context)?;
         this.remove_property(pop_index);
-        this.set_field("length", Value::from(pop_index));
+        this.set_field("length", Value::from(pop_index), context)?;
         Ok(pop_value)
     }
 
@@ -398,10 +399,10 @@ impl Array {
         let callback_arg = args.get(0).expect("Could not get `callbackFn` argument.");
         let this_arg = args.get(1).cloned().unwrap_or_else(Value::undefined);
 
-        let length = this.get_field("length").to_length(context)?;
+        let length = this.get_field("length", context)?.to_length(context)?;
 
         for i in 0..length {
-            let element = this.get_field(i);
+            let element = this.get_field(i, context)?;
             let arguments = [element, Value::from(i), this.clone()];
 
             context.call(callback_arg, &this_arg, &arguments)?;
@@ -433,9 +434,9 @@ impl Array {
         };
 
         let mut elem_strs = Vec::new();
-        let length = this.get_field("length").to_length(context)?;
+        let length = this.get_field("length", context)?.to_length(context)?;
         for n in 0..length {
-            let elem_str = this.get_field(n).to_string(context)?.to_string();
+            let elem_str = this.get_field(n, context)?.to_string(context)?.to_string();
             elem_strs.push(elem_str);
         }
 
@@ -459,14 +460,15 @@ impl Array {
         let method_name = "join";
         let mut arguments = vec![Value::from(",")];
         // 2.
-        let mut method = this.get_field(method_name);
+        let mut method = this.get_field(method_name, context)?;
         // 3.
         if !method.is_function() {
-            method = context
-                .global_object()
-                .get_field("Object")
-                .get_field(PROTOTYPE)
-                .get_field("toString");
+            let object_prototype: Value = context
+                .standard_objects()
+                .object_object()
+                .prototype()
+                .into();
+            method = object_prototype.get_field("toString", context)?;
 
             arguments = Vec::new();
         }
@@ -495,7 +497,7 @@ impl Array {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/reverse
     #[allow(clippy::else_if_without_else)]
     pub(crate) fn reverse(this: &Value, _: &[Value], context: &mut Context) -> Result<Value> {
-        let len = this.get_field("length").to_length(context)?;
+        let len = this.get_field("length", context)?.to_length(context)?;
 
         let middle = len.wrapping_div(2);
 
@@ -505,17 +507,17 @@ impl Array {
             let upper_exists = this.has_field(upper);
             let lower_exists = this.has_field(lower);
 
-            let upper_value = this.get_field(upper);
-            let lower_value = this.get_field(lower);
+            let upper_value = this.get_field(upper, context)?;
+            let lower_value = this.get_field(lower, context)?;
 
             if upper_exists && lower_exists {
-                this.set_field(upper, lower_value);
-                this.set_field(lower, upper_value);
+                this.set_field(upper, lower_value, context)?;
+                this.set_field(lower, upper_value, context)?;
             } else if upper_exists {
-                this.set_field(lower, upper_value);
+                this.set_field(lower, upper_value, context)?;
                 this.remove_property(upper);
             } else if lower_exists {
-                this.set_field(upper, lower_value);
+                this.set_field(upper, lower_value, context)?;
                 this.remove_property(lower);
             }
         }
@@ -534,30 +536,30 @@ impl Array {
     /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.shift
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/shift
     pub(crate) fn shift(this: &Value, _: &[Value], context: &mut Context) -> Result<Value> {
-        let len = this.get_field("length").to_length(context)?;
+        let len = this.get_field("length", context)?.to_length(context)?;
 
         if len == 0 {
-            this.set_field("length", 0);
+            this.set_field("length", 0, context)?;
             return Ok(Value::undefined());
         }
 
-        let first: Value = this.get_field(0);
+        let first: Value = this.get_field(0, context)?;
 
         for k in 1..len {
             let from = k;
             let to = k.wrapping_sub(1);
 
-            let from_value = this.get_field(from);
+            let from_value = this.get_field(from, context)?;
             if from_value.is_undefined() {
                 this.remove_property(to);
             } else {
-                this.set_field(to, from_value);
+                this.set_field(to, from_value, context)?;
             }
         }
 
         let final_index = len.wrapping_sub(1);
         this.remove_property(final_index);
-        this.set_field("length", Value::from(final_index));
+        this.set_field("length", Value::from(final_index), context)?;
 
         Ok(first)
     }
@@ -575,7 +577,7 @@ impl Array {
     /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.unshift
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/unshift
     pub(crate) fn unshift(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
-        let len = this.get_field("length").to_length(context)?;
+        let len = this.get_field("length", context)?.to_length(context)?;
 
         let arg_c = args.len();
 
@@ -584,20 +586,24 @@ impl Array {
                 let from = k.wrapping_sub(1);
                 let to = k.wrapping_add(arg_c).wrapping_sub(1);
 
-                let from_value = this.get_field(from);
+                let from_value = this.get_field(from, context)?;
                 if from_value.is_undefined() {
                     this.remove_property(to);
                 } else {
-                    this.set_field(to, from_value);
+                    this.set_field(to, from_value, context)?;
                 }
             }
             for j in 0..arg_c {
-                this.set_field(j, args.get(j).expect("Could not get argument").clone());
+                this.set_field(
+                    j,
+                    args.get(j).expect("Could not get argument").clone(),
+                    context,
+                )?;
             }
         }
 
         let temp = len.wrapping_add(arg_c);
-        this.set_field("length", Value::from(temp));
+        this.set_field("length", Value::from(temp), context)?;
         Ok(Value::from(temp))
     }
 
@@ -627,16 +633,19 @@ impl Array {
             Value::undefined()
         };
         let mut i = 0;
-        let max_len = this.get_field("length").to_length(context)?;
+        let max_len = this.get_field("length", context)?.to_length(context)?;
         let mut len = max_len;
         while i < len {
-            let element = this.get_field(i);
+            let element = this.get_field(i, context)?;
             let arguments = [element, Value::from(i), this.clone()];
             let result = context.call(callback, &this_arg, &arguments)?;
             if !result.to_boolean() {
                 return Ok(Value::from(false));
             }
-            len = min(max_len, this.get_field("length").to_length(context)?);
+            len = min(
+                max_len,
+                this.get_field("length", context)?.to_length(context)?,
+            );
             i += 1;
         }
         Ok(Value::from(true))
@@ -663,7 +672,7 @@ impl Array {
         let callback = args.get(0).cloned().unwrap_or_else(Value::undefined);
         let this_val = args.get(1).cloned().unwrap_or_else(Value::undefined);
 
-        let length = this.get_field("length").to_length(context)?;
+        let length = this.get_field("length", context)?.to_length(context)?;
 
         if length > 2usize.pow(32) - 1 {
             return context.throw_range_error("Invalid array length");
@@ -671,16 +680,14 @@ impl Array {
 
         let new = Self::new_array(context)?;
 
-        let values: Vec<Value> = (0..length)
+        let values = (0..length)
             .map(|idx| {
-                let element = this.get_field(idx);
+                let element = this.get_field(idx, context)?;
                 let args = [element, Value::from(idx), new.clone()];
 
-                context
-                    .call(&callback, &this_val, &args)
-                    .unwrap_or_else(|_| Value::undefined())
+                context.call(&callback, &this_val, &args)
             })
-            .collect();
+            .collect::<Result<Vec<Value>>>()?;
 
         Self::construct_array(&new, &values, context)
     }
@@ -711,7 +718,7 @@ impl Array {
         }
 
         let search_element = args[0].clone();
-        let len = this.get_field("length").to_length(context)?;
+        let len = this.get_field("length", context)?.to_length(context)?;
 
         let mut idx = match args.get(1) {
             Some(from_idx_ptr) => {
@@ -731,7 +738,7 @@ impl Array {
         };
 
         while idx < len {
-            let check_element = this.get_field(idx).clone();
+            let check_element = this.get_field(idx, context)?.clone();
 
             if check_element.strict_equals(&search_element) {
                 return Ok(Value::from(idx));
@@ -773,7 +780,7 @@ impl Array {
 
         let search_element = args[0].clone();
         let len: isize = this
-            .get_field("length")
+            .get_field("length", context)?
             .to_length(context)?
             .try_into()
             .map_err(interror_to_value)?;
@@ -794,7 +801,7 @@ impl Array {
         };
 
         while idx >= 0 {
-            let check_element = this.get_field(idx).clone();
+            let check_element = this.get_field(idx, context)?.clone();
 
             if check_element.strict_equals(&search_element) {
                 return Ok(Value::from(i32::try_from(idx).map_err(interror_to_value)?));
@@ -826,9 +833,9 @@ impl Array {
         }
         let callback = &args[0];
         let this_arg = args.get(1).cloned().unwrap_or_else(Value::undefined);
-        let len = this.get_field("length").to_length(context)?;
+        let len = this.get_field("length", context)?.to_length(context)?;
         for i in 0..len {
-            let element = this.get_field(i);
+            let element = this.get_field(i, context)?;
             let arguments = [element.clone(), Value::from(i), this.clone()];
             let result = context.call(callback, &this_arg, &arguments)?;
             if result.to_boolean() {
@@ -861,10 +868,10 @@ impl Array {
 
         let this_arg = args.get(1).cloned().unwrap_or_else(Value::undefined);
 
-        let length = this.get_field("length").to_length(context)?;
+        let length = this.get_field("length", context)?.to_length(context)?;
 
         for i in 0..length {
-            let element = this.get_field(i);
+            let element = this.get_field(i, context)?;
             let arguments = [element, Value::from(i), this.clone()];
 
             let result = context.call(predicate_arg, &this_arg, &arguments)?;
@@ -890,7 +897,7 @@ impl Array {
     /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.fill
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/fill
     pub(crate) fn fill(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
-        let len = this.get_field("length").to_length(context)?;
+        let len = this.get_field("length", context)?.to_length(context)?;
 
         let default_value = Value::undefined();
         let value = args.get(0).unwrap_or(&default_value);
@@ -898,7 +905,7 @@ impl Array {
         let fin = Self::get_relative_end(context, args.get(2), len)?;
 
         for i in start..fin {
-            this.set_field(i, value.clone());
+            this.set_field(i, value.clone(), context)?;
         }
 
         Ok(this.clone())
@@ -921,10 +928,10 @@ impl Array {
     ) -> Result<Value> {
         let search_element = args.get(0).cloned().unwrap_or_else(Value::undefined);
 
-        let length = this.get_field("length").to_length(context)?;
+        let length = this.get_field("length", context)?.to_length(context)?;
 
         for idx in 0..length {
-            let check_element = this.get_field(idx).clone();
+            let check_element = this.get_field(idx, context)?.clone();
 
             if same_value_zero(&check_element, &search_element) {
                 return Ok(Value::from(true));
@@ -951,17 +958,20 @@ impl Array {
     pub(crate) fn slice(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
         let new_array = Self::new_array(context)?;
 
-        let len = this.get_field("length").to_length(context)?;
+        let len = this.get_field("length", context)?.to_length(context)?;
         let from = Self::get_relative_start(context, args.get(0), len)?;
         let to = Self::get_relative_end(context, args.get(1), len)?;
 
         let span = max(to.saturating_sub(from), 0);
+        if span > 2usize.pow(32) - 1 {
+            return context.throw_range_error("Invalid array length");
+        }
         let mut new_array_len: i32 = 0;
         for i in from..from.saturating_add(span) {
-            new_array.set_field(new_array_len, this.get_field(i));
+            new_array.set_field(new_array_len, this.get_field(i, context)?, context)?;
             new_array_len = new_array_len.saturating_add(1);
         }
-        new_array.set_field("length", Value::from(new_array_len));
+        new_array.set_field("length", Value::from(new_array_len), context)?;
         Ok(new_array)
     }
 
@@ -986,27 +996,26 @@ impl Array {
         let callback = args.get(0).cloned().unwrap_or_else(Value::undefined);
         let this_val = args.get(1).cloned().unwrap_or_else(Value::undefined);
 
-        let length = this.get_field("length").to_length(context)?;
+        let length = this.get_field("length", context)?.to_length(context)?;
 
         let new = Self::new_array(context)?;
 
         let values = (0..length)
-            .filter_map(|idx| {
-                let element = this.get_field(idx);
+            .map(|idx| {
+                let element = this.get_field(idx, context)?;
 
                 let args = [element.clone(), Value::from(idx), new.clone()];
 
-                let callback_result = context
-                    .call(&callback, &this_val, &args)
-                    .unwrap_or_else(|_| Value::undefined());
+                let callback_result = context.call(&callback, &this_val, &args)?;
 
                 if callback_result.to_boolean() {
-                    Some(element)
+                    Ok(Some(element))
                 } else {
-                    None
+                    Ok(None)
                 }
             })
-            .collect::<Vec<Value>>();
+            .collect::<Result<Vec<Option<Value>>>>()?;
+        let values = values.into_iter().filter_map(|v| v).collect::<Vec<_>>();
 
         Self::construct_array(&new, &values, context)
     }
@@ -1039,17 +1048,20 @@ impl Array {
             Value::undefined()
         };
         let mut i = 0;
-        let max_len = this.get_field("length").to_length(context)?;
+        let max_len = this.get_field("length", context)?.to_length(context)?;
         let mut len = max_len;
         while i < len {
-            let element = this.get_field(i);
+            let element = this.get_field(i, context)?;
             let arguments = [element, Value::from(i), this.clone()];
             let result = context.call(callback, &this_arg, &arguments)?;
             if result.to_boolean() {
                 return Ok(Value::from(true));
             }
             // the length of the array must be updated because the callback can mutate it.
-            len = min(max_len, this.get_field("length").to_length(context)?);
+            len = min(
+                max_len,
+                this.get_field("length", context)?.to_length(context)?,
+            );
             i += 1;
         }
         Ok(Value::from(false))
@@ -1073,7 +1085,7 @@ impl Array {
             _ => return context.throw_type_error("Reduce was called without a callback"),
         };
         let initial_value = args.get(1).cloned().unwrap_or_else(Value::undefined);
-        let mut length = this.get_field("length").to_length(context)?;
+        let mut length = this.get_field("length", context)?.to_length(context)?;
         if length == 0 && initial_value.is_undefined() {
             return context
                 .throw_type_error("Reduce was called on an empty array and with no initial value");
@@ -1093,7 +1105,7 @@ impl Array {
                     "Reduce was called on an empty array and with no initial value",
                 );
             }
-            let result = this.get_field(k);
+            let result = this.get_field(k, context)?;
             k += 1;
             result
         } else {
@@ -1101,12 +1113,20 @@ impl Array {
         };
         while k < length {
             if this.has_field(k) {
-                let arguments = [accumulator, this.get_field(k), Value::from(k), this.clone()];
+                let arguments = [
+                    accumulator,
+                    this.get_field(k, context)?,
+                    Value::from(k),
+                    this.clone(),
+                ];
                 accumulator = context.call(&callback, &Value::undefined(), &arguments)?;
                 /* We keep track of possibly shortened length in order to prevent unnecessary iteration.
                 It may also be necessary to do this since shortening the array length does not
                 delete array elements. See: https://github.com/boa-dev/boa/issues/557 */
-                length = min(length, this.get_field("length").to_length(context)?);
+                length = min(
+                    length,
+                    this.get_field("length", context)?.to_length(context)?,
+                );
             }
             k += 1;
         }
@@ -1135,7 +1155,7 @@ impl Array {
             _ => return context.throw_type_error("reduceRight was called without a callback"),
         };
         let initial_value = args.get(1).cloned().unwrap_or_else(Value::undefined);
-        let mut length = this.get_field("length").to_length(context)?;
+        let mut length = this.get_field("length", context)?.to_length(context)?;
         if length == 0 {
             return if initial_value.is_undefined() {
                 context.throw_type_error(
@@ -1165,7 +1185,7 @@ impl Array {
                     "reduceRight was called on an empty array and with no initial value",
                 );
             }
-            let result = this.get_field(k);
+            let result = this.get_field(k, context)?;
             k = k.overflowing_sub(1).0;
             result
         } else {
@@ -1174,12 +1194,20 @@ impl Array {
         // usize::MAX is bigger than the maximum array size so we can use it check for integer undeflow
         while k != usize::MAX {
             if this.has_field(k) {
-                let arguments = [accumulator, this.get_field(k), Value::from(k), this.clone()];
+                let arguments = [
+                    accumulator,
+                    this.get_field(k, context)?,
+                    Value::from(k),
+                    this.clone(),
+                ];
                 accumulator = context.call(&callback, &Value::undefined(), &arguments)?;
                 /* We keep track of possibly shortened length in order to prevent unnecessary iteration.
                 It may also be necessary to do this since shortening the array length does not
                 delete array elements. See: https://github.com/boa-dev/boa/issues/557 */
-                length = min(length, this.get_field("length").to_length(context)?);
+                length = min(
+                    length,
+                    this.get_field("length", context)?.to_length(context)?,
+                );
 
                 // move k to the last defined element if necessary or return if the length was set to 0
                 if k >= length {

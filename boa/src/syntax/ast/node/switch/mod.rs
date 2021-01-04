@@ -98,7 +98,7 @@ impl Switch {
 
     /// Gets the default statement list, if any.
     pub fn default(&self) -> Option<&[Node]> {
-        self.default.as_ref().map(StatementList::statements)
+        self.default.as_ref().map(StatementList::items)
     }
 
     /// Implements the display formatting with indentation.

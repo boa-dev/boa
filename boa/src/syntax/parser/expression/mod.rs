@@ -20,15 +20,19 @@ pub(in crate::syntax::parser) mod await_expr;
 use self::assignment::ExponentiationExpression;
 pub(super) use self::{assignment::AssignmentExpression, primary::Initializer};
 use super::{AllowAwait, AllowIn, AllowYield, Cursor, ParseResult, TokenParser};
-use crate::syntax::lexer::{InputElement, TokenKind};
+
 use crate::{
     profiler::BoaProfiler,
-    syntax::ast::{
-        node::{BinOp, Node},
-        Keyword, Punctuator,
+    syntax::{
+        ast::op::LogOp,
+        ast::{
+            node::{BinOp, Node},
+            Keyword, Punctuator,
+        },
+        lexer::{InputElement, TokenKind},
+        parser::ParseError,
     },
 };
-
 use std::io::Read;
 
 // For use in the expression! macro to allow for both Punctuator and Keyword parameters.
@@ -142,23 +146,31 @@ expression!(
     None::<InputElement>
 );
 
-/// Parses a logical `OR` expression.
+/// Parses a logical expression expression.
 ///
 /// More information:
 ///  - [MDN documentation][mdn]
 ///  - [ECMAScript specification][spec]
 ///
-/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Logical_Operators#Logical_OR_2
-/// [spec]: https://tc39.es/ecma262/#prod-LogicalORExpression
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Logical_Operators
+/// [spec]: https://tc39.es/ecma262/#prod-ShortCircuitExpression
 #[derive(Debug, Clone, Copy)]
-struct LogicalORExpression {
+struct ShortCircuitExpression {
     allow_in: AllowIn,
     allow_yield: AllowYield,
     allow_await: AllowAwait,
+    previous: PreviousExpr,
 }
 
-impl LogicalORExpression {
-    /// Creates a new `LogicalORExpression` parser.
+#[derive(Debug, Clone, Copy, PartialEq)]
+enum PreviousExpr {
+    None,
+    Logical,
+    Coalesce,
+}
+
+impl ShortCircuitExpression {
+    /// Creates a new `ShortCircuitExpression` parser.
     pub(super) fn new<I, Y, A>(allow_in: I, allow_yield: Y, allow_await: A) -> Self
     where
         I: Into<AllowIn>,
@@ -169,36 +181,16 @@ impl LogicalORExpression {
             allow_in: allow_in.into(),
             allow_yield: allow_yield.into(),
             allow_await: allow_await.into(),
+            previous: PreviousExpr::None,
         }
     }
-}
 
-expression!(
-    LogicalORExpression,
-    LogicalANDExpression,
-    [Punctuator::BoolOr],
-    [allow_in, allow_yield, allow_await],
-    None::<InputElement>
-);
-
-/// Parses a logical `AND` expression.
-///
-/// More information:
-///  - [MDN documentation][mdn]
-///  - [ECMAScript specification][spec]
-///
-/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Logical_Operators#Logical_AND_2
-/// [spec]: https://tc39.es/ecma262/#prod-LogicalANDExpression
-#[derive(Debug, Clone, Copy)]
-struct LogicalANDExpression {
-    allow_in: AllowIn,
-    allow_yield: AllowYield,
-    allow_await: AllowAwait,
-}
-
-impl LogicalANDExpression {
-    /// Creates a new `LogicalANDExpression` parser.
-    pub(super) fn new<I, Y, A>(allow_in: I, allow_yield: Y, allow_await: A) -> Self
+    fn with_previous<I, Y, A>(
+        allow_in: I,
+        allow_yield: Y,
+        allow_await: A,
+        previous: PreviousExpr,
+    ) -> Self
     where
         I: Into<AllowIn>,
         Y: Into<AllowYield>,
@@ -208,17 +200,86 @@ impl LogicalANDExpression {
             allow_in: allow_in.into(),
             allow_yield: allow_yield.into(),
             allow_await: allow_await.into(),
+            previous,
         }
     }
 }
 
-expression!(
-    LogicalANDExpression,
-    BitwiseORExpression,
-    [Punctuator::BoolAnd],
-    [allow_in, allow_yield, allow_await],
-    None::<InputElement>
-);
+impl<R> TokenParser<R> for ShortCircuitExpression
+where
+    R: Read,
+{
+    type Output = Node;
+
+    fn parse(self, cursor: &mut Cursor<R>) -> ParseResult {
+        let _timer = BoaProfiler::global().start_event("ShortCircuitExpression", "Parsing");
+
+        let mut current_node =
+            BitwiseORExpression::new(self.allow_in, self.allow_yield, self.allow_await)
+                .parse(cursor)?;
+        let mut previous = self.previous;
+
+        while let Some(tok) = cursor.peek(0)? {
+            match tok.kind() {
+                TokenKind::Punctuator(Punctuator::BoolAnd) => {
+                    if previous == PreviousExpr::Coalesce {
+                        return Err(ParseError::expected(
+                            [TokenKind::Punctuator(Punctuator::Coalesce)],
+                            tok.clone(),
+                            "logical expression (cannot use '??' without parentheses within '||' or '&&')",
+                        ));
+                    }
+                    let _ = cursor.next()?.expect("'&&' expected");
+                    previous = PreviousExpr::Logical;
+                    let rhs =
+                        BitwiseORExpression::new(self.allow_in, self.allow_yield, self.allow_await)
+                            .parse(cursor)?;
+
+                    current_node = BinOp::new(LogOp::And, current_node, rhs).into();
+                }
+                TokenKind::Punctuator(Punctuator::BoolOr) => {
+                    if previous == PreviousExpr::Coalesce {
+                        return Err(ParseError::expected(
+                            [TokenKind::Punctuator(Punctuator::Coalesce)],
+                            tok.clone(),
+                            "logical expression (cannot use '??' without parentheses within '||' or '&&')",
+                        ));
+                    }
+                    let _ = cursor.next()?.expect("'||' expected");
+                    previous = PreviousExpr::Logical;
+                    let rhs = ShortCircuitExpression::with_previous(
+                        self.allow_in,
+                        self.allow_yield,
+                        self.allow_await,
+                        PreviousExpr::Logical,
+                    )
+                    .parse(cursor)?;
+                    current_node = BinOp::new(LogOp::Or, current_node, rhs).into();
+                }
+                TokenKind::Punctuator(Punctuator::Coalesce) => {
+                    if previous == PreviousExpr::Logical {
+                        return Err(ParseError::expected(
+                            [
+                                TokenKind::Punctuator(Punctuator::BoolAnd),
+                                TokenKind::Punctuator(Punctuator::BoolOr),
+                            ],
+                            tok.clone(),
+                            "cannot use '??' unparenthesized within '||' or '&&'",
+                        ));
+                    }
+                    let _ = cursor.next()?.expect("'??' expected");
+                    previous = PreviousExpr::Coalesce;
+                    let rhs =
+                        BitwiseORExpression::new(self.allow_in, self.allow_yield, self.allow_await)
+                            .parse(cursor)?;
+                    current_node = BinOp::new(LogOp::Coalesce, current_node, rhs).into();
+                }
+                _ => break,
+            }
+        }
+        Ok(current_node)
+    }
+}
 
 /// Parses a bitwise `OR` expression.
 ///
@@ -412,20 +473,55 @@ impl RelationalExpression {
     }
 }
 
-expression!(
-    RelationalExpression,
-    ShiftExpression,
-    [
-        Punctuator::LessThan,
-        Punctuator::GreaterThan,
-        Punctuator::LessThanOrEq,
-        Punctuator::GreaterThanOrEq,
-        Keyword::InstanceOf,
-        Keyword::In
-    ],
-    [allow_yield, allow_await],
-    None::<InputElement>
-);
+impl<R> TokenParser<R> for RelationalExpression
+where
+    R: Read,
+{
+    type Output = Node;
+
+    fn parse(self, cursor: &mut Cursor<R>) -> ParseResult {
+        let _timer = BoaProfiler::global().start_event("Relation Expression", "Parsing");
+
+        if None::<InputElement>.is_some() {
+            cursor.set_goal(None::<InputElement>.unwrap());
+        }
+
+        let mut lhs = ShiftExpression::new(self.allow_yield, self.allow_await).parse(cursor)?;
+        while let Some(tok) = cursor.peek(0)? {
+            match *tok.kind() {
+                TokenKind::Punctuator(op)
+                    if op == Punctuator::LessThan
+                        || op == Punctuator::GreaterThan
+                        || op == Punctuator::LessThanOrEq
+                        || op == Punctuator::GreaterThanOrEq =>
+                {
+                    let _ = cursor.next().expect("token disappeared");
+                    lhs = BinOp::new(
+                        op.as_binop().expect("Could not get binary operation."),
+                        lhs,
+                        ShiftExpression::new(self.allow_yield, self.allow_await).parse(cursor)?,
+                    )
+                    .into();
+                }
+                TokenKind::Keyword(op)
+                    if op == Keyword::InstanceOf
+                        || (op == Keyword::In && self.allow_in == AllowIn(true)) =>
+                {
+                    let _ = cursor.next().expect("token disappeared");
+                    lhs = BinOp::new(
+                        op.as_binop().expect("Could not get binary operation."),
+                        lhs,
+                        ShiftExpression::new(self.allow_yield, self.allow_await).parse(cursor)?,
+                    )
+                    .into();
+                }
+                _ => break,
+            }
+        }
+
+        Ok(lhs)
+    }
+}
 
 /// Parses a bitwise shift expression.
 ///

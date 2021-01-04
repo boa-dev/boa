@@ -42,6 +42,10 @@ impl DoWhileLoop {
         self.label.as_ref().map(Box::as_ref)
     }
 
+    pub fn set_label(&mut self, label: Box<str>) {
+        self.label = Some(label);
+    }
+
     /// Creates a `DoWhileLoop` AST node.
     pub fn new<B, C>(body: B, condition: C) -> Self
     where
@@ -68,50 +72,16 @@ impl DoWhileLoop {
 
 impl Executable for DoWhileLoop {
     fn run(&self, context: &mut Context) -> Result<Value> {
-        let mut result = self.body().run(context)?;
-        match context.executor().get_current_state() {
-            InterpreterState::Break(_label) => {
-                // TODO break to label.
-
-                // Loops 'consume' breaks.
-                context
-                    .executor()
-                    .set_current_state(InterpreterState::Executing);
-                return Ok(result);
-            }
-            InterpreterState::Continue(_label) => {
-                // TODO continue to label;
-                context
-                    .executor()
-                    .set_current_state(InterpreterState::Executing);
-                // after breaking out of the block, continue execution of the loop
-            }
-            InterpreterState::Return => {
-                return Ok(result);
-            }
-            InterpreterState::Executing => {
-                // Continue execution.
-            }
-        }
-
-        while self.cond().run(context)?.to_boolean() {
+        let mut result;
+        loop {
             result = self.body().run(context)?;
             match context.executor().get_current_state() {
-                InterpreterState::Break(_label) => {
-                    // TODO break to label.
-
-                    // Loops 'consume' breaks.
-                    context
-                        .executor()
-                        .set_current_state(InterpreterState::Executing);
+                InterpreterState::Break(label) => {
+                    handle_state_with_labels!(self, label, context, break);
                     break;
                 }
-                InterpreterState::Continue(_label) => {
-                    // TODO continue to label.
-                    context
-                        .executor()
-                        .set_current_state(InterpreterState::Executing);
-                    // after breaking out of the block, continue execution of the loop
+                InterpreterState::Continue(label) => {
+                    handle_state_with_labels!(self, label, context, continue);
                 }
                 InterpreterState::Return => {
                     return Ok(result);
@@ -119,6 +89,9 @@ impl Executable for DoWhileLoop {
                 InterpreterState::Executing => {
                     // Continue execution.
                 }
+            }
+            if !self.cond().run(context)?.to_boolean() {
+                break;
             }
         }
         Ok(result)

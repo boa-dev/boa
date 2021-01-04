@@ -10,13 +10,12 @@
     "copy-webpack-plugin": "^7.0.0",
     "css-loader": "^5.0.1",
     "file-loader": "^6.2.0",
-    "html-webpack-plugin": "^4.5.0",
+    "html-webpack-plugin": "^4.5.1",
     "prettier": "2.2.1",
     "style-loader": "^2.0.0",
-    "text-encoding": "^0.7.0",
-    "webpack": "^5.11.0",
-    "webpack-cli": "^4.3.0",
-    "webpack-dev-server": "^3.11.0"
+    "webpack": "^5.11.1",
+    "webpack-cli": "^4.3.1",
+    "webpack-dev-server": "^3.11.1"
   },
   "dependencies": {
     "monaco-editor": "^0.21.2"

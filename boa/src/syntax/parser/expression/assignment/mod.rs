@@ -217,5 +217,6 @@ where
 /// [spec]: https://tc39.es/ecma262/#sec-assignment-operators-static-semantics-early-errors
 #[inline]
 pub(crate) fn is_assignable(node: &Node) -> bool {
-    !matches!(node, Node::Const(_) | Node::ArrayDecl(_))
+    matches!(node, Node::GetConstField(_) | Node::GetField(_) | Node::Assign(_)
+                   | Node::Call(_) | Node::Identifier(_) | Node::Object(_))
 }

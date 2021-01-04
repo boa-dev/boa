@@ -54,7 +54,7 @@ impl AsyncFunctionDecl {
 
     /// Gets the body of the async function declaration.
     pub fn body(&self) -> &[Node] {
-        self.body.statements()
+        self.body.items()
     }
 
     /// Implements the display formatting with indentation.

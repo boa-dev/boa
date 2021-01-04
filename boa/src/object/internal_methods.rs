@@ -71,28 +71,30 @@ impl GcObject {
 
     /// `[[Get]]`
     /// <https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-get-p-receiver>
-    pub fn get(&self, key: &PropertyKey) -> Value {
+    pub fn get(&self, key: &PropertyKey, context: &mut Context) -> Result<Value> {
         match self.get_own_property(key) {
             None => {
                 // parent will either be null or an Object
                 let parent = self.get_prototype_of();
                 if parent.is_null() {
-                    return Value::undefined();
+                    return Ok(Value::undefined());
                 }
 
-                parent.get_field(key.clone())
+                Ok(parent.get_field(key.clone(), context)?)
             }
             Some(ref desc) => match desc {
-                PropertyDescriptor::Data(desc) => desc.value(),
-                // TODO: Add accessors
-                PropertyDescriptor::Accessor(_) => Value::undefined(),
+                PropertyDescriptor::Data(desc) => Ok(desc.value()),
+                PropertyDescriptor::Accessor(AccessorDescriptor { get: Some(get), .. }) => {
+                    get.call(&Value::from(self.clone()), &[], context)
+                }
+                _ => Ok(Value::undefined()),
             },
         }
     }
 
     /// `[[Set]]`
     /// <https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-set-p-v-receiver>
-    pub fn set(&mut self, key: PropertyKey, val: Value) -> bool {
+    pub fn set(&mut self, key: PropertyKey, val: Value, context: &mut Context) -> Result<bool> {
         let _timer = BoaProfiler::global().start_event("Object::set", "object");
 
         // Fetch property key
@@ -113,14 +115,17 @@ impl GcObject {
         match &own_desc {
             PropertyDescriptor::Data(desc) => {
                 if !desc.writable() {
-                    return false;
+                    return Ok(false);
                 }
 
                 let desc = DataDescriptor::new(val, own_desc.attributes()).into();
-                self.define_own_property(key, desc)
+                Ok(self.define_own_property(key, desc))
             }
-            // TODO: Add accessors
-            PropertyDescriptor::Accessor(_) => false,
+            PropertyDescriptor::Accessor(AccessorDescriptor { set: Some(set), .. }) => {
+                set.call(&Value::from(self.clone()), &[val], context)?;
+                Ok(true)
+            }
+            _ => Ok(false),
         }
     }
 
@@ -241,6 +246,7 @@ impl GcObject {
     ///
     /// [spec]: https://tc39.es/ecma262/#table-essential-internal-methods
     #[inline]
+    #[track_caller]
     pub fn own_property_keys(&self) -> Vec<PropertyKey> {
         self.borrow().keys().collect()
     }
@@ -260,7 +266,7 @@ impl GcObject {
         for next_key in keys {
             if let Some(prop_desc) = props.get_own_property(&next_key) {
                 if prop_desc.enumerable() {
-                    let desc_obj = props.get(&next_key);
+                    let desc_obj = props.get(&next_key, context)?;
                     let desc = desc_obj.to_property_descriptor(context)?;
                     descriptors.push((next_key, desc));
                 }
@@ -325,12 +331,14 @@ impl GcObject {
     /// [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-getprototypeof
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/getPrototypeOf
     #[inline]
+    #[track_caller]
     pub fn get_prototype_of(&self) -> Value {
         self.borrow().prototype.clone()
     }
 
     /// Helper function for property insertion.
     #[inline]
+    #[track_caller]
     pub(crate) fn insert<K, P>(&mut self, key: K, property: P) -> Option<PropertyDescriptor>
     where
         K: Into<PropertyKey>,
@@ -341,6 +349,7 @@ impl GcObject {
 
     /// Helper function for property removal.
     #[inline]
+    #[track_caller]
     pub(crate) fn remove(&mut self, key: &PropertyKey) -> Option<PropertyDescriptor> {
         self.borrow_mut().remove(key)
     }

@@ -19,10 +19,11 @@ use crate::{
     property::Attribute,
     property::DataDescriptor,
     property::PropertyDescriptor,
-    value::{same_value, Value},
+    value::{same_value, Type, Value},
     BoaProfiler, Context, Result,
 };
 
+pub mod for_in_iterator;
 #[cfg(test)]
 mod tests;
 
@@ -83,9 +84,7 @@ impl Object {
                 return Ok(arg.to_object(context)?.into());
             }
         }
-        let global = context.global_object();
-
-        Ok(Value::new_object(Some(global)))
+        Ok(Value::new_object(context))
     }
 
     /// `Object.create( proto, [propertiesObject] )`
@@ -244,18 +243,67 @@ impl Object {
     }
 
     /// Get the `prototype` of an object.
-    pub fn get_prototype_of(_: &Value, args: &[Value], _: &mut Context) -> Result<Value> {
-        let obj = args.get(0).expect("Cannot get object");
-        Ok(obj
-            .as_object()
-            .map_or_else(Value::undefined, |object| object.prototype_instance()))
+    pub fn get_prototype_of(_: &Value, args: &[Value], ctx: &mut Context) -> Result<Value> {
+        if args.is_empty() {
+            return ctx.throw_type_error(
+                "Object.getPrototypeOf: At least 1 argument required, but only 0 passed",
+            );
+        }
+
+        // 1. Let obj be ? ToObject(O).
+        let obj = args[0].clone().to_object(ctx)?;
+
+        // 2. Return ? obj.[[GetPrototypeOf]]().
+        Ok(obj.prototype_instance())
     }
 
     /// Set the `prototype` of an object.
-    pub fn set_prototype_of(_: &Value, args: &[Value], _: &mut Context) -> Result<Value> {
-        let obj = args.get(0).expect("Cannot get object").clone();
-        let proto = args.get(1).expect("Cannot get object").clone();
-        obj.as_object().unwrap().set_prototype_instance(proto);
+    ///
+    /// [More information][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-object.setprototypeof
+    pub fn set_prototype_of(_: &Value, args: &[Value], ctx: &mut Context) -> Result<Value> {
+        if args.len() < 2 {
+            return ctx.throw_type_error(format!(
+                "Object.setPrototypeOf: At least 2 arguments required, but only {} passed",
+                args.len()
+            ));
+        }
+
+        // 1. Set O to ? RequireObjectCoercible(O).
+        let obj = args
+            .get(0)
+            .cloned()
+            .unwrap_or_default()
+            .require_object_coercible(ctx)?
+            .clone();
+
+        // 2. If Type(proto) is neither Object nor Null, throw a TypeError exception.
+        let proto = args.get(1).cloned().unwrap_or_default();
+        if !matches!(proto.get_type(), Type::Object | Type::Null) {
+            return ctx.throw_type_error(format!(
+                "expected an object or null, got {}",
+                proto.get_type().as_str()
+            ));
+        }
+
+        // 3. If Type(O) is not Object, return O.
+        if obj.get_type() != Type::Object {
+            return Ok(obj);
+        }
+
+        // 4. Let status be ? O.[[SetPrototypeOf]](proto).
+        let status = obj
+            .as_object()
+            .expect("obj was not an object")
+            .set_prototype_instance(proto);
+
+        // 5. If status is false, throw a TypeError exception.
+        if !status {
+            return ctx.throw_type_error("can't set prototype of this object");
+        }
+
+        // 6. Return O.
         Ok(obj)
     }
 
@@ -289,19 +337,23 @@ impl Object {
 
     /// Define a property in an object
     pub fn define_property(_: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
-        let obj = args.get(0).expect("Cannot get object");
-        let prop = args
-            .get(1)
-            .expect("Cannot get object")
-            .to_property_key(context)?;
+        let object = args.get(0).cloned().unwrap_or_else(Value::undefined);
+        if let Some(mut object) = object.as_object() {
+            let key = args
+                .get(1)
+                .unwrap_or(&Value::undefined())
+                .to_property_key(context)?;
+            let desc = args
+                .get(2)
+                .unwrap_or(&Value::undefined())
+                .to_property_descriptor(context)?;
 
-        let desc = if let Value::Object(ref object) = args.get(2).cloned().unwrap_or_default() {
-            object.to_property_descriptor(context)?
+            object.define_property_or_throw(key, desc, context)?;
+
+            Ok(object.into())
         } else {
-            return context.throw_type_error("Property description must be an object");
-        };
-        obj.set_property(prop, desc);
-        Ok(Value::undefined())
+            context.throw_type_error("Object.defineProperty called on non-object")
+        }
     }
 
     /// `Object.defineProperties( proto, [propertiesObject] )`
@@ -359,7 +411,10 @@ impl Object {
                 }
             };
 
-            let tag = o.get(&context.well_known_symbols().to_string_tag_symbol().into());
+            let tag = o.get(
+                &context.well_known_symbols().to_string_tag_symbol().into(),
+                context,
+            )?;
 
             let tag_str = tag.as_string().map(|s| s.as_str()).unwrap_or(builtin_tag);
 
@@ -379,20 +434,13 @@ impl Object {
     /// [spec]: https://tc39.es/ecma262/#sec-object.prototype.hasownproperty
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/hasOwnProperty
     pub fn has_own_property(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
-        let prop = if args.is_empty() {
-            None
-        } else {
-            Some(args.get(0).expect("Cannot get object").to_string(context)?)
-        };
-        let own_property = this
-            .as_object()
-            .expect("Cannot get THIS object")
-            .get_own_property(&prop.expect("cannot get prop").into());
-        if own_property.is_none() {
-            Ok(Value::from(false))
-        } else {
-            Ok(Value::from(true))
-        }
+        let key = args
+            .get(0)
+            .unwrap_or(&Value::undefined())
+            .to_property_key(context)?;
+        let object = this.to_object(context)?;
+
+        Ok(object.has_own_property(key).into())
     }
 
     pub fn property_is_enumerable(

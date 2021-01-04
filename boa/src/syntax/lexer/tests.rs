@@ -109,7 +109,7 @@ fn check_punctuators() {
     // https://tc39.es/ecma262/#sec-punctuators
     let s = "{ ( ) [ ] . ... ; , < > <= >= == != === !== \
              + - * % -- << >> >>> & | ^ ! ~ && || ? : \
-             = += -= *= &= **= ++ ** <<= >>= >>>= &= |= ^= =>";
+             = += -= *= &= **= ++ ** <<= >>= >>>= &= |= ^= => ?? ??= &&= ||=";
     let mut lexer = Lexer::new(s.as_bytes());
 
     let expected = [
@@ -162,6 +162,10 @@ fn check_punctuators() {
         TokenKind::Punctuator(Punctuator::AssignOr),
         TokenKind::Punctuator(Punctuator::AssignXor),
         TokenKind::Punctuator(Punctuator::Arrow),
+        TokenKind::Punctuator(Punctuator::Coalesce),
+        TokenKind::Punctuator(Punctuator::AssignCoalesce),
+        TokenKind::Punctuator(Punctuator::AssignBoolAnd),
+        TokenKind::Punctuator(Punctuator::AssignBoolOr),
     ];
 
     expect_tokens(&mut lexer, &expected);
@@ -757,6 +761,7 @@ fn illegal_code_point_following_numeric_literal() {
     let mut lexer = Lexer::new(&br#"17.4\u{2764}"#[..]);
     assert!(
         lexer.next().is_err(),
+        "{}",
         r#"IdentifierStart \u{2764} following NumericLiteral not rejected as expected"#
     );
 }
