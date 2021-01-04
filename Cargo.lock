@@ -23,7 +23,6 @@ dependencies = [
  "ryu-js",
  "serde",
  "serde_json",
- "unicode-general-category",
 ]
 
 [[package]]
