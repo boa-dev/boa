@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/getrandom-0.2.0/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings"></script><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="https://www.rust-lang.org/favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../getrandom/index.html'><div class='logo-container'><img src='https://www.rust-lang.org/logos/rust-logo-128x128-blk.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/getrandom-0.2.1/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings"></script><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="https://www.rust-lang.org/favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../getrandom/index.html'><div class='logo-container'><img src='https://www.rust-lang.org/logos/rust-logo-128x128-blk.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
                 <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
@@ -241,16 +241,6 @@
 <span id="240">240</span>
 <span id="241">241</span>
 <span id="242">242</span>
-<span id="243">243</span>
-<span id="244">244</span>
-<span id="245">245</span>
-<span id="246">246</span>
-<span id="247">247</span>
-<span id="248">248</span>
-<span id="249">249</span>
-<span id="250">250</span>
-<span id="251">251</span>
-<span id="252">252</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Copyright 2019 Developers of the Rand project.</span>
 <span class="comment">//</span>
@@ -267,8 +257,7 @@
 <span class="doccomment">//! | Target            | Target Triple      | Implementation</span>
 <span class="doccomment">//! | ----------------- | ------------------ | --------------</span>
 <span class="doccomment">//! | Linux, Android    | `*‑linux‑*`        | [`getrandom`][1] system call if available, otherwise [`/dev/urandom`][2] after successfully polling `/dev/random` |</span>
-<span class="doccomment">//! | Windows           | `*‑pc‑windows‑*`   | [`RtlGenRandom`][3] |</span>
-<span class="doccomment">//! | [Windows UWP][22] | `*‑uwp‑windows‑*`  | [`BCryptGenRandom`][23] |</span>
+<span class="doccomment">//! | Windows           | `*‑windows‑*`      | [`BCryptGenRandom`][3] |</span>
 <span class="doccomment">//! | macOS             | `*‑apple‑darwin`   | [`getentropy()`][19] if available, otherwise [`/dev/random`][20] (identical to `/dev/urandom`)</span>
 <span class="doccomment">//! | iOS               | `*‑apple‑ios`      | [`SecRandomCopyBytes`][4]</span>
 <span class="doccomment">//! | FreeBSD           | `*‑freebsd`        | [`getrandom()`][21] if available, otherwise [`kern.arandom`][5]</span>
@@ -277,8 +266,7 @@
 <span class="doccomment">//! | Dragonfly BSD     | `*‑dragonfly`      | [`/dev/random`][8]</span>
 <span class="doccomment">//! | Solaris, illumos  | `*‑solaris`, `*‑illumos` | [`getrandom()`][9] if available, otherwise [`/dev/random`][10]</span>
 <span class="doccomment">//! | Fuchsia OS        | `*‑fuchsia`        | [`cprng_draw`][11]</span>
-<span class="doccomment">//! | Redox             | `*‑cloudabi`       | [`rand:`][12]</span>
-<span class="doccomment">//! | CloudABI          | `*‑redox`          | [`cloudabi_sys_random_get`][13]</span>
+<span class="doccomment">//! | Redox             | `*‑redox`          | [`rand:`][12]</span>
 <span class="doccomment">//! | Haiku             | `*‑haiku`          | `/dev/random` (identical to `/dev/urandom`)</span>
 <span class="doccomment">//! | SGX               | `x86_64‑*‑sgx`     | [RDRAND][18]</span>
 <span class="doccomment">//! | VxWorks           | `*‑wrs‑vxworks‑*`  | `randABytes` after checking entropy pool initialization with `randSecure`</span>
@@ -323,9 +311,8 @@
 <span class="doccomment">//! that you are building for an environment containing JavaScript, and will</span>
 <span class="doccomment">//! call the appropriate methods. Both web browser (main window and Web Workers)</span>
 <span class="doccomment">//! and Node.js environments are supported, invoking the methods</span>
-<span class="doccomment">//! [described above](#supported-targets). This crate can be built with either</span>
-<span class="doccomment">//! the [wasm-bindgen](https://github.com/rust-lang/rust-bindgen) or</span>
-<span class="doccomment">//! [cargo-web](https://github.com/koute/cargo-web) toolchains.</span>
+<span class="doccomment">//! [described above](#supported-targets) using the</span>
+<span class="doccomment">//! [wasm-bindgen](https://github.com/rust-lang/rust-bindgen) toolchain.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! This feature has no effect on targets other than `wasm32-unknown-unknown`.</span>
 <span class="doccomment">//!</span>
@@ -377,7 +364,7 @@
 <span class="doccomment">//!</span>
 <span class="doccomment">//! [1]: http://man7.org/linux/man-pages/man2/getrandom.2.html</span>
 <span class="doccomment">//! [2]: http://man7.org/linux/man-pages/man4/urandom.4.html</span>
-<span class="doccomment">//! [3]: https://docs.microsoft.com/en-us/windows/desktop/api/ntsecapi/nf-ntsecapi-rtlgenrandom</span>
+<span class="doccomment">//! [3]: https://docs.microsoft.com/en-us/windows/win32/api/bcrypt/nf-bcrypt-bcryptgenrandom</span>
 <span class="doccomment">//! [4]: https://developer.apple.com/documentation/security/1399291-secrandomcopybytes?language=objc</span>
 <span class="doccomment">//! [5]: https://www.freebsd.org/cgi/man.cgi?query=random&amp;sektion=4</span>
 <span class="doccomment">//! [6]: https://man.openbsd.org/getentropy.2</span>
@@ -387,7 +374,6 @@
 <span class="doccomment">//! [10]: https://docs.oracle.com/cd/E86824_01/html/E54777/random-7d.html</span>
 <span class="doccomment">//! [11]: https://fuchsia.dev/fuchsia-src/zircon/syscalls/cprng_draw</span>
 <span class="doccomment">//! [12]: https://github.com/redox-os/randd/blob/master/src/main.rs</span>
-<span class="doccomment">//! [13]: https://github.com/nuxinl/cloudabi#random_get</span>
 <span class="doccomment">//! [14]: https://www.w3.org/TR/WebCryptoAPI/#Crypto-method-getRandomValues</span>
 <span class="doccomment">//! [15]: https://nodejs.org/api/crypto.html#crypto_crypto_randombytes_size_callback</span>
 <span class="doccomment">//! [16]: #webassembly-support</span>
@@ -396,8 +382,6 @@
 <span class="doccomment">//! [19]: https://www.unix.com/man-page/mojave/2/getentropy/</span>
 <span class="doccomment">//! [20]: https://www.unix.com/man-page/mojave/4/random/</span>
 <span class="doccomment">//! [21]: https://www.freebsd.org/cgi/man.cgi?query=getrandom&amp;manpath=FreeBSD+12.0-stable</span>
-<span class="doccomment">//! [22]: https://docs.microsoft.com/en-us/windows/uwp/</span>
-<span class="doccomment">//! [23]: https://docs.microsoft.com/en-us/windows/win32/api/bcrypt/nf-bcrypt-bcryptgenrandom</span>
 
 <span class="attribute">#![<span class="ident">doc</span>(
     <span class="ident">html_logo_url</span> <span class="op">=</span> <span class="string">&quot;https://www.rust-lang.org/logos/rust-logo-128x128-blk.png&quot;</span>,
@@ -406,6 +390,8 @@
 )]</span>
 <span class="attribute">#![<span class="ident">no_std</span>]</span>
 <span class="attribute">#![<span class="ident">warn</span>(<span class="ident">rust_2018_idioms</span>, <span class="ident">unused_lifetimes</span>, <span class="ident">missing_docs</span>)]</span>
+<span class="comment">// `matches!` macro was added only in Rust 1.42, which is bigger than our MSRV</span>
+<span class="attribute">#![<span class="ident">allow</span>(<span class="ident">clippy</span>::<span class="ident">match_like_matches_macro</span>)]</span>
 
 <span class="attribute">#[<span class="ident">macro_use</span>]</span>
 <span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">cfg_if</span>;
@@ -440,8 +426,6 @@
     } <span class="kw">else</span> <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;freebsd&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;netbsd&quot;</span>))]</span> {
         <span class="kw">mod</span> <span class="ident">util_libc</span>;
         <span class="attribute">#[<span class="ident">path</span> <span class="op">=</span> <span class="string">&quot;bsd_arandom.rs&quot;</span>]</span> <span class="kw">mod</span> <span class="ident">imp</span>;
-    } <span class="kw">else</span> <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;cloudabi&quot;</span>)]</span> {
-        <span class="attribute">#[<span class="ident">path</span> <span class="op">=</span> <span class="string">&quot;cloudabi.rs&quot;</span>]</span> <span class="kw">mod</span> <span class="ident">imp</span>;
     } <span class="kw">else</span> <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;fuchsia&quot;</span>)]</span> {
         <span class="attribute">#[<span class="ident">path</span> <span class="op">=</span> <span class="string">&quot;fuchsia.rs&quot;</span>]</span> <span class="kw">mod</span> <span class="ident">imp</span>;
     } <span class="kw">else</span> <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;ios&quot;</span>)]</span> {
@@ -458,8 +442,6 @@
     } <span class="kw">else</span> <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;vxworks&quot;</span>)]</span> {
         <span class="kw">mod</span> <span class="ident">util_libc</span>;
         <span class="attribute">#[<span class="ident">path</span> <span class="op">=</span> <span class="string">&quot;vxworks.rs&quot;</span>]</span> <span class="kw">mod</span> <span class="ident">imp</span>;
-    } <span class="kw">else</span> <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">windows</span>, <span class="ident">target_vendor</span> <span class="op">=</span> <span class="string">&quot;uwp&quot;</span>))]</span> {
-        <span class="attribute">#[<span class="ident">path</span> <span class="op">=</span> <span class="string">&quot;windows_uwp.rs&quot;</span>]</span> <span class="kw">mod</span> <span class="ident">imp</span>;
     } <span class="kw">else</span> <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">windows</span>)]</span> {
         <span class="attribute">#[<span class="ident">path</span> <span class="op">=</span> <span class="string">&quot;windows.rs&quot;</span>]</span> <span class="kw">mod</span> <span class="ident">imp</span>;
     } <span class="kw">else</span> <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;x86_64&quot;</span>, <span class="ident">target_env</span> <span class="op">=</span> <span class="string">&quot;sgx&quot;</span>))]</span> {
@@ -469,9 +451,7 @@
         <span class="attribute">#[<span class="ident">path</span> <span class="op">=</span> <span class="string">&quot;rdrand.rs&quot;</span>]</span> <span class="kw">mod</span> <span class="ident">imp</span>;
     } <span class="kw">else</span> <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;js&quot;</span>,
                         <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;wasm32&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;unknown&quot;</span>))]</span> {
-        <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">cargo_web</span>, <span class="ident">path</span> <span class="op">=</span> <span class="string">&quot;stdweb.rs&quot;</span>)]</span>
-        <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">not</span>(<span class="ident">cargo_web</span>), <span class="ident">path</span> <span class="op">=</span> <span class="string">&quot;wasm-bindgen.rs&quot;</span>)]</span>
-        <span class="kw">mod</span> <span class="ident">imp</span>;
+        <span class="attribute">#[<span class="ident">path</span> <span class="op">=</span> <span class="string">&quot;js.rs&quot;</span>]</span> <span class="kw">mod</span> <span class="ident">imp</span>;
     } <span class="kw">else</span> <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;custom&quot;</span>)]</span> {
         <span class="kw">use</span> <span class="ident">custom</span> <span class="kw">as</span> <span class="ident">imp</span>;
     } <span class="kw">else</span> {
