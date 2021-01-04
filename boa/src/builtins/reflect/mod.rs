@@ -86,7 +86,7 @@ impl Reflect {
             .ok_or_else(|| context.construct_type_error("args list must be an object"))?;
 
         if !target.is_callable() {
-            return Err(context.construct_type_error("target must be a function"));
+            return context.throw_type_error("target must be a function");
         }
         let args = args_list.create_list_from_array_like(&[], context)?;
         target.call(this_arg, &args, context)
@@ -117,7 +117,7 @@ impl Reflect {
         }
 
         if !target.is_constructable() {
-            return Err(context.construct_type_error("target must be a constructor"));
+            return context.throw_type_error("target must be a constructor");
         }
         let args = args_list.create_list_from_array_like(&[], context)?;
         target.construct(&args, context)
@@ -366,7 +366,7 @@ impl Reflect {
             .ok_or_else(|| context.construct_type_error("target must be an object"))?;
         let proto = args.get(1).unwrap_or(&undefined);
         if !proto.is_null() && !proto.is_object() {
-            return Err(context.construct_type_error("proto must be an object or null"));
+            return context.throw_type_error("proto must be an object or null");
         }
         Ok(target.set_prototype_instance(proto.clone()).into())
     }
