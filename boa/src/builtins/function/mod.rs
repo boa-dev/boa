@@ -184,7 +184,7 @@ pub fn create_unmapped_arguments_object(arguments_list: &[Value]) -> Value {
         Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::PERMANENT,
     );
     // Define length as a property
-    obj.define_own_property("length", length.into());
+    obj.ordinary_define_own_property("length", length.into());
     let mut index: usize = 0;
     while index < len {
         let val = arguments_list.get(index).expect("Could not get argument");

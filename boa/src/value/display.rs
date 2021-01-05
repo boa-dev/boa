@@ -124,12 +124,9 @@ pub(crate) fn log_string_from(x: &Value, print_internals: bool, print_children: 
                                 // which are part of the Array
                                 log_string_from(
                                     &v.get_own_property(&i.into())
-                                        // TODO: do this in a better way "unwrap"
-                                        .unwrap()
+                                        .and_then(|p| p.as_data_descriptor().map(|d| d.value()))
                                         // FIXME: handle accessor descriptors
-                                        .as_data_descriptor()
-                                        .unwrap()
-                                        .value(),
+                                        .unwrap_or_default(),
                                     print_internals,
                                     false,
                                 )

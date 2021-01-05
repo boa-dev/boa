@@ -71,21 +71,20 @@ impl GcObject {
 
     /// `[[Get]]`
     /// <https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-get-p-receiver>
-    pub fn get(&self, key: &PropertyKey, context: &mut Context) -> Result<Value> {
+    pub fn get(&self, key: &PropertyKey, receiver: Value, context: &mut Context) -> Result<Value> {
         match self.get_own_property(key) {
             None => {
                 // parent will either be null or an Object
-                let parent = self.get_prototype_of();
-                if parent.is_null() {
-                    return Ok(Value::undefined());
+                if let Some(parent) = self.get_prototype_of().as_object() {
+                    Ok(parent.get(key, receiver, context)?)
+                } else {
+                    Ok(Value::undefined())
                 }
-
-                Ok(parent.get_field(key.clone(), context)?)
             }
             Some(ref desc) => match desc {
                 PropertyDescriptor::Data(desc) => Ok(desc.value()),
                 PropertyDescriptor::Accessor(AccessorDescriptor { get: Some(get), .. }) => {
-                    get.call(&Value::from(self.clone()), &[], context)
+                    get.call(&receiver, &[], context)
                 }
                 _ => Ok(Value::undefined()),
             },
@@ -94,22 +93,22 @@ impl GcObject {
 
     /// `[[Set]]`
     /// <https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-set-p-v-receiver>
-    pub fn set(&mut self, key: PropertyKey, val: Value, context: &mut Context) -> Result<bool> {
+    pub fn set(
+        &mut self,
+        key: PropertyKey,
+        val: Value,
+        receiver: Value,
+        context: &mut Context,
+    ) -> Result<bool> {
         let _timer = BoaProfiler::global().start_event("Object::set", "object");
 
         // Fetch property key
         let own_desc = if let Some(desc) = self.get_own_property(&key) {
             desc
+        } else if let Some(ref mut parent) = self.get_prototype_of().as_object() {
+            return Ok(parent.set(key, val, receiver, context)?);
         } else {
-            let parent = self.get_prototype_of();
-            if !parent.is_null() {
-                // TODO: come back to this
-            }
-            DataDescriptor::new(
-                Value::undefined(),
-                Attribute::WRITABLE | Attribute::ENUMERABLE | Attribute::CONFIGURABLE,
-            )
-            .into()
+            DataDescriptor::new(Value::undefined(), Attribute::all()).into()
         };
 
         match &own_desc {
@@ -117,12 +116,35 @@ impl GcObject {
                 if !desc.writable() {
                     return Ok(false);
                 }
-
-                let desc = DataDescriptor::new(val, own_desc.attributes()).into();
-                Ok(self.define_own_property(key, desc))
+                if let Some(ref mut receiver) = receiver.as_object() {
+                    if let Some(ref existing_desc) = receiver.get_own_property(&key) {
+                        match existing_desc {
+                            PropertyDescriptor::Accessor(_) => Ok(false),
+                            PropertyDescriptor::Data(existing_data_desc) => {
+                                if !existing_data_desc.writable() {
+                                    return Ok(false);
+                                }
+                                receiver.define_own_property(
+                                    key,
+                                    DataDescriptor::new(val, existing_data_desc.attributes())
+                                        .into(),
+                                    context,
+                                )
+                            }
+                        }
+                    } else {
+                        receiver.define_own_property(
+                            key,
+                            DataDescriptor::new(val, Attribute::all()).into(),
+                            context,
+                        )
+                    }
+                } else {
+                    Ok(false)
+                }
             }
             PropertyDescriptor::Accessor(AccessorDescriptor { set: Some(set), .. }) => {
-                set.call(&Value::from(self.clone()), &[val], context)?;
+                set.call(&receiver, &[val], context)?;
                 Ok(true)
             }
             _ => Ok(false),
@@ -135,7 +157,29 @@ impl GcObject {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-defineownproperty-p-desc
-    pub fn define_own_property<K>(&mut self, key: K, desc: PropertyDescriptor) -> bool
+    pub fn define_own_property<K>(
+        &mut self,
+        key: K,
+        desc: PropertyDescriptor,
+        context: &mut Context,
+    ) -> Result<bool>
+    where
+        K: Into<PropertyKey>,
+    {
+        if self.is_array() {
+            self.array_define_own_property(key, desc, context)
+        } else {
+            Ok(self.ordinary_define_own_property(key, desc))
+        }
+    }
+
+    /// Define an own property for an ordinary object.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-ordinarydefineownproperty
+    pub fn ordinary_define_own_property<K>(&mut self, key: K, desc: PropertyDescriptor) -> bool
     where
         K: Into<PropertyKey>,
     {
@@ -217,6 +261,125 @@ impl GcObject {
         true
     }
 
+    /// Define an own property for an array.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-array-exotic-objects-defineownproperty-p-desc
+    fn array_define_own_property<K>(
+        &mut self,
+        key: K,
+        desc: PropertyDescriptor,
+        context: &mut Context,
+    ) -> Result<bool>
+    where
+        K: Into<PropertyKey>,
+    {
+        let key = key.into();
+        match key {
+            PropertyKey::String(ref s) if s == "length" => {
+                match desc {
+                    PropertyDescriptor::Accessor(_) => {
+                        return Ok(self.ordinary_define_own_property("length", desc))
+                    }
+                    PropertyDescriptor::Data(ref d) => {
+                        if d.value().is_undefined() {
+                            return Ok(self.ordinary_define_own_property("length", desc));
+                        }
+                        let new_len = d.value().to_u32(context)?;
+                        let number_len = d.value().to_number(context)?;
+                        #[allow(clippy::float_cmp)]
+                        if new_len as f64 != number_len {
+                            return Err(context.construct_range_error("bad length for array"));
+                        }
+                        let mut new_len_desc =
+                            PropertyDescriptor::Data(DataDescriptor::new(new_len, d.attributes()));
+                        let old_len_desc = self.get_own_property(&"length".into()).unwrap();
+                        let old_len_desc = old_len_desc.as_data_descriptor().unwrap();
+                        let old_len = old_len_desc.value();
+                        if new_len >= old_len.to_u32(context)? {
+                            return Ok(self.ordinary_define_own_property("length", new_len_desc));
+                        }
+                        if !old_len_desc.writable() {
+                            return Ok(false);
+                        }
+                        let new_writable = if new_len_desc.attributes().writable() {
+                            true
+                        } else {
+                            let mut new_attributes = new_len_desc.attributes();
+                            new_attributes.set_writable(true);
+                            new_len_desc = PropertyDescriptor::Data(DataDescriptor::new(
+                                new_len,
+                                new_attributes,
+                            ));
+                            false
+                        };
+                        if !self.ordinary_define_own_property("length", new_len_desc.clone()) {
+                            return Ok(false);
+                        }
+                        let keys_to_delete = {
+                            let obj = self.borrow();
+                            let mut keys = obj
+                                .index_property_keys()
+                                .filter(|&&k| k >= new_len)
+                                .cloned()
+                                .collect::<Vec<_>>();
+                            keys.sort_unstable();
+                            keys
+                        };
+                        for key in keys_to_delete.into_iter().rev() {
+                            if !self.delete(&key.into()) {
+                                let mut new_len_desc_attribute = new_len_desc.attributes();
+                                if !new_writable {
+                                    new_len_desc_attribute.set_writable(false);
+                                }
+                                let new_len_desc = PropertyDescriptor::Data(DataDescriptor::new(
+                                    key + 1,
+                                    new_len_desc_attribute,
+                                ));
+                                self.ordinary_define_own_property("length", new_len_desc);
+                                return Ok(false);
+                            }
+                        }
+                        if !new_writable {
+                            let mut new_desc_attr = new_len_desc.attributes();
+                            new_desc_attr.set_writable(false);
+                            let new_desc = PropertyDescriptor::Data(DataDescriptor::new(
+                                new_len,
+                                new_desc_attr,
+                            ));
+                            self.ordinary_define_own_property("length", new_desc);
+                        }
+                    }
+                }
+                Ok(true)
+            }
+            PropertyKey::Index(index) => {
+                let old_len_desc = self.get_own_property(&"length".into()).unwrap();
+                let old_len_data_desc = old_len_desc.as_data_descriptor().unwrap();
+                let old_len = old_len_data_desc.value().to_u32(context)?;
+                let index = Value::from(index).to_u32(context)?;
+                if index >= old_len && !old_len_data_desc.writable() {
+                    return Ok(false);
+                }
+                if self.ordinary_define_own_property(key, desc) {
+                    if index >= old_len && index < std::u32::MAX {
+                        let desc = PropertyDescriptor::Data(DataDescriptor::new(
+                            index + 1,
+                            old_len_data_desc.attributes(),
+                        ));
+                        self.ordinary_define_own_property("length", desc);
+                    }
+                    Ok(true)
+                } else {
+                    Ok(false)
+                }
+            }
+            _ => Ok(self.ordinary_define_own_property(key, desc)),
+        }
+    }
+
     /// The specification returns a Property Descriptor or Undefined.
     ///
     /// These are 2 separate types and we can't do that here.
@@ -259,23 +422,23 @@ impl GcObject {
     /// [spec]: https://tc39.es/ecma262/#sec-object.defineproperties
     #[inline]
     pub fn define_properties(&mut self, props: Value, context: &mut Context) -> Result<()> {
-        let props = props.to_object(context)?;
+        let props = &props.to_object(context)?;
         let keys = props.own_property_keys();
         let mut descriptors: Vec<(PropertyKey, PropertyDescriptor)> = Vec::new();
 
         for next_key in keys {
             if let Some(prop_desc) = props.get_own_property(&next_key) {
                 if prop_desc.enumerable() {
-                    let desc_obj = props.get(&next_key, context)?;
+                    let desc_obj = props.get(&next_key, props.clone().into(), context)?;
                     let desc = desc_obj.to_property_descriptor(context)?;
                     descriptors.push((next_key, desc));
                 }
             }
         }
 
-        descriptors.into_iter().for_each(|(p, d)| {
-            self.define_own_property(p, d);
-        });
+        for (p, d) in descriptors {
+            self.define_own_property(p, d, context)?;
+        }
 
         Ok(())
     }
@@ -292,34 +455,32 @@ impl GcObject {
     /// [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-setprototypeof-v
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/setPrototypeOf
     #[inline]
-    pub fn set_prototype_of(&mut self, _val: Value) -> bool {
-        // debug_assert!(val.is_object() || val.is_null());
-        // let current = self.prototype.clone();
-        // if same_value(&current, &val) {
-        //     return true;
-        // }
-        // if !self.is_extensible() {
-        //     return false;
-        // }
-        // let mut p = val.clone();
-        // let mut done = false;
-        // while !done {
-        //     if p.is_null() {
-        //         done = true
-        //     } else if same_value(&Value::from(self.clone()), &p) {
-        //         return false;
-        //     } else {
-        //         let prototype = p
-        //             .as_object()
-        //             .expect("prototype should be null or object")
-        //             .prototype
-        //             .clone();
-        //         p = prototype;
-        //     }
-        // }
-        // self.prototype = val;
-        // true
-        todo!("Object.setPropertyOf(obj, prototype)")
+    pub fn set_prototype_of(&mut self, val: Value) -> bool {
+        debug_assert!(val.is_object() || val.is_null());
+        let current = self.get_prototype_of();
+        if same_value(&current, &val) {
+            return true;
+        }
+        if !self.is_extensible() {
+            return false;
+        }
+        let mut p = val.clone();
+        let mut done = false;
+        while !done {
+            if p.is_null() {
+                done = true
+            } else if same_value(&Value::from(self.clone()), &p) {
+                return false;
+            } else {
+                let prototype = p
+                    .as_object()
+                    .expect("prototype should be null or object")
+                    .get_prototype_of();
+                p = prototype;
+            }
+        }
+        self.set_prototype_instance(val);
+        true
     }
 
     /// Returns either the prototype or null
