@@ -359,7 +359,6 @@ impl GcObject {
                 let old_len_desc = self.get_own_property(&"length".into()).unwrap();
                 let old_len_data_desc = old_len_desc.as_data_descriptor().unwrap();
                 let old_len = old_len_data_desc.value().to_u32(context)?;
-                let index = Value::from(index).to_u32(context)?;
                 if index >= old_len && !old_len_data_desc.writable() {
                     return Ok(false);
                 }
